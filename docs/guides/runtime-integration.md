@@ -183,6 +183,8 @@ Use the snapshot hooks for UI:
 - `useGameboardRuntimeSnapshot()` for render/HUD snapshots.
 - `useGameboardPlacementSnapshots()` for editor placement panels.
 - `useGameboardActorSnapshots()` for actor lists and targeting panels.
+- `useGameboardActorsForTile(tileKey)` for hover cards, collision probes, and
+  ECS deltas that need actor metadata for one hex.
 - `useGameboardQuestSnapshots()` for quest logs.
 
 Those hooks subscribe to trait and relation value changes, so moving an existing

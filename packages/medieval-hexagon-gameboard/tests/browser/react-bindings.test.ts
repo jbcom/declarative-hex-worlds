@@ -42,6 +42,7 @@ import {
   useGameboardActor,
   useGameboardActorActions,
   useGameboardActorEntities,
+  useGameboardActorsForTile,
   useGameboardActorSelection,
   useGameboardActorSnapshots,
   useGameboardActorTargetCommand,
@@ -132,6 +133,7 @@ interface ReactBindingReport {
   spawnKeys: readonly string[];
   state?: GameboardStateValue;
   tileCount: number;
+  tileOneOneActorIds: readonly string[];
   tileOneOneInspection: GameboardTileInspection;
   tileZeroCoordinates?: TileCoordinatesValue;
   tileZeroOccupancyIds: readonly string[];
@@ -207,6 +209,7 @@ describe('React bindings browser integration', () => {
       runtimeSnapshotActorIds: [],
       runtimeSnapshotQuestStatuses: [],
       tileCount: 4,
+      tileOneOneActorIds: [],
       tileOneOneInspection: { exists: true, hasActors: false, canEnter: true },
       tileZeroCoordinates: { q: 0, r: 0 },
     });
@@ -295,6 +298,7 @@ describe('React bindings browser integration', () => {
       runtimeSnapshotActorIds: ['react-player'],
       runtimeSnapshotActorCount: 1,
       runtimeSnapshotQuestStatuses: [{ id: 'react-quest', status: 'active' }],
+      tileOneOneActorIds: ['react-player'],
       tileOneOneInspection: {
         exists: true,
         canEnter: true,
@@ -517,6 +521,7 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
   const placementEntities = useGameboardPlacementEntities();
   const actorEntities = useGameboardActorEntities();
   const actorSnapshots = useGameboardActorSnapshots();
+  const tileOneOneActors = useGameboardActorsForTile('1,1');
   const questEntities = useGameboardQuestEntities();
   const questSnapshots = useGameboardQuestSnapshots();
   const patrolAgentEntities = useGameboardPatrolAgentEntities();
@@ -710,6 +715,7 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
     spawnKeys: spawns.map((spawn) => spawn.key),
     state,
     tileCount: tileEntities.length,
+    tileOneOneActorIds: tileOneOneActors.map((snapshot) => snapshot.actor.actorId),
     tileOneOneInspection,
     tileZeroCoordinates,
     tileZeroOccupancyIds: tileZeroOccupancy.map((record) => record.placement.id),

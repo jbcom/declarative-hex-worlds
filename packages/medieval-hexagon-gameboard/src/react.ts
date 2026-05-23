@@ -76,6 +76,7 @@ import {
   inspectGameboardInteractionTarget,
   planGameboardInteractionCommand,
   readGameboardActors,
+  readGameboardActorsForTile,
   selectGameboardActors,
   type GameboardActorSnapshot,
   type GameboardActorSelection,
@@ -494,6 +495,27 @@ export function useGameboardActorSnapshots(): readonly GameboardActorSnapshot[] 
     void actors.length;
     return readGameboardActors(world);
   }, [world, actors, revision]);
+}
+
+/**
+ * Read actor snapshots whose placement origin is one tile.
+ *
+ * Use this when hover panels, tile inspectors, collision probes, or ECS mirrors
+ * need actor kind, team, hostility, tags, and interaction flags for a single
+ * hex without filtering the whole actor list in component code.
+ */
+export function useGameboardActorsForTile(
+  coordinates: HexCoordinates | string
+): readonly GameboardActorSnapshot[] {
+  const world = useWorld();
+  const actors = useGameboardActorEntities();
+  const revision = useGameboardDerivedRevision();
+  const key = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
+  return useMemo(() => {
+    void revision;
+    void actors.length;
+    return readGameboardActorsForTile(world, key);
+  }, [world, key, actors, revision]);
 }
 
 /**

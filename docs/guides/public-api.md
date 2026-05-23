@@ -34,7 +34,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
 | `@jbcom/medieval-hexagon-gameboard/systems` | Game-loop helpers for commands, patrols, movement, quests, and target dispatch. |
 | `@jbcom/medieval-hexagon-gameboard/interop` | Neutral ECS snapshots and adapter mounting for non-Koota engines. |
-| `@jbcom/medieval-hexagon-gameboard/react` | React provider, query hooks, actions, layout/piece previews, runtime snapshots, and runtime-aware UI helpers. |
+| `@jbcom/medieval-hexagon-gameboard/react` | React provider, query hooks, actions, tile-scoped actor/occupancy reads, layout/piece previews, runtime snapshots, and runtime-aware UI helpers. |
 | `@jbcom/medieval-hexagon-gameboard/three` | Asset URL resolution, GLTF loading, transform sync, raycast lookup, and animation clip metadata. |
 
 ## Plan Versus Runtime
