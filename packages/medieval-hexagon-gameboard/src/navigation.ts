@@ -1,3 +1,9 @@
+/**
+ * Terrain-aware navigation for pathfinding, movement ranges, spawn groups, and
+ * patrol-route planning against board plans or runtime-derived state.
+ *
+ * @module
+ */
 import { containsHex, findHexPath, hexDistance, hexKey, neighbors } from './coordinates';
 import type {
   GameboardPlacementKind,

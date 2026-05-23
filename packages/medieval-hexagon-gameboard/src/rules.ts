@@ -1,3 +1,9 @@
+/**
+ * Seeded board and piece-fill rule helpers for deterministic layouts, density
+ * controls, archetype fills, and compatibility-driven generation workflows.
+ *
+ * @module
+ */
 import seedrandom from 'seedrandom';
 import { coloredUnitAssetId, factionBuildingAssetId } from './catalog';
 import {

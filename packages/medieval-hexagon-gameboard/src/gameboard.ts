@@ -1,3 +1,9 @@
+/**
+ * Serializable board-plan primitives for tiles, terrain stacks, roads, rivers,
+ * coasts, placements, deterministic builders, and validation-ready snapshots.
+ *
+ * @module
+ */
 import seedrandom from 'seedrandom';
 import {
   coloredUnitAssetId,

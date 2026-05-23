@@ -1,3 +1,9 @@
+/**
+ * Serializable recipe operations for authored maps, generated boards, editors,
+ * and saved board intent that can be built into validated gameboard plans.
+ *
+ * @module
+ */
 import { createGameboardBuilder, type GameboardBuilder } from './gameboard';
 import type {
   FactionBuildingOptions,

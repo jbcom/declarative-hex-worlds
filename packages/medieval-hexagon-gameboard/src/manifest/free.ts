@@ -1,3 +1,8 @@
+/**
+ * Packaged FREE KayKit Medieval Hexagon manifest exported as typed runtime data.
+ *
+ * @module
+ */
 import type { MedievalHexagonManifest } from '../types';
 
 /**

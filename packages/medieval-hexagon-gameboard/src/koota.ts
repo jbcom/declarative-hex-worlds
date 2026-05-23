@@ -1,3 +1,9 @@
+/**
+ * Koota ECS traits, relations, actions, occupancy guards, and projections that
+ * turn serializable board plans into mutable gameboard runtime state.
+ *
+ * @module
+ */
 import {
   createActions,
   createQuery,

@@ -1,3 +1,9 @@
+/**
+ * Actor helpers for player, NPC, enemy, prop, collision, interaction target,
+ * and actor-aware pathing workflows on a live gameboard runtime.
+ *
+ * @module
+ */
 import {
   createActions,
   createQuery,

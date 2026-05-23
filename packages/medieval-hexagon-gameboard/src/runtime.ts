@@ -1,3 +1,9 @@
+/**
+ * High-level runtime facade that coordinates Koota state, actors, movement,
+ * commands, quests, layout fills, pieces, scenarios, simulation, and interop.
+ *
+ * @module
+ */
 import type { Entity, World } from 'koota';
 import {
   findGameboardActor,

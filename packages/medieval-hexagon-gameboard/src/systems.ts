@@ -1,3 +1,9 @@
+/**
+ * Game-loop systems for commands, patrols, movement, actor targeting, and quest
+ * advancement against a live Koota gameboard world.
+ *
+ * @module
+ */
 import { createActions, type World } from 'koota';
 import {
   executeGameboardInteractionCommand,

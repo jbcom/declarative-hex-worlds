@@ -1,3 +1,9 @@
+/**
+ * Koota-free validation boundaries for gameboard plans, custom declarations,
+ * stack/adjacency rules, recipes, scenarios, and referenced assets.
+ *
+ * @module
+ */
 import { hexKey, neighbor, oppositeEdge } from './coordinates';
 import type { GameboardPlan, GameboardPlacementSpec, GameboardTileSpec } from './gameboard';
 import { getManifestAsset, type ManifestAssetCatalog } from './manifest/schema';

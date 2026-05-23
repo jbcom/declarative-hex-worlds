@@ -1,3 +1,9 @@
+/**
+ * External asset compatibility analysis for KayKit hex fit, facing correction,
+ * placement recommendations, and spawn-option defaults.
+ *
+ * @module
+ */
 import { KAYKIT_HEX_DEPTH, KAYKIT_HEX_GEOMETRY, KAYKIT_HEX_WIDTH } from './grid';
 import type { SpawnGameboardPlacementOptions } from './koota';
 import type { AssetBounds, HexCoordinates, HexEdgeIndex } from './types';

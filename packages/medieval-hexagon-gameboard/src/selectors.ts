@@ -1,3 +1,9 @@
+/**
+ * Guide-derived road, river, coast, edge-mask, rotation, and permutation
+ * selectors for matching KayKit tile variants to board connectivity.
+ *
+ * @module
+ */
 import type { HexEdgeIndex, HexEdgeInput, VariantSelection } from './types';
 
 /** Canonical guide asset variant before rotation and waterless/curvy modifiers. */

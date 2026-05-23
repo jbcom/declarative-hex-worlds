@@ -1,3 +1,9 @@
+/**
+ * Headless scenario simulation scripts and deterministic reports for movement,
+ * patrols, commands, quest progression, and integration-test evidence.
+ *
+ * @module
+ */
 import {
   findGameboardActor,
   inspectGameboardActorTargets,

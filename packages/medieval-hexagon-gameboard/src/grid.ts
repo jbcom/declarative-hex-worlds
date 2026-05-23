@@ -1,3 +1,9 @@
+/**
+ * Honeycomb-grid integration and KayKit flat-top hex geometry helpers for
+ * board grids, world/axial conversion, and spawn location generation.
+ *
+ * @module
+ */
 import { Grid, Orientation, defineHex, rectangle, spiral } from 'honeycomb-grid';
 import {
   findHexPath,

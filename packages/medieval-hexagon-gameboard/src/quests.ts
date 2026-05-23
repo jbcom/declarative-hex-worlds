@@ -1,3 +1,9 @@
+/**
+ * Quest definitions and evaluators for reach, interaction, collision, and
+ * defeat objectives against live actor and placement state.
+ *
+ * @module
+ */
 import {
   createActions,
   createQuery,

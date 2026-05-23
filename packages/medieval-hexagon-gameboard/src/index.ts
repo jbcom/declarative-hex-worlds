@@ -1,3 +1,9 @@
+/**
+ * Root export surface for manifests, board plans, selectors, seeded generation,
+ * Koota runtime helpers, React/Three adapters, and game-loop integration.
+ *
+ * @module
+ */
 export { freeManifest } from './manifest/free';
 export {
   ASSET_CATEGORIES,

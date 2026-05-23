@@ -1,3 +1,9 @@
+/**
+ * Node-side asset ingest utilities for validating FREE/EXTRA source roots,
+ * copying GLTF trees, extracting bounds, and writing generated manifests.
+ *
+ * @module
+ */
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import {

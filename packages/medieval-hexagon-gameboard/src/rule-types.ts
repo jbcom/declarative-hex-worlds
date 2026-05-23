@@ -1,3 +1,9 @@
+/**
+ * Shared rule configuration and violation types used by plan, world, recipe,
+ * scenario, and runtime validation without importing heavier runtime modules.
+ *
+ * @module
+ */
 /** Severity level for validation and rule diagnostics. */
 export type RuleSeverity = 'error' | 'warning';
 

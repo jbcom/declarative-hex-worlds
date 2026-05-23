@@ -1,3 +1,9 @@
+/**
+ * Seeded layout archetypes, placement criteria, site inspection, percentage
+ * fills, scatter mechanics, footprints, and generated placement appenders.
+ *
+ * @module
+ */
 import seedrandom from 'seedrandom';
 import { containsHex, hexDistance, hexKey, hexRange, neighbor, parseHexKey } from './coordinates';
 import { KAYKIT_HEX_DEPTH, KAYKIT_HEX_WIDTH, axialToWorld } from './grid';

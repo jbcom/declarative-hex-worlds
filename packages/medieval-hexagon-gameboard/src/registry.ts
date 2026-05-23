@@ -1,3 +1,9 @@
+/**
+ * Hex tile declaration registry helpers for custom tile packs, adjacency and
+ * stacking rules, KayKit geometry analysis, and plan application.
+ *
+ * @module
+ */
 import type {
   GameboardBuilder,
   GameboardPlacementKind,

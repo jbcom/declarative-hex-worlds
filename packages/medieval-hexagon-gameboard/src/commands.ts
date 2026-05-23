@@ -1,3 +1,9 @@
+/**
+ * Command planning and execution helpers for renderer selections, actor target
+ * commands, command previews, and opt-in gameplay handlers.
+ *
+ * @module
+ */
 import { createActions, type Entity, type World } from 'koota';
 import {
   areGameboardActorsHostile,

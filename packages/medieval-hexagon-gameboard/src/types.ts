@@ -1,4 +1,10 @@
 /**
+ * Shared manifest, edition, category, faction, texture, coordinate, edge, and
+ * world-position types used across every public package surface.
+ *
+ * @module
+ */
+/**
  * Current manifest schema emitted by the ingest CLI and bundled FREE manifest.
  */
 export const MEDIEVAL_HEXAGON_SCHEMA_VERSION = '1.0.0';

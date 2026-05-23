@@ -1,3 +1,9 @@
+/**
+ * KayKit Medieval Hexagon taxonomy constants and asset-id constructors for
+ * tiles, faction buildings, props, nature pieces, texture sets, and units.
+ *
+ * @module
+ */
 import { FACTIONS, TEXTURE_SETS, UNIT_STYLES } from './types';
 import type { Faction, TextureSet, UnitStyle } from './types';
 

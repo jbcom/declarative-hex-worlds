@@ -1,3 +1,9 @@
+/**
+ * Placement footprint and occupancy utilities for inspecting blocked tiles,
+ * multi-hex footprints, and movement blockers without requiring Koota.
+ *
+ * @module
+ */
 import type {
   GameboardPlacementKind,
   GameboardPlacementLayer,

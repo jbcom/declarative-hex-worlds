@@ -1,3 +1,9 @@
+/**
+ * Reusable piece declarations for third-party tiles, buildings, props, units,
+ * landmarks, and scatter assets with placement rules and source metadata.
+ *
+ * @module
+ */
 import type {
   ExternalAssetCompatibilityReport,
 } from './compatibility';

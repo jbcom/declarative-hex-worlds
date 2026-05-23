@@ -1,3 +1,9 @@
+/**
+ * Manifest schema, normalization, lookup, validation, URL resolution, and bundle
+ * helpers for packaged FREE assets plus app-local EXTRA manifests.
+ *
+ * @module
+ */
 import {
   ASSET_CATEGORIES,
   FACTIONS,

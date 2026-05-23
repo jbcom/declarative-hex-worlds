@@ -1,3 +1,9 @@
+/**
+ * Three.js helpers for resolving asset URLs, loading GLTF scenes, syncing
+ * transforms, raycast lookup, and animation clip metadata.
+ *
+ * @module
+ */
 import {
   AnimationMixer,
   MathUtils,

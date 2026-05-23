@@ -1,3 +1,9 @@
+/**
+ * Scenario definitions that combine recipes, actors, spawn groups, patrols,
+ * movement profiles, quests, and world creation for integration tests/games.
+ *
+ * @module
+ */
 import type { Entity, World } from 'koota';
 import {
   readGameboardActors,

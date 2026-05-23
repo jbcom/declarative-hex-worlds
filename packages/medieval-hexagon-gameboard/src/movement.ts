@@ -1,3 +1,9 @@
+/**
+ * Actor movement profiles, movement budgets, path requests, reachable ranges,
+ * queued movement state, and frame-loop movement stepping.
+ *
+ * @module
+ */
 import {
   createActions,
   createQuery,

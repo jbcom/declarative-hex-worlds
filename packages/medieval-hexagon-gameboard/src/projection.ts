@@ -1,3 +1,9 @@
+/**
+ * Koota-to-plan projection helpers that serialize live world state back into
+ * portable gameboard plans for validation, rendering, saves, and interop.
+ *
+ * @module
+ */
 import { isKnownExtraAssetId } from './catalog';
 import { axialToWorld } from './grid';
 import type {

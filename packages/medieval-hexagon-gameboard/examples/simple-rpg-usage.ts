@@ -1,3 +1,9 @@
+/**
+ * End-to-end SimpleRPG usage example that exercises the public API for fixed
+ * and seeded boards, actors, movement, commands, quests, and interop snapshots.
+ *
+ * @module
+ */
 import { createGameboardInteractionHandlerPreset } from '@jbcom/medieval-hexagon-gameboard/commands';
 import { createGameboardScenarioInteropSnapshot } from '@jbcom/medieval-hexagon-gameboard/interop';
 import { selectGameboardSpawnLocations } from '@jbcom/medieval-hexagon-gameboard/navigation';

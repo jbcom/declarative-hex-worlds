@@ -1,3 +1,9 @@
+/**
+ * Axial coordinate utilities for hex keys, neighbors, ranges, rotations,
+ * deterministic coordinate choice, and pathfinding over board-shaped regions.
+ *
+ * @module
+ */
 import seedrandom from 'seedrandom';
 import type { GameboardShape, HexCoordinates, HexEdgeIndex } from './types';
 

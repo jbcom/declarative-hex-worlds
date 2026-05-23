@@ -1,3 +1,9 @@
+/**
+ * Patrol runtime helpers for assigning actors to planned routes and advancing
+ * patrol movement through the same movement system as player/NPC actors.
+ *
+ * @module
+ */
 import {
   createActions,
   createQuery,

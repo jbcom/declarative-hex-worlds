@@ -1,3 +1,9 @@
+/**
+ * Neutral ECS interop snapshots, adjacency/placement relation indexes, and
+ * adapter hooks for engines that do not directly use the Koota runtime.
+ *
+ * @module
+ */
 import { edgeBetween, hexKey, neighbor, parseHexKey } from './coordinates';
 import type { GameboardActorSnapshot } from './actors';
 import {

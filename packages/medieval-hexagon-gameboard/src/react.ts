@@ -1,3 +1,9 @@
+/**
+ * React bindings for Koota-backed gameboard runtimes: provider, query hooks,
+ * actions, selectors, runtime snapshots, and tile-scoped UI helpers.
+ *
+ * @module
+ */
 import {
   createContext,
   createElement,

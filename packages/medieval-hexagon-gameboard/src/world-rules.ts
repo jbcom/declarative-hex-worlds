@@ -1,3 +1,9 @@
+/**
+ * Lightweight runtime predicates and Koota world validation helpers for rule
+ * checks that should not pull in seeded generation or renderer dependencies.
+ *
+ * @module
+ */
 import { hexKey, neighbor } from './coordinates';
 import type { GameboardTerrain, GameboardTileSpec } from './gameboard';
 import { HexTileState, TileElevation, TileTerrain, findTileEntity } from './koota';
