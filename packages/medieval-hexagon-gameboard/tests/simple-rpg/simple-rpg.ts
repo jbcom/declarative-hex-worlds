@@ -2,25 +2,17 @@ import {
   applyTileDeclaration,
   createGameboardBuilder,
   createGameboardPieceRegistry,
+  createGameboardRuntime,
   createGameboardWorld,
   createGameboardActorNavigationProfile,
   createHexTileRegistry,
   createSeededGameboardPlan,
-  executeGameboardInteractionCommand,
   PlacementState,
-  advanceGameboardQuest,
   classifyGameboardPlacement,
   hexDistance,
   projectWorldToGameboardPlan,
-  readGameboardPlacements,
-  removeGameboardPlacement,
-  requestGameboardMovement,
-  runGameboardActorTargetInteraction,
-  runGameboardMovementSystem,
   selectGameboardSpawnLocations,
-  setGameboardMovementAgent,
   spawnGameboardActor,
-  spawnGameboardQuest,
   validateGameboardPlan,
   validateGameboardRules,
   type GameboardQuestDefinition,
@@ -29,6 +21,7 @@ import {
   type GameboardPlan,
   type GameboardPlacementKind,
   type GameboardInteractionCommandExecution,
+  type GameboardRuntime,
   type HexCoordinates,
   type HexTileRegistry,
 } from '@jbcom/medieval-hexagon-gameboard';
@@ -408,30 +401,30 @@ export function createSeededSimpleRpgGame(seed = SIMPLE_RPG_RANDOM_SEED): Simple
 }
 
 export function runSimpleRpgQuestLine(game: SimpleRpgGame): SimpleRpgQuestResult {
+  const runtime = createGameboardRuntime(game.world);
   const player = requireActor(game, game.quest.playerId);
   const firstNpc = requireActor(game, game.quest.firstNpcId);
   const secondNpc = requireActor(game, game.quest.secondNpcId);
   const prop = requireActor(game, game.quest.propId);
   const enemy = requireActor(game, game.quest.enemyId);
   const traversedKeys: string[] = [player.tileKey];
-  const questEntity = spawnGameboardQuest(game.world, simpleRpgQuestDefinition(game));
-  let questSnapshot = advanceGameboardQuest(game.world, questEntity);
+  const questEntity = runtime.spawnQuest(simpleRpgQuestDefinition(game));
+  let questSnapshot = runtime.advanceQuest(questEntity);
 
-  setGameboardMovementAgent(game.world, player.placementId, { profile: 'worker', movementBudget: 40 });
+  runtime.movement.setAgent(player.placementId, { profile: 'worker', movementBudget: 40 });
 
-  const propPath = executeSimpleRpgMove(game, player, prop.tileKey);
-  questSnapshot = advanceGameboardQuest(game.world, questEntity);
+  const propPath = executeSimpleRpgMove(runtime, player, prop.tileKey);
+  questSnapshot = runtime.advanceQuest(questEntity);
   if (propPath.status === 'blocked') {
-    return questResultFromSnapshot(game, traversedKeys, questSnapshot, {
+    return questResultFromSnapshot(runtime, game, traversedKeys, questSnapshot, {
       id: 'registered-prop-passable',
       status: 'blocked',
       detail: propPath.reason ?? `Registered prop ${prop.id} unexpectedly blocked pathing`,
     });
   }
-  drainMovement(game.world, traversedKeys);
+  drainMovement(runtime, traversedKeys);
 
-  const enemyInteraction = runGameboardActorTargetInteraction(
-    game.world,
+  const enemyInteraction = runtime.interactActorTarget(
     {
       sourceActor: player.placementId,
       targetActorId: enemy.id,
@@ -450,7 +443,7 @@ export function runSimpleRpgQuestLine(game: SimpleRpgGame): SimpleRpgQuestResult
     reason: enemyInteraction.reason,
   } satisfies SimpleRpgActorTargetCommandResult;
   if (!enemyCommand || enemyCommand.status !== 'requires-game-handler' || enemyCommand.command.kind !== 'attack-actor') {
-    return questResultFromSnapshot(game, traversedKeys, questSnapshot, {
+    return questResultFromSnapshot(runtime, game, traversedKeys, questSnapshot, {
       id: 'defeat-enemy',
       status: 'blocked',
       detail:
@@ -461,31 +454,31 @@ export function runSimpleRpgQuestLine(game: SimpleRpgGame): SimpleRpgQuestResult
   }
 
   const actorNavigation = () => createGameboardActorNavigationProfile(game.world, player.placementId);
-  const enemyPath = requestGameboardMovement(game.world, player.placementId, enemy.tileKey, {
+  const enemyPath = runtime.movement.requestMove(player.placementId, enemy.tileKey, {
     navigation: actorNavigation(),
   });
-  questSnapshot = advanceGameboardQuest(game.world, questEntity);
+  questSnapshot = runtime.advanceQuest(questEntity);
   if (enemyPath.state.status !== 'blocked') {
-    return questResultFromSnapshot(game, traversedKeys, questSnapshot, {
+    return questResultFromSnapshot(runtime, game, traversedKeys, questSnapshot, {
       id: 'registered-enemy-blocks',
       status: 'blocked',
       detail: 'Enemy tile was expected to be blocked before combat resolution',
     });
   }
 
-  removeGameboardPlacement(game.world, enemy.placementId);
+  runtime.removePlacement(enemy.placementId);
   game.actors.delete(enemy.id);
-  questSnapshot = advanceGameboardQuest(game.world, questEntity);
+  questSnapshot = runtime.advanceQuest(questEntity);
 
-  executeSimpleRpgMove(game, player, firstNpc.tileKey);
-  drainMovement(game.world, traversedKeys);
-  questSnapshot = advanceGameboardQuest(game.world, questEntity);
+  executeSimpleRpgMove(runtime, player, firstNpc.tileKey);
+  drainMovement(runtime, traversedKeys);
+  questSnapshot = runtime.advanceQuest(questEntity);
 
-  executeSimpleRpgMove(game, player, secondNpc.tileKey);
-  drainMovement(game.world, traversedKeys);
-  questSnapshot = advanceGameboardQuest(game.world, questEntity);
+  executeSimpleRpgMove(runtime, player, secondNpc.tileKey);
+  drainMovement(runtime, traversedKeys);
+  questSnapshot = runtime.advanceQuest(questEntity);
 
-  return questResultFromSnapshot(game, traversedKeys, questSnapshot, undefined, enemyTargetCommand);
+  return questResultFromSnapshot(runtime, game, traversedKeys, questSnapshot, undefined, enemyTargetCommand);
 }
 
 export function classifySimpleRpgPlacement(game: SimpleRpgGame, placementId: string): SimpleRpgActorKind | undefined {
@@ -553,9 +546,9 @@ function registerRuntimeActor(
   return actor;
 }
 
-function drainMovement(world: World, traversedKeys: string[]): void {
+function drainMovement(runtime: GameboardRuntime, traversedKeys: string[]): void {
   for (let index = 0; index < 100; index += 1) {
-    const results = runGameboardMovementSystem(world, { steps: 1 });
+    const results = runtime.tick({ patrols: false, movement: { steps: 1 }, quests: false }).movement;
     if (results.length === 0) {
       return;
     }
@@ -572,23 +565,24 @@ function drainMovement(world: World, traversedKeys: string[]): void {
 }
 
 function executeSimpleRpgMove(
-  game: SimpleRpgGame,
+  runtime: GameboardRuntime,
   actor: SimpleRpgActor,
   tileKey: string
 ): GameboardInteractionCommandExecution {
-  return executeGameboardInteractionCommand(game.world, tileKey, {
+  return runtime.executeCommand(tileKey, {
     sourceActor: actor.placementId,
   });
 }
 
 function questResultFromSnapshot(
+  runtime: GameboardRuntime,
   game: SimpleRpgGame,
   traversedKeys: readonly string[],
   quest: GameboardQuestSnapshot,
   override?: SimpleRpgQuestObjective,
   actorTargetCommand?: SimpleRpgActorTargetCommandResult
 ): SimpleRpgQuestResult {
-  const finalTileKey = currentActorTile(game, game.quest.playerId);
+  const finalTileKey = currentActorTile(runtime, game, game.quest.playerId);
   const collisionChecks = questProgressItems(quest, ['registered-prop-passable', 'registered-enemy-blocks'], override);
   const objectives = questProgressItems(quest, ['defeat-enemy', 'speak-first-npc', 'reach-final-npc'], override);
   return {
@@ -601,7 +595,7 @@ function questResultFromSnapshot(
     collisionChecks: [...collisionChecks],
     objectives: [...objectives],
     actorTargetCommand,
-    projectedPlan: projectWorldToGameboardPlan(game.world),
+    projectedPlan: runtime.plan(),
   };
 }
 
@@ -675,9 +669,9 @@ function simpleRpgObjectiveFromProgress(
   };
 }
 
-function currentActorTile(game: SimpleRpgGame, actorId: string): string {
+function currentActorTile(runtime: GameboardRuntime, game: SimpleRpgGame, actorId: string): string {
   const actor = requireActor(game, actorId);
-  const placement = readGameboardPlacements(game.world).find((candidate) => candidate.id === actor.placementId);
+  const placement = runtime.readPlacements().find((candidate) => candidate.id === actor.placementId);
   if (!placement) {
     throw new Error(`Actor ${actorId} placement ${actor.placementId} is missing`);
   }
