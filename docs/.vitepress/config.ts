@@ -7,11 +7,20 @@ export default defineConfig({
   cleanUrls: true,
   themeConfig: {
     nav: [
+      { text: 'Guides', link: '/guides/public-api' },
       { text: 'Pillars', link: '/pillars/00-library-charter' },
       { text: 'API', link: '/api/' },
       { text: 'GitHub', link: 'https://github.com/jbcom/medieval-hexagon-gameboard' },
     ],
     sidebar: [
+      {
+        text: 'Guides',
+        items: [
+          { text: 'Public API Guide', link: '/guides/public-api' },
+          { text: 'Recipes, Scenarios, And Simulation', link: '/guides/recipes-scenarios-and-simulation' },
+          { text: 'Rendering, Assets, And External Packs', link: '/guides/rendering-assets-and-external-packs' },
+        ],
+      },
       {
         text: 'Project Pillars',
         items: [

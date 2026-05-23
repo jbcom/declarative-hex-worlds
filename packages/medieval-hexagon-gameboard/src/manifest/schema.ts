@@ -44,6 +44,9 @@ export type {
   WorldPosition,
 } from '../types';
 
+/**
+ * Attribution metadata applied to generated manifests and NOTICE guidance.
+ */
 export const KAYKIT_ATTRIBUTION = {
   creator: 'Kay Lousberg',
   website: 'https://www.kaylousberg.com',
@@ -51,58 +54,119 @@ export const KAYKIT_ATTRIBUTION = {
   licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
 } as const;
 
+/**
+ * Combined view over one or more edition manifests.
+ */
 export interface MedievalHexagonManifestBundle {
+  /** Bundle schema version. */
   schemaVersion: typeof MEDIEVAL_HEXAGON_SCHEMA_VERSION;
+  /** Normalized source manifests included in the bundle. */
   manifests: readonly MedievalHexagonManifest[];
+  /** Editions present in the bundle. */
   editions: readonly PackEdition[];
+  /** Texture sets present across all manifests. */
   textureSets: readonly TextureSet[];
+  /** Source-pack attribution records. */
   sourcePacks: readonly SourcePackInfo[];
+  /** De-duplicated assets selected according to duplicate preference. */
   assets: readonly MedievalHexagonAsset[];
+  /** De-duplicated asset lookup by id. */
   assetsById: Readonly<Record<string, MedievalHexagonAsset>>;
+  /** Counts derived from de-duplicated assets. */
   counts: MedievalHexagonManifestCounts;
+  /** Asset ids that appeared in more than one manifest. */
   duplicateAssetIds: readonly string[];
 }
 
+/**
+ * Catalog accepted by lookup helpers: either one edition manifest or a combined
+ * FREE/EXTRA bundle.
+ */
 export type ManifestAssetCatalog = MedievalHexagonManifest | MedievalHexagonManifestBundle;
+
+/**
+ * Strategy for resolving duplicate asset ids when combining manifests.
+ */
 export type ManifestDuplicatePreference = 'first' | 'last' | 'free' | 'extra';
 
+/**
+ * Options for `createManifestBundle`.
+ */
 export interface CreateManifestBundleOptions {
+  /** Duplicate resolution strategy. Defaults to `last`. */
   duplicatePreference?: ManifestDuplicatePreference;
 }
 
+/**
+ * Field filters for manifest asset queries.
+ */
 export interface ManifestAssetSelection {
+  /** Match exact asset ids. */
   ids?: readonly string[];
+  /** Match source editions. */
   editions?: readonly PackEdition[];
+  /** Match top-level categories. */
   categories?: readonly AssetCategory[];
+  /** Match category-specific subcategories. */
   subcategories?: readonly string[];
+  /** Match normalized asset families. */
   families?: readonly string[];
+  /** Match faction-colored assets. */
   factions?: readonly Faction[];
+  /** Match unit styles. */
   unitStyles?: readonly UnitStyle[];
+  /** Match texture palettes. */
   textureSets?: readonly TextureSet[];
 }
 
+/**
+ * URL resolution options for manifest assets.
+ */
 export interface ManifestAssetUrlOptions {
+  /** Base URL applied to every model path when no edition-specific base exists. */
   baseUrl?: string | URL;
+  /** Per-edition base URLs, useful when FREE is packaged and EXTRA is local. */
   editionBaseUrls?: Partial<Record<PackEdition, string | URL>>;
 }
 
+/**
+ * Severity emitted by manifest inspection.
+ */
 export type MedievalHexagonManifestIssueSeverity = 'error' | 'warning';
 
+/**
+ * One manifest validation issue.
+ */
 export interface MedievalHexagonManifestIssue {
+  /** Stable issue code for tests and CLI output. */
   code: string;
+  /** Whether the issue blocks a normalized manifest. */
   severity: MedievalHexagonManifestIssueSeverity;
+  /** Human-readable explanation. */
   message: string;
+  /** Optional JSON path. */
   path?: string;
+  /** Optional asset id associated with the issue. */
   assetId?: string;
 }
 
+/**
+ * Result of validating and normalizing a manifest-like object.
+ */
 export interface MedievalHexagonManifestInspection {
+  /** Normalized manifest when no errors were found. */
   manifest?: MedievalHexagonManifest;
+  /** All validation issues. */
   issues: readonly MedievalHexagonManifestIssue[];
+  /** Number of error-severity issues. */
   errorCount: number;
+  /** Number of warning-severity issues. */
   warningCount: number;
 }
 
+/**
+ * Validates an unknown value and returns a normalized manifest when possible.
+ */
 export function inspectMedievalHexagonManifest(input: unknown): MedievalHexagonManifestInspection {
   const issues: MedievalHexagonManifestIssue[] = [];
   if (!isRecord(input)) {
@@ -138,10 +202,17 @@ export function inspectMedievalHexagonManifest(input: unknown): MedievalHexagonM
   return inspectionResult(manifest, issues);
 }
 
+/**
+ * Returns only the validation issues for an unknown manifest-like value.
+ */
 export function validateMedievalHexagonManifest(input: unknown): MedievalHexagonManifestIssue[] {
   return [...inspectMedievalHexagonManifest(input).issues];
 }
 
+/**
+ * Rebuilds manifest indexes, counts, and texture-set ordering from the manifest
+ * asset list.
+ */
 export function normalizeMedievalHexagonManifest(manifest: MedievalHexagonManifest): MedievalHexagonManifest {
   const assets = [...manifest.assets];
   return {
@@ -153,6 +224,9 @@ export function normalizeMedievalHexagonManifest(manifest: MedievalHexagonManife
   };
 }
 
+/**
+ * Combines multiple edition manifests into one lookup catalog.
+ */
 export function createManifestBundle(
   manifests: readonly MedievalHexagonManifest[],
   options: CreateManifestBundleOptions = {}
@@ -191,6 +265,10 @@ export function createManifestBundle(
   };
 }
 
+/**
+ * Selects manifest assets by id, edition, taxonomy, faction, unit style, or
+ * texture set.
+ */
 export function selectManifestAssets(
   catalog: ManifestAssetCatalog,
   selection: ManifestAssetSelection = {}
@@ -224,6 +302,9 @@ export function selectManifestAssets(
   });
 }
 
+/**
+ * Looks up an asset in a manifest or bundle by stable asset id.
+ */
 export function getManifestAsset(
   catalog: ManifestAssetCatalog,
   assetId: string
@@ -231,14 +312,23 @@ export function getManifestAsset(
   return catalog.assetsById[assetId];
 }
 
+/**
+ * Returns true when a manifest or bundle contains the requested asset id.
+ */
 export function hasManifestAsset(catalog: ManifestAssetCatalog, assetId: string): boolean {
   return getManifestAsset(catalog, assetId) !== undefined;
 }
 
+/**
+ * Returns true for any asset that is not supplied by the published FREE edition.
+ */
 export function manifestAssetRequiresExtra(catalog: ManifestAssetCatalog, assetId: string): boolean {
   return getManifestAsset(catalog, assetId)?.edition !== 'free';
 }
 
+/**
+ * Resolves a manifest model path against a base URL.
+ */
 export function resolveManifestAssetUrl(
   asset: MedievalHexagonAsset,
   options: ManifestAssetUrlOptions = {}

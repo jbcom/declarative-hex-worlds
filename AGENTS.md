@@ -9,9 +9,14 @@ contract for CI and npm consumers.
 ## Source Of Truth
 
 - Start with `docs/pillars/`, especially `05-koota-runtime-rules.md`.
+- Use `docs/guides/` for the public API workflow: plan versus runtime, recipes
+  and scenarios, simulation, rendering, manifests, and external pack ingestion.
 - The guide imagery lives in `docs/assets/kaykit-guide/` and is generated from
   `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/Medieval_Hexagon_UserGuide_v1.pdf`.
 - Keep pillar frontmatter current when implementation or tests change.
+- Keep TypeDoc comments useful on exported symbols. Public JSDoc should explain
+  lifecycle, validation, and caller responsibility instead of restating a name.
+- Run `pnpm docs` or `pnpm docs:build` for docs or public API comment changes.
 
 ## Asset Rules
 

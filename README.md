@@ -164,6 +164,24 @@ The package is not just an asset bundle. It provides:
 - Browser screenshot artifact checks that parse saved PNGs after capture and
   fail on undersized, low-variance, or visually flat output.
 
+## Documentation
+
+The docs site is split between durable source-of-truth pillars and task-oriented
+usage guides:
+
+- `docs/pillars/` records the implementation contract, source guide imagery,
+  package editions, asset taxonomy, Koota runtime model, and visual coverage.
+- `docs/guides/public-api.md` explains the public subpaths and when to use a
+  neutral plan, live Koota runtime, manifest bundle, or external ECS bridge.
+- `docs/guides/recipes-scenarios-and-simulation.md` covers recipes, scenarios,
+  generated fills, SimpleRPG-style integration fixtures, and simulation scripts.
+- `docs/guides/rendering-assets-and-external-packs.md` covers packaged FREE
+  assets, local EXTRA ingest, Three.js sync, external compatibility checks, and
+  local-only asset-pack rendering tests.
+
+TypeDoc API output is generated during `pnpm docs` / `pnpm docs:build`; the
+generated `docs/api/` tree is not committed.
+
 ## Development
 
 ```bash

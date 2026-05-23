@@ -2,92 +2,197 @@ import { KAYKIT_HEX_DEPTH, KAYKIT_HEX_GEOMETRY, KAYKIT_HEX_WIDTH } from './grid'
 import type { SpawnGameboardPlacementOptions } from './koota';
 import type { AssetBounds, HexCoordinates, HexEdgeIndex } from './types';
 
+/**
+ * Intended use for an external GLB/GLTF before the compatibility pass evaluates
+ * whether it actually fits KayKit hex geometry.
+ */
 export type ExternalAssetIntendedRole = 'tile' | 'prop' | 'structure' | 'unit';
+
+/**
+ * Role suggested by the compatibility pass after bounds, rig, and requested
+ * role are considered.
+ */
 export type ExternalAssetSuggestedRole = 'tile' | 'prop' | 'unit';
+
+/**
+ * Coarse footprint shape inferred for an external asset.
+ */
 export type ExternalAssetFootprintKind = 'hex' | 'circle' | 'square' | 'rectangle' | 'point';
+
+/**
+ * Model-local forward axis used to align rigged units or directional props to
+ * a board edge.
+ */
 export type ExternalAssetForwardAxis = '+x' | '-x' | '+z' | '-z';
+
+/**
+ * Placement anchor recommendation for external models.
+ */
 export type ExternalAssetAnchor = 'center' | 'bottom-center';
 
+/**
+ * Metadata extracted from, or supplied alongside, one external GLB/GLTF.
+ */
 export interface ExternalAssetCompatibilityInput {
+  /** Stable external asset id. */
   id: string;
+  /** Human-readable source pack name, such as `Kenney Castle Kit`. */
   sourcePack: string;
+  /** Optional creator attribution. */
   creator?: string;
+  /** Optional license label for docs or local reports. */
   license?: string;
+  /** Bounds extracted from model geometry. */
   bounds: AssetBounds;
+  /** How the caller hoped to use the asset before fit analysis. */
   intendedRole?: ExternalAssetIntendedRole;
+  /** Whether the model has a skin/armature. */
   hasRig?: boolean;
+  /** Animation clip names discovered in the model. */
   animationNames?: readonly string[];
+  /** Material slot names discovered in the model. */
   materialSlots?: readonly string[];
+  /** Model-local forward axis for facing correction. */
   modelForward?: ExternalAssetForwardAxis;
+  /** Desired board edge the model should face after placement. */
   boardForwardEdge?: HexEdgeIndex;
 }
 
+/**
+ * KayKit tile-footprint fit measurements for an external model.
+ */
 export interface ExternalAssetTileCompatibility {
+  /** True when width/depth ratio and scale are close enough for a KayKit tile. */
   compatible: boolean;
+  /** Uniform board width divided by model width. */
   widthScale: number;
+  /** Uniform board depth divided by model depth. */
   depthScale: number;
+  /** Smaller of width/depth scale, useful for safe prop scaling. */
   uniformScale: number;
+  /** Model width/depth ratio. */
   aspectRatio: number;
+  /** KayKit tile width/depth ratio. */
   expectedAspectRatio: number;
+  /** Absolute ratio difference. */
   aspectRatioDelta: number;
+  /** Relative difference between width and depth scale. */
   scaleMismatch: number;
 }
 
+/**
+ * Placement metadata a game can apply when registering the external asset as a
+ * custom gameboard piece or runtime placement.
+ */
 export interface ExternalAssetPlacementRecommendation {
+  /** Suggested high-level role. */
   role: ExternalAssetSuggestedRole;
+  /** Gameboard placement kind to use. */
   kind: 'prop' | 'structure' | 'unit' | 'terrain';
+  /** Gameboard render/collision layer to use. */
   layer: 'feature' | 'structure' | 'unit' | 'terrain';
+  /** Inferred footprint family. */
   footprint: ExternalAssetFootprintKind;
+  /** Recommended uniform scale. */
   scale: number;
+  /** Vertical offset to place the model on top of the hex surface. */
   elevationOffset: number;
+  /** 60-degree rotation steps needed for best facing alignment. */
   rotationSteps: number;
+  /** Rotation in radians equivalent to `rotationSteps`. */
   rotationRadians: number;
+  /** Remaining angle error after hex-step rotation. */
   facingErrorRadians: number;
+  /** Whether the placement should block actor movement by default. */
   blocksMovement: boolean;
+  /** Anchor point the recommendation assumes. */
   anchor: ExternalAssetAnchor;
+  /** Model-local forward axis used for this recommendation. */
   modelForward: ExternalAssetForwardAxis;
+  /** Board edge the model is intended to face. */
   boardForwardEdge: HexEdgeIndex;
+  /** Animation recommendation when embedded clips are present. */
   animation?: {
+    /** Where clips were discovered. */
     source: 'embedded' | 'external';
+    /** Available clip names. */
     clips: readonly string[];
+    /** Preferred default clip for idle/walk presentation. */
     defaultClip?: string;
+    /** Whether the clip should loop by default. */
     loop: boolean;
   };
 }
 
+/**
+ * Input for hex-edge facing correction.
+ */
 export interface ExternalAssetFacingOptions {
+  /** Model-local forward axis. Defaults to `+z`. */
   modelForward?: ExternalAssetForwardAxis;
+  /** Board edge the model should face. Defaults to edge `1`. */
   boardForwardEdge?: HexEdgeIndex;
 }
 
+/**
+ * Facing correction expressed in both hex rotation steps and radians.
+ */
 export interface ExternalAssetFacingRecommendation {
+  /** Model-local forward axis used for the calculation. */
   modelForward: ExternalAssetForwardAxis;
+  /** Target board edge after placement. */
   boardForwardEdge: HexEdgeIndex;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps: number;
+  /** Rotation in radians. */
   rotationRadians: number;
+  /** Remaining angle error after quantizing to hex steps. */
   facingErrorRadians: number;
 }
 
+/**
+ * Complete compatibility report for one external asset.
+ */
 export interface ExternalAssetCompatibilityReport {
+  /** Stable external asset id. */
   id: string;
+  /** Source pack label. */
   sourcePack: string;
+  /** Whether the model can act as a KayKit-shaped tile without overrides. */
   compatibleAsTile: boolean;
+  /** Tile-fit measurements. */
   tile: ExternalAssetTileCompatibility;
+  /** Suggested role after analysis. */
   suggestedRole: ExternalAssetSuggestedRole;
+  /** Placement metadata suitable for custom piece registration. */
   placement: ExternalAssetPlacementRecommendation;
+  /** Non-fatal issues a build tool or editor should show. */
   warnings: readonly string[];
+  /** Fatal issues that make placement unsafe. */
   errors: readonly string[];
 }
 
+/**
+ * Input for converting a compatibility report into runtime spawn options.
+ */
 export interface ExternalAssetSpawnOptionsInput {
+  /** Optional placement id. */
   id?: string;
+  /** Target tile for the placement. */
   at: HexCoordinates | string;
+  /** Asset id used by the host app or local source URL map. */
   assetId: string;
+  /** Compatibility report produced for the asset. */
   report: ExternalAssetCompatibilityReport;
+  /** Optional model URL, often a Vite `@fs` URL in local tests. */
   sourceUrl?: string;
+  /** Optional source pack override for metadata. */
   sourcePack?: string;
+  /** Optional rotation override. */
   rotationSteps?: number;
+  /** Optional scale override. */
   scale?: number;
+  /** Extra metadata merged after compatibility metadata. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
 }
 
@@ -96,6 +201,11 @@ const TILE_SCALE_TOLERANCE = 0.08;
 const PROP_FIT_RATIO = 0.72;
 const UNIT_FIT_WIDTH = 0.72;
 
+/**
+ * Evaluates an external GLB/GLTF against KayKit hex dimensions and returns the
+ * placement role, scale, facing, animation, warning, and error data needed for
+ * local piece registration.
+ */
 export function analyzeExternalAssetCompatibility(
   input: ExternalAssetCompatibilityInput
 ): ExternalAssetCompatibilityReport {
@@ -143,6 +253,10 @@ export function analyzeExternalAssetCompatibility(
   };
 }
 
+/**
+ * Converts an external compatibility report into `spawnGameboardPlacement`
+ * options, preserving local-only metadata and marking the placement as EXTRA.
+ */
 export function externalAssetSpawnOptions(input: ExternalAssetSpawnOptionsInput): SpawnGameboardPlacementOptions {
   const placement = input.report.placement;
   return {
@@ -171,6 +285,9 @@ export function externalAssetSpawnOptions(input: ExternalAssetSpawnOptionsInput)
   };
 }
 
+/**
+ * Computes the nearest hex-step yaw correction for a model-local forward axis.
+ */
 export function recommendExternalAssetFacing(
   options: ExternalAssetFacingOptions = {}
 ): ExternalAssetFacingRecommendation {

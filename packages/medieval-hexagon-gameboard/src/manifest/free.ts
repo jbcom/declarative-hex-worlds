@@ -1,5 +1,9 @@
 import type { MedievalHexagonManifest } from '../types';
 
+/**
+ * Normalized manifest for the FREE KayKit Medieval Hexagon assets bundled in
+ * the npm package.
+ */
 export const freeManifest: MedievalHexagonManifest = {
   "schemaVersion": "1.0.0",
   "generatedAt": "2026-05-22T00:00:00.000Z",

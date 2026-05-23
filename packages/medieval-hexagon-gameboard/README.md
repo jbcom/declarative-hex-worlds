@@ -22,6 +22,25 @@ The published package targets Node 22+ for CLI, ingest, examples, and release
 verification. Browser/runtime consumers can still tree-shake renderer-specific
 subpaths and only install the optional peers they use.
 
+## Documentation
+
+Use the package README for code examples and the docs site for the architectural
+contract:
+
+- `docs/guides/public-api.md` maps the public subpaths to runtime, rendering,
+  manifest, recipe, scenario, simulation, and interop responsibilities.
+- `docs/guides/recipes-scenarios-and-simulation.md` explains how saved recipes,
+  generated fills, scenarios, SimpleRPG fixtures, and simulation scripts fit
+  together.
+- `docs/guides/rendering-assets-and-external-packs.md` covers FREE asset URLs,
+  local EXTRA manifests, Three.js sync helpers, and third-party compatibility
+  scans.
+- `docs/pillars/` remains the source of truth for asset taxonomy, tile
+  connectivity, editions, visual verification, and Koota runtime rules.
+
+The generated TypeDoc API reference is rebuilt by `pnpm docs` and
+`pnpm docs:build`.
+
 ## Install
 
 ```bash

@@ -18,90 +18,175 @@ import {
 } from './manifest/schema';
 import type { HexCoordinates, MedievalHexagonAsset, VariantSelection, WorldPosition } from './types';
 
+/**
+ * Render transform for a placement or tile in Three.js coordinates.
+ */
 export interface AssetTransform {
+  /** World-space position for the object origin. */
   position: WorldPosition;
+  /** Y-axis rotation in radians. */
   rotationY: number;
+  /** Uniform object scale. */
   scale: number;
 }
 
+/**
+ * URL resolution inputs for gameboard placement models.
+ */
 export interface GameboardPlacementAssetUrlOptions extends ManifestAssetUrlOptions {
+  /** Manifest or manifest bundle used for packaged FREE/EXTRA asset ids. */
   catalog?: ManifestAssetCatalog;
+  /** Explicit asset-id-to-URL overrides, useful for local-only Vite `@fs` assets. */
   assetUrls?: Readonly<Record<string, string>>;
+  /** Last-chance resolver for app-specific asset stores. */
   fallback?: (placement: GameboardPlacementSpec) => string | undefined;
 }
 
+/**
+ * Function that maps a placement to a model URL.
+ */
 export type GameboardPlacementAssetUrlResolver = (placement: GameboardPlacementSpec) => string | undefined;
 
+/**
+ * URL resolution inputs for external animation clips.
+ */
 export interface GameboardPlacementAnimationUrlOptions {
+  /** Explicit asset-id-to-animation-URL map. */
   animationUrls?: Readonly<Record<string, string>>;
+  /** App-specific animation URL resolver. */
   animationUrlResolver?: (placement: GameboardPlacementSpec) => string | undefined;
 }
 
+/**
+ * Minimal GLTF loader result shape used by the renderer helpers.
+ */
 export interface GameboardGltfLike {
+  /** Root Three.js scene/object loaded from GLTF. */
   scene: Object3D;
+  /** Animation clips embedded in the GLTF. */
   animations?: readonly AnimationClip[];
 }
 
+/**
+ * Minimal async loader contract compatible with `GLTFLoader`.
+ */
 export interface GameboardGltfLoader {
+  /** Loads a GLTF/GLB URL and returns the scene plus optional clips. */
   loadAsync(url: string): Promise<GameboardGltfLike>;
 }
 
+/**
+ * Options for loading one placement object.
+ */
 export interface LoadGameboardPlacementObjectOptions
   extends GameboardPlacementAssetUrlOptions,
     GameboardPlacementAnimationUrlOptions {
+  /** GLTF-compatible async loader. */
   loader: GameboardGltfLoader;
+  /** Optional clip name override. Defaults to placement metadata when present. */
   clipName?: string;
+  /** Whether to start the selected animation immediately. Defaults to true. */
   playAnimation?: boolean;
 }
 
+/**
+ * Loaded Three.js object plus gameboard metadata and animation state.
+ */
 export interface LoadedGameboardPlacementObject {
+  /** Placement id this object represents. */
   placementId: string;
+  /** Asset id this object was loaded from. */
   assetId: string;
+  /** Three.js object added to the scene. */
   object: Object3D;
+  /** Resolved model URL. */
   modelUrl: string;
+  /** Resolved animation URL, when separate from the model. */
   animationUrl?: string;
+  /** Last transform applied to the object. */
   transform: AssetTransform;
+  /** Available animation clips from model and optional animation source. */
   clips: readonly AnimationClip[];
+  /** Selected active clip. */
   activeClip?: AnimationClip;
+  /** Animation mixer bound to the loaded object. */
   mixer?: AnimationMixer;
+  /** Action created for the active clip. */
   animationAction?: AnimationAction;
 }
 
+/**
+ * User-data payload attached to rendered objects for picking and interaction.
+ */
 export interface GameboardObjectUserData {
+  /** Placement id represented by this object. */
   placementId: string;
+  /** Origin tile key. */
   tileKey: string;
+  /** Source asset id. */
   assetId: string;
+  /** Placement kind from the gameboard plan. */
   kind: GameboardPlacementSpec['kind'];
+  /** Placement layer from the gameboard plan. */
   layer: GameboardPlacementSpec['layer'];
+  /** Whether this object depends on local EXTRA or external assets. */
   requiresExtra: boolean;
+  /** Actor id when the placement represents a runtime actor. */
   actorId?: string;
+  /** Actor kind when supplied by placement metadata. */
   actorKind?: string;
+  /** Source pack label for external pieces. */
   sourcePack?: string;
 }
 
+/**
+ * Options for reconciling a Three.js scene with a placement list.
+ */
 export interface GameboardPlacementObjectSyncOptions
   extends LoadGameboardPlacementObjectOptions {
+  /** Parent object to receive loaded placement objects. */
   parent?: Object3D;
+  /** Mutable cache keyed by placement id. */
   records?: Map<string, LoadedGameboardPlacementObject>;
+  /** Remove cached objects that no longer appear in the placement list. */
   removeStale?: boolean;
+  /** Optional animation delta to advance during this sync pass. */
   deltaSeconds?: number;
+  /** Per-placement clip-name resolver. */
   clipNameResolver?: (placement: GameboardPlacementSpec) => string | undefined;
+  /** Rethrow load errors instead of collecting them in the result. */
   throwOnError?: boolean;
 }
 
+/**
+ * Load/sync error for a specific placement.
+ */
 export interface GameboardPlacementObjectSyncError {
+  /** Placement that failed to load or sync. */
   placement: GameboardPlacementSpec;
+  /** Original error value. */
   error: unknown;
 }
 
+/**
+ * Result of a placement-object sync pass.
+ */
 export interface GameboardPlacementObjectSyncResult {
+  /** Final mutable cache keyed by placement id. */
   records: Map<string, LoadedGameboardPlacementObject>;
+  /** Objects loaded during this pass. */
   loaded: readonly LoadedGameboardPlacementObject[];
+  /** Existing objects updated in place during this pass. */
   updated: readonly LoadedGameboardPlacementObject[];
+  /** Objects removed during this pass. */
   removed: readonly LoadedGameboardPlacementObject[];
+  /** Non-fatal load errors collected during this pass. */
   errors: readonly GameboardPlacementObjectSyncError[];
 }
 
+/**
+ * Resolves a manifest asset's model path with an optional base URL.
+ */
 export function resolveAssetUrl(asset: MedievalHexagonAsset, baseUrl?: string | URL): string {
   if (!baseUrl) {
     return asset.modelPath;
@@ -109,6 +194,10 @@ export function resolveAssetUrl(asset: MedievalHexagonAsset, baseUrl?: string | 
   return new URL(asset.modelPath, baseUrl).toString();
 }
 
+/**
+ * Resolves the model URL for a placement from explicit maps, placement
+ * metadata, a manifest catalog, or a fallback resolver.
+ */
 export function resolveGameboardPlacementAssetUrl(
   placement: GameboardPlacementSpec,
   options: GameboardPlacementAssetUrlOptions = {}
@@ -128,12 +217,19 @@ export function resolveGameboardPlacementAssetUrl(
   return options.fallback?.(placement);
 }
 
+/**
+ * Creates a reusable placement-to-model URL resolver.
+ */
 export function createGameboardPlacementAssetUrlResolver(
   options: GameboardPlacementAssetUrlOptions = {}
 ): GameboardPlacementAssetUrlResolver {
   return (placement) => resolveGameboardPlacementAssetUrl(placement, options);
 }
 
+/**
+ * Resolves a separate animation URL for a placement when the model does not
+ * carry the desired clips.
+ */
 export function resolveGameboardPlacementAnimationUrl(
   placement: GameboardPlacementSpec,
   options: GameboardPlacementAnimationUrlOptions = {}
@@ -149,6 +245,10 @@ export function resolveGameboardPlacementAnimationUrl(
   return options.animationUrlResolver?.(placement);
 }
 
+/**
+ * Loads one placement model, applies the placement transform, tags user data,
+ * and prepares optional animation playback.
+ */
 export async function loadGameboardPlacementObject(
   placement: GameboardPlacementSpec,
   options: LoadGameboardPlacementObjectOptions
@@ -186,6 +286,13 @@ export async function loadGameboardPlacementObject(
   };
 }
 
+/**
+ * Reconciles a Three.js object cache with the current placement list.
+ *
+ * Existing records are updated in place, changed asset URLs are reloaded, stale
+ * records are removed by default, and load failures are returned unless
+ * `throwOnError` is set.
+ */
 export async function syncGameboardPlacementObjects(
   placements: readonly GameboardPlacementSpec[],
   options: GameboardPlacementObjectSyncOptions
@@ -268,6 +375,10 @@ export async function syncGameboardPlacementObjects(
   };
 }
 
+/**
+ * Updates one loaded object to match the current placement transform and user
+ * data.
+ */
 export function syncGameboardPlacementObject(
   loaded: LoadedGameboardPlacementObject,
   placement: GameboardPlacementSpec,
@@ -284,6 +395,9 @@ export function syncGameboardPlacementObject(
   return loaded;
 }
 
+/**
+ * Attaches gameboard picking metadata to a Three.js object.
+ */
 export function tagGameboardPlacementObject(
   object: Object3D,
   placement: GameboardPlacementSpec,
@@ -299,10 +413,16 @@ export function tagGameboardPlacementObject(
   return object;
 }
 
+/**
+ * Reads gameboard user data directly attached to an object.
+ */
 export function readGameboardPlacementObjectUserData(object: Object3D): GameboardObjectUserData | undefined {
   return isGameboardObjectUserData(object.userData.gameboardPlacement) ? object.userData.gameboardPlacement : undefined;
 }
 
+/**
+ * Walks up the parent chain to find gameboard user data for a picked object.
+ */
 export function findGameboardPlacementObjectUserData(object: Object3D): GameboardObjectUserData | undefined {
   let current: Object3D | null = object;
   while (current) {
@@ -315,6 +435,9 @@ export function findGameboardPlacementObjectUserData(object: Object3D): Gameboar
   return undefined;
 }
 
+/**
+ * Resolves a picked object back to the loaded placement record cache.
+ */
 export function findLoadedGameboardPlacementObjectForObject(
   object: Object3D,
   records: ReadonlyMap<string, LoadedGameboardPlacementObject>
@@ -323,6 +446,10 @@ export function findLoadedGameboardPlacementObjectForObject(
   return data ? records.get(data.placementId) : undefined;
 }
 
+/**
+ * Converts picked Three.js object metadata into an actor/placement/tile target
+ * for command and interaction helpers.
+ */
 export function gameboardInteractionTargetForObject(object: Object3D): GameboardInteractionTargetInput | undefined {
   const data = findGameboardPlacementObjectUserData(object);
   if (!data) {
@@ -335,6 +462,9 @@ export function gameboardInteractionTargetForObject(object: Object3D): Gameboard
   };
 }
 
+/**
+ * Advances the animation mixer for one loaded placement object.
+ */
 export function updateGameboardPlacementAnimation(
   loaded: Pick<LoadedGameboardPlacementObject, 'mixer'>,
   deltaSeconds: number
@@ -342,6 +472,10 @@ export function updateGameboardPlacementAnimation(
   loaded.mixer?.update(deltaSeconds);
 }
 
+/**
+ * Creates a transform from axial coordinates, optional elevation, and optional
+ * placement offset.
+ */
 export function transformForHex(
   coordinates: HexCoordinates,
   options: { elevation?: number; positionOffset?: GameboardPlacementPositionOffset; rotationY?: number; scale?: number } = {}
@@ -358,6 +492,10 @@ export function transformForHex(
   };
 }
 
+/**
+ * Creates a transform from axial coordinates and a selected road/river/coast
+ * variant rotation.
+ */
 export function transformForVariant(
   coordinates: HexCoordinates,
   variant: VariantSelection,
@@ -371,6 +509,9 @@ export function transformForVariant(
   });
 }
 
+/**
+ * Converts a serialized placement into a Three.js transform.
+ */
 export function transformForPlacement(placement: GameboardPlacementSpec): AssetTransform {
   return {
     position: { ...placement.position },
@@ -379,6 +520,9 @@ export function transformForPlacement(placement: GameboardPlacementSpec): AssetT
   };
 }
 
+/**
+ * Applies a gameboard transform to a Three.js object.
+ */
 export function applyTransform(object: Object3D, transform: AssetTransform): Object3D {
   object.position.set(transform.position.x, transform.position.y, transform.position.z);
   object.rotation.set(0, transform.rotationY, 0);
@@ -386,6 +530,9 @@ export function applyTransform(object: Object3D, transform: AssetTransform): Obj
   return object;
 }
 
+/**
+ * Places an object directly on a board hex without creating a placement record.
+ */
 export function placeObjectOnHex(
   object: Object3D,
   coordinates: HexCoordinates,
@@ -394,6 +541,9 @@ export function placeObjectOnHex(
   return applyTransform(object, transformForHex(coordinates, options));
 }
 
+/**
+ * Returns a camera-friendly offset for framing one manifest asset preview.
+ */
 export function frameObjectPosition(asset: MedievalHexagonAsset, margin = 1.7): Vector3 {
   const maxDimension = Math.max(asset.bounds.size[0], asset.bounds.size[1], asset.bounds.size[2], 1);
   const distance = MathUtils.clamp(maxDimension * margin, 2.5, 8);
