@@ -49,6 +49,7 @@ try {
           '@jbcom/medieval-hexagon-gameboard': `file:${tarballPath}`,
           '@types/react': '^19.0.0',
           react: '^19.0.0',
+          three: '^0.180.0',
         },
       },
       null,
@@ -155,6 +156,7 @@ import {
   inspectMedievalHexagonManifest,
   type MedievalHexagonManifestInspection,
 } from '@jbcom/medieval-hexagon-gameboard/manifest/schema';
+import { freeManifest as typedFreeManifest } from '@jbcom/medieval-hexagon-gameboard/manifest/free';
 import {
   GAMEBOARD_LAYOUT_ARCHETYPES,
   analyzeGameboardLayoutFill,
@@ -221,6 +223,110 @@ import {
   type ValidateSourceResult,
   type WriteManifestModuleOptions,
 } from '@jbcom/medieval-hexagon-gameboard/ingest';
+import {
+  readGameboardActors as readGameboardActorsFromActors,
+  type GameboardActorKind as GameboardActorKindFromActors,
+  type GameboardActorSnapshot as GameboardActorSnapshotFromActors,
+} from '@jbcom/medieval-hexagon-gameboard/actors';
+import {
+  GAMEBOARD_SCHEMA_VERSION,
+  createGameboardBuilder as createGameboardBuilderFromGameboard,
+  type GameboardPlacementSpec as GameboardPlacementSpecFromGameboard,
+} from '@jbcom/medieval-hexagon-gameboard/gameboard';
+import {
+  FACTION_BUILDING_KINDS,
+  NATURE_ASSET_IDS,
+  factionBuildingAssetId,
+  flagAssetId,
+  type FactionBuildingKind as FactionBuildingKindFromCatalog,
+} from '@jbcom/medieval-hexagon-gameboard/catalog';
+import {
+  findHexPath,
+  hexKey as hexKeyFromCoordinates,
+  parseHexKey,
+  type HexPathResult as HexPathResultFromCoordinates,
+} from '@jbcom/medieval-hexagon-gameboard/coordinates';
+import {
+  analyzeExternalAssetCompatibility,
+  externalAssetSpawnOptions,
+  recommendExternalAssetFacing,
+  type ExternalAssetCompatibilityReport,
+  type ExternalAssetSpawnOptionsInput,
+} from '@jbcom/medieval-hexagon-gameboard/compatibility';
+import {
+  readGameboardPlacements as readGameboardPlacementsFromKoota,
+  type GameboardSnapshot as GameboardSnapshotFromKoota,
+  type PlacementStateValue as PlacementStateValueFromKoota,
+} from '@jbcom/medieval-hexagon-gameboard/koota';
+import {
+  gameboardMovementActions as gameboardMovementActionsFromMovement,
+  GAMEBOARD_MOVEMENT_PROFILES,
+  type GameboardMovementStatus as GameboardMovementStatusFromMovement,
+} from '@jbcom/medieval-hexagon-gameboard/movement';
+import {
+  gameboardPatrolActions as gameboardPatrolActionsFromPatrol,
+  type GameboardPatrolStatus as GameboardPatrolStatusFromPatrol,
+} from '@jbcom/medieval-hexagon-gameboard/patrol';
+import {
+  GAMEBOARD_QUEST_SCHEMA_VERSION,
+  readGameboardQuests as readGameboardQuestsFromQuests,
+  type GameboardQuestStatus as GameboardQuestStatusFromQuests,
+} from '@jbcom/medieval-hexagon-gameboard/quests';
+import {
+  projectWorldToGameboardPlan,
+  readValidationGameboardPlanFromWorld,
+} from '@jbcom/medieval-hexagon-gameboard/projection';
+import {
+  GAMEBOARD_RECIPE_SCHEMA_VERSION,
+  createGameboardRecipe as createGameboardRecipeFromRecipe,
+  type GameboardRecipe as GameboardRecipeFromRecipe,
+} from '@jbcom/medieval-hexagon-gameboard/recipe';
+import {
+  KAYKIT_HEX_WIDTH,
+  createGameboardCoordinateSystem,
+  type SpawnLocation as SpawnLocationFromGrid,
+} from '@jbcom/medieval-hexagon-gameboard/grid';
+import {
+  createGameboardInteropSnapshot as createGameboardInteropSnapshotFromInterop,
+  type GameboardInteropSnapshot as GameboardInteropSnapshotFromInterop,
+} from '@jbcom/medieval-hexagon-gameboard/interop';
+import {
+  analyzeHexTileRegistry,
+  createHexTileRegistry,
+  createHexTileRegistryFromManifest,
+  declareHexTile,
+  type TileRegistryAnalysis,
+} from '@jbcom/medieval-hexagon-gameboard/registry';
+import type {
+  GameboardRuleConfig as GameboardRuleConfigFromRuleTypes,
+  RuleSeverity as RuleSeverityFromRuleTypes,
+} from '@jbcom/medieval-hexagon-gameboard/rule-types';
+import {
+  HEX_EDGE_COUNT,
+  edgeMask,
+  selectRoadVariant,
+  type GuideTilePermutation as GuideTilePermutationFromSelectors,
+} from '@jbcom/medieval-hexagon-gameboard/selectors';
+import {
+  runGameboardSystems as runGameboardSystemsFromSystems,
+  type GameboardSystemEventRecord as GameboardSystemEventRecordFromSystems,
+} from '@jbcom/medieval-hexagon-gameboard/systems';
+import {
+  canStackAt,
+  validateGameboardRules,
+} from '@jbcom/medieval-hexagon-gameboard/world-rules';
+import {
+  MEDIEVAL_HEXAGON_SCHEMA_VERSION,
+  PACK_EDITIONS,
+  TEXTURE_SETS,
+  type HexCoordinates as HexCoordinatesFromTypes,
+  type MedievalHexagonManifest as MedievalHexagonManifestFromTypes,
+} from '@jbcom/medieval-hexagon-gameboard/types';
+import {
+  createGameboardPlacementAssetUrlResolver,
+  transformForHex,
+  type GameboardPlacementAssetUrlResolver,
+} from '@jbcom/medieval-hexagon-gameboard/three';
 
 const plan: GameboardPlan = createSeededGameboardPlan({
   seed: 'packed-consumer-types',
@@ -341,6 +447,109 @@ const snapshotIndex: GameboardInteropSnapshotIndex = createGameboardInteropSnaps
 const occupancyRecord: GameboardPlacementOccupancyRecord | undefined = selectGameboardInteropRelations(snapshotIndex, { name: 'PlacementOccupiesTile' })[0]?.data as GameboardPlacementOccupancyRecord | undefined;
 const footprintKeys: string[] = gameboardPlacementFootprintKeys(plan.placements[0]!);
 const world = createGameboardWorld(plan);
+const actorKindFromActors: GameboardActorKindFromActors = 'npc';
+const actorSnapshotsFromActors: readonly GameboardActorSnapshotFromActors[] = readGameboardActorsFromActors(world);
+const gameboardSchemaVersionFromGameboard: string = GAMEBOARD_SCHEMA_VERSION;
+const gameboardBuilderFromGameboard = createGameboardBuilderFromGameboard({
+  seed: 'packed-consumer-gameboard-subpath',
+  shape: { kind: 'rectangle', width: 1, height: 1 },
+});
+const placementFromGameboard: GameboardPlacementSpecFromGameboard | undefined = plan.placements[0];
+const factionBuildingKindFromCatalog: FactionBuildingKindFromCatalog = FACTION_BUILDING_KINDS[0]!;
+const factionBuildingAssetFromCatalog: string = factionBuildingAssetId(factionBuildingKindFromCatalog, 'blue');
+const flagAssetFromCatalog: string = flagAssetId('green');
+const natureAssetFromCatalog: string = NATURE_ASSET_IDS[0]!;
+const hexKeyFromCoordinatesResult: string = hexKeyFromCoordinates({ q: 0, r: 0 });
+const parsedHexFromCoordinates: HexCoordinatesFromTypes = parseHexKey(hexKeyFromCoordinatesResult);
+const hexPathFromCoordinates: HexPathResultFromCoordinates = findHexPath({ q: 0, r: 0 }, { q: 1, r: 0 });
+const compatibilityReportFromCompatibility: ExternalAssetCompatibilityReport = analyzeExternalAssetCompatibility({
+  id: 'packed-consumer-castle-wall',
+  sourcePack: 'Packed Consumer Fixtures',
+  bounds: { min: [-0.5, 0, -0.5], max: [0.5, 1, 0.5], size: [1, 1, 1] },
+  intendedRole: 'tile',
+});
+const compatibilitySpawnInputFromCompatibility: ExternalAssetSpawnOptionsInput = {
+  at: '0,0',
+  assetId: 'packed-consumer-castle-wall',
+  report: compatibilityReportFromCompatibility,
+};
+const compatibilitySpawnOptionsFromCompatibility = externalAssetSpawnOptions(compatibilitySpawnInputFromCompatibility);
+const compatibilityFacingFromCompatibility = recommendExternalAssetFacing({ modelForward: '+z', boardForwardEdge: 1 });
+const kootaPlacementsFromKoota: readonly PlacementStateValueFromKoota[] = readGameboardPlacementsFromKoota(world);
+const kootaSnapshotFromKoota: GameboardSnapshotFromKoota = {
+  board: undefined,
+  tiles: [],
+  placements: [],
+};
+const movementStatusFromMovement: GameboardMovementStatusFromMovement = 'idle';
+const movementActionsFromMovement = gameboardMovementActionsFromMovement(world);
+const movementProfileFromMovement = GAMEBOARD_MOVEMENT_PROFILES.ground;
+const patrolStatusFromPatrol: GameboardPatrolStatusFromPatrol = 'idle';
+const patrolActionsFromPatrol = gameboardPatrolActionsFromPatrol(world);
+const questSchemaVersionFromQuests: string = GAMEBOARD_QUEST_SCHEMA_VERSION;
+const questStatusFromQuests: GameboardQuestStatusFromQuests = 'active';
+const questSnapshotsFromQuests = readGameboardQuestsFromQuests(world);
+const projectedPlanFromProjection: GameboardPlan = projectWorldToGameboardPlan(world);
+const validationPlanFromProjection: GameboardPlan = readValidationGameboardPlanFromWorld(world);
+const recipeSchemaVersionFromRecipe: string = GAMEBOARD_RECIPE_SCHEMA_VERSION;
+const recipeFromRecipe: GameboardRecipeFromRecipe = createGameboardRecipeFromRecipe(
+  { seed: 'packed-consumer-recipe-subpath', shape: { kind: 'rectangle', width: 1, height: 1 } },
+  []
+);
+const coordinateSystemFromGrid = createGameboardCoordinateSystem();
+const kaykitWidthFromGrid: number = KAYKIT_HEX_WIDTH;
+const spawnLocationsFromGrid: readonly SpawnLocationFromGrid[] = coordinateSystemFromGrid.spawnLocations({
+  shape: { kind: 'rectangle', width: 1, height: 1 },
+  count: 1,
+});
+const interopSnapshotFromInterop: GameboardInteropSnapshotFromInterop =
+  createGameboardInteropSnapshotFromInterop(plan);
+const declaredHexTileFromRegistry = declareHexTile({
+  id: 'packed-consumer-registered-grass',
+  assetId: 'hex_grass',
+  role: 'base',
+  terrain: 'grass',
+});
+const hexTileRegistryFromRegistry = createHexTileRegistry([
+  { id: 'packed-consumer-registered-grass', assetId: 'hex_grass', role: 'base', terrain: 'grass' },
+]);
+const manifestTileRegistryFromRegistry = createHexTileRegistryFromManifest(typedFreeManifest);
+const tileRegistryAnalysisFromRegistry: TileRegistryAnalysis = analyzeHexTileRegistry(hexTileRegistryFromRegistry);
+const ruleConfigFromRuleTypes: GameboardRuleConfigFromRuleTypes = { requireReciprocalRoads: false };
+const ruleSeverityFromRuleTypes: RuleSeverityFromRuleTypes = 'warning';
+const edgeMaskFromSelectors: number = edgeMask([0, 3]);
+const selectedRoadFromSelectors = selectRoadVariant([0, 3]);
+const guidePermutationFromSelectors: GuideTilePermutationFromSelectors = {
+  id: 'packed-consumer-road-A',
+  kind: 'road',
+  family: selectedRoadFromSelectors.family,
+  label: selectedRoadFromSelectors.label,
+  assetId: selectedRoadFromSelectors.assetId,
+  inputMask: edgeMaskFromSelectors,
+  canonicalMask: selectedRoadFromSelectors.canonicalMask,
+  rotationSteps: selectedRoadFromSelectors.rotationSteps,
+  rotationRadians: selectedRoadFromSelectors.rotationRadians,
+  waterless: false,
+  curvy: false,
+};
+const systemResultFromSystems = runGameboardSystemsFromSystems(world, {
+  movement: false,
+  patrols: false,
+  quests: false,
+});
+const systemEventsFromSystems: readonly GameboardSystemEventRecordFromSystems[] = systemResultFromSystems.eventRecords;
+const ruleViolationsFromWorldRules = validateGameboardRules(world, ruleConfigFromRuleTypes);
+const canStackFromWorldRules: boolean = canStackAt(world, '0,0', 0);
+const medievalSchemaFromTypes: string = MEDIEVAL_HEXAGON_SCHEMA_VERSION;
+const packedEditionsFromTypes: readonly string[] = PACK_EDITIONS;
+const textureSetsFromTypes: readonly string[] = TEXTURE_SETS;
+const manifestFromTypes: MedievalHexagonManifestFromTypes = typedFreeManifest;
+const placementAssetUrlResolverFromThree: GameboardPlacementAssetUrlResolver =
+  createGameboardPlacementAssetUrlResolver({ catalog: typedFreeManifest, baseUrl: 'https://example.test/pkg/' });
+const placementAssetUrlFromThree = placementFromGameboard
+  ? placementAssetUrlResolverFromThree(placementFromGameboard)
+  : undefined;
+const transformFromThree = transformForHex(parsedHexFromCoordinates);
 const runtime = createGameboardRuntime(
   createGameboardBuilder({
     seed: 'packed-consumer-runtime-types',
@@ -560,6 +769,55 @@ const handlerPresetCount: number = GAMEBOARD_INTERACTION_HANDLER_PRESETS.length;
 const handlerCount: number = createGameboardInteractionHandlerPreset(handlerPreset).length;
 const handlerPresetIsValid: boolean = isGameboardInteractionHandlerPreset(handlerPreset);
 
+void actorKindFromActors;
+void actorSnapshotsFromActors;
+void canStackFromWorldRules;
+void compatibilityFacingFromCompatibility;
+void compatibilityReportFromCompatibility;
+void compatibilitySpawnOptionsFromCompatibility;
+void coordinateSystemFromGrid;
+void declaredHexTileFromRegistry;
+void edgeMaskFromSelectors;
+void factionBuildingAssetFromCatalog;
+void factionBuildingKindFromCatalog;
+void flagAssetFromCatalog;
+void gameboardBuilderFromGameboard;
+void gameboardSchemaVersionFromGameboard;
+void guidePermutationFromSelectors;
+void hexKeyFromCoordinatesResult;
+void hexPathFromCoordinates;
+void interopSnapshotFromInterop;
+void kaykitWidthFromGrid;
+void kootaPlacementsFromKoota;
+void kootaSnapshotFromKoota;
+void manifestFromTypes;
+void manifestTileRegistryFromRegistry;
+void medievalSchemaFromTypes;
+void movementActionsFromMovement;
+void movementProfileFromMovement;
+void movementStatusFromMovement;
+void natureAssetFromCatalog;
+void packedEditionsFromTypes;
+void patrolActionsFromPatrol;
+void patrolStatusFromPatrol;
+void placementAssetUrlFromThree;
+void projectedPlanFromProjection;
+void questSchemaVersionFromQuests;
+void questSnapshotsFromQuests;
+void questStatusFromQuests;
+void recipeFromRecipe;
+void recipeSchemaVersionFromRecipe;
+void ruleSeverityFromRuleTypes;
+void ruleViolationsFromWorldRules;
+void selectedRoadFromSelectors;
+void spawnLocationsFromGrid;
+void systemEventsFromSystems;
+void systemResultFromSystems;
+void textureSetsFromTypes;
+void tileRegistryAnalysisFromRegistry;
+void transformFromThree;
+void validationPlanFromProjection;
+void HEX_EDGE_COUNT;
 void GAMEBOARD_LAYOUT_ARCHETYPES.harbor;
 void typedArchetype;
 void typedArchetypes;
@@ -758,6 +1016,75 @@ import {
   validateSourceRoot,
 } from '@jbcom/medieval-hexagon-gameboard/ingest';
 import { validateGameboardPlan } from '@jbcom/medieval-hexagon-gameboard/validation';
+import { readGameboardActors as readGameboardActorsFromActors } from '@jbcom/medieval-hexagon-gameboard/actors';
+import {
+  GAMEBOARD_SCHEMA_VERSION,
+  createGameboardBuilder as createGameboardBuilderFromGameboard,
+} from '@jbcom/medieval-hexagon-gameboard/gameboard';
+import {
+  FACTION_BUILDING_KINDS,
+  NATURE_ASSET_IDS,
+  factionBuildingAssetId,
+  flagAssetId,
+} from '@jbcom/medieval-hexagon-gameboard/catalog';
+import {
+  findHexPath,
+  hexKey as hexKeyFromCoordinates,
+  parseHexKey,
+} from '@jbcom/medieval-hexagon-gameboard/coordinates';
+import {
+  analyzeExternalAssetCompatibility,
+  externalAssetSpawnOptions,
+  recommendExternalAssetFacing,
+} from '@jbcom/medieval-hexagon-gameboard/compatibility';
+import { readGameboardPlacements as readGameboardPlacementsFromKoota } from '@jbcom/medieval-hexagon-gameboard/koota';
+import {
+  GAMEBOARD_MOVEMENT_PROFILES,
+  gameboardMovementActions as gameboardMovementActionsFromMovement,
+} from '@jbcom/medieval-hexagon-gameboard/movement';
+import { gameboardPatrolActions as gameboardPatrolActionsFromPatrol } from '@jbcom/medieval-hexagon-gameboard/patrol';
+import {
+  GAMEBOARD_QUEST_SCHEMA_VERSION,
+  readGameboardQuests as readGameboardQuestsFromQuests,
+} from '@jbcom/medieval-hexagon-gameboard/quests';
+import {
+  projectWorldToGameboardPlan,
+  readValidationGameboardPlanFromWorld,
+} from '@jbcom/medieval-hexagon-gameboard/projection';
+import {
+  GAMEBOARD_RECIPE_SCHEMA_VERSION,
+  createGameboardRecipe as createGameboardRecipeFromRecipe,
+} from '@jbcom/medieval-hexagon-gameboard/recipe';
+import {
+  KAYKIT_HEX_WIDTH,
+  createGameboardCoordinateSystem,
+} from '@jbcom/medieval-hexagon-gameboard/grid';
+import { createGameboardInteropSnapshot as createGameboardInteropSnapshotFromInterop } from '@jbcom/medieval-hexagon-gameboard/interop';
+import {
+  analyzeHexTileRegistry,
+  createHexTileRegistry,
+  createHexTileRegistryFromManifest,
+  declareHexTile,
+} from '@jbcom/medieval-hexagon-gameboard/registry';
+import {
+  HEX_EDGE_COUNT,
+  edgeMask,
+  selectRoadVariant,
+} from '@jbcom/medieval-hexagon-gameboard/selectors';
+import { runGameboardSystems as runGameboardSystemsFromSystems } from '@jbcom/medieval-hexagon-gameboard/systems';
+import {
+  canStackAt,
+  validateGameboardRules,
+} from '@jbcom/medieval-hexagon-gameboard/world-rules';
+import {
+  MEDIEVAL_HEXAGON_SCHEMA_VERSION,
+  PACK_EDITIONS,
+  TEXTURE_SETS,
+} from '@jbcom/medieval-hexagon-gameboard/types';
+import {
+  createGameboardPlacementAssetUrlResolver,
+  transformForHex,
+} from '@jbcom/medieval-hexagon-gameboard/three';
 
 const assetManifestModule = await import('@jbcom/medieval-hexagon-gameboard/assets/free/manifest.json', {
   with: { type: 'json' },
@@ -765,6 +1092,7 @@ const assetManifestModule = await import('@jbcom/medieval-hexagon-gameboard/asse
 const scenarioModule = await import('@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json', {
   with: { type: 'json' },
 });
+const ruleTypesModule = await import('@jbcom/medieval-hexagon-gameboard/rule-types');
 const manifestInspection = inspectMedievalHexagonManifest(assetManifestModule.default);
 if (manifestInspection.errorCount !== 0 || manifestInspection.warningCount !== 0) {
   throw new Error(\`packed FREE manifest inspection failed: \${JSON.stringify(manifestInspection.issues)}\`);
@@ -799,6 +1127,106 @@ const navigation = createGameboardNavigation(plan, {
 });
 if (!navigation.canEnter('0,0')) {
   throw new Error('packed consumer navigation could not enter origin tile');
+}
+const subpathWorld = createGameboardWorld(plan);
+const subpathProjectedPlan = projectWorldToGameboardPlan(subpathWorld);
+const subpathValidationPlan = readValidationGameboardPlanFromWorld(subpathWorld);
+const subpathInteropSnapshot = createGameboardInteropSnapshotFromInterop(plan);
+const subpathCoordinateSystem = createGameboardCoordinateSystem();
+const subpathSpawnLocations = subpathCoordinateSystem.spawnLocations({
+  shape: { kind: 'rectangle', width: 2, height: 1 },
+  count: 1,
+  seed: 'packed-consumer-subpath-spawns',
+});
+const subpathDeclaredHexTile = declareHexTile({
+  id: 'packed-consumer-subpath-grass',
+  assetId: 'hex_grass',
+  role: 'base',
+  terrain: 'grass',
+});
+const subpathTileRegistry = createHexTileRegistry([
+  { id: 'packed-consumer-subpath-grass', assetId: 'hex_grass', role: 'base', terrain: 'grass' },
+]);
+const subpathManifestTileRegistry = createHexTileRegistryFromManifest(assetManifestModule.default);
+const subpathRegistryAnalysis = analyzeHexTileRegistry(subpathTileRegistry);
+const subpathCompatibilityReport = analyzeExternalAssetCompatibility({
+  id: 'packed-consumer-kenney-square-tower',
+  sourcePack: 'Packed Consumer Fixtures',
+  bounds: { min: [-0.5, 0, -0.5], max: [0.5, 2, 0.5], size: [1, 2, 1] },
+  intendedRole: 'tile',
+  hasRig: false,
+});
+const subpathCompatibilitySpawn = externalAssetSpawnOptions({
+  at: '0,0',
+  assetId: 'packed-consumer-kenney-square-tower',
+  report: subpathCompatibilityReport,
+  sourceUrl: '/fixtures/kenney-square-tower.glb',
+});
+const subpathFacing = recommendExternalAssetFacing({ modelForward: '+z', boardForwardEdge: 1 });
+const subpathPlacementUrlResolver = createGameboardPlacementAssetUrlResolver({
+  catalog: assetManifestModule.default,
+  baseUrl: 'https://example.test/pkg/',
+});
+const subpathPlacementUrl = subpathPlacementUrlResolver(plan.placements[0]);
+const subpathHexKey = hexKeyFromCoordinates({ q: 1, r: 0 });
+const subpathParsedHex = parseHexKey(subpathHexKey);
+const subpathPath = findHexPath({ q: 0, r: 0 }, { q: 1, r: 0 });
+const subpathTransform = transformForHex(subpathParsedHex);
+const subpathSystemsResult = runGameboardSystemsFromSystems(subpathWorld, {
+  movement: false,
+  patrols: false,
+  quests: false,
+});
+const subpathRuleErrors = validateGameboardRules(subpathWorld).filter((violation) => violation.severity === 'error');
+if (
+  typeof ruleTypesModule !== 'object' ||
+  GAMEBOARD_SCHEMA_VERSION !== '1.0.0' ||
+  GAMEBOARD_QUEST_SCHEMA_VERSION !== '1.0.0' ||
+  GAMEBOARD_RECIPE_SCHEMA_VERSION !== '1.0.0' ||
+  MEDIEVAL_HEXAGON_SCHEMA_VERSION !== '1.0.0' ||
+  !PACK_EDITIONS.includes('free') ||
+  !TEXTURE_SETS.includes('winter') ||
+  createGameboardBuilderFromGameboard({ seed: 'packed-consumer-gameboard-subpath', shape: { kind: 'rectangle', width: 1, height: 1 } }).build().schemaVersion !== GAMEBOARD_SCHEMA_VERSION ||
+  createGameboardRecipeFromRecipe(
+    { seed: 'packed-consumer-recipe-subpath', shape: { kind: 'rectangle', width: 1, height: 1 } },
+    []
+  ).schemaVersion !== GAMEBOARD_RECIPE_SCHEMA_VERSION ||
+  FACTION_BUILDING_KINDS.length < 1 ||
+  factionBuildingAssetId(FACTION_BUILDING_KINDS[0], 'blue') !== 'building_archeryrange_blue' ||
+  flagAssetId('green') !== 'flag_green' ||
+  NATURE_ASSET_IDS.length < 1 ||
+  subpathHexKey !== '1,0' ||
+  subpathParsedHex.q !== 1 ||
+  !subpathPath.found ||
+  readGameboardActorsFromActors(subpathWorld).length !== 0 ||
+  readGameboardPlacementsFromKoota(subpathWorld).length !== plan.placements.length ||
+  GAMEBOARD_MOVEMENT_PROFILES.ground.id !== 'ground' ||
+  typeof gameboardMovementActionsFromMovement(subpathWorld).runSystem !== 'function' ||
+  gameboardPatrolActionsFromPatrol(subpathWorld).read().length !== 0 ||
+  readGameboardQuestsFromQuests(subpathWorld).length !== 0 ||
+  subpathProjectedPlan.tiles.length !== plan.tiles.length ||
+  subpathValidationPlan.placements.length !== plan.placements.length ||
+  subpathCoordinateSystem.toWorld({ q: 1, r: 0 }).x !== KAYKIT_HEX_WIDTH ||
+  subpathSpawnLocations[0]?.key !== '0,0' ||
+  subpathDeclaredHexTile.assetId !== 'hex_grass' ||
+  subpathInteropSnapshot.entities.length < plan.tiles.length ||
+  subpathRegistryAnalysis.tileCount !== 1 ||
+  subpathManifestTileRegistry.declarations.length < 1 ||
+  subpathCompatibilityReport.suggestedRole !== 'prop' ||
+  subpathCompatibilityReport.warnings.length < 1 ||
+  subpathCompatibilitySpawn.requiresExtra !== true ||
+  subpathCompatibilitySpawn.kind !== 'prop' ||
+  subpathFacing.rotationSteps !== 1 ||
+  HEX_EDGE_COUNT !== 6 ||
+  edgeMask([0, 3]) <= 0 ||
+  selectRoadVariant([0, 3]).assetId !== 'hex_road_A' ||
+  subpathSystemsResult.eventRecords.length !== 0 ||
+  subpathRuleErrors.length !== 0 ||
+  typeof canStackAt(subpathWorld, '0,0', 0) !== 'boolean' ||
+  !subpathPlacementUrl?.includes('https://example.test/pkg/assets/free/') ||
+  subpathTransform.position.x !== KAYKIT_HEX_WIDTH
+) {
+  throw new Error('packed public subpath imports failed');
 }
 const runtimePlan = createGameboardBuilder({
   seed: 'packed-consumer-runtime',
