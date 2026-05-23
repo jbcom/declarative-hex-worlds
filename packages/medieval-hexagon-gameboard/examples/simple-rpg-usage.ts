@@ -15,32 +15,64 @@ import {
 import scenarioJson from './simple-rpg-scenario.json';
 import simulationScriptJson from './simple-rpg-simulation.script.json';
 
+/**
+ * Compact verification summary returned by the packaged SimpleRPG example.
+ *
+ * The example intentionally uses the published public subpaths and packaged JSON
+ * files so downstream apps can copy the flow as an integration smoke test.
+ */
 export interface SimpleRpgUsageSummary {
+  /** Scenario id loaded from the packaged SimpleRPG JSON fixture. */
   readonly scenarioId: string;
+  /** Count of scenario validation errors before runtime creation. */
   readonly validationErrorCount: number;
+  /** Spawn group ids resolved from the scenario. */
   readonly scenarioSpawnGroupIds: readonly string[];
+  /** Spawn location ids assigned to scenario spawn groups. */
   readonly scenarioSpawnLocationIds: readonly string[];
+  /** Number of route checks proving scenario spawn groups can reach each other. */
   readonly scenarioSpawnRouteCount: number;
+  /** Patrol route ids resolved from the scenario. */
   readonly scenarioPatrolRouteIds: readonly string[];
+  /** Total patrol waypoint count across scenario patrol routes. */
   readonly scenarioPatrolWaypointCount: number;
+  /** Deterministic ad hoc spawn ids selected from the runtime plan. */
   readonly spawnLocationIds: readonly string[];
+  /** Entity count in the neutral scenario interop snapshot. */
   readonly interopEntityCount: number;
+  /** Relation count in the neutral scenario interop snapshot. */
   readonly interopRelationCount: number;
+  /** Whether the packaged simulation script satisfied all expectations. */
   readonly simulationSucceeded: boolean;
+  /** Distinct system event types emitted by the simulation report. */
   readonly eventTypes: readonly string[];
+  /** Number of actor-target scan records captured by the simulation report. */
   readonly actorTargetRecordCount: number;
+  /** Number of actor-target scan steps executed by the simulation report. */
   readonly actorTargetScanCount: number;
+  /** Distinct target actor ids discovered by actor-target scans. */
   readonly actorTargetTargetIds: readonly string[];
+  /** Distinct target actor ids that were reachable by actor-aware pathing. */
   readonly reachableActorTargetIds: readonly string[];
+  /** Nearest actor target selected by the first actor-target scan. */
   readonly nearestActorTargetId?: string;
+  /** Distinct command kinds produced by actor-target command planning. */
   readonly actorTargetCommandKinds: readonly string[];
+  /** Event types emitted by the runtime facade actor-target interaction. */
   readonly runtimeActorTargetEventTypes: readonly string[];
+  /** Command kind selected by the runtime facade actor-target interaction. */
   readonly runtimeActorTargetCommandKind?: string;
+  /** Whether the runtime facade interaction was handled by a preset handler. */
   readonly runtimeActorTargetHandled: boolean;
+  /** Final tile key for each actor id after simulation. */
   readonly finalActorTiles: Readonly<Record<string, string>>;
+  /** Quest ids completed by the packaged simulation script. */
   readonly completedQuestIds: readonly string[];
 }
 
+/**
+ * Runs the packaged SimpleRPG scenario and simulation through public APIs.
+ */
 export function runSimpleRpgUsageExample(): SimpleRpgUsageSummary {
   const scenario = scenarioJson as GameboardScenario;
   const script = simulationScriptJson as GameboardScenarioSimulationScript;

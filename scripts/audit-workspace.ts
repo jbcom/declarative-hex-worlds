@@ -183,17 +183,21 @@ function requirePublicApiSubpathGuide(): void {
 function requireTypeDocConfiguration(): void {
   assertEqualList(
     typedocJson.entryPoints ?? [],
-    [
-      'packages/medieval-hexagon-gameboard/src/index.ts',
-      'packages/medieval-hexagon-gameboard/src/ingest.ts',
-      'packages/medieval-hexagon-gameboard/src/react.ts',
-      'packages/medieval-hexagon-gameboard/src/three.ts',
-    ],
+    expectedTypeDocEntryPoints(),
     'typedoc entry points'
   );
   assert(typedocJson.validation?.notExported === true, 'typedoc must validate notExported links');
   assert(typedocJson.validation?.invalidLink === true, 'typedoc must validate invalid links');
   assert(typedocJson.validation?.notDocumented === false, 'typedoc config should leave notDocumented to test:api-docs');
+}
+
+function expectedTypeDocEntryPoints(): string[] {
+  return Object.values(packageJson.exports ?? {})
+    .filter((target): target is { import: string; types?: string } => typeof target !== 'string' && Boolean(target.import))
+    .map((target) => {
+      const entryName = importTargetToEntryName(target.import);
+      return `packages/medieval-hexagon-gameboard/${expectedSourceForEntry(entryName)}`;
+    });
 }
 
 function requireTsupConfiguration(): void {

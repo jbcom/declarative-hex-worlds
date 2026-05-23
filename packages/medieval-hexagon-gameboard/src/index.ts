@@ -25,6 +25,7 @@ export type {
   HexCoordinates,
   HexEdgeIndex,
   HexEdgeInput,
+  KayKitAttribution,
   ManifestAssetCatalog,
   ManifestAssetSelection,
   ManifestAssetUrlOptions,

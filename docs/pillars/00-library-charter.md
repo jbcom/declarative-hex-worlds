@@ -13,6 +13,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/koota.ts
   - packages/medieval-hexagon-gameboard/src/rules.ts
   - packages/medieval-hexagon-gameboard/src/react.ts
+  - typedoc.json
   - scripts/audit-docs-contract.ts
   - scripts/audit-free-assets.ts
   - scripts/audit-package.ts
@@ -81,6 +82,9 @@ open source package useful while preserving the local-only purchased workflow.
 - `pnpm test:package` validates the package export map, publish whitelist,
   packed example/data boundary, built CLI bin, and absence of machine-local paths
   or embedded source-map source content in packed text files.
+- TypeDoc entry points are derived from every public TypeScript export surface;
+  `pnpm test:api-docs` must pass with zero not-documented warnings before API
+  docs are considered complete.
 - `pnpm test:workflows` validates the requested CI/CD, Release Please,
   Dependabot grouping, and automerge workflow contracts.
 - Visual tests must produce reviewable screenshots or contact sheets for guide

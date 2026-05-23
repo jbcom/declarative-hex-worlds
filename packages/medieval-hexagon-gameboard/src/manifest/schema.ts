@@ -47,12 +47,26 @@ export type {
 /**
  * Attribution metadata applied to generated manifests and NOTICE guidance.
  */
-export const KAYKIT_ATTRIBUTION = {
+export interface KayKitAttribution {
+  /** Creator credited by generated manifests and package NOTICE text. */
+  creator: string;
+  /** Public creator or KayKit website URL. */
+  website: string;
+  /** SPDX-style asset license label. */
+  license: 'CC0-1.0';
+  /** Canonical URL for the asset license terms. */
+  licenseUrl: string;
+}
+
+/**
+ * Canonical attribution metadata for KayKit Medieval Hexagon assets.
+ */
+export const KAYKIT_ATTRIBUTION: Readonly<KayKitAttribution> = {
   creator: 'Kay Lousberg',
   website: 'https://www.kaylousberg.com',
   license: 'CC0-1.0',
   licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
-} as const;
+};
 
 /**
  * Combined view over one or more edition manifests.
