@@ -209,6 +209,18 @@ import {
   type GameboardScenarioSimulationActorTargetCommandStep,
   type GameboardScenarioSimulationActorTargetsRecord,
 } from '@jbcom/medieval-hexagon-gameboard/simulation';
+import {
+  copyGltfTree,
+  defaultSourceRoot,
+  expectedModelCount,
+  generateManifestFromSource,
+  validateSourceRoot,
+  writeManifestJson,
+  writeManifestModule,
+  type GenerateManifestOptions,
+  type ValidateSourceResult,
+  type WriteManifestModuleOptions,
+} from '@jbcom/medieval-hexagon-gameboard/ingest';
 
 const plan: GameboardPlan = createSeededGameboardPlan({
   seed: 'packed-consumer-types',
@@ -217,6 +229,22 @@ const plan: GameboardPlan = createSeededGameboardPlan({
 });
 const usage: SimpleRpgUsageSummary = runSimpleRpgUsageExample();
 const manifestInspection: MedievalHexagonManifestInspection = inspectMedievalHexagonManifest(assetManifest);
+const ingestSourceRoot: string = defaultSourceRoot('free', '/packed-consumer');
+const ingestExpectedCount: number = expectedModelCount('free');
+const ingestValidation: ValidateSourceResult = validateSourceRoot('/packed-consumer/missing-source', 'extra');
+const ingestManifestOptions: GenerateManifestOptions = {
+  sourceRoot: ingestSourceRoot,
+  edition: 'free',
+  assetBasePath: 'assets/free',
+};
+const ingestModuleOptions: WriteManifestModuleOptions = {
+  exportName: 'packedManifest',
+  typeImportPath: '@jbcom/medieval-hexagon-gameboard',
+};
+const ingestCopyGltfTree: typeof copyGltfTree = copyGltfTree;
+const ingestGenerateManifestFromSource: typeof generateManifestFromSource = generateManifestFromSource;
+const ingestWriteManifestJson: typeof writeManifestJson = writeManifestJson;
+const ingestWriteManifestModule: typeof writeManifestModule = writeManifestModule;
 const fillAnalysis: GameboardLayoutFillAnalysis = analyzeGameboardLayoutFill(plan, {
   seed: 'packed-consumer-layout-analysis',
   rules: [{ id: 'trees', archetype: 'tree', assetId: 'tree_single_A', count: 1 }],
@@ -540,6 +568,15 @@ void fillAnalysis;
 void handlerCount;
 void handlerPresetCount;
 void handlerPresetIsValid;
+void ingestCopyGltfTree;
+void ingestExpectedCount;
+void ingestGenerateManifestFromSource;
+void ingestManifestOptions;
+void ingestModuleOptions;
+void ingestSourceRoot;
+void ingestValidation;
+void ingestWriteManifestJson;
+void ingestWriteManifestModule;
 void harborCriteria;
 void footprintKeys;
 void manifestInspection;
@@ -715,6 +752,11 @@ import {
 import {
   GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS as GAMEBOARD_SCENARIO_SIMULATION_SUBPATH_STEP_ACTIONS,
 } from '@jbcom/medieval-hexagon-gameboard/simulation';
+import {
+  defaultSourceRoot,
+  expectedModelCount,
+  validateSourceRoot,
+} from '@jbcom/medieval-hexagon-gameboard/ingest';
 import { validateGameboardPlan } from '@jbcom/medieval-hexagon-gameboard/validation';
 
 const assetManifestModule = await import('@jbcom/medieval-hexagon-gameboard/assets/free/manifest.json', {
@@ -726,6 +768,17 @@ const scenarioModule = await import('@jbcom/medieval-hexagon-gameboard/examples/
 const manifestInspection = inspectMedievalHexagonManifest(assetManifestModule.default);
 if (manifestInspection.errorCount !== 0 || manifestInspection.warningCount !== 0) {
   throw new Error(\`packed FREE manifest inspection failed: \${JSON.stringify(manifestInspection.issues)}\`);
+}
+const ingestRoot = defaultSourceRoot('free', process.cwd());
+const ingestValidation = validateSourceRoot('/tmp/packed-consumer-missing-kaykit-source', 'free');
+if (
+  expectedModelCount('free') !== 221 ||
+  !ingestRoot.endsWith('/references/KayKit_Medieval_Hexagon_Pack_1.0_FREE') ||
+  ingestValidation.gltfCount !== 0 ||
+  ingestValidation.expectedCount !== 221 ||
+  ingestValidation.ok !== false
+) {
+  throw new Error(\`packed ingest subpath helpers failed: \${JSON.stringify({ ingestRoot, ingestValidation })}\`);
 }
 const plan = createSeededGameboardPlan({
   seed: 'packed-consumer-smoke',
