@@ -48,9 +48,9 @@ contract for CI and npm consumers.
   Koota world unless there is a strong reason to project into another ECS. These
   helpers keep both `PlacementOnTile` and `PlacementOccupiesTile` relations
   current; do not update `PlacementState` directly when footprint occupancy
-  matters. Use `readPlacementOccupancyForTile` or
-  `readGameboardPlacementOccupancy` when code needs serializable footprint
-  records instead of Koota relation stores. Use
+  matters. Use `readPlacementsForTile`, `readPlacementOccupancyForTile`, or
+  `readGameboardPlacementOccupancy` when code needs tile-scoped placements or
+  serializable footprint records instead of Koota relation stores. Use
   `inspectGameboardPlacementOccupancy` or `canOccupyGameboardPlacement` before
   runtime spawn/move UI commits when a game needs to block units or structures
   from overlapping existing blocking footprints. Pass `occupancyGuard: true` to

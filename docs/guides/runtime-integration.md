@@ -96,8 +96,11 @@ if (preview.canOccupy) {
 }
 ```
 
-Use `runtime.readPlacements()` and `runtime.readPlacementOccupancy()` for save
-files, editor panels, and bridge code. Use `runtime.removePlacement(id)` for
+Use `runtime.readPlacements()` and `runtime.readPlacementOccupancy()` for whole
+board save files, editor panels, and bridge code. Use
+`runtime.readPlacementsForTile(tileKey)` and
+`runtime.readPlacementOccupancyForTile(tileKey)` when a hover panel, collision
+probe, or host ECS sync only needs one hex. Use `runtime.removePlacement(id)` for
 cleanup; it removes the placement entity and its placement relations so future
 navigation and occupancy reads use the current world.
 

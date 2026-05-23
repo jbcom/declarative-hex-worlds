@@ -243,6 +243,18 @@ describe('gameboard runtime facade', () => {
       reason: 'Blocked by placement(s): runtime-blocker',
     });
     expect(runtime.readPlacementOccupancy().some((record) => record.placement.id === 'runtime-blocker')).toBe(true);
+    expect(runtime.readPlacementsForTile('2,0')).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'runtime-blocker' })])
+    );
+    expect(runtime.readPlacementOccupancyForTile('2,0')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          tileKey: '2,0',
+          placement: expect.objectContaining({ id: 'runtime-blocker' }),
+          blocksMovement: true,
+        }),
+      ])
+    );
 
     const guidePlacement = runtime.spawnPlacement({
       id: 'runtime-guide-placement',

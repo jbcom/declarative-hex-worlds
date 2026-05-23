@@ -65,6 +65,8 @@ import {
   readGameboardPlacementOccupancy,
   readGameboardPlacements,
   readGameboardSnapshot,
+  readPlacementOccupancyForTile,
+  readPlacementsForTile,
   removeGameboardPlacement,
   spawnGameboardPlacement,
   updateGameboardPlacement,
@@ -184,6 +186,7 @@ import {
   type RunGameboardSystemsOptions,
   type RunGameboardSystemsResult,
 } from './systems';
+import type { HexCoordinates } from './types';
 
 /**
  * Koota action bundle for raw board placement operations.
@@ -316,12 +319,26 @@ export interface GameboardRuntime {
    */
   readPlacements: () => PlacementStateValue[];
   /**
+   * Read serializable placement records that occupy one tile.
+   *
+   * This includes placements whose multi-tile footprint covers the tile, not
+   * only placements whose canonical origin is the tile.
+   */
+  readPlacementsForTile: (coordinates: HexCoordinates | string) => PlacementStateValue[];
+  /**
    * Read every placement footprint currently reserving or blocking tiles.
    *
    * The returned records include origin and occupied tile metadata, so UI and
    * pathfinding bridges can reason about multi-hex structures and blockers.
    */
   readPlacementOccupancy: () => PlacementOccupancySnapshot[];
+  /**
+   * Read occupancy records for one tile.
+   *
+   * Prefer this over filtering `readPlacementOccupancy()` in UI panels,
+   * collision probes, and external ECS bridges that only need one hex.
+   */
+  readPlacementOccupancyForTile: (coordinates: HexCoordinates | string) => PlacementOccupancySnapshot[];
   /**
    * Inspect whether a placement footprint can occupy the current live board.
    *
@@ -705,7 +722,10 @@ function bindGameboardRuntime(
     validationPlan: () => readValidationGameboardPlanFromWorld(world),
     snapshot: (options = {}) => runtimeSnapshot(world, options, context),
     readPlacements: () => readGameboardPlacements(world),
+    readPlacementsForTile: (coordinates) => readPlacementsForTile(world, coordinates),
     readPlacementOccupancy: () => readGameboardPlacementOccupancy(world),
+    readPlacementOccupancyForTile: (coordinates) =>
+      readPlacementOccupancyForTile(world, coordinates),
     inspectPlacementOccupancy: (options) => inspectGameboardPlacementOccupancy(world, options),
     canOccupyPlacement: (options) => canOccupyGameboardPlacement(world, options),
     spawnPlacement: (options) => spawnGameboardPlacement(world, options),

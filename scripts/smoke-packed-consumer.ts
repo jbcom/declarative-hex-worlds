@@ -343,6 +343,8 @@ const runtimeQuestRecords: readonly GameboardQuestSnapshot[] = runtime.readQuest
 const runtimeCanEnterActorTile: boolean = runtime.canOccupyPlacement({ at: '1,0', kind: 'unit' });
 const runtimePlacementOccupancy = runtime.inspectPlacementOccupancy({ at: '1,0', kind: 'unit' });
 const runtimePlacementOccupancyRecords: readonly PlacementOccupancySnapshot[] = runtime.readPlacementOccupancy();
+const runtimeTilePlacements: readonly PlacementStateValue[] = runtime.readPlacementsForTile('1,0');
+const runtimeTileOccupancyRecords: readonly PlacementOccupancySnapshot[] = runtime.readPlacementOccupancyForTile('1,0');
 const runtimeRemovedMarker: boolean = runtime.removePlacement('packed-runtime-marker');
 const runtimeTileInspectionOptions: GameboardTileInspectionOptions = { sourceActor: 'packed-runtime-player' };
 const runtimeNeighborhoodInspectionOptions: GameboardNeighborhoodInspectionOptions = {
@@ -535,6 +537,8 @@ void runtimeQuestRecords;
 void runtimeCanEnterActorTile;
 void runtimePlacementOccupancy;
 void runtimePlacementOccupancyRecords;
+void runtimeTilePlacements;
+void runtimeTileOccupancyRecords;
 void runtimeRemovedMarker;
 void rootRuntimeTileInspection;
 void runtimeTileInspection;
@@ -770,7 +774,11 @@ if (
   runtime.readQuests().find((quest) => quest.quest.questId === 'packed-runtime-quest')?.quest.status !== 'completed' ||
   runtime.canOccupyPlacement({ at: '1,0', kind: 'unit' }) !== false ||
   runtimePlacementOccupancy.canOccupy !== false ||
-  !runtime.readPlacementOccupancy().some((record) => record.placement.id === 'packed-runtime-player-placement')
+  !runtime.readPlacementOccupancy().some((record) => record.placement.id === 'packed-runtime-player-placement') ||
+  !runtime.readPlacementsForTile('1,0').some((placement) => placement.id === 'packed-runtime-player-placement') ||
+  !runtime
+    .readPlacementOccupancyForTile('1,0')
+    .some((record) => record.placement.id === 'packed-runtime-player-placement')
 ) {
   throw new Error('packed runtime direct mutation/read helpers failed');
 }
