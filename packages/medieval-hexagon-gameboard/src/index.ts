@@ -1,6 +1,6 @@
 /**
  * Root export surface for manifests, board plans, selectors, seeded generation,
- * Koota runtime helpers, React/Three adapters, and game-loop integration.
+ * Koota runtime helpers, game-loop integration, and adapter-ready data.
  *
  * @module
  */

@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 interface PackageJson {
@@ -34,6 +34,7 @@ const expectedFiles = ['assets/free', 'dist', 'examples/*.json', 'README.md', 'N
 const allowedPackRoots = ['assets/free/', 'dist/', 'examples/'];
 const allowedPackFiles = new Set(['package.json', 'README.md', 'NOTICE.md']);
 const privateEntryModules = new Set(['cli', 'index']);
+const optionalPeerEntryImports = new Set(['react', 'three', 'koota/react']);
 const textPackFileSuffixes = ['.d.ts', '.js', '.json', '.map', '.md'];
 const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp }[] = [
   { label: 'macOS home path', pattern: /\/Users\// },
@@ -96,6 +97,7 @@ assertExports();
 assertSourceModulesExported();
 assertPackedConsumerSmokeCoversExports();
 await assertExportImports();
+assertCoreEntryAvoidsOptionalPeerImports();
 assertPackFileList();
 
 console.log('package audit passed');
@@ -184,6 +186,36 @@ async function assertExportImports(): Promise<void> {
   }
 }
 
+function assertCoreEntryAvoidsOptionalPeerImports(): void {
+  const rootEntry = join(packageRoot, 'dist/index.js');
+  const visited = new Set<string>();
+  const stack = [rootEntry];
+
+  while (stack.length > 0) {
+    const filePath = stack.pop();
+    if (!filePath || visited.has(filePath)) {
+      continue;
+    }
+    visited.add(filePath);
+    const source = readFileSync(filePath, 'utf8');
+    const importPattern = /\b(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]/g;
+
+    for (const match of source.matchAll(importPattern)) {
+      const specifier = match[1] ?? '';
+      assert(
+        !optionalPeerEntryImports.has(specifier),
+        `root entry transitively imports optional peer ${specifier} through ${relativePackagePath(filePath)}`
+      );
+      if (specifier.startsWith('./') || specifier.startsWith('../')) {
+        const resolved = resolve(dirname(filePath), specifier);
+        if (resolved.startsWith(join(packageRoot, 'dist')) && resolved.endsWith('.js')) {
+          stack.push(resolved);
+        }
+      }
+    }
+  }
+}
+
 function collectSourceModules(root: string, prefix = ''): string[] {
   const modules: string[] = [];
   for (const entry of readdirSync(root, { withFileTypes: true })) {
@@ -198,6 +230,10 @@ function collectSourceModules(root: string, prefix = ''): string[] {
     }
   }
   return modules.sort();
+}
+
+function relativePackagePath(path: string): string {
+  return path.slice(packageRoot.length + 1);
 }
 
 function assertPackFileList(): void {
