@@ -46,6 +46,9 @@ The package is not just an asset bundle. It provides:
 - Runtime facade helpers for live occupancy indexes, pathfinding, spawn
   locations, spawn groups, and patrol route previews after actors or blockers
   have changed Koota state.
+- Runtime facade helpers for reading and mutating live placements, registering
+  and updating actors, and advancing quests without reaching into raw action
+  bundles from game-loop code.
 - Recipe- and scenario-backed runtime startup that preserves generated
   archetype registries, piece registries, and renderer source URL maps for saved
   game content.

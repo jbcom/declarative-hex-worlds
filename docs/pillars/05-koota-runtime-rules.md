@@ -362,10 +362,11 @@ event objects.
 public object per board. `createGameboardRuntime` accepts a `GameboardPlan`, an
 existing Koota world, or `{ world, plan }`, then exposes bound placement, actor,
 movement, patrol, quest, command, and system action bundles alongside direct
-helpers for actor spawning/moving, command planning/preview/dispatch,
-actor-target command planning, interaction, tile inspection, actor
-selection/targeting, ticks, live
-`GameboardPlan` projection, validation projection, and serializable snapshots.
+helpers for placement occupancy inspection, placement spawn/update/move/remove,
+actor spawn/register/update/find/read, quest spawn/find/read/advance, command
+planning/preview/dispatch, actor-target command planning, interaction, tile
+inspection, actor selection/targeting, ticks, live `GameboardPlan` projection,
+validation projection, and serializable snapshots.
 Runtime navigation helpers (`createOccupancyIndex`, `createNavigation`,
 `selectSpawnLocations`, `planSpawnGroups`, `planPatrolRoute`, and
 `planPatrolRoutes`) project the live world before reading occupancy, so path

@@ -669,6 +669,29 @@ runtime.movement.setAgent(player, { profile: 'ground', movementBudget: 4 });
 runtime.dispatchCommand('2,0', { sourceActor: 'player' });
 runtime.tick({ movement: { steps: 4 }, quests: { step: frameNumber } });
 
+const guideMarker = runtime.spawnPlacement({
+  id: 'guide-marker',
+  at: '0,0',
+  assetId: 'flag_green',
+  kind: 'prop',
+});
+runtime.updatePlacement(guideMarker, { scale: 1.2 });
+runtime.movePlacement(guideMarker, '1,0', { occupancyGuard: true });
+runtime.registerActor(guideMarker, {
+  actorId: 'guide',
+  actorKind: 'npc',
+  interactive: true,
+  tags: ['quest'],
+});
+runtime.updateActor('guide', { actorMetadata: { greeting: 'hello' } });
+const introQuest = runtime.spawnQuest({
+  id: 'scene:intro',
+  objectives: [{ id: 'meet-guide', kind: 'reach-tile', actor: 'guide', tile: '1,0' }],
+});
+runtime.advanceQuest(introQuest, { step: frameNumber });
+const guide = runtime.findActor('guide');
+const quests = runtime.readQuests();
+
 const hoveredTile = runtime.inspectTile('2,0', { sourceActor: 'player' });
 if (hoveredTile.hasInteractive) showInteractCursor();
 const nearbyActors = runtime.selectActors({
@@ -767,7 +790,12 @@ board. Registry helpers on the same facade (`analyzePieceRegistry`,
 pack integration declarative for games that want tag/role/source queries,
 seeded variant pools, and dry-run diagnostics before spawning into a live
 board. `createPieceSourceUrlMap` is also available on the facade for renderers
-that need asset URLs for local-only registry entries.
+that need asset URLs for local-only registry entries. Direct runtime helpers
+also cover common game-loop mutations and reads: `readPlacements`,
+`readPlacementOccupancy`, `inspectPlacementOccupancy`, `canOccupyPlacement`,
+`spawnPlacement`, `updatePlacement`, `movePlacement`, `removePlacement`,
+`registerActor`, `updateActor`, `findActor`, `readActors`, `findQuest`,
+`readQuests`, `advanceQuest`, and `advanceAllQuests`.
 Runtime navigation helpers (`createOccupancyIndex`, `createNavigation`,
 `selectSpawnLocations`, `planSpawnGroups`, `planPatrolRoute`, and
 `planPatrolRoutes`) also project the live world first, so gameplay-spawned

@@ -1,14 +1,18 @@
 import type { Entity, World } from 'koota';
 import {
+  findGameboardActor,
   moveGameboardActor,
   planGameboardInteractionCommand,
-  readGameboardActors,
   gameboardActorActions,
   inspectGameboardActorTargets,
   inspectGameboardNeighborhood,
   inspectGameboardTile,
+  readGameboardActors,
+  registerGameboardActor,
   selectGameboardActors,
   spawnGameboardActor,
+  updateGameboardActor,
+  type GameboardActorRegistrationOptions,
   type GameboardActorSelection,
   type GameboardActorSelectionOptions,
   type GameboardActorSnapshot,
@@ -24,6 +28,7 @@ import {
   type GameboardTileInspectionOptions,
   type MoveGameboardActorOptions,
   type SpawnGameboardActorOptions,
+  type UpdateGameboardActorOptions,
 } from './actors';
 import {
   executeGameboardInteractionCommand,
@@ -52,16 +57,25 @@ import {
   type GameboardScenarioInteropOptions,
 } from './interop';
 import {
+  canOccupyGameboardPlacement,
   createGameboardWorld,
   gameboardActions,
+  inspectGameboardPlacementOccupancy,
+  moveGameboardPlacement,
   readGameboardPlacementOccupancy,
   readGameboardPlacements,
   readGameboardSnapshot,
+  removeGameboardPlacement,
+  spawnGameboardPlacement,
+  updateGameboardPlacement,
   type GameboardEntityIndex,
+  type GameboardPlacementOccupancyInspection,
   type GameboardSnapshot,
+  type InspectGameboardPlacementOccupancyOptions,
   type PlacementOccupancySnapshot,
   type PlacementStateValue,
   type SpawnGameboardPlacementOptions,
+  type UpdateGameboardPlacementOptions,
 } from './koota';
 import type { SpawnLocation } from './grid';
 import {
@@ -124,9 +138,13 @@ import {
   readValidationGameboardPlanFromWorld,
 } from './projection';
 import {
+  advanceAllGameboardQuests,
+  advanceGameboardQuest,
+  findGameboardQuest,
   gameboardQuestActions,
   readGameboardQuests,
   spawnGameboardQuest,
+  type AdvanceGameboardQuestOptions,
   type GameboardQuestDefinition,
   type GameboardQuestSnapshot,
   type SpawnGameboardQuestOptions,
@@ -284,6 +302,31 @@ export interface GameboardRuntime {
   validationPlan: () => GameboardPlan;
   /** Read a serializable runtime snapshot. */
   snapshot: (options?: GameboardRuntimeSnapshotOptions) => GameboardRuntimeSnapshot;
+  /** Read current placement records from live state. */
+  readPlacements: () => PlacementStateValue[];
+  /** Read current placement footprint occupancy records from live state. */
+  readPlacementOccupancy: () => PlacementOccupancySnapshot[];
+  /** Inspect whether a placement footprint can occupy a live tile. */
+  inspectPlacementOccupancy: (
+    options: InspectGameboardPlacementOccupancyOptions
+  ) => GameboardPlacementOccupancyInspection;
+  /** Return whether a placement footprint can occupy a live tile. */
+  canOccupyPlacement: (options: InspectGameboardPlacementOccupancyOptions) => boolean;
+  /** Spawn one placement into the live world. */
+  spawnPlacement: (options: SpawnGameboardPlacementOptions) => Entity;
+  /** Update one placement in the live world. */
+  updatePlacement: (
+    placement: Entity | string,
+    options: UpdateGameboardPlacementOptions
+  ) => Entity;
+  /** Move one placement in the live world. */
+  movePlacement: (
+    placement: Entity | string,
+    to: SpawnGameboardPlacementOptions['at'],
+    options?: Omit<UpdateGameboardPlacementOptions, 'at'>
+  ) => Entity;
+  /** Remove one placement from the live world. */
+  removePlacement: (placement: Entity | string) => boolean;
   /** Inspect one tile, placement, actor, or coordinate in live state. */
   inspectTile: (
     coordinates: SpawnGameboardActorOptions['at'],
@@ -400,6 +443,17 @@ export interface GameboardRuntime {
   ) => Readonly<Record<string, string>>;
   /** Spawn an actor-backed placement. */
   spawnActor: (options: SpawnGameboardActorOptions) => Entity;
+  /** Attach actor state to an existing placement. */
+  registerActor: (
+    placement: Entity | string,
+    options: GameboardActorRegistrationOptions
+  ) => Entity;
+  /** Update actor state while preserving omitted fields. */
+  updateActor: (actor: Entity | string, options: UpdateGameboardActorOptions) => Entity;
+  /** Find one actor by entity, placement id, or actor id. */
+  findActor: (actor: Entity | string) => GameboardActorSnapshot | undefined;
+  /** Read all registered actors from live state. */
+  readActors: () => GameboardActorSnapshot[];
   /** Move an actor-backed placement by actor id or entity. */
   moveActor: (
     actor: Entity | string,
@@ -411,6 +465,17 @@ export interface GameboardRuntime {
     definition: GameboardQuestDefinition,
     options?: SpawnGameboardQuestOptions
   ) => Entity;
+  /** Find one quest by entity or quest id. */
+  findQuest: (quest: Entity | string) => GameboardQuestSnapshot | undefined;
+  /** Read all quest snapshots from live state. */
+  readQuests: () => GameboardQuestSnapshot[];
+  /** Advance one quest against live actor state. */
+  advanceQuest: (
+    quest: Entity | string,
+    options?: AdvanceGameboardQuestOptions
+  ) => GameboardQuestSnapshot;
+  /** Advance every quest against live actor state. */
+  advanceAllQuests: (options?: AdvanceGameboardQuestOptions) => GameboardQuestSnapshot[];
   /** Plan a command from a renderer or gameplay target. */
   planCommand: (
     target: GameboardInteractionTargetInput,
@@ -587,6 +652,15 @@ function bindGameboardRuntime(
     plan: () => projectWorldToGameboardPlan(world),
     validationPlan: () => readValidationGameboardPlanFromWorld(world),
     snapshot: (options = {}) => runtimeSnapshot(world, options, context),
+    readPlacements: () => readGameboardPlacements(world),
+    readPlacementOccupancy: () => readGameboardPlacementOccupancy(world),
+    inspectPlacementOccupancy: (options) => inspectGameboardPlacementOccupancy(world, options),
+    canOccupyPlacement: (options) => canOccupyGameboardPlacement(world, options),
+    spawnPlacement: (options) => spawnGameboardPlacement(world, options),
+    updatePlacement: (placement, options) => updateGameboardPlacement(world, placement, options),
+    movePlacement: (placement, to, options = {}) =>
+      moveGameboardPlacement(world, placement, to, options),
+    removePlacement: (placement) => removeGameboardPlacement(world, placement),
     inspectTile: (coordinates, options = {}) => inspectGameboardTile(world, coordinates, options),
     inspectNeighborhood: (center, options = {}) =>
       inspectGameboardNeighborhood(world, center, options),
@@ -654,8 +728,16 @@ function bindGameboardRuntime(
     createPieceSourceUrlMap: (registry, options = {}) =>
       createGameboardPieceSourceUrlMap(registry, options),
     spawnActor: (options) => spawnGameboardActor(world, options),
+    registerActor: (placement, options) => registerGameboardActor(world, placement, options),
+    updateActor: (actor, options) => updateGameboardActor(world, actor, options),
+    findActor: (actor) => findGameboardActor(world, actor),
+    readActors: () => readGameboardActors(world),
     moveActor: (actor, to, options = {}) => moveGameboardActor(world, actor, to, options),
     spawnQuest: (definition, options = {}) => spawnGameboardQuest(world, definition, options),
+    findQuest: (quest) => findGameboardQuest(world, quest),
+    readQuests: () => readGameboardQuests(world),
+    advanceQuest: (quest, options = {}) => advanceGameboardQuest(world, quest, options),
+    advanceAllQuests: (options = {}) => advanceAllGameboardQuests(world, options),
     planCommand: (target, options = {}) => planGameboardInteractionCommand(world, target, options),
     planActorTargetCommand: (options) => planGameboardActorTargetCommand(world, options),
     previewCommand: (commandOrTarget, options = {}) =>

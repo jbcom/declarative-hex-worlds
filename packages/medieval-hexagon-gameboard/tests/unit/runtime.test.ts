@@ -198,6 +198,106 @@ describe('gameboard runtime facade', () => {
     });
   });
 
+  it('mutates placements, actors, and quests through direct runtime helpers', () => {
+    const runtime = createGameboardRuntime(
+      createGameboardBuilder({
+        seed: 'runtime-mutations',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+
+    const marker = runtime.spawnPlacement({
+      id: 'runtime-marker',
+      at: '0,0',
+      assetId: 'flag_green',
+      kind: 'prop',
+    });
+    expect(runtime.readPlacements().map((placement) => placement.id)).toContain('runtime-marker');
+    expect(runtime.inspectPlacementOccupancy({ at: '0,0', kind: 'structure' })).toMatchObject({
+      tileKey: '0,0',
+      canOccupy: true,
+    });
+
+    runtime.updatePlacement(marker, {
+      scale: 1.25,
+      metadata: { marker: 'updated' },
+    });
+    runtime.movePlacement(marker, '1,0', { occupancyGuard: true });
+    expect(
+      runtime.snapshot({ includeInterop: false }).placements.find((placement) => placement.id === 'runtime-marker')
+    ).toMatchObject({
+      tileKey: '1,0',
+      scale: 1.25,
+      metadata: { marker: 'updated' },
+    });
+
+    runtime.spawnPlacement({
+      id: 'runtime-blocker',
+      at: '2,0',
+      assetId: 'building_tower_A_blue',
+      kind: 'structure',
+    });
+    expect(runtime.canOccupyPlacement({ at: '2,0', kind: 'unit' })).toBe(false);
+    expect(runtime.inspectPlacementOccupancy({ at: '2,0', kind: 'unit' })).toMatchObject({
+      canOccupy: false,
+      reason: 'Blocked by placement(s): runtime-blocker',
+    });
+    expect(runtime.readPlacementOccupancy().some((record) => record.placement.id === 'runtime-blocker')).toBe(true);
+
+    const guidePlacement = runtime.spawnPlacement({
+      id: 'runtime-guide-placement',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    runtime.registerActor(guidePlacement, {
+      actorId: 'runtime-guide',
+      actorKind: 'npc',
+      tags: ['guide'],
+    });
+    runtime.updateActor('runtime-guide', {
+      interactive: true,
+      tags: ['guide', 'quest'],
+      actorMetadata: { dialog: 'hello' },
+    });
+    expect(runtime.findActor('runtime-guide')).toMatchObject({
+      actor: {
+        actorId: 'runtime-guide',
+        interactive: true,
+        tags: ['guide', 'quest'],
+        metadata: { dialog: 'hello' },
+      },
+      placement: { tileKey: '0,0' },
+    });
+    expect(runtime.readActors().map((actor) => actor.actor.actorId)).toContain('runtime-guide');
+
+    const quest = runtime.spawnQuest({
+      id: 'runtime-mutation-quest',
+      objectives: [
+        {
+          id: 'reach-guide',
+          kind: 'reach-tile',
+          actor: 'runtime-guide',
+          tile: '0,0',
+        },
+      ],
+    });
+    expect(runtime.findQuest(quest)).toMatchObject({
+      quest: { questId: 'runtime-mutation-quest', status: 'active' },
+    });
+    expect(runtime.advanceQuest('runtime-mutation-quest').quest.status).toBe('completed');
+    expect(runtime.findQuest('runtime-mutation-quest')?.quest.status).toBe('completed');
+    expect(runtime.readQuests().map((snapshot) => snapshot.quest.questId)).toEqual([
+      'runtime-mutation-quest',
+    ]);
+    expect(runtime.advanceAllQuests().map((snapshot) => snapshot.quest.status)).toEqual([
+      'completed',
+    ]);
+
+    expect(runtime.removePlacement('runtime-marker')).toBe(true);
+    expect(runtime.removePlacement('runtime-marker')).toBe(false);
+  });
+
   it('spawns declared pieces and layout fills against live runtime occupancy', () => {
     const runtime = createGameboardRuntime(
       createGameboardBuilder({

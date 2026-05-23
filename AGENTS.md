@@ -157,10 +157,11 @@ contract for CI and npm consumers.
   integration already has in-process event objects.
 - Use `./runtime` when a game or integration needs one bound public surface for
   a board. It should compose the same lower-level Koota action bundles, actor
-  helpers, live navigation/spawn/patrol-route previews, declared piece/layout
-  placement helpers, command helpers, system ticks, projection, snapshots, live
-  interop records/mounting, recipe startup, and scenario startup rather than
-  adding parallel orchestration state.
+  helpers, direct placement/actor/quest mutation and read helpers, live
+  navigation/spawn/patrol-route previews, declared piece/layout placement
+  helpers, command helpers, system ticks, projection, snapshots, live interop
+  records/mounting, recipe startup, and scenario startup rather than adding
+  parallel orchestration state.
 - Use `./quests` when gameplay progression is under test. Prefer serializable
   quest objectives for reach, interaction, collision, and defeat checks instead
   of ad hoc fixture-only objective arrays.
