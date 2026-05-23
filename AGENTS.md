@@ -274,10 +274,14 @@ contract for CI and npm consumers.
 - Add new guide features as typed catalog/builders first, then expose them through
   Koota projections, React hooks, and visual tests.
 - Treat `tests/simple-rpg/` as the integration fixture for using the library as a
-  small game. Extend it when adding gameplay-facing APIs so fixed, seeded, and
-  packaged scenes keep exercising public imports, command timelines, movement,
-  enemy removal, NPC interaction, custom-piece generation, collisions, actor
-  classification, and browser screenshots.
+  small game. Keep the quest-line helper runtime-first with
+  `createGameboardRuntime` so gameplay flows exercise the public facade for
+  command dispatch, movement ticks, quest advancement, actor-target interaction,
+  enemy removal, projection, and runtime reads. Extend it when adding
+  gameplay-facing APIs so fixed, seeded, and packaged scenes keep exercising
+  public imports, command timelines, movement, enemy removal, NPC interaction,
+  custom-piece generation, collisions, actor classification, and browser
+  screenshots.
 - Keep `packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts` as the
   repo source for the compiled public package subpath exported as
   `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage`. It should remain
