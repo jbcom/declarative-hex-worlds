@@ -1,6 +1,6 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "tsconfig": "tsconfig.json",
+  "tsconfig": "packages/medieval-hexagon-gameboard/tsconfig.json",
   "entryPoints": [
     "packages/medieval-hexagon-gameboard/src/index.ts",
     "packages/medieval-hexagon-gameboard/src/actors.ts",

@@ -33,6 +33,7 @@ interface ProjectJson {
 
 interface TypeDocJson {
   entryPoints?: string[];
+  tsconfig?: string;
   validation?: {
     invalidLink?: boolean;
     notDocumented?: boolean;
@@ -181,6 +182,10 @@ function requirePublicApiSubpathGuide(): void {
 }
 
 function requireTypeDocConfiguration(): void {
+  assert(
+    typedocJson.tsconfig === 'packages/medieval-hexagon-gameboard/tsconfig.json',
+    'typedoc must use the package tsconfig so public subpath examples resolve to source before dist exists'
+  );
   assertEqualList(
     typedocJson.entryPoints ?? [],
     expectedTypeDocEntryPoints(),
