@@ -83,6 +83,7 @@ open source package useful while preserving the local-only purchased workflow.
   packed example/data boundary, built CLI bin, and absence of machine-local paths
   or embedded source-map source content in packed text files.
 - TypeDoc entry points are derived from every public TypeScript export surface;
+  every entry point must carry top-level `@module` JSDoc, and
   `pnpm test:api-docs` must pass with zero not-documented warnings before API
   docs are considered complete.
 - `pnpm test:workflows` validates the requested CI/CD, Release Please,
