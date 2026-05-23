@@ -406,11 +406,11 @@ contract for CI and npm consumers.
   Keep browser coverage in `tests/browser/react-bindings.test.ts` when adding
   provider, query, action, actor, quest, patrol, movement, command, system,
   runtime, navigation, occupancy, layout, piece, actor-selection,
-  actor-targeting, tile-inspection, neighborhood-inspection, or spawn hooks.
-  React occupancy, layout, piece, actor-selection/targeting, and
-  tile/neighborhood inspection hooks should mirror the plain Koota snapshot,
-  layout/piece analyzers, and preflight helpers so UI code can avoid raw
-  relation store access.
+  actor-targeting, runtime-snapshot, tile-inspection, neighborhood-inspection,
+  or spawn hooks. React occupancy, layout, piece, runtime snapshot,
+  actor-selection/targeting, and tile/neighborhood inspection hooks should
+  mirror the plain Koota snapshot, layout/piece analyzers, and preflight
+  helpers so UI code can avoid raw relation store access.
   Derived plan/occupancy hooks must react to trait and relation value changes,
   not just query membership, because runtime moves often update existing
   placement entities in place. Prefer runtime-aware React providers when

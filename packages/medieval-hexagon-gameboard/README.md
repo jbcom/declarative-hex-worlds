@@ -1787,6 +1787,10 @@ same serializable occupancy snapshot records as the Koota helpers.
 `useGameboardPlacementOccupancyInspection` and
 `useCanOccupyGameboardPlacement` run the same spawn/move preflight checks for
 React build cursors, drag previews, and movement UI.
+`useGameboardRuntimeSnapshot`, `useGameboardPlacementSnapshots`,
+`useGameboardActorSnapshots`, and `useGameboardQuestSnapshots` provide
+serializable runtime reads for HUDs, editors, test probes, and external stores
+without asking React components to inspect raw Koota traits or relation stores.
 `useGameboardTileInspection` gives React UI, AI overlays, and ECS bridge
 components the same actor-aware tile summary as `inspectGameboardTile`, including
 tile state, placements, occupancy, actor buckets, and source-aware enterability.

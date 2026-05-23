@@ -212,7 +212,13 @@ non-Koota paths stay aligned.
 - `useGameboardRuntime` exposes the bound `./runtime` facade from the current
   provider world, so React components can spawn actors, dispatch commands, tick
   systems, project plans, and produce runtime snapshots without manually
-  stitching action bundles together. `GameboardRuntimeProvider`,
+  stitching action bundles together.
+- `useGameboardRuntimeSnapshot`, `useGameboardPlacementSnapshots`,
+  `useGameboardActorSnapshots`, and `useGameboardQuestSnapshots` expose
+  serializable runtime reads for HUDs, editors, external stores, and React test
+  probes. They should rerender on placement, actor, movement, patrol, and quest
+  trait changes, not just entity membership changes.
+- `GameboardRuntimeProvider`,
   `MedievalGameboardPlanProvider`, `MedievalGameboardRecipeProvider`, and
   `MedievalGameboardScenarioProvider` mount the matching Koota world while
   preserving any richer runtime facade in context, including recipe/scenario

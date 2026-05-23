@@ -39,6 +39,7 @@ import {
   gameboardActions,
   inspectGameboardPlacementOccupancy,
   readGameboardPlacementOccupancy,
+  readGameboardPlacements,
   readPlacementOccupancyForTile,
   type GameboardPlacementOccupancyInspection,
   type GameboardStateValue,
@@ -74,7 +75,9 @@ import {
   inspectGameboardTile,
   inspectGameboardInteractionTarget,
   planGameboardInteractionCommand,
+  readGameboardActors,
   selectGameboardActors,
+  type GameboardActorSnapshot,
   type GameboardActorSelection,
   type GameboardActorSelectionOptions,
   type GameboardActorTargetingOptions,
@@ -105,6 +108,8 @@ import {
   GameboardQuest,
   IsGameboardQuest,
   gameboardQuestActions,
+  readGameboardQuests,
+  type GameboardQuestSnapshot,
   type GameboardQuestValue,
 } from './quests';
 import {
@@ -121,6 +126,8 @@ import {
   createGameboardRuntimeFromScenario,
   type GameboardRecipeGameRuntime,
   type GameboardRuntime,
+  type GameboardRuntimeSnapshot,
+  type GameboardRuntimeSnapshotOptions,
   type GameboardScenarioGameRuntime,
 } from './runtime';
 import { gameboardSystemActions } from './systems';
@@ -185,6 +192,7 @@ const DEFAULT_PIECE_REGISTRY_SELECTION = {} as const satisfies GameboardPieceReg
 const DEFAULT_PIECE_PLACEMENT_OPTIONS = {} as const satisfies GameboardPiecePlacementOptions;
 const DEFAULT_PIECE_FILL_INSPECTION_OPTIONS = {} as const satisfies InspectSeededGameboardPieceFillsOptions;
 const DEFAULT_PIECE_SOURCE_URL_OPTIONS = {} as const satisfies GameboardPieceSourceUrlOptions;
+const DEFAULT_RUNTIME_SNAPSHOT_OPTIONS = {} as const satisfies GameboardRuntimeSnapshotOptions;
 const EMPTY_PLACEMENT_OPTIONS = [] as const satisfies readonly SpawnGameboardPlacementOptions[];
 const EMPTY_PIECE_SELECTION = [] as const satisfies readonly GameboardPieceDeclaration[];
 const EMPTY_SOURCE_URL_MAP = {} as const satisfies Readonly<Record<string, string>>;
@@ -307,6 +315,21 @@ function useGameboardDerivedRevision(): number {
       world.onAdd(GameboardActor, update),
       world.onRemove(GameboardActor, update),
       world.onChange(GameboardActor, update),
+      world.onAdd(MovementAgent, update),
+      world.onRemove(MovementAgent, update),
+      world.onChange(MovementAgent, update),
+      world.onAdd(MovementPathState, update),
+      world.onRemove(MovementPathState, update),
+      world.onChange(MovementPathState, update),
+      world.onAdd(GameboardQuest, update),
+      world.onRemove(GameboardQuest, update),
+      world.onChange(GameboardQuest, update),
+      world.onAdd(GameboardPatrolAgent, update),
+      world.onRemove(GameboardPatrolAgent, update),
+      world.onChange(GameboardPatrolAgent, update),
+      world.onAdd(GameboardPatrolState, update),
+      world.onRemove(GameboardPatrolState, update),
+      world.onChange(GameboardPatrolState, update),
     ];
 
     return () => {
@@ -365,6 +388,63 @@ export function useGameboardRuntime<TRuntime extends GameboardRuntime = Gameboar
     () => (providedRuntime ?? createGameboardRuntime(world)) as TRuntime,
     [providedRuntime, world]
   );
+}
+
+/**
+ * Read the current runtime snapshot and rerender when gameboard traits,
+ * relations, actor state, movement state, patrol state, or quest state changes.
+ */
+export function useGameboardRuntimeSnapshot(
+  options: GameboardRuntimeSnapshotOptions = DEFAULT_RUNTIME_SNAPSHOT_OPTIONS
+): GameboardRuntimeSnapshot {
+  const runtime = useGameboardRuntime();
+  const revision = useGameboardDerivedRevision();
+  return useMemo(() => {
+    void revision;
+    return runtime.snapshot(options);
+  }, [runtime, options, revision]);
+}
+
+/**
+ * Read serializable placement snapshots for React panels and external stores.
+ */
+export function useGameboardPlacementSnapshots(): readonly PlacementStateValue[] {
+  const world = useWorld();
+  const placements = useGameboardPlacementEntities();
+  const revision = useGameboardDerivedRevision();
+  return useMemo(() => {
+    void revision;
+    void placements.length;
+    return readGameboardPlacements(world);
+  }, [world, placements, revision]);
+}
+
+/**
+ * Read joined actor and placement snapshots for React panels and UI state.
+ */
+export function useGameboardActorSnapshots(): readonly GameboardActorSnapshot[] {
+  const world = useWorld();
+  const actors = useGameboardActorEntities();
+  const revision = useGameboardDerivedRevision();
+  return useMemo(() => {
+    void revision;
+    void actors.length;
+    return readGameboardActors(world);
+  }, [world, actors, revision]);
+}
+
+/**
+ * Read quest snapshots for React quest logs, HUDs, and integration mirrors.
+ */
+export function useGameboardQuestSnapshots(): readonly GameboardQuestSnapshot[] {
+  const world = useWorld();
+  const quests = useGameboardQuestEntities();
+  const revision = useGameboardDerivedRevision();
+  return useMemo(() => {
+    void revision;
+    void quests.length;
+    return readGameboardQuests(world);
+  }, [world, quests, revision]);
 }
 
 export function useGameboardInteractionTarget(

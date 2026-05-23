@@ -43,6 +43,7 @@ import {
   useGameboardActorActions,
   useGameboardActorEntities,
   useGameboardActorSelection,
+  useGameboardActorSnapshots,
   useGameboardActorTargetCommand,
   useGameboardActorTargets,
   useGameboardCommandActions,
@@ -63,6 +64,7 @@ import {
   useGameboardPlacementOccupancy,
   useGameboardPlacementOccupancyInspection,
   useGameboardPlacementEntities,
+  useGameboardPlacementSnapshots,
   useGameboardPieceFillInspection,
   useGameboardPiecePlacementInspection,
   useGameboardPieceRegistryAnalysis,
@@ -73,8 +75,10 @@ import {
   useGameboardQuest,
   useGameboardQuestActions,
   useGameboardQuestEntities,
+  useGameboardQuestSnapshots,
   useGameboardRuleViolations,
   useGameboardRuntime,
+  useGameboardRuntimeSnapshot,
   useGameboardSpawnLocations,
   useGameboardState,
   useGameboardSystemActions,
@@ -91,9 +95,12 @@ import {
 interface ReactBindingReport {
   actor?: GameboardActorValue;
   actorCount: number;
+  actorSnapshotIds: readonly string[];
   placementCount: number;
+  placementSnapshotIds: readonly string[];
   quest?: GameboardQuestValue;
   questCount: number;
+  questSnapshotStatuses: readonly { id: string; status: string }[];
   moveCommand?: GameboardInteractionCommand;
   movePreview?: ReturnType<typeof useGameboardInteractionCommandPreview>;
   moveTarget?: GameboardInteractionTargetReport;
@@ -139,8 +146,10 @@ interface ReactBindingReport {
   patrolActions: ReturnType<typeof useGameboardPatrolActions>;
   questActions: ReturnType<typeof useGameboardQuestActions>;
   runtime: ReturnType<typeof useGameboardRuntime>;
+  runtimeSnapshotActorIds: readonly string[];
   runtimeProjectedPlacementIds: readonly string[];
   runtimeSnapshotActorCount: number;
+  runtimeSnapshotQuestStatuses: readonly { id: string; status: string }[];
   systemActions: ReturnType<typeof useGameboardSystemActions>;
 }
 
@@ -177,6 +186,7 @@ describe('React bindings browser integration', () => {
 
     expect(report).toMatchObject({
       actorCount: 0,
+      actorSnapshotIds: [],
       layoutFillAnalysis: { errorCount: 0, placementCount: 1 },
       layoutPlacementCount: 1,
       layoutSiteInspection: { selectedCount: 2 },
@@ -192,7 +202,10 @@ describe('React bindings browser integration', () => {
       playerSelection: { count: 0, actorIds: [] },
       playerTargets: undefined,
       questCount: 0,
+      questSnapshotStatuses: [],
       ruleErrorCount: 0,
+      runtimeSnapshotActorIds: [],
+      runtimeSnapshotQuestStatuses: [],
       tileCount: 4,
       tileOneOneInspection: { exists: true, hasActors: false, canEnter: true },
       tileZeroCoordinates: { q: 0, r: 0 },
@@ -244,6 +257,7 @@ describe('React bindings browser integration', () => {
     expect(report).toMatchObject({
       actor: { actorId: 'react-player', kind: 'player' },
       actorCount: 1,
+      actorSnapshotIds: ['react-player'],
       moveCommand: { kind: 'move', intent: 'move', tileKey: '0,0', canExecute: true },
       movePreview: { canExecute: true, movementBudget: 3 },
       moveTarget: { kind: 'tile', intent: 'move', tileKey: '0,0', canEnter: true },
@@ -269,6 +283,7 @@ describe('React bindings browser integration', () => {
       },
       playerTargets: { targetActorIds: ['react-player'], nearestTarget: { approach: 'self' } },
       quest: { questId: 'react-quest', status: 'active' },
+      questSnapshotStatuses: [{ id: 'react-quest', status: 'active' }],
       patrolRouteFound: true,
       patrolRouteSetCount: 1,
       patrolWaypointCount: 2,
@@ -277,7 +292,9 @@ describe('React bindings browser integration', () => {
       patrolState: { status: 'idle' },
       questCount: 1,
       ruleErrorCount: 0,
+      runtimeSnapshotActorIds: ['react-player'],
       runtimeSnapshotActorCount: 1,
+      runtimeSnapshotQuestStatuses: [{ id: 'react-quest', status: 'active' }],
       tileOneOneInspection: {
         exists: true,
         canEnter: true,
@@ -290,6 +307,9 @@ describe('React bindings browser integration', () => {
       },
     });
     expect(report?.projectedPlacementIds).toEqual(
+      expect.arrayContaining(['react-marker', 'react-footprint-prop', 'react-player-placement'])
+    );
+    expect(report?.placementSnapshotIds).toEqual(
       expect.arrayContaining(['react-marker', 'react-footprint-prop', 'react-player-placement'])
     );
     expect(report?.runtimeProjectedPlacementIds).toEqual(
@@ -379,6 +399,17 @@ describe('React bindings browser integration', () => {
         path: { found: true, cost: 0 },
       },
     });
+
+    await act(async () => {
+      report?.runtime.moveActor('react-player', '0,0', { occupancyGuard: true });
+      report?.runtime.advanceQuest('react-quest', { step: 2 });
+    });
+    expect(report?.questSnapshotStatuses).toEqual([
+      { id: 'react-quest', status: 'completed' },
+    ]);
+    expect(report?.runtimeSnapshotQuestStatuses).toEqual([
+      { id: 'react-quest', status: 'completed' },
+    ]);
   });
 
   it('mounts saved recipe and scenario runtime providers with generated piece registries', async () => {
@@ -485,8 +516,11 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
   const tileEntities = useGameboardTileEntities();
   const placementEntities = useGameboardPlacementEntities();
   const actorEntities = useGameboardActorEntities();
+  const actorSnapshots = useGameboardActorSnapshots();
   const questEntities = useGameboardQuestEntities();
+  const questSnapshots = useGameboardQuestSnapshots();
   const patrolAgentEntities = useGameboardPatrolAgentEntities();
+  const placementSnapshots = useGameboardPlacementSnapshots();
   const tileZero = useTileEntity('0,0');
   const tileZeroCoordinates = useTileCoordinates(tileZero);
   const tileZeroPlacements = usePlacementEntitiesForTile('0,0');
@@ -628,7 +662,7 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
   const questActions = useGameboardQuestActions();
   const systemActions = useGameboardSystemActions();
   const runtime = useGameboardRuntime();
-  const runtimeSnapshot = runtime.snapshot({ includeInterop: false });
+  const runtimeSnapshot = useGameboardRuntimeSnapshot({ includeInterop: false });
   const ruleErrors = useGameboardRuleViolations().filter(
     (violation) => violation.severity === 'error'
   );
@@ -636,9 +670,15 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
   onReport({
     actor,
     actorCount: actorEntities.length,
+    actorSnapshotIds: actorSnapshots.map((snapshot) => snapshot.actor.actorId),
     placementCount: placementEntities.length,
+    placementSnapshotIds: placementSnapshots.map((placement) => placement.id),
     quest,
     questCount: questEntities.length,
+    questSnapshotStatuses: questSnapshots.map((snapshot) => ({
+      id: snapshot.quest.questId,
+      status: snapshot.quest.status,
+    })),
     moveCommand,
     movePreview,
     moveTarget,
@@ -686,8 +726,13 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
     patrolActions,
     questActions,
     runtime,
+    runtimeSnapshotActorIds: runtimeSnapshot.actors.map((snapshot) => snapshot.actor.actorId),
     runtimeProjectedPlacementIds: runtimeSnapshot.plan.placements.map((placement) => placement.id),
     runtimeSnapshotActorCount: runtimeSnapshot.actors.length,
+    runtimeSnapshotQuestStatuses: runtimeSnapshot.quests.map((snapshot) => ({
+      id: snapshot.quest.questId,
+      status: snapshot.quest.status,
+    })),
     systemActions,
   });
 

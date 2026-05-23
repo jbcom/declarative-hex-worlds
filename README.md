@@ -137,8 +137,8 @@ The package is not just an asset bundle. It provides:
   instantiation into one game-loop surface.
 - React bindings with browser-tested Koota provider/query/action hooks,
   projected navigation, occupancy snapshots/preflight, actor-aware tile
-  inspection, layout/piece preview hooks, deterministic spawn hooks, and
-  Three.js placement helpers.
+  inspection, layout/piece preview hooks, deterministic spawn hooks, live
+  placement/actor/quest/runtime snapshot hooks, and Three.js placement helpers.
 - Three.js placement asset URL resolvers that combine packaged manifests,
   placement `sourceUrl` metadata, and local custom-piece URL maps.
 - Three.js scene sync helpers that load missing placements, update transforms,
