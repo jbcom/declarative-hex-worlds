@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 interface PackageJson {
@@ -41,6 +41,9 @@ const pnpmWorkspace = readJson<PnpmWorkspace>('pnpm-workspace.yaml');
 const nxJson = readJson<NxJson>('nx.json');
 const projectJson = readJson<ProjectJson>('packages/medieval-hexagon-gameboard/project.json');
 const tsupConfig = readRequired('packages/medieval-hexagon-gameboard/tsup.config.ts');
+const docsIndex = readRequired('docs/index.md');
+const docsVitePressConfig = readRequired('docs/.vitepress/config.ts');
+const guideDocs = readGuideDocs();
 const tsupEntries = readTsupEntries(tsupConfig);
 
 requireWorkspaceScripts();
@@ -136,6 +139,21 @@ function requireDocsConfiguration(): void {
     workspacePackageJson.devDependencies?.vitepress === docsPackageJson.devDependencies?.vitepress,
     'workspace and docs app must use the same vitepress version specifier'
   );
+  requireDocsGuideNavigation();
+}
+
+function requireDocsGuideNavigation(): void {
+  assert(guideDocs.length > 0, 'docs/guides must contain at least one guide');
+
+  for (const guideFile of guideDocs) {
+    const guideLink = `./guides/${guideFile}`;
+    const vitePressLink = `/guides/${guideFile.slice(0, -'.md'.length)}`;
+    assert(docsIndex.includes(`](${guideLink})`), `docs/index.md must link ${guideLink}`);
+    assert(
+      docsVitePressConfig.includes(`link: '${vitePressLink}'`),
+      `docs/.vitepress/config.ts sidebar must link ${vitePressLink}`
+    );
+  }
 }
 
 function requireTsupConfiguration(): void {
@@ -224,6 +242,17 @@ function readRequired(path: string): string {
     return '';
   }
   return readFileSync(resolved, 'utf8');
+}
+
+function readGuideDocs(): string[] {
+  const guidesDir = join(workspaceRoot, 'docs/guides');
+  if (!existsSync(guidesDir)) {
+    failures.push('missing docs/guides');
+    return [];
+  }
+  return readdirSync(guidesDir)
+    .filter((entry) => entry.endsWith('.md'))
+    .sort();
 }
 
 function parseSimpleYaml(source: string, label: string): unknown {
