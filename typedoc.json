@@ -3,6 +3,8 @@
   "tsconfig": "tsconfig.json",
   "entryPoints": [
     "packages/medieval-hexagon-gameboard/src/index.ts",
+    "packages/medieval-hexagon-gameboard/src/ingest.ts",
+    "packages/medieval-hexagon-gameboard/src/react.ts",
     "packages/medieval-hexagon-gameboard/src/three.ts"
   ],
   "entryPointStrategy": "expand",

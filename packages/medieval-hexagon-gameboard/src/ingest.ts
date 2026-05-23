@@ -35,23 +35,46 @@ interface GltfDocument {
   meshes?: Array<{ primitives?: GltfMeshPrimitive[] }>;
 }
 
+/**
+ * Options for scanning a local KayKit source folder into a package manifest.
+ *
+ * This is a Node/build-time API for app-local FREE or EXTRA ingest pipelines;
+ * it is not intended for browser runtime imports.
+ */
 export interface GenerateManifestOptions {
+  /** Root folder of a KayKit Medieval Hexagon pack containing `Assets/gltf`. */
   sourceRoot: string;
+  /** Pack edition being scanned. */
   edition: PackEdition;
+  /** Published or app-local asset URL prefix written into manifest paths. */
   assetBasePath?: string;
+  /** Stable timestamp override for reproducible generated manifests. */
   generatedAt?: string;
 }
 
+/**
+ * Source validation summary for a local KayKit pack folder.
+ */
 export interface ValidateSourceResult {
+  /** Source root that was checked. */
   sourceRoot: string;
+  /** Pack edition expected at the source root. */
   edition: PackEdition;
+  /** Number of `.gltf` files found under `Assets/gltf`. */
   gltfCount: number;
+  /** Expected model count for the requested edition. */
   expectedCount: number;
+  /** Whether the discovered count exactly matches the edition expectation. */
   ok: boolean;
 }
 
+/**
+ * Options for emitting a TypeScript manifest module.
+ */
 export interface WriteManifestModuleOptions {
+  /** Export identifier to use instead of the edition default. */
   exportName?: string;
+  /** Type import specifier written into the generated module. */
   typeImportPath?: string;
 }
 
@@ -60,10 +83,16 @@ const EXPECTED_COUNTS: Record<PackEdition, number> = {
   extra: 404,
 };
 
+/**
+ * Return the expected GLTF model count for a KayKit pack edition.
+ */
 export function expectedModelCount(edition: PackEdition): number {
   return EXPECTED_COUNTS[edition];
 }
 
+/**
+ * Resolve the conventional gitignored source folder for a pack edition.
+ */
 export function defaultSourceRoot(edition: PackEdition, cwd = process.cwd()): string {
   const suffix =
     edition === 'free'
@@ -72,6 +101,12 @@ export function defaultSourceRoot(edition: PackEdition, cwd = process.cwd()): st
   return resolve(cwd, 'references', suffix);
 }
 
+/**
+ * Count local GLTF files and compare them against the known edition count.
+ *
+ * The helper does not throw when the source is absent, which lets CLI `doctor`
+ * and build scripts report a clear local setup status.
+ */
 export function validateSourceRoot(sourceRoot: string, edition: PackEdition): ValidateSourceResult {
   const gltfRoot = join(sourceRoot, 'Assets', 'gltf');
   const gltfCount = existsSync(gltfRoot) ? listFiles(gltfRoot, '.gltf').length : 0;
@@ -85,6 +120,11 @@ export function validateSourceRoot(sourceRoot: string, edition: PackEdition): Va
   };
 }
 
+/**
+ * Copy the complete `Assets/gltf` tree into an output folder.
+ *
+ * Existing output is replaced so generated package assets stay reproducible.
+ */
 export function copyGltfTree(sourceRoot: string, destinationRoot: string): void {
   const gltfRoot = join(sourceRoot, 'Assets', 'gltf');
   if (!existsSync(gltfRoot)) {
@@ -101,6 +141,12 @@ export function copyGltfTree(sourceRoot: string, destinationRoot: string): void 
   }
 }
 
+/**
+ * Generate a normalized manifest by inspecting every GLTF in a local pack.
+ *
+ * Bounds, buffers, textures, material slots, taxonomy fields, and license
+ * metadata are derived from source files and the known KayKit edition.
+ */
 export function generateManifestFromSource(options: GenerateManifestOptions): MedievalHexagonManifest {
   const assetBasePath = trimSlashes(options.assetBasePath ?? `assets/${options.edition}`);
   const gltfRoot = join(options.sourceRoot, 'Assets', 'gltf');
@@ -133,6 +179,9 @@ export function generateManifestFromSource(options: GenerateManifestOptions): Me
   };
 }
 
+/**
+ * Write a TypeScript module that exports a generated manifest.
+ */
 export function writeManifestModule(
   manifest: MedievalHexagonManifest,
   outputPath: string,
@@ -153,6 +202,9 @@ export function writeManifestModule(
   );
 }
 
+/**
+ * Write a generated manifest as formatted JSON.
+ */
 export function writeManifestJson(manifest: MedievalHexagonManifest, outputPath: string): void {
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');

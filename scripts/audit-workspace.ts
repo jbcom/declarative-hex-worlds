@@ -31,6 +31,15 @@ interface ProjectJson {
   tags?: string[];
 }
 
+interface TypeDocJson {
+  entryPoints?: string[];
+  validation?: {
+    invalidLink?: boolean;
+    notDocumented?: boolean;
+    notExported?: boolean;
+  };
+}
+
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const failures: string[] = [];
 
@@ -40,6 +49,7 @@ const docsPackageJson = readJson<PackageJson>('apps/docs/package.json');
 const pnpmWorkspace = readJson<PnpmWorkspace>('pnpm-workspace.yaml');
 const nxJson = readJson<NxJson>('nx.json');
 const projectJson = readJson<ProjectJson>('packages/medieval-hexagon-gameboard/project.json');
+const typedocJson = readJson<TypeDocJson>('typedoc.json');
 const tsupConfig = readRequired('packages/medieval-hexagon-gameboard/tsup.config.ts');
 const docsIndex = readRequired('docs/index.md');
 const docsVitePressConfig = readRequired('docs/.vitepress/config.ts');
@@ -51,6 +61,7 @@ requireWorkspacePackages();
 requireNxConfiguration();
 requireProjectTargets();
 requireDocsConfiguration();
+requireTypeDocConfiguration();
 requireTsupConfiguration();
 
 if (failures.length > 0) {
@@ -154,6 +165,22 @@ function requireDocsGuideNavigation(): void {
       `docs/.vitepress/config.ts sidebar must link ${vitePressLink}`
     );
   }
+}
+
+function requireTypeDocConfiguration(): void {
+  assertEqualList(
+    typedocJson.entryPoints ?? [],
+    [
+      'packages/medieval-hexagon-gameboard/src/index.ts',
+      'packages/medieval-hexagon-gameboard/src/ingest.ts',
+      'packages/medieval-hexagon-gameboard/src/react.ts',
+      'packages/medieval-hexagon-gameboard/src/three.ts',
+    ],
+    'typedoc entry points'
+  );
+  assert(typedocJson.validation?.notExported === true, 'typedoc must validate notExported links');
+  assert(typedocJson.validation?.invalidLink === true, 'typedoc must validate invalid links');
+  assert(typedocJson.validation?.notDocumented === false, 'typedoc config should leave notDocumented to test:api-docs');
 }
 
 function requireTsupConfiguration(): void {
