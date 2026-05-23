@@ -361,9 +361,16 @@ contract for CI and npm consumers.
   for renderers and React consumers.
 - `./registry`: custom tile declarations, manifest-derived declarations, geometry
   analysis, and declaration application.
+- `./manifest/free`: packaged FREE KayKit manifest data for consumers that want
+  the catalog without building a bundle.
 - `./manifest/schema`: attribution constants plus manifest validation,
   normalization, FREE/EXTRA bundle creation, asset filtering, and URL resolution
   for app-local EXTRA manifests.
+- `./assets/free/*`: direct published FREE GLTF, BIN, PNG, and manifest files
+  for bundlers or renderers that need package asset URLs.
+- `./examples/simple-rpg-usage`: compiled SimpleRPG public-import walkthrough
+  used by humans, agents, and packed consumer smoke tests.
+- `./examples/*.json`: packaged recipe, scenario, and simulation fixtures.
 - `./ingest`: Node/build-time source validation, GLTF tree copying, and manifest
   generation helpers for app-local FREE/EXTRA bundles. Keep this out of browser
   runtime imports because it uses Node filesystem APIs.
