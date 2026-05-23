@@ -109,6 +109,7 @@ import {
   validateGameboardRecipeGeneration,
   type DispatchGameboardActorTargetCommandResult,
   type GameboardActorSelection,
+  type GameboardActorSnapshot,
   type GameboardActorTargetCommandPlan,
   type GameboardActorSelectionOptions,
   type GameboardActorTargetingOptions,
@@ -131,8 +132,10 @@ import {
   type InspectGameboardPlacementOccupancyOptions,
   type GameboardPlan,
   type GameboardPlacementOccupancyRecord,
+  type GameboardQuestSnapshot,
   type PlacementOccupancySnapshot,
   type PlacementOccupancyValue,
+  type PlacementStateValue,
 } from '@jbcom/medieval-hexagon-gameboard';
 import assetManifest from '@jbcom/medieval-hexagon-gameboard/assets/free/manifest.json' with { type: 'json' };
 import simpleRpgScenario from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json' with { type: 'json' };
@@ -315,6 +318,32 @@ runtime.movement.setAgent(runtimeActor, { profile: 'ground', movementBudget: 2 }
 runtime.dispatchCommand('1,0', { sourceActor: 'packed-runtime-player' });
 runtime.tick({ patrols: false, movement: { steps: 2 }, quests: false });
 const runtimeSnapshot: GameboardRuntimeSnapshot = runtime.snapshot({ includeInterop: false });
+const runtimeMarker = runtime.spawnPlacement({
+  id: 'packed-runtime-marker',
+  at: '0,0',
+  assetId: 'flag_green',
+  kind: 'prop',
+});
+runtime.updatePlacement(runtimeMarker, { scale: 1.25, metadata: { marker: 'packed' } });
+runtime.registerActor(runtimeMarker, {
+  actorId: 'packed-runtime-guide',
+  actorKind: 'npc',
+  interactive: true,
+});
+runtime.updateActor('packed-runtime-guide', { tags: ['guide'], actorMetadata: { greeting: 'hello' } });
+const runtimePlacementRecords: readonly PlacementStateValue[] = runtime.readPlacements();
+const runtimeActorRecords: readonly GameboardActorSnapshot[] = runtime.readActors();
+const runtimeQuestEntity = runtime.spawnQuest({
+  id: 'packed-runtime-quest',
+  objectives: [{ id: 'meet-guide', kind: 'reach-tile', actor: 'packed-runtime-guide', tile: '0,0' }],
+});
+const runtimeQuestBefore: GameboardQuestSnapshot | undefined = runtime.findQuest(runtimeQuestEntity);
+const runtimeQuestAfter: GameboardQuestSnapshot = runtime.advanceQuest('packed-runtime-quest');
+const runtimeQuestRecords: readonly GameboardQuestSnapshot[] = runtime.readQuests();
+const runtimeCanEnterActorTile: boolean = runtime.canOccupyPlacement({ at: '1,0', kind: 'unit' });
+const runtimePlacementOccupancy = runtime.inspectPlacementOccupancy({ at: '1,0', kind: 'unit' });
+const runtimePlacementOccupancyRecords: readonly PlacementOccupancySnapshot[] = runtime.readPlacementOccupancy();
+const runtimeRemovedMarker: boolean = runtime.removePlacement('packed-runtime-marker');
 const runtimeTileInspectionOptions: GameboardTileInspectionOptions = { sourceActor: 'packed-runtime-player' };
 const runtimeNeighborhoodInspectionOptions: GameboardNeighborhoodInspectionOptions = {
   radius: 1,
@@ -498,6 +527,15 @@ void placementOccupancyInspection;
 void occupancySnapshots;
 void occupancyValue;
 void runtimeSnapshot;
+void runtimePlacementRecords;
+void runtimeActorRecords;
+void runtimeQuestBefore;
+void runtimeQuestAfter;
+void runtimeQuestRecords;
+void runtimeCanEnterActorTile;
+void runtimePlacementOccupancy;
+void runtimePlacementOccupancyRecords;
+void runtimeRemovedMarker;
 void rootRuntimeTileInspection;
 void runtimeTileInspection;
 void rootRuntimeNeighborhoodInspection;
@@ -699,6 +737,45 @@ if (
   !runtimeSnapshot.validationPlan?.placements.some((placement) => placement.id === 'packed-runtime-player-placement')
 ) {
   throw new Error('packed runtime facade did not move and snapshot the runtime actor');
+}
+const runtimeMarker = runtime.spawnPlacement({
+  id: 'packed-runtime-marker',
+  at: '0,0',
+  assetId: 'flag_green',
+  kind: 'prop',
+});
+runtime.updatePlacement(runtimeMarker, { scale: 1.25, metadata: { marker: 'packed' } });
+runtime.registerActor(runtimeMarker, {
+  actorId: 'packed-runtime-guide',
+  actorKind: 'npc',
+  interactive: true,
+});
+runtime.updateActor('packed-runtime-guide', {
+  tags: ['guide'],
+  actorMetadata: { greeting: 'hello' },
+});
+const runtimeQuestEntity = runtime.spawnQuest({
+  id: 'packed-runtime-quest',
+  objectives: [{ id: 'meet-guide', kind: 'reach-tile', actor: 'packed-runtime-guide', tile: '0,0' }],
+});
+const runtimeQuestBefore = runtime.findQuest(runtimeQuestEntity);
+const runtimeQuestAfter = runtime.advanceQuest('packed-runtime-quest');
+const runtimePlacementOccupancy = runtime.inspectPlacementOccupancy({ at: '1,0', kind: 'unit' });
+if (
+  runtime.readPlacements().find((placement) => placement.id === 'packed-runtime-marker')?.scale !== 1.25 ||
+  runtime.findActor('packed-runtime-guide')?.actor.metadata.greeting !== 'hello' ||
+  !runtime.readActors().some((actor) => actor.actor.actorId === 'packed-runtime-guide') ||
+  runtimeQuestBefore?.quest.status !== 'active' ||
+  runtimeQuestAfter.quest.status !== 'completed' ||
+  runtime.readQuests().find((quest) => quest.quest.questId === 'packed-runtime-quest')?.quest.status !== 'completed' ||
+  runtime.canOccupyPlacement({ at: '1,0', kind: 'unit' }) !== false ||
+  runtimePlacementOccupancy.canOccupy !== false ||
+  !runtime.readPlacementOccupancy().some((record) => record.placement.id === 'packed-runtime-player-placement')
+) {
+  throw new Error('packed runtime direct mutation/read helpers failed');
+}
+if (!runtime.removePlacement('packed-runtime-marker') || runtime.removePlacement('packed-runtime-marker')) {
+  throw new Error('packed runtime removePlacement helper failed');
 }
 const runtimeTileInspection = runtime.inspectTile('1,0', { sourceActor: 'packed-runtime-player' });
 const rootRuntimeTileInspection = inspectGameboardTile(runtime.world, '1,0', { sourceActor: 'packed-runtime-player' });
