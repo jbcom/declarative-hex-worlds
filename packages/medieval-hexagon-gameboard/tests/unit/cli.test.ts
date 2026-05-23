@@ -1,0 +1,1757 @@
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { basename, dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { afterEach, describe, expect, it } from 'vitest';
+import { createGameboardBuilder } from '../../src/gameboard';
+import { createGameboardRecipe } from '../../src/recipe';
+import { createGameboardScenario } from '../../src/scenario';
+import type { MedievalHexagonManifest } from '../../src/types';
+
+const testDir = dirname(fileURLToPath(import.meta.url));
+const packageRoot = resolve(testDir, '../..');
+const workspaceRoot = resolve(packageRoot, '../..');
+const docsRecipePath = resolve(workspaceRoot, 'docs/examples/generated-piece-scenario.recipe.json');
+const docsScenarioPath = resolve(workspaceRoot, 'docs/examples/simple-rpg-scenario.json');
+const freeManifestPath = resolve(packageRoot, 'assets/free/manifest.json');
+const createdRoots: string[] = [];
+
+describe('CLI', () => {
+  afterEach(() => {
+    for (const root of createdRoots.splice(0)) {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('reports doctor status without requiring local references to exist', () => {
+    const missingSource = resolve(createTempRoot(), 'missing-source');
+    const output = runCli(['doctor', '--source', missingSource]);
+
+    expect(output).toContain('edition: free');
+    expect(output).toContain(`source: ${missingSource}`);
+    expect(output).toContain('source exists: no');
+    expect(output).toContain('gltf count: 0/221');
+  });
+
+  it('generates manifests and extracts GLTF trees from a source folder', () => {
+    const sourceRoot = createFixtureSourceRoot();
+    const manifestPath = resolve(createTempRoot(), 'manifest.json');
+    const extractRoot = resolve(createTempRoot(), 'extracted');
+
+    const manifestOutput = runCli([
+      'manifest',
+      '--source',
+      sourceRoot,
+      '--assetBasePath',
+      'assets/free',
+      '--out',
+      manifestPath,
+    ]);
+    expect(manifestOutput).toContain(`Wrote manifest to ${manifestPath}`);
+
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as MedievalHexagonManifest;
+    expect(manifest.counts.total).toBe(1);
+    expect(manifest.assetsById.hex_grass).toMatchObject({
+      category: 'tiles',
+      subcategory: 'base',
+      modelPath: 'assets/free/tiles/base/hex_grass.gltf',
+    });
+
+    const normalizedManifestPath = resolve(createTempRoot(), 'normalized-manifest.json');
+    const validationOutput = runCli([
+      'validate-manifest',
+      '--manifest',
+      manifestPath,
+      '--outManifest',
+      normalizedManifestPath,
+    ]);
+    expect(validationOutput).toContain(`Wrote normalized manifest to ${normalizedManifestPath}`);
+    expect(validationOutput).toContain('assets: 1');
+    expect(validationOutput).toContain('validation: 0 error(s), 0 warning(s)');
+    expect(existsSync(normalizedManifestPath)).toBe(true);
+
+    const extractOutput = runCli(['extract', '--source', sourceRoot, '--out', extractRoot]);
+    expect(extractOutput).toContain(`Extracted 1 free assets to ${extractRoot}`);
+    expect(existsSync(resolve(extractRoot, 'assets/tiles/base/hex_grass.gltf'))).toBe(true);
+    expect(existsSync(resolve(extractRoot, 'manifest.json'))).toBe(true);
+  });
+
+  it('normalizes stale manifest indexes for every manifest-consuming command', () => {
+    const sourceRoot = createFixtureSourceRoot();
+    const staleManifestPath = resolve(createTempRoot(), 'stale-manifest.json');
+    const manifest = JSON.parse(
+      runCli(['manifest', '--source', sourceRoot, '--assetBasePath', 'assets/free'])
+    ) as MedievalHexagonManifest;
+    writeFileSync(
+      staleManifestPath,
+      `${JSON.stringify(
+        {
+          ...manifest,
+          assetsById: {},
+          counts: { total: 0, byCategory: {}, bySubcategory: {} },
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const validationPayload = JSON.parse(
+      runCli(['validate-manifest', '--manifest', staleManifestPath, '--json'])
+    ) as {
+      errorCount: number;
+      warningCount: number;
+      counts: { total: number };
+      issues: Array<{ code: string }>;
+    };
+    const analysisPayload = JSON.parse(
+      runCli(['analyze', '--manifest', staleManifestPath, '--json'])
+    ) as {
+      tileCount: number;
+      analyzedCount: number;
+    };
+
+    expect(validationPayload).toMatchObject({
+      errorCount: 0,
+      warningCount: 2,
+      counts: { total: 1 },
+    });
+    expect(validationPayload.issues.map((issue) => issue.code)).toEqual([
+      'manifest.counts_stale',
+      'manifest.assets_by_id_stale',
+    ]);
+    expect(analysisPayload).toMatchObject({ tileCount: 1, analyzedCount: 1 });
+  });
+
+  it('fails validate-manifest on malformed local manifest JSON', () => {
+    const manifestPath = resolve(createTempRoot(), 'invalid-manifest.json');
+    writeFileSync(
+      manifestPath,
+      `${JSON.stringify(
+        {
+          schemaVersion: '1.0.0',
+          edition: 'extra',
+          sourcePack: {
+            name: 'Fixture',
+            version: '1.0',
+            creator: 'Fixture',
+            edition: 'extra',
+            license: 'CC0-1.0',
+            licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
+            sourceRootName: 'fixture',
+          },
+          textureSets: ['default'],
+          assets: [
+            {
+              id: 'bad-local-asset',
+              edition: 'free',
+              category: 'bad-category',
+              subcategory: 'fixture',
+              family: 'bad-local-asset',
+              textureSet: 'default',
+              modelPath: 'assets/extra/bad-local-asset.gltf',
+              sourcePath: 'bad-local-asset.gltf',
+              bufferPaths: [],
+              texturePaths: [],
+              materialSlots: [],
+              bounds: { min: [0, 0], max: [1, 1, 1], size: [1, 1, 1] },
+              fileSizeBytes: 1,
+            },
+          ],
+          assetsById: {},
+          counts: { total: 0, byCategory: {}, bySubcategory: {} },
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const output = runCliExpectFailure(['validate-manifest', '--manifest', manifestPath]);
+
+    expect(output).toContain('validation: 3 error(s), 0 warning(s)');
+    expect(output).toContain('manifest.asset_edition_mismatch');
+    expect(output).toContain('manifest.asset_category');
+    expect(output).toContain('manifest.asset_bounds_vector');
+    expect(runCliExpectFailure(['analyze', '--manifest', manifestPath, '--json'])).toContain(
+      'Invalid manifest'
+    );
+  });
+
+  it('validates plans and recipes through the published command surface', () => {
+    const tempRoot = createTempRoot();
+    const compiledPlanPath = resolve(tempRoot, 'compiled-plan.json');
+    const invalidRecipePath = resolve(tempRoot, 'invalid-archetype.recipe.json');
+
+    const recipeOutput = runCli([
+      'validate-recipe',
+      '--recipe',
+      docsRecipePath,
+      '--outPlan',
+      compiledPlanPath,
+    ]);
+    expect(recipeOutput).toContain(`Wrote compiled GameboardPlan to ${compiledPlanPath}`);
+    expect(recipeOutput).toContain('validation: 0 error(s), 0 warning(s)');
+
+    const planOutput = runCli(['validate-plan', '--plan', compiledPlanPath]);
+    expect(planOutput).toContain('validation: 0 error(s), 0 warning(s)');
+
+    writeFileSync(
+      invalidRecipePath,
+      `${JSON.stringify(
+        createGameboardRecipe(
+          { seed: 'cli-invalid-archetype', shape: { kind: 'rectangle', width: 1, height: 1 } },
+          [],
+          {
+            layoutFills: [{ id: 'bad-fill', archetype: 'missing-archetype', assetId: 'crate_A_small', count: 1 }],
+          }
+        ),
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+    const invalidOutput = runCliExpectFailure(['validate-recipe', '--recipe', invalidRecipePath]);
+    expect(invalidOutput).toContain('recipe.layout_archetype_missing');
+    expect(invalidOutput).not.toContain('recipe.compile_failed');
+  });
+
+  it('analyzes layout fill rules against a saved plan through the CLI', () => {
+    const root = createTempRoot();
+    const planPath = resolve(root, 'layout-plan.json');
+    const rulesPath = resolve(root, 'layout-rules.json');
+    const analysisPath = resolve(root, 'layout-analysis.json');
+    const plan = createGameboardBuilder({
+      seed: 'cli-layout-analysis',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .addForest({ q: 0, r: 0 })
+      .build();
+    writeFileSync(planPath, `${JSON.stringify(plan, null, 2)}\n`, 'utf8');
+    writeFileSync(
+      rulesPath,
+      `${JSON.stringify(
+        {
+          seed: 'cli-layout-fill',
+          rules: [
+            {
+              id: 'oversized-grove',
+              archetype: 'tree',
+              assetId: 'tree_single_A',
+              count: 5,
+              minCount: 4,
+            },
+            { id: 'overflow-crates', archetype: 'scatter', assetId: 'crate_A_small', count: 1 },
+            { id: 'missing-asset', archetype: 'prop', count: 1 },
+          ],
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const output = runCliExpectFailure([
+      'analyze-layout',
+      '--plan',
+      planPath,
+      '--rules',
+      rulesPath,
+      '--out',
+      analysisPath,
+    ]);
+    const payload = JSON.parse(readFileSync(analysisPath, 'utf8')) as {
+      placementCount: number;
+      warningCount: number;
+      errorCount: number;
+      rules: Array<{
+        id: string;
+        candidateCount: number;
+        rejectedSiteCount: number;
+        rejectionCounts: Record<string, number>;
+        selectedCount: number;
+        errors: string[];
+      }>;
+    };
+
+    expect(output).toContain(`Wrote layout analysis to ${analysisPath}`);
+    expect(payload).toMatchObject({
+      placementCount: 3,
+      warningCount: 4,
+      errorCount: 1,
+    });
+    expect(payload.rules[0]).toMatchObject({
+      id: 'oversized-grove',
+      candidateCount: 3,
+      selectedCount: 3,
+    });
+    expect(payload.rules[1]).toMatchObject({
+      id: 'overflow-crates',
+      candidateCount: 0,
+      rejectedSiteCount: 1,
+      rejectionCounts: { 'slots-full': 1 },
+      selectedCount: 0,
+    });
+    expect(payload.rules[2]?.errors).toEqual([
+      'Layout fill rule missing-asset requires assetId or assets',
+    ]);
+  });
+
+  it('plans separated spawn groups and route diagnostics through the CLI', () => {
+    const root = createTempRoot();
+    const planPath = resolve(root, 'spawn-groups.plan.json');
+    const groupsPath = resolve(root, 'spawn-groups.json');
+    const outputPath = resolve(root, 'spawn-groups.output.json');
+    const plan = createGameboardBuilder({
+      seed: 'cli-spawn-groups',
+      shape: { kind: 'rectangle', width: 4, height: 2 },
+    })
+      .setTileAsset({
+        at: { q: 0, r: 0 },
+        assetId: 'hex_grass',
+        terrain: 'grass',
+        tags: ['player-spawn'],
+      })
+      .setTileAsset({
+        at: { q: 3, r: 0 },
+        assetId: 'hex_grass',
+        terrain: 'grass',
+        tags: ['enemy-spawn'],
+      })
+      .addPlacement({
+        at: { q: 1, r: 0 },
+        assetId: 'building_tower_A_blue',
+        kind: 'structure',
+        layer: 'structure',
+      })
+      .build();
+    writeFileSync(planPath, `${JSON.stringify(plan, null, 2)}\n`, 'utf8');
+    writeFileSync(
+      groupsPath,
+      `${JSON.stringify(
+        {
+          seed: 'cli-spawn-groups',
+          groups: [
+            { id: 'player', count: 1, tileTags: ['player-spawn'] },
+            {
+              id: 'enemy',
+              count: 1,
+              tileTags: ['enemy-spawn'],
+              minDistanceFromGroups: 2,
+              pathToGroups: ['player'],
+            },
+          ],
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const output = runCli([
+      'spawn-groups',
+      '--plan',
+      planPath,
+      '--groups',
+      groupsPath,
+      '--out',
+      outputPath,
+    ]);
+    const payload = JSON.parse(readFileSync(outputPath, 'utf8')) as {
+      selectedLocationCount: number;
+      errors: string[];
+      groups: Array<{ id: string; selectedCount: number; locations: Array<{ key: string }> }>;
+      routeChecks: Array<{
+        fromGroupId: string;
+        toGroupId: string;
+        found: boolean;
+        pathKeys: string[];
+      }>;
+    };
+
+    expect(output).toContain(`Wrote spawn group plan to ${outputPath}`);
+    expect(payload.errors).toEqual([]);
+    expect(payload.selectedLocationCount).toBe(2);
+    expect(payload.groups.map((group) => [group.id, group.selectedCount])).toEqual([
+      ['player', 1],
+      ['enemy', 1],
+    ]);
+    expect(payload.groups[0]?.locations[0]?.key).toBe('0,0');
+    expect(payload.groups[1]?.locations[0]?.key).toBe('3,0');
+    expect(payload.routeChecks).toEqual([
+      expect.objectContaining({ fromGroupId: 'enemy', toGroupId: 'player', found: true }),
+    ]);
+    expect(payload.routeChecks[0]?.pathKeys).not.toContain('1,0');
+  });
+
+  it('plans patrol routes through the CLI from explicit route files and scenario routes', () => {
+    const root = createTempRoot();
+    const planPath = resolve(root, 'patrol-routes.plan.json');
+    const groupsPath = resolve(root, 'patrol-groups.json');
+    const routesPath = resolve(root, 'patrol-routes.json');
+    const outputPath = resolve(root, 'patrol-routes.output.json');
+    const scenarioOutputPath = resolve(root, 'patrol-scenario.output.json');
+    const scriptPath = resolve(root, 'patrol-script.json');
+    const scenarioScriptPath = resolve(root, 'patrol-scenario-script.json');
+    const plan = createGameboardBuilder({
+      seed: 'cli-patrol-routes',
+      shape: { kind: 'rectangle', width: 5, height: 2 },
+    })
+      .setTileAsset({
+        at: { q: 0, r: 0 },
+        assetId: 'hex_grass',
+        terrain: 'grass',
+        tags: ['enemy-spawn'],
+      })
+      .setTileAsset({
+        at: { q: 2, r: 0 },
+        assetId: 'hex_grass',
+        terrain: 'grass',
+        tags: ['watch-point'],
+      })
+      .setTileAsset({
+        at: { q: 4, r: 1 },
+        assetId: 'hex_grass',
+        terrain: 'grass',
+        tags: ['watch-point'],
+      })
+      .build();
+    writeFileSync(planPath, `${JSON.stringify(plan, null, 2)}\n`, 'utf8');
+    writeFileSync(
+      groupsPath,
+      `${JSON.stringify({ groups: [{ id: 'enemy', count: 1, tileTags: ['enemy-spawn'] }] }, null, 2)}\n`,
+      'utf8'
+    );
+    writeFileSync(
+      routesPath,
+      `${JSON.stringify(
+        {
+          seed: 'cli-patrol-routes',
+          routes: [
+            {
+              id: 'enemy-watch',
+              count: 3,
+              startGroupId: 'enemy',
+              tileTags: ['watch-point'],
+            },
+          ],
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const output = runCli([
+      'patrol-routes',
+      '--plan',
+      planPath,
+      '--groups',
+      groupsPath,
+      '--routes',
+      routesPath,
+      '--out',
+      outputPath,
+    ]);
+    const payload = JSON.parse(readFileSync(outputPath, 'utf8')) as {
+      errors: string[];
+      routes: Array<{
+        id: string;
+        found: boolean;
+        selectedWaypointCount: number;
+        waypoints: Array<{ key: string; source: string; spawnGroupId?: string }>;
+        segments: Array<{ found: boolean }>;
+      }>;
+    };
+
+    expect(output).toContain(`Wrote patrol route plan to ${outputPath}`);
+    expect(payload.errors).toEqual([]);
+    expect(payload.routes[0]).toMatchObject({
+      id: 'enemy-watch',
+      found: true,
+      selectedWaypointCount: 3,
+    });
+    expect(payload.routes[0]?.waypoints[0]).toMatchObject({
+      key: '0,0',
+      source: 'spawn-group',
+      spawnGroupId: 'enemy',
+    });
+    expect(payload.routes[0]?.segments.every((segment) => segment.found)).toBe(true);
+
+    const scenarioOutput = runCli([
+      'patrol-routes',
+      '--scenario',
+      docsScenarioPath,
+      '--out',
+      scenarioOutputPath,
+    ]);
+    const scenarioPayload = JSON.parse(readFileSync(scenarioOutputPath, 'utf8')) as typeof payload;
+
+    expect(scenarioOutput).toContain(`Wrote patrol route plan to ${scenarioOutputPath}`);
+    expect(scenarioPayload.routes.map((route) => route.id)).toEqual(['bandit-watch']);
+    expect(scenarioPayload.routes[0]?.waypoints).toHaveLength(3);
+
+    const scriptOutput = runCli([
+      'patrol-script',
+      '--routes',
+      outputPath,
+      '--routeId',
+      'enemy-watch',
+      '--actorId',
+      'bandit',
+      '--out',
+      scriptPath,
+    ]);
+    const scriptPayload = JSON.parse(readFileSync(scriptPath, 'utf8')) as {
+      schemaVersion: string;
+      steps: Array<{ action: string; sourceActor: string; target: string }>;
+    };
+    expect(scriptOutput).toContain(`Wrote patrol simulation script to ${scriptPath}`);
+    expect(scriptPayload.schemaVersion).toBe('1.0.0');
+    expect(scriptPayload.steps).toHaveLength(payload.routes[0]?.segments.length ?? 0);
+    expect(scriptPayload.steps[0]).toMatchObject({
+      action: 'command',
+      sourceActor: 'bandit',
+    });
+
+    const scenarioScriptOutput = runCli([
+      'patrol-script',
+      '--scenario',
+      docsScenarioPath,
+      '--routeId',
+      'bandit-watch',
+      '--actorId',
+      'bandit',
+      '--out',
+      scenarioScriptPath,
+    ]);
+    const scenarioScriptPayload = JSON.parse(readFileSync(scenarioScriptPath, 'utf8')) as typeof scriptPayload;
+    expect(scenarioScriptOutput).toContain(`Wrote patrol simulation script to ${scenarioScriptPath}`);
+    expect(scenarioScriptPayload.steps).toHaveLength(scenarioPayload.routes[0]?.segments.length ?? 0);
+  });
+
+  it('analyzes layout fill rules from recipes and scenarios through the CLI', () => {
+    const root = createTempRoot();
+    const recipePath = resolve(root, 'layout.recipe.json');
+    const scenarioPath = resolve(root, 'layout.scenario.json');
+    const rulesPath = resolve(root, 'layout-rules.json');
+    const compiledPlanPath = resolve(root, 'compiled-plan.json');
+    const recipe = createGameboardRecipe(
+      { seed: 'cli-layout-recipe', shape: { kind: 'rectangle', width: 3, height: 3 } },
+      [
+        { action: 'setTerrain', at: { q: 1, r: 2 }, terrain: 'water' },
+        { action: 'setCoastEdges', at: { q: 1, r: 1 }, waterEdges: [1] },
+      ]
+    );
+    const scenario = createGameboardScenario('cli-layout-scenario', recipe);
+    writeFileSync(recipePath, `${JSON.stringify(recipe, null, 2)}\n`, 'utf8');
+    writeFileSync(scenarioPath, `${JSON.stringify(scenario, null, 2)}\n`, 'utf8');
+    writeFileSync(
+      rulesPath,
+      `${JSON.stringify(
+        {
+          seed: 'cli-layout-recipe-fill',
+          rules: [
+            { id: 'recipe-harbor', archetype: 'harbor', assetId: 'building_docks_blue', count: 1 },
+          ],
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const recipeOutput = runCli([
+      'analyze-layout',
+      '--recipe',
+      recipePath,
+      '--rules',
+      rulesPath,
+      '--allowUnknownAssets',
+      '--outPlan',
+      compiledPlanPath,
+      '--json',
+    ]);
+    const recipePayload = JSON.parse(jsonPayload(recipeOutput)) as {
+      placementCount: number;
+      errorCount: number;
+      rules: Array<{ id: string; selectedTileKeys: string[] }>;
+    };
+    const scenarioPayload = JSON.parse(
+      jsonPayload(
+        runCli([
+          'analyze-layout',
+          '--scenario',
+          scenarioPath,
+          '--rules',
+          rulesPath,
+          '--allowUnknownAssets',
+          '--json',
+        ])
+      )
+    ) as typeof recipePayload;
+
+    expect(recipeOutput).toContain(`Wrote compiled GameboardPlan to ${compiledPlanPath}`);
+    expect(recipePayload).toMatchObject({
+      placementCount: 1,
+      errorCount: 0,
+      rules: [{ id: 'recipe-harbor', selectedTileKeys: ['1,1'] }],
+    });
+    expect(scenarioPayload).toMatchObject(recipePayload);
+    expect(existsSync(compiledPlanPath)).toBe(true);
+  });
+
+  it('validates scenarios through the published command surface', () => {
+    const compiledPlanPath = resolve(createTempRoot(), 'scenario-plan.json');
+
+    const output = runCli([
+      'validate-scenario',
+      '--scenario',
+      docsScenarioPath,
+      '--manifest',
+      freeManifestPath,
+      '--outPlan',
+      compiledPlanPath,
+    ]);
+
+    expect(output).toContain('scenario: docs-simple-rpg-scenario');
+    expect(output).toContain('actors: 3');
+    expect(output).toContain('quests: 1');
+    expect(output).toContain('spawn groups: 3 group(s), 3 location(s), 2/2 route(s)');
+    expect(output).toContain('validation: 0 error(s), 0 warning(s)');
+    expect(existsSync(compiledPlanPath)).toBe(true);
+  });
+
+  it('emits guide permutation metadata through the published command surface', () => {
+    const outputPath = resolve(createTempRoot(), 'guide-permutations.json');
+    const output = runCli([
+      'guide-permutations',
+      '--manifest',
+      freeManifestPath,
+      '--out',
+      outputPath,
+    ]);
+    const payload = JSON.parse(readFileSync(outputPath, 'utf8')) as {
+      count: number;
+      counts: Record<string, number>;
+      missingAssetIds: string[];
+      permutations: Array<{ id: string; assetId: string; kind: string }>;
+    };
+
+    expect(output).toContain(`Wrote 298 guide permutations to ${outputPath}`);
+    expect(payload).toMatchObject({
+      count: 298,
+      counts: {
+        road: 78,
+        river: 144,
+        'river-curvy': 12,
+        'river-crossing': 4,
+        coast: 60,
+      },
+      missingAssetIds: [],
+    });
+    expect(payload.permutations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'road:A:water:r0', assetId: 'hex_road_A' }),
+        expect.objectContaining({
+          id: 'river-curvy:A:waterless:r5',
+          assetId: 'hex_river_A_curvy_waterless',
+        }),
+        expect.objectContaining({
+          id: 'river-crossing:B:waterless:r0',
+          assetId: 'hex_river_crossing_B_waterless',
+        }),
+        expect.objectContaining({ id: 'coast:E:waterless:r5', assetId: 'hex_coast_E_waterless' }),
+      ])
+    );
+  });
+
+  it('scans local GLTF folders into compatibility-backed piece registries', () => {
+    const assetRoot = createExternalPackFixtureRoot();
+    const registryPath = resolve(createTempRoot(), 'pieces.json');
+    const overridesPath = resolve(createTempRoot(), 'piece-overrides.json');
+    const sourceRootsPath = resolve(createTempRoot(), 'piece-source-roots.json');
+    writeFileSync(
+      overridesPath,
+      `${JSON.stringify(
+        {
+          overrides: {
+            'tower-hexagon-base': {
+              footprint: { kind: 'adjacent', edges: [0, 1], includeCenter: true },
+              criteria: { terrain: ['grass', 'road'], edgePadding: 1 },
+              metadata: { placementPreset: 'tower-footprint' },
+            },
+            'tree-large': {
+              criteria: { maxPerTile: 3, slotGroup: 'soft-feature' },
+              tags: ['forest'],
+            },
+            missing: {
+              tags: ['unused'],
+            },
+          },
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+    writeFileSync(
+      sourceRootsPath,
+      `${JSON.stringify({ sourceRoots: { 'Fixture Castle Kit': '/fixture-assets' } }, null, 2)}\n`,
+      'utf8'
+    );
+
+    const output = runCli([
+      'pieces-from-assets',
+      '--assets',
+      assetRoot,
+      '--sourcePack',
+      'Fixture Castle Kit',
+      '--intendedRole',
+      'tile',
+      '--assetIdPrefix',
+      'fixture',
+      '--pieceIdPrefix',
+      'fixture-piece',
+      '--tags',
+      'castle,test',
+      '--pieceOverrides',
+      overridesPath,
+      '--includeReports',
+      '--out',
+      registryPath,
+    ]);
+    const payload = JSON.parse(readFileSync(registryPath, 'utf8')) as {
+      pieces: Array<{
+        id: string;
+        assetId: string;
+        source: string;
+        role: string;
+        requiresExtra: boolean;
+        tags: string[];
+        criteria: Record<string, unknown>;
+        metadata: Record<string, unknown>;
+      }>;
+      assets: string[];
+      sourceAssets: Array<{
+        id: string;
+        relativePath: string;
+        fileName: string;
+        extension: string;
+        path?: string;
+      }>;
+      reports: Array<{
+        id: string;
+        compatibleAsTile: boolean;
+        suggestedRole: string;
+        warnings: string[];
+      }>;
+      summary: {
+        assetCount: number;
+        warningCount: number;
+        pieceRoles: Record<string, number>;
+        overrideWarnings: string[];
+      };
+    };
+
+    expect(output).toContain(`Wrote 2 piece declarations to ${registryPath}`);
+    expect(payload.summary).toMatchObject({
+      assetCount: 2,
+      pieceRoles: { tree: 1, landmark: 1 },
+    });
+    expect(payload.summary.warningCount).toBeGreaterThan(0);
+    expect(payload.summary.overrideWarnings).toEqual([
+      'Piece override missing did not match any scanned asset id',
+    ]);
+    expect(payload.assets).toEqual(['tower-hexagon-base.gltf', 'tree-large.gltf']);
+    expect(payload.sourceAssets).toEqual([
+      {
+        id: 'tower-hexagon-base',
+        relativePath: 'tower-hexagon-base.gltf',
+        fileName: 'tower-hexagon-base.gltf',
+        extension: '.gltf',
+      },
+      {
+        id: 'tree-large',
+        relativePath: 'tree-large.gltf',
+        fileName: 'tree-large.gltf',
+        extension: '.gltf',
+      },
+    ]);
+    expect(payload.reports.every((report) => report.compatibleAsTile === false)).toBe(true);
+    expect(payload.reports.map((report) => report.suggestedRole)).toEqual(['prop', 'prop']);
+    expect(payload.reports.map((report) => report.warnings.join('\n')).join('\n')).toContain(
+      'does not match the KayKit hex footprint'
+    );
+
+    const tower = payload.pieces.find((piece) => piece.id === 'fixture-piece:tower-hexagon-base');
+    expect(tower).toMatchObject({
+      assetId: 'fixture:tower-hexagon-base',
+      source: 'Fixture Castle Kit',
+      role: 'landmark',
+      requiresExtra: true,
+      tags: ['castle', 'test'],
+      metadata: {
+        externalAsset: true,
+        suggestedRole: 'prop',
+        placementPreset: 'tower-footprint',
+        sourceRelativePath: 'tower-hexagon-base.gltf',
+        sourceFileName: 'tower-hexagon-base.gltf',
+        localAsset: true,
+      },
+    });
+    expect(tower?.metadata).not.toHaveProperty('sourcePath');
+    expect(tower?.criteria).toMatchObject({
+      footprint: { kind: 'adjacent', edges: [0, 1], includeCenter: true },
+      terrain: ['grass', 'road'],
+      edgePadding: 1,
+    });
+    expect(payload.pieces.find((piece) => piece.id === 'fixture-piece:tree-large')).toMatchObject({
+      tags: ['castle', 'test', 'forest'],
+      criteria: {
+        maxPerTile: 3,
+        slotGroup: 'soft-feature',
+      },
+    });
+
+    const rulesOutput = runCli([
+      'pieces',
+      '--pieces',
+      registryPath,
+      '--role',
+      'landmark',
+      '--emitRules',
+      '--emitSourceUrls',
+      '--pieceSourceRoots',
+      sourceRootsPath,
+      '--count',
+      '1',
+      '--json',
+    ]);
+    const rulesPayload = JSON.parse(rulesOutput) as {
+      rules: Array<{ assetId: string; count: number }>;
+      sourceUrls: Record<string, string>;
+    };
+    expect(rulesPayload.rules).toHaveLength(1);
+    expect(rulesPayload.rules[0]).toMatchObject({
+      assetId: 'fixture:tower-hexagon-base',
+      count: 1,
+    });
+    expect(rulesPayload.sourceUrls).toMatchObject({
+      'fixture:tower-hexagon-base': '/fixture-assets/tower-hexagon-base.gltf',
+      'fixture:tree-large': '/fixture-assets/tree-large.gltf',
+    });
+  });
+
+  it('inspects and appends one declared piece through the published command surface', () => {
+    const root = createTempRoot();
+    const recipePath = resolve(root, 'place-piece.recipe.json');
+    const piecesPath = resolve(root, 'place-piece.pieces.json');
+    const inspectionPath = resolve(root, 'place-piece.inspection.json');
+    const placedPlanPath = resolve(root, 'place-piece.plan.json');
+    const recipe = createGameboardRecipe(
+      { seed: 'cli-place-piece-recipe', shape: { kind: 'rectangle', width: 4, height: 3 } },
+      [
+        { action: 'setTerrain', at: { q: 0, r: 2 }, terrain: 'water' },
+        { action: 'setTerrain', at: { q: 1, r: 2 }, terrain: 'water' },
+        { action: 'setTerrain', at: { q: 2, r: 2 }, terrain: 'water' },
+        { action: 'setTerrain', at: { q: 3, r: 2 }, terrain: 'water' },
+        { action: 'setCoastEdges', at: { q: 0, r: 1 }, waterEdges: [1] },
+        { action: 'setCoastEdges', at: { q: 1, r: 1 }, waterEdges: [1] },
+        { action: 'setCoastEdges', at: { q: 2, r: 1 }, waterEdges: [1] },
+        { action: 'setCoastEdges', at: { q: 3, r: 1 }, waterEdges: [1] },
+      ]
+    );
+    writeFileSync(recipePath, `${JSON.stringify(recipe, null, 2)}\n`, 'utf8');
+    writeFileSync(
+      piecesPath,
+      `${JSON.stringify(
+        {
+          pieces: [
+            {
+              id: 'local-shipyard',
+              assetId: 'local:shipyard',
+              source: 'Local Harbor Fixtures',
+              role: 'harbor',
+              metadata: { fixture: true },
+            },
+          ],
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const output = runCli([
+      'place-piece',
+      '--recipe',
+      recipePath,
+      '--pieces',
+      piecesPath,
+      '--pieceId',
+      'local-shipyard',
+      '--count',
+      '1',
+      '--seed',
+      'cli-place-piece',
+      '--idPrefix',
+      'cli-shipyard',
+      '--out',
+      inspectionPath,
+      '--outPlan',
+      placedPlanPath,
+    ]);
+    const inspection = JSON.parse(readFileSync(inspectionPath, 'utf8')) as {
+      pieceId: string;
+      siteInspection: { selectedCount: number; candidateCount: number };
+      placements: Array<{
+        id: string;
+        assetId: string;
+        kind: string;
+        requiresExtra: boolean;
+        metadata: Record<string, unknown>;
+      }>;
+    };
+    const placedPlan = JSON.parse(readFileSync(placedPlanPath, 'utf8')) as {
+      placements: Array<{ id: string; assetId: string; metadata: Record<string, unknown> }>;
+    };
+
+    expect(output).toContain(`Wrote piece placement inspection to ${inspectionPath}`);
+    expect(output).toContain(`Wrote placed GameboardPlan to ${placedPlanPath}`);
+    expect(inspection).toMatchObject({
+      pieceId: 'local-shipyard',
+      siteInspection: {
+        selectedCount: 1,
+        candidateCount: 4,
+      },
+      placements: [
+        {
+          id: 'cli-shipyard:0',
+          assetId: 'local:shipyard',
+          kind: 'structure',
+          requiresExtra: true,
+          metadata: {
+            fixture: true,
+            pieceId: 'local-shipyard',
+            pieceRole: 'harbor',
+            pieceSource: 'Local Harbor Fixtures',
+          },
+        },
+      ],
+    });
+    expect(
+      placedPlan.placements.find((placement) => placement.id === 'cli-shipyard:0')
+    ).toMatchObject({
+      assetId: 'local:shipyard',
+      metadata: {
+        layoutArchetype: 'harbor',
+        pieceId: 'local-shipyard',
+      },
+    });
+  });
+
+  it('inspects and appends selected piece fills through the pieces command', () => {
+    const root = createTempRoot();
+    const planPath = resolve(root, 'piece-fill.plan.json');
+    const piecesPath = resolve(root, 'piece-fill.pieces.json');
+    const inspectionPath = resolve(root, 'piece-fill.inspection.json');
+    const placedPlanPath = resolve(root, 'piece-fill.placed-plan.json');
+    const plan = createGameboardBuilder({
+      seed: 'cli-piece-fill-plan',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    }).build();
+    writeFileSync(planPath, `${JSON.stringify(plan, null, 2)}\n`, 'utf8');
+    writeFileSync(
+      piecesPath,
+      `${JSON.stringify(
+        {
+          pieces: [
+            {
+              id: 'fixture-large-tree',
+              assetId: 'fixture:tree-large',
+              source: 'Fixture Pack',
+              role: 'tree',
+              tags: ['forest'],
+            },
+            {
+              id: 'fixture-small-tree',
+              assetId: 'fixture:tree-small',
+              source: 'Fixture Pack',
+              role: 'tree',
+              tags: ['forest'],
+            },
+          ],
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const output = runCli([
+      'pieces',
+      '--pieces',
+      piecesPath,
+      '--plan',
+      planPath,
+      '--role',
+      'tree',
+      '--tags',
+      'forest',
+      '--mode',
+      'pool',
+      '--count',
+      '2',
+      '--seed',
+      'cli-piece-fill',
+      '--out',
+      inspectionPath,
+      '--outPlan',
+      placedPlanPath,
+    ]);
+    const payload = JSON.parse(readFileSync(inspectionPath, 'utf8')) as {
+      placementInspection: {
+        rules: Array<{ id: string; assets: string[] }>;
+        analysis: { placementCount: number; errorCount: number };
+        placements: Array<{ assetId: string; metadata: Record<string, unknown> }>;
+        selections: Array<{ selectedPieceIds: string[]; errors: string[] }>;
+      };
+    };
+    const placedPlan = JSON.parse(readFileSync(placedPlanPath, 'utf8')) as {
+      placements: Array<{ assetId: string; metadata: Record<string, unknown> }>;
+    };
+
+    expect(output).toContain(`Wrote piece-filled GameboardPlan to ${placedPlanPath}`);
+    expect(output).toContain(`Wrote piece registry output to ${inspectionPath}`);
+    expect(payload.placementInspection).toMatchObject({
+      rules: [{ id: 'piece:pool:0', assets: ['fixture:tree-large', 'fixture:tree-small'] }],
+      analysis: { placementCount: 2, errorCount: 0 },
+      selections: [{ selectedPieceIds: ['fixture-large-tree', 'fixture-small-tree'], errors: [] }],
+    });
+    expect(
+      payload.placementInspection.placements.map((placement) => placement.assetId).sort()
+    ).toEqual(['fixture:tree-large', 'fixture:tree-small']);
+    expect(
+      placedPlan.placements.filter((placement) => placement.metadata.pieceCollectionSize === 2)
+    ).toHaveLength(2);
+  });
+
+  it('emits scenario interop snapshots through the published command surface', () => {
+    const root = createTempRoot();
+    const snapshotPath = resolve(root, 'scenario-snapshot.json');
+    const actorOnlySnapshotPath = resolve(root, 'scenario-snapshot-actors-only.json');
+
+    const output = runCli([
+      'snapshot',
+      '--scenario',
+      docsScenarioPath,
+      '--manifest',
+      freeManifestPath,
+      '--spawnCount',
+      '2',
+      '--spawnSeed',
+      'cli-snapshot',
+      '--out',
+      snapshotPath,
+    ]);
+    const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8')) as {
+      entities: Array<{ id: string; kind: string }>;
+      relations: Array<{ name: string; fromId: string; toId: string }>;
+      spawnLocations: Array<{ id: string }>;
+      scenario?: { id: string };
+    };
+
+    expect(output).toContain('Wrote interop snapshot with');
+    expect(snapshot.scenario?.id).toBe('docs-simple-rpg-scenario');
+    expect(snapshot.spawnLocations.map((spawn) => spawn.id)).toEqual(
+      expect.arrayContaining([
+        'spawn:0',
+        'spawn:1',
+        'spawn:player-start:0',
+        'spawn:elder:0',
+        'spawn:enemy:0',
+      ])
+    );
+    expect(
+      snapshot.entities.some((entity) => entity.kind === 'actor' && entity.id === 'actor:player')
+    ).toBe(true);
+    expect(snapshot.entities.some((entity) => entity.kind === 'quest')).toBe(true);
+    expect(
+      snapshot.entities.some(
+        (entity) => entity.kind === 'spawn-group' && entity.id === 'spawn-group:enemy'
+      )
+    ).toBe(true);
+    expect(snapshot.relations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'SpawnGroupHasLocation',
+          fromId: 'spawn-group:player-start',
+        }),
+        expect.objectContaining({ name: 'SpawnGroupRouteCheck', fromId: 'spawn-group:enemy' }),
+        expect.objectContaining({
+          name: 'ActorPatrolRoute',
+          fromId: 'actor:bandit',
+          toId: 'patrol-route:bandit-watch',
+        }),
+        expect.objectContaining({ name: 'ActorOnTile', fromId: 'actor:player' }),
+        expect.objectContaining({ name: 'QuestReferencesActor' }),
+      ])
+    );
+
+    runCli([
+      'snapshot',
+      '--scenario',
+      docsScenarioPath,
+      '--manifest',
+      freeManifestPath,
+      '--spawnCount',
+      '2',
+      '--spawnSeed',
+      'cli-snapshot',
+      '--excludeSpawnGroups',
+      '--out',
+      actorOnlySnapshotPath,
+    ]);
+    const actorOnlySnapshot = JSON.parse(readFileSync(actorOnlySnapshotPath, 'utf8')) as {
+      entities: Array<{ id: string; kind: string }>;
+      spawnLocations: Array<{ id: string }>;
+    };
+    expect(actorOnlySnapshot.spawnLocations.map((spawn) => spawn.id)).toEqual([
+      'spawn:0',
+      'spawn:1',
+    ]);
+    expect(actorOnlySnapshot.entities.some((entity) => entity.kind === 'spawn-group')).toBe(false);
+  });
+
+  it('runs scenario simulation scripts through the published command surface', () => {
+    const root = createTempRoot();
+    const scenarioPath = resolve(root, 'simulation-scenario.json');
+    const scriptPath = resolve(root, 'simulation-script.json');
+    const reportPath = resolve(root, 'simulation-report.json');
+    const finalPlanPath = resolve(root, 'simulation-plan.json');
+    const interopPath = resolve(root, 'simulation-interop.json');
+    writeFileSync(
+      scenarioPath,
+      `${JSON.stringify(
+        {
+          schemaVersion: '1.0.0',
+          id: 'cli-simulation-scenario',
+          board: {
+            schemaVersion: '1.0.0',
+            options: {
+              seed: 'cli-simulation-scenario',
+              shape: { kind: 'rectangle', width: 4, height: 1 },
+            },
+            steps: [
+              {
+                action: 'addRoadPath',
+                path: [
+                  { q: 0, r: 0 },
+                  { q: 1, r: 0 },
+                  { q: 2, r: 0 },
+                  { q: 3, r: 0 },
+                ],
+              },
+              {
+                action: 'setTileAsset',
+                at: { q: 3, r: 0 },
+                assetId: 'hex_grass',
+                terrain: 'road',
+                tags: ['watch-point'],
+              },
+            ],
+          },
+          patrolRoutes: [
+            {
+              id: 'raider-watch',
+              count: 2,
+              start: '1,0',
+              tileTags: ['watch-point'],
+              loop: false,
+            },
+          ],
+          actors: [
+            {
+              id: 'hero-placement',
+              actorId: 'hero',
+              actorKind: 'player',
+              team: 'blue',
+              at: '0,0',
+              assetId: 'flag_blue',
+              kind: 'unit',
+              movementAgent: { profile: 'worker', movementBudget: 5 },
+            },
+            {
+              id: 'raider-placement',
+              actorId: 'raider',
+              actorKind: 'enemy',
+              team: 'red',
+              hostile: true,
+              at: '1,0',
+              assetId: 'flag_red',
+              kind: 'unit',
+              patrolAgent: { routeId: 'raider-watch', movement: { profile: 'ground' } },
+            },
+            {
+              id: 'elder-placement',
+              actorId: 'elder',
+              actorKind: 'npc',
+              team: 'blue',
+              at: '2,0',
+              assetId: 'flag_green',
+              kind: 'prop',
+            },
+          ],
+          quests: [
+            {
+              id: 'cli-simulation-scenario:intro',
+              objectives: [
+                {
+                  id: 'enemy-blocks',
+                  kind: 'collision',
+                  actor: 'hero',
+                  targetActor: 'raider',
+                  expect: 'blocked',
+                },
+                { id: 'defeat-raider', kind: 'defeat-actor', targetActor: 'raider' },
+                { id: 'reach-elder', kind: 'reach-actor', actor: 'hero', targetActor: 'elder' },
+              ],
+            },
+          ],
+          expectations: {
+            requiredEventTypes: ['command-handler-required', 'quest-completed'],
+            mutations: [{ type: 'actor-removed', actorId: 'raider', removed: true }],
+            actors: [
+              { actorId: 'hero', tileKey: '2,0' },
+              { actorId: 'raider', exists: false },
+            ],
+            quests: [{ questId: 'cli-simulation-scenario:intro', status: 'completed' }],
+          },
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+    writeFileSync(
+      scriptPath,
+      `${JSON.stringify(
+        {
+          schemaVersion: '1.0.0',
+          defaultSourceActor: 'hero',
+          steps: [
+            {
+              action: 'inspect-actor-targets',
+              id: 'scan-raider',
+              sourceActor: 'hero',
+              targeting: { hostileToSource: true, approach: 'nearest', includeUnreachable: true },
+            },
+            {
+              action: 'run-systems',
+              id: 'raider-patrol',
+              systems: {
+                patrols: { movement: { profile: 'ground' } },
+                movement: { steps: 10 },
+                quests: false,
+              },
+            },
+            {
+              action: 'actor-target-command',
+              id: 'attack-raider',
+              targetActorId: 'raider',
+              requireReachable: true,
+              targeting: { hostileToSource: true, approach: 'nearest', maxPathCost: 6 },
+              systems: { patrols: false, movement: false, quests: { step: 1 } },
+            },
+            {
+              action: 'remove-actor',
+              id: 'resolve-combat',
+              actorId: 'raider',
+              systems: { patrols: false, movement: false, quests: { step: 2 } },
+            },
+            {
+              action: 'command',
+              id: 'walk-to-elder',
+              target: '2,0',
+              systems: { patrols: false, movement: { steps: 10 }, quests: { step: 3 } },
+            },
+          ],
+          expectations: {
+            actorTargets: [
+              {
+                stepId: 'scan-raider',
+                sourceActorId: 'hero',
+                targetActorIds: ['raider'],
+                reachableActorIds: ['raider'],
+                nearestActorId: 'raider',
+                targetActorId: 'raider',
+                targetCommandKind: 'attack-actor',
+                targetCommandCanExecute: true,
+              },
+              {
+                stepId: 'attack-raider',
+                sourceActorId: 'hero',
+                targetActorIds: ['raider'],
+                reachableActorIds: ['raider'],
+                nearestActorId: 'raider',
+                targetActorId: 'raider',
+                targetCommandKind: 'attack-actor',
+                targetCommandCanExecute: true,
+              },
+            ],
+          },
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const validationOutput = runCli([
+      'validate-simulation',
+      '--scenario',
+      scenarioPath,
+      '--script',
+      scriptPath,
+      '--manifest',
+      freeManifestPath,
+    ]);
+    expect(validationOutput).toContain('scenario: cli-simulation-scenario');
+    expect(validationOutput).toContain('steps: 5');
+    expect(validationOutput).toContain('validation: 0 error(s), 0 warning(s)');
+
+    const output = runCli([
+      'simulate-scenario',
+      '--scenario',
+      scenarioPath,
+      '--script',
+      scriptPath,
+      '--manifest',
+      freeManifestPath,
+      '--out',
+      reportPath,
+      '--outPlan',
+      finalPlanPath,
+      '--outInterop',
+      interopPath,
+    ]);
+    const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {
+      scenarioId: string;
+      steps: Array<{
+        id: string;
+        command?: { kind: string; status: string };
+        actorTargets?: {
+          sourceActorId?: string;
+          targetActorIds: string[];
+          reachableActorIds: string[];
+          nearestTarget?: { actorId: string; commandKind: string; commandCanExecute: boolean };
+        };
+      }>;
+      success: boolean;
+      expectationFailures: unknown[];
+      eventRecords: Array<{ type: string }>;
+      commands: Array<{
+        stepId: string;
+        eventType: string;
+        command: { kind: string; status: string };
+      }>;
+      patrols: Array<{
+        stepId: string;
+        eventType: string;
+        patrol: { actorId?: string; routeId: string; targetKey?: string };
+      }>;
+      actorTargets: Array<{
+        stepId: string;
+        sourceActorId: string;
+        targetActorIds: string[];
+        reachableActorIds: string[];
+        nearestTarget?: { actorId: string; commandKind: string; commandCanExecute: boolean };
+      }>;
+      movements: Array<{ stepId: string; eventType: string; movement: { moved: boolean } }>;
+      mutations: Array<{ type: string; actorId: string; removed: boolean }>;
+      actors: Array<{ actorId: string; placement: { tileKey: string } }>;
+      quests: Array<{ status: string }>;
+    };
+    const interop = JSON.parse(readFileSync(interopPath, 'utf8')) as {
+      scenario?: { id: string; metadata: { success: boolean; source: string } };
+      entities: Array<{ id: string; kind: string; components: Record<string, unknown> }>;
+      relations: Array<{ name: string; fromId: string; toId: string }>;
+    };
+
+    expect(output).toContain(`Wrote final simulated GameboardPlan to ${finalPlanPath}`);
+    expect(output).toContain(`Wrote simulation interop snapshot to ${interopPath}`);
+    expect(output).toContain(`Wrote scenario simulation report to ${reportPath}`);
+    expect(output).toContain('actor target records: 2');
+    expect(output).toContain('scan-raider: hero found 1/1 reachable; nearest raider');
+    expect(output).toContain('attack-raider: hero found 1/1 reachable; nearest raider');
+    expect(report.scenarioId).toBe('cli-simulation-scenario');
+    expect(report.success).toBe(true);
+    expect(report.expectationFailures).toEqual([]);
+    expect(report.steps.find((step) => step.id === 'scan-raider')).toMatchObject({
+      id: 'scan-raider',
+      actorTargets: {
+        sourceActorId: 'hero',
+        targetActorIds: ['raider'],
+        reachableActorIds: ['raider'],
+        nearestTarget: {
+          actorId: 'raider',
+          commandKind: 'attack-actor',
+          commandCanExecute: true,
+        },
+      },
+    });
+    expect(report.steps.find((step) => step.id === 'attack-raider')).toMatchObject({
+      id: 'attack-raider',
+      command: { kind: 'attack-actor', status: 'requires-game-handler' },
+      actorTargets: {
+        sourceActorId: 'hero',
+        targetActorIds: ['raider'],
+        reachableActorIds: ['raider'],
+        nearestTarget: {
+          actorId: 'raider',
+          commandKind: 'attack-actor',
+          commandCanExecute: true,
+        },
+      },
+    });
+    expect(report.eventRecords.map((event) => event.type)).toContain('patrol-move-requested');
+    expect(report.eventRecords.map((event) => event.type)).toContain('quest-completed');
+    expect(report.commands).toEqual([
+      expect.objectContaining({
+        stepId: 'attack-raider',
+        eventType: 'command-handler-required',
+        command: expect.objectContaining({ kind: 'attack-actor', status: 'requires-game-handler' }),
+      }),
+      expect.objectContaining({
+        stepId: 'walk-to-elder',
+        eventType: 'movement-requested',
+        command: expect.objectContaining({ kind: 'move', status: 'requested-move' }),
+      }),
+    ]);
+    expect(report.patrols).toEqual([
+      expect.objectContaining({
+        stepId: 'raider-patrol',
+        eventType: 'patrol-move-requested',
+        patrol: expect.objectContaining({
+          actorId: 'raider',
+          routeId: 'raider-watch',
+          targetKey: '3,0',
+        }),
+      }),
+    ]);
+    expect(report.actorTargets).toEqual([
+      expect.objectContaining({
+        stepId: 'scan-raider',
+        sourceActorId: 'hero',
+        targetActorIds: ['raider'],
+        reachableActorIds: ['raider'],
+        nearestTarget: expect.objectContaining({
+          actorId: 'raider',
+          commandKind: 'attack-actor',
+          commandCanExecute: true,
+        }),
+      }),
+      expect.objectContaining({
+        stepId: 'attack-raider',
+        sourceActorId: 'hero',
+        targetActorIds: ['raider'],
+        reachableActorIds: ['raider'],
+        nearestTarget: expect.objectContaining({
+          actorId: 'raider',
+          commandKind: 'attack-actor',
+          commandCanExecute: true,
+        }),
+      }),
+    ]);
+    expect(report.movements).toEqual([
+      expect.objectContaining({ stepId: 'raider-patrol', eventType: 'movement-stepped' }),
+      expect.objectContaining({ stepId: 'raider-patrol', eventType: 'movement-completed' }),
+      expect.objectContaining({ stepId: 'walk-to-elder', eventType: 'movement-requested' }),
+      expect.objectContaining({ stepId: 'walk-to-elder', eventType: 'movement-stepped' }),
+      expect.objectContaining({ stepId: 'walk-to-elder', eventType: 'movement-completed' }),
+    ]);
+    expect(report.mutations).toMatchObject([
+      { type: 'actor-removed', actorId: 'raider', removed: true },
+    ]);
+    expect(report.actors.find((actor) => actor.actorId === 'hero')?.placement.tileKey).toBe('2,0');
+    expect(report.quests).toEqual([expect.objectContaining({ status: 'completed' })]);
+    expect(existsSync(finalPlanPath)).toBe(true);
+    expect(interop.scenario).toEqual({
+      id: 'cli-simulation-scenario',
+      metadata: { success: true, source: 'simulation-report' },
+    });
+    expect(interop.entities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'simulation:cli-simulation-scenario', kind: 'simulation' }),
+        expect.objectContaining({ kind: 'simulation-command' }),
+        expect.objectContaining({ kind: 'simulation-actor-targets' }),
+        expect.objectContaining({ kind: 'simulation-patrol' }),
+        expect.objectContaining({ kind: 'simulation-movement' }),
+        expect.objectContaining({ kind: 'simulation-mutation' }),
+        expect.objectContaining({
+          id: 'actor:raider',
+          kind: 'actor',
+          components: {
+            GameboardActorReference: {
+              actorId: 'raider',
+              exists: false,
+              source: 'simulation-timeline',
+            },
+          },
+        }),
+      ])
+    );
+    expect(interop.relations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'SimulationStepActorTargets' }),
+        expect.objectContaining({ name: 'ActorTargetsSourceActor', toId: 'actor:hero' }),
+        expect.objectContaining({ name: 'ActorTargetsTargetActor', toId: 'actor:raider' }),
+        expect.objectContaining({ name: 'PatrolActor', toId: 'actor:raider' }),
+        expect.objectContaining({ name: 'PatrolPlacement', toId: 'placement:raider-placement' }),
+        expect.objectContaining({ name: 'MovementActor', toId: 'actor:hero' }),
+        expect.objectContaining({ name: 'MutationActor', toId: 'actor:raider' }),
+      ])
+    );
+    expect(existsSync(interopPath)).toBe(true);
+
+    writeFileSync(
+      scriptPath,
+      `${JSON.stringify(
+        {
+          schemaVersion: '1.0.0',
+          steps: [{ action: 'run-systems', systems: { movement: false, quests: { step: 1 } } }],
+          expectations: {
+            actors: [{ actorId: 'hero', tileKey: '2,0' }],
+          },
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+    const failedOutput = runCliExpectFailure([
+      'simulate-scenario',
+      '--scenario',
+      scenarioPath,
+      '--script',
+      scriptPath,
+      '--manifest',
+      freeManifestPath,
+      '--out',
+      reportPath,
+    ]);
+    const failedReport = JSON.parse(readFileSync(reportPath, 'utf8')) as {
+      success: boolean;
+      expectationFailures: Array<{ path: string }>;
+    };
+    expect(failedOutput).toContain('expectation failures:');
+    expect(failedReport.success).toBe(false);
+    expect(failedReport.expectationFailures).toEqual([
+      expect.objectContaining({ path: 'expectations.actors.hero.tileKey' }),
+    ]);
+
+    writeFileSync(
+      scriptPath,
+      `${JSON.stringify(
+        {
+          schemaVersion: '1.0.0',
+          steps: [{ action: 'command', target: { actorId: 'missing-raider' } }],
+          expectations: {
+            requiredEventTypes: ['not-a-system-event'],
+          },
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+    const invalidScriptOutput = runCliExpectFailure([
+      'simulate-scenario',
+      '--scenario',
+      scenarioPath,
+      '--script',
+      scriptPath,
+      '--manifest',
+      freeManifestPath,
+    ]);
+    expect(invalidScriptOutput).toContain('validation: 2 error(s), 0 warning(s)');
+    expect(invalidScriptOutput).toContain('simulation.command_target_actor_missing');
+    expect(invalidScriptOutput).toContain('simulation.expectation_event_type');
+
+    const validateInvalidScriptOutput = runCliExpectFailure([
+      'validate-simulation',
+      '--scenario',
+      scenarioPath,
+      '--script',
+      scriptPath,
+      '--manifest',
+      freeManifestPath,
+    ]);
+    expect(validateInvalidScriptOutput).toContain('validation: 2 error(s), 0 warning(s)');
+    expect(validateInvalidScriptOutput).toContain('simulation.command_target_actor_missing');
+    expect(validateInvalidScriptOutput).toContain('simulation.expectation_event_type');
+  });
+
+  it('rejects scenario JSON with duplicate actors before creating a runtime world', () => {
+    const scenarioPath = resolve(createTempRoot(), 'invalid-scenario.json');
+    writeFileSync(
+      scenarioPath,
+      `${JSON.stringify(
+        {
+          schemaVersion: '1.0.0',
+          id: 'invalid-cli-scenario',
+          board: {
+            schemaVersion: '1.0.0',
+            options: {
+              seed: 'invalid-cli-scenario',
+              shape: { kind: 'rectangle', width: 2, height: 2 },
+            },
+            steps: [],
+          },
+          actors: [
+            { actorId: 'player', at: '0,0', assetId: 'flag_blue', kind: 'unit' },
+            { actorId: 'player', at: '1,1', assetId: 'missing_actor_asset', kind: 'prop' },
+          ],
+          quests: [
+            {
+              id: 'invalid-cli-quest',
+              objectives: [
+                { id: 'missing', kind: 'reach-actor', actor: 'player', targetActor: 'elder' },
+              ],
+            },
+          ],
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const output = runCliExpectFailure([
+      'validate-scenario',
+      '--scenario',
+      scenarioPath,
+      '--manifest',
+      freeManifestPath,
+    ]);
+
+    expect(output).toContain('validation: 3 error(s), 0 warning(s)');
+    expect(output).toContain('scenario.actor_duplicate');
+    expect(output).toContain('scenario.actor_unknown_asset');
+    expect(output).toContain('scenario.objective_missing_target_actor');
+
+    const allowedOutput = runCliExpectFailure([
+      'validate-scenario',
+      '--scenario',
+      scenarioPath,
+      '--manifest',
+      freeManifestPath,
+      '--allowUnknownAssetIds',
+      'missing_actor_asset',
+    ]);
+    expect(allowedOutput).toContain('validation: 2 error(s), 0 warning(s)');
+    expect(allowedOutput).not.toContain('scenario.actor_unknown_asset');
+  });
+
+  it('exits non-zero when source validation fails', () => {
+    const sourceRoot = createFixtureSourceRoot();
+
+    expect(() => runCli(['validate', '--source', sourceRoot])).toThrow(
+      /Expected 221 free GLTF files, found 1/
+    );
+  });
+});
+
+function runCli(args: readonly string[]): string {
+  return execFileSync('pnpm', ['exec', 'tsx', 'src/cli.ts', ...args], {
+    cwd: packageRoot,
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      FORCE_COLOR: '0',
+      NO_COLOR: '1',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+}
+
+function runCliExpectFailure(args: readonly string[]): string {
+  try {
+    runCli(args);
+  } catch (error) {
+    const output = error as { stderr?: unknown; stdout?: unknown };
+    return `${String(output.stdout ?? '')}${String(output.stderr ?? '')}`;
+  }
+  throw new Error(`Expected CLI failure for ${args.join(' ')}`);
+}
+
+function jsonPayload(output: string): string {
+  const index = output.indexOf('{');
+  if (index === -1) {
+    throw new Error(`Output did not contain a JSON object: ${output}`);
+  }
+  return output.slice(index);
+}
+
+function createTempRoot(): string {
+  const root = mkdtempSync(resolve(tmpdir(), 'medieval-hexagon-cli-'));
+  createdRoots.push(root);
+  return root;
+}
+
+function createFixtureSourceRoot(): string {
+  const root = createTempRoot();
+  const assetDir = resolve(root, 'Assets/gltf/tiles/base');
+  mkdirSync(assetDir, { recursive: true });
+  writeFileSync(
+    resolve(assetDir, 'hex_grass.gltf'),
+    `${JSON.stringify(
+      {
+        asset: { version: '2.0' },
+        accessors: [{ min: [-1, 0, -1.1547], max: [1, 0.4, 1.1547] }],
+        buffers: [{ uri: 'hex_grass.bin', byteLength: 0 }],
+        images: [{ uri: 'hexagons_medieval.png' }],
+        materials: [{ name: 'hexagons_medieval' }],
+        meshes: [{ primitives: [{ attributes: { POSITION: 0 }, material: 0 }] }],
+      },
+      null,
+      2
+    )}\n`,
+    'utf8'
+  );
+  writeFileSync(resolve(assetDir, 'hex_grass.bin'), '');
+  writeFileSync(resolve(assetDir, 'hexagons_medieval.png'), '');
+  return root;
+}
+
+function createExternalPackFixtureRoot(): string {
+  const root = createTempRoot();
+  writeGltfBounds(resolve(root, 'tower-hexagon-base.gltf'), [-0.45, 0, -0.39], [0.45, 1.25, 0.39]);
+  writeGltfBounds(resolve(root, 'tree-large.gltf'), [-0.22, 0, -0.18], [0.22, 1.6, 0.18]);
+  return root;
+}
+
+function writeGltfBounds(
+  path: string,
+  min: [number, number, number],
+  max: [number, number, number]
+): void {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(
+    path,
+    `${JSON.stringify(
+      {
+        asset: { version: '2.0' },
+        accessors: [{ min, max }],
+        buffers: [{ uri: `${basename(path, '.gltf')}.bin`, byteLength: 0 }],
+        materials: [{ name: 'fixture_material' }],
+        meshes: [{ primitives: [{ attributes: { POSITION: 0 }, material: 0 }] }],
+      },
+      null,
+      2
+    )}\n`,
+    'utf8'
+  );
+}

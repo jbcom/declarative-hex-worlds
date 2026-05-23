@@ -1,0 +1,57 @@
+{
+  "overrides": {
+    "tower-hexagon-base": {
+      "id": "kenney-round-tower",
+      "role": "landmark",
+      "footprint": { "kind": "adjacent", "edges": [0, 1], "includeCenter": true },
+      "criteria": {
+        "terrain": ["grass", "road"],
+        "edgePadding": 1,
+        "allowOccupied": false,
+        "prefer": [
+          { "kind": "center", "weight": 1 },
+          { "kind": "near-placement-kind", "placementKind": "structure", "radius": 4, "weight": 0.3 }
+        ]
+      },
+      "metadata": {
+        "placementPreset": "round tower prop on open central grass"
+      }
+    },
+    "tower-square-base": {
+      "id": "kenney-square-tower",
+      "role": "landmark",
+      "footprint": { "kind": "adjacent", "edges": [2, 3], "includeCenter": true },
+      "criteria": {
+        "terrain": ["grass", "road", "coast"],
+        "allowOccupied": false,
+        "minDistanceBetween": 1,
+        "prefer": [
+          { "kind": "center", "weight": 1 },
+          { "kind": "far-from-placement-kind", "placementKind": "prop", "radius": 2, "weight": 0.4 }
+        ]
+      },
+      "metadata": {
+        "placementPreset": "square wall piece centered on an unoccupied tile"
+      }
+    },
+    "tree-large": {
+      "id": "kenney-large-tree",
+      "role": "tree",
+      "rotationSteps": "random",
+      "criteria": {
+        "terrain": ["grass", "forest", "hill"],
+        "allowOccupied": true,
+        "maxPerTile": 3,
+        "slotGroup": "soft-feature",
+        "prefer": [
+          { "kind": "near-terrain", "terrain": "forest", "radius": 3, "weight": 1 },
+          { "kind": "far-from-placement-kind", "placementKind": "structure", "radius": 3, "weight": 0.25 }
+        ]
+      },
+      "tags": ["forest", "scatter"],
+      "metadata": {
+        "placementPreset": "decorative tree near forested terrain"
+      }
+    }
+  }
+}

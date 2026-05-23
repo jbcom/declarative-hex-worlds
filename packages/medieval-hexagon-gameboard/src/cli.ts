@@ -1,0 +1,2697 @@
+#!/usr/bin/env node
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import {
+  copyGltfTree,
+  defaultSourceRoot,
+  expectedModelCount,
+  generateManifestFromSource,
+  validateSourceRoot,
+  writeManifestJson,
+} from './ingest';
+import {
+  analyzeExternalAssetCompatibility,
+  type ExternalAssetForwardAxis,
+  type ExternalAssetIntendedRole,
+} from './compatibility';
+import {
+  analyzeHexTileRegistry,
+  createHexTileRegistry,
+  createHexTileRegistryFromManifest,
+  type HexTileDeclarationInput,
+  type HexTileRegistry,
+} from './registry';
+import { validateGameboardPlan, type GameboardPlanValidationConfig } from './validation';
+import type { GameboardPlan } from './gameboard';
+import { inspectGameboardRecipe, type GameboardRecipe } from './recipe';
+import {
+  createGameboardWorldFromScenario,
+  inspectGameboardScenario,
+  type GameboardScenario,
+} from './scenario';
+import {
+  createGameboardPatrolSimulationScript,
+  createGameboardScenarioSimulationReport,
+  inspectGameboardScenarioSimulationScript,
+  runGameboardScenarioSimulationScript,
+  type GameboardPatrolSimulationActorAssignment,
+  type GameboardPatrolSimulationScriptPlan,
+  type GameboardScenarioSimulationScript,
+  type GameboardScenarioSimulationStep,
+} from './simulation';
+import {
+  createGameboardInteropSnapshot,
+  createGameboardScenarioInteropSnapshot,
+  createGameboardSimulationInteropSnapshot,
+  type GameboardScenarioInteropOptions,
+} from './interop';
+import {
+  analyzeGameboardPieceRegistry,
+  createGameboardPieceRegistry,
+  createGameboardPieceSourceUrlMap,
+  declareGameboardPiecesFromCompatibilityReports,
+  declareGameboardPieceFromCompatibility,
+  inspectGameboardPiecePlacement,
+  selectGameboardPieces,
+  type GameboardPieceCompatibilityDeclarationOptions,
+  type GameboardPieceDeclaration,
+  type GameboardPieceDeclarationInput,
+  type GameboardPiecePlacementInspection,
+  type GameboardPieceRegistry,
+  type GameboardPieceRegistryAnalysis,
+  type GameboardPieceRegistrySelection,
+  type GameboardPieceRole,
+  type GameboardPieceSourceUrlOptions,
+} from './pieces';
+import {
+  createSeededGameboardPieceFillRules,
+  inspectSeededGameboardPieceFills,
+  type SeededGameboardPieceFillInspection,
+  type SeededGameboardPieceFillMode,
+  type SeededGameboardPieceFillOptions,
+} from './rules';
+import {
+  analyzeGameboardLayoutFill,
+  appendGameboardLayoutPlacementsToPlan,
+  type GameboardLayoutFillAnalysis,
+  type GameboardLayoutFillOptions,
+  type GameboardLayoutFillRule,
+} from './layout';
+import {
+  planGameboardPatrolRoutes,
+  planGameboardSpawnGroups,
+  type GameboardPatrolRouteRule,
+  type GameboardPatrolRouteSet,
+  type GameboardPatrolRouteSetOptions,
+  type GameboardSpawnGroupOptions,
+  type GameboardSpawnGroupPlan,
+} from './navigation';
+import { listGuideTilePermutations, type GuideTilePermutationKind } from './selectors';
+import type { AssetBounds, HexEdgeIndex, MedievalHexagonManifest, PackEdition } from './types';
+import {
+  inspectMedievalHexagonManifest,
+  type MedievalHexagonManifestInspection,
+} from './manifest/schema';
+
+interface GltfAccessorMetadata {
+  min?: number[];
+  max?: number[];
+}
+
+interface GltfDocumentMetadata {
+  accessors?: GltfAccessorMetadata[];
+  animations?: Array<{ name?: string }>;
+  materials?: Array<{ name?: string }>;
+  meshes?: Array<{ primitives?: Array<{ attributes?: { POSITION?: number } }> }>;
+  nodes?: Array<{ skin?: number; mesh?: number }>;
+  skins?: unknown[];
+}
+
+interface ParsedArgs {
+  command: string;
+  flags: Record<string, string | boolean>;
+}
+
+interface AssetInputRoot {
+  input: string;
+  base: string;
+}
+
+interface BatchSourceAssetRecord {
+  id: string;
+  relativePath: string;
+  fileName: string;
+  extension: string;
+  path?: string;
+}
+
+interface PiecesFromAssetsSummary {
+  assetCount: number;
+  compatibleTileCount: number;
+  warningCount: number;
+  errorCount: number;
+  suggestedRoles: Readonly<Record<string, number>>;
+  pieceRoles: Readonly<Record<string, number>>;
+  overrideWarnings: readonly string[];
+  registryWarnings: readonly string[];
+  registryErrors: readonly string[];
+}
+
+function main(argv: string[]): void {
+  const parsed = parseArgs(argv);
+  const edition = readEdition(parsed.flags.edition);
+  const sourceRoot = resolve(String(parsed.flags.source ?? defaultSourceRoot(edition)));
+
+  if (parsed.command === 'doctor') {
+    runDoctor(sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'validate') {
+    runValidate(sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'manifest') {
+    const manifest = generateManifestFromSource({
+      sourceRoot,
+      edition,
+      assetBasePath: String(parsed.flags.assetBasePath ?? `assets/${edition}`),
+    });
+    const output = parsed.flags.out;
+    if (typeof output === 'string') {
+      writeManifestJson(manifest, resolve(output));
+      console.log(`Wrote manifest to ${resolve(output)}`);
+    } else {
+      console.log(JSON.stringify(manifest, null, 2));
+    }
+    return;
+  }
+
+  if (parsed.command === 'validate-manifest') {
+    runValidateManifest(parsed);
+    return;
+  }
+
+  if (parsed.command === 'analyze') {
+    const registry = registryFromArgs(parsed, sourceRoot, edition);
+    const analysis = analyzeHexTileRegistry(registry);
+    if (parsed.flags.json === true) {
+      console.log(JSON.stringify(analysis, null, 2));
+    } else {
+      printAnalysis(analysis);
+    }
+    return;
+  }
+
+  if (parsed.command === 'declarations') {
+    const registry = registryFromArgs(parsed, sourceRoot, edition);
+    const output = parsed.flags.out;
+    const declarations = registry.declarations;
+    if (typeof output === 'string') {
+      writeFileSync(resolve(output), `${JSON.stringify(declarations, null, 2)}\n`, 'utf8');
+      console.log(`Wrote ${declarations.length} tile declarations to ${resolve(output)}`);
+    } else {
+      console.log(JSON.stringify(declarations, null, 2));
+    }
+    return;
+  }
+
+  if (parsed.command === 'guide-permutations') {
+    runGuidePermutations(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'validate-plan') {
+    if (typeof parsed.flags.plan !== 'string') {
+      throw new Error('validate-plan requires --plan <path>');
+    }
+    const plan = readJson<GameboardPlan>(resolve(parsed.flags.plan));
+    const violations = validateGameboardPlan(
+      plan,
+      validationConfigFromArgs(parsed, sourceRoot, edition)
+    );
+    if (parsed.flags.json === true) {
+      console.log(JSON.stringify(violations, null, 2));
+    } else {
+      printViolations(violations);
+    }
+    if (violations.some((violation) => violation.severity === 'error')) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (parsed.command === 'analyze-layout') {
+    runAnalyzeLayout(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'spawn-groups') {
+    runSpawnGroups(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'patrol-routes') {
+    runPatrolRoutes(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'patrol-script') {
+    runPatrolScript(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'validate-recipe') {
+    if (typeof parsed.flags.recipe !== 'string') {
+      throw new Error('validate-recipe requires --recipe <path>');
+    }
+    const recipe = readJson<GameboardRecipe>(resolve(parsed.flags.recipe));
+    const inspection = inspectGameboardRecipe(recipe, {
+      plan: validationConfigFromArgs(parsed, sourceRoot, edition),
+    });
+    if (typeof parsed.flags.outPlan === 'string' && inspection.plan) {
+      writeFileSync(
+        resolve(parsed.flags.outPlan),
+        `${JSON.stringify(inspection.plan, null, 2)}\n`,
+        'utf8'
+      );
+      console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+    }
+    const violations = inspection.violations;
+    if (parsed.flags.json === true) {
+      console.log(JSON.stringify(violations, null, 2));
+    } else {
+      printViolations(violations);
+    }
+    if (violations.some((violation) => violation.severity === 'error')) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (parsed.command === 'validate-scenario') {
+    if (typeof parsed.flags.scenario !== 'string') {
+      throw new Error('validate-scenario requires --scenario <path>');
+    }
+    const scenario = readJson<GameboardScenario>(resolve(parsed.flags.scenario));
+    const inspection = inspectGameboardScenario(scenario, {
+      plan: validationConfigFromArgs(parsed, sourceRoot, edition),
+    });
+    const hasScenarioErrors = inspection.violations.some(
+      (violation) => violation.severity === 'error'
+    );
+    const runtime = hasScenarioErrors ? undefined : createGameboardWorldFromScenario(scenario);
+    if (typeof parsed.flags.outPlan === 'string' && (inspection.plan ?? runtime?.plan)) {
+      writeFileSync(
+        resolve(parsed.flags.outPlan),
+        `${JSON.stringify(inspection.plan ?? runtime?.plan, null, 2)}\n`,
+        'utf8'
+      );
+      console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+    }
+    const violations = [...inspection.violations];
+    if (parsed.flags.json === true) {
+      console.log(
+        JSON.stringify(
+          {
+            scenario: scenario.id,
+            actors:
+              runtime?.actors.map((actor) => actor.actor.actorId) ??
+              scenario.actors?.map((actor) => actor.actorId) ??
+              [],
+            quests:
+              runtime?.quests.map((quest) => quest.quest.questId) ??
+              scenario.quests?.map((quest) => quest.id) ??
+              [],
+            spawnGroups: inspection.spawnGroups,
+            patrolRoutes: inspection.patrolRoutes,
+            violations,
+          },
+          null,
+          2
+        )
+      );
+    } else {
+      console.log(`scenario: ${scenario.id}`);
+      console.log(`actors: ${runtime?.actors.length ?? scenario.actors?.length ?? 0}`);
+      console.log(`quests: ${runtime?.quests.length ?? scenario.quests?.length ?? 0}`);
+      if (inspection.spawnGroups) {
+        const foundRoutes = inspection.spawnGroups.routeChecks.filter(
+          (route) => route.found
+        ).length;
+        console.log(
+          `spawn groups: ${inspection.spawnGroups.groupCount} group(s), ${inspection.spawnGroups.selectedLocationCount} location(s), ${foundRoutes}/${inspection.spawnGroups.routeChecks.length} route(s)`
+        );
+      }
+      if (inspection.patrolRoutes) {
+        const foundPatrolRoutes = inspection.patrolRoutes.routes.filter(
+          (route) => route.found
+        ).length;
+        console.log(
+          `patrol routes: ${foundPatrolRoutes}/${inspection.patrolRoutes.routeCount} complete`
+        );
+      }
+      printViolations(violations);
+    }
+    if (violations.some((violation) => violation.severity === 'error')) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (parsed.command === 'validate-simulation') {
+    runValidateSimulation(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'snapshot') {
+    runSnapshot(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'simulate-scenario') {
+    runSimulateScenario(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'compatibility') {
+    if (typeof parsed.flags.asset !== 'string') {
+      throw new Error('compatibility requires --asset <path>');
+    }
+    const metadata = readGltfMetadata(resolve(parsed.flags.asset));
+    const report = analyzeExternalAssetCompatibility({
+      id: String(parsed.flags.id ?? assetIdFromPath(parsed.flags.asset)),
+      sourcePack: String(parsed.flags.sourcePack ?? 'external'),
+      creator: typeof parsed.flags.creator === 'string' ? parsed.flags.creator : undefined,
+      license: typeof parsed.flags.license === 'string' ? parsed.flags.license : undefined,
+      bounds: metadata.bounds,
+      intendedRole: readIntendedRole(parsed.flags.intendedRole),
+      hasRig: metadata.hasRig,
+      animationNames: metadata.animationNames,
+      materialSlots: metadata.materialSlots,
+      modelForward: readModelForward(parsed.flags.modelForward),
+      boardForwardEdge: readBoardForwardEdge(parsed.flags.boardForwardEdge),
+    });
+    if (parsed.flags.json === true) {
+      console.log(JSON.stringify(report, null, 2));
+    } else {
+      printCompatibility(report);
+    }
+    if (parsed.flags.failOnWarning === true && report.warnings.length > 0) {
+      process.exit(1);
+    }
+    if (report.errors.length > 0) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (parsed.command === 'piece') {
+    if (typeof parsed.flags.asset !== 'string') {
+      throw new Error('piece requires --asset <path>');
+    }
+    const assetId = String(parsed.flags.id ?? assetIdFromPath(parsed.flags.asset));
+    const intendedRole = readIntendedRole(parsed.flags.intendedRole);
+    const metadata = readGltfMetadata(resolve(parsed.flags.asset));
+    const report = analyzeExternalAssetCompatibility({
+      id: assetId,
+      sourcePack: String(parsed.flags.sourcePack ?? 'external'),
+      creator: typeof parsed.flags.creator === 'string' ? parsed.flags.creator : undefined,
+      license: typeof parsed.flags.license === 'string' ? parsed.flags.license : undefined,
+      bounds: metadata.bounds,
+      intendedRole,
+      hasRig: metadata.hasRig,
+      animationNames: metadata.animationNames,
+      materialSlots: metadata.materialSlots,
+      modelForward: readModelForward(parsed.flags.modelForward),
+      boardForwardEdge: readBoardForwardEdge(parsed.flags.boardForwardEdge),
+    });
+    const role = readPieceRole(parsed.flags.role);
+    const declaration = declareGameboardPieceFromCompatibility(report, {
+      id: String(parsed.flags.pieceId ?? normalizePieceId(assetId)),
+      assetId,
+      tags: readCsv(parsed.flags.tags),
+      ...(role ? { role } : {}),
+    });
+    const payload = parsed.flags.includeReport === true ? { declaration, report } : declaration;
+    if (typeof parsed.flags.out === 'string') {
+      writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+      console.log(`Wrote piece declaration to ${resolve(parsed.flags.out)}`);
+    } else {
+      console.log(JSON.stringify(payload, null, 2));
+    }
+    if (parsed.flags.failOnWarning === true && report.warnings.length > 0) {
+      process.exit(1);
+    }
+    if (report.errors.length > 0) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (parsed.command === 'pieces-from-assets') {
+    runPiecesFromAssets(parsed);
+    return;
+  }
+
+  if (parsed.command === 'pieces') {
+    if (typeof parsed.flags.pieces !== 'string') {
+      throw new Error('pieces requires --pieces <path>');
+    }
+    const registry = readPieceRegistry(resolve(parsed.flags.pieces));
+    const fill = pieceFillFromFlags(parsed.flags);
+    const shouldCheckFill = hasPieceFillFlags(parsed.flags);
+    const placementInputFlags = ['plan', 'recipe', 'scenario'].filter(
+      (key) => typeof parsed.flags[key] === 'string'
+    );
+    if (placementInputFlags.length > 1) {
+      throw new Error(
+        'pieces placement inspection requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
+      );
+    }
+    const analysis = analyzeGameboardPieceRegistry(registry, {
+      checks: shouldCheckFill
+        ? [
+            {
+              id: fill.id ?? fill.ruleIdPrefix ?? 'cli-selection',
+              mode: fill.mode,
+              selection: fill.selection,
+            },
+          ]
+        : [],
+    });
+    const rules =
+      parsed.flags.emitRules === true && analysis.errors.length === 0
+        ? createSeededGameboardPieceFillRules(registry, [fill])
+        : undefined;
+    const sourceUrls =
+      parsed.flags.emitSourceUrls === true
+        ? createGameboardPieceSourceUrlMap(registry, pieceSourceUrlOptionsFromFlags(parsed.flags))
+        : undefined;
+    const placementInspection =
+      placementInputFlags.length === 1 && analysis.errors.length === 0
+        ? inspectPiecesPlacementFromArgs(parsed, sourceRoot, edition, registry, fill)
+        : undefined;
+    if (placementInspection && typeof parsed.flags.outPlan === 'string') {
+      const nextPlan = appendGameboardLayoutPlacementsToPlan(
+        placementInspection.plan,
+        placementInspection.inspection.placements
+      );
+      writeFileSync(
+        resolve(parsed.flags.outPlan),
+        `${JSON.stringify(nextPlan, null, 2)}\n`,
+        'utf8'
+      );
+      console.log(`Wrote piece-filled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+    }
+    const payload =
+      rules || sourceUrls || placementInspection
+        ? {
+            analysis,
+            ...(rules ? { rules } : {}),
+            ...(sourceUrls ? { sourceUrls } : {}),
+            ...(placementInspection ? { placementInspection: placementInspection.inspection } : {}),
+          }
+        : analysis;
+    if (typeof parsed.flags.out === 'string') {
+      writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+      console.log(`Wrote piece registry output to ${resolve(parsed.flags.out)}`);
+    } else if (parsed.flags.json === true || rules) {
+      console.log(JSON.stringify(payload, null, 2));
+    } else {
+      printPieceRegistryAnalysis(analysis);
+    }
+    if (analysis.errors.length > 0) {
+      process.exit(1);
+    }
+    if (
+      placementInspection &&
+      (placementInspection.inspection.errors.length > 0 ||
+        placementInspection.inspection.analysis.errorCount > 0)
+    ) {
+      process.exit(1);
+    }
+    if (parsed.flags.failOnWarning === true && analysis.warnings.length > 0) {
+      process.exit(1);
+    }
+    if (
+      parsed.flags.failOnWarning === true &&
+      placementInspection &&
+      (placementInspection.inspection.warnings.length > 0 ||
+        placementInspection.inspection.analysis.warningCount > 0)
+    ) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (parsed.command === 'place-piece') {
+    runPlacePiece(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'extract') {
+    const outputRoot = resolve(String(parsed.flags.out ?? `kaykit-medieval-hexagon-${edition}`));
+    const assetRoot = join(outputRoot, 'assets');
+    copyGltfTree(sourceRoot, assetRoot);
+    const manifest = generateManifestFromSource({
+      sourceRoot,
+      edition,
+      assetBasePath: 'assets',
+    });
+    writeManifestJson(manifest, join(outputRoot, 'manifest.json'));
+    console.log(`Extracted ${manifest.counts.total} ${edition} assets to ${outputRoot}`);
+    return;
+  }
+
+  usage(1);
+}
+
+function readManifest(path: string): MedievalHexagonManifest {
+  const inspection = inspectManifestPath(path);
+  if (!inspection.manifest || inspection.errorCount > 0) {
+    throw new Error(
+      [
+        `Invalid manifest ${path}`,
+        ...inspection.issues
+          .filter((issue) => issue.severity === 'error')
+          .map((issue) => `- ${formatManifestIssue(issue)}`),
+      ].join('\n')
+    );
+  }
+  return inspection.manifest;
+}
+
+function readJson<T>(path: string): T {
+  return JSON.parse(readFileSync(path, 'utf8')) as T;
+}
+
+function inspectManifestPath(path: string): MedievalHexagonManifestInspection {
+  return inspectMedievalHexagonManifest(readJson<unknown>(path));
+}
+
+function runValidateManifest(parsed: ParsedArgs): void {
+  if (typeof parsed.flags.manifest !== 'string') {
+    throw new Error('validate-manifest requires --manifest <path>');
+  }
+  const manifestPath = resolve(parsed.flags.manifest);
+  const inspection = inspectManifestPath(manifestPath);
+  if (typeof parsed.flags.outManifest === 'string' && inspection.manifest) {
+    writeFileSync(
+      resolve(parsed.flags.outManifest),
+      `${JSON.stringify(inspection.manifest, null, 2)}\n`,
+      'utf8'
+    );
+    console.log(`Wrote normalized manifest to ${resolve(parsed.flags.outManifest)}`);
+  }
+  if (parsed.flags.json === true) {
+    console.log(
+      JSON.stringify(
+        {
+          manifest: manifestPath,
+          errorCount: inspection.errorCount,
+          warningCount: inspection.warningCount,
+          counts: inspection.manifest?.counts,
+          edition: inspection.manifest?.edition,
+          textureSets: inspection.manifest?.textureSets,
+          issues: inspection.issues,
+        },
+        null,
+        2
+      )
+    );
+  } else {
+    printManifestInspection(manifestPath, inspection);
+  }
+  if (inspection.errorCount > 0) {
+    process.exit(1);
+  }
+}
+
+function validationCatalogFromArgs(
+  parsed: ParsedArgs,
+  sourceRoot: string,
+  edition: PackEdition
+): MedievalHexagonManifest | undefined {
+  if (typeof parsed.flags.manifest === 'string') {
+    return readManifest(resolve(parsed.flags.manifest));
+  }
+  if (!existsSync(sourceRoot)) {
+    return undefined;
+  }
+  return generateManifestFromSource({
+    sourceRoot,
+    edition,
+    assetBasePath: String(parsed.flags.assetBasePath ?? `assets/${edition}`),
+  });
+}
+
+function validationConfigFromArgs(
+  parsed: ParsedArgs,
+  sourceRoot: string,
+  edition: PackEdition
+): GameboardPlanValidationConfig {
+  const assetCatalog = validationCatalogFromArgs(parsed, sourceRoot, edition);
+  const registry =
+    typeof parsed.flags.registry === 'string'
+      ? registryFromArgs(parsed, sourceRoot, edition)
+      : assetCatalog
+        ? createHexTileRegistryFromManifest(assetCatalog)
+        : undefined;
+  return {
+    registry,
+    assetCatalog,
+    allowUnknownAssets: parsed.flags.allowUnknownAssets === true,
+    allowUnknownAssetIds: readCsv(parsed.flags.allowUnknownAssetIds),
+  };
+}
+
+function registryFromArgs(
+  parsed: ParsedArgs,
+  sourceRoot: string,
+  edition: PackEdition
+): HexTileRegistry {
+  if (typeof parsed.flags.registry === 'string') {
+    return readRegistry(resolve(parsed.flags.registry));
+  }
+  const manifest =
+    typeof parsed.flags.manifest === 'string'
+      ? readManifest(resolve(parsed.flags.manifest))
+      : generateManifestFromSource({
+          sourceRoot,
+          edition,
+          assetBasePath: String(parsed.flags.assetBasePath ?? `assets/${edition}`),
+        });
+  return createHexTileRegistryFromManifest(manifest);
+}
+
+function readRegistry(path: string): HexTileRegistry {
+  const payload = readJson<HexTileDeclarationInput[] | { declarations: HexTileDeclarationInput[] }>(
+    path
+  );
+  const declarations = Array.isArray(payload) ? payload : payload.declarations;
+  if (!Array.isArray(declarations)) {
+    throw new Error(
+      `Registry file ${path} must be a declaration array or { "declarations": [...] }`
+    );
+  }
+  return createHexTileRegistry(declarations);
+}
+
+function readPieceRegistry(path: string): GameboardPieceRegistry {
+  const payload = readJson<
+    | GameboardPieceDeclarationInput[]
+    | GameboardPieceDeclarationInput
+    | {
+        pieces?: GameboardPieceDeclarationInput[];
+        declarations?: GameboardPieceDeclarationInput[];
+        declaration?: GameboardPieceDeclarationInput;
+      }
+  >(path);
+  const declarations = Array.isArray(payload)
+    ? payload
+    : 'id' in payload
+      ? [payload]
+      : payload.declaration
+        ? [payload.declaration]
+        : (payload.pieces ?? payload.declarations);
+  if (!Array.isArray(declarations)) {
+    throw new Error(
+      `Piece registry file ${path} must be a declaration, an array, { "declaration": ... }, { "pieces": [...] }, or { "declarations": [...] }`
+    );
+  }
+  return createGameboardPieceRegistry(declarations);
+}
+
+function pieceOverridesFromArgs(
+  flags: Record<string, string | boolean>
+): Readonly<Record<string, GameboardPieceCompatibilityDeclarationOptions>> | undefined {
+  const path =
+    typeof flags.pieceOverrides === 'string'
+      ? flags.pieceOverrides
+      : typeof flags.overrides === 'string'
+        ? flags.overrides
+        : undefined;
+  if (!path) {
+    return undefined;
+  }
+  const payload = readJson<
+    Record<string, GameboardPieceCompatibilityDeclarationOptions> & {
+      overrides?: Record<string, GameboardPieceCompatibilityDeclarationOptions>;
+    }
+  >(resolve(path));
+  return payload.overrides ?? payload;
+}
+
+function runPiecesFromAssets(parsed: ParsedArgs): void {
+  const assetInputs = readAssetInputs(parsed.flags);
+  const assetPaths = collectGltfAssetPaths(assetInputs);
+  if (assetPaths.length === 0) {
+    throw new Error('pieces-from-assets found no .glb or .gltf files');
+  }
+  const roots = assetInputRoots(assetInputs);
+  const includeAbsolutePaths = parsed.flags.includeAbsolutePaths === true;
+  const sourceAssets = assetPaths.map((assetPath) =>
+    sourceAssetRecord(assetPath, roots, includeAbsolutePaths)
+  );
+  const sourcePack = String(parsed.flags.sourcePack ?? 'external');
+  const intendedRole = readIntendedRole(parsed.flags.intendedRole);
+  const reports = assetPaths.map((assetPath, index) => {
+    const metadata = readGltfMetadata(assetPath);
+    return analyzeExternalAssetCompatibility({
+      id: sourceAssets[index]?.id ?? assetIdFromBatchPath(assetPath, roots),
+      sourcePack,
+      creator: typeof parsed.flags.creator === 'string' ? parsed.flags.creator : undefined,
+      license: typeof parsed.flags.license === 'string' ? parsed.flags.license : undefined,
+      bounds: metadata.bounds,
+      intendedRole,
+      hasRig: metadata.hasRig,
+      animationNames: metadata.animationNames,
+      materialSlots: metadata.materialSlots,
+      modelForward: readModelForward(parsed.flags.modelForward),
+      boardForwardEdge: readBoardForwardEdge(parsed.flags.boardForwardEdge),
+    });
+  });
+  const role = readPieceRole(parsed.flags.role);
+  const overrides = pieceOverridesFromArgs(parsed.flags);
+  const overridesWithSourceMetadata = mergeSourceAssetOverrides(overrides, sourceAssets);
+  const pieces = declareGameboardPiecesFromCompatibilityReports(reports, {
+    source: sourcePack,
+    pieceIdPrefix:
+      typeof parsed.flags.pieceIdPrefix === 'string' ? parsed.flags.pieceIdPrefix : undefined,
+    assetIdPrefix:
+      typeof parsed.flags.assetIdPrefix === 'string' ? parsed.flags.assetIdPrefix : undefined,
+    tags: readCsv(parsed.flags.tags),
+    overrides: overridesWithSourceMetadata,
+    ...(role ? { role } : {}),
+  });
+  const registry = createGameboardPieceRegistry(pieces);
+  const analysis = analyzeGameboardPieceRegistry(registry);
+  const overrideWarnings = unmatchedOverrideWarnings(overrides, reports);
+  const summary = summarizeCompatibilityReports(reports, analysis, overrideWarnings);
+  const includeReports =
+    parsed.flags.includeReports === true || parsed.flags.includeReport === true;
+  const payload = {
+    schemaVersion: '1.0.0',
+    sourcePack,
+    assets: sourceAssets.map((asset) => asset.relativePath),
+    sourceAssets,
+    pieces,
+    summary,
+    ...(includeReports ? { reports } : {}),
+  };
+
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${pieces.length} piece declarations to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true || includeReports) {
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    printPiecesFromAssets(summary);
+  }
+
+  const hasErrors =
+    reports.some((report) => report.errors.length > 0) || analysis.errors.length > 0;
+  const hasWarnings =
+    reports.some((report) => report.warnings.length > 0) ||
+    analysis.warnings.length > 0 ||
+    overrideWarnings.length > 0;
+  if (hasErrors) {
+    process.exit(1);
+  }
+  if (parsed.flags.failOnWarning === true && hasWarnings) {
+    process.exit(1);
+  }
+}
+
+function runSnapshot(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const inputFlags = ['plan', 'recipe', 'scenario'].filter(
+    (key) => typeof parsed.flags[key] === 'string'
+  );
+  if (inputFlags.length !== 1) {
+    throw new Error(
+      'snapshot requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
+    );
+  }
+
+  const validationConfig = validationConfigFromArgs(parsed, sourceRoot, edition);
+  const options = snapshotOptionsFromFlags(parsed.flags);
+  const allowInvalid = parsed.flags.allowInvalid === true;
+  const snapshot =
+    typeof parsed.flags.plan === 'string'
+      ? snapshotFromPlan(parsed.flags.plan, validationConfig, options, allowInvalid)
+      : typeof parsed.flags.recipe === 'string'
+        ? snapshotFromRecipe(parsed.flags.recipe, validationConfig, options, allowInvalid)
+        : snapshotFromScenario(
+            String(parsed.flags.scenario),
+            validationConfig,
+            options,
+            allowInvalid
+          );
+
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(snapshot, null, 2)}\n`, 'utf8');
+    console.log(
+      `Wrote interop snapshot with ${snapshot.entities.length} entities and ${snapshot.relations.length} relations to ${resolve(parsed.flags.out)}`
+    );
+  } else {
+    console.log(JSON.stringify(snapshot, null, 2));
+  }
+}
+
+function runAnalyzeLayout(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const inputFlags = ['plan', 'recipe', 'scenario'].filter(
+    (key) => typeof parsed.flags[key] === 'string'
+  );
+  if (inputFlags.length !== 1) {
+    throw new Error(
+      'analyze-layout requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
+    );
+  }
+  if (typeof parsed.flags.rules !== 'string') {
+    throw new Error('analyze-layout requires --rules <path>');
+  }
+  const { plan, violations } = layoutAnalysisPlanFromArgs(
+    parsed,
+    validationConfigFromArgs(parsed, sourceRoot, edition),
+    parsed.flags.allowInvalid === true
+  );
+  if (
+    violations.some((violation) => violation.severity === 'error') &&
+    parsed.flags.allowInvalid !== true
+  ) {
+    printViolations(violations);
+    process.exit(1);
+  }
+  if (typeof parsed.flags.outPlan === 'string') {
+    writeFileSync(resolve(parsed.flags.outPlan), `${JSON.stringify(plan, null, 2)}\n`, 'utf8');
+    console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+  }
+  const options = readLayoutFillOptions(resolve(parsed.flags.rules), parsed.flags.seed);
+  const analysis = analyzeGameboardLayoutFill(plan, options);
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(analysis, null, 2)}\n`, 'utf8');
+    console.log(`Wrote layout analysis to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true) {
+    console.log(JSON.stringify(analysis, null, 2));
+  } else {
+    printLayoutFillAnalysis(analysis);
+  }
+  if (analysis.errorCount > 0) {
+    process.exit(1);
+  }
+  if (parsed.flags.failOnWarning === true && analysis.warningCount > 0) {
+    process.exit(1);
+  }
+}
+
+function runSpawnGroups(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const inputFlags = ['plan', 'recipe', 'scenario'].filter(
+    (key) => typeof parsed.flags[key] === 'string'
+  );
+  if (inputFlags.length !== 1) {
+    throw new Error(
+      'spawn-groups requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
+    );
+  }
+  if (typeof parsed.flags.groups !== 'string') {
+    throw new Error('spawn-groups requires --groups <path>');
+  }
+  const { plan, violations } = layoutAnalysisPlanFromArgs(
+    parsed,
+    validationConfigFromArgs(parsed, sourceRoot, edition),
+    parsed.flags.allowInvalid === true
+  );
+  if (
+    violations.some((violation) => violation.severity === 'error') &&
+    parsed.flags.allowInvalid !== true
+  ) {
+    printViolations(violations);
+    process.exit(1);
+  }
+
+  const options = readSpawnGroupOptions(resolve(parsed.flags.groups), parsed.flags.seed);
+  const spawnPlan = planGameboardSpawnGroups(plan, options);
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(spawnPlan, null, 2)}\n`, 'utf8');
+    console.log(`Wrote spawn group plan to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true) {
+    console.log(JSON.stringify(spawnPlan, null, 2));
+  } else {
+    printSpawnGroupPlan(spawnPlan);
+  }
+  if (spawnPlan.errors.length > 0) {
+    process.exit(1);
+  }
+  if (parsed.flags.failOnWarning === true && spawnPlan.warnings.length > 0) {
+    process.exit(1);
+  }
+}
+
+function runPatrolRoutes(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const inputFlags = ['plan', 'recipe', 'scenario'].filter(
+    (key) => typeof parsed.flags[key] === 'string'
+  );
+  if (inputFlags.length !== 1) {
+    throw new Error(
+      'patrol-routes requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
+    );
+  }
+  const scenario =
+    typeof parsed.flags.scenario === 'string'
+      ? readJson<GameboardScenario>(resolve(parsed.flags.scenario))
+      : undefined;
+  if (typeof parsed.flags.routes !== 'string' && !scenario?.patrolRoutes?.length) {
+    throw new Error('patrol-routes requires --routes <path> unless --scenario includes patrolRoutes');
+  }
+
+  const { plan, violations } = routePlanningPlanFromArgs(
+    parsed,
+    validationConfigFromArgs(parsed, sourceRoot, edition),
+    parsed.flags.allowInvalid === true,
+    scenario
+  );
+  if (
+    violations.some((violation) => violation.severity === 'error') &&
+    parsed.flags.allowInvalid !== true
+  ) {
+    printViolations(violations);
+    process.exit(1);
+  }
+
+  const spawnGroups = patrolSpawnGroupsFromArgs(parsed, plan, scenario);
+  if (
+    spawnGroups?.errors.length &&
+    parsed.flags.allowInvalid !== true
+  ) {
+    printSpawnGroupPlan(spawnGroups);
+    process.exit(1);
+  }
+
+  const routeOptions =
+    typeof parsed.flags.routes === 'string'
+      ? readPatrolRouteOptions(resolve(parsed.flags.routes), parsed.flags.seed)
+      : {
+          seed:
+            typeof parsed.flags.seed === 'string'
+              ? parsed.flags.seed
+              : `${scenario?.id ?? plan.seed}:patrol-routes`,
+          routes: scenario?.patrolRoutes ?? [],
+        };
+  const routeSet = planGameboardPatrolRoutes(plan, {
+    ...routeOptions,
+    spawnGroups,
+  });
+
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(routeSet, null, 2)}\n`, 'utf8');
+    console.log(`Wrote patrol route plan to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true) {
+    console.log(JSON.stringify(routeSet, null, 2));
+  } else {
+    printPatrolRouteSet(routeSet);
+  }
+  if (routeSet.errors.length > 0) {
+    process.exit(1);
+  }
+  if (parsed.flags.failOnWarning === true && routeSet.warnings.length > 0) {
+    process.exit(1);
+  }
+}
+
+function runPatrolScript(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const scenario =
+    typeof parsed.flags.scenario === 'string'
+      ? readJson<GameboardScenario>(resolve(parsed.flags.scenario))
+      : undefined;
+  const routeSet = patrolRouteSetFromArgs(parsed, sourceRoot, edition, scenario);
+  const scriptPlan = createGameboardPatrolSimulationScript({
+    routes: routeSet,
+    assignments: readPatrolSimulationAssignments(parsed),
+    requireFoundRoutes: parsed.flags.allowInvalid !== true,
+  });
+
+  const payload = parsed.flags.includeReport === true ? scriptPlan : scriptPlan.script;
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote patrol simulation script to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true) {
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    printPatrolSimulationScriptPlan(scriptPlan);
+  }
+
+  if (scriptPlan.errors.length > 0 && parsed.flags.allowInvalid !== true) {
+    process.exit(1);
+  }
+  if (scriptPlan.warnings.length > 0 && parsed.flags.failOnWarning === true) {
+    process.exit(1);
+  }
+}
+
+function runPlacePiece(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const inputFlags = ['plan', 'recipe', 'scenario'].filter(
+    (key) => typeof parsed.flags[key] === 'string'
+  );
+  if (inputFlags.length !== 1) {
+    throw new Error(
+      'place-piece requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
+    );
+  }
+  if (typeof parsed.flags.pieces !== 'string') {
+    throw new Error('place-piece requires --pieces <path>');
+  }
+  const { plan, violations } = layoutAnalysisPlanFromArgs(
+    parsed,
+    validationConfigFromArgs(parsed, sourceRoot, edition),
+    parsed.flags.allowInvalid === true
+  );
+  if (
+    violations.some((violation) => violation.severity === 'error') &&
+    parsed.flags.allowInvalid !== true
+  ) {
+    printViolations(violations);
+    process.exit(1);
+  }
+
+  const registry = readPieceRegistry(resolve(parsed.flags.pieces));
+  const piece = pieceForPlacementFromFlags(registry, parsed.flags);
+  const placementOptions = {
+    count: readNumberFlag(parsed.flags.count),
+    seed: typeof parsed.flags.seed === 'string' ? parsed.flags.seed : undefined,
+    idPrefix: typeof parsed.flags.idPrefix === 'string' ? parsed.flags.idPrefix : undefined,
+  };
+  const inspection = inspectGameboardPiecePlacement(plan, piece, placementOptions);
+
+  if (typeof parsed.flags.outPlan === 'string') {
+    const nextPlan = appendGameboardLayoutPlacementsToPlan(plan, inspection.placements);
+    writeFileSync(resolve(parsed.flags.outPlan), `${JSON.stringify(nextPlan, null, 2)}\n`, 'utf8');
+    console.log(`Wrote placed GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+  }
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(inspection, null, 2)}\n`, 'utf8');
+    console.log(`Wrote piece placement inspection to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true) {
+    console.log(JSON.stringify(inspection, null, 2));
+  } else {
+    printPiecePlacementInspection(inspection);
+  }
+
+  const requiredCount = readNumberFlag(parsed.flags.minCount) ?? placementOptions.count ?? 1;
+  if (inspection.placements.length < requiredCount) {
+    process.exit(1);
+  }
+}
+
+function inspectPiecesPlacementFromArgs(
+  parsed: ParsedArgs,
+  sourceRoot: string,
+  edition: PackEdition,
+  registry: GameboardPieceRegistry,
+  fill: SeededGameboardPieceFillOptions
+): {
+  plan: GameboardPlan;
+  inspection: SeededGameboardPieceFillInspection;
+} {
+  const { plan, violations } = layoutAnalysisPlanFromArgs(
+    parsed,
+    validationConfigFromArgs(parsed, sourceRoot, edition),
+    parsed.flags.allowInvalid === true
+  );
+  if (
+    violations.some((violation) => violation.severity === 'error') &&
+    parsed.flags.allowInvalid !== true
+  ) {
+    printViolations(violations);
+    process.exit(1);
+  }
+  return {
+    plan,
+    inspection: inspectSeededGameboardPieceFills(plan, registry, [fill], {
+      seed: typeof parsed.flags.seed === 'string' ? parsed.flags.seed : undefined,
+    }),
+  };
+}
+
+function layoutAnalysisPlanFromArgs(
+  parsed: ParsedArgs,
+  validationConfig: GameboardPlanValidationConfig,
+  allowInvalid: boolean
+): {
+  plan: GameboardPlan;
+  violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>;
+} {
+  if (typeof parsed.flags.plan === 'string') {
+    return {
+      plan: readJson<GameboardPlan>(resolve(parsed.flags.plan)),
+      violations: [],
+    };
+  }
+  if (typeof parsed.flags.recipe === 'string') {
+    const recipe = readJson<GameboardRecipe>(resolve(parsed.flags.recipe));
+    const inspection = inspectGameboardRecipe(recipe, { plan: validationConfig });
+    if (!inspection.plan) {
+      if (!allowInvalid) {
+        printViolations(inspection.violations);
+        process.exit(1);
+      }
+      throw new Error(`Recipe ${parsed.flags.recipe} did not compile to a GameboardPlan`);
+    }
+    return {
+      plan: inspection.plan,
+      violations: inspection.violations,
+    };
+  }
+  const scenarioPath = String(parsed.flags.scenario);
+  const scenario = readJson<GameboardScenario>(resolve(scenarioPath));
+  const inspection = inspectGameboardScenario(scenario, { plan: validationConfig });
+  if (!inspection.plan) {
+    if (!allowInvalid) {
+      printViolations(inspection.violations);
+      process.exit(1);
+    }
+    throw new Error(`Scenario ${scenarioPath} did not compile to a GameboardPlan`);
+  }
+  return {
+    plan: inspection.plan,
+    violations: inspection.violations,
+  };
+}
+
+function routePlanningPlanFromArgs(
+  parsed: ParsedArgs,
+  validationConfig: GameboardPlanValidationConfig,
+  allowInvalid: boolean,
+  scenario: GameboardScenario | undefined
+): {
+  plan: GameboardPlan;
+  violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>;
+} {
+  if (typeof parsed.flags.plan === 'string') {
+    return {
+      plan: readJson<GameboardPlan>(resolve(parsed.flags.plan)),
+      violations: [],
+    };
+  }
+  const recipe =
+    scenario?.board ??
+    (typeof parsed.flags.recipe === 'string'
+      ? readJson<GameboardRecipe>(resolve(parsed.flags.recipe))
+      : undefined);
+  if (!recipe) {
+    throw new Error(`Scenario ${String(parsed.flags.scenario)} did not include a board recipe`);
+  }
+  const inspection = inspectGameboardRecipe(recipe, { plan: validationConfig });
+  if (!inspection.plan) {
+    if (!allowInvalid) {
+      printViolations(inspection.violations);
+      process.exit(1);
+    }
+    throw new Error('Route planning input did not compile to a GameboardPlan');
+  }
+  return {
+    plan: inspection.plan,
+    violations: inspection.violations,
+  };
+}
+
+function patrolSpawnGroupsFromArgs(
+  parsed: ParsedArgs,
+  plan: GameboardPlan,
+  scenario: GameboardScenario | undefined
+): GameboardSpawnGroupPlan | undefined {
+  const options =
+    typeof parsed.flags.groups === 'string'
+      ? readSpawnGroupOptions(resolve(parsed.flags.groups), parsed.flags.seed)
+      : scenario?.spawnGroups;
+  return options ? planGameboardSpawnGroups(plan, options) : undefined;
+}
+
+function patrolRouteSetFromArgs(
+  parsed: ParsedArgs,
+  sourceRoot: string,
+  edition: PackEdition,
+  scenario: GameboardScenario | undefined
+): GameboardPatrolRouteSet {
+  if (typeof parsed.flags.routes === 'string') {
+    const payload = readJson<unknown>(resolve(parsed.flags.routes));
+    if (isPatrolRouteSet(payload)) {
+      return payload;
+    }
+  }
+
+  if (!scenario?.patrolRoutes?.length && typeof parsed.flags.routes !== 'string') {
+    throw new Error('patrol-script requires --routes <path> or --scenario <path> with patrolRoutes');
+  }
+
+  const inputFlags = ['plan', 'recipe', 'scenario'].filter(
+    (key) => typeof parsed.flags[key] === 'string'
+  );
+  if (inputFlags.length !== 1) {
+    throw new Error(
+      'patrol-script requires exactly one of --plan <path>, --recipe <path>, or --scenario <path> when routes are not a planned route set'
+    );
+  }
+
+  const { plan, violations } = routePlanningPlanFromArgs(
+    parsed,
+    validationConfigFromArgs(parsed, sourceRoot, edition),
+    parsed.flags.allowInvalid === true,
+    scenario
+  );
+  if (
+    violations.some((violation) => violation.severity === 'error') &&
+    parsed.flags.allowInvalid !== true
+  ) {
+    printViolations(violations);
+    process.exit(1);
+  }
+  const spawnGroups = patrolSpawnGroupsFromArgs(parsed, plan, scenario);
+  if (
+    spawnGroups?.errors.length &&
+    parsed.flags.allowInvalid !== true
+  ) {
+    printSpawnGroupPlan(spawnGroups);
+    process.exit(1);
+  }
+  const routeOptions =
+    typeof parsed.flags.routes === 'string'
+      ? readPatrolRouteOptions(resolve(parsed.flags.routes), parsed.flags.seed)
+      : {
+          seed:
+            typeof parsed.flags.seed === 'string'
+              ? parsed.flags.seed
+              : `${scenario?.id ?? plan.seed}:patrol-routes`,
+          routes: scenario?.patrolRoutes ?? [],
+        };
+  return planGameboardPatrolRoutes(plan, {
+    ...routeOptions,
+    spawnGroups,
+  });
+}
+
+function readPatrolSimulationAssignments(
+  parsed: ParsedArgs
+): readonly GameboardPatrolSimulationActorAssignment[] {
+  const rounds = readNumberFlag(parsed.flags.rounds);
+  if (typeof parsed.flags.assignments === 'string') {
+    const payload = readJson<unknown>(resolve(parsed.flags.assignments));
+    const assignments = Array.isArray(payload)
+      ? (payload as readonly GameboardPatrolSimulationActorAssignment[])
+      : isRecord(payload) && Array.isArray(payload.assignments)
+        ? (payload.assignments as readonly GameboardPatrolSimulationActorAssignment[])
+        : undefined;
+    if (!Array.isArray(assignments)) {
+      throw new Error(`Patrol assignment file ${parsed.flags.assignments} must be an array or { "assignments": [...] }`);
+    }
+    return assignments.map((assignment) => ({
+      ...assignment,
+      rounds: assignment.rounds ?? rounds,
+    }));
+  }
+  if (typeof parsed.flags.routeId === 'string' && typeof parsed.flags.actorId === 'string') {
+    return [
+      {
+        routeId: parsed.flags.routeId,
+        actorId: parsed.flags.actorId,
+        rounds,
+        stepIdPrefix: typeof parsed.flags.idPrefix === 'string' ? parsed.flags.idPrefix : undefined,
+      },
+    ];
+  }
+  throw new Error('patrol-script requires --assignments <path> or both --routeId <id> and --actorId <id>');
+}
+
+function runValidateSimulation(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  if (typeof parsed.flags.scenario !== 'string') {
+    throw new Error('validate-simulation requires --scenario <path>');
+  }
+  if (typeof parsed.flags.script !== 'string') {
+    throw new Error('validate-simulation requires --script <path>');
+  }
+
+  const scenario = readJson<GameboardScenario>(resolve(parsed.flags.scenario));
+  const scenarioInspection = inspectGameboardScenario(scenario, {
+    plan: validationConfigFromArgs(parsed, sourceRoot, edition),
+  });
+  const script = readSimulationScript(resolve(parsed.flags.script));
+  const scriptInspection = inspectGameboardScenarioSimulationScript(script, {
+    scenario,
+    plan: scenarioInspection.plan,
+  });
+  const violations = [...scenarioInspection.violations, ...scriptInspection.violations];
+
+  if (typeof parsed.flags.outPlan === 'string' && scenarioInspection.plan) {
+    writeFileSync(
+      resolve(parsed.flags.outPlan),
+      `${JSON.stringify(scenarioInspection.plan, null, 2)}\n`,
+      'utf8'
+    );
+    console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+  }
+
+  if (parsed.flags.json === true) {
+    console.log(
+      JSON.stringify(
+        {
+          scenario: scenario.id,
+          steps: Array.isArray(script.steps) ? script.steps.length : 0,
+          actors: scenario.actors?.map((actor) => actor.actorId) ?? [],
+          quests: scenario.quests?.map((quest) => quest.id) ?? [],
+          violations,
+        },
+        null,
+        2
+      )
+    );
+  } else {
+    console.log(`scenario: ${scenario.id}`);
+    console.log(`steps: ${Array.isArray(script.steps) ? script.steps.length : 0}`);
+    console.log(`actors: ${scenario.actors?.length ?? 0}`);
+    console.log(`quests: ${scenario.quests?.length ?? 0}`);
+    printViolations(violations);
+  }
+
+  if (violations.some((violation) => violation.severity === 'error')) {
+    process.exit(1);
+  }
+}
+
+function runGuidePermutations(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const permutations = listGuideTilePermutations();
+  const catalog = validationCatalogFromArgs(parsed, sourceRoot, edition);
+  const missingAssetIds = catalog
+    ? [
+        ...new Set(
+          permutations
+            .map((permutation) => permutation.assetId)
+            .filter((assetId) => !catalog.assetsById[assetId])
+        ),
+      ]
+    : [];
+  const payload = {
+    schemaVersion: '1.0.0',
+    count: permutations.length,
+    counts: countGuidePermutationsByKind(permutations),
+    missingAssetIds,
+    permutations,
+  };
+
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${permutations.length} guide permutations to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true) {
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    console.log(`guide permutations: ${permutations.length}`);
+    for (const [kind, count] of Object.entries(payload.counts)) {
+      console.log(`${kind}: ${count}`);
+    }
+    if (catalog) {
+      console.log(`missing assets: ${missingAssetIds.length}`);
+      for (const assetId of missingAssetIds) {
+        console.log(`  - ${assetId}`);
+      }
+    }
+  }
+
+  if (missingAssetIds.length > 0) {
+    process.exit(1);
+  }
+}
+
+function countGuidePermutationsByKind(
+  permutations: readonly { kind: GuideTilePermutationKind }[]
+): Record<GuideTilePermutationKind, number> {
+  const counts: Record<GuideTilePermutationKind, number> = {
+    road: 0,
+    river: 0,
+    'river-curvy': 0,
+    'river-crossing': 0,
+    coast: 0,
+  };
+  for (const permutation of permutations) {
+    counts[permutation.kind] += 1;
+  }
+  return counts;
+}
+
+function runSimulateScenario(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  if (typeof parsed.flags.scenario !== 'string') {
+    throw new Error('simulate-scenario requires --scenario <path>');
+  }
+  if (typeof parsed.flags.script !== 'string') {
+    throw new Error('simulate-scenario requires --script <path>');
+  }
+
+  const scenario = readJson<GameboardScenario>(resolve(parsed.flags.scenario));
+  const inspection = inspectGameboardScenario(scenario, {
+    plan: validationConfigFromArgs(parsed, sourceRoot, edition),
+  });
+  const script = readSimulationScript(resolve(parsed.flags.script));
+  const scriptInspection = inspectGameboardScenarioSimulationScript(script, {
+    scenario,
+    plan: inspection.plan,
+  });
+  const violations = [...inspection.violations, ...scriptInspection.violations];
+  if (
+    violations.some((violation) => violation.severity === 'error') &&
+    parsed.flags.allowInvalid !== true
+  ) {
+    printViolations(violations);
+    process.exit(1);
+  }
+
+  const result = runGameboardScenarioSimulationScript(scenario, script);
+  const report = createGameboardScenarioSimulationReport(result, script.expectations);
+
+  if (typeof parsed.flags.outPlan === 'string') {
+    writeFileSync(
+      resolve(parsed.flags.outPlan),
+      `${JSON.stringify(report.finalPlan, null, 2)}\n`,
+      'utf8'
+    );
+    console.log(`Wrote final simulated GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+  }
+  if (typeof parsed.flags.outInterop === 'string') {
+    const interop = createGameboardSimulationInteropSnapshot(report, {
+      includePlacements: parsed.flags.excludePlacements !== true,
+      includeActors: parsed.flags.excludeActors !== true,
+      includeQuests: parsed.flags.excludeQuests !== true,
+      includeTimeline: parsed.flags.excludeTimeline !== true,
+    });
+    writeFileSync(
+      resolve(parsed.flags.outInterop),
+      `${JSON.stringify(interop, null, 2)}\n`,
+      'utf8'
+    );
+    console.log(`Wrote simulation interop snapshot to ${resolve(parsed.flags.outInterop)}`);
+  }
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+    console.log(`Wrote scenario simulation report to ${resolve(parsed.flags.out)}`);
+  }
+  if (parsed.flags.json === true) {
+    if (typeof parsed.flags.out !== 'string') {
+      console.log(JSON.stringify(report, null, 2));
+    }
+  } else {
+    printSimulationReport(report);
+  }
+
+  if (!report.success && parsed.flags.allowExpectationFailures !== true) {
+    if (typeof parsed.flags.out === 'string' || parsed.flags.json === true) {
+      printSimulationExpectationFailures(report);
+    }
+    process.exit(1);
+  }
+  if (
+    parsed.flags.failOnBlockedQuest === true &&
+    report.quests.some((quest) => quest.status === 'blocked')
+  ) {
+    process.exit(1);
+  }
+}
+
+function readSimulationScript(path: string): GameboardScenarioSimulationScript {
+  const payload = readJson<unknown>(path);
+  if (Array.isArray(payload)) {
+    return {
+      schemaVersion: '1.0.0',
+      steps: payload as GameboardScenarioSimulationStep[],
+    };
+  }
+  if (!isRecord(payload) || !Array.isArray(payload.steps)) {
+    throw new Error(`Simulation script ${path} must be a step array or { "steps": [...] }`);
+  }
+  return payload as unknown as GameboardScenarioSimulationScript;
+}
+
+function readLayoutFillOptions(
+  path: string,
+  seedOverride: string | boolean | undefined
+): GameboardLayoutFillOptions {
+  const payload = readJson<unknown>(path);
+  const rules = Array.isArray(payload)
+    ? (payload as readonly GameboardLayoutFillRule[])
+    : isRecord(payload) && Array.isArray(payload.rules)
+      ? (payload.rules as readonly GameboardLayoutFillRule[])
+      : undefined;
+  if (!Array.isArray(rules)) {
+    throw new Error(`Layout rules file ${path} must be a rule array or { "rules": [...] }`);
+  }
+  const fileSeed = isRecord(payload) && typeof payload.seed === 'string' ? payload.seed : undefined;
+  return {
+    seed: typeof seedOverride === 'string' ? seedOverride : fileSeed,
+    rules,
+  };
+}
+
+function readSpawnGroupOptions(
+  path: string,
+  seedOverride: string | boolean | undefined
+): GameboardSpawnGroupOptions {
+  const payload = readJson<unknown>(path);
+  const groups = Array.isArray(payload)
+    ? (payload as GameboardSpawnGroupOptions['groups'])
+    : isRecord(payload) && Array.isArray(payload.groups)
+      ? (payload.groups as GameboardSpawnGroupOptions['groups'])
+      : undefined;
+  if (!Array.isArray(groups)) {
+    throw new Error(`Spawn group file ${path} must be a group array or { "groups": [...] }`);
+  }
+  const fileSeed = isRecord(payload) && typeof payload.seed === 'string' ? payload.seed : undefined;
+  const profile =
+    isRecord(payload) && isRecord(payload.profile)
+      ? (payload.profile as GameboardSpawnGroupOptions['profile'])
+      : undefined;
+  return {
+    seed: typeof seedOverride === 'string' ? seedOverride : fileSeed,
+    ...(profile ? { profile } : {}),
+    groups,
+  };
+}
+
+function readPatrolRouteOptions(
+  path: string,
+  seedOverride: string | boolean | undefined
+): Omit<GameboardPatrolRouteSetOptions, 'spawnGroups'> {
+  const payload = readJson<unknown>(path);
+  const routes = Array.isArray(payload)
+    ? (payload as readonly GameboardPatrolRouteRule[])
+    : isRecord(payload) && Array.isArray(payload.routes)
+      ? (payload.routes as readonly GameboardPatrolRouteRule[])
+      : undefined;
+  if (!Array.isArray(routes)) {
+    throw new Error(`Patrol route file ${path} must be a route array or { "routes": [...] }`);
+  }
+  const fileSeed = isRecord(payload) && typeof payload.seed === 'string' ? payload.seed : undefined;
+  const profile =
+    isRecord(payload) && isRecord(payload.profile)
+      ? (payload.profile as GameboardPatrolRouteSetOptions['profile'])
+      : undefined;
+  const routeProfile =
+    isRecord(payload) && isRecord(payload.routeProfile)
+      ? (payload.routeProfile as GameboardPatrolRouteSetOptions['routeProfile'])
+      : undefined;
+  return {
+    seed: typeof seedOverride === 'string' ? seedOverride : fileSeed,
+    ...(profile ? { profile } : {}),
+    ...(routeProfile ? { routeProfile } : {}),
+    routes,
+  };
+}
+
+function printSimulationReport(
+  report: ReturnType<typeof createGameboardScenarioSimulationReport>
+): void {
+  const completed = report.quests.filter((quest) => quest.status === 'completed').length;
+  const blocked = report.quests.filter((quest) => quest.status === 'blocked').length;
+  console.log(`scenario: ${report.scenarioId}`);
+  console.log(`success: ${report.success ? 'yes' : 'no'}`);
+  console.log(`steps: ${report.steps.length}`);
+  console.log(`events: ${report.eventRecords.length}`);
+  console.log(`commands: ${report.commands.length}`);
+  console.log(`actor target records: ${report.actorTargets.length}`);
+  console.log(`patrols: ${report.patrols.length}`);
+  console.log(`movements: ${report.movements.length}`);
+  console.log(`mutations: ${report.mutations.length}`);
+  console.log(`actors: ${report.actors.length}`);
+  console.log(`quests: ${report.quests.length} (${completed} completed, ${blocked} blocked)`);
+  if (report.actorTargets.length > 0) {
+    console.log('actor target records:');
+    for (const actorTargets of report.actorTargets) {
+      console.log(`  - ${actorTargetRecordSummary(actorTargets)}`);
+    }
+  }
+  if (report.mutations.length > 0) {
+    console.log('mutation records:');
+    for (const mutation of report.mutations) {
+      console.log(
+        `  - ${mutation.type}: ${mutation.actorId ?? mutation.placementId ?? 'unknown'} ${mutationStatus(mutation)}`
+      );
+    }
+  }
+  printSimulationExpectationFailures(report);
+}
+
+function actorTargetRecordSummary(
+  actorTargets: ReturnType<typeof createGameboardScenarioSimulationReport>['actorTargets'][number]
+): string {
+  const step = actorTargets.stepId ?? `step ${actorTargets.stepIndex}`;
+  const source = actorTargets.sourceActorId ?? 'unknown source';
+  const targetCount = actorTargets.targets.length;
+  const reachableCount = actorTargets.reachableActorIds.length;
+  const nearest = actorTargets.nearestTarget
+    ? `${actorTargets.nearestTarget.actorId} via ${actorTargets.nearestTarget.approach}${
+        actorTargets.nearestTarget.approachTileKey
+          ? ` ${actorTargets.nearestTarget.approachTileKey}`
+          : ''
+      }`
+    : 'none';
+  const command = actorTargets.nearestTarget
+    ? `${actorTargets.nearestTarget.commandKind}${actorTargets.nearestTarget.commandCanExecute ? '' : ' blocked'}`
+    : 'no command';
+  return `${step}: ${source} found ${reachableCount}/${targetCount} reachable; nearest ${nearest}; ${command}`;
+}
+
+function mutationStatus(
+  mutation: ReturnType<typeof createGameboardScenarioSimulationReport>['mutations'][number]
+): string {
+  if (mutation.removed === true) {
+    return 'removed';
+  }
+  if (mutation.spawned === true) {
+    return 'spawned';
+  }
+  if (mutation.updated === true) {
+    return 'updated';
+  }
+  return `not applied (${mutation.reason ?? 'unknown reason'})`;
+}
+
+function printSimulationExpectationFailures(
+  report: ReturnType<typeof createGameboardScenarioSimulationReport>
+): void {
+  if (report.expectationFailures.length === 0) {
+    return;
+  }
+  console.log('expectation failures:');
+  for (const failure of report.expectationFailures) {
+    console.log(`  - ${failure.path}: ${failure.message}`);
+  }
+}
+
+function snapshotFromPlan(
+  path: string,
+  validationConfig: GameboardPlanValidationConfig,
+  options: GameboardScenarioInteropOptions,
+  allowInvalid: boolean
+) {
+  const plan = readJson<GameboardPlan>(resolve(path));
+  const violations = validateGameboardPlan(plan, validationConfig);
+  failOnSnapshotViolations(violations, allowInvalid);
+  return createGameboardInteropSnapshot(plan, options);
+}
+
+function snapshotFromRecipe(
+  path: string,
+  validationConfig: GameboardPlanValidationConfig,
+  options: GameboardScenarioInteropOptions,
+  allowInvalid: boolean
+) {
+  const recipe = readJson<GameboardRecipe>(resolve(path));
+  const inspection = inspectGameboardRecipe(recipe, { plan: validationConfig });
+  failOnSnapshotViolations(inspection.violations, allowInvalid);
+  if (!inspection.plan) {
+    throw new Error(`Recipe ${path} did not compile to a GameboardPlan`);
+  }
+  return createGameboardInteropSnapshot(inspection.plan, options);
+}
+
+function snapshotFromScenario(
+  path: string,
+  validationConfig: GameboardPlanValidationConfig,
+  options: GameboardScenarioInteropOptions,
+  allowInvalid: boolean
+) {
+  const scenario = readJson<GameboardScenario>(resolve(path));
+  const inspection = inspectGameboardScenario(scenario, { plan: validationConfig });
+  failOnSnapshotViolations(inspection.violations, allowInvalid);
+  return createGameboardScenarioInteropSnapshot(scenario, options);
+}
+
+function failOnSnapshotViolations(
+  violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>,
+  allowInvalid: boolean
+): void {
+  if (allowInvalid || !violations.some((violation) => violation.severity === 'error')) {
+    return;
+  }
+  printViolations(violations);
+  process.exit(1);
+}
+
+function snapshotOptionsFromFlags(
+  flags: Record<string, string | boolean>
+): GameboardScenarioInteropOptions {
+  const options: GameboardScenarioInteropOptions = {};
+  if (flags.excludePlacements === true) {
+    options.includePlacements = false;
+  }
+  if (flags.excludeActors === true) {
+    options.includeActors = false;
+  }
+  if (flags.excludeQuests === true) {
+    options.includeQuests = false;
+  }
+  if (flags.excludeSpawnGroups === true) {
+    options.includeSpawnGroups = false;
+  }
+  const spawnCount = readNumberFlag(flags.spawnCount);
+  if (spawnCount !== undefined) {
+    options.spawnLocations = {
+      count: spawnCount,
+      seed: typeof flags.spawnSeed === 'string' ? flags.spawnSeed : undefined,
+      minDistance: readNumberFlag(flags.spawnMinDistance),
+      edgePadding: readNumberFlag(flags.spawnEdgePadding),
+    };
+  }
+  return options;
+}
+
+function printAnalysis(analysis: ReturnType<typeof analyzeHexTileRegistry>): void {
+  console.log(`tile declarations: ${analysis.tileCount}`);
+  console.log(`analyzed tile bounds: ${analysis.analyzedCount}`);
+  console.log(`recommended scale: ${round(analysis.recommendedScale)}`);
+  console.log(`median footprint: ${round(analysis.medianWidth)} x ${round(analysis.medianDepth)}`);
+  console.log(`median height: ${round(analysis.medianHeight)}`);
+  console.log(`row spacing: ${round(analysis.rowSpacing)}`);
+  if (analysis.warnings.length > 0) {
+    console.log('warnings:');
+    for (const warning of analysis.warnings) {
+      console.log(`  - ${warning}`);
+    }
+  } else {
+    console.log('warnings: none');
+  }
+}
+
+function printPieceRegistryAnalysis(analysis: GameboardPieceRegistryAnalysis): void {
+  console.log(`pieces: ${analysis.pieceCount}`);
+  console.log(`local-only pieces: ${analysis.localOnlyCount}`);
+  console.log(`roles: ${formatCounts(analysis.roleCounts)}`);
+  console.log(`sources: ${formatCounts(analysis.sourceCounts)}`);
+  console.log(`tags: ${formatCounts(analysis.tagCounts)}`);
+  if (analysis.checks.length > 0) {
+    console.log('checks:');
+    for (const check of analysis.checks) {
+      console.log(`  - ${check.id}: ${check.selectedCount} selected (${check.mode})`);
+      if (check.selectedIds.length > 0) {
+        console.log(`    pieces: ${check.selectedIds.join(', ')}`);
+      }
+    }
+  }
+  if (analysis.warnings.length > 0) {
+    console.log('warnings:');
+    for (const warning of analysis.warnings) {
+      console.log(`  - ${warning}`);
+    }
+  } else {
+    console.log('warnings: none');
+  }
+  if (analysis.errors.length > 0) {
+    console.log('errors:');
+    for (const error of analysis.errors) {
+      console.log(`  - ${error}`);
+    }
+  } else {
+    console.log('errors: none');
+  }
+}
+
+function printPiecePlacementInspection(inspection: GameboardPiecePlacementInspection): void {
+  console.log(`piece: ${inspection.pieceId}`);
+  console.log(`asset: ${inspection.assetId}`);
+  console.log(`role: ${inspection.role}`);
+  console.log(`source: ${inspection.source}`);
+  console.log(`candidate sites: ${inspection.siteInspection.candidateCount}`);
+  console.log(`selected sites: ${inspection.siteInspection.selectedCount}`);
+  console.log(`rejected sites: ${inspection.siteInspection.rejectedCount}`);
+  console.log(`rejections: ${formatCounts(inspection.siteInspection.rejectionCounts)}`);
+  console.log(`placements: ${inspection.placements.length}`);
+  if (inspection.placements.length > 0) {
+    console.log(
+      `placement tiles: ${inspection.placements.map((placement) => placementAtKey(placement.at)).join(', ')}`
+    );
+  }
+}
+
+function placementAtKey(at: string | { q: number; r: number }): string {
+  return typeof at === 'string' ? at : `${at.q},${at.r}`;
+}
+
+function printPiecesFromAssets(summary: PiecesFromAssetsSummary): void {
+  console.log(`assets scanned: ${summary.assetCount}`);
+  console.log(`compatible KayKit hex tiles: ${summary.compatibleTileCount}`);
+  console.log(`suggested roles: ${formatCounts(summary.suggestedRoles)}`);
+  console.log(`piece roles: ${formatCounts(summary.pieceRoles)}`);
+  console.log(`warnings: ${summary.warningCount}`);
+  console.log(`errors: ${summary.errorCount}`);
+  if (summary.overrideWarnings.length > 0) {
+    console.log('override warnings:');
+    for (const warning of summary.overrideWarnings) {
+      console.log(`  - ${warning}`);
+    }
+  }
+  if (summary.registryWarnings.length > 0) {
+    console.log('registry warnings:');
+    for (const warning of summary.registryWarnings) {
+      console.log(`  - ${warning}`);
+    }
+  }
+  if (summary.registryErrors.length > 0) {
+    console.log('registry errors:');
+    for (const error of summary.registryErrors) {
+      console.log(`  - ${error}`);
+    }
+  }
+}
+
+function printLayoutFillAnalysis(analysis: GameboardLayoutFillAnalysis): void {
+  console.log(`layout seed: ${analysis.seed}`);
+  console.log(`rules: ${analysis.ruleCount}`);
+  console.log(`placements: ${analysis.placementCount}`);
+  console.log(`candidate sites: ${analysis.candidateCount}`);
+  console.log(`diagnostics: ${analysis.errorCount} error(s), ${analysis.warningCount} warning(s)`);
+  for (const rule of analysis.rules) {
+    console.log(
+      `  - ${rule.id}: ${rule.selectedCount}/${rule.targetCount} selected from ${rule.candidateCount} candidate site(s)`
+    );
+    if (rule.rejectedSiteCount > 0) {
+      console.log(`    rejected tiles: ${rule.rejectedSiteCount}`);
+      console.log(`    rejection counts: ${formatCounts(rule.rejectionCounts)}`);
+    }
+    if (rule.assetIds.length > 0) {
+      console.log(`    assets: ${rule.assetIds.join(', ')}`);
+    }
+    if (rule.selectedTileKeys.length > 0) {
+      console.log(`    selected tiles: ${rule.selectedTileKeys.join(', ')}`);
+    }
+    for (const warning of rule.warnings) {
+      console.log(`    warning: ${warning}`);
+    }
+    for (const error of rule.errors) {
+      console.log(`    error: ${error}`);
+    }
+  }
+}
+
+function printSpawnGroupPlan(spawnPlan: GameboardSpawnGroupPlan): void {
+  console.log(`spawn seed: ${spawnPlan.seed}`);
+  console.log(`groups: ${spawnPlan.groupCount}`);
+  console.log(`locations: ${spawnPlan.selectedLocationCount}`);
+  console.log(
+    `routes: ${spawnPlan.routeChecks.filter((route) => route.found).length}/${spawnPlan.routeChecks.length}`
+  );
+  for (const group of spawnPlan.groups) {
+    console.log(`  - ${group.id}: ${group.selectedCount}/${group.requestedCount} location(s)`);
+    if (group.rejectedByGroupDistanceCount > 0) {
+      console.log(`    rejected by group distance: ${group.rejectedByGroupDistanceCount}`);
+    }
+    if (group.locations.length > 0) {
+      console.log(`    tiles: ${group.locations.map((location) => location.key).join(', ')}`);
+    }
+    for (const route of group.routeChecks) {
+      console.log(
+        `    route to ${route.toGroupId}: ${route.found ? 'found' : 'missing'}${
+          route.found ? ` (${route.fromKey} -> ${route.toKey}, cost ${round(route.cost)})` : ''
+        }`
+      );
+    }
+    for (const warning of group.warnings) {
+      console.log(`    warning: ${warning}`);
+    }
+    for (const error of group.errors) {
+      console.log(`    error: ${error}`);
+    }
+  }
+}
+
+function printPatrolRouteSet(routeSet: GameboardPatrolRouteSet): void {
+  console.log(`patrol seed: ${routeSet.seed}`);
+  console.log(`routes: ${routeSet.routeCount}`);
+  console.log(
+    `complete: ${routeSet.routes.filter((route) => route.found).length}/${routeSet.routes.length}`
+  );
+  for (const route of routeSet.routes) {
+    console.log(
+      `  - ${route.id}: ${route.selectedWaypointCount}/${route.requestedWaypointCount} waypoint(s), ${route.segments.filter((segment) => segment.found).length}/${route.segments.length} segment(s)`
+    );
+    if (route.waypoints.length > 0) {
+      console.log(`    tiles: ${route.waypoints.map((waypoint) => waypoint.key).join(', ')}`);
+    }
+    if (route.pathKeys.length > 0) {
+      console.log(`    path: ${route.pathKeys.join(' -> ')}`);
+    }
+    for (const warning of route.warnings) {
+      console.log(`    warning: ${warning}`);
+    }
+    for (const error of route.errors) {
+      console.log(`    error: ${error}`);
+    }
+  }
+}
+
+function printPatrolSimulationScriptPlan(plan: GameboardPatrolSimulationScriptPlan): void {
+  console.log(`patrol simulation steps: ${plan.stepCount}`);
+  console.log(`assignments: ${plan.assignments.length}`);
+  for (const assignment of plan.assignments) {
+    console.log(
+      `  - ${assignment.actorId} -> ${assignment.routeId}: ${assignment.stepCount} step(s), ${assignment.roundCount} round(s)`
+    );
+    for (const warning of assignment.warnings) {
+      console.log(`    warning: ${warning}`);
+    }
+    for (const error of assignment.errors) {
+      console.log(`    error: ${error}`);
+    }
+  }
+  console.log(`warnings: ${plan.warnings.length}`);
+  console.log(`errors: ${plan.errors.length}`);
+}
+
+function formatCounts(counts: Readonly<Record<string, number | undefined>>): string {
+  const entries = Object.entries(counts).filter(
+    (entry): entry is [string, number] => typeof entry[1] === 'number'
+  );
+  return entries.length ? entries.map(([key, value]) => `${key}=${value}`).join(', ') : 'none';
+}
+
+function printViolations(
+  violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>
+): void {
+  const errors = violations.filter((violation) => violation.severity === 'error');
+  const warnings = violations.filter((violation) => violation.severity === 'warning');
+  console.log(`validation: ${errors.length} error(s), ${warnings.length} warning(s)`);
+  for (const violation of violations) {
+    const location = violation.tileKey ?? violation.placementId ?? 'board';
+    console.log(`${violation.severity}: ${violation.code} ${location} - ${violation.message}`);
+  }
+}
+
+function printManifestInspection(
+  path: string,
+  inspection: MedievalHexagonManifestInspection
+): void {
+  console.log(`manifest: ${path}`);
+  if (inspection.manifest) {
+    console.log(`edition: ${inspection.manifest.edition}`);
+    console.log(`assets: ${inspection.manifest.counts.total}`);
+    console.log(`texture sets: ${inspection.manifest.textureSets.join(', ') || 'none'}`);
+  }
+  console.log(
+    `validation: ${inspection.errorCount} error(s), ${inspection.warningCount} warning(s)`
+  );
+  for (const issue of inspection.issues) {
+    console.log(`${issue.severity}: ${formatManifestIssue(issue)}`);
+  }
+}
+
+function formatManifestIssue(issue: MedievalHexagonManifestInspection['issues'][number]): string {
+  const location = issue.assetId ? ` ${issue.assetId}` : issue.path ? ` ${issue.path}` : '';
+  return `${issue.code}${location} - ${issue.message}`;
+}
+
+function printCompatibility(report: ReturnType<typeof analyzeExternalAssetCompatibility>): void {
+  console.log(`asset: ${report.id}`);
+  console.log(`source pack: ${report.sourcePack}`);
+  console.log(`compatible as KayKit hex tile: ${report.compatibleAsTile ? 'yes' : 'no'}`);
+  console.log(`suggested role: ${report.suggestedRole}`);
+  console.log(`suggested footprint: ${report.placement.footprint}`);
+  console.log(`suggested scale: ${round(report.placement.scale)}`);
+  console.log(`model forward: ${report.placement.modelForward}`);
+  console.log(`board forward edge: ${report.placement.boardForwardEdge}`);
+  console.log(`suggested rotation steps: ${report.placement.rotationSteps}`);
+  console.log(`facing error radians: ${round(report.placement.facingErrorRadians)}`);
+  console.log(
+    `tile scale: ${round(report.tile.widthScale)} width / ${round(report.tile.depthScale)} depth`
+  );
+  if (report.warnings.length > 0) {
+    console.log('warnings:');
+    for (const warning of report.warnings) {
+      console.log(`  - ${warning}`);
+    }
+  } else {
+    console.log('warnings: none');
+  }
+  if (report.errors.length > 0) {
+    console.log('errors:');
+    for (const error of report.errors) {
+      console.log(`  - ${error}`);
+    }
+  }
+}
+
+function readGltfMetadata(path: string): {
+  bounds: AssetBounds;
+  hasRig: boolean;
+  animationNames: readonly string[];
+  materialSlots: readonly string[];
+} {
+  const document = path.endsWith('.glb')
+    ? readGlbJson(path)
+    : (JSON.parse(readFileSync(path, 'utf8')) as GltfDocumentMetadata);
+  return {
+    bounds: extractMetadataBounds(document),
+    hasRig:
+      (document.skins?.length ?? 0) > 0 ||
+      (document.nodes ?? []).some((node) => node.skin !== undefined),
+    animationNames: (document.animations ?? []).map(
+      (animation, index) => animation.name ?? `animation_${index}`
+    ),
+    materialSlots: (document.materials ?? []).map(
+      (material, index) => material.name ?? `material_${index}`
+    ),
+  };
+}
+
+function readGlbJson(path: string): GltfDocumentMetadata {
+  const buffer = readFileSync(path);
+  if (buffer.toString('utf8', 0, 4) !== 'glTF') {
+    throw new Error(`Invalid GLB header: ${path}`);
+  }
+  const length = buffer.readUInt32LE(8);
+  let offset = 12;
+  while (offset < length) {
+    const chunkLength = buffer.readUInt32LE(offset);
+    const chunkType = buffer.toString('utf8', offset + 4, offset + 8);
+    offset += 8;
+    if (chunkType === 'JSON') {
+      return JSON.parse(
+        buffer.toString('utf8', offset, offset + chunkLength)
+      ) as GltfDocumentMetadata;
+    }
+    offset += chunkLength;
+  }
+  throw new Error(`GLB file has no JSON chunk: ${path}`);
+}
+
+function extractMetadataBounds(document: GltfDocumentMetadata): AssetBounds {
+  const min = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
+  const max = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
+  for (const mesh of document.meshes ?? []) {
+    for (const primitive of mesh.primitives ?? []) {
+      const accessorIndex = primitive.attributes?.POSITION;
+      const accessor =
+        accessorIndex === undefined ? undefined : document.accessors?.[accessorIndex];
+      if (!accessor?.min || !accessor.max) {
+        continue;
+      }
+      for (let index = 0; index < 3; index += 1) {
+        min[index] = Math.min(min[index], accessor.min[index] ?? min[index]);
+        max[index] = Math.max(max[index], accessor.max[index] ?? max[index]);
+      }
+    }
+  }
+  if (!Number.isFinite(min[0]) || !Number.isFinite(max[0])) {
+    return { min: [0, 0, 0], max: [0, 0, 0], size: [0, 0, 0] };
+  }
+  return {
+    min: tuple(min),
+    max: tuple(max),
+    size: tuple([max[0] - min[0], max[1] - min[1], max[2] - min[2]]),
+  };
+}
+
+function tuple(values: readonly number[]): [number, number, number] {
+  return [round(values[0]), round(values[1]), round(values[2])];
+}
+
+function readIntendedRole(
+  value: string | boolean | undefined
+): ExternalAssetIntendedRole | undefined {
+  if (value === 'tile' || value === 'prop' || value === 'structure' || value === 'unit') {
+    return value;
+  }
+  return undefined;
+}
+
+function readPieceRole(value: string | boolean | undefined): GameboardPieceRole | undefined {
+  if (
+    value === 'surface' ||
+    value === 'building' ||
+    value === 'unit' ||
+    value === 'prop' ||
+    value === 'tree' ||
+    value === 'scatter' ||
+    value === 'landmark' ||
+    value === 'custom'
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+function readPieceFillMode(
+  value: string | boolean | undefined
+): SeededGameboardPieceFillMode | undefined {
+  if (value === 'per-piece' || value === 'pool') {
+    return value;
+  }
+  return undefined;
+}
+
+function pieceFillFromFlags(
+  flags: Record<string, string | boolean>
+): SeededGameboardPieceFillOptions {
+  const fill: SeededGameboardPieceFillOptions = {
+    selection: pieceSelectionFromFlags(flags),
+  };
+  const mode = readPieceFillMode(flags.mode);
+  if (mode) {
+    fill.mode = mode;
+  }
+  if (typeof flags.id === 'string') {
+    fill.id = flags.id;
+  }
+  if (typeof flags.ruleIdPrefix === 'string') {
+    fill.ruleIdPrefix = flags.ruleIdPrefix;
+  }
+  const count = readNumberFlag(flags.count);
+  const fillAmount = readNumberFlag(flags.fill);
+  const minCount = readNumberFlag(flags.minCount);
+  const maxCount = readNumberFlag(flags.maxCount);
+  if (count !== undefined) {
+    fill.count = count;
+  }
+  if (fillAmount !== undefined) {
+    fill.fill = fillAmount;
+  }
+  if (minCount !== undefined) {
+    fill.minCount = minCount;
+  }
+  if (maxCount !== undefined) {
+    fill.maxCount = maxCount;
+  }
+  return fill;
+}
+
+function pieceSelectionFromFlags(
+  flags: Record<string, string | boolean>
+): GameboardPieceRegistrySelection {
+  const selection: GameboardPieceRegistrySelection = {};
+  const ids = readCsv(flags.ids);
+  const assetIds = readCsv(flags.assetIds);
+  const tags = readCsv(flags.tags);
+  const excludeTags = readCsv(flags.excludeTags);
+  const sources = readCsv(flags.sources);
+  const roles = uniqueRoles([
+    readPieceRole(flags.role),
+    ...readCsv(flags.roles).map((role) => readPieceRole(role)),
+  ]);
+  if (ids.length > 0) {
+    selection.ids = ids;
+  }
+  if (assetIds.length > 0) {
+    selection.assetIds = assetIds;
+  }
+  if (roles.length > 0) {
+    selection.roles = roles;
+  }
+  if (typeof flags.sourcePack === 'string') {
+    selection.sources = [flags.sourcePack];
+  } else if (sources.length > 0) {
+    selection.sources = sources;
+  }
+  if (tags.length > 0) {
+    selection.tags = tags;
+  }
+  if (excludeTags.length > 0) {
+    selection.excludeTags = excludeTags;
+  }
+  if (flags.requiresExtra === true) {
+    selection.requiresExtra = true;
+  }
+  if (flags.freeOnly === true) {
+    selection.requiresExtra = false;
+  }
+  return selection;
+}
+
+function pieceForPlacementFromFlags(
+  registry: GameboardPieceRegistry,
+  flags: Record<string, string | boolean>
+): GameboardPieceDeclaration {
+  const selection = pieceSelectionFromFlags(flags);
+  if (typeof flags.pieceId === 'string') {
+    selection.ids = [flags.pieceId];
+  } else if (typeof flags.id === 'string') {
+    selection.ids = [flags.id];
+  }
+  if (typeof flags.assetId === 'string') {
+    selection.assetIds = [flags.assetId];
+  }
+  const selected = selectGameboardPieces(registry, selection);
+  if (selected.length === 1) {
+    return selected[0] as GameboardPieceDeclaration;
+  }
+  const description = JSON.stringify(selection);
+  if (selected.length === 0) {
+    throw new Error(`place-piece matched no pieces for selection ${description}`);
+  }
+  throw new Error(
+    `place-piece matched ${selected.length} pieces for selection ${description}; narrow with --pieceId`
+  );
+}
+
+function pieceSourceUrlOptionsFromFlags(
+  flags: Record<string, string | boolean>
+): GameboardPieceSourceUrlOptions {
+  const options: GameboardPieceSourceUrlOptions = {};
+  if (typeof flags.pieceSourceRoot === 'string') {
+    options.sourceRoot = flags.pieceSourceRoot;
+  }
+  if (typeof flags.pieceSourceRoots === 'string') {
+    options.sourceRoots = readPieceSourceRoots(flags.pieceSourceRoots);
+  }
+  if (flags.unencodedSourceUrls === true) {
+    options.encode = false;
+  }
+  return options;
+}
+
+function readPieceSourceRoots(value: string): Readonly<Record<string, string>> {
+  const source = existsSync(resolve(value)) ? readJson<unknown>(resolve(value)) : JSON.parse(value);
+  const payload = isRecord(source) && isRecord(source.sourceRoots) ? source.sourceRoots : source;
+  if (!isRecord(payload)) {
+    throw new Error('--pieceSourceRoots must be a JSON object or { "sourceRoots": { ... } }');
+  }
+  const roots: Record<string, string> = {};
+  for (const [key, root] of Object.entries(payload)) {
+    if (typeof root !== 'string') {
+      throw new Error(`--pieceSourceRoots entry ${key} must be a string`);
+    }
+    roots[key] = root;
+  }
+  return roots;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isPatrolRouteSet(value: unknown): value is GameboardPatrolRouteSet {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.routes) &&
+    value.routes.every(
+      (route) =>
+        isRecord(route) &&
+        typeof route.id === 'string' &&
+        Array.isArray(route.waypoints) &&
+        Array.isArray(route.segments)
+    )
+  );
+}
+
+function uniqueRoles(values: readonly (GameboardPieceRole | undefined)[]): GameboardPieceRole[] {
+  return [...new Set(values.filter((value): value is GameboardPieceRole => value !== undefined))];
+}
+
+function readAssetInputs(flags: Record<string, string | boolean>): string[] {
+  const inputs = [...readCsv(flags.assets)];
+  if (typeof flags.asset === 'string') {
+    inputs.push(flags.asset);
+  }
+  if (inputs.length === 0) {
+    throw new Error('pieces-from-assets requires --assets <path[,path]> or --asset <path>');
+  }
+  return inputs.map((input) => resolve(input));
+}
+
+function assetInputRoots(inputs: readonly string[]): AssetInputRoot[] {
+  return inputs.map((input) => {
+    const stats = statSync(input);
+    return {
+      input,
+      base: stats.isDirectory() ? input : dirname(input),
+    };
+  });
+}
+
+function collectGltfAssetPaths(inputs: readonly string[]): string[] {
+  const files = new Set<string>();
+  for (const input of inputs) {
+    const stats = statSync(input);
+    if (stats.isDirectory()) {
+      for (const assetPath of collectGltfAssetPathsFromDirectory(input)) {
+        files.add(assetPath);
+      }
+      continue;
+    }
+    if (isGltfPath(input)) {
+      files.add(input);
+    }
+  }
+  return [...files].sort((left, right) => left.localeCompare(right));
+}
+
+function collectGltfAssetPathsFromDirectory(root: string): string[] {
+  const files: string[] = [];
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const fullPath = join(root, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectGltfAssetPathsFromDirectory(fullPath));
+      continue;
+    }
+    if (entry.isFile() && isGltfPath(fullPath)) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
+
+function isGltfPath(path: string): boolean {
+  const extension = extname(path).toLowerCase();
+  return extension === '.glb' || extension === '.gltf';
+}
+
+function assetIdFromBatchPath(path: string, roots: readonly AssetInputRoot[]): string {
+  const relativePath = relativeAssetPath(path, roots);
+  const withoutExtension = relativePath.slice(0, -extname(relativePath).length);
+  return normalizeAssetId(withoutExtension);
+}
+
+function sourceAssetRecord(
+  path: string,
+  roots: readonly AssetInputRoot[],
+  includeAbsolutePath: boolean
+): BatchSourceAssetRecord {
+  const relativePath = relativeAssetPath(path, roots);
+  const extension = extname(path).toLowerCase();
+  return {
+    id: assetIdFromBatchPath(path, roots),
+    relativePath,
+    fileName: basename(path),
+    extension,
+    ...(includeAbsolutePath ? { path } : {}),
+  };
+}
+
+function relativeAssetPath(path: string, roots: readonly AssetInputRoot[]): string {
+  const root = [...roots]
+    .sort((left, right) => right.base.length - left.base.length)
+    .find((candidate) => path === candidate.input || path.startsWith(`${candidate.base}/`));
+  return normalizePath(root ? relative(root.base, path) : basename(path));
+}
+
+function normalizeAssetId(value: string): string {
+  return normalizePath(value)
+    .split('/')
+    .map((part) =>
+      part
+        .trim()
+        .replace(/[^a-zA-Z0-9:_-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+    )
+    .filter(Boolean)
+    .join('/');
+}
+
+function normalizePath(value: string): string {
+  return value.replaceAll('\\', '/');
+}
+
+function mergeSourceAssetOverrides(
+  overrides: Readonly<Record<string, GameboardPieceCompatibilityDeclarationOptions>> | undefined,
+  sourceAssets: readonly BatchSourceAssetRecord[]
+): Readonly<Record<string, GameboardPieceCompatibilityDeclarationOptions>> {
+  const merged: Record<string, GameboardPieceCompatibilityDeclarationOptions> = {
+    ...(overrides ?? {}),
+  };
+  for (const asset of sourceAssets) {
+    merged[asset.id] = {
+      ...(merged[asset.id] ?? {}),
+      metadata: {
+        sourceRelativePath: asset.relativePath,
+        sourceFileName: asset.fileName,
+        sourceExtension: asset.extension,
+        localAsset: true,
+        ...(merged[asset.id]?.metadata ?? {}),
+      },
+    };
+  }
+  return merged;
+}
+
+function unmatchedOverrideWarnings(
+  overrides: Readonly<Record<string, GameboardPieceCompatibilityDeclarationOptions>> | undefined,
+  reports: ReadonlyArray<ReturnType<typeof analyzeExternalAssetCompatibility>>
+): string[] {
+  if (!overrides) {
+    return [];
+  }
+  const reportIds = new Set(reports.map((report) => report.id));
+  return Object.keys(overrides)
+    .filter((id) => !reportIds.has(id))
+    .map((id) => `Piece override ${id} did not match any scanned asset id`);
+}
+
+function summarizeCompatibilityReports(
+  reports: ReadonlyArray<ReturnType<typeof analyzeExternalAssetCompatibility>>,
+  analysis: GameboardPieceRegistryAnalysis,
+  extraWarnings: readonly string[] = []
+): PiecesFromAssetsSummary {
+  const suggestedRoles: Record<string, number> = {};
+  for (const report of reports) {
+    incrementCount(suggestedRoles, report.suggestedRole);
+  }
+  return {
+    assetCount: reports.length,
+    compatibleTileCount: reports.filter((report) => report.compatibleAsTile).length,
+    warningCount:
+      reports.reduce((count, report) => count + report.warnings.length, 0) +
+      analysis.warnings.length +
+      extraWarnings.length,
+    errorCount:
+      reports.reduce((count, report) => count + report.errors.length, 0) + analysis.errors.length,
+    suggestedRoles,
+    pieceRoles: analysis.roleCounts,
+    overrideWarnings: extraWarnings,
+    registryWarnings: analysis.warnings,
+    registryErrors: analysis.errors,
+  };
+}
+
+function incrementCount(counts: Record<string, number>, key: string): void {
+  counts[key] = (counts[key] ?? 0) + 1;
+}
+
+function readNumberFlag(value: string | boolean | undefined): number | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    throw new Error(`Expected numeric flag value, received ${value}`);
+  }
+  return number;
+}
+
+function readModelForward(
+  value: string | boolean | undefined
+): ExternalAssetForwardAxis | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === '+z' || value === '-z' || value === '+x' || value === '-x') {
+    return value;
+  }
+  throw new Error(`Expected --modelForward to be one of +z, -z, +x, -x; received ${String(value)}`);
+}
+
+function readBoardForwardEdge(value: string | boolean | undefined): HexEdgeIndex | undefined {
+  const edge = readNumberFlag(value);
+  if (edge === undefined) {
+    return undefined;
+  }
+  if (!Number.isInteger(edge) || edge < 0 || edge > 5) {
+    throw new Error(`Expected --boardForwardEdge to be an integer from 0 to 5; received ${edge}`);
+  }
+  return edge as HexEdgeIndex;
+}
+
+function hasPieceFillFlags(flags: Record<string, string | boolean>): boolean {
+  return [
+    'ids',
+    'assetIds',
+    'role',
+    'roles',
+    'sourcePack',
+    'sources',
+    'tags',
+    'excludeTags',
+    'requiresExtra',
+    'freeOnly',
+    'mode',
+    'emitRules',
+  ].some((key) => flags[key] !== undefined);
+}
+
+function readCsv(value: string | boolean | undefined): string[] {
+  return typeof value === 'string'
+    ? value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [];
+}
+
+function normalizePieceId(value: string): string {
+  return value
+    .trim()
+    .replace(/[^a-zA-Z0-9:_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function assetIdFromPath(path: string | boolean): string {
+  return (
+    String(path)
+      .split('/')
+      .pop()
+      ?.replace(/\.(glb|gltf)$/i, '') ?? 'external-asset'
+  );
+}
+
+function round(value: number): number {
+  return Math.round(value * 1000) / 1000;
+}
+
+function runDoctor(sourceRoot: string, edition: PackEdition): void {
+  const validation = validateSourceRoot(sourceRoot, edition);
+  const docsMontage = resolve('docs/assets/kaykit-guide/montage.png');
+  console.log(`edition: ${edition}`);
+  console.log(`source: ${sourceRoot}`);
+  console.log(`source exists: ${existsSync(sourceRoot) ? 'yes' : 'no'}`);
+  console.log(`gltf count: ${validation.gltfCount}/${expectedModelCount(edition)}`);
+  console.log(`docs montage: ${existsSync(docsMontage) ? docsMontage : 'missing'}`);
+}
+
+function runValidate(sourceRoot: string, edition: PackEdition): void {
+  const validation = validateSourceRoot(sourceRoot, edition);
+  if (!validation.ok) {
+    console.error(
+      `Expected ${validation.expectedCount} ${edition} GLTF files, found ${validation.gltfCount}.`
+    );
+    process.exit(1);
+  }
+  console.log(`Validated ${validation.gltfCount} ${edition} GLTF files.`);
+}
+
+function parseArgs(argv: string[]): ParsedArgs {
+  const [command = 'help', ...rest] = argv;
+  if (command === 'help' || command === '--help' || command === '-h') {
+    usage(0);
+  }
+
+  const flags: Record<string, string | boolean> = {};
+  for (let index = 0; index < rest.length; index += 1) {
+    const item = rest[index];
+    if (!item?.startsWith('--')) {
+      continue;
+    }
+    const key = item.slice(2);
+    const next = rest[index + 1];
+    if (next && !next.startsWith('--')) {
+      flags[key] = next;
+      index += 1;
+    } else {
+      flags[key] = true;
+    }
+  }
+  return { command, flags };
+}
+
+function readEdition(value: string | boolean | undefined): PackEdition {
+  if (value === undefined || value === false) {
+    return 'free';
+  }
+  if (value === 'free' || value === 'extra') {
+    return value;
+  }
+  throw new Error(`Unsupported edition: ${String(value)}`);
+}
+
+function usage(exitCode: number): never {
+  console.log(`medieval-hexagon-gameboard <command> [options]
+
+Commands:
+  doctor     Report local source and docs status
+  validate   Validate local FREE or EXTRA source counts
+  manifest   Generate a manifest JSON from a source folder
+  validate-manifest Validate a generated manifest JSON and optionally write a normalized copy
+  analyze    Analyze tile bounds, grid scale, row spacing, and warnings
+  declarations  Emit tile declarations from a source folder, manifest, or registry
+  guide-permutations Emit guide-labeled road, river, crossing, and coast permutation metadata
+  pieces    Validate piece declarations and optionally emit seeded piece fill rules
+  place-piece Inspect and append one declared piece against a saved GameboardPlan, recipe, or scenario
+  validate-plan Validate a GameboardPlan JSON with optional registry rules
+  analyze-layout Analyze seeded layout fill rules against a saved GameboardPlan, recipe, or scenario
+  spawn-groups Plan separated spawn groups and route diagnostics against a plan, recipe, or scenario
+  patrol-routes Plan NPC/enemy patrol waypoints and segment diagnostics against a plan, recipe, or scenario
+  patrol-script Create executable simulation command steps from planned patrol routes and actor assignments
+  validate-recipe Validate a GameboardRecipe JSON and optionally compile it to a plan
+  validate-scenario Validate a GameboardScenario JSON and optionally compile its plan
+  validate-simulation Validate a GameboardScenario simulation script without executing it
+  snapshot   Emit a neutral ECS interop snapshot from a plan, recipe, or scenario
+  simulate-scenario Run a GameboardScenario simulation script and emit event records, final plan, or ECS interop
+  compatibility Analyze one external GLB/GLTF for hex-tile compatibility and placement suggestions
+  piece      Emit a custom piece declaration from an external GLB/GLTF compatibility scan
+  pieces-from-assets Scan GLB/GLTF files and emit custom piece declarations plus compatibility summaries
+  extract    Copy GLTF assets and write a manifest to an output folder
+
+Options:
+  --edition free|extra
+  --source <path>
+  --manifest <path>
+  --registry <path>
+  --pieces <path>
+  --plan <path>
+  --rules <path>
+  --groups <path>
+  --recipe <path>
+  --scenario <path>
+  --script <path>
+  --assignments <path>
+  --routeId <id>
+  --actorId <id>
+  --rounds <number>
+  --asset <path>
+  --assets <comma,separated,paths>
+  --intendedRole tile|prop|structure|unit
+  --modelForward +z|-z|+x|-x
+  --boardForwardEdge 0..5
+  --role surface|building|unit|prop|tree|scatter|landmark|custom
+  --pieceIdPrefix <prefix>
+  --assetIdPrefix <prefix>
+  --pieceOverrides <path>
+  --overrides <path>
+  --pieceSourceRoot <url-or-path>
+  --pieceSourceRoots <json-path-or-inline-json>
+  --roles <comma,separated,roles>
+  --sourcePack <name>
+  --sources <comma,separated,sources>
+  --tags <comma,separated,tags>
+  --ids <comma,separated,pieceIds>
+  --pieceId <pieceId>
+  --assetIds <comma,separated,assetIds>
+  --assetId <assetId>
+  --excludeTags <comma,separated,tags>
+  --requiresExtra
+  --freeOnly
+  --allowUnknownAssets
+  --allowUnknownAssetIds <comma,separated,assetIds>
+  --allowInvalid
+  --allowExpectationFailures
+  --excludePlacements
+  --excludeActors
+  --excludeQuests
+  --excludeSpawnGroups
+  --excludeTimeline
+  --spawnCount <number>
+  --spawnSeed <seed>
+  --spawnMinDistance <number>
+  --spawnEdgePadding <number>
+  --mode per-piece|pool
+  --emitRules
+  --emitSourceUrls
+  --unencodedSourceUrls
+  --ruleIdPrefix <prefix>
+  --idPrefix <prefix>
+  --seed <seed>
+  --count <number>
+  --fill <number>
+  --minCount <number>
+  --maxCount <number>
+  --failOnWarning
+  --failOnBlockedQuest
+  --includeReport
+  --includeReports
+  --includeAbsolutePaths
+  --outManifest <path>
+  --outPlan <path>
+  --outInterop <path>
+  --out <path>
+  --assetBasePath <path>
+  --json`);
+  process.exit(exitCode);
+}
+
+try {
+  main(process.argv.slice(2));
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}

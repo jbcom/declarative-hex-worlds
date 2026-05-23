@@ -1,0 +1,713 @@
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { basename, dirname, join, resolve } from 'node:path';
+
+interface TileRegistryAnalysisSmoke {
+  analyzedCount: number;
+  recommendedScale: number;
+  tileCount: number;
+  warnings: string[];
+}
+
+interface GuidePermutationSmoke {
+  count: number;
+  counts: Record<string, number>;
+  missingAssetIds: string[];
+}
+
+interface LayoutAnalysisSmoke {
+  placementCount: number;
+  warningCount: number;
+  errorCount: number;
+  rules: Array<{ id: string; candidateCount: number; selectedCount: number; warnings: string[] }>;
+}
+
+interface SimulationReportSmoke {
+  success: boolean;
+  scenarioId: string;
+  expectationFailures: unknown[];
+  completedQuestIds?: string[];
+  eventRecords: Array<{ type: string }>;
+  commands?: Array<{
+    eventType: string;
+    command: {
+      kind: string;
+      status: string;
+      handlerId?: string;
+      effectTypes?: string[];
+    };
+  }>;
+  patrols?: Array<{ eventType: string; patrol: { actorId?: string; routeId: string } }>;
+}
+
+interface PatrolRouteSetSmoke {
+  routeCount: number;
+  errors: string[];
+  routes: Array<{ id: string; found: boolean; segments: unknown[] }>;
+}
+
+interface PatrolScriptSmoke {
+  schemaVersion: string;
+  steps: Array<{ action: string; sourceActor: string; target: string }>;
+}
+
+interface CompatibilitySmoke {
+  compatibleAsTile: boolean;
+  suggestedRole: string;
+  placement: {
+    modelForward: string;
+    boardForwardEdge: number;
+    rotationSteps: number;
+  };
+  warnings: string[];
+}
+
+interface PieceDeclarationSmoke {
+  declaration?: {
+    id: string;
+    assetId: string;
+    role: string;
+    requiresExtra: boolean;
+    metadata: Record<string, unknown>;
+  };
+}
+
+interface PieceRegistrySmoke {
+  pieces: Array<{ id: string; role: string; metadata: Record<string, unknown> }>;
+  summary: {
+    assetCount: number;
+    pieceRoles: Record<string, number>;
+    warningCount: number;
+  };
+  reports?: Array<{ id: string; suggestedRole: string; warnings: string[] }>;
+}
+
+interface PieceRulesSmoke {
+  rules: Array<{ assetId: string; count: number }>;
+  analysis: {
+    pieceCount: number;
+    checks: Array<{ selectedCount: number; selectedIds: string[] }>;
+  };
+}
+
+interface InteropSnapshotSmoke {
+  scenario?: { id: string };
+  spawnLocations: Array<{ id: string }>;
+  entities: Array<{ kind: string; id: string }>;
+  relations: Array<{
+    name: string;
+    fromId?: string;
+    toId?: string;
+    data?: {
+      commandKind?: string;
+      commandStatus?: string;
+      effectType?: string;
+      effectTypes?: string[];
+      handlerId?: string;
+      handlerStatus?: string;
+    };
+  }>;
+}
+
+const workspaceRoot = resolve(import.meta.dirname, '..');
+const packageRoot = join(workspaceRoot, 'packages/medieval-hexagon-gameboard');
+const cliPath = join(packageRoot, 'dist/cli.js');
+const freeManifestPath = join(packageRoot, 'assets/free/manifest.json');
+const recipePath = join(packageRoot, 'examples/generated-piece-scenario.recipe.json');
+const scenarioPath = join(packageRoot, 'examples/simple-rpg-scenario.json');
+const simulationScriptPath = join(packageRoot, 'examples/simple-rpg-simulation.script.json');
+const tempRoot = mkdtempSync(join(tmpdir(), 'medieval-built-cli-'));
+const keepTemp = process.env.MEDIEVAL_HEXAGON_KEEP_CLI_SMOKE === '1';
+
+try {
+  assert(existsSync(cliPath), `missing ${cliPath}; run pnpm build before pnpm test:cli`);
+  assert(existsSync(freeManifestPath), `missing packaged FREE manifest: ${freeManifestPath}`);
+
+  const doctorOutput = runCli(['doctor', '--source', join(tempRoot, 'missing-free')]);
+  assert(
+    doctorOutput.includes('source exists: no'),
+    'doctor did not report a missing explicit source'
+  );
+
+  const normalizedManifestPath = join(tempRoot, 'normalized-free-manifest.json');
+  const validateManifestOutput = runCli([
+    'validate-manifest',
+    '--manifest',
+    freeManifestPath,
+    '--outManifest',
+    normalizedManifestPath,
+  ]);
+  assert(
+    validateManifestOutput.includes('validation: 0 error(s), 0 warning(s)'),
+    'FREE manifest did not validate cleanly'
+  );
+  assert(
+    existsSync(normalizedManifestPath),
+    'validate-manifest did not write a normalized manifest'
+  );
+
+  const analysis = JSON.parse(
+    runCli(['analyze', '--manifest', freeManifestPath, '--json'])
+  ) as TileRegistryAnalysisSmoke;
+  assert(
+    analysis.tileCount === 60,
+    `expected 60 analyzed tile declarations, got ${analysis.tileCount}`
+  );
+  assert(
+    analysis.analyzedCount === 60,
+    `expected 60 tile bounds analyses, got ${analysis.analyzedCount}`
+  );
+  assert(
+    analysis.recommendedScale === 1,
+    `expected recommended scale 1, got ${analysis.recommendedScale}`
+  );
+  assert(
+    analysis.warnings.length === 0,
+    `expected no packaged manifest geometry warnings, got ${analysis.warnings.join('; ')}`
+  );
+
+  const declarationsPath = join(tempRoot, 'kaykit-declarations.json');
+  const declarationsOutput = runCli([
+    'declarations',
+    '--manifest',
+    freeManifestPath,
+    '--out',
+    declarationsPath,
+  ]);
+  const declarations = readJson<unknown[]>(declarationsPath);
+  assert(
+    declarationsOutput.includes('Wrote 60 tile declarations'),
+    'declarations command did not report 60 tiles'
+  );
+  assert(declarations.length === 60, `declarations output had ${declarations.length} entries`);
+
+  const guidePermutationsPath = join(tempRoot, 'kaykit-guide-permutations.json');
+  const guideOutput = runCli([
+    'guide-permutations',
+    '--manifest',
+    freeManifestPath,
+    '--out',
+    guidePermutationsPath,
+  ]);
+  const guide = readJson<GuidePermutationSmoke>(guidePermutationsPath);
+  assert(
+    guideOutput.includes('Wrote 298 guide permutations'),
+    'guide-permutations output count changed'
+  );
+  assert(guide.count === 298, `guide permutation count changed to ${guide.count}`);
+  assert(guide.counts.road === 78, `road permutation count changed to ${guide.counts.road}`);
+  assert(guide.counts.river === 144, `river permutation count changed to ${guide.counts.river}`);
+  assert(guide.counts.coast === 60, `coast permutation count changed to ${guide.counts.coast}`);
+  assert(
+    guide.missingAssetIds.length === 0,
+    `guide permutations reference missing assets: ${guide.missingAssetIds.join(', ')}`
+  );
+
+  const recipePlanPath = join(tempRoot, 'generated-piece-scenario.plan.json');
+  const recipeOutput = runCli([
+    'validate-recipe',
+    '--recipe',
+    recipePath,
+    '--manifest',
+    freeManifestPath,
+    '--outPlan',
+    recipePlanPath,
+  ]);
+  assert(
+    recipeOutput.includes('validation: 0 error(s), 0 warning(s)'),
+    'generated piece recipe did not validate cleanly'
+  );
+  assert(existsSync(recipePlanPath), 'validate-recipe did not write a compiled plan');
+
+  const layoutRulesPath = join(tempRoot, 'layout-rules.json');
+  const layoutAnalysisPath = join(tempRoot, 'layout-analysis.json');
+  writeFileSync(
+    layoutRulesPath,
+    `${JSON.stringify(
+      {
+        seed: 'built-cli-layout-analysis',
+        rules: [
+          {
+            id: 'too-many-trees',
+            archetype: 'tree',
+            assetId: 'tree_single_A',
+            count: 999,
+            minCount: 500,
+          },
+        ],
+      },
+      null,
+      2
+    )}\n`,
+    'utf8'
+  );
+  const layoutOutput = runCli([
+    'analyze-layout',
+    '--recipe',
+    recipePath,
+    '--manifest',
+    freeManifestPath,
+    '--rules',
+    layoutRulesPath,
+    '--outPlan',
+    recipePlanPath,
+    '--out',
+    layoutAnalysisPath,
+  ]);
+  const layout = readJson<LayoutAnalysisSmoke>(layoutAnalysisPath);
+  assert(
+    layoutOutput.includes(`Wrote layout analysis to ${layoutAnalysisPath}`),
+    'analyze-layout did not write output'
+  );
+  assert(
+    layoutOutput.includes(`Wrote compiled GameboardPlan to ${recipePlanPath}`),
+    'analyze-layout did not write compiled plan'
+  );
+  assert(layout.errorCount === 0, `analyze-layout reported errors: ${JSON.stringify(layout)}`);
+  assert(layout.warningCount > 0, 'analyze-layout did not warn about clamped layout counts');
+  assert(layout.placementCount > 0, 'analyze-layout selected no placements');
+  assert(layout.rules[0]?.id === 'too-many-trees', 'analyze-layout returned the wrong rule id');
+  assert(
+    layout.rules[0].selectedCount <= layout.rules[0].candidateCount,
+    'analyze-layout selected more than the available sites'
+  );
+
+  const scenarioPlanPath = join(tempRoot, 'simple-rpg-scenario.plan.json');
+  const scenarioOutput = runCli([
+    'validate-scenario',
+    '--scenario',
+    scenarioPath,
+    '--manifest',
+    freeManifestPath,
+    '--outPlan',
+    scenarioPlanPath,
+  ]);
+  assert(
+    scenarioOutput.includes('scenario: docs-simple-rpg-scenario'),
+    'validate-scenario did not inspect the packaged SimpleRPG scenario'
+  );
+  assert(
+    scenarioOutput.includes('validation: 0 error(s), 0 warning(s)'),
+    'SimpleRPG scenario did not validate cleanly'
+  );
+
+  const patrolRoutesPath = join(tempRoot, 'simple-rpg-patrol-routes.json');
+  const patrolRoutesOutput = runCli([
+    'patrol-routes',
+    '--scenario',
+    scenarioPath,
+    '--out',
+    patrolRoutesPath,
+  ]);
+  const patrolRoutes = readJson<PatrolRouteSetSmoke>(patrolRoutesPath);
+  assert(
+    patrolRoutesOutput.includes(`Wrote patrol route plan to ${patrolRoutesPath}`),
+    'patrol-routes did not write a route plan'
+  );
+  assert(
+    patrolRoutes.errors.length === 0,
+    `patrol-routes failed: ${patrolRoutes.errors.join('; ')}`
+  );
+  assert(
+    patrolRoutes.routeCount === 1,
+    `expected one SimpleRPG patrol route, got ${patrolRoutes.routeCount}`
+  );
+  const banditRoute = patrolRoutes.routes[0];
+  assert(banditRoute?.id === 'bandit-watch', 'patrol-routes omitted bandit-watch');
+  assert(banditRoute.found, 'bandit-watch route was not passable');
+
+  const patrolScriptPath = join(tempRoot, 'simple-rpg-patrol.script.json');
+  const patrolScriptOutput = runCli([
+    'patrol-script',
+    '--routes',
+    patrolRoutesPath,
+    '--routeId',
+    'bandit-watch',
+    '--actorId',
+    'bandit',
+    '--out',
+    patrolScriptPath,
+  ]);
+  const patrolScript = readJson<PatrolScriptSmoke>(patrolScriptPath);
+  assert(
+    patrolScriptOutput.includes(`Wrote patrol simulation script to ${patrolScriptPath}`),
+    'patrol-script did not write a simulation script'
+  );
+  assert(patrolScript.schemaVersion === '1.0.0', 'patrol-script wrote the wrong schema version');
+  assert(
+    patrolScript.steps.length === banditRoute.segments.length,
+    `patrol-script wrote ${patrolScript.steps.length} steps for ${banditRoute.segments.length} segments`
+  );
+  assert(
+    patrolScript.steps.every((step) => step.action === 'command' && step.sourceActor === 'bandit'),
+    'patrol-script emitted non-command or wrong-actor steps'
+  );
+
+  const simulationValidationOutput = runCli([
+    'validate-simulation',
+    '--scenario',
+    scenarioPath,
+    '--script',
+    simulationScriptPath,
+    '--manifest',
+    freeManifestPath,
+  ]);
+  assert(
+    simulationValidationOutput.includes('steps: 9'),
+    'validate-simulation did not inspect all packaged SimpleRPG steps'
+  );
+  assert(
+    simulationValidationOutput.includes('validation: 0 error(s), 0 warning(s)'),
+    'SimpleRPG simulation script did not validate cleanly'
+  );
+
+  const snapshotPath = join(tempRoot, 'simple-rpg-snapshot.json');
+  runCli([
+    'snapshot',
+    '--scenario',
+    scenarioPath,
+    '--manifest',
+    freeManifestPath,
+    '--spawnCount',
+    '2',
+    '--spawnSeed',
+    'built-cli',
+    '--out',
+    snapshotPath,
+  ]);
+  const snapshot = readJson<InteropSnapshotSmoke>(snapshotPath);
+  assert(
+    snapshot.scenario?.id === 'docs-simple-rpg-scenario',
+    'snapshot omitted scenario metadata'
+  );
+  assert(
+    ['spawn:0', 'spawn:1', 'spawn:player-start:0', 'spawn:elder:0', 'spawn:enemy:0'].every((id) =>
+      snapshot.spawnLocations.some((spawn) => spawn.id === id)
+    ),
+    `snapshot had unexpected spawn locations: ${snapshot.spawnLocations.map((spawn) => spawn.id).join(', ')}`
+  );
+  assert(
+    snapshot.entities.some((entity) => entity.kind === 'spawn-group'),
+    'snapshot omitted spawn group entities'
+  );
+  assert(
+    snapshot.entities.some((entity) => entity.kind === 'actor'),
+    'snapshot omitted actor entities'
+  );
+  assert(
+    snapshot.relations.some((relation) => relation.name === 'SpawnGroupRouteCheck'),
+    'snapshot omitted spawn group route relations'
+  );
+  assert(
+    snapshot.relations.some((relation) => relation.name === 'QuestReferencesActor'),
+    'snapshot omitted quest actor relations'
+  );
+
+  const simulationReportPath = join(tempRoot, 'simple-rpg-simulation.json');
+  const finalPlanPath = join(tempRoot, 'simple-rpg-final.plan.json');
+  const simulationInteropPath = join(tempRoot, 'simple-rpg-simulation-interop.json');
+  runCli([
+    'simulate-scenario',
+    '--scenario',
+    scenarioPath,
+    '--script',
+    simulationScriptPath,
+    '--manifest',
+    freeManifestPath,
+    '--out',
+    simulationReportPath,
+    '--outPlan',
+    finalPlanPath,
+    '--outInterop',
+    simulationInteropPath,
+  ]);
+  const simulation = readJson<SimulationReportSmoke>(simulationReportPath);
+  assert(
+    simulation.scenarioId === 'docs-simple-rpg-scenario',
+    'simulate-scenario ran the wrong scenario'
+  );
+  assert(
+    simulation.success,
+    `simulate-scenario failed: ${JSON.stringify(simulation.expectationFailures)}`
+  );
+  assert(simulation.expectationFailures.length === 0, 'simulate-scenario had expectation failures');
+  assert(
+    simulation.eventRecords.some((event) => event.type === 'quest-completed'),
+    'simulate-scenario never completed a quest'
+  );
+  assert(
+    simulation.commands?.some(
+      (event) =>
+        event.eventType === 'command-handled' &&
+        event.command.kind === 'attack-actor' &&
+        event.command.status === 'handled' &&
+        event.command.handlerId === 'simple-rpg:defeat-target' &&
+        event.command.effectTypes?.includes('actor-removed')
+    ),
+    'simulate-scenario did not report the packaged handled attack command'
+  );
+  assert(
+    simulation.commands?.some(
+      (event) =>
+        event.eventType === 'command-handled' &&
+        event.command.kind === 'interact-actor' &&
+        event.command.status === 'handled' &&
+        event.command.handlerId === 'simple-rpg:greet-actor' &&
+        event.command.effectTypes?.includes('actor-updated')
+    ),
+    'simulate-scenario did not report the packaged handled interaction command'
+  );
+  assert(
+    simulation.patrols?.some(
+      (event) =>
+        event.eventType === 'patrol-move-requested' &&
+        event.patrol.actorId === 'bandit' &&
+        event.patrol.routeId === 'bandit-watch'
+    ),
+    'simulate-scenario did not report the packaged bandit patrol'
+  );
+  assert(existsSync(finalPlanPath), 'simulate-scenario did not write the final plan');
+  assert(existsSync(simulationInteropPath), 'simulate-scenario did not write the interop snapshot');
+  const simulationInterop = readJson<InteropSnapshotSmoke>(simulationInteropPath);
+  assert(
+    simulationInterop.relations.some(
+      (relation) =>
+        relation.name === 'CommandEffectActor' &&
+        relation.toId === 'actor:bandit' &&
+        relation.data?.effectType === 'actor-removed' &&
+        relation.data.effectTypes?.includes('actor-removed') &&
+        relation.data.commandKind === 'attack-actor' &&
+        relation.data.commandStatus === 'handled' &&
+        relation.data.handlerId === 'simple-rpg:defeat-target' &&
+        relation.data.handlerStatus === 'handled'
+    ),
+    'simulate-scenario interop omitted the handled attack actor-effect metadata'
+  );
+  assert(
+    simulationInterop.relations.some(
+      (relation) =>
+        relation.name === 'CommandEffectPlacement' &&
+        relation.toId?.startsWith('placement:') &&
+        relation.data?.effectType === 'actor-removed' &&
+        relation.data.effectTypes?.includes('actor-removed') &&
+        relation.data.commandKind === 'attack-actor' &&
+        relation.data.commandStatus === 'handled' &&
+        relation.data.handlerId === 'simple-rpg:defeat-target' &&
+        relation.data.handlerStatus === 'handled'
+    ),
+    'simulate-scenario interop omitted the handled attack placement-effect metadata'
+  );
+  assert(
+    simulationInterop.relations.some(
+      (relation) =>
+        relation.name === 'CommandEffectActor' &&
+        relation.toId === 'actor:elder' &&
+        relation.data?.effectType === 'actor-updated' &&
+        relation.data.effectTypes?.includes('actor-updated') &&
+        relation.data.commandKind === 'interact-actor' &&
+        relation.data.commandStatus === 'handled' &&
+        relation.data.handlerId === 'simple-rpg:greet-actor' &&
+        relation.data.handlerStatus === 'handled'
+    ),
+    'simulate-scenario interop omitted the handled interaction actor-effect metadata'
+  );
+  assert(
+    simulationInterop.relations.some(
+      (relation) =>
+        relation.name === 'SimulationStepCommand' &&
+        relation.data?.commandKind === 'interact-actor' &&
+        relation.data.commandStatus === 'handled' &&
+        relation.data.handlerId === 'simple-rpg:greet-actor' &&
+        relation.data.handlerStatus === 'handled' &&
+        relation.data.effectTypes?.includes('actor-updated')
+    ),
+    'simulate-scenario interop omitted handled interaction command metadata'
+  );
+
+  const fixtureAssetRoot = join(tempRoot, 'fixture-assets');
+  const towerPath = join(fixtureAssetRoot, 'tower-hexagon-base.gltf');
+  const adventurerPath = join(fixtureAssetRoot, 'adventurer-knight.gltf');
+  writeGltfFixture(towerPath, [-0.45, 0, -0.39], [0.45, 1.25, 0.39]);
+  writeGltfFixture(adventurerPath, [-0.2, 0, -0.2], [0.2, 1.8, 0.2], {
+    animations: ['Idle', 'Walk'],
+    rigged: true,
+  });
+
+  const compatibility = JSON.parse(
+    runCli([
+      'compatibility',
+      '--asset',
+      towerPath,
+      '--intendedRole',
+      'tile',
+      '--sourcePack',
+      'Fixture Castle Kit',
+      '--modelForward',
+      '+z',
+      '--boardForwardEdge',
+      '1',
+      '--json',
+    ])
+  ) as CompatibilitySmoke;
+  assert(
+    !compatibility.compatibleAsTile,
+    'non-hex tower fixture was incorrectly accepted as a KayKit tile'
+  );
+  assert(
+    compatibility.suggestedRole === 'prop',
+    `expected prop suggestion, got ${compatibility.suggestedRole}`
+  );
+  assert(
+    compatibility.placement.rotationSteps === 1,
+    `expected rotation step 1, got ${compatibility.placement.rotationSteps}`
+  );
+  assert(
+    compatibility.warnings.some((warning) =>
+      warning.includes('does not match the KayKit hex footprint')
+    ),
+    'compatibility command did not warn about non-KayKit tile footprint'
+  );
+
+  const piecePath = join(tempRoot, 'tower-piece.json');
+  runCli([
+    'piece',
+    '--asset',
+    towerPath,
+    '--id',
+    'fixture:tower',
+    '--pieceId',
+    'fixture-piece:tower',
+    '--intendedRole',
+    'tile',
+    '--sourcePack',
+    'Fixture Castle Kit',
+    '--tags',
+    'castle,landmark',
+    '--includeReport',
+    '--out',
+    piecePath,
+  ]);
+  const piece = readJson<PieceDeclarationSmoke>(piecePath).declaration;
+  assert(piece?.id === 'fixture-piece:tower', 'piece command wrote the wrong declaration id');
+  assert(piece.assetId === 'fixture:tower', 'piece command wrote the wrong asset id');
+  assert(piece.role === 'landmark', `expected tower fixture role landmark, got ${piece.role}`);
+  assert(piece.requiresExtra, 'external piece declaration must stay local-only/requiresExtra');
+  assert(piece.metadata.externalAsset === true, 'piece command omitted external asset metadata');
+
+  const piecesPath = join(tempRoot, 'pieces-from-assets.json');
+  runCli([
+    'pieces-from-assets',
+    '--assets',
+    fixtureAssetRoot,
+    '--sourcePack',
+    'Fixture Castle Kit',
+    '--intendedRole',
+    'tile',
+    '--assetIdPrefix',
+    'fixture',
+    '--pieceIdPrefix',
+    'fixture-piece',
+    '--tags',
+    'fixture,test',
+    '--includeReports',
+    '--out',
+    piecesPath,
+  ]);
+  const pieces = readJson<PieceRegistrySmoke>(piecesPath);
+  assert(
+    pieces.summary.assetCount === 2,
+    `pieces-from-assets scanned ${pieces.summary.assetCount} assets`
+  );
+  assert(
+    pieces.summary.pieceRoles.landmark === 1,
+    'pieces-from-assets did not classify the tower as a landmark'
+  );
+  assert(
+    pieces.summary.pieceRoles.unit === 1,
+    'pieces-from-assets did not classify the rigged adventurer as a unit'
+  );
+  assert(
+    pieces.reports?.some((report) => report.suggestedRole === 'prop'),
+    'pieces-from-assets omitted compatibility reports'
+  );
+
+  const rules = JSON.parse(
+    runCli([
+      'pieces',
+      '--pieces',
+      piecesPath,
+      '--role',
+      'landmark',
+      '--emitRules',
+      '--count',
+      '1',
+      '--json',
+    ])
+  ) as PieceRulesSmoke;
+  assert(
+    rules.analysis.pieceCount === 2,
+    `pieces command analyzed ${rules.analysis.pieceCount} pieces`
+  );
+  assert(
+    rules.analysis.checks[0]?.selectedCount === 1,
+    'pieces command did not select exactly one landmark'
+  );
+  assert(rules.rules.length === 1, `pieces command emitted ${rules.rules.length} fill rules`);
+
+  console.log(keepTemp ? `built CLI smoke passed in ${tempRoot}` : 'built CLI smoke passed');
+} finally {
+  if (!keepTemp) {
+    rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function runCli(args: readonly string[]): string {
+  return execFileSync(process.execPath, [cliPath, ...args], {
+    cwd: workspaceRoot,
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      FORCE_COLOR: '0',
+      NO_COLOR: '1',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+}
+
+function readJson<T>(path: string): T {
+  return JSON.parse(readFileSync(path, 'utf8')) as T;
+}
+
+function writeGltfFixture(
+  path: string,
+  min: [number, number, number],
+  max: [number, number, number],
+  options: { animations?: readonly string[]; rigged?: boolean } = {}
+): void {
+  mkdirSync(dirname(path), { recursive: true });
+  const id = basename(path, '.gltf');
+  writeFileSync(
+    path,
+    `${JSON.stringify(
+      {
+        asset: { version: '2.0' },
+        accessors: [{ min, max }],
+        ...(options.rigged ? { skins: [{}], nodes: [{ skin: 0 }] } : {}),
+        ...(options.animations ? { animations: options.animations.map((name) => ({ name })) } : {}),
+        buffers: [{ uri: `${id}.bin`, byteLength: 0 }],
+        materials: [{ name: `${id}_material` }],
+        meshes: [{ primitives: [{ attributes: { POSITION: 0 }, material: 0 }] }],
+      },
+      null,
+      2
+    )}\n`,
+    'utf8'
+  );
+}
+
+function assert(condition: unknown, message: string): asserts condition {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
