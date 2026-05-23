@@ -21,153 +21,302 @@ import {
 } from './layout';
 import type { GameboardPlacementOccupancyGuard, SpawnGameboardPlacementOptions } from './koota';
 
+/**
+ * Role used to map registered pieces onto layout archetypes.
+ */
 export type GameboardPieceRole = BuiltInGameboardLayoutArchetypeId | 'custom';
 
+/**
+ * Input for declaring a reusable gameboard piece from any asset pack.
+ */
 export interface GameboardPieceDeclarationInput {
+  /** Stable piece id. */
   id: string;
+  /** Render asset id. Defaults to `id`. */
   assetId?: string;
+  /** Human-readable label. Defaults from `id`. */
   label?: string;
+  /** Source pack or registry name. */
   source?: string;
+  /** Placement role. Defaults from id heuristics. */
   role?: GameboardPieceRole;
+  /** Layout archetype id or inline archetype. */
   archetype?: GameboardLayoutArchetypeInput;
+  /** Placement kind override. */
   kind?: GameboardPlacementKind;
+  /** Placement layer override. */
   layer?: GameboardPlacementLayer;
+  /** Placement footprint. */
   footprint?: GameboardLayoutFootprintInput;
+  /** Layout criteria for selecting valid sites. */
   criteria?: GameboardLayoutCriteria;
+  /** Uniform render scale. */
   scale?: number;
+  /** Clockwise 60-degree rotation steps or random rotation. */
   rotationSteps?: number | 'random';
+  /** Vertical offset above the tile elevation. */
   elevationOffset?: number;
+  /** Whether the asset is local-only or EXTRA. */
   requiresExtra?: boolean;
+  /** Piece tags used by registry selection. */
   tags?: readonly string[];
+  /** Serializable metadata merged into generated placements. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/**
+ * Overrides applied while declaring one piece from compatibility analysis.
+ */
 export interface GameboardPieceCompatibilityDeclarationOptions extends Omit<GameboardPieceDeclarationInput, 'id'> {
+  /** Override piece id. Defaults to the compatibility report id. */
   id?: string;
 }
 
+/**
+ * Batch options for declaring pieces from compatibility reports.
+ */
 export interface GameboardPieceCompatibilityBatchOptions
   extends Omit<GameboardPieceCompatibilityDeclarationOptions, 'id' | 'assetId'> {
+  /** Prefix added to generated piece ids. */
   pieceIdPrefix?: string;
+  /** Prefix added to generated asset ids. */
   assetIdPrefix?: string;
+  /** Per-report declaration overrides keyed by report id. */
   overrides?: Readonly<Record<string, GameboardPieceCompatibilityDeclarationOptions>>;
 }
 
+/**
+ * Normalized reusable gameboard piece declaration.
+ */
 export interface GameboardPieceDeclaration {
+  /** Stable piece id. */
   id: string;
+  /** Render asset id. */
   assetId: string;
+  /** Human-readable label. */
   label: string;
+  /** Source pack or registry name. */
   source: string;
+  /** Placement role. */
   role: GameboardPieceRole;
+  /** Layout archetype id or inline archetype. */
   archetype: GameboardLayoutArchetypeInput;
+  /** Placement kind override. */
   kind?: GameboardPlacementKind;
+  /** Placement layer override. */
   layer?: GameboardPlacementLayer;
+  /** Placement footprint. */
   footprint?: GameboardLayoutFootprintInput;
+  /** Layout criteria for selecting valid sites. */
   criteria: GameboardLayoutCriteria;
+  /** Uniform render scale. */
   scale?: number;
+  /** Clockwise 60-degree rotation steps or random rotation. */
   rotationSteps?: number | 'random';
+  /** Vertical offset above the tile elevation. */
   elevationOffset?: number;
+  /** Whether the asset is local-only or EXTRA. */
   requiresExtra: boolean;
+  /** Piece tags used by registry selection. */
   tags: readonly string[];
+  /** Serializable metadata merged into generated placements. */
   metadata: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/**
+ * Piece registry with lookup indexes and declaration warnings.
+ */
 export interface GameboardPieceRegistry {
+  /** Normalized piece declarations. */
   pieces: readonly GameboardPieceDeclaration[];
+  /** Pieces keyed by piece id. */
   byId: Readonly<Record<string, GameboardPieceDeclaration>>;
+  /** Pieces keyed by asset id. */
   byAssetId: Readonly<Record<string, GameboardPieceDeclaration>>;
+  /** Non-fatal registry construction warnings. */
   warnings: readonly string[];
 }
 
+/**
+ * Registry analysis mode for selection checks.
+ */
 export type GameboardPieceRegistryAnalysisCheckMode = 'per-piece' | 'pool';
 
+/**
+ * Piece selection filter used by registry helpers.
+ */
 export interface GameboardPieceRegistrySelection {
+  /** Piece ids to include. */
   ids?: readonly string[];
+  /** Asset ids to include. */
   assetIds?: readonly string[];
+  /** Piece roles to include. */
   roles?: readonly GameboardPieceRole[];
+  /** Source names to include. */
   sources?: readonly string[];
+  /** Tags that must all be present. */
   tags?: readonly string[];
+  /** Tags that must all be absent. */
   excludeTags?: readonly string[];
+  /** Filter by local-only or EXTRA requirement. */
   requiresExtra?: boolean;
 }
 
+/**
+ * Input for one registry analysis check.
+ */
 export interface GameboardPieceRegistryAnalysisCheckInput {
+  /** Check id used in diagnostics. */
   id?: string;
+  /** Check mode. */
   mode?: GameboardPieceRegistryAnalysisCheckMode;
+  /** Piece selection to analyze. */
   selection?: GameboardPieceRegistrySelection;
 }
 
+/**
+ * Result for one registry analysis check.
+ */
 export interface GameboardPieceRegistryAnalysisCheck {
+  /** Check id. */
   id: string;
+  /** Check mode. */
   mode: GameboardPieceRegistryAnalysisCheckMode;
+  /** Selection used by the check. */
   selection: GameboardPieceRegistrySelection;
+  /** Number of selected pieces. */
   selectedCount: number;
+  /** Selected piece ids. */
   selectedIds: readonly string[];
+  /** Non-fatal check diagnostics. */
   warnings: readonly string[];
+  /** Fatal check diagnostics. */
   errors: readonly string[];
 }
 
+/**
+ * Options for analyzing a piece registry.
+ */
 export interface AnalyzeGameboardPieceRegistryOptions {
+  /** Optional checks to run against the registry. */
   checks?: readonly GameboardPieceRegistryAnalysisCheckInput[];
 }
 
+/**
+ * Summary and diagnostics for a piece registry.
+ */
 export interface GameboardPieceRegistryAnalysis {
+  /** Number of pieces in the registry. */
   pieceCount: number;
+  /** Number of pieces that require local-only assets. */
   localOnlyCount: number;
+  /** Piece counts by role. */
   roleCounts: Readonly<Record<string, number>>;
+  /** Piece counts by source. */
   sourceCounts: Readonly<Record<string, number>>;
+  /** Piece counts by tag. */
   tagCounts: Readonly<Record<string, number>>;
+  /** Non-fatal analysis diagnostics. */
   warnings: readonly string[];
+  /** Fatal analysis diagnostics. */
   errors: readonly string[];
+  /** Per-check analysis results. */
   checks: readonly GameboardPieceRegistryAnalysisCheck[];
 }
 
+/**
+ * Overrides used when turning a piece into a layout fill rule.
+ */
 export interface GameboardPieceLayoutRuleOptions {
+  /** Fill rule id. */
   id?: string;
+  /** Asset id override. */
   assetId?: string;
+  /** Explicit placement count. */
   count?: number;
+  /** Fraction of candidate sites to fill. */
   fill?: number;
+  /** Minimum placement count. */
   minCount?: number;
+  /** Maximum placement count. */
   maxCount?: number;
+  /** Prefix used for generated placement ids. */
   idPrefix?: string;
+  /** Criteria merged over piece defaults. */
   criteria?: GameboardLayoutCriteria;
+  /** Uniform render scale override. */
   scale?: number;
+  /** Rotation override. */
   rotationSteps?: number | 'random';
+  /** Vertical offset override. */
   elevationOffset?: number;
+  /** Archetype registry used by layout. */
   archetypes?: GameboardLayoutArchetypeRegistry;
+  /** Local-only asset override. */
   requiresExtra?: boolean;
+  /** Optional occupancy guard for spawned placements. */
   occupancyGuard?: GameboardPlacementOccupancyGuard;
+  /** Metadata merged over piece metadata. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/**
+ * Overrides used when turning a compatible piece collection into one fill rule.
+ */
 export interface GameboardPieceCollectionLayoutRuleOptions
   extends Omit<GameboardPieceLayoutRuleOptions, 'assetId'> {}
 
+/**
+ * Options for creating fill rules from all pieces selected from a registry.
+ */
 export interface GameboardPieceRegistryFillRulesOptions
   extends Omit<GameboardPieceLayoutRuleOptions, 'id' | 'assetId'> {
+  /** Selection used to choose registry pieces. */
   selection?: GameboardPieceRegistrySelection;
+  /** Prefix applied to generated rule ids. */
   ruleIdPrefix?: string;
 }
 
+/**
+ * Options for creating direct placement options from a piece.
+ */
 export interface GameboardPiecePlacementOptions
   extends Omit<GameboardPieceLayoutRuleOptions, 'fill' | 'minCount' | 'maxCount'> {
+  /** Seed used for site selection. */
   seed?: string | number;
+  /** Archetype registry used by layout. */
   archetypes?: GameboardLayoutArchetypeRegistry;
 }
 
+/**
+ * Options for resolving piece source URLs.
+ */
 export interface GameboardPieceSourceUrlOptions {
+  /** Default root URL or path for source-relative assets. */
   sourceRoot?: string;
+  /** Root URL or path by piece source. */
   sourceRoots?: Readonly<Record<string, string>>;
+  /** Encode path components when joining URLs. */
   encode?: boolean;
 }
 
+/**
+ * Placement inspection report for one piece.
+ */
 export interface GameboardPiecePlacementInspection {
+  /** Piece id inspected. */
   pieceId: string;
+  /** Asset id used by generated placements. */
   assetId: string;
+  /** Piece role. */
   role: GameboardPieceRole;
+  /** Piece source. */
   source: string;
+  /** Layout options derived from the piece. */
   layoutOptions: GameboardLayoutPlacementOptions;
+  /** Site inspection used for placement. */
   siteInspection: GameboardLayoutSiteInspection;
+  /** Generated placement options. */
   placements: readonly SpawnGameboardPlacementOptions[];
 }
 
@@ -183,6 +332,9 @@ const ROLE_ARCHETYPES: Record<GameboardPieceRole, BuiltInGameboardLayoutArchetyp
   custom: 'prop',
 };
 
+/**
+ * Normalize a reusable gameboard piece declaration.
+ */
 export function declareGameboardPiece(input: GameboardPieceDeclarationInput): GameboardPieceDeclaration {
   const role = input.role ?? inferPieceRole(input.id);
   const criteria = pieceCriteria(input.criteria, input.footprint);
@@ -206,6 +358,9 @@ export function declareGameboardPiece(input: GameboardPieceDeclarationInput): Ga
   };
 }
 
+/**
+ * Declare one piece from an external asset compatibility report.
+ */
 export function declareGameboardPieceFromCompatibility(
   report: ExternalAssetCompatibilityReport,
   options: GameboardPieceCompatibilityDeclarationOptions = {}
@@ -235,6 +390,9 @@ export function declareGameboardPieceFromCompatibility(
   });
 }
 
+/**
+ * Declare pieces from multiple compatibility reports.
+ */
 export function declareGameboardPiecesFromCompatibilityReports(
   reports: readonly ExternalAssetCompatibilityReport[],
   options: GameboardPieceCompatibilityBatchOptions = {}
@@ -249,6 +407,9 @@ export function declareGameboardPiecesFromCompatibilityReports(
   );
 }
 
+/**
+ * Create a piece registry from compatibility reports.
+ */
 export function createGameboardPieceRegistryFromCompatibilityReports(
   reports: readonly ExternalAssetCompatibilityReport[],
   options: GameboardPieceCompatibilityBatchOptions = {}
@@ -256,6 +417,9 @@ export function createGameboardPieceRegistryFromCompatibilityReports(
   return createGameboardPieceRegistry(declareGameboardPiecesFromCompatibilityReports(reports, options));
 }
 
+/**
+ * Create a normalized piece registry and lookup indexes.
+ */
 export function createGameboardPieceRegistry(
   declarations: readonly GameboardPieceDeclarationInput[]
 ): GameboardPieceRegistry {
@@ -283,6 +447,10 @@ export function createGameboardPieceRegistry(
   };
 }
 
+/**
+ * Analyze piece counts, tags, local-only assets, and optional compatibility
+ * checks for a registry.
+ */
 export function analyzeGameboardPieceRegistry(
   registry: GameboardPieceRegistry,
   options: AnalyzeGameboardPieceRegistryOptions = {}
@@ -349,6 +517,9 @@ export function analyzeGameboardPieceRegistry(
   };
 }
 
+/**
+ * Select pieces from a registry using id, role, source, tag, and EXTRA filters.
+ */
 export function selectGameboardPieces(
   registry: GameboardPieceRegistry,
   selection: GameboardPieceRegistrySelection = {}
@@ -369,6 +540,9 @@ export function selectGameboardPieces(
   );
 }
 
+/**
+ * Convert one piece declaration into a layout fill rule.
+ */
 export function createGameboardLayoutFillRuleFromPiece(
   piece: GameboardPieceDeclaration,
   options: GameboardPieceLayoutRuleOptions = {}
@@ -395,6 +569,9 @@ export function createGameboardLayoutFillRuleFromPiece(
   };
 }
 
+/**
+ * Convert a compatible collection of pieces into one pooled layout fill rule.
+ */
 export function createGameboardLayoutFillRuleFromPieces(
   pieces: readonly GameboardPieceDeclaration[],
   options: GameboardPieceCollectionLayoutRuleOptions = {}
@@ -435,6 +612,9 @@ export function createGameboardLayoutFillRuleFromPieces(
   };
 }
 
+/**
+ * Create one fill rule for each selected piece in a registry.
+ */
 export function createGameboardLayoutFillRulesFromRegistry(
   registry: GameboardPieceRegistry,
   options: GameboardPieceRegistryFillRulesOptions = {}
@@ -449,6 +629,9 @@ export function createGameboardLayoutFillRulesFromRegistry(
   );
 }
 
+/**
+ * Convert one piece declaration into direct layout placement options.
+ */
 export function createGameboardLayoutPlacementOptionsFromPiece(
   piece: GameboardPieceDeclaration,
   options: GameboardPiecePlacementOptions = {}
@@ -472,6 +655,9 @@ export function createGameboardLayoutPlacementOptionsFromPiece(
   };
 }
 
+/**
+ * Create placement spawn options for one piece on a plan.
+ */
 export function createGameboardLayoutPlacementsFromPiece(
   plan: GameboardPlan,
   piece: GameboardPieceDeclaration,
@@ -480,6 +666,9 @@ export function createGameboardLayoutPlacementsFromPiece(
   return createGameboardLayoutPlacements(plan, createGameboardLayoutPlacementOptionsFromPiece(piece, options));
 }
 
+/**
+ * Inspect candidate sites and generated placements for one piece.
+ */
 export function inspectGameboardPiecePlacement(
   plan: GameboardPlan,
   piece: GameboardPieceDeclaration,
@@ -502,6 +691,9 @@ export function inspectGameboardPiecePlacement(
   };
 }
 
+/**
+ * Resolve a piece source URL from explicit metadata or source-relative metadata.
+ */
 export function resolveGameboardPieceSourceUrl(
   piece: GameboardPieceDeclaration,
   options: GameboardPieceSourceUrlOptions = {}
@@ -519,6 +711,9 @@ export function resolveGameboardPieceSourceUrl(
   return root ? joinUrl(root, normalizedRelativePath) : normalizedRelativePath;
 }
 
+/**
+ * Create an asset-id-to-source-URL map for every piece with resolvable source metadata.
+ */
 export function createGameboardPieceSourceUrlMap(
   registry: GameboardPieceRegistry,
   options: GameboardPieceSourceUrlOptions = {}

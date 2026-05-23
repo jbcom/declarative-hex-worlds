@@ -42,15 +42,30 @@ import type {
   WorldPosition,
 } from './types';
 
+/**
+ * Schema version written to generated gameboard plans.
+ */
 export const GAMEBOARD_SCHEMA_VERSION = '1.0.0';
 
+/**
+ * Built-in terrain categories understood by the guide-derived helpers.
+ */
 export type BuiltInGameboardTerrain = 'grass' | 'water' | 'coast' | 'road' | 'river' | 'mountain' | 'hill' | 'forest';
+/**
+ * Terrain category for a tile. Custom strings are allowed for external packs.
+ */
 export type GameboardTerrain = BuiltInGameboardTerrain | (string & {});
 
+/** Road slope variant used by elevated road pieces. */
 export type RoadSlope = 'high' | 'low';
+/** River crossing guide variant. */
 export type RiverCrossing = 'A' | 'B';
+/** Clockwise flat-top rotation in 60-degree steps. */
 export type HexRotationSteps = 0 | 1 | 2 | 3 | 4 | 5;
 
+/**
+ * Placement category used by manifests, Koota traits, layout rules, and renderers.
+ */
 export type GameboardPlacementKind =
   | 'terrain'
   | 'road'
@@ -62,186 +77,369 @@ export type GameboardPlacementKind =
   | 'unit'
   | 'prop';
 
+/**
+ * Render and gameplay layer for a placement.
+ */
 export type GameboardPlacementLayer = 'terrain' | 'surface' | 'feature' | 'structure' | 'unit';
 
+/** Mountain stack visual variant. */
 export type MountainVariant = 'A' | 'B' | 'C';
+/** Hill visual variant. */
 export type HillVariant = 'A' | 'B' | 'C';
+/** Harbor structure variant. */
 export type HarborKind = 'docks' | 'shipyard' | 'watermill';
+/** Faction building kind accepted by settlement helpers. */
 export type SettlementBuilding = FactionBuildingKind;
 
+/**
+ * Options for creating a generated gameboard plan.
+ */
 export interface GameboardPlanOptions {
+  /** Deterministic seed for generation. */
   seed?: string | number;
+  /** Board shape to populate. */
   shape: GameboardShape;
+  /** Texture set applied to generated terrain. */
   textureSet?: TextureSet;
+  /** Initial terrain used for every generated tile. */
   defaultTerrain?: Extract<GameboardTerrain, 'grass' | 'water'>;
 }
 
+/**
+ * Serializable tile state in a generated gameboard plan.
+ */
 export interface GameboardTileSpec {
+  /** Stable axial tile key in `q,r` form. */
   key: string;
+  /** Axial tile coordinates. */
   coordinates: HexCoordinates;
+  /** Primary terrain category. */
   terrain: GameboardTerrain;
+  /** KayKit texture set applied to this tile. */
   textureSet: TextureSet;
+  /** Stacked elevation level. */
   elevation: number;
+  /** Asset id for the visible tile top. */
   baseAssetId: string;
+  /** Asset id for the support/bottom under elevated tiles. */
   supportAssetId: string;
+  /** Six-edge bitmask for road connectivity. */
   roadEdges: number;
+  /** Six-edge bitmask for river connectivity. */
   riverEdges: number;
+  /** Six-edge bitmask for coast/water connectivity. */
   coastEdges: number;
+  /** Road slope variant when the tile uses sloped roads. */
   roadSlope?: 'high' | 'low';
+  /** Whether this river tile uses a waterless variant. */
   riverWaterless: boolean;
+  /** Whether this river tile uses a curvy variant. */
   riverCurvy: boolean;
+  /** River crossing variant, when any. */
   riverCrossing?: 'A' | 'B';
+  /** Whether this coast tile uses a waterless variant. */
   coastWaterless: boolean;
+  /** Generated taxonomy tags. */
   tags: readonly string[];
 }
 
+/**
+ * Serializable placement state in a generated gameboard plan.
+ */
 export interface GameboardPlacementSpec {
+  /** Stable placement id. */
   id: string;
+  /** Origin tile key in `q,r` form. */
   tileKey: string;
+  /** Origin tile coordinates. */
   coordinates: HexCoordinates;
+  /** World position after tile elevation and placement offset. */
   position: WorldPosition;
+  /** Manifest or external registry asset id. */
   assetId: string;
+  /** Placement category. */
   kind: GameboardPlacementKind;
+  /** Render and gameplay layer. */
   layer: GameboardPlacementLayer;
+  /** KayKit texture set applied to this placement. */
   textureSet: TextureSet;
+  /** Origin tile elevation. */
   elevation: number;
+  /** Vertical offset above the origin tile. */
   elevationOffset: number;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps: number;
+  /** Rotation in radians derived from `rotationSteps`. */
   rotationRadians: number;
+  /** Uniform render scale. */
   scale: number;
+  /** Stable render and snapshot sort order. */
   order: number;
+  /** Optional stack index for vertical or layered pieces. */
   stackIndex?: number;
+  /** Whether this placement requires local-only EXTRA assets. */
   requiresExtra: boolean;
+  /** Serializable metadata for gameplay, layout, and renderer hints. */
   metadata: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/**
+ * Complete serializable gameboard plan.
+ */
 export interface GameboardPlan {
+  /** Schema version used to interpret this plan. */
   schemaVersion: typeof GAMEBOARD_SCHEMA_VERSION;
+  /** Seed used to create this plan. */
   seed: string;
+  /** Board shape. */
   shape: GameboardShape;
+  /** Active texture set. */
   textureSet: TextureSet;
+  /** Tile specs in the board. */
   tiles: readonly GameboardTileSpec[];
+  /** Generated and custom placement specs. */
   placements: readonly GameboardPlacementSpec[];
+  /** Non-fatal generation warnings. */
   warnings: readonly string[];
 }
 
+/**
+ * Options for creating a plan from already assembled tile and placement specs.
+ */
 export interface GameboardPlanFromTilesOptions {
+  /** Seed to write into the plan. */
   seed: string;
+  /** Shape to write into the plan. */
   shape: GameboardShape;
+  /** Texture set to write into the plan. */
   textureSet?: TextureSet;
+  /** Tile specs used by the plan. */
   tiles: readonly GameboardTileSpec[];
+  /** Optional custom placements appended after derived terrain/connectivity placements. */
   placements?: readonly GameboardPlacementSpec[];
+  /** Optional non-fatal warnings. */
   warnings?: readonly string[];
 }
 
+/**
+ * Options for adding a stacked mountain feature.
+ */
 export interface MountainStackOptions {
+  /** Tile where the mountain stack is anchored. */
   at: HexCoordinates;
+  /** Elevation height for the stack. */
   height: number;
+  /** Mountain visual variant. */
   variant?: MountainVariant;
+  /** Include grass on the mountain asset. */
   withGrass?: boolean;
+  /** Include trees on the mountain asset. */
   withTrees?: boolean;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
+  /** Uniform render scale. */
   scale?: number;
 }
 
+/**
+ * Options for adding a harbor structure and optional water props.
+ */
 export interface HarborOptions {
+  /** Coast tile where the harbor is anchored. */
   at: HexCoordinates;
+  /** Edge facing adjacent water. */
   facing: HexEdgeIndex;
+  /** Faction color for the harbor. */
   faction: Faction;
+  /** Harbor structure variant. */
   kind?: HarborKind;
+  /** Whether to add adjacent boat/anchor props. */
   includeProps?: boolean;
+  /** Clockwise 60-degree rotation steps. Defaults to `facing`. */
   rotationSteps?: number;
 }
 
+/**
+ * Options for adding a faction settlement building.
+ */
 export interface SettlementOptions {
+  /** Tile where the settlement is anchored. */
   at: HexCoordinates;
+  /** Faction color for the building. */
   faction: Faction;
+  /** Settlement building kind. */
   building: SettlementBuilding;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
+  /** Uniform render scale. */
   scale?: number;
 }
 
+/**
+ * Options for adding a faction building.
+ */
 export interface FactionBuildingOptions {
+  /** Tile where the building is anchored. */
   at: HexCoordinates;
+  /** Faction color for the building. */
   faction: Faction;
+  /** Faction building kind. */
   building: FactionBuildingKind;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
+  /** Uniform render scale. */
   scale?: number;
 }
 
+/**
+ * Options for adding a neutral structure.
+ */
 export interface NeutralStructureOptions {
+  /** Tile where the structure is anchored. */
   at: HexCoordinates;
+  /** Neutral structure asset id. */
   structure: NeutralStructureKind;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
+  /** Uniform render scale. */
   scale?: number;
 }
 
+/**
+ * Options for adding a nature decoration.
+ */
 export interface NaturePlacementOptions {
+  /** Tile where the nature asset is anchored. */
   at: HexCoordinates;
+  /** Nature asset id. */
   assetId: NatureAssetId;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
+  /** Uniform render scale. */
   scale?: number;
 }
 
+/**
+ * Options for adding a prop placement.
+ */
 export interface PropPlacementOptions {
+  /** Tile where the prop is anchored. */
   at: HexCoordinates;
+  /** Prop asset id. */
   assetId: PropAssetId;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
+  /** Uniform render scale. */
   scale?: number;
 }
 
+/**
+ * Options for adding an EXTRA texture transition placement.
+ */
 export interface TransitionPlacementOptions {
+  /** Tile where the transition is anchored. */
   at: HexCoordinates;
+  /** Source texture set. */
   from: TextureSet;
+  /** Destination texture set. */
   to: TextureSet;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
 }
 
+/**
+ * Options for adding one EXTRA unit part.
+ */
 export interface UnitPlacementOptions {
+  /** Tile where the unit part is anchored. */
   at: HexCoordinates;
+  /** Unit part asset id. */
   part: ColoredUnitPart | NeutralUnitPart;
+  /** Faction used by colored unit parts. */
   faction?: Faction;
+  /** Colored unit style. */
   style?: ColoredUnitStyle;
+  /** Force neutral unit asset selection. */
   neutral?: boolean;
+  /** Shared composite id for multi-part units. */
   compositeId?: string;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
+  /** Uniform render scale. */
   scale?: number;
 }
 
+/**
+ * Options for adding a predefined multi-part unit composition.
+ */
 export interface UnitPresetOptions {
+  /** Tile where the unit preset is anchored. */
   at: HexCoordinates;
+  /** Faction used by colored unit parts. */
   faction: Faction;
+  /** Colored unit style. */
   style?: ColoredUnitStyle;
+  /** Unit role composition to create. */
   role: 'worker' | 'soldier' | 'archer' | 'cavalry' | 'merchant' | 'siege' | 'ship';
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
 }
 
+/**
+ * Options for overriding the base tile asset and guide connectivity state.
+ */
 export interface TileAssetOptions {
+  /** Tile whose asset state should be replaced. */
   at: HexCoordinates;
+  /** Base tile asset id. */
   assetId: string;
+  /** Replacement terrain category. */
   terrain?: GameboardTerrain;
+  /** Replacement support/bottom asset id. */
   supportAssetId?: string;
+  /** Replacement elevation. */
   elevation?: number;
+  /** Replacement road edge input. */
   roadEdges?: HexEdgeInput;
+  /** Replacement river edge input. */
   riverEdges?: HexEdgeInput;
+  /** Replacement coast edge input. */
   coastEdges?: HexEdgeInput;
+  /** Road slope variant. */
   roadSlope?: RoadSlope;
+  /** Whether the river uses a waterless variant. */
   riverWaterless?: boolean;
+  /** Whether the river uses a curvy variant. */
   riverCurvy?: boolean;
+  /** River crossing variant. */
   riverCrossing?: RiverCrossing;
+  /** Whether the coast uses a waterless variant. */
   coastWaterless?: boolean;
+  /** Additional tile tags. */
   tags?: readonly string[];
 }
 
+/**
+ * Options for seeded random decoration scatter.
+ */
 export interface ScatterDecorationOptions {
+  /** Number of decorations to place. */
   count: number;
+  /** Candidate asset ids for each decoration. */
   assets: readonly string[];
+  /** Allowed terrain for decoration sites. */
   terrain?: GameboardTerrain | readonly GameboardTerrain[];
+  /** Avoid tiles with existing custom placements. */
   avoidOccupied?: boolean;
+  /** Uniform render scale. */
   scale?: number;
 }
 
+/**
+ * Options for the built-in medieval harbor demo board.
+ */
 export interface MedievalHarborBoardOptions extends Partial<GameboardPlanOptions> {
+  /** Faction color used by settlement and harbor pieces. */
   faction?: Faction;
 }
 
@@ -256,9 +454,16 @@ const EXTRA_HARBOR_ASSETS: Record<Exclude<HarborKind, 'watermill'>, string> = {
   shipyard: 'building_shipyard',
 };
 
+/**
+ * Fluent builder for deterministic gameboard plans using KayKit guide variants,
+ * stacked terrain, roads, rivers, harbors, settlements, props, and EXTRA units.
+ */
 export class GameboardBuilder {
+  /** Seed used by deterministic builder helpers. */
   readonly seed: string;
+  /** Shape populated by this builder. */
   readonly shape: GameboardShape;
+  /** Texture set applied to generated terrain. */
   readonly textureSet: TextureSet;
   private readonly rng: seedrandom.PRNG;
   private readonly tiles = new Map<string, MutableGameboardTileSpec>();
@@ -266,6 +471,9 @@ export class GameboardBuilder {
   private readonly warnings: string[] = [];
   private placementCursor = 0;
 
+  /**
+   * Create a builder and initialize all tiles in the requested shape.
+   */
   constructor(options: GameboardPlanOptions) {
     this.seed = String(options.seed ?? DEFAULT_SEED);
     this.shape = options.shape;
@@ -278,6 +486,9 @@ export class GameboardBuilder {
     }
   }
 
+  /**
+   * Set a base grass or water terrain tile.
+   */
   setTerrain(
     coordinates: HexCoordinates,
     terrain: Extract<GameboardTerrain, 'grass' | 'water'>,
@@ -291,6 +502,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Override a tile's base asset, terrain, elevation, connectivity, and tags.
+   */
   setTileAsset(options: TileAssetOptions): this {
     const tile = this.requireTile(options.at);
     tile.baseAssetId = options.assetId;
@@ -309,6 +523,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Set the elevation for an existing tile.
+   */
   setElevation(coordinates: HexCoordinates, elevation: number): this {
     const tile = this.requireTile(coordinates);
     tile.elevation = normalizeElevation(elevation);
@@ -316,6 +533,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Mark a tile as coast and set the edges that face water.
+   */
   setCoastEdges(
     coordinates: HexCoordinates,
     waterEdges: readonly HexEdgeIndex[] | number,
@@ -329,6 +549,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add road connectivity along a coordinate path.
+   */
   addRoadPath(
     path: readonly HexCoordinates[],
     options: { slope?: 'high' | 'low' } = {}
@@ -344,6 +567,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add river connectivity along a coordinate path.
+   */
   addRiverPath(
     path: readonly HexCoordinates[],
     options: { waterless?: boolean; curvy?: boolean; crossing?: 'A' | 'B' } = {}
@@ -361,6 +587,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add an elevated mountain tile plus a visible mountain-stack placement.
+   */
   addMountainStack(options: MountainStackOptions): this {
     const tile = this.requireTile(options.at);
     const height = normalizeElevation(options.height);
@@ -386,6 +615,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a hill decoration and mark the tile as hill terrain.
+   */
   addHill(
     coordinates: HexCoordinates,
     options: { variant?: HillVariant; withTrees?: boolean; single?: boolean; rotationSteps?: number } = {}
@@ -408,6 +640,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a forest decoration and mark the tile as forest terrain.
+   */
   addForest(
     coordinates: HexCoordinates,
     options: { species?: 'A' | 'B'; size?: 'small' | 'medium' | 'large'; cut?: boolean } = {}
@@ -429,10 +664,16 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a settlement building. Alias for `addFactionBuilding`.
+   */
   addSettlement(options: SettlementOptions): this {
     return this.addFactionBuilding(options);
   }
 
+  /**
+   * Add a faction building structure placement.
+   */
   addFactionBuilding(options: FactionBuildingOptions): this {
     const assetId = factionBuildingAssetId(options.building, options.faction);
     this.addPlacement({
@@ -447,6 +688,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a neutral structure placement.
+   */
   addNeutralStructure(options: NeutralStructureOptions): this {
     this.addPlacement({
       at: options.at,
@@ -460,6 +704,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a nature decoration placement.
+   */
   addNature(options: NaturePlacementOptions): this {
     this.addPlacement({
       at: options.at,
@@ -473,6 +720,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a prop placement.
+   */
   addProp(options: PropPlacementOptions): this {
     this.addPlacement({
       at: options.at,
@@ -486,6 +736,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a faction flag prop placement.
+   */
   addFlag(at: HexCoordinates, faction: Faction, options: { rotationSteps?: number; scale?: number } = {}): this {
     return this.addProp({
       at,
@@ -495,6 +748,9 @@ export class GameboardBuilder {
     });
   }
 
+  /**
+   * Add an EXTRA texture transition placement.
+   */
   addTransition(options: TransitionPlacementOptions): this {
     this.addPlacement({
       at: options.at,
@@ -509,6 +765,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add one unit part placement from the EXTRA unit library.
+   */
   addUnit(options: UnitPlacementOptions): this {
     const assetId =
       options.neutral || !options.faction
@@ -534,6 +793,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a predefined multi-part unit composition.
+   */
   addUnitPreset(options: UnitPresetOptions): this {
     const style = options.style ?? 'full';
     const compositeId = `unit:${hexKey(options.at)}:${options.faction}:${options.role}:${style}:${this.customPlacements.length}`;
@@ -581,6 +843,10 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a harbor structure, mark the coast/water relationship, and optionally
+   * place adjacent water props.
+   */
   addHarbor(options: HarborOptions): this {
     const tile = this.requireTile(options.at);
     const water = neighbor(options.at, options.facing);
@@ -613,6 +879,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Scatter random decoration placements across matching terrain.
+   */
   scatterDecorations(options: ScatterDecorationOptions): this {
     const terrains = new Set(
       Array.isArray(options.terrain)
@@ -648,6 +917,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Add a custom placement to the plan.
+   */
   addPlacement(options: {
     at: HexCoordinates;
     assetId: string;
@@ -686,6 +958,9 @@ export class GameboardBuilder {
     return this;
   }
 
+  /**
+   * Build an immutable gameboard plan from current builder state.
+   */
   build(): GameboardPlan {
     const tiles = [...this.tiles.values()].map(freezeTile);
     return createGameboardPlanFromTiles({
@@ -733,10 +1008,17 @@ type MutableGameboardTileSpec = {
     : GameboardTileSpec[K];
 };
 
+/**
+ * Create a fluent gameboard builder.
+ */
 export function createGameboardBuilder(options: GameboardPlanOptions): GameboardBuilder {
   return new GameboardBuilder(options);
 }
 
+/**
+ * Create a complete gameboard plan, optionally configuring it through a builder
+ * callback before build.
+ */
 export function createGameboardPlan(
   options: GameboardPlanOptions,
   configure?: (builder: GameboardBuilder) => void
@@ -746,6 +1028,10 @@ export function createGameboardPlan(
   return builder.build();
 }
 
+/**
+ * Create a complete plan from explicit tiles and custom placements, adding the
+ * derived terrain and connectivity placements used by renderers.
+ */
 export function createGameboardPlanFromTiles(options: GameboardPlanFromTilesOptions): GameboardPlan {
   const terrainPlacements = options.tiles.flatMap((tile, index) => terrainPlacementsForTile(tile, index));
   const connectivityPlacements = options.tiles.flatMap((tile, index) => connectivityPlacementsForTile(tile, index));
@@ -764,6 +1050,9 @@ export function createGameboardPlanFromTiles(options: GameboardPlanFromTilesOpti
   };
 }
 
+/**
+ * Create the built-in medieval harbor sample board used by examples and tests.
+ */
 export function createMedievalHarborBoard(options: MedievalHarborBoardOptions = {}): GameboardPlan {
   const shape = options.shape ?? { kind: 'rectangle', width: 8, height: 6 };
   const faction = options.faction ?? 'blue';
@@ -886,9 +1175,18 @@ function buildHexagonMedievalHarborBoard(
   return builder.build();
 }
 
+/**
+ * Re-export frequently used coordinate helpers from the gameboard module.
+ */
 export { HEX_DIRECTIONS, coordinatesForShape, edgeBetween, hexKey, neighbor, oppositeEdge, parseHexKey };
+/**
+ * Board shape descriptor accepted by generated gameboard plans.
+ */
 export type { GameboardShape };
 
+/**
+ * Resolve a placement's asset from a manifest.
+ */
 export function getPlacementAsset(
   placement: Pick<GameboardPlacementSpec, 'assetId'>,
   manifest = freeManifest
@@ -896,6 +1194,9 @@ export function getPlacementAsset(
   return manifest.assetsById[placement.assetId];
 }
 
+/**
+ * Return whether an asset id is absent from the packaged FREE manifest.
+ */
 export function requiresExtraAsset(assetId: string): boolean {
   return !freeManifest.assetsById[assetId];
 }

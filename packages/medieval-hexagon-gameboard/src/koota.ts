@@ -31,113 +31,230 @@ import {
 } from './occupancy';
 import type { HexCoordinates, TextureSet, WorldPosition } from './types';
 
+/**
+ * Board-level Koota trait with the deterministic plan metadata currently
+ * loaded into a world.
+ */
 export const GameboardState = trait({
+  /** Manifest/schema version used to generate the loaded board. */
   schemaVersion: GAMEBOARD_SCHEMA_VERSION,
+  /** Seed used by deterministic layout or simulation helpers. */
   seed: '',
+  /** Active KayKit texture set for generated terrain and placements. */
   textureSet: 'default' as TextureSet,
+  /** Board shape descriptor, such as rectangle or hexagon. */
   shape: () => ({ kind: 'rectangle', width: 0, height: 0 }) as GameboardShape,
+  /** Number of tile entities loaded into the world. */
   tileCount: 0,
+  /** Number of placement entities loaded into the world. */
   placementCount: 0,
 });
 
+/**
+ * Full tile trait used for serialization, rendering, and coarse tile queries.
+ */
 export const HexTileState = trait({
+  /** Stable axial key in `q,r` form. */
   key: '',
+  /** Axial tile coordinates. */
   coordinates: () => ({ q: 0, r: 0 }) as HexCoordinates,
+  /** Primary terrain biome represented by this tile. */
   terrain: 'grass' as GameboardTerrain,
+  /** KayKit texture set applied to this tile. */
   textureSet: 'default' as TextureSet,
+  /** Stacked elevation level for the tile top. */
   elevation: 0,
+  /** Asset id for the visible tile top. */
   baseAssetId: '',
+  /** Optional asset id for the vertical support below elevated tiles. */
   supportAssetId: '',
+  /** Six-edge bitmask for road connectivity. */
   roadEdges: 0,
+  /** Six-edge bitmask for river connectivity. */
   riverEdges: 0,
+  /** Six-edge bitmask for coast connectivity. */
   coastEdges: 0,
+  /** Road slope variant when a road changes elevation. */
   roadSlope: undefined as 'high' | 'low' | undefined,
+  /** Whether this river tile uses the waterless guide variant. */
   riverWaterless: false,
+  /** Whether this river tile uses the curvy guide variant. */
   riverCurvy: false,
+  /** River crossing variant, when present. */
   riverCrossing: undefined as 'A' | 'B' | undefined,
+  /** Whether this coast tile uses the waterless guide variant. */
   coastWaterless: false,
+  /** Free-form taxonomy and generation tags. */
   tags: () => [] as string[],
 });
 
+/**
+ * Decomposed coordinate trait for systems that only need tile lookup data.
+ */
 export const TileCoordinates = trait({
+  /** Stable axial key in `q,r` form. */
   key: '',
+  /** Axial q coordinate. */
   q: 0,
+  /** Axial r coordinate. */
   r: 0,
 });
 
+/**
+ * Decomposed terrain trait for biome and placement-rule systems.
+ */
 export const TileTerrain = trait({
+  /** Primary terrain biome represented by this tile. */
   terrain: 'grass' as GameboardTerrain,
 });
 
+/**
+ * Decomposed elevation trait for stacking, movement, and rendering systems.
+ */
 export const TileElevation = trait({
+  /** Stacked elevation level for the tile top. */
   elevation: 0,
+  /** Asset id for the visible tile top. */
   baseAssetId: '',
+  /** Optional asset id for the vertical support below elevated tiles. */
   supportAssetId: '',
 });
 
+/**
+ * Decomposed edge connectivity trait used by roads, rivers, coasts, and pathing.
+ */
 export const TileConnectivity = trait({
+  /** Six-edge bitmask for road connectivity. */
   roadEdges: 0,
+  /** Six-edge bitmask for river connectivity. */
   riverEdges: 0,
+  /** Six-edge bitmask for coast connectivity. */
   coastEdges: 0,
+  /** Road slope variant when a road changes elevation. */
   roadSlope: undefined as 'high' | 'low' | undefined,
+  /** Whether this river tile uses the waterless guide variant. */
   riverWaterless: false,
+  /** Whether this river tile uses the curvy guide variant. */
   riverCurvy: false,
+  /** River crossing variant, when present. */
   riverCrossing: undefined as 'A' | 'B' | undefined,
+  /** Whether this coast tile uses the waterless guide variant. */
   coastWaterless: false,
 });
 
+/**
+ * Decomposed render trait for systems that switch seasonal texture sets.
+ */
 export const TileRenderState = trait({
+  /** KayKit texture set applied to this tile. */
   textureSet: 'default' as TextureSet,
 });
 
+/**
+ * Decomposed tag list trait used by selectors, recipes, and seeded generation.
+ */
 export const TileTagList = trait(() => [] as string[]);
 
+/**
+ * Runtime placement trait for terrain overlays, structures, units, props, and
+ * externally registered pieces.
+ */
 export const PlacementState = trait({
+  /** Stable placement id. */
   id: '',
+  /** Origin tile key in `q,r` form. */
   tileKey: '',
+  /** Axial coordinates of the origin tile. */
   coordinates: () => ({ q: 0, r: 0 }) as HexCoordinates,
+  /** World-space placement anchor after elevation and local offsets. */
   position: () => ({ x: 0, y: 0, z: 0 }) as WorldPosition,
+  /** Manifest or external registry asset id. */
   assetId: '',
+  /** Gameplay category for rules, selectors, and rendering. */
   kind: 'terrain' as GameboardPlacementKind,
+  /** Render and occupancy layer. */
   layer: 'terrain' as GameboardPlacementLayer,
+  /** KayKit texture set applied to this placement. */
   textureSet: 'default' as TextureSet,
+  /** Base tile elevation where the placement was spawned. */
   elevation: 0,
+  /** Extra vertical offset above the tile elevation. */
   elevationOffset: 0,
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps: 0,
+  /** Rotation in radians derived from `rotationSteps`. */
   rotationRadians: 0,
+  /** Uniform render scale. */
   scale: 1,
+  /** Stable sort order used by renderers and snapshots. */
   order: 0,
+  /** Optional stack index for layered terrain and vertical props. */
   stackIndex: undefined as number | undefined,
+  /** Whether the placement depends on local-only EXTRA assets. */
   requiresExtra: false,
+  /** Serializable placement metadata for rules, ECS interop, and render hints. */
   metadata: () => ({}) as Record<string, string | number | boolean | null>,
 });
 
+/** Marker trait for board tile entities. */
 export const IsGameboardTile = trait();
+/** Marker trait for all board placement entities. */
 export const IsGameboardPlacement = trait();
+/** Marker trait for terrain and transition placements. */
 export const IsTerrainPlacement = trait();
+/** Marker trait for road placements. */
 export const IsRoadPlacement = trait();
+/** Marker trait for river placements. */
 export const IsRiverPlacement = trait();
+/** Marker trait for coast placements. */
 export const IsCoastPlacement = trait();
+/** Marker trait for decorative placements. */
 export const IsDecorationPlacement = trait();
+/** Marker trait for structure placements. */
 export const IsStructurePlacement = trait();
+/** Marker trait for unit placements. */
 export const IsUnitPlacement = trait();
+/** Marker trait for prop placements. */
 export const IsPropPlacement = trait();
+/** Marker trait for harbor-capable structure or prop placements. */
 export const IsHarborPlacement = trait();
+/** Marker trait for elevated or explicitly stacked terrain placements. */
 export const IsStackedTerrain = trait();
+/** Marker trait for placements whose assets are supplied by local EXTRA ingest. */
 export const RequiresExtraAsset = trait();
 
+/**
+ * Exclusive relation from a placement to its origin tile.
+ */
 export const PlacementOnTile = relation({ exclusive: true, autoDestroy: 'orphan' });
+/**
+ * Non-exclusive relation from a placement to every tile in its footprint.
+ */
 export const PlacementOccupiesTile = relation({
   store: {
+    /** Origin tile key used to distinguish center and footprint tiles. */
     originTileKey: '',
+    /** Zero-based index within the placement footprint. */
     footprintIndex: 0,
+    /** Whether this footprint record blocks movement. */
     blocksMovement: false as boolean,
+    /** Occupancy group used to allow compatible colocated placements. */
     occupancyGroup: '',
   },
 });
-export const AdjacentTo = relation({ store: { edge: 0 } });
+/**
+ * Directional neighbor relation between adjacent axial hex tiles.
+ */
+export const AdjacentTo = relation({
+  store: {
+    /** Clockwise flat-top edge index from the source tile to the target tile. */
+    edge: 0,
+  },
+});
 
+/** Query for full tile state. */
 export const GameboardTileQuery = createQuery(IsGameboardTile, HexTileState);
+/** Query for decomposed tile traits used by rule and ECS adapters. */
 export const DecomposedGameboardTileQuery = createQuery(
   IsGameboardTile,
   TileCoordinates,
@@ -147,141 +264,274 @@ export const DecomposedGameboardTileQuery = createQuery(
   TileRenderState,
   TileTagList
 );
+/** Query for all board placements. */
 export const GameboardPlacementQuery = createQuery(IsGameboardPlacement, PlacementState);
+/** Query for terrain placements. */
 export const TerrainPlacementQuery = createQuery(IsTerrainPlacement, PlacementState);
+/** Query for road placements. */
 export const RoadPlacementQuery = createQuery(IsRoadPlacement, PlacementState);
+/** Query for river placements. */
 export const RiverPlacementQuery = createQuery(IsRiverPlacement, PlacementState);
+/** Query for coast placements. */
 export const CoastPlacementQuery = createQuery(IsCoastPlacement, PlacementState);
+/** Query for structure placements. */
 export const StructurePlacementQuery = createQuery(IsStructurePlacement, PlacementState);
+/** Query for harbor-capable placements. */
 export const HarborPlacementQuery = createQuery(IsHarborPlacement, PlacementState);
+/** Query for stacked or elevated terrain placements. */
 export const StackedTerrainQuery = createQuery(IsStackedTerrain, PlacementState);
+/** Query for placements backed by local-only EXTRA assets. */
 export const ExtraPlacementQuery = createQuery(RequiresExtraAsset, PlacementState);
 
+/** Board trait value returned by `GameboardState`. */
 export type GameboardStateValue = TraitRecord<typeof GameboardState>;
+/** Full tile trait value returned by `HexTileState`. */
 export type HexTileStateValue = TraitRecord<typeof HexTileState>;
+/** Decomposed coordinate trait value returned by `TileCoordinates`. */
 export type TileCoordinatesValue = TraitRecord<typeof TileCoordinates>;
+/** Decomposed terrain trait value returned by `TileTerrain`. */
 export type TileTerrainValue = TraitRecord<typeof TileTerrain>;
+/** Decomposed elevation trait value returned by `TileElevation`. */
 export type TileElevationValue = TraitRecord<typeof TileElevation>;
+/** Decomposed connectivity trait value returned by `TileConnectivity`. */
 export type TileConnectivityValue = TraitRecord<typeof TileConnectivity>;
+/** Decomposed render trait value returned by `TileRenderState`. */
 export type TileRenderStateValue = TraitRecord<typeof TileRenderState>;
+/** Decomposed tag trait value returned by `TileTagList`. */
 export type TileTagListValue = TraitRecord<typeof TileTagList>;
+/** Placement trait value returned by `PlacementState`. */
 export type PlacementStateValue = TraitRecord<typeof PlacementState>;
+
+/**
+ * Stored relation payload for one tile occupied by one placement.
+ */
 export interface PlacementOccupancyValue {
+  /** Origin tile key for the placement that owns this footprint record. */
   originTileKey: string;
+  /** Zero-based index within the footprint key list. */
   footprintIndex: number;
+  /** Whether this footprint record blocks movement. */
   blocksMovement: boolean;
+  /** Occupancy group used to allow compatible colocated placements. */
   occupancyGroup: string;
 }
 
+/**
+ * Serializable occupancy record joined from a placement and an occupied tile.
+ */
 export interface PlacementOccupancySnapshot {
+  /** Tile key for the occupied tile. */
   tileKey: string;
+  /** Axial coordinates for the occupied tile. */
   coordinates: HexCoordinates;
+  /** Placement occupying the tile. */
   placement: PlacementStateValue;
+  /** Origin tile key for the placement. */
   originTileKey: string;
+  /** Zero-based index within the placement footprint. */
   footprintIndex: number;
+  /** Whether this occupancy record blocks movement. */
   blocksMovement: boolean;
+  /** Occupancy group used to allow compatible colocated placements. */
   occupancyGroup: string;
 }
 
+/**
+ * Options for simulating whether a placement can occupy a tile footprint.
+ */
 export interface InspectGameboardPlacementOccupancyOptions {
+  /** Origin tile or tile key for the proposed placement. */
   at: HexCoordinates | string;
+  /** Placement kind to evaluate. Defaults to `prop`. */
   kind?: GameboardPlacementKind;
+  /** Placement layer to evaluate. Defaults from `kind`. */
   layer?: GameboardPlacementLayer;
+  /** Placement metadata used for footprint and occupancy rules. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
+  /** Placement ids ignored when checking blockers, usually the moving entity. */
   ignorePlacementIds?: readonly string[];
+  /** Require no blockers even if the proposed placement itself is non-blocking. */
   requireUnblocked?: boolean;
 }
 
+/**
+ * Detailed result from an occupancy inspection.
+ */
 export interface GameboardPlacementOccupancyInspection {
+  /** Origin tile key that was inspected. */
   tileKey: string;
+  /** Axial coordinates for the origin tile. */
   coordinates: HexCoordinates;
+  /** Tile keys in the proposed placement footprint. */
   footprintTileKeys: readonly string[];
+  /** Footprint tile keys not present in the world. */
   missingTileKeys: readonly string[];
+  /** Whether the proposed placement blocks movement. */
   blocksMovement: boolean;
+  /** Occupancy group assigned to the proposed placement. */
   occupancyGroup: string;
+  /** Blocking occupancy records found in the footprint. */
   blockers: readonly PlacementOccupancySnapshot[];
+  /** Whether the placement can occupy the inspected footprint. */
   canOccupy: boolean;
+  /** Machine-readable reason when `canOccupy` is false. */
   reason?: string;
 }
 
+/**
+ * Options used by spawn, update, and move helpers to enforce occupancy.
+ */
 export interface GameboardPlacementOccupancyGuardOptions {
+  /** Placement ids ignored when checking blockers, usually the moving entity. */
   ignorePlacementIds?: readonly string[];
+  /** Require no blockers even if the placement itself is non-blocking. */
   requireUnblocked?: boolean;
 }
 
+/**
+ * Occupancy guard setting used by placement mutation helpers.
+ */
 export type GameboardPlacementOccupancyGuard = boolean | GameboardPlacementOccupancyGuardOptions;
 
+/**
+ * Entity indexes returned after loading a complete board plan.
+ */
 export interface GameboardEntityIndex {
+  /** Tile entities keyed by axial tile key. */
   tiles: Map<string, Entity>;
+  /** Placement entities keyed by placement id. */
   placements: Map<string, Entity>;
 }
 
+/**
+ * Serializable snapshot of board, tile, and placement state.
+ */
 export interface GameboardSnapshot {
+  /** Board metadata, or `undefined` when no plan is loaded. */
   board: GameboardStateValue | undefined;
+  /** Tile states sorted by axial tile key. */
   tiles: readonly HexTileStateValue[];
+  /** Placement states sorted by order and id. */
   placements: readonly PlacementStateValue[];
 }
 
+/**
+ * Optional local offset applied to a placement after tile/elevation anchoring.
+ */
 export interface GameboardPlacementPositionOffset {
+  /** X-axis world offset. */
   x?: number;
+  /** Y-axis world offset. */
   y?: number;
+  /** Z-axis world offset. */
   z?: number;
 }
 
+/**
+ * Options for spawning a runtime placement into an existing gameboard world.
+ */
 export interface SpawnGameboardPlacementOptions {
+  /** Explicit placement id. Defaults to a deterministic runtime id. */
   id?: string;
+  /** Origin tile or tile key where the placement should spawn. */
   at: HexCoordinates | string;
+  /** Manifest or external registry asset id to render. */
   assetId: string;
+  /** Gameplay category for rules, selectors, and rendering. */
   kind: GameboardPlacementKind;
+  /** Render and occupancy layer. Defaults from `kind`. */
   layer?: GameboardPlacementLayer;
+  /** Texture set override. Defaults to the origin tile texture set. */
   textureSet?: TextureSet;
+  /** Extra vertical offset above the tile elevation. */
   elevationOffset?: number;
+  /** Local world-space offset after tile/elevation anchoring. */
   positionOffset?: GameboardPlacementPositionOffset;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
+  /** Uniform render scale. */
   scale?: number;
+  /** Stable sort order used by renderers and snapshots. */
   order?: number;
+  /** Optional stack index for layered terrain and vertical props. */
   stackIndex?: number;
+  /** Whether the placement depends on local-only EXTRA assets. */
   requiresExtra?: boolean;
+  /** Serializable placement metadata for rules, ECS interop, and render hints. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
+  /** Optional occupancy validation before spawning. */
   occupancyGuard?: GameboardPlacementOccupancyGuard;
 }
 
+/**
+ * Options for mutating an existing runtime placement.
+ */
 export interface UpdateGameboardPlacementOptions {
+  /** New origin tile or tile key. */
   at?: HexCoordinates | string;
+  /** New manifest or external registry asset id. */
   assetId?: string;
+  /** New gameplay category. */
   kind?: GameboardPlacementKind;
+  /** New render and occupancy layer. */
   layer?: GameboardPlacementLayer;
+  /** New texture set. */
   textureSet?: TextureSet;
+  /** New vertical offset above the tile elevation. */
   elevationOffset?: number;
+  /** New local world-space offset after tile/elevation anchoring. */
   positionOffset?: GameboardPlacementPositionOffset;
+  /** New clockwise 60-degree rotation steps. */
   rotationSteps?: number;
+  /** New uniform render scale. */
   scale?: number;
+  /** New stable sort order. */
   order?: number;
+  /** New stack index. */
   stackIndex?: number;
+  /** New local-only EXTRA requirement flag. */
   requiresExtra?: boolean;
+  /** Replacement serializable placement metadata. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
+  /** Optional occupancy validation before applying the mutation. */
   occupancyGuard?: GameboardPlacementOccupancyGuard;
 }
 
+/**
+ * Koota action bundle for loading, clearing, inspecting, and mutating a board
+ * through world-bound helpers.
+ */
 export const gameboardActions = createActions((world) => ({
+  /** Replace the current world contents with a complete generated board plan. */
   loadPlan: (plan: GameboardPlan) => spawnGameboardPlan(world, plan),
+  /** Remove all board tile, placement, and board-state traits from the world. */
   clear: () => clearGameboardWorld(world),
+  /** Inspect whether a proposed placement footprint can occupy its target tiles. */
   inspectPlacementOccupancy: (options: InspectGameboardPlacementOccupancyOptions) =>
     inspectGameboardPlacementOccupancy(world, options),
+  /** Return only the boolean occupancy result for a proposed placement. */
   canOccupyPlacement: (options: InspectGameboardPlacementOccupancyOptions) =>
     canOccupyGameboardPlacement(world, options),
+  /** Spawn a runtime placement into the board. */
   spawnPlacement: (options: SpawnGameboardPlacementOptions) =>
     spawnGameboardPlacement(world, options),
+  /** Update an existing runtime placement by entity or placement id. */
   updatePlacement: (placement: Entity | string, options: UpdateGameboardPlacementOptions) =>
     updateGameboardPlacement(world, placement, options),
+  /** Move an existing placement to another tile while preserving unspecified state. */
   movePlacement: (
     placement: Entity | string,
     to: HexCoordinates | string,
     options: UpdateGameboardPlacementOptions = {}
   ) => updateGameboardPlacement(world, placement, { ...options, at: to }),
+  /** Remove an existing placement by entity or placement id. */
   removePlacement: (placement: Entity | string) => removeGameboardPlacement(world, placement),
 }));
 
+/**
+ * Create a Koota world ready for gameboard systems, optionally preloaded with a
+ * complete board plan.
+ */
 export function createGameboardWorld(plan?: GameboardPlan): World {
   const world = createWorld();
   if (plan) {
@@ -290,6 +540,10 @@ export function createGameboardWorld(plan?: GameboardPlan): World {
   return world;
 }
 
+/**
+ * Clear the world and spawn all tiles, placements, marker traits, adjacency
+ * relations, and occupancy relations for a generated board plan.
+ */
 export function spawnGameboardPlan(world: World, plan: GameboardPlan): GameboardEntityIndex {
   clearGameboardWorld(world);
   world.add(
@@ -338,6 +592,10 @@ export function spawnGameboardPlan(world: World, plan: GameboardPlan): Gameboard
   return { tiles, placements };
 }
 
+/**
+ * Spawn one runtime placement on an existing tile, deriving world position,
+ * layer defaults, EXTRA detection, and occupancy footprint relations.
+ */
 export function spawnGameboardPlacement(
   world: World,
   options: SpawnGameboardPlacementOptions
@@ -360,6 +618,11 @@ export function spawnGameboardPlacement(
   return entity;
 }
 
+/**
+ * Mutate an existing placement while keeping unspecified placement state stable.
+ * Position, tile relations, marker traits, and occupancy footprint relations
+ * are synchronized after the update.
+ */
 export function updateGameboardPlacement(
   world: World,
   placement: Entity | string,
@@ -414,6 +677,10 @@ export function updateGameboardPlacement(
   return entity;
 }
 
+/**
+ * Move an existing placement to a new tile while allowing selected placement
+ * fields to be updated in the same operation.
+ */
 export function moveGameboardPlacement(
   world: World,
   placement: Entity | string,
@@ -423,6 +690,9 @@ export function moveGameboardPlacement(
   return updateGameboardPlacement(world, placement, { ...options, at: to });
 }
 
+/**
+ * Remove a placement entity by entity reference or placement id.
+ */
 export function removeGameboardPlacement(world: World, placement: Entity | string): boolean {
   const entity = findPlacementEntity(world, placement);
   if (!entity) {
@@ -433,6 +703,10 @@ export function removeGameboardPlacement(world: World, placement: Entity | strin
   return true;
 }
 
+/**
+ * Add directional `AdjacentTo` relations for every neighboring tile pair in an
+ * already constructed tile index.
+ */
 export function linkAdjacentTiles(tiles: ReadonlyMap<string, Entity>): void {
   for (const [key, entity] of tiles) {
     const coordinates = parseTileKey(key);
@@ -445,6 +719,9 @@ export function linkAdjacentTiles(tiles: ReadonlyMap<string, Entity>): void {
   }
 }
 
+/**
+ * Remove all gameboard tiles, placements, and board metadata from the world.
+ */
 export function clearGameboardWorld(world: World): void {
   for (const placement of [...world.query(IsGameboardPlacement)]) {
     placement.destroy();
@@ -457,6 +734,9 @@ export function clearGameboardWorld(world: World): void {
   }
 }
 
+/**
+ * Find a tile entity by axial coordinates or tile key.
+ */
 export function findTileEntity(
   world: World,
   coordinates: HexCoordinates | string
@@ -465,6 +745,9 @@ export function findTileEntity(
   return world.query(GameboardTileQuery).find((entity) => entity.get(HexTileState)?.key === key);
 }
 
+/**
+ * Find a placement entity by entity reference or placement id.
+ */
 export function findPlacementEntity(world: World, placement: Entity | string): Entity | undefined {
   if (typeof placement !== 'string') {
     return placement;
@@ -474,6 +757,9 @@ export function findPlacementEntity(world: World, placement: Entity | string): E
     .find((entity) => entity.get(PlacementState)?.id === placement);
 }
 
+/**
+ * Read tile state snapshots sorted by axial tile key.
+ */
 export function readGameboardTiles(world: World): HexTileStateValue[] {
   const tiles: HexTileStateValue[] = [];
   world.query(GameboardTileQuery).readEach(([tile]) => {
@@ -482,6 +768,9 @@ export function readGameboardTiles(world: World): HexTileStateValue[] {
   return tiles.sort(compareByHexKey);
 }
 
+/**
+ * Read placement state snapshots sorted by render order and placement id.
+ */
 export function readGameboardPlacements(world: World): PlacementStateValue[] {
   const placements: PlacementStateValue[] = [];
   world.query(GameboardPlacementQuery).readEach(([placement]) => {
@@ -492,6 +781,9 @@ export function readGameboardPlacements(world: World): PlacementStateValue[] {
   );
 }
 
+/**
+ * Read placements that occupy a tile, including multi-tile footprint occupants.
+ */
 export function readPlacementsForTile(
   world: World,
   coordinates: HexCoordinates | string
@@ -511,6 +803,9 @@ export function readPlacementsForTile(
   );
 }
 
+/**
+ * Read every placement-to-tile occupancy relation in the world.
+ */
 export function readGameboardPlacementOccupancy(world: World): PlacementOccupancySnapshot[] {
   const records: PlacementOccupancySnapshot[] = [];
   for (const entity of world.query(GameboardPlacementQuery)) {
@@ -528,6 +823,9 @@ export function readGameboardPlacementOccupancy(world: World): PlacementOccupanc
   return records.sort(comparePlacementOccupancy);
 }
 
+/**
+ * Read all occupancy records for one tile.
+ */
 export function readPlacementOccupancyForTile(
   world: World,
   coordinates: HexCoordinates | string
@@ -546,6 +844,9 @@ export function readPlacementOccupancyForTile(
     .sort(comparePlacementOccupancy);
 }
 
+/**
+ * Inspect a proposed placement footprint without mutating the world.
+ */
 export function inspectGameboardPlacementOccupancy(
   world: World,
   options: InspectGameboardPlacementOccupancyOptions
@@ -595,6 +896,9 @@ export function inspectGameboardPlacementOccupancy(
   };
 }
 
+/**
+ * Return whether a proposed placement footprint can occupy its target tiles.
+ */
 export function canOccupyGameboardPlacement(
   world: World,
   options: InspectGameboardPlacementOccupancyOptions
@@ -632,6 +936,9 @@ function assertPlacementOccupancyGuard(
   }
 }
 
+/**
+ * Read a serializable snapshot of board metadata, tiles, and placements.
+ */
 export function readGameboardSnapshot(world: World): GameboardSnapshot {
   const board = world.get(GameboardState);
   return {

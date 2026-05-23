@@ -21,26 +21,79 @@ import {
 import type { HexCoordinates, HexEdgeIndex } from './types';
 import type { Entity, World } from 'koota';
 
+/**
+ * Weighted placement preference used to score otherwise valid layout sites.
+ */
 export type GameboardLayoutPreference =
-  | { kind: 'center'; weight?: number }
-  | { kind: 'edge'; weight?: number }
-  | { kind: 'near-terrain'; terrain: GameboardTerrain | readonly GameboardTerrain[]; radius?: number; weight?: number }
-  | { kind: 'far-from-terrain'; terrain: GameboardTerrain | readonly GameboardTerrain[]; radius?: number; weight?: number }
   | {
+      /** Preference discriminator for tiles near the board center. */
+      kind: 'center';
+      /** Score multiplier for this preference. */
+      weight?: number;
+    }
+  | {
+      /** Preference discriminator for tiles near the board edge. */
+      kind: 'edge';
+      /** Score multiplier for this preference. */
+      weight?: number;
+    }
+  | {
+      /** Preference discriminator for tiles near matching terrain. */
+      kind: 'near-terrain';
+      /** Terrain values considered by this preference. */
+      terrain: GameboardTerrain | readonly GameboardTerrain[];
+      /** Search radius for nearby terrain. */
+      radius?: number;
+      /** Score multiplier for this preference. */
+      weight?: number;
+    }
+  | {
+      /** Preference discriminator for tiles away from matching terrain. */
+      kind: 'far-from-terrain';
+      /** Terrain values considered by this preference. */
+      terrain: GameboardTerrain | readonly GameboardTerrain[];
+      /** Search radius for nearby terrain. */
+      radius?: number;
+      /** Score multiplier for this preference. */
+      weight?: number;
+    }
+  | {
+      /** Preference discriminator for tiles near matching placement kinds. */
       kind: 'near-placement-kind';
+      /** Placement kinds considered by this preference. */
       placementKind: GameboardPlacementKind | readonly GameboardPlacementKind[];
+      /** Search radius for nearby placements. */
       radius?: number;
+      /** Score multiplier for this preference. */
       weight?: number;
     }
   | {
+      /** Preference discriminator for tiles away from matching placement kinds. */
       kind: 'far-from-placement-kind';
+      /** Placement kinds considered by this preference. */
       placementKind: GameboardPlacementKind | readonly GameboardPlacementKind[];
+      /** Search radius for nearby placements. */
       radius?: number;
+      /** Score multiplier for this preference. */
       weight?: number;
     }
-  | { kind: 'high-elevation'; weight?: number }
-  | { kind: 'low-elevation'; weight?: number };
+  | {
+      /** Preference discriminator for higher elevation tiles. */
+      kind: 'high-elevation';
+      /** Score multiplier for this preference. */
+      weight?: number;
+    }
+  | {
+      /** Preference discriminator for lower elevation tiles. */
+      kind: 'low-elevation';
+      /** Score multiplier for this preference. */
+      weight?: number;
+    };
 
+/**
+ * Built-in archetypes for common board pieces such as structures, units, trees,
+ * scatter props, and harbors.
+ */
 export type BuiltInGameboardLayoutArchetypeId =
   | 'surface'
   | 'building'
@@ -50,103 +103,204 @@ export type BuiltInGameboardLayoutArchetypeId =
   | 'tree'
   | 'scatter'
   | 'landmark';
+/**
+ * Layout archetype id accepted by the registry.
+ */
 export type GameboardLayoutArchetypeId = BuiltInGameboardLayoutArchetypeId | (string & {});
+/**
+ * Archetype reference accepted by placement helpers.
+ */
 export type GameboardLayoutArchetypeInput = GameboardLayoutArchetypeId | GameboardLayoutArchetype;
+/**
+ * Input accepted when creating or overriding an archetype registry.
+ */
 export type GameboardLayoutArchetypeRegistryInput =
   | GameboardLayoutArchetypeRegistry
   | readonly GameboardLayoutArchetype[];
+/**
+ * Footprint definition used for multi-tile placement and occupancy criteria.
+ */
 export type GameboardLayoutFootprintInput =
   | 'single'
   | 'adjacent'
   | number
   | {
+      /** Footprint mode. */
       kind: 'single' | 'adjacent' | 'radius' | 'custom';
+      /** Radius used by radius footprints. */
       radius?: number;
+      /** Neighbor edges included by adjacent footprints. */
       edges?: readonly HexEdgeIndex[];
+      /** Custom axial offsets included in the footprint. */
       offsets?: readonly HexCoordinates[];
+      /** Whether the origin tile is part of the footprint. */
       includeCenter?: boolean;
     };
 
+/**
+ * Normalized footprint definition.
+ */
 export interface ResolvedGameboardLayoutFootprint {
+  /** Footprint mode. */
   kind: 'single' | 'adjacent' | 'radius' | 'custom';
+  /** Radius used by radius footprints. */
   radius: number;
+  /** Neighbor edges used by adjacent footprints. */
   edges?: readonly HexEdgeIndex[];
+  /** Custom axial offsets included in the footprint. */
   offsets?: readonly HexCoordinates[];
+  /** Whether the origin tile is part of the footprint. */
   includeCenter: boolean;
 }
 
+/**
+ * Declarative placement archetype for seeded layout and fill rules.
+ */
 export interface GameboardLayoutArchetype {
+  /** Stable archetype id. */
   id: GameboardLayoutArchetypeId;
+  /** Human-readable label for diagnostics and generated docs. */
   label: string;
+  /** Default placement kind. */
   kind?: GameboardPlacementKind;
+  /** Default placement layer. */
   layer?: GameboardPlacementLayer;
+  /** Site criteria applied by this archetype. */
   criteria: GameboardLayoutCriteria;
+  /** Default rotation behavior. */
   rotationSteps?: number | 'random';
+  /** Metadata merged into generated placements. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/**
+ * Archetype registry keyed by archetype id.
+ */
 export type GameboardLayoutArchetypeRegistry = Readonly<Record<string, GameboardLayoutArchetype>>;
 
+/**
+ * Options for creating an archetype registry.
+ */
 export interface CreateGameboardLayoutArchetypeRegistryOptions {
+  /** Include the built-in archetypes before applying overrides. */
   includeBuiltIns?: boolean;
 }
 
+/**
+ * Rules that determine whether a tile can be used as a placement site.
+ */
 export interface GameboardLayoutCriteria {
+  /** Allowed origin tile terrain. */
   terrain?: GameboardTerrain | readonly GameboardTerrain[];
+  /** Disallowed origin tile terrain. */
   excludeTerrain?: GameboardTerrain | readonly GameboardTerrain[];
+  /** Allowed exact elevations. */
   elevation?: number | readonly number[];
+  /** Minimum origin tile elevation. */
   minElevation?: number;
+  /** Maximum origin tile elevation. */
   maxElevation?: number;
+  /** Tile tags that must all be present. */
   tileTags?: readonly string[];
+  /** Tile tags that must all be absent. */
   excludeTileTags?: readonly string[];
+  /** Adjacent terrain that must be present. */
   requiredAdjacentTerrain?: GameboardTerrain | readonly GameboardTerrain[];
+  /** Adjacent terrain that must be absent. */
   forbiddenAdjacentTerrain?: GameboardTerrain | readonly GameboardTerrain[];
+  /** Adjacent placement kinds that must be present. */
   requiredAdjacentPlacementKind?: GameboardPlacementKind | readonly GameboardPlacementKind[];
+  /** Adjacent placement kinds that must be absent. */
   forbiddenAdjacentPlacementKind?: GameboardPlacementKind | readonly GameboardPlacementKind[];
+  /** Adjacent placement layers that must be present. */
   requiredAdjacentPlacementLayer?: GameboardPlacementLayer | readonly GameboardPlacementLayer[];
+  /** Adjacent placement layers that must be absent. */
   forbiddenAdjacentPlacementLayer?: GameboardPlacementLayer | readonly GameboardPlacementLayer[];
+  /** Footprint required by the placement. */
   footprint?: GameboardLayoutFootprintInput;
+  /** Reject sites whose footprint leaves the board. */
   requireFootprintInBounds?: boolean;
+  /** Reject sites whose footprint has blocking occupancy. */
   requireFootprintUnoccupied?: boolean;
+  /** Allowed terrain across all footprint tiles. */
   footprintTerrain?: GameboardTerrain | readonly GameboardTerrain[];
+  /** Disallowed terrain across any footprint tile. */
   excludeFootprintTerrain?: GameboardTerrain | readonly GameboardTerrain[];
+  /** Allow placement on tiles with blocking occupants. */
   allowOccupied?: boolean;
+  /** Placement kinds that should be treated as blockers. */
   blockingPlacementKinds?: readonly GameboardPlacementKind[];
+  /** Placement layers that should be treated as blockers. */
   blockingPlacementLayers?: readonly GameboardPlacementLayer[];
+  /** Placement ids ignored during occupancy checks. */
   ignorePlacementIds?: readonly string[];
+  /** Reference tiles that the site must stay away from. */
   minDistanceFrom?: readonly (HexCoordinates | string)[];
+  /** Minimum distance from every `minDistanceFrom` reference. */
   minDistance?: number;
+  /** Reference tiles that the site must stay near. */
   maxDistanceFrom?: readonly (HexCoordinates | string)[];
+  /** Maximum distance from at least one `maxDistanceFrom` reference. */
   maxDistance?: number;
+  /** Number of outer rings excluded from placement. */
   edgePadding?: number;
+  /** Minimum distance between selected sites from the same selection call. */
   minDistanceBetween?: number;
+  /** Maximum selected slots allowed on one tile. */
   maxPerTile?: number;
+  /** Optional slot group used to share occupancy slots between compatible pieces. */
   slotGroup?: string;
+  /** Weighted preferences used to score candidate sites. */
   prefer?: readonly GameboardLayoutPreference[];
 }
 
+/**
+ * Options for selecting valid layout sites from a plan.
+ */
 export interface SelectGameboardLayoutSitesOptions {
+  /** Number of sites to select. */
   count: number;
+  /** Seed used to break score ties deterministically. */
   seed?: string | number;
+  /** Site criteria. */
   criteria?: GameboardLayoutCriteria;
 }
 
+/**
+ * Candidate or selected placement site.
+ */
 export interface GameboardLayoutSite {
+  /** Tile selected for placement. */
   tile: GameboardTileSpec;
+  /** Tile key selected for placement. */
   key: string;
+  /** Tile coordinates selected for placement. */
   coordinates: HexCoordinates;
+  /** World position at the tile/elevation anchor. */
   position: ReturnType<typeof axialToWorld>;
+  /** Weighted score used to sort candidates. */
   score: number;
+  /** Slot index chosen on the tile. */
   slotIndex: number;
+  /** Slot indexes already occupied before selection. */
   usedSlotIndexes: readonly number[];
+  /** Whether the tile has blocking occupants. */
   occupied: boolean;
+  /** Placements on the origin tile. */
   placements: readonly GameboardPlacementSpec[];
+  /** Tiles covered by the placement footprint. */
   footprintTiles: readonly GameboardTileSpec[];
+  /** Tile keys covered by the placement footprint. */
   footprintKeys: readonly string[];
+  /** Placements on any footprint tile. */
   footprintPlacements: readonly GameboardPlacementSpec[];
+  /** Score reasons used for diagnostics. */
   reasons: readonly string[];
 }
 
+/**
+ * Rejection codes emitted when a tile cannot satisfy layout criteria.
+ */
 export type GameboardLayoutSiteRejectionCode =
   | 'footprint-out-of-bounds'
   | 'footprint-terrain'
@@ -167,97 +321,189 @@ export type GameboardLayoutSiteRejectionCode =
   | 'max-distance'
   | 'slots-full';
 
+/**
+ * Diagnostic for one rejected layout site.
+ */
 export interface GameboardLayoutSiteRejection {
+  /** Machine-readable rejection code. */
   code: GameboardLayoutSiteRejectionCode;
+  /** Human-readable rejection message. */
   message: string;
 }
 
+/**
+ * Rejected tile with full diagnostics.
+ */
 export interface GameboardLayoutRejectedSite {
+  /** Tile rejected for placement. */
   tile: GameboardTileSpec;
+  /** Rejected tile key. */
   key: string;
+  /** Rejected tile coordinates. */
   coordinates: HexCoordinates;
+  /** Whether blocking occupancy contributed to the rejection. */
   occupied: boolean;
+  /** Placements on the rejected origin tile. */
   placements: readonly GameboardPlacementSpec[];
+  /** Tile keys covered by the requested footprint. */
   footprintKeys: readonly string[];
+  /** Placements on any footprint tile. */
   footprintPlacements: readonly GameboardPlacementSpec[];
+  /** Rejection diagnostics. */
   rejections: readonly GameboardLayoutSiteRejection[];
 }
 
+/**
+ * Options for inspecting layout candidates and rejections.
+ */
 export interface InspectGameboardLayoutSitesOptions {
+  /** Optional number of selected sites to include. */
   count?: number;
+  /** Seed used to break score ties deterministically. */
   seed?: string | number;
+  /** Site criteria. */
   criteria?: GameboardLayoutCriteria;
 }
 
+/**
+ * Candidate, selection, and rejection report for layout criteria.
+ */
 export interface GameboardLayoutSiteInspection {
+  /** Seed used for deterministic tie-breaking. */
   seed: string;
+  /** Number of selected sites returned. */
   selectedCount: number;
+  /** Number of candidate sites that satisfied criteria. */
   candidateCount: number;
+  /** Number of rejected sites. */
   rejectedCount: number;
+  /** Rejection counts grouped by code. */
   rejectionCounts: Readonly<Partial<Record<GameboardLayoutSiteRejectionCode, number>>>;
+  /** Selected sites. */
   selected: readonly GameboardLayoutSite[];
+  /** Candidate sites sorted by score. */
   candidates: readonly GameboardLayoutSite[];
+  /** Rejected sites with diagnostics. */
   rejected: readonly GameboardLayoutRejectedSite[];
 }
 
+/**
+ * Options for creating placement specs from selected layout sites.
+ */
 export interface GameboardLayoutPlacementOptions
   extends Omit<SpawnGameboardPlacementOptions, 'at' | 'id' | 'kind' | 'layer' | 'rotationSteps'> {
+  /** Archetype id or inline archetype. */
   archetype?: GameboardLayoutArchetypeInput;
+  /** Registry used to resolve `archetype`. */
   archetypes?: GameboardLayoutArchetypeRegistry;
+  /** Placement kind override. */
   kind?: GameboardPlacementKind;
+  /** Placement layer override. */
   layer?: GameboardPlacementLayer;
+  /** Number of placements to create. */
   count?: number;
+  /** Seed used for site selection and random rotation. */
   seed?: string | number;
+  /** Prefix used when assigning deterministic placement ids. */
   idPrefix?: string;
+  /** Rotation steps or deterministic random rotation. */
   rotationSteps?: number | 'random';
+  /** Criteria merged over archetype defaults. */
   criteria?: GameboardLayoutCriteria;
 }
 
+/**
+ * Rule for seeded layout fill across one or more assets.
+ */
 export interface GameboardLayoutFillRule
   extends Omit<GameboardLayoutPlacementOptions, 'assetId' | 'count' | 'seed' | 'idPrefix'> {
+  /** Stable rule id used in diagnostics and generated ids. */
   id?: string;
+  /** Single asset id used by the rule. */
   assetId?: string;
+  /** Asset ids cycled deterministically across selected sites. */
   assets?: readonly string[];
+  /** Explicit placement count. */
   count?: number;
+  /** Fraction of candidate sites to fill. */
   fill?: number;
+  /** Minimum placement count after fill/count calculation. */
   minCount?: number;
+  /** Maximum placement count after fill/count calculation. */
   maxCount?: number;
+  /** Prefix used when assigning deterministic placement ids. */
   idPrefix?: string;
 }
 
+/**
+ * Options for applying several layout fill rules in sequence.
+ */
 export interface GameboardLayoutFillOptions {
+  /** Shared seed for deterministic fill rules. */
   seed?: string | number;
+  /** Ordered fill rules. Later rules see earlier generated placements. */
   rules: readonly GameboardLayoutFillRule[];
 }
 
+/**
+ * Analysis for one layout fill rule.
+ */
 export interface GameboardLayoutFillRuleAnalysis {
+  /** Stable rule id. */
   id: string;
+  /** Rule index in the fill options. */
   ruleIndex: number;
+  /** Resolved archetype id. */
   archetypeId?: GameboardLayoutArchetypeId;
+  /** Resolved placement kind. */
   kind?: GameboardPlacementKind;
+  /** Resolved placement layer. */
   layer?: GameboardPlacementLayer;
+  /** Configured asset ids. */
   assetIds: readonly string[];
+  /** Asset ids selected for generated placements. */
   selectedAssetIds: readonly string[];
+  /** Candidate site count before target count limits. */
   candidateCount: number;
+  /** Rejected site count. */
   rejectedSiteCount: number;
+  /** Rejection counts grouped by code. */
   rejectionCounts: Readonly<Partial<Record<GameboardLayoutSiteRejectionCode, number>>>;
+  /** Count requested by `count`, `fill`, and min/max settings. */
   requestedCount: number;
+  /** Final target count after candidate limits and diagnostics. */
   targetCount: number;
+  /** Number of placements selected by the rule. */
   selectedCount: number;
+  /** Tile keys selected by the rule. */
   selectedTileKeys: readonly string[];
+  /** Non-fatal diagnostics for the rule. */
   warnings: readonly string[];
+  /** Fatal diagnostics for the rule. */
   errors: readonly string[];
 }
 
+/**
+ * Analysis for a complete layout fill pass.
+ */
 export interface GameboardLayoutFillAnalysis {
+  /** Seed used by the fill pass. */
   seed: string;
+  /** Number of rules analyzed. */
   ruleCount: number;
+  /** Number of placements selected by all rules. */
   placementCount: number;
+  /** Sum of candidate counts across rules. */
   candidateCount: number;
+  /** Total warning count. */
   warningCount: number;
+  /** Total error count. */
   errorCount: number;
+  /** All warnings prefixed by rule id. */
   warnings: readonly string[];
+  /** All errors prefixed by rule id. */
   errors: readonly string[];
+  /** Per-rule analysis. */
   rules: readonly GameboardLayoutFillRuleAnalysis[];
 }
 
@@ -267,7 +513,11 @@ const DEFAULT_LAYOUT_PREFERENCES = [
   { kind: 'low-elevation', weight: 0.2 },
 ] as const satisfies readonly GameboardLayoutPreference[];
 
-export const GAMEBOARD_LAYOUT_ARCHETYPES = {
+/**
+ * Built-in layout archetypes for common surface, structure, harbor, unit, prop,
+ * scatter, and landmark placement behavior.
+ */
+export const GAMEBOARD_LAYOUT_ARCHETYPES: GameboardLayoutArchetypeRegistry = {
   surface: {
     id: 'surface',
     label: 'Surface',
@@ -389,8 +639,11 @@ export const GAMEBOARD_LAYOUT_ARCHETYPES = {
     },
     metadata: { layoutBlocksMovement: true },
   },
-} as const satisfies GameboardLayoutArchetypeRegistry;
+} as const;
 
+/**
+ * Create an archetype registry from built-ins plus optional overrides.
+ */
 export function createGameboardLayoutArchetypeRegistry(
   archetypes: GameboardLayoutArchetypeRegistryInput | undefined = undefined,
   options: CreateGameboardLayoutArchetypeRegistryOptions = {}
@@ -402,6 +655,9 @@ export function createGameboardLayoutArchetypeRegistry(
   };
 }
 
+/**
+ * Normalize registry input into an object keyed by archetype id.
+ */
 export function normalizeGameboardLayoutArchetypeRegistry(
   archetypes: GameboardLayoutArchetypeRegistryInput | undefined
 ): GameboardLayoutArchetypeRegistry {
@@ -414,6 +670,9 @@ export function normalizeGameboardLayoutArchetypeRegistry(
   return { ...archetypes } as GameboardLayoutArchetypeRegistry;
 }
 
+/**
+ * Resolve an archetype id or inline archetype against a registry.
+ */
 export function resolveGameboardLayoutArchetype(
   archetype: GameboardLayoutArchetypeInput | undefined,
   registry: GameboardLayoutArchetypeRegistry = GAMEBOARD_LAYOUT_ARCHETYPES
@@ -431,6 +690,9 @@ export function resolveGameboardLayoutArchetype(
   return resolved;
 }
 
+/**
+ * Merge explicit criteria over the criteria from a resolved archetype.
+ */
 export function resolveGameboardLayoutCriteria(
   archetype: GameboardLayoutArchetypeInput | undefined,
   criteria: GameboardLayoutCriteria | undefined,
@@ -439,6 +701,9 @@ export function resolveGameboardLayoutCriteria(
   return mergeLayoutCriteria(resolveGameboardLayoutArchetype(archetype, registry)?.criteria, criteria) ?? {};
 }
 
+/**
+ * Select deterministic valid layout sites from a generated board plan.
+ */
 export function selectGameboardLayoutSites(
   plan: GameboardPlan,
   options: SelectGameboardLayoutSitesOptions
@@ -452,6 +717,9 @@ export function selectGameboardLayoutSites(
   return selectLayoutCandidates(inspected.candidates, count, criteria);
 }
 
+/**
+ * Inspect candidate and rejected layout sites without creating placements.
+ */
 export function inspectGameboardLayoutSites(
   plan: GameboardPlan,
   options: InspectGameboardLayoutSitesOptions = {}
@@ -513,6 +781,9 @@ function selectLayoutCandidates(
   return selected;
 }
 
+/**
+ * Create placement spawn options from selected layout sites.
+ */
 export function createGameboardLayoutPlacements(
   plan: GameboardPlan,
   options: GameboardLayoutPlacementOptions
@@ -574,6 +845,9 @@ export function createGameboardLayoutPlacements(
   });
 }
 
+/**
+ * Create placement spawn options by applying layout fill rules in order.
+ */
 export function createGameboardLayoutFillPlacements(
   plan: GameboardPlan,
   options: GameboardLayoutFillOptions
@@ -614,6 +888,10 @@ export function createGameboardLayoutFillPlacements(
   return placements;
 }
 
+/**
+ * Analyze layout fill rules, selected sites, and diagnostics without mutating a
+ * world or requiring render assets.
+ */
 export function analyzeGameboardLayoutFill(
   plan: GameboardPlan,
   options: GameboardLayoutFillOptions
@@ -693,6 +971,9 @@ export function analyzeGameboardLayoutFill(
   };
 }
 
+/**
+ * Spawn generated layout placements into a Koota world.
+ */
 export function spawnGameboardLayoutPlacements(
   world: World,
   options: GameboardLayoutPlacementOptions
@@ -702,6 +983,9 @@ export function spawnGameboardLayoutPlacements(
   );
 }
 
+/**
+ * Spawn all placements generated by a layout fill pass into a Koota world.
+ */
 export function spawnGameboardLayoutFill(world: World, options: GameboardLayoutFillOptions): Entity[] {
   return createGameboardLayoutFillPlacements(projectWorldForLayout(world), options).map((placement) =>
     spawnGameboardPlacement(world, placement)
@@ -1427,6 +1711,10 @@ function configuredAssetIds(rule: GameboardLayoutFillRule): string[] {
   return rule.assetId ? [rule.assetId] : [];
 }
 
+/**
+ * Return a copied plan with generated layout placements appended as concrete
+ * placement specs.
+ */
 export function appendGameboardLayoutPlacementsToPlan(
   plan: GameboardPlan,
   placements: readonly SpawnGameboardPlacementOptions[]

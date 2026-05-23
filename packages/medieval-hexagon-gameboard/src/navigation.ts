@@ -19,200 +19,395 @@ import {
 } from './occupancy';
 import type { HexCoordinates } from './types';
 
+/**
+ * Pathfinding profile for terrain, elevation, occupancy, and custom movement rules.
+ */
 export interface GameboardNavigationProfile {
+  /** Terrain values the profile may enter. Undefined means all except blocked terrain. */
   allowedTerrain?: readonly GameboardTerrain[];
+  /** Terrain values the profile may not enter. */
   blockedTerrain?: readonly GameboardTerrain[];
+  /** Additional movement costs by terrain value. */
   terrainCosts?: Readonly<Record<string, number>>;
+  /** Placement kinds that block movement. */
   blockingPlacementKinds?: readonly GameboardPlacementKind[];
+  /** Placement layers that block movement. */
   blockingPlacementLayers?: readonly GameboardPlacementLayer[];
+  /** Placement ids ignored by occupancy checks. */
   ignorePlacementIds?: readonly string[];
+  /** Maximum allowed elevation change between adjacent tiles. */
   maxElevationStep?: number;
+  /** Whether the start tile may be blocked. */
   allowStartBlocked?: boolean;
+  /** Whether the goal tile may be blocked. */
   allowGoalBlocked?: boolean;
+  /** Optional custom tile-entry predicate. */
   canEnter?: (tile: GameboardTileSpec, context: GameboardNavigationContext) => boolean;
+  /** Optional custom movement-cost function. */
   cost?: (from: GameboardTileSpec, to: GameboardTileSpec, baseCost: number) => number;
 }
 
+/**
+ * Context passed to custom navigation profile hooks.
+ */
 export interface GameboardNavigationContext {
+  /** Board plan being navigated. */
   plan: GameboardPlan;
+  /** Source tile for this movement step, when known. */
   from?: GameboardTileSpec;
+  /** Destination tile being evaluated. */
   to: GameboardTileSpec;
+  /** Placements occupying the destination tile. */
   placements: readonly GameboardPlacementSpec[];
 }
 
+/**
+ * Occupancy index used by navigation and spawn planning.
+ */
 export interface GameboardOccupancyIndex {
+  /** Placements grouped by occupied tile key. */
   byTileKey: ReadonlyMap<string, readonly GameboardPlacementSpec[]>;
+  /** Tile keys occupied by any placement footprint. */
   occupiedTileKeys: ReadonlySet<string>;
+  /** Tile keys occupied by blocking placement footprints. */
   blockingTileKeys: ReadonlySet<string>;
 }
 
+/**
+ * Reusable navigation facade for one plan/profile pair.
+ */
 export interface GameboardNavigation {
+  /** Board plan being navigated. */
   plan: GameboardPlan;
+  /** Normalized required navigation profile. */
   profile: RequiredGameboardNavigationProfile;
+  /** Tile lookup by tile key. */
   tilesByKey: ReadonlyMap<string, GameboardTileSpec>;
+  /** Occupancy lookup for the plan/profile pair. */
   occupancy: GameboardOccupancyIndex;
+  /** Resolve a tile from coordinates or tile key. */
   tileAt: (coordinates: HexCoordinates | string) => GameboardTileSpec | undefined;
+  /** Read placements occupying a tile. */
   placementsAt: (coordinates: HexCoordinates | string) => readonly GameboardPlacementSpec[];
+  /** Return whether a tile key or coordinates are blocked. */
   isBlocked: (coordinates: HexCoordinates | string) => boolean;
+  /** Return whether a tile can be entered from an optional source tile. */
   canEnter: (coordinates: HexCoordinates | string, from?: HexCoordinates | string) => boolean;
+  /** Calculate movement cost between adjacent tiles. */
   movementCost: (from: HexCoordinates | string, to: HexCoordinates | string) => number;
+  /** Return neighboring tiles inside the board. */
   neighbors: (coordinates: HexCoordinates | string) => GameboardTileSpec[];
+  /** Find a path between two tiles. */
   findPath: (start: HexCoordinates | string, goal: HexCoordinates | string) => GameboardNavigationPathResult;
+  /** Return tiles reachable from a start tile within a movement budget. */
   reachable: (start: HexCoordinates | string, movementBudget: number) => GameboardReachableTile[];
 }
 
+/**
+ * Fully normalized navigation profile used internally and exposed for debugging.
+ */
 export interface RequiredGameboardNavigationProfile {
+  /** Terrain values the profile may enter. Undefined means all except blocked terrain. */
   allowedTerrain?: readonly GameboardTerrain[];
+  /** Terrain values the profile may not enter. */
   blockedTerrain: readonly GameboardTerrain[];
+  /** Additional movement costs by terrain value. */
   terrainCosts: Readonly<Record<string, number>>;
+  /** Placement kinds that block movement. */
   blockingPlacementKinds: readonly GameboardPlacementKind[];
+  /** Placement layers that block movement. */
   blockingPlacementLayers: readonly GameboardPlacementLayer[];
+  /** Placement ids ignored by occupancy checks. */
   ignorePlacementIds: readonly string[];
+  /** Maximum allowed elevation change between adjacent tiles. */
   maxElevationStep: number;
+  /** Whether the start tile may be blocked. */
   allowStartBlocked: boolean;
+  /** Whether the goal tile may be blocked. */
   allowGoalBlocked: boolean;
+  /** Optional custom tile-entry predicate. */
   canEnter?: (tile: GameboardTileSpec, context: GameboardNavigationContext) => boolean;
+  /** Optional custom movement-cost function. */
   cost?: (from: GameboardTileSpec, to: GameboardTileSpec, baseCost: number) => number;
 }
 
+/**
+ * Pathfinding result between two tiles.
+ */
 export interface GameboardNavigationPathResult {
+  /** Whether a route was found. */
   found: boolean;
+  /** Tile specs along the route. */
   path: readonly GameboardTileSpec[];
+  /** Coordinates along the route. */
   coordinates: readonly HexCoordinates[];
+  /** Total route cost. */
   cost: number;
+  /** Number of nodes visited by the pathfinder. */
   visited: number;
 }
 
+/**
+ * Reachable tile and accumulated movement cost.
+ */
 export interface GameboardReachableTile {
+  /** Reachable tile. */
   tile: GameboardTileSpec;
+  /** Reachable tile coordinates. */
   coordinates: HexCoordinates;
+  /** Movement cost from the start tile. */
   cost: number;
 }
 
+/**
+ * Options for selecting spawn locations from a gameboard plan.
+ */
 export interface GameboardSpawnLocationOptions
   extends Omit<SpawnLocationOptions, 'shape' | 'candidates' | 'passable'> {
+  /** Navigation profile used to reject blocked candidates. */
   profile?: GameboardNavigationProfile;
+  /** Allowed terrain for spawn candidates. */
   terrain?: GameboardTerrain | readonly GameboardTerrain[];
+  /** Minimum candidate elevation. */
   minElevation?: number;
+  /** Maximum candidate elevation. */
   maxElevation?: number;
+  /** Tile tags that must all be present. */
   tileTags?: readonly string[];
+  /** Tile tags that must all be absent. */
   excludeTileTags?: readonly string[];
 }
 
+/**
+ * Rule for selecting one spawn group and checking routes to earlier groups.
+ */
 export interface GameboardSpawnGroupRule extends GameboardSpawnLocationOptions {
+  /** Stable spawn group id. */
   id: string;
+  /** Minimum distance from locations selected by previous groups. */
   minDistanceFromGroups?: number;
+  /** Previous group ids that must be path-checked from this group. */
   pathToGroups?: readonly string[];
+  /** Treat missing routes to `pathToGroups` as errors. */
   requirePathToGroups?: boolean;
+  /** Navigation profile used only for route checks. */
   routeProfile?: GameboardNavigationProfile;
 }
 
+/**
+ * Options for selecting several spawn groups in sequence.
+ */
 export interface GameboardSpawnGroupOptions {
+  /** Shared seed for deterministic group selection. */
   seed?: string | number;
+  /** Default navigation profile for group candidates and route checks. */
   profile?: GameboardNavigationProfile;
+  /** Ordered spawn group rules. */
   groups: readonly GameboardSpawnGroupRule[];
 }
 
+/**
+ * Route check between two spawn groups.
+ */
 export interface GameboardSpawnGroupRoute {
+  /** Source group id. */
   fromGroupId: string;
+  /** Target group id. */
   toGroupId: string;
+  /** Whether a route was found. */
   found: boolean;
+  /** Source location tile key. */
   fromKey?: string;
+  /** Target location tile key. */
   toKey?: string;
+  /** Path tile keys for the best route. */
   pathKeys: readonly string[];
+  /** Route cost. */
   cost: number;
+  /** Number of nodes visited by the pathfinder. */
   visited: number;
 }
 
+/**
+ * Selected spawn group with diagnostics.
+ */
 export interface GameboardSpawnGroup {
+  /** Spawn group id. */
   id: string;
+  /** Number of requested locations. */
   requestedCount: number;
+  /** Number of selected locations. */
   selectedCount: number;
+  /** Candidate location count after filtering. */
   candidateCount: number;
+  /** Number of candidates removed by distance-from-group filtering. */
   rejectedByGroupDistanceCount: number;
+  /** Selected spawn locations. */
   locations: readonly SpawnLocation[];
+  /** Route checks requested by this group. */
   routeChecks: readonly GameboardSpawnGroupRoute[];
+  /** Non-fatal group diagnostics. */
   warnings: readonly string[];
+  /** Fatal group diagnostics. */
   errors: readonly string[];
 }
 
+/**
+ * Complete spawn group planning result.
+ */
 export interface GameboardSpawnGroupPlan {
+  /** Seed used by the group planner. */
   seed: string;
+  /** Number of groups planned. */
   groupCount: number;
+  /** Total number of selected locations. */
   selectedLocationCount: number;
+  /** Per-group results. */
   groups: readonly GameboardSpawnGroup[];
+  /** All route checks across groups. */
   routeChecks: readonly GameboardSpawnGroupRoute[];
+  /** All warnings prefixed by group id. */
   warnings: readonly string[];
+  /** All errors prefixed by group id. */
   errors: readonly string[];
 }
 
+/**
+ * Source used to create a patrol waypoint.
+ */
 export type GameboardPatrolWaypointSource = 'explicit-start' | 'spawn-group' | 'generated';
 
+/**
+ * Spawn location promoted to a patrol waypoint.
+ */
 export interface GameboardPatrolWaypoint extends SpawnLocation {
+  /** Waypoint index in route order. */
   index: number;
+  /** Source used to create this waypoint. */
   source: GameboardPatrolWaypointSource;
+  /** Spawn group id when sourced from a group. */
   spawnGroupId?: string;
+  /** Spawn location index when sourced from a group. */
   spawnLocationIndex?: number;
 }
 
+/**
+ * One path segment between patrol waypoints.
+ */
 export interface GameboardPatrolRouteSegment {
+  /** Source waypoint index. */
   fromIndex: number;
+  /** Target waypoint index. */
   toIndex: number;
+  /** Source tile key. */
   fromKey?: string;
+  /** Target tile key. */
   toKey?: string;
+  /** Whether this segment was found. */
   found: boolean;
+  /** Path tile keys for this segment. */
   pathKeys: readonly string[];
+  /** Segment path cost. */
   cost: number;
+  /** Number of nodes visited by the pathfinder. */
   visited: number;
 }
 
+/**
+ * Options for planning one patrol route.
+ */
 export interface GameboardPatrolRouteOptions
   extends Omit<GameboardSpawnLocationOptions, 'count'> {
+  /** Route id. */
   id?: string;
+  /** Requested waypoint count. */
   count?: number;
+  /** Explicit start tile, actor, or key. */
   start?: HexCoordinates | string;
+  /** Spawn group id used for the start waypoint. */
   startGroupId?: string;
+  /** Location index within the start spawn group. */
   startLocationIndex?: number;
+  /** Existing spawn group plan used for start resolution. */
   spawnGroups?: GameboardSpawnGroupPlan;
+  /** Navigation profile used for route segments. */
   routeProfile?: GameboardNavigationProfile;
+  /** Whether the patrol returns to its first waypoint. */
   loop?: boolean;
+  /** Treat missing route segments as errors. */
   requireCompleteRoute?: boolean;
 }
 
+/**
+ * Named patrol route rule for route-set planning.
+ */
 export interface GameboardPatrolRouteRule
   extends Omit<GameboardPatrolRouteOptions, 'spawnGroups'> {
+  /** Stable route id. */
   id: string;
 }
 
+/**
+ * Options for planning several patrol routes.
+ */
 export interface GameboardPatrolRouteSetOptions {
+  /** Shared route-set seed. */
   seed?: string | number;
+  /** Default candidate navigation profile. */
   profile?: GameboardNavigationProfile;
+  /** Default route-segment navigation profile. */
   routeProfile?: GameboardNavigationProfile;
+  /** Spawn group plan used by routes that start from groups. */
   spawnGroups?: GameboardSpawnGroupPlan;
+  /** Route rules to plan. */
   routes: readonly GameboardPatrolRouteRule[];
 }
 
+/**
+ * Planned patrol route with waypoints, segments, and diagnostics.
+ */
 export interface GameboardPatrolRoutePlan {
+  /** Route id. */
   id: string;
+  /** Seed used by this route. */
   seed: string;
+  /** Requested waypoint count. */
   requestedWaypointCount: number;
+  /** Selected waypoint count. */
   selectedWaypointCount: number;
+  /** Whether this route loops to the start. */
   loop: boolean;
+  /** Whether the route satisfies all required segments. */
   found: boolean;
+  /** Total route cost. */
   cost: number;
+  /** Total pathfinder visits across segments. */
   visited: number;
+  /** Waypoints in route order. */
   waypoints: readonly GameboardPatrolWaypoint[];
+  /** Route segments between waypoints. */
   segments: readonly GameboardPatrolRouteSegment[];
+  /** Combined path tile keys. */
   pathKeys: readonly string[];
+  /** Non-fatal route diagnostics. */
   warnings: readonly string[];
+  /** Fatal route diagnostics. */
   errors: readonly string[];
 }
 
+/**
+ * Result for planning a set of patrol routes.
+ */
 export interface GameboardPatrolRouteSet {
+  /** Seed used by the route set. */
   seed: string;
+  /** Number of routes planned. */
   routeCount: number;
+  /** Planned routes. */
   routes: readonly GameboardPatrolRoutePlan[];
+  /** All warnings prefixed by route id. */
   warnings: readonly string[];
+  /** All errors prefixed by route id. */
   errors: readonly string[];
 }
 
@@ -227,6 +422,9 @@ const DEFAULT_NAVIGATION_PROFILE = {
   allowGoalBlocked: false,
 } satisfies RequiredGameboardNavigationProfile;
 
+/**
+ * Build an occupancy index for a plan under a navigation profile.
+ */
 export function createGameboardOccupancyIndex(
   plan: GameboardPlan,
   profile: GameboardNavigationProfile = {}
@@ -257,6 +455,10 @@ export function createGameboardOccupancyIndex(
   };
 }
 
+/**
+ * Create a reusable navigation facade for pathfinding, reachability, and tile
+ * occupancy queries.
+ */
 export function createGameboardNavigation(
   plan: GameboardPlan,
   profile: GameboardNavigationProfile = {}
@@ -293,6 +495,9 @@ export function createGameboardNavigation(
   };
 }
 
+/**
+ * Find the lowest-cost path between two tiles under a navigation profile.
+ */
 export function findGameboardPath(
   plan: GameboardPlan,
   start: HexCoordinates | string,
@@ -339,6 +544,9 @@ export function findGameboardPath(
   };
 }
 
+/**
+ * Return all tiles reachable from a start tile within a movement budget.
+ */
 export function reachableGameboardTiles(
   plan: GameboardPlan,
   start: HexCoordinates | string,
@@ -396,6 +604,9 @@ export function reachableGameboardTiles(
     .sort((left, right) => left.cost - right.cost || left.tile.coordinates.r - right.tile.coordinates.r || left.tile.coordinates.q - right.tile.coordinates.q);
 }
 
+/**
+ * Select deterministic spawn locations from passable plan tiles.
+ */
 export function selectGameboardSpawnLocations(
   plan: GameboardPlan,
   options: GameboardSpawnLocationOptions
@@ -409,6 +620,10 @@ export function selectGameboardSpawnLocations(
   });
 }
 
+/**
+ * Plan multiple spawn groups in order, with optional inter-group distance and
+ * route checks.
+ */
 export function planGameboardSpawnGroups(
   plan: GameboardPlan,
   options: GameboardSpawnGroupOptions
@@ -503,6 +718,10 @@ export function planGameboardSpawnGroups(
   };
 }
 
+/**
+ * Plan one patrol route from an explicit start, a spawn-group start, or generated
+ * waypoints.
+ */
 export function planGameboardPatrolRoute(
   plan: GameboardPlan,
   options: GameboardPatrolRouteOptions
@@ -584,6 +803,10 @@ export function planGameboardPatrolRoute(
   };
 }
 
+/**
+ * Plan a set of named patrol routes with shared spawn group and navigation
+ * defaults.
+ */
 export function planGameboardPatrolRoutes(
   plan: GameboardPlan,
   options: GameboardPatrolRouteSetOptions

@@ -41,6 +41,9 @@ import { gameboardPlacementBlocksOccupancy } from './occupancy';
 import { projectWorldToGameboardPlan } from './projection';
 import type { HexCoordinates } from './types';
 
+/**
+ * Actor role used by collision, targeting, commands, and SimpleRPG fixtures.
+ */
 export type GameboardActorKind =
   | 'player'
   | 'npc'
@@ -49,72 +52,147 @@ export type GameboardActorKind =
   | 'unit'
   | 'neutral'
   | (string & {});
+
+/**
+ * Serializable actor metadata value mirrored into Koota state.
+ */
 export type GameboardActorMetadataValue = string | number | boolean | null;
 
+/**
+ * Options for attaching gameplay actor state to an existing placement.
+ */
 export interface GameboardActorRegistrationOptions {
+  /** Stable gameplay actor id. */
   actorId: string;
+  /** Gameplay actor kind. Defaults from placement kind. */
   actorKind?: GameboardActorKind;
+  /** Optional faction identifier. */
   faction?: string | null;
+  /** Optional team identifier. Defaults to faction when omitted. */
   team?: string | null;
+  /** Whether this actor is generally hostile. */
   hostile?: boolean;
+  /** Whether this actor blocks actor movement. */
   blocksMovement?: boolean;
+  /** Whether this actor should be considered an interaction target. */
   interactive?: boolean;
+  /** Free-form actor tags used by selectors and quests. */
   tags?: readonly string[];
+  /** Serializable actor metadata independent from placement metadata. */
   actorMetadata?: Readonly<Record<string, GameboardActorMetadataValue>>;
 }
 
+/**
+ * Options for updating gameplay actor state while preserving omitted fields.
+ */
 export interface UpdateGameboardActorOptions {
+  /** Replacement gameplay actor id. */
   actorId?: string;
+  /** Replacement gameplay actor kind. */
   actorKind?: GameboardActorKind;
+  /** Replacement faction identifier. */
   faction?: string | null;
+  /** Replacement team identifier. */
   team?: string | null;
+  /** Replacement hostility flag. */
   hostile?: boolean;
+  /** Replacement movement-blocking flag. */
   blocksMovement?: boolean;
+  /** Replacement interaction-target flag. */
   interactive?: boolean;
+  /** Replacement actor tags. */
   tags?: readonly string[];
+  /** Replacement serializable actor metadata. */
   actorMetadata?: Readonly<Record<string, GameboardActorMetadataValue>>;
 }
 
+/**
+ * Options for spawning a placement and registering it as an actor in one call.
+ */
 export interface SpawnGameboardActorOptions
   extends SpawnGameboardPlacementOptions,
     GameboardActorRegistrationOptions {}
 
+/**
+ * Placement update options accepted while moving an actor.
+ */
 export type MoveGameboardActorOptions = Omit<UpdateGameboardPlacementOptions, 'at'>;
 
+/**
+ * Joined runtime snapshot for an actor entity and its placement.
+ */
 export interface GameboardActorSnapshot {
+  /** Live Koota entity. */
   entity: Entity;
+  /** Actor trait value. */
   actor: GameboardActorValue;
+  /** Placement trait value associated with the actor. */
   placement: PlacementStateValue;
 }
 
+/**
+ * Collision policy used by actor movement, navigation, and targeting helpers.
+ */
 export interface GameboardActorCollisionProfile {
+  /** Placement kinds that should block actor movement. */
   blockingPlacementKinds?: readonly GameboardPlacementKind[];
+  /** Placement layers that should block actor movement. */
   blockingPlacementLayers?: readonly GameboardPlacementLayer[];
+  /** Placement ids ignored during collision checks. */
   ignorePlacementIds?: readonly string[];
+  /** Treat hostile actors as movement blockers. */
   treatHostileAsBlocking?: boolean;
+  /** Treat interactive actors as movement blockers. */
   treatInteractiveAsBlocking?: boolean;
+  /** Treat prop actors as movement blockers. */
   treatPropsAsBlocking?: boolean;
 }
 
+/**
+ * Collision inspection result for one actor attempting to enter one tile.
+ */
 export interface GameboardActorCollisionReport {
+  /** Source actor being tested, when provided. */
   source?: GameboardActorSnapshot;
+  /** Target tile key that was inspected. */
   targetTileKey: string;
+  /** Placements found on the target tile after ignored ids are removed. */
   placements: readonly PlacementStateValue[];
+  /** Actor placements found on the target tile. */
   actorPlacements: readonly GameboardActorSnapshot[];
+  /** Placements that block movement under the active collision profile. */
   blockingPlacements: readonly PlacementStateValue[];
+  /** Hostile actors on the target tile. */
   hostileActors: readonly GameboardActorSnapshot[];
+  /** Interactive actors on the target tile. */
   interactiveActors: readonly GameboardActorSnapshot[];
+  /** Prop actors on the target tile. */
   propActors: readonly GameboardActorSnapshot[];
+  /** Whether the source actor can enter the target tile. */
   canEnter: boolean;
+  /** Blocked reason when `canEnter` is false. */
   reason?: string;
 }
 
+/**
+ * Actor-aware navigation options layered on top of a navigation profile.
+ */
 export interface GameboardActorNavigationOptions extends GameboardActorCollisionProfile {
+  /** Base navigation profile to extend with actor collision behavior. */
   baseProfile?: GameboardNavigationProfile;
 }
 
+/**
+ * Kind of target resolved from a click, tile coordinate, actor id, or placement id.
+ */
 export type GameboardInteractionTargetKind = 'actor' | 'placement' | 'tile' | 'empty';
+/**
+ * High-level intent inferred from an interaction target.
+ */
 export type GameboardInteractionIntent = 'move' | 'interact' | 'attack' | 'inspect';
+/**
+ * Concrete command kind produced from an interaction target.
+ */
 export type GameboardInteractionCommandKind =
   | 'move'
   | 'interact-actor'
@@ -125,273 +203,505 @@ export type GameboardInteractionCommandKind =
   | 'inspect-tile'
   | 'none';
 
+/**
+ * Input accepted by interaction helpers when resolving a target.
+ */
 export type GameboardInteractionTargetInput =
   | string
   | HexCoordinates
   | {
+      /** Placement id to resolve directly. */
       placementId?: string;
+      /** Actor id to resolve directly. */
       actorId?: string;
+      /** Tile key to resolve directly. */
       tileKey?: string;
+      /** Axial coordinates or tile key to resolve as a tile. */
       coordinates?: HexCoordinates | string;
     };
 
+/**
+ * Options for inspecting an interaction target.
+ */
 export interface GameboardInteractionTargetOptions extends GameboardActorCollisionProfile {
+  /** Source actor used for hostility and collision interpretation. */
   sourceActor?: Entity | string;
 }
 
+/**
+ * Resolved interaction target plus nearby placement, actor, and collision data.
+ */
 export interface GameboardInteractionTargetReport {
+  /** Resolved target kind. */
   kind: GameboardInteractionTargetKind;
+  /** Inferred interaction intent. */
   intent: GameboardInteractionIntent;
+  /** Resolved tile key, when any target is on a tile. */
   tileKey?: string;
+  /** Resolved placement target. */
   placement?: PlacementStateValue;
+  /** Resolved actor target. */
   actor?: GameboardActorSnapshot;
+  /** Placements on the resolved tile. */
   placements: readonly PlacementStateValue[];
+  /** Actors on the resolved tile. */
   actors: readonly GameboardActorSnapshot[];
+  /** Actor collision report for the resolved tile. */
   collision?: GameboardActorCollisionReport;
+  /** Whether the source actor can enter the resolved tile. */
   canEnter: boolean;
 }
 
+/**
+ * Options for inspecting one board tile from an actor/gameplay perspective.
+ */
 export interface GameboardTileInspectionOptions extends GameboardActorCollisionProfile {
+  /** Source actor used for collision interpretation. */
   sourceActor?: Entity | string;
 }
 
+/**
+ * Actor-aware tile inspection result for UI, AI, quests, and tests.
+ */
 export interface GameboardTileInspection {
+  /** Whether the tile exists in the board. */
   exists: boolean;
+  /** Inspected tile key. */
   tileKey: string;
+  /** Tile trait value, when the tile exists. */
   tile?: HexTileStateValue;
+  /** Axial coordinates, when the tile exists. */
   coordinates?: HexCoordinates;
+  /** Tile terrain, when the tile exists. */
   terrain?: GameboardTileSpec['terrain'];
+  /** Tile elevation, when the tile exists. */
   elevation?: number;
+  /** Tile tags, or an empty list for missing tiles. */
   tags: readonly string[];
+  /** Placements occupying the tile. */
   placements: readonly PlacementStateValue[];
+  /** Occupancy relation records for the tile. */
   occupancy: readonly PlacementOccupancySnapshot[];
+  /** Actor placements on the tile. */
   actors: readonly GameboardActorSnapshot[];
+  /** Hostile actors on the tile. */
   hostileActors: readonly GameboardActorSnapshot[];
+  /** Interactive actors on the tile. */
   interactiveActors: readonly GameboardActorSnapshot[];
+  /** Prop actors on the tile. */
   propActors: readonly GameboardActorSnapshot[];
+  /** Placements that block movement onto the tile. */
   blockingPlacements: readonly PlacementStateValue[];
+  /** Full collision report for the tile. */
   collision: GameboardActorCollisionReport;
+  /** Whether the tile exists and can be entered. */
   canEnter: boolean;
+  /** Whether no placements occupy the tile. */
   isEmpty: boolean;
+  /** Whether any actors occupy the tile. */
   hasActors: boolean;
+  /** Whether any hostile actors occupy the tile. */
   hasHostiles: boolean;
+  /** Whether any interactive actors occupy the tile. */
   hasInteractive: boolean;
+  /** Whether any prop actors occupy the tile. */
   hasProps: boolean;
+  /** Missing or blocked reason. */
   reason?: string;
 }
 
+/**
+ * Input accepted when resolving the center of a neighborhood inspection.
+ */
 export type GameboardNeighborhoodCenter = HexCoordinates | string | Entity;
 
+/**
+ * Filters and options for actor-aware neighborhood inspection.
+ */
 export interface GameboardNeighborhoodInspectionOptions
   extends GameboardTileInspectionOptions {
+  /** Hex radius around the center. Defaults to `1`. */
   radius?: number;
+  /** Include the center tile in results. Defaults to true. */
   includeCenter?: boolean;
+  /** Include missing tiles in results. Defaults to false. */
   includeMissing?: boolean;
+  /** Required terrain or accepted terrains. */
   terrain?: GameboardTileSpec['terrain'] | readonly GameboardTileSpec['terrain'][];
+  /** Required tile tags. */
   tileTags?: readonly string[];
+  /** Tile tags that must be absent. */
   excludeTileTags?: readonly string[];
+  /** Filter by enterable state. */
   canEnter?: boolean;
+  /** Filter by actor presence. */
   hasActors?: boolean;
+  /** Filter by hostile actor presence. */
   hasHostiles?: boolean;
+  /** Filter by interactive actor presence. */
   hasInteractive?: boolean;
+  /** Filter by prop actor presence. */
   hasProps?: boolean;
 }
 
+/**
+ * Tile inspection with distance from the inspected neighborhood center.
+ */
 export interface GameboardNeighborhoodTileInspection extends GameboardTileInspection {
+  /** Hex distance from the neighborhood center. */
   distance: number;
 }
 
+/**
+ * Actor-aware inspection for a ring or radius around a center tile.
+ */
 export interface GameboardNeighborhoodInspection {
+  /** Resolved center coordinates. */
   center: HexCoordinates;
+  /** Resolved center tile key. */
   centerKey: string;
+  /** Normalized inspection radius. */
   radius: number;
+  /** Matching tile inspections sorted by distance and tile key. */
   tiles: readonly GameboardNeighborhoodTileInspection[];
+  /** Unique actors found in matching tiles. */
   actors: readonly GameboardActorSnapshot[];
+  /** Unique hostile actors found in matching tiles. */
   hostileActors: readonly GameboardActorSnapshot[];
+  /** Unique interactive actors found in matching tiles. */
   interactiveActors: readonly GameboardActorSnapshot[];
+  /** Unique prop actors found in matching tiles. */
   propActors: readonly GameboardActorSnapshot[];
+  /** Tile keys that can be entered. */
   enterableTileKeys: readonly string[];
+  /** Tile keys with gameplay occupancy. */
   occupiedTileKeys: readonly string[];
+  /** Tile keys with blocking placements. */
   blockingTileKeys: readonly string[];
 }
 
+/**
+ * Sort modes for actor selection results.
+ */
 export type GameboardActorSelectionSort = 'actorId' | 'distance' | 'tileKey';
 
+/**
+ * Filter options for selecting actors from the world.
+ */
 export interface GameboardActorSelectionOptions {
+  /** Actor id or ids to include. */
   actorIds?: string | readonly string[];
+  /** Placement id or ids to include. */
   placementIds?: string | readonly string[];
+  /** Actor kind or kinds to include. */
   kinds?: GameboardActorKind | readonly GameboardActorKind[];
+  /** Team id or ids to include. */
   teams?: string | readonly string[];
+  /** Faction id or ids to include. */
   factions?: string | readonly string[];
+  /** Actor tags that must all be present. */
   tags?: readonly string[];
+  /** Actor tags that must all be absent. */
   excludeTags?: readonly string[];
+  /** Tile key or keys to include. */
   tileKeys?: string | readonly string[];
+  /** Optional center used by radius filtering and distance sorting. */
   center?: GameboardNeighborhoodCenter;
+  /** Maximum hex distance from `center` or `sourceActor`. */
   radius?: number;
+  /** Source actor used for hostility and default center resolution. */
   sourceActor?: Entity | string;
+  /** Include the source actor in results. Defaults to true. */
   includeSource?: boolean;
+  /** Filter by actor hostile flag. */
   hostile?: boolean;
+  /** Filter by actor interactive flag. */
   interactive?: boolean;
+  /** Filter by actor movement-blocking flag. */
   blocksMovement?: boolean;
+  /** Filter by hostility relative to `sourceActor`. */
   hostileToSource?: boolean;
+  /** Sort mode for selected actors. */
   sort?: GameboardActorSelectionSort;
 }
 
+/**
+ * Aggregated actor selection result for gameplay systems and UIs.
+ */
 export interface GameboardActorSelection {
+  /** Matching actor snapshots. */
   actors: readonly GameboardActorSnapshot[];
+  /** Serializable records for matching actors. */
   records: readonly GameboardActorSelectionRecord[];
+  /** Number of matching actors. */
   count: number;
+  /** Matching actor ids. */
   actorIds: readonly string[];
+  /** Matching placement ids. */
   placementIds: readonly string[];
+  /** Unique tile keys occupied by matching actors. */
   tileKeys: readonly string[];
+  /** Matching actors grouped by tile key. */
   byTileKey: Readonly<Record<string, readonly GameboardActorSnapshot[]>>;
+  /** Matching records grouped by tile key. */
   recordsByTileKey: Readonly<Record<string, readonly GameboardActorSelectionRecord[]>>;
+  /** Matching actors hostile to the source or generally hostile. */
   hostileActors: readonly GameboardActorSnapshot[];
+  /** Matching interactive actors. */
   interactiveActors: readonly GameboardActorSnapshot[];
+  /** Matching prop actors. */
   propActors: readonly GameboardActorSnapshot[];
+  /** Source actor used for the selection. */
   source?: GameboardActorSnapshot;
+  /** Resolved center coordinates used for radius and distance. */
   center?: HexCoordinates;
+  /** Resolved center tile key. */
   centerKey?: string;
+  /** Normalized radius used for filtering. */
   radius?: number;
 }
 
+/**
+ * Serializable actor selection row for logs, tests, UIs, and quests.
+ */
 export interface GameboardActorSelectionRecord {
+  /** Actor id. */
   actorId: string;
+  /** Placement id associated with the actor. */
   placementId: string;
+  /** Actor kind. */
   kind: GameboardActorKind;
+  /** Actor faction id. */
   faction?: string;
+  /** Actor team id. */
   team?: string;
+  /** Whether the actor is generally hostile. */
   hostile: boolean;
+  /** Whether this actor is hostile to the selection source. */
   hostileToSource?: boolean;
+  /** Whether the actor blocks movement. */
   blocksMovement: boolean;
+  /** Whether the actor is an interaction target. */
   interactive: boolean;
+  /** Actor tags. */
   tags: readonly string[];
+  /** Actor metadata. */
   metadata: Readonly<Record<string, GameboardActorMetadataValue>>;
+  /** Occupied tile key. */
   tileKey: string;
+  /** Occupied tile coordinates. */
   coordinates: HexCoordinates;
+  /** Distance from the selection center, when available. */
   distance?: number;
+  /** Placement asset id. */
   assetId: string;
+  /** Underlying placement kind. */
   placementKind: GameboardPlacementKind;
+  /** Underlying placement layer. */
   layer: GameboardPlacementLayer;
+  /** Whether the placement requires local-only EXTRA assets. */
   requiresExtra: boolean;
 }
 
+/**
+ * Strategy used when pathing to a target actor.
+ */
 export type GameboardActorTargetApproach = 'target-tile' | 'adjacent' | 'nearest';
+/**
+ * Sort modes for target reports.
+ */
 export type GameboardActorTargetSort = 'pathCost' | 'distance' | 'actorId' | 'tileKey';
 
+/**
+ * Options for selecting and pathing to potential actor targets.
+ */
 export interface GameboardActorTargetingOptions
   extends Omit<GameboardActorSelectionOptions, 'sourceActor' | 'sort'> {
+  /** Source actor that will path toward selected targets. */
   sourceActor: Entity | string;
+  /** Actor-aware navigation options. */
   navigation?: GameboardActorNavigationOptions;
+  /** Target approach strategy. Defaults to `nearest`. */
   approach?: GameboardActorTargetApproach;
+  /** Maximum accepted path cost. */
   maxPathCost?: number;
+  /** Include unreachable targets in results. Defaults to true. */
   includeUnreachable?: boolean;
+  /** Target result sort mode. */
   sort?: GameboardActorTargetSort;
 }
 
+/**
+ * One selected target plus its planned command and path result.
+ */
 export interface GameboardActorTarget {
+  /** Target actor snapshot. */
   actor: GameboardActorSnapshot;
+  /** Serializable target actor record. */
   record: GameboardActorSelectionRecord;
+  /** Planned interaction command for the target. */
   command: GameboardInteractionCommand;
+  /** Path to the selected approach tile. */
   path: GameboardNavigationPathResult;
+  /** Approach mode actually used for this target. */
   approach: GameboardActorTargetApproach | 'self' | 'none';
+  /** Tile key approached by the path. */
   approachTileKey?: string;
+  /** Whether the target is reachable under the active profile. */
   reachable: boolean;
+  /** Unreachable reason. */
   reason?: string;
 }
 
+/**
+ * Targeting report for one source actor.
+ */
 export interface GameboardActorTargetingReport {
+  /** Source actor, when it exists. */
   source?: GameboardActorSnapshot;
+  /** Actor selection used as the target candidate set. */
   selection: GameboardActorSelection;
+  /** All targets after reachability filtering. */
   targets: readonly GameboardActorTarget[];
+  /** Reachable targets only. */
   reachableTargets: readonly GameboardActorTarget[];
+  /** Actor ids represented by `targets`. */
   targetActorIds: readonly string[];
+  /** Actor ids represented by `reachableTargets`. */
   reachableActorIds: readonly string[];
+  /** First reachable target, or first target when none are reachable. */
   nearestTarget?: GameboardActorTarget;
+  /** Failure reason when targeting could not be evaluated. */
   reason?: string;
 }
 
+/**
+ * Options for planning an interaction command from a resolved target.
+ */
 export interface GameboardInteractionCommandOptions extends GameboardInteractionTargetOptions {
+  /** Require a source actor before move commands can execute. */
   requireSourceActorForMove?: boolean;
+  /** Require a source actor before attack commands can execute. */
   requireSourceActorForAttack?: boolean;
+  /** Require a source actor before interaction commands can execute. */
   requireSourceActorForInteraction?: boolean;
 }
 
+/**
+ * Planned high-level interaction command.
+ */
 export interface GameboardInteractionCommand {
+  /** Concrete command kind. */
   kind: GameboardInteractionCommandKind;
+  /** High-level intent that produced the command. */
   intent: GameboardInteractionIntent;
+  /** Target report used to plan the command. */
   target: GameboardInteractionTargetReport;
+  /** Optional source actor. */
   source?: GameboardActorSnapshot;
+  /** Target tile key, when available. */
   tileKey?: string;
+  /** Target placement id, when available. */
   placementId?: string;
+  /** Target actor id, when available. */
   actorId?: string;
+  /** Whether this command can execute without additional target resolution. */
   canExecute: boolean;
+  /** Failure reason when `canExecute` is false. */
   reason?: string;
 }
 
+/**
+ * Actor trait attached to placement entities that participate in gameplay.
+ */
 export const GameboardActor = trait({
+  /** Stable gameplay actor id. */
   actorId: '',
+  /** Actor role used by collision, targeting, commands, and fixtures. */
   kind: 'neutral' as GameboardActorKind,
+  /** Optional faction identifier. */
   faction: undefined as string | undefined,
+  /** Optional team identifier. */
   team: undefined as string | undefined,
+  /** Whether this actor is generally hostile. */
   hostile: false,
+  /** Whether this actor blocks movement. */
   blocksMovement: false,
+  /** Whether this actor should be treated as an interaction target. */
   interactive: false,
+  /** Free-form actor tags. */
   tags: () => [] as string[],
+  /** Serializable actor metadata. */
   metadata: () => ({}) as Record<string, GameboardActorMetadataValue>,
 });
 
+/** Marker trait for all gameplay actors. */
 export const IsGameboardActor = trait();
+/** Marker trait for player actors. */
 export const IsPlayerActor = trait();
+/** Marker trait for NPC actors. */
 export const IsNpcActor = trait();
+/** Marker trait for enemy actors. */
 export const IsEnemyActor = trait();
+/** Marker trait for prop actors. */
 export const IsPropActor = trait();
+/** Marker trait for hostile actors. */
 export const IsHostileActor = trait();
+/** Marker trait for interactive actors. */
 export const IsInteractiveActor = trait();
+/** Marker trait for movement-blocking actors. */
 export const IsBlockingActor = trait();
 
+/** Query for every gameplay actor placement. */
 export const GameboardActorQuery = createQuery(
   IsGameboardPlacement,
   PlacementState,
   IsGameboardActor,
   GameboardActor
 );
+/** Query for player actor placements. */
 export const PlayerActorQuery = createQuery(
   IsGameboardPlacement,
   PlacementState,
   IsPlayerActor,
   GameboardActor
 );
+/** Query for NPC actor placements. */
 export const NpcActorQuery = createQuery(
   IsGameboardPlacement,
   PlacementState,
   IsNpcActor,
   GameboardActor
 );
+/** Query for enemy actor placements. */
 export const EnemyActorQuery = createQuery(
   IsGameboardPlacement,
   PlacementState,
   IsEnemyActor,
   GameboardActor
 );
+/** Query for prop actor placements. */
 export const PropActorQuery = createQuery(
   IsGameboardPlacement,
   PlacementState,
   IsPropActor,
   GameboardActor
 );
+/** Query for hostile actor placements. */
 export const HostileActorQuery = createQuery(
   IsGameboardPlacement,
   PlacementState,
   IsHostileActor,
   GameboardActor
 );
+/** Query for interactive actor placements. */
 export const InteractiveActorQuery = createQuery(
   IsGameboardPlacement,
   PlacementState,
   IsInteractiveActor,
   GameboardActor
 );
+/** Query for movement-blocking actor placements. */
 export const BlockingActorQuery = createQuery(
   IsGameboardPlacement,
   PlacementState,
@@ -399,6 +709,7 @@ export const BlockingActorQuery = createQuery(
   GameboardActor
 );
 
+/** Actor trait value returned by `GameboardActor`. */
 export type GameboardActorValue = TraitRecord<typeof GameboardActor>;
 
 const DEFAULT_COLLISION_PROFILE = {
@@ -410,43 +721,63 @@ const DEFAULT_COLLISION_PROFILE = {
   treatPropsAsBlocking: false,
 } satisfies Required<GameboardActorCollisionProfile>;
 
+/**
+ * Koota action bundle for actor spawning, registration, selection, inspection,
+ * targeting, and command planning.
+ */
 export const gameboardActorActions = createActions((world) => ({
+  /** Spawn a placement and register it as an actor. */
   spawn: (options: SpawnGameboardActorOptions) => spawnGameboardActor(world, options),
+  /** Register an existing placement as an actor. */
   register: (placement: Entity | string, options: GameboardActorRegistrationOptions) =>
     registerGameboardActor(world, placement, options),
+  /** Update actor trait state while preserving omitted fields. */
   update: (actor: Entity | string, options: UpdateGameboardActorOptions) =>
     updateGameboardActor(world, actor, options),
+  /** Move an actor to another tile. */
   move: (
     actor: Entity | string,
     to: HexCoordinates | string,
     options: MoveGameboardActorOptions = {}
   ) => moveGameboardActor(world, actor, to, options),
+  /** Read all registered actors. */
   read: () => readGameboardActors(world),
+  /** Inspect whether an actor can enter a target tile. */
   collision: (
     actor: Entity | string | undefined,
     target: HexCoordinates | string,
     profile: GameboardActorCollisionProfile = {}
   ) => inspectGameboardActorCollision(world, actor, target, profile),
+  /** Create an actor-aware navigation profile. */
   navigationProfile: (actor: Entity | string, options: GameboardActorNavigationOptions = {}) =>
     createGameboardActorNavigationProfile(world, actor, options),
+  /** Resolve and inspect an interaction target. */
   interaction: (
     target: GameboardInteractionTargetInput,
     options: GameboardInteractionTargetOptions = {}
   ) => inspectGameboardInteractionTarget(world, target, options),
+  /** Inspect one tile from an actor/gameplay perspective. */
   tile: (coordinates: HexCoordinates | string, options: GameboardTileInspectionOptions = {}) =>
     inspectGameboardTile(world, coordinates, options),
+  /** Inspect a radius of tiles around a center. */
   neighborhood: (
     center: GameboardNeighborhoodCenter,
     options: GameboardNeighborhoodInspectionOptions = {}
   ) => inspectGameboardNeighborhood(world, center, options),
+  /** Select actors with optional faction, team, tag, radius, and hostility filters. */
   select: (options: GameboardActorSelectionOptions = {}) => selectGameboardActors(world, options),
+  /** Select and path to candidate actor targets. */
   targets: (options: GameboardActorTargetingOptions) => inspectGameboardActorTargets(world, options),
+  /** Plan a high-level interaction command from a target input. */
   command: (
     target: GameboardInteractionTargetInput,
     options: GameboardInteractionCommandOptions = {}
   ) => planGameboardInteractionCommand(world, target, options),
 }));
 
+/**
+ * Spawn a placement and immediately register it as a gameplay actor.
+ */
 export function spawnGameboardActor(world: World, options: SpawnGameboardActorOptions): Entity {
   const actorKind = options.actorKind ?? inferActorKindFromPlacementKind(options.kind);
   const placementMetadata = {
@@ -486,6 +817,9 @@ export function spawnGameboardActor(world: World, options: SpawnGameboardActorOp
   });
 }
 
+/**
+ * Attach actor state to an existing placement entity or placement id.
+ */
 export function registerGameboardActor(
   world: World,
   placement: Entity | string,
@@ -499,6 +833,10 @@ export function registerGameboardActor(
   return entity;
 }
 
+/**
+ * Update actor state while keeping omitted fields stable and mirroring actor
+ * metadata back onto the placement metadata.
+ */
 export function updateGameboardActor(
   world: World,
   actor: Entity | string,
@@ -526,6 +864,9 @@ export function updateGameboardActor(
   return entity;
 }
 
+/**
+ * Move an actor to a new tile by delegating to placement movement.
+ */
 export function moveGameboardActor(
   world: World,
   actor: Entity | string,
@@ -535,6 +876,9 @@ export function moveGameboardActor(
   return moveGameboardPlacement(world, requireActorEntity(world, actor), to, options);
 }
 
+/**
+ * Find an actor entity by entity reference, placement id, or actor id.
+ */
 export function findGameboardActorEntity(
   world: World,
   actorOrPlacement: Entity | string
@@ -551,6 +895,9 @@ export function findGameboardActorEntity(
     .find((entity) => entity.get(GameboardActor)?.actorId === actorOrPlacement);
 }
 
+/**
+ * Read one actor snapshot by entity reference, placement id, or actor id.
+ */
 export function findGameboardActor(
   world: World,
   actorOrPlacement: Entity | string
@@ -559,6 +906,9 @@ export function findGameboardActor(
   return entity ? snapshotForActorEntity(entity) : undefined;
 }
 
+/**
+ * Read all registered actor snapshots sorted by actor id.
+ */
 export function readGameboardActors(world: World): GameboardActorSnapshot[] {
   return world
     .query(GameboardActorQuery)
@@ -566,6 +916,10 @@ export function readGameboardActors(world: World): GameboardActorSnapshot[] {
     .sort((left, right) => left.actor.actorId.localeCompare(right.actor.actorId));
 }
 
+/**
+ * Select actors by id, kind, faction, team, tags, tile, radius, hostility, and
+ * interaction flags.
+ */
 export function selectGameboardActors(
   world: World,
   options: GameboardActorSelectionOptions = {}
@@ -603,6 +957,10 @@ export function selectGameboardActors(
   };
 }
 
+/**
+ * Select candidate target actors for a source actor and evaluate reachability
+ * using actor-aware navigation.
+ */
 export function inspectGameboardActorTargets(
   world: World,
   options: GameboardActorTargetingOptions
@@ -657,6 +1015,9 @@ export function inspectGameboardActorTargets(
   };
 }
 
+/**
+ * Read actor snapshots whose origin tile matches the provided coordinates or key.
+ */
 export function readGameboardActorsForTile(
   world: World,
   coordinates: HexCoordinates | string
@@ -665,6 +1026,9 @@ export function readGameboardActorsForTile(
   return readGameboardActors(world).filter((snapshot) => snapshot.placement.tileKey === key);
 }
 
+/**
+ * Return the gameplay actor kind for an actor or placement, when registered.
+ */
 export function classifyGameboardPlacement(
   world: World,
   actorOrPlacement: Entity | string
@@ -672,6 +1036,9 @@ export function classifyGameboardPlacement(
   return findGameboardActor(world, actorOrPlacement)?.actor.kind;
 }
 
+/**
+ * Return whether two actors should be considered hostile to each other.
+ */
 export function areGameboardActorsHostile(
   left: GameboardActorValue | GameboardActorSnapshot | undefined,
   right: GameboardActorValue | GameboardActorSnapshot | undefined
@@ -687,6 +1054,9 @@ export function areGameboardActorsHostile(
   return leftActor.hostile || rightActor.hostile;
 }
 
+/**
+ * Inspect whether an actor can enter a target tile under a collision profile.
+ */
 export function inspectGameboardActorCollision(
   world: World,
   actor: Entity | string | undefined,
@@ -736,6 +1106,9 @@ export function inspectGameboardActorCollision(
   };
 }
 
+/**
+ * Create a navigation profile that rejects tiles blocked for a specific actor.
+ */
 export function createGameboardActorNavigationProfile(
   world: World,
   actor: Entity | string,
@@ -774,6 +1147,9 @@ export function createGameboardActorNavigationProfile(
   };
 }
 
+/**
+ * Resolve a target input into an interaction target report.
+ */
 export function inspectGameboardInteractionTarget(
   world: World,
   target: GameboardInteractionTargetInput,
@@ -807,6 +1183,9 @@ export function inspectGameboardInteractionTarget(
   };
 }
 
+/**
+ * Inspect one tile from an actor/gameplay perspective.
+ */
 export function inspectGameboardTile(
   world: World,
   coordinates: HexCoordinates | string,
@@ -848,6 +1227,9 @@ export function inspectGameboardTile(
   };
 }
 
+/**
+ * Inspect a radius of tiles around a center and aggregate actor/tile summaries.
+ */
 export function inspectGameboardNeighborhood(
   world: World,
   center: GameboardNeighborhoodCenter,
@@ -915,6 +1297,9 @@ export function inspectGameboardNeighborhood(
   };
 }
 
+/**
+ * Plan a high-level interaction command from a click/target input.
+ */
 export function planGameboardInteractionCommand(
   world: World,
   target: GameboardInteractionTargetInput,
@@ -985,6 +1370,10 @@ export function planGameboardInteractionCommand(
   });
 }
 
+/**
+ * Evaluate whether an actor/placement combination blocks movement under a
+ * collision profile.
+ */
 export function gameboardActorBlocksMovement(
   actor: GameboardActorValue | undefined,
   placement?: Pick<GameboardPlacementSpec, 'kind' | 'layer'>,
