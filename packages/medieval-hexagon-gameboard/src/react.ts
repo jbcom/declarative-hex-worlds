@@ -198,25 +198,51 @@ const EMPTY_PIECE_SELECTION = [] as const satisfies readonly GameboardPieceDecla
 const EMPTY_SOURCE_URL_MAP = {} as const satisfies Readonly<Record<string, string>>;
 const GameboardRuntimeContext = createContext<GameboardRuntime | undefined>(undefined);
 
+/**
+ * Props for mounting an already-created runtime in React.
+ *
+ * Use this when the scene, router, save loader, or test harness owns runtime
+ * creation and React should consume the same Koota world plus recipe/scenario
+ * helpers.
+ */
 export interface GameboardRuntimeProviderProps<TRuntime extends GameboardRuntime = GameboardRuntime> {
+  /** Runtime facade for the board instance mounted below this provider. */
   runtime: TRuntime;
+  /** React children that should read the runtime's Koota world. */
   children?: ReactNode;
 }
 
+/**
+ * Props for mounting a serializable plan directly in React.
+ */
 export interface MedievalGameboardPlanProviderProps {
+  /** Plan to load into a newly created runtime for this provider instance. */
   plan: GameboardPlan;
+  /** React children that should read the created runtime and world. */
   children?: ReactNode;
 }
 
+/**
+ * Props for compiling a recipe and mounting the resulting runtime in React.
+ */
 export interface MedievalGameboardRecipeProviderProps {
+  /** Recipe to compile into a live runtime. */
   recipe: GameboardRecipe;
+  /** Optional plan-generation overrides applied while compiling the recipe. */
   overrides?: GameboardRecipePlanOptionsOverride;
+  /** React children that should read the created runtime and world. */
   children?: ReactNode;
 }
 
+/**
+ * Props for compiling a scenario and mounting the resulting runtime in React.
+ */
 export interface MedievalGameboardScenarioProviderProps {
+  /** Scenario containing the board recipe plus actors, patrols, movement, and quests. */
   scenario: GameboardScenario;
+  /** Optional recipe overrides applied while compiling the scenario board. */
   overrides?: GameboardRecipePlanOptionsOverride;
+  /** React children that should read the created runtime and world. */
   children?: ReactNode;
 }
 
@@ -225,6 +251,13 @@ type MedievalGameboardProviderComponent = ComponentType<{
   children?: ReactNode;
 }>;
 
+/**
+ * Mount a runtime facade and expose its Koota world through `koota/react`.
+ *
+ * This is the preferred provider when runtime creation happens outside React,
+ * because `useGameboardRuntime` returns the same object with scenario/recipe
+ * registries, source URL helpers, and live mutation methods intact.
+ */
 export function GameboardRuntimeProvider<TRuntime extends GameboardRuntime = GameboardRuntime>({
   runtime,
   children,
@@ -237,6 +270,9 @@ export function GameboardRuntimeProvider<TRuntime extends GameboardRuntime = Gam
   );
 }
 
+/**
+ * Create and mount a runtime from a prebuilt `GameboardPlan`.
+ */
 export function MedievalGameboardPlanProvider({
   plan,
   children,
@@ -245,6 +281,9 @@ export function MedievalGameboardPlanProvider({
   return createElement(GameboardRuntimeProvider, { runtime }, children);
 }
 
+/**
+ * Compile a recipe, create a runtime, and mount it for React consumers.
+ */
 export function MedievalGameboardRecipeProvider({
   recipe,
   overrides = {},
@@ -257,6 +296,12 @@ export function MedievalGameboardRecipeProvider({
   return createElement(GameboardRuntimeProvider<GameboardRecipeGameRuntime>, { runtime }, children);
 }
 
+/**
+ * Compile a scenario, create a runtime, and mount it for React consumers.
+ *
+ * The runtime returned by `useGameboardRuntime` keeps scenario actor/quest
+ * indexes, spawn groups, patrol plans, and local source URL helpers available.
+ */
 export function MedievalGameboardScenarioProvider({
   scenario,
   overrides = {},
@@ -381,6 +426,14 @@ export function useGameboardSystemActions(): ReturnType<typeof gameboardSystemAc
   return useMemo(() => gameboardSystemActions(world), [world]);
 }
 
+/**
+ * Return the runtime facade associated with the current React provider.
+ *
+ * If no runtime provider was mounted, the hook binds a facade to the current
+ * Koota world. Use `GameboardRuntimeProvider` or the plan/recipe/scenario
+ * providers when components need runtime-specific helpers such as source URL
+ * maps, scenario indexes, or saved recipe registries.
+ */
 export function useGameboardRuntime<TRuntime extends GameboardRuntime = GameboardRuntime>(): TRuntime {
   const world = useWorld();
   const providedRuntime = useContext(GameboardRuntimeContext);
@@ -393,6 +446,10 @@ export function useGameboardRuntime<TRuntime extends GameboardRuntime = Gameboar
 /**
  * Read the current runtime snapshot and rerender when gameboard traits,
  * relations, actor state, movement state, patrol state, or quest state changes.
+ *
+ * This is the React equivalent of `runtime.snapshot()`. Use it for HUDs,
+ * inspectors, test probes, and render adapters that want a serializable view of
+ * live board state instead of raw Koota trait access.
  */
 export function useGameboardRuntimeSnapshot(
   options: GameboardRuntimeSnapshotOptions = DEFAULT_RUNTIME_SNAPSHOT_OPTIONS
@@ -407,6 +464,9 @@ export function useGameboardRuntimeSnapshot(
 
 /**
  * Read serializable placement snapshots for React panels and external stores.
+ *
+ * The hook subscribes to placement trait and relation changes, including in
+ * place movement updates where the set of placement entities does not change.
  */
 export function useGameboardPlacementSnapshots(): readonly PlacementStateValue[] {
   const world = useWorld();
@@ -421,6 +481,9 @@ export function useGameboardPlacementSnapshots(): readonly PlacementStateValue[]
 
 /**
  * Read joined actor and placement snapshots for React panels and UI state.
+ *
+ * The returned records are the same actor snapshots used by runtime reads and
+ * external ECS interop, which keeps HUDs, targeting panels, and tests aligned.
  */
 export function useGameboardActorSnapshots(): readonly GameboardActorSnapshot[] {
   const world = useWorld();
@@ -435,6 +498,9 @@ export function useGameboardActorSnapshots(): readonly GameboardActorSnapshot[] 
 
 /**
  * Read quest snapshots for React quest logs, HUDs, and integration mirrors.
+ *
+ * The hook rerenders when quest state changes or when related actor movement
+ * changes may complete reach, interaction, collision, or defeat objectives.
  */
 export function useGameboardQuestSnapshots(): readonly GameboardQuestSnapshot[] {
   const world = useWorld();

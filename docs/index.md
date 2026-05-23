@@ -10,6 +10,7 @@ docs deployment and release.
 ## Guides
 
 - [Public API guide](./guides/public-api.md)
+- [Runtime integration](./guides/runtime-integration.md)
 - [Recipes, scenarios, and simulation](./guides/recipes-scenarios-and-simulation.md)
 - [Rendering, assets, and external packs](./guides/rendering-assets-and-external-packs.md)
 

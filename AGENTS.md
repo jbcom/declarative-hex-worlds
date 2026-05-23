@@ -392,6 +392,9 @@ contract for CI and npm consumers.
 - `./scenario`: JSON-friendly board, actor, movement-agent, patrol-agent, and
   quest bundles; validate these before runtime instantiation so duplicate actor
   IDs and broken route/quest references do not silently corrupt the Koota indexes.
+- `docs/guides/runtime-integration.md`: scene ownership, tick-loop, runtime
+  mutation, React, external ECS, and integration-test guidance for humans and
+  future agents wiring the package into an actual game.
 - `./simulation`: serializable scenario scripts, command/system/mutation
   execution, patrol-route script generation, report expectations, and final
   actor/quest/placement plus command/patrol/movement timelines for integration

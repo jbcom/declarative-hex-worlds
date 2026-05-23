@@ -17,6 +17,7 @@ export default defineConfig({
         text: 'Guides',
         items: [
           { text: 'Public API Guide', link: '/guides/public-api' },
+          { text: 'Runtime Integration', link: '/guides/runtime-integration' },
           { text: 'Recipes, Scenarios, And Simulation', link: '/guides/recipes-scenarios-and-simulation' },
           { text: 'Rendering, Assets, And External Packs', link: '/guides/rendering-assets-and-external-packs' },
         ],

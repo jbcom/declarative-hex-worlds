@@ -29,6 +29,9 @@ contract:
 
 - `docs/guides/public-api.md` maps the public subpaths to runtime, rendering,
   manifest, recipe, scenario, simulation, and interop responsibilities.
+- `docs/guides/runtime-integration.md` explains how a game should own a runtime,
+  dispatch commands, tick systems, mirror another ECS, and test fixed/seeded
+  scenes through the public API.
 - `docs/guides/recipes-scenarios-and-simulation.md` explains how saved recipes,
   generated fills, scenarios, SimpleRPG fixtures, and simulation scripts fit
   together.

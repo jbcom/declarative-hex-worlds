@@ -94,6 +94,8 @@ while exposing safe helpers for the common loops:
 
 This is the recommended boundary for a game UI, editor preview, or integration
 test. Lower-level subpaths stay public for engines that want tighter control.
+See [Runtime Integration](./runtime-integration.md) for the scene ownership,
+tick-loop, React, external ECS, and integration-test patterns.
 
 ## Custom Packs
 

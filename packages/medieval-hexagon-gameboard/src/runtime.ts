@@ -275,7 +275,13 @@ export interface GameboardRuntimeSnapshot {
 }
 
 /**
- * High-level facade for game-loop code, examples, and host integrations.
+ * Bound gameboard facade for one live board instance.
+ *
+ * The facade keeps the raw Koota world and action bundles available, but adds
+ * game-oriented reads and mutations that project the live board before
+ * navigation, layout, piece-fill, scenario, and interop operations. Prefer this
+ * object at scene boundaries, React providers, integration tests, and external
+ * ECS bridges when the board is actively changing during play.
  */
 export interface GameboardRuntime {
   /** Bound Koota world. */
@@ -302,30 +308,65 @@ export interface GameboardRuntime {
   validationPlan: () => GameboardPlan;
   /** Read a serializable runtime snapshot. */
   snapshot: (options?: GameboardRuntimeSnapshotOptions) => GameboardRuntimeSnapshot;
-  /** Read current placement records from live state. */
+  /**
+   * Read serializable placement records from live state.
+   *
+   * Use this for save data, editor panels, renderer diffing, and external ECS
+   * mirrors that do not need raw Koota relation stores.
+   */
   readPlacements: () => PlacementStateValue[];
-  /** Read current placement footprint occupancy records from live state. */
+  /**
+   * Read every placement footprint currently reserving or blocking tiles.
+   *
+   * The returned records include origin and occupied tile metadata, so UI and
+   * pathfinding bridges can reason about multi-hex structures and blockers.
+   */
   readPlacementOccupancy: () => PlacementOccupancySnapshot[];
-  /** Inspect whether a placement footprint can occupy a live tile. */
+  /**
+   * Inspect whether a placement footprint can occupy the current live board.
+   *
+   * This is the preflight path for construction cursors, drag previews, unit
+   * moves, and generated fills before mutating the world.
+   */
   inspectPlacementOccupancy: (
     options: InspectGameboardPlacementOccupancyOptions
   ) => GameboardPlacementOccupancyInspection;
-  /** Return whether a placement footprint can occupy a live tile. */
+  /** Return the boolean result from `inspectPlacementOccupancy`. */
   canOccupyPlacement: (options: InspectGameboardPlacementOccupancyOptions) => boolean;
-  /** Spawn one placement into the live world. */
+  /**
+   * Spawn one renderable placement into the live world.
+   *
+   * Pass `occupancyGuard: true` when the spawn should fail instead of
+   * overlapping an existing blocker or missing footprint tile.
+   */
   spawnPlacement: (options: SpawnGameboardPlacementOptions) => Entity;
-  /** Update one placement in the live world. */
+  /**
+   * Update one placement in the live world while preserving omitted fields.
+   *
+   * The helper refreshes placement classification and footprint relations when
+   * fields such as coordinates, kind, layer, footprint, tags, or blocking
+   * behavior change.
+   */
   updatePlacement: (
     placement: Entity | string,
     options: UpdateGameboardPlacementOptions
   ) => Entity;
-  /** Move one placement in the live world. */
+  /**
+   * Move one placement to a new tile or coordinate-like target.
+   *
+   * Use this for actor movement, build previews, temporary markers, and
+   * gameplay props that should remain in the same Koota entity.
+   */
   movePlacement: (
     placement: Entity | string,
     to: SpawnGameboardPlacementOptions['at'],
     options?: Omit<UpdateGameboardPlacementOptions, 'at'>
   ) => Entity;
-  /** Remove one placement from the live world. */
+  /**
+   * Remove one placement entity and its placement relations from the live world.
+   *
+   * Returns `false` when the entity or placement id cannot be found.
+   */
   removePlacement: (placement: Entity | string) => boolean;
   /** Inspect one tile, placement, actor, or coordinate in live state. */
   inspectTile: (
@@ -443,16 +484,22 @@ export interface GameboardRuntime {
   ) => Readonly<Record<string, string>>;
   /** Spawn an actor-backed placement. */
   spawnActor: (options: SpawnGameboardActorOptions) => Entity;
-  /** Attach actor state to an existing placement. */
+  /**
+   * Attach actor state to an existing placement.
+   *
+   * Register existing placements when a neutral prop, marker, structure, or
+   * externally declared piece becomes selectable, interactive, hostile, or
+   * quest-addressable after startup.
+   */
   registerActor: (
     placement: Entity | string,
     options: GameboardActorRegistrationOptions
   ) => Entity;
-  /** Update actor state while preserving omitted fields. */
+  /** Update actor state while preserving omitted fields and placement binding. */
   updateActor: (actor: Entity | string, options: UpdateGameboardActorOptions) => Entity;
-  /** Find one actor by entity, placement id, or actor id. */
+  /** Find one actor by entity, placement id, or stable actor id. */
   findActor: (actor: Entity | string) => GameboardActorSnapshot | undefined;
-  /** Read all registered actors from live state. */
+  /** Read all registered actors joined with their placement and tile records. */
   readActors: () => GameboardActorSnapshot[];
   /** Move an actor-backed placement by actor id or entity. */
   moveActor: (
@@ -460,21 +507,26 @@ export interface GameboardRuntime {
     to: SpawnGameboardActorOptions['at'],
     options?: MoveGameboardActorOptions
   ) => Entity;
-  /** Spawn a quest definition into the live world. */
+  /**
+   * Spawn a quest definition into the live world.
+   *
+   * Quest objectives can reference actor ids, placement ids, and tile keys, so
+   * scenario and runtime-created quests use the same progression surface.
+   */
   spawnQuest: (
     definition: GameboardQuestDefinition,
     options?: SpawnGameboardQuestOptions
   ) => Entity;
-  /** Find one quest by entity or quest id. */
+  /** Find one quest by entity or stable quest id. */
   findQuest: (quest: Entity | string) => GameboardQuestSnapshot | undefined;
-  /** Read all quest snapshots from live state. */
+  /** Read all quest snapshots from live state for HUDs, saves, and tests. */
   readQuests: () => GameboardQuestSnapshot[];
-  /** Advance one quest against live actor state. */
+  /** Advance one quest against the current live actor, placement, and tile state. */
   advanceQuest: (
     quest: Entity | string,
     options?: AdvanceGameboardQuestOptions
   ) => GameboardQuestSnapshot;
-  /** Advance every quest against live actor state. */
+  /** Advance every quest against the current live actor, placement, and tile state. */
   advanceAllQuests: (options?: AdvanceGameboardQuestOptions) => GameboardQuestSnapshot[];
   /** Plan a command from a renderer or gameplay target. */
   planCommand: (
