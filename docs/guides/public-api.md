@@ -84,7 +84,8 @@ while exposing safe helpers for the common loops:
   runtime state.
 - inspect placement occupancy and spawn, update, move, or remove runtime
   placements.
-- register, update, find, and read actor state attached to placements.
+- register, update, find, and read actor state attached to placements, including
+  tile-scoped actor reads for UI and collision probes.
 - spawn, find, read, and advance quests against live actor state.
 - inspect layout sites, preview generated placement/fill options, and spawn
   declared pieces or generated layout fills.

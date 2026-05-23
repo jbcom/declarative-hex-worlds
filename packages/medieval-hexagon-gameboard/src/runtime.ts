@@ -8,6 +8,7 @@ import {
   inspectGameboardNeighborhood,
   inspectGameboardTile,
   readGameboardActors,
+  readGameboardActorsForTile,
   registerGameboardActor,
   selectGameboardActors,
   spawnGameboardActor,
@@ -518,6 +519,13 @@ export interface GameboardRuntime {
   findActor: (actor: Entity | string) => GameboardActorSnapshot | undefined;
   /** Read all registered actors joined with their placement and tile records. */
   readActors: () => GameboardActorSnapshot[];
+  /**
+   * Read registered actors whose placement origin is one tile.
+   *
+   * Use this for hover cards, collision probes, encounter checks, and external
+   * ECS sync when a game needs actor semantics instead of raw placements.
+   */
+  readActorsForTile: (coordinates: HexCoordinates | string) => GameboardActorSnapshot[];
   /** Move an actor-backed placement by actor id or entity. */
   moveActor: (
     actor: Entity | string,
@@ -804,6 +812,7 @@ function bindGameboardRuntime(
     updateActor: (actor, options) => updateGameboardActor(world, actor, options),
     findActor: (actor) => findGameboardActor(world, actor),
     readActors: () => readGameboardActors(world),
+    readActorsForTile: (coordinates) => readGameboardActorsForTile(world, coordinates),
     moveActor: (actor, to, options = {}) => moveGameboardActor(world, actor, to, options),
     spawnQuest: (definition, options = {}) => spawnGameboardQuest(world, definition, options),
     findQuest: (quest) => findGameboardQuest(world, quest),

@@ -136,10 +136,10 @@ Runtime placements keep `PlacementOnTile` and `PlacementOccupiesTile` relations
 current, recompute world position from tile elevation, update tag queries such as
 `HarborPlacementQuery` and `ExtraPlacementQuery`, and stay visible when
 projecting the world back to a `GameboardPlan`. Use
-`readPlacementsForTile`, `readPlacementOccupancyForTile`, or
-`readGameboardPlacementOccupancy` when UI, save, or ECS bridge code needs
-tile-scoped placement or serializable footprint occupancy records rather than
-raw Koota relation stores. Use `inspectGameboardPlacementOccupancy` or
+`readPlacementsForTile`, `readPlacementOccupancyForTile`, `readActorsForTile`,
+or `readGameboardPlacementOccupancy` when UI, save, or ECS bridge code needs
+tile-scoped placement, actor, or serializable footprint occupancy records rather
+than raw Koota relation stores. Use `inspectGameboardPlacementOccupancy` or
 `canOccupyGameboardPlacement` before runtime spawn/move commits when units,
 structures, or custom footprints must not overlap existing blockers. Pass
 `occupancyGuard: true` to runtime spawn/move/update helpers when the mutation
@@ -800,7 +800,8 @@ also cover common game-loop mutations and reads: `readPlacements`,
 `readPlacementOccupancyForTile`, `inspectPlacementOccupancy`,
 `canOccupyPlacement`, `spawnPlacement`, `updatePlacement`, `movePlacement`,
 `removePlacement`, `registerActor`, `updateActor`, `findActor`, `readActors`,
-`findQuest`, `readQuests`, `advanceQuest`, and `advanceAllQuests`.
+`readActorsForTile`, `findQuest`, `readQuests`, `advanceQuest`, and
+`advanceAllQuests`.
 Runtime navigation helpers (`createOccupancyIndex`, `createNavigation`,
 `selectSpawnLocations`, `planSpawnGroups`, `planPatrolRoute`, and
 `planPatrolRoutes`) also project the live world first, so gameplay-spawned

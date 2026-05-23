@@ -282,6 +282,14 @@ describe('gameboard runtime facade', () => {
       placement: { tileKey: '0,0' },
     });
     expect(runtime.readActors().map((actor) => actor.actor.actorId)).toContain('runtime-guide');
+    expect(runtime.readActorsForTile('0,0')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actor: expect.objectContaining({ actorId: 'runtime-guide', kind: 'npc' }),
+          placement: expect.objectContaining({ id: 'runtime-guide-placement', tileKey: '0,0' }),
+        }),
+      ])
+    );
 
     const quest = runtime.spawnQuest({
       id: 'runtime-mutation-quest',

@@ -266,10 +266,12 @@ and build previews can be queried from every covered tile in Koota and React.
 `readPlacementsForTile`, `readPlacementOccupancyForTile`, and
 `readGameboardPlacementOccupancy` expose the same data as serializable records
 for UI, save, worker, or external ECS bridges that should not hold Koota entity
-references. Placement preflight helpers use those same occupancy records so
-editor previews, build cursors, and movement UI can fail before mutating live
-Koota state; `occupancyGuard` lets the mutator enforce the same result when the
-caller wants fail-fast gameplay commands.
+references. Runtime facades also expose `readActorsForTile` for one-hex reads
+that need actor kind, team, tag, hostility, or interaction semantics.
+Placement preflight helpers use those same occupancy records so editor previews,
+build cursors, and movement UI can fail before mutating live Koota state;
+`occupancyGuard` lets the mutator enforce the same result when the caller wants
+fail-fast gameplay commands.
 
 `./actors` adds gameplay semantics on top of those same placement entities.
 `GameboardActor` marks player, NPC, enemy, prop, unit, or custom actor roles;

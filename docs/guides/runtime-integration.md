@@ -100,9 +100,12 @@ Use `runtime.readPlacements()` and `runtime.readPlacementOccupancy()` for whole
 board save files, editor panels, and bridge code. Use
 `runtime.readPlacementsForTile(tileKey)` and
 `runtime.readPlacementOccupancyForTile(tileKey)` when a hover panel, collision
-probe, or host ECS sync only needs one hex. Use `runtime.removePlacement(id)` for
-cleanup; it removes the placement entity and its placement relations so future
-navigation and occupancy reads use the current world.
+probe, or host ECS sync only needs one hex. Use
+`runtime.readActorsForTile(tileKey)` when that same one-hex read needs actor
+kinds, teams, hostility, tags, or interaction flags rather than raw placement
+records. Use `runtime.removePlacement(id)` for cleanup; it removes the placement
+entity and its placement relations so future navigation and occupancy reads use
+the current world.
 
 ## Actor And Quest Reads
 

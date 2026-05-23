@@ -333,6 +333,7 @@ runtime.registerActor(runtimeMarker, {
 runtime.updateActor('packed-runtime-guide', { tags: ['guide'], actorMetadata: { greeting: 'hello' } });
 const runtimePlacementRecords: readonly PlacementStateValue[] = runtime.readPlacements();
 const runtimeActorRecords: readonly GameboardActorSnapshot[] = runtime.readActors();
+const runtimeTileActorRecords: readonly GameboardActorSnapshot[] = runtime.readActorsForTile('0,0');
 const runtimeQuestEntity = runtime.spawnQuest({
   id: 'packed-runtime-quest',
   objectives: [{ id: 'meet-guide', kind: 'reach-tile', actor: 'packed-runtime-guide', tile: '0,0' }],
@@ -531,6 +532,7 @@ void occupancyValue;
 void runtimeSnapshot;
 void runtimePlacementRecords;
 void runtimeActorRecords;
+void runtimeTileActorRecords;
 void runtimeQuestBefore;
 void runtimeQuestAfter;
 void runtimeQuestRecords;
@@ -769,6 +771,7 @@ if (
   runtime.readPlacements().find((placement) => placement.id === 'packed-runtime-marker')?.scale !== 1.25 ||
   runtime.findActor('packed-runtime-guide')?.actor.metadata.greeting !== 'hello' ||
   !runtime.readActors().some((actor) => actor.actor.actorId === 'packed-runtime-guide') ||
+  !runtime.readActorsForTile('0,0').some((actor) => actor.actor.actorId === 'packed-runtime-guide') ||
   runtimeQuestBefore?.quest.status !== 'active' ||
   runtimeQuestAfter.quest.status !== 'completed' ||
   runtime.readQuests().find((quest) => quest.quest.questId === 'packed-runtime-quest')?.quest.status !== 'completed' ||
