@@ -39,7 +39,7 @@ const packageJson = readJson('packages/medieval-hexagon-gameboard/package.json')
 
 requireIncludes(ci, 'ci.yml', [
   "NODE_VERSION: '22'",
-  'PNPM_VERSION: 9',
+  'pnpm/action-setup',
   'task: [lint, typecheck, build, test]',
   'pnpm test:browser:free',
   'pnpm test:docs-contract && pnpm docs:build',
@@ -54,14 +54,14 @@ requireIncludes(ci, 'ci.yml', [
 ]);
 requireIncludes(release, 'release.yml', [
   "NODE_VERSION: '22'",
-  'PNPM_VERSION: 9',
+  'pnpm/action-setup',
   'id-token: write',
   'pnpm test:ci',
   'npm publish --access public --provenance',
 ]);
 requireIncludes(cd, 'cd.yml', [
   "NODE_VERSION: '22'",
-  'PNPM_VERSION: 9',
+  'pnpm/action-setup',
   'googleapis/release-please-action',
   'secrets.CI_GITHUB_TOKEN',
   'pnpm test:docs-contract && pnpm docs:build',
