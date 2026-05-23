@@ -388,40 +388,64 @@ function useGameboardDerivedRevision(): number {
   return revision;
 }
 
+/**
+ * Read the root board state trait from the current Koota world.
+ */
 export function useGameboardState(): GameboardStateValue | undefined {
   return useTrait(useWorld(), GameboardState);
 }
 
+/**
+ * Bind low-level board actions for loading, clearing, and spawning tile plans.
+ */
 export function useGameboardActions(): ReturnType<typeof gameboardActions> {
   const world = useWorld();
   return useMemo(() => gameboardActions(world), [world]);
 }
 
+/**
+ * Bind movement actions for starting, advancing, and completing placement paths.
+ */
 export function useGameboardMovementActions(): ReturnType<typeof gameboardMovementActions> {
   const world = useWorld();
   return useMemo(() => gameboardMovementActions(world), [world]);
 }
 
+/**
+ * Bind actor actions for registering, spawning, moving, and updating actors.
+ */
 export function useGameboardActorActions(): ReturnType<typeof gameboardActorActions> {
   const world = useWorld();
   return useMemo(() => gameboardActorActions(world), [world]);
 }
 
+/**
+ * Bind quest actions for spawning objectives and updating quest progress.
+ */
 export function useGameboardQuestActions(): ReturnType<typeof gameboardQuestActions> {
   const world = useWorld();
   return useMemo(() => gameboardQuestActions(world), [world]);
 }
 
+/**
+ * Bind patrol actions for attaching patrol agents and route state.
+ */
 export function useGameboardPatrolActions(): ReturnType<typeof gameboardPatrolActions> {
   const world = useWorld();
   return useMemo(() => gameboardPatrolActions(world), [world]);
 }
 
+/**
+ * Bind higher-level command actions shared by UI, AI, and test flows.
+ */
 export function useGameboardCommandActions(): ReturnType<typeof gameboardCommandActions> {
   const world = useWorld();
   return useMemo(() => gameboardCommandActions(world), [world]);
 }
 
+/**
+ * Bind system tick actions for running movement, patrol, and quest systems.
+ */
 export function useGameboardSystemActions(): ReturnType<typeof gameboardSystemActions> {
   const world = useWorld();
   return useMemo(() => gameboardSystemActions(world), [world]);
@@ -535,6 +559,9 @@ export function useGameboardQuestSnapshots(): readonly GameboardQuestSnapshot[] 
   }, [world, quests, revision]);
 }
 
+/**
+ * Inspect one interaction target from React without dispatching a command.
+ */
 export function useGameboardInteractionTarget(
   target: GameboardInteractionTargetInput | undefined,
   options: GameboardInteractionTargetOptions = {}
@@ -551,6 +578,9 @@ export function useGameboardInteractionTarget(
   }, [world, target, options, tiles, placements, actors]);
 }
 
+/**
+ * Plan the command that would be executed for a selected interaction target.
+ */
 export function useGameboardInteractionCommand(
   target: GameboardInteractionTargetInput | undefined,
   options: GameboardInteractionCommandOptions = {}
@@ -567,6 +597,9 @@ export function useGameboardInteractionCommand(
   }, [world, target, options, tiles, placements, actors]);
 }
 
+/**
+ * Preview an interaction command or target for HUD affordances and tests.
+ */
 export function useGameboardInteractionCommandPreview(
   commandOrTarget: GameboardInteractionCommandInput | undefined,
   options: GameboardInteractionCommandPreviewOptions = {}
@@ -585,6 +618,9 @@ export function useGameboardInteractionCommandPreview(
   }, [world, commandOrTarget, options, tiles, placements, actors]);
 }
 
+/**
+ * Inspect terrain, connectivity, occupancy, and actor state for one tile.
+ */
 export function useGameboardTileInspection(
   coordinates: HexCoordinates | string,
   options: GameboardTileInspectionOptions = {}
@@ -598,6 +634,9 @@ export function useGameboardTileInspection(
   }, [world, tileKey, options, revision]);
 }
 
+/**
+ * Inspect a tile neighborhood for overlays, local AI decisions, and debug UI.
+ */
 export function useGameboardNeighborhoodInspection(
   center: GameboardNeighborhoodCenter,
   options: GameboardNeighborhoodInspectionOptions = {}
@@ -610,6 +649,9 @@ export function useGameboardNeighborhoodInspection(
   }, [world, center, options, revision]);
 }
 
+/**
+ * Select actors by team, hostility, tags, kind, tile, or interaction state.
+ */
 export function useGameboardActorSelection(
   options: GameboardActorSelectionOptions = {}
 ): GameboardActorSelection {
@@ -621,6 +663,9 @@ export function useGameboardActorSelection(
   }, [world, options, revision]);
 }
 
+/**
+ * Compute legal interaction targets for one actor from React.
+ */
 export function useGameboardActorTargets(
   options: GameboardActorTargetingOptions | undefined
 ): GameboardActorTargetingReport | undefined {
@@ -632,6 +677,9 @@ export function useGameboardActorTargets(
   }, [world, options, revision]);
 }
 
+/**
+ * Plan the concrete command for one actor-target interaction.
+ */
 export function useGameboardActorTargetCommand(
   options: GameboardActorTargetCommandOptions | undefined
 ): GameboardActorTargetCommandPlan | undefined {
@@ -643,10 +691,16 @@ export function useGameboardActorTargetCommand(
   }, [world, options, revision]);
 }
 
+/**
+ * Query all entities that represent canonical gameboard tiles.
+ */
 export function useGameboardTileEntities(): readonly Entity[] {
   return useQuery(IsGameboardTile, HexTileState);
 }
 
+/**
+ * Query tile entities with their decomposed coordinate, terrain, and render traits.
+ */
 export function useDecomposedTileEntities(): readonly Entity[] {
   return useQuery(
     IsGameboardTile,
@@ -659,38 +713,65 @@ export function useDecomposedTileEntities(): readonly Entity[] {
   );
 }
 
+/**
+ * Query all entities that represent board placements on top of tiles.
+ */
 export function useGameboardPlacementEntities(): readonly Entity[] {
   return useQuery(IsGameboardPlacement, PlacementState);
 }
 
+/**
+ * Query placement entities tagged as roads.
+ */
 export function useRoadPlacementEntities(): readonly Entity[] {
   return useQuery(IsRoadPlacement, PlacementState);
 }
 
+/**
+ * Query placement entities tagged as rivers.
+ */
 export function useRiverPlacementEntities(): readonly Entity[] {
   return useQuery(IsRiverPlacement, PlacementState);
 }
 
+/**
+ * Query placement entities tagged as harbors or ports.
+ */
 export function useHarborPlacementEntities(): readonly Entity[] {
   return useQuery(IsHarborPlacement, PlacementState);
 }
 
+/**
+ * Query terrain placements that participate in vertical stacking.
+ */
 export function useStackedTerrainEntities(): readonly Entity[] {
   return useQuery(IsStackedTerrain, PlacementState);
 }
 
+/**
+ * Query placements currently controlled by movement state.
+ */
 export function useMovingPlacementEntities(): readonly Entity[] {
   return useQuery(IsMoving, PlacementState, MovementPathState);
 }
 
+/**
+ * Query actor entities together with their origin placement state.
+ */
 export function useGameboardActorEntities(): readonly Entity[] {
   return useQuery(IsGameboardActor, PlacementState, GameboardActor);
 }
 
+/**
+ * Query all quest entities in the current board world.
+ */
 export function useGameboardQuestEntities(): readonly Entity[] {
   return useQuery(IsGameboardQuest, GameboardQuest);
 }
 
+/**
+ * Query actors that have patrol agent state attached.
+ */
 export function useGameboardPatrolAgentEntities(): readonly Entity[] {
   return useQuery(
     IsGameboardPatrolAgent,
@@ -700,88 +781,136 @@ export function useGameboardPatrolAgentEntities(): readonly Entity[] {
   );
 }
 
+/**
+ * Read the canonical tile trait for one tile entity.
+ */
 export function useTileState(entity: Entity | undefined | null): HexTileStateValue | undefined {
   return useTrait(entity, HexTileState);
 }
 
+/**
+ * Read axial coordinates for one tile entity.
+ */
 export function useTileCoordinates(
   entity: Entity | undefined | null
 ): TileCoordinatesValue | undefined {
   return useTrait(entity, TileCoordinates);
 }
 
+/**
+ * Read terrain classification for one tile entity.
+ */
 export function useTileTerrain(entity: Entity | undefined | null): TileTerrainValue | undefined {
   return useTrait(entity, TileTerrain);
 }
 
+/**
+ * Read base elevation data for one tile entity.
+ */
 export function useTileElevation(
   entity: Entity | undefined | null
 ): TileElevationValue | undefined {
   return useTrait(entity, TileElevation);
 }
 
+/**
+ * Read six-edge connectivity data for one tile entity.
+ */
 export function useTileConnectivity(
   entity: Entity | undefined | null
 ): TileConnectivityValue | undefined {
   return useTrait(entity, TileConnectivity);
 }
 
+/**
+ * Read render placement data for one tile entity.
+ */
 export function useTileRenderState(
   entity: Entity | undefined | null
 ): TileRenderStateValue | undefined {
   return useTrait(entity, TileRenderState);
 }
 
+/**
+ * Read normalized tags attached to one tile entity.
+ */
 export function useTileTagList(entity: Entity | undefined | null): TileTagListValue | undefined {
   return useTrait(entity, TileTagList);
 }
 
+/**
+ * Read adjacent tile relation targets for one tile entity.
+ */
 export function useAdjacentTileEntities(entity: Entity | undefined | null): readonly Entity[] {
   return useTargets(entity, AdjacentTo);
 }
 
+/**
+ * Read placement state for one placement or actor entity.
+ */
 export function usePlacementState(
   entity: Entity | undefined | null
 ): PlacementStateValue | undefined {
   return useTrait(entity, PlacementState);
 }
 
+/**
+ * Read movement agent metadata for one moving placement.
+ */
 export function useMovementAgent(
   entity: Entity | undefined | null
 ): MovementAgentValue | undefined {
   return useTrait(entity, MovementAgent);
 }
 
+/**
+ * Read current path-following state for one moving placement.
+ */
 export function useMovementPathState(
   entity: Entity | undefined | null
 ): MovementPathStateValue | undefined {
   return useTrait(entity, MovementPathState);
 }
 
+/**
+ * Read actor metadata for one actor entity.
+ */
 export function useGameboardActor(
   entity: Entity | undefined | null
 ): GameboardActorValue | undefined {
   return useTrait(entity, GameboardActor);
 }
 
+/**
+ * Read quest metadata and progress for one quest entity.
+ */
 export function useGameboardQuest(
   entity: Entity | undefined | null
 ): GameboardQuestValue | undefined {
   return useTrait(entity, GameboardQuest);
 }
 
+/**
+ * Read patrol agent configuration for one actor entity.
+ */
 export function useGameboardPatrolAgent(
   entity: Entity | undefined | null
 ): GameboardPatrolAgentValue | undefined {
   return useTrait(entity, GameboardPatrolAgent);
 }
 
+/**
+ * Read live patrol route progress for one actor entity.
+ */
 export function useGameboardPatrolState(
   entity: Entity | undefined | null
 ): GameboardPatrolStateValue | undefined {
   return useTrait(entity, GameboardPatrolState);
 }
 
+/**
+ * Project the live Koota world back into a serializable `GameboardPlan`.
+ */
 export function useProjectedGameboardPlan(): GameboardPlan | undefined {
   const world = useWorld();
   const state = useGameboardState();
@@ -796,6 +925,9 @@ export function useProjectedGameboardPlan(): GameboardPlan | undefined {
   }, [world, state, tiles, placements, revision]);
 }
 
+/**
+ * Build a navigation occupancy index from the current projected board.
+ */
 export function useGameboardOccupancyIndex(
   profile: GameboardNavigationProfile = DEFAULT_NAVIGATION_PROFILE_OPTIONS
 ): GameboardOccupancyIndex | undefined {
@@ -806,6 +938,9 @@ export function useGameboardOccupancyIndex(
   );
 }
 
+/**
+ * Build pathfinding helpers from the current projected board.
+ */
 export function useGameboardNavigation(
   profile: GameboardNavigationProfile = DEFAULT_NAVIGATION_PROFILE_OPTIONS
 ): GameboardNavigation | undefined {
@@ -816,6 +951,9 @@ export function useGameboardNavigation(
   );
 }
 
+/**
+ * Select legal spawn locations from the current projected board.
+ */
 export function useGameboardSpawnLocations(
   options: GameboardSpawnLocationOptions | undefined
 ): readonly SpawnLocation[] {
@@ -826,6 +964,9 @@ export function useGameboardSpawnLocations(
   );
 }
 
+/**
+ * Plan one patrol route from the current projected board.
+ */
 export function useGameboardPatrolRoute(
   options: GameboardPatrolRouteOptions | undefined
 ): GameboardPatrolRoutePlan | undefined {
@@ -836,6 +977,9 @@ export function useGameboardPatrolRoute(
   );
 }
 
+/**
+ * Plan multiple patrol routes from the current projected board.
+ */
 export function useGameboardPatrolRoutes(
   options: GameboardPatrolRouteSetOptions | undefined
 ): GameboardPatrolRouteSet | undefined {
@@ -947,12 +1091,18 @@ export function useGameboardPieceSourceUrlMap(
   );
 }
 
+/**
+ * Find the tile entity for one axial coordinate or tile key.
+ */
 export function useTileEntity(coordinates: HexCoordinates | string): Entity | undefined {
   const key = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
   const tiles = useGameboardTileEntities();
   return useMemo(() => tiles.find((entity) => entity.get(HexTileState)?.key === key), [key, tiles]);
 }
 
+/**
+ * Read every placement that occupies one tile, including multi-tile footprints.
+ */
 export function usePlacementEntitiesForTile(
   coordinates: HexCoordinates | string
 ): readonly Entity[] {
@@ -965,6 +1115,9 @@ export function usePlacementEntitiesForTile(
   );
 }
 
+/**
+ * Read placement occupancy snapshots for one tile key or coordinate.
+ */
 export function usePlacementOccupancyForTile(
   coordinates: HexCoordinates | string
 ): readonly PlacementOccupancySnapshot[] {
@@ -981,6 +1134,9 @@ export function usePlacementOccupancyForTile(
   }, [world, key, tile, placements, revision]);
 }
 
+/**
+ * Read placement occupancy snapshots for every occupied tile.
+ */
 export function useGameboardPlacementOccupancy(): readonly PlacementOccupancySnapshot[] {
   const world = useWorld();
   const tiles = useGameboardTileEntities();
@@ -994,6 +1150,9 @@ export function useGameboardPlacementOccupancy(): readonly PlacementOccupancySna
   }, [world, tiles, placements, revision]);
 }
 
+/**
+ * Inspect whether a proposed placement can occupy the current board.
+ */
 export function useGameboardPlacementOccupancyInspection(
   options: InspectGameboardPlacementOccupancyOptions | undefined
 ): GameboardPlacementOccupancyInspection | undefined {
@@ -1009,12 +1168,18 @@ export function useGameboardPlacementOccupancyInspection(
   }, [world, options, tiles, placements, revision]);
 }
 
+/**
+ * Return only the boolean placement-occupancy decision for form controls.
+ */
 export function useCanOccupyGameboardPlacement(
   options: InspectGameboardPlacementOccupancyOptions | undefined
 ): boolean | undefined {
   return useGameboardPlacementOccupancyInspection(options)?.canOccupy;
 }
 
+/**
+ * Read placements whose origin tile is exactly the requested tile.
+ */
 export function useOriginPlacementEntitiesForTile(
   coordinates: HexCoordinates | string
 ): readonly Entity[] {
@@ -1027,6 +1192,9 @@ export function useOriginPlacementEntitiesForTile(
   );
 }
 
+/**
+ * Validate the live Koota world against gameboard rule configuration.
+ */
 export function useGameboardRuleViolations(
   config: GameboardRuleConfig = DEFAULT_RULE_CONFIG
 ): readonly GameboardRuleViolation[] {
