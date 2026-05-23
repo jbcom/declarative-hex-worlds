@@ -183,6 +183,8 @@ usage guides:
   package editions, asset taxonomy, Koota runtime model, and visual coverage.
 - `docs/guides/public-api.md` explains the public subpaths and when to use a
   neutral plan, live Koota runtime, manifest bundle, or external ECS bridge.
+- `docs/guides/runtime-integration.md` covers runtime ownership, mutations,
+  React hook families, external ECS snapshots, and integration-test patterns.
 - `docs/guides/recipes-scenarios-and-simulation.md` covers recipes, scenarios,
   generated fills, SimpleRPG-style integration fixtures, and simulation scripts.
 - `docs/guides/rendering-assets-and-external-packs.md` covers packaged FREE

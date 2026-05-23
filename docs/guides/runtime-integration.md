@@ -177,15 +177,19 @@ React components can mount a runtime created outside React with
 `MedievalGameboardPlanProvider`, `MedievalGameboardRecipeProvider`, and
 `MedievalGameboardScenarioProvider`.
 
-Use the snapshot hooks for UI:
+Use hook families by intent:
 
-- `useGameboardRuntime()` for commands and mutations.
-- `useGameboardRuntimeSnapshot()` for render/HUD snapshots.
-- `useGameboardPlacementSnapshots()` for editor placement panels.
-- `useGameboardActorSnapshots()` for actor lists and targeting panels.
-- `useGameboardActorsForTile(tileKey)` for hover cards, collision probes, and
-  ECS deltas that need actor metadata for one hex.
-- `useGameboardQuestSnapshots()` for quest logs.
+| Intent | Hooks |
+| --- | --- |
+| Runtime and snapshots | `useGameboardRuntime`, `useGameboardRuntimeSnapshot`, `useProjectedGameboardPlan` |
+| Mutable gameplay actions | `useGameboardActions`, `useGameboardActorActions`, `useGameboardCommandActions`, `useGameboardMovementActions`, `useGameboardPatrolActions`, `useGameboardQuestActions`, `useGameboardSystemActions` |
+| Serializable reads | `useGameboardPlacementSnapshots`, `useGameboardActorSnapshots`, `useGameboardQuestSnapshots`, `useGameboardPlacementOccupancy` |
+| Tile-local UI and collision probes | `useGameboardTileInspection`, `useGameboardNeighborhoodInspection`, `usePlacementOccupancyForTile`, `useGameboardActorsForTile`, `usePlacementEntitiesForTile`, `useOriginPlacementEntitiesForTile` |
+| Actor commands and target overlays | `useGameboardActorSelection`, `useGameboardActorTargets`, `useGameboardActorTargetCommand`, `useGameboardInteractionTarget`, `useGameboardInteractionCommand`, `useGameboardInteractionCommandPreview` |
+| Navigation and spawned NPC setup | `useGameboardOccupancyIndex`, `useGameboardNavigation`, `useGameboardSpawnLocations`, `useGameboardPatrolRoute`, `useGameboardPatrolRoutes` |
+| Build cursors and generated content | `useGameboardLayoutSiteInspection`, `useGameboardLayoutFillAnalysis`, `useGameboardLayoutPlacements`, `useGameboardPieceRegistryAnalysis`, `useGameboardPieceSelection`, `useGameboardPiecePlacementInspection`, `useGameboardPieceFillInspection`, `useGameboardPieceSourceUrlMap` |
+| Raw Koota trait reads | entity queries such as `useGameboardTileEntities`, plus trait hooks such as `useTileCoordinates`, `usePlacementState`, `useGameboardActor`, and `useGameboardQuest` |
+| Live rule checks | `useGameboardPlacementOccupancyInspection`, `useCanOccupyGameboardPlacement`, `useGameboardRuleViolations` |
 
 Those hooks subscribe to trait and relation value changes, so moving an existing
 entity in place rerenders the UI even when query membership does not change.
