@@ -79,8 +79,14 @@ import type {
   GameboardPatrolRouteSet,
 } from './navigation';
 
+/**
+ * Current JSON schema version for scenario simulation scripts and reports.
+ */
 export const GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION = '1.0.0';
 
+/**
+ * Supported simulation step action discriminators.
+ */
 export const GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS = [
   'actor-target-command',
   'command',
@@ -150,6 +156,9 @@ const SIMULATION_ACTOR_TARGET_APPROACH_VALUES = [
 ] as const;
 const SIMULATION_ACTOR_TARGET_SORT_VALUES = ['pathCost', 'distance', 'actorId', 'tileKey'] as const;
 
+/**
+ * One executable step in a deterministic scenario simulation script.
+ */
 export type GameboardScenarioSimulationStep =
   | GameboardScenarioSimulationActorTargetCommandStep
   | GameboardScenarioSimulationCommandStep
@@ -162,123 +171,233 @@ export type GameboardScenarioSimulationStep =
   | GameboardScenarioSimulationUpdateActorStep
   | GameboardScenarioSimulationUpdatePlacementStep;
 
+/**
+ * Common authored fields shared by all simulation steps.
+ */
 export interface GameboardScenarioSimulationStepBase {
+  /** Optional stable step id used by reports and expectations. */
   id?: string;
+  /** Human-readable step label for reports. */
   label?: string;
 }
 
+/**
+ * Runs an interaction command against a target.
+ */
 export interface GameboardScenarioSimulationCommandStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'command';
+  /** Command target or already-planned command. */
   target: GameboardInteractionCommandInput;
+  /** Source actor id used when the target must be planned. */
   sourceActor?: string;
+  /** Command execution options excluding systems and handlers. */
   command?: Omit<RunGameboardInteractionOptions, 'systems' | 'handlers'>;
+  /** Single built-in command handler preset. */
   handler?: GameboardScenarioSimulationCommandHandlerPreset;
+  /** Built-in command handler presets. */
   handlers?: readonly GameboardScenarioSimulationCommandHandlerPreset[];
+  /** Options for built-in command handler presets. */
   handlerOptions?: CreateGameboardInteractionHandlerPresetOptions;
+  /** Systems to run after command dispatch, or false to skip. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Selects an actor target, dispatches its planned command, and optionally runs
+ * systems.
+ */
 export interface GameboardScenarioSimulationActorTargetCommandStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'actor-target-command';
+  /** Source actor id. */
   sourceActor?: string;
+  /** Optional exact target actor id. */
   targetActorId?: string;
+  /** Require the selected target to be reachable. */
   requireReachable?: boolean;
+  /** Actor-targeting filters and path options. */
   targeting?: Partial<
     Omit<GameboardActorTargetCommandOptions, 'sourceActor' | 'targetActorId' | 'requireReachable'>
   >;
+  /** Command execution options excluding systems and handlers. */
   command?: Omit<RunGameboardInteractionOptions, 'systems' | 'handlers'>;
+  /** Single built-in command handler preset. */
   handler?: GameboardScenarioSimulationCommandHandlerPreset;
+  /** Built-in command handler presets. */
   handlers?: readonly GameboardScenarioSimulationCommandHandlerPreset[];
+  /** Options for built-in command handler presets. */
   handlerOptions?: CreateGameboardInteractionHandlerPresetOptions;
+  /** Systems to run after command dispatch, or false to skip. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Inspects actor targets without dispatching a command.
+ */
 export interface GameboardScenarioSimulationActorTargetsStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'inspect-actor-targets';
+  /** Source actor id. */
   sourceActor?: string;
+  /** Actor-targeting filters and path options. */
   targeting?: Partial<Omit<GameboardActorTargetingOptions, 'sourceActor'>>;
 }
 
+/**
+ * Runs patrol, movement, and quest systems.
+ */
 export interface GameboardScenarioSimulationRunSystemsStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'run-systems';
+  /** Systems to run. */
   systems?: RunGameboardSystemsOptions;
 }
 
+/**
+ * Removes an actor-backed placement.
+ */
 export interface GameboardScenarioSimulationRemoveActorStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'remove-actor';
+  /** Actor id to remove. */
   actorId: string;
+  /** Systems to run after removal, or false to skip. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Removes a placement by id.
+ */
 export interface GameboardScenarioSimulationRemovePlacementStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'remove-placement';
+  /** Placement id to remove. */
   placementId: string;
+  /** Systems to run after removal, or false to skip. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Spawns a scenario actor during a simulation.
+ */
 export interface GameboardScenarioSimulationSpawnActorStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'spawn-actor';
+  /** Actor declaration to spawn. */
   actor: GameboardScenarioActor;
+  /** Systems to run after spawn, or false to skip. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Spawns a raw placement during a simulation.
+ */
 export interface GameboardScenarioSimulationSpawnPlacementStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'spawn-placement';
+  /** Placement options to spawn. */
   placement: SpawnGameboardPlacementOptions;
+  /** Systems to run after spawn, or false to skip. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Updates an actor and optionally its placement.
+ */
 export interface GameboardScenarioSimulationUpdateActorStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'update-actor';
+  /** Actor id to update. */
   actorId: string;
+  /** Actor update options. */
   actor: UpdateGameboardActorOptions;
+  /** Optional placement update options for the actor placement. */
   placement?: UpdateGameboardPlacementOptions;
+  /** Systems to run after update, or false to skip. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Updates a placement by id.
+ */
 export interface GameboardScenarioSimulationUpdatePlacementStep
   extends GameboardScenarioSimulationStepBase {
+  /** Step discriminator. */
   action: 'update-placement';
+  /** Placement id to update. */
   placementId: string;
+  /** Placement update options. */
   placement: UpdateGameboardPlacementOptions;
+  /** Systems to run after update, or false to skip. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Serializable script for deterministic scenario simulation.
+ */
 export interface GameboardScenarioSimulationScript {
+  /** Simulation schema version. */
   schemaVersion: typeof GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION;
+  /** Steps to execute in order. */
   steps: readonly GameboardScenarioSimulationStep[];
+  /** Default source actor id for command steps. */
   defaultSourceActor?: string;
+  /** Default systems after command dispatch, or false to skip. */
   defaultCommandSystems?: RunGameboardSystemsOptions | false;
+  /** Default built-in command handler presets. */
   defaultCommandHandlers?: readonly GameboardScenarioSimulationCommandHandlerPreset[];
+  /** Default options for built-in command handler presets. */
   defaultCommandHandlerOptions?: CreateGameboardInteractionHandlerPresetOptions;
+  /** Default systems for run-systems steps. */
   defaultRunSystems?: RunGameboardSystemsOptions;
+  /** Optional expectations evaluated against the report. */
   expectations?: GameboardScenarioSimulationExpectations;
 }
 
+/**
+ * Built-in command handler preset id accepted by simulation scripts.
+ */
 export type GameboardScenarioSimulationCommandHandlerPreset = GameboardInteractionHandlerPreset;
 
+/**
+ * Expected records in a simulation report.
+ */
 export interface GameboardScenarioSimulationExpectations {
+  /** Exact event type sequence expectation. */
   eventTypes?: readonly GameboardSystemEventRecord['type'][];
+  /** Event types that must appear at least once. */
   requiredEventTypes?: readonly GameboardSystemEventRecord['type'][];
+  /** Command expectations. */
   commands?: readonly GameboardScenarioSimulationCommandExpectation[];
+  /** Actor-target report expectations. */
   actorTargets?: readonly GameboardScenarioSimulationActorTargetsExpectation[];
+  /** Patrol event expectations. */
   patrols?: readonly GameboardScenarioSimulationPatrolExpectation[];
+  /** Movement event expectations. */
   movements?: readonly GameboardScenarioSimulationMovementExpectation[];
+  /** Mutation expectations. */
   mutations?: readonly GameboardScenarioSimulationMutationExpectation[];
+  /** Final actor-state expectations. */
   actors?: readonly GameboardScenarioSimulationActorExpectation[];
+  /** Final placement-state expectations. */
   placements?: readonly GameboardScenarioSimulationPlacementExpectation[];
+  /** Final quest-state expectations. */
   quests?: readonly GameboardScenarioSimulationQuestExpectation[];
 }
 
+/**
+ * Expected command record in a simulation report.
+ */
 export interface GameboardScenarioSimulationCommandExpectation {
   stepId?: string;
   stepIndex?: number;
@@ -303,6 +422,9 @@ export interface GameboardScenarioSimulationCommandExpectation {
   targetCanEnter?: boolean;
 }
 
+/**
+ * Expected actor-targeting record in a simulation report.
+ */
 export interface GameboardScenarioSimulationActorTargetsExpectation {
   stepId?: string;
   stepIndex?: number;
@@ -329,6 +451,9 @@ export interface GameboardScenarioSimulationActorTargetsExpectation {
   reason?: string;
 }
 
+/**
+ * Expected movement record in a simulation report.
+ */
 export interface GameboardScenarioSimulationMovementExpectation {
   stepId?: string;
   stepIndex?: number;
@@ -350,6 +475,9 @@ export interface GameboardScenarioSimulationMovementExpectation {
   reason?: string;
 }
 
+/**
+ * Expected patrol record in a simulation report.
+ */
 export interface GameboardScenarioSimulationPatrolExpectation {
   stepId?: string;
   stepIndex?: number;
@@ -367,6 +495,9 @@ export interface GameboardScenarioSimulationPatrolExpectation {
   reason?: string;
 }
 
+/**
+ * Expected mutation record in a simulation report.
+ */
 export interface GameboardScenarioSimulationMutationExpectation {
   type?: GameboardScenarioSimulationMutationRecord['type'];
   actorId?: string;
@@ -376,6 +507,9 @@ export interface GameboardScenarioSimulationMutationExpectation {
   updated?: boolean;
 }
 
+/**
+ * Expected final actor state in a simulation report.
+ */
 export interface GameboardScenarioSimulationActorExpectation {
   actorId: string;
   exists?: boolean;
@@ -392,6 +526,9 @@ export interface GameboardScenarioSimulationActorExpectation {
   assetId?: string;
 }
 
+/**
+ * Expected final placement state in a simulation report.
+ */
 export interface GameboardScenarioSimulationPlacementExpectation {
   placementId: string;
   exists?: boolean;
@@ -403,6 +540,9 @@ export interface GameboardScenarioSimulationPlacementExpectation {
   metadata?: Readonly<Record<string, GameboardActorMetadataValue>>;
 }
 
+/**
+ * Expected final quest state in a simulation report.
+ */
 export interface GameboardScenarioSimulationQuestExpectation {
   questId: string;
   status?: GameboardQuestStatus;
@@ -412,97 +552,190 @@ export interface GameboardScenarioSimulationQuestExpectation {
   pendingObjectives?: readonly string[];
 }
 
+/**
+ * Failed expectation produced while building a simulation report.
+ */
 export interface GameboardScenarioSimulationExpectationFailure {
+  /** JSON-ish expectation path that failed. */
   path: string;
+  /** Human-readable failure message. */
   message: string;
+  /** Expected value. */
   expected?: unknown;
+  /** Actual value. */
   actual?: unknown;
 }
 
+/**
+ * Options for running a scenario simulation.
+ */
 export interface RunGameboardScenarioSimulationOptions {
+  /** Recipe compile overrides for the scenario board. */
   recipeOverrides?: GameboardRecipePlanOptionsOverride;
+  /** Default source actor id for command steps. */
   defaultSourceActor?: string;
+  /** Default systems after command dispatch, or false to skip. */
   defaultCommandSystems?: RunGameboardSystemsOptions | false;
+  /** Default built-in command handler presets. */
   defaultCommandHandlers?: readonly GameboardScenarioSimulationCommandHandlerPreset[];
+  /** Default options for built-in command handler presets. */
   defaultCommandHandlerOptions?: CreateGameboardInteractionHandlerPresetOptions;
+  /** Default systems for run-systems steps. */
   defaultRunSystems?: RunGameboardSystemsOptions;
 }
 
+/**
+ * Assignment for turning one patrol route into simulation command steps.
+ */
 export interface GameboardPatrolSimulationActorAssignment {
+  /** Patrol route id to execute. */
   routeId: string;
+  /** Actor id that should follow the route. */
   actorId: string;
+  /** Number of route rounds to emit. */
   rounds?: number;
+  /** Prefix for generated step ids. */
   stepIdPrefix?: string;
+  /** Base label for generated steps. */
   label?: string;
+  /** Command options for generated movement commands. */
   command?: Omit<RunGameboardInteractionOptions, 'systems' | 'sourceActor'>;
+  /** Movement path options for generated movement commands. */
   movement?: GameboardMovementPathRequestOptions;
+  /** Systems to run after generated movement commands, or false to skip. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Options for generating simulation command steps from patrol routes.
+ */
 export interface CreateGameboardPatrolSimulationStepsOptions {
+  /** Patrol route set or route plans. */
   routes: GameboardPatrolRouteSet | readonly GameboardPatrolRoutePlan[];
+  /** Actor-to-route assignments. */
   assignments: readonly GameboardPatrolSimulationActorAssignment[];
+  /** Whether missing routes should be treated as errors. Defaults to true. */
   requireFoundRoutes?: boolean;
 }
 
+/**
+ * Report for one patrol simulation assignment.
+ */
 export interface GameboardPatrolSimulationAssignmentPlan {
+  /** Patrol route id. */
   routeId: string;
+  /** Actor id. */
   actorId: string;
+  /** Number of route rounds emitted. */
   roundCount: number;
+  /** Number of command steps emitted. */
   stepCount: number;
+  /** Warning count. */
   warningCount: number;
+  /** Error count. */
   errorCount: number;
+  /** Assignment warnings. */
   warnings: readonly string[];
+  /** Assignment errors. */
   errors: readonly string[];
 }
 
+/**
+ * Generated simulation command steps plus assignment diagnostics.
+ */
 export interface GameboardPatrolSimulationStepsPlan {
+  /** Total generated step count. */
   stepCount: number;
+  /** Assignment diagnostics. */
   assignments: readonly GameboardPatrolSimulationAssignmentPlan[];
+  /** Generated command steps. */
   steps: readonly GameboardScenarioSimulationCommandStep[];
+  /** Plan-level warnings. */
   warnings: readonly string[];
+  /** Plan-level errors. */
   errors: readonly string[];
 }
 
+/**
+ * Options for generating a complete simulation script from patrol routes.
+ */
 export interface CreateGameboardPatrolSimulationScriptOptions
   extends CreateGameboardPatrolSimulationStepsOptions {
+  /** Default source actor id for generated command steps. */
   defaultSourceActor?: string;
+  /** Default command systems for generated script. */
   defaultCommandSystems?: RunGameboardSystemsOptions | false;
+  /** Default command handler presets for generated script. */
   defaultCommandHandlers?: readonly GameboardScenarioSimulationCommandHandlerPreset[];
+  /** Default handler options for generated script. */
   defaultCommandHandlerOptions?: CreateGameboardInteractionHandlerPresetOptions;
+  /** Default systems for generated run-systems steps. */
   defaultRunSystems?: RunGameboardSystemsOptions;
+  /** Expectations to embed in the generated script. */
   expectations?: GameboardScenarioSimulationExpectations;
 }
 
+/**
+ * Generated simulation script plus assignment diagnostics.
+ */
 export interface GameboardPatrolSimulationScriptPlan extends GameboardPatrolSimulationStepsPlan {
+  /** Generated simulation script. */
   script: GameboardScenarioSimulationScript;
 }
 
+/**
+ * Validation context for an authored simulation script.
+ */
 export interface GameboardScenarioSimulationScriptValidationConfig {
+  /** Scenario used to resolve actors, quests, and plan references. */
   scenario?: GameboardScenario;
+  /** Precompiled plan used when a scenario is not available. */
   plan?: GameboardPlan;
 }
 
+/**
+ * Result of validating a simulation script.
+ */
 export interface GameboardScenarioSimulationScriptValidationResult {
+  /** Script that was validated. */
   script: GameboardScenarioSimulationScript;
+  /** Plan compiled from validation context, when available. */
   plan?: GameboardPlan;
+  /** Validation violations. */
   violations: readonly GameboardRuleViolation[];
 }
 
+/**
+ * Runtime result for one executed simulation step.
+ */
 export interface GameboardScenarioSimulationStepResult {
+  /** Step index. */
   index: number;
+  /** Authored step id. */
   id?: string;
+  /** Authored step label. */
   label?: string;
+  /** Step action discriminator. */
   action: GameboardScenarioSimulationStep['action'];
+  /** Command dispatch result for command steps. */
   dispatch?: DispatchGameboardInteractionCommandResult;
+  /** Actor-target report for target-inspection steps. */
   actorTargets?: GameboardScenarioSimulationActorTargetsRecord;
+  /** System tick result for run-systems or post-command systems. */
   systems?: RunGameboardSystemsResult;
+  /** In-memory events emitted by the step. */
   events: readonly GameboardSystemEvent[];
+  /** Serializable event records emitted by the step. */
   eventRecords: readonly GameboardSystemEventRecord[];
+  /** Mutations directly performed by this step. */
   mutations: readonly GameboardScenarioSimulationMutationRecord[];
 }
 
+/**
+ * Serializable mutation record emitted by direct mutation simulation steps.
+ */
 export interface GameboardScenarioSimulationMutationRecord {
+  /** Mutation type. */
   type:
     | 'actor-removed'
     | 'placement-removed'
@@ -510,154 +743,303 @@ export interface GameboardScenarioSimulationMutationRecord {
     | 'placement-spawned'
     | 'actor-updated'
     | 'placement-updated';
+  /** Actor id involved in the mutation. */
   actorId?: string;
+  /** Placement id involved in the mutation. */
   placementId?: string;
+  /** Whether an entity was removed. */
   removed?: boolean;
+  /** Whether an entity was spawned. */
   spawned?: boolean;
+  /** Whether an entity was updated. */
   updated?: boolean;
+  /** Optional failure or diagnostic reason. */
   reason?: string;
 }
 
+/**
+ * In-memory result of running a scenario simulation.
+ */
 export interface GameboardScenarioSimulationResult {
+  /** Runtime created from the scenario. */
   runtime: GameboardScenarioRuntime;
+  /** Per-step execution results. */
   steps: readonly GameboardScenarioSimulationStepResult[];
+  /** All in-memory events emitted during the run. */
   events: readonly GameboardSystemEvent[];
+  /** All serializable event records emitted during the run. */
   eventRecords: readonly GameboardSystemEventRecord[];
+  /** All direct mutation records emitted during the run. */
   mutations: readonly GameboardScenarioSimulationMutationRecord[];
+  /** Final projected plan. */
   finalPlan: GameboardPlan;
+  /** Final actor snapshots. */
   actors: readonly GameboardActorSnapshot[];
+  /** Final quest snapshots. */
   quests: readonly GameboardQuestSnapshot[];
 }
 
+/**
+ * Serializable report derived from a simulation result.
+ */
 export interface GameboardScenarioSimulationReport {
+  /** Simulation schema version. */
   schemaVersion: typeof GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION;
+  /** Scenario id. */
   scenarioId: string;
+  /** Scenario title. */
   scenarioTitle?: string;
+  /** Whether all expectations passed. */
   success: boolean;
+  /** Per-step report records. */
   steps: readonly GameboardScenarioSimulationStepReport[];
+  /** Flattened command records. */
   commands: readonly GameboardScenarioSimulationCommandRecord[];
+  /** Flattened actor-target records. */
   actorTargets: readonly GameboardScenarioSimulationActorTargetsRecord[];
+  /** Flattened patrol records. */
   patrols: readonly GameboardScenarioSimulationPatrolRecord[];
+  /** Flattened movement records. */
   movements: readonly GameboardScenarioSimulationMovementRecord[];
+  /** Flattened system event records. */
   eventRecords: readonly GameboardSystemEventRecord[];
+  /** Direct mutation records. */
   mutations: readonly GameboardScenarioSimulationMutationRecord[];
+  /** Final projected plan. */
   finalPlan: GameboardPlan;
+  /** Final placement records. */
   placements: readonly GameboardScenarioSimulationPlacementRecord[];
+  /** Final actor records. */
   actors: readonly GameboardScenarioSimulationActorRecord[];
+  /** Final quest records. */
   quests: readonly GameboardScenarioSimulationQuestRecord[];
+  /** Expectations evaluated for the report. */
   expectations?: GameboardScenarioSimulationExpectations;
+  /** Expectation failures. */
   expectationFailures: readonly GameboardScenarioSimulationExpectationFailure[];
 }
 
+/**
+ * Serializable report for one simulation step.
+ */
 export interface GameboardScenarioSimulationStepReport {
+  /** Step index. */
   index: number;
+  /** Authored step id. */
   id?: string;
+  /** Authored step label. */
   label?: string;
+  /** Step action discriminator. */
   action: GameboardScenarioSimulationStep['action'];
+  /** Command record emitted by the step. */
   command?: GameboardInteractionCommandRecord;
+  /** Actor-target record emitted by the step. */
   actorTargets?: GameboardScenarioSimulationActorTargetsRecord;
+  /** System event records emitted by the step. */
   eventRecords: readonly GameboardSystemEventRecord[];
+  /** Direct mutation records emitted by the step. */
   mutations: readonly GameboardScenarioSimulationMutationRecord[];
 }
 
+/**
+ * Flattened command record with step provenance.
+ */
 export interface GameboardScenarioSimulationCommandRecord {
+  /** Step index that emitted the command. */
   stepIndex: number;
+  /** Authored step id. */
   stepId?: string;
+  /** Authored step label. */
   stepLabel?: string;
+  /** Event type that carried the command. */
   eventType: GameboardSystemEventRecord['type'];
+  /** Serializable command execution record. */
   command: GameboardInteractionCommandRecord;
 }
 
+/**
+ * Serializable actor-targeting report with step provenance.
+ */
 export interface GameboardScenarioSimulationActorTargetsRecord {
+  /** Step index that emitted the actor-target report. */
   stepIndex: number;
+  /** Authored step id. */
   stepId?: string;
+  /** Authored step label. */
   stepLabel?: string;
+  /** Source actor id. */
   sourceActorId?: string;
+  /** Source placement id. */
   sourcePlacementId?: string;
+  /** Source tile key. */
   sourceTileKey?: string;
+  /** All target actor ids in sorted order. */
   targetActorIds: readonly string[];
+  /** Reachable target actor ids in sorted order. */
   reachableActorIds: readonly string[];
+  /** Nearest or chosen target summary. */
   nearestTarget?: GameboardScenarioSimulationActorTargetRecord;
+  /** Full target summaries. */
   targets: readonly GameboardScenarioSimulationActorTargetRecord[];
+  /** Optional targeting failure reason. */
   reason?: string;
 }
 
+/**
+ * Serializable actor target summary.
+ */
 export interface GameboardScenarioSimulationActorTargetRecord {
+  /** Actor id. */
   actorId: string;
+  /** Placement id for the actor. */
   placementId: string;
+  /** Actor tile key. */
   tileKey: string;
+  /** Actor kind. */
   kind: GameboardActorKind;
+  /** Actor faction. */
   faction?: string;
+  /** Actor team. */
   team?: string;
+  /** Whether the actor is generally hostile. */
   hostile: boolean;
+  /** Whether the actor is hostile to the source actor. */
   hostileToSource?: boolean;
+  /** Whether the actor is interactive. */
   interactive: boolean;
+  /** Approach policy selected for the target. */
   approach: GameboardActorTarget['approach'];
+  /** Approach tile key when one was selected. */
   approachTileKey?: string;
+  /** Whether a usable approach path was found. */
   reachable: boolean;
+  /** Optional unreachable or command reason. */
   reason?: string;
+  /** Whether a path was found. */
   pathFound: boolean;
+  /** Path cost. */
   pathCost: number;
+  /** Path tile keys. */
   pathKeys: readonly string[];
+  /** Planned command kind. */
   commandKind: GameboardInteractionCommandRecord['kind'];
+  /** Planned command intent. */
   commandIntent: GameboardInteractionCommandRecord['intent'];
+  /** Whether the planned command can execute. */
   commandCanExecute: boolean;
+  /** Planned command failure reason. */
   commandReason?: string;
+  /** Planned command tile key. */
   commandTileKey?: string;
+  /** Planned command placement id. */
   commandPlacementId?: string;
+  /** Planned command actor id. */
   commandActorId?: string;
 }
 
+/**
+ * Flattened patrol event record with step provenance.
+ */
 export interface GameboardScenarioSimulationPatrolRecord {
+  /** Step index that emitted the patrol event. */
   stepIndex: number;
+  /** Authored step id. */
   stepId?: string;
+  /** Authored step label. */
   stepLabel?: string;
+  /** Patrol event type. */
   eventType: (typeof SIMULATION_PATROL_EVENT_TYPES)[number];
+  /** Serializable patrol event record. */
   patrol: GameboardPatrolEventRecord;
 }
 
+/**
+ * Flattened movement event record with step provenance.
+ */
 export interface GameboardScenarioSimulationMovementRecord {
+  /** Step index that emitted the movement event. */
   stepIndex: number;
+  /** Authored step id. */
   stepId?: string;
+  /** Authored step label. */
   stepLabel?: string;
+  /** Movement event type. */
   eventType: (typeof SIMULATION_MOVEMENT_EVENT_TYPES)[number];
+  /** Serializable movement event record. */
   movement: GameboardMovementEventRecord;
 }
 
+/**
+ * Final actor record in a simulation report.
+ */
 export interface GameboardScenarioSimulationActorRecord {
+  /** Actor id. */
   actorId: string;
+  /** Actor kind. */
   kind: GameboardActorKind;
+  /** Actor faction. */
   faction?: string;
+  /** Actor team. */
   team?: string;
+  /** Whether the actor is generally hostile. */
   hostile: boolean;
+  /** Whether the actor blocks movement. */
   blocksMovement: boolean;
+  /** Whether the actor can be interacted with. */
   interactive: boolean;
+  /** Actor tags. */
   tags: readonly string[];
+  /** Serializable actor metadata. */
   metadata: Readonly<Record<string, GameboardActorMetadataValue>>;
+  /** Final placement record for the actor. */
   placement: GameboardScenarioSimulationPlacementRecord;
 }
 
+/**
+ * Final placement record in a simulation report.
+ */
 export interface GameboardScenarioSimulationPlacementRecord {
+  /** Placement id. */
   placementId: string;
+  /** Origin tile key. */
   tileKey: string;
+  /** Asset id. */
   assetId: string;
+  /** Placement kind. */
   kind: GameboardPlacementKind;
+  /** Placement layer. */
   layer: GameboardPlacementLayer;
+  /** Whether the placement depends on local EXTRA or external assets. */
   requiresExtra: boolean;
+  /** Serializable placement metadata. */
   metadata: Readonly<Record<string, GameboardActorMetadataValue>>;
 }
 
+/**
+ * Final quest record in a simulation report.
+ */
 export interface GameboardScenarioSimulationQuestRecord {
+  /** Quest id. */
   questId: string;
+  /** Quest title. */
   title: string;
+  /** Quest status. */
   status: GameboardQuestStatus;
+  /** Active objective index. */
   activeObjectiveIndex: number;
+  /** Active objective id. */
   activeObjectiveId?: string;
+  /** Quest objectives. */
   objectives: readonly GameboardQuestObjective[];
+  /** Objective progress snapshots. */
   progress: readonly GameboardQuestObjectiveProgress[];
+  /** Serializable quest metadata. */
   metadata: Readonly<Record<string, GameboardQuestMetadataValue>>;
 }
 
+/**
+ * Runs simulation steps against a fresh runtime created from a scenario.
+ */
 export function runGameboardScenarioSimulation(
   scenario: GameboardScenario,
   steps: readonly GameboardScenarioSimulationStep[],
@@ -668,6 +1050,10 @@ export function runGameboardScenarioSimulation(
   return simulationResult(runtime, stepResults);
 }
 
+/**
+ * Runs an authored simulation script against a fresh runtime created from a
+ * scenario, applying script defaults to individual steps.
+ */
 export function runGameboardScenarioSimulationScript(
   scenario: GameboardScenario,
   script: GameboardScenarioSimulationScript,
@@ -684,6 +1070,10 @@ export function runGameboardScenarioSimulationScript(
   });
 }
 
+/**
+ * Validates a simulation script against optional scenario or compiled plan
+ * context without executing it.
+ */
 export function inspectGameboardScenarioSimulationScript(
   script: GameboardScenarioSimulationScript,
   config: GameboardScenarioSimulationScriptValidationConfig = {}
@@ -743,6 +1133,9 @@ export function inspectGameboardScenarioSimulationScript(
   return { script, plan: scenarioIndex.plan, violations };
 }
 
+/**
+ * Returns validation violations for a simulation script.
+ */
 export function validateGameboardScenarioSimulationScript(
   script: GameboardScenarioSimulationScript,
   config: GameboardScenarioSimulationScriptValidationConfig = {}
@@ -750,6 +1143,9 @@ export function validateGameboardScenarioSimulationScript(
   return [...inspectGameboardScenarioSimulationScript(script, config).violations];
 }
 
+/**
+ * Converts planned patrol routes into executable command steps.
+ */
 export function createGameboardPatrolSimulationSteps(
   options: CreateGameboardPatrolSimulationStepsOptions
 ): GameboardPatrolSimulationStepsPlan {
@@ -831,6 +1227,9 @@ export function createGameboardPatrolSimulationSteps(
   };
 }
 
+/**
+ * Converts patrol routes into a complete simulation script.
+ */
 export function createGameboardPatrolSimulationScript(
   options: CreateGameboardPatrolSimulationScriptOptions
 ): GameboardPatrolSimulationScriptPlan {
@@ -850,6 +1249,9 @@ export function createGameboardPatrolSimulationScript(
   };
 }
 
+/**
+ * Creates a serializable report from an in-memory simulation result.
+ */
 export function createGameboardScenarioSimulationReport(
   result: GameboardScenarioSimulationResult,
   expectations?: GameboardScenarioSimulationExpectations
@@ -891,6 +1293,9 @@ export function createGameboardScenarioSimulationReport(
   };
 }
 
+/**
+ * Evaluates report expectations and returns all failures without throwing.
+ */
 export function evaluateGameboardScenarioSimulationExpectations(
   report: GameboardScenarioSimulationReport,
   expectations: GameboardScenarioSimulationExpectations | undefined = report.expectations
@@ -911,6 +1316,9 @@ export function evaluateGameboardScenarioSimulationExpectations(
   ];
 }
 
+/**
+ * Throws when a simulation report does not satisfy its expectations.
+ */
 export function assertGameboardScenarioSimulationExpectations(
   report: GameboardScenarioSimulationReport,
   expectations: GameboardScenarioSimulationExpectations | undefined = report.expectations

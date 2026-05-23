@@ -143,21 +143,56 @@ import {
   type RunGameboardSystemsResult,
 } from './systems';
 
+/**
+ * Koota action bundle for raw board placement operations.
+ */
 export type GameboardActionBundle = ReturnType<typeof gameboardActions>;
+
+/**
+ * Koota action bundle for actor spawning, movement, and selection.
+ */
 export type GameboardActorActionBundle = ReturnType<typeof gameboardActorActions>;
+
+/**
+ * Koota action bundle for movement-agent requests and ticks.
+ */
 export type GameboardMovementActionBundle = ReturnType<typeof gameboardMovementActions>;
+
+/**
+ * Koota action bundle for patrol-agent setup and ticks.
+ */
 export type GameboardPatrolActionBundle = ReturnType<typeof gameboardPatrolActions>;
+
+/**
+ * Koota action bundle for quest spawning and progression.
+ */
 export type GameboardQuestActionBundle = ReturnType<typeof gameboardQuestActions>;
+
+/**
+ * Koota action bundle for command planning, preview, execution, and targeting.
+ */
 export type GameboardCommandActionBundle = ReturnType<typeof gameboardCommandActions>;
+
+/**
+ * Koota action bundle for command dispatch and game-loop system ticks.
+ */
 export type GameboardSystemActionBundle = ReturnType<typeof gameboardSystemActions>;
 
+/**
+ * Accepted input for creating a runtime facade.
+ */
 export type CreateGameboardRuntimeInput =
   | GameboardPlan
   | World
   | CreateGameboardRuntimeOptions;
 
+/**
+ * Explicit runtime creation options.
+ */
 export interface CreateGameboardRuntimeOptions {
+  /** Existing Koota world to bind. */
   world?: World;
+  /** Serializable plan to load into a new Koota world. */
   plan?: GameboardPlan;
 }
 
@@ -165,179 +200,269 @@ interface GameboardRuntimeBindingContext {
   interopScenario?: GameboardInteropScenarioRecord;
 }
 
+/**
+ * Snapshot options for the runtime facade.
+ */
 export interface GameboardRuntimeSnapshotOptions extends GameboardInteropOptions {
+  /** Include a runtime interop snapshot. Defaults to true. */
   includeInterop?: boolean;
+  /** Include the validation-oriented plan projection. */
   includeValidationPlan?: boolean;
 }
 
+/**
+ * Full serializable snapshot of a live runtime facade.
+ */
 export interface GameboardRuntimeSnapshot {
+  /** Low-level board snapshot from Koota traits and relations. */
   state: GameboardSnapshot;
+  /** Renderable/current projected gameboard plan. */
   plan: GameboardPlan;
+  /** Validation-oriented plan when requested. */
   validationPlan?: GameboardPlan;
+  /** Current placement records. */
   placements: readonly PlacementStateValue[];
+  /** Current placement footprint occupancy records. */
   placementOccupancy: readonly PlacementOccupancySnapshot[];
+  /** Current actor snapshots. */
   actors: readonly GameboardActorSnapshot[];
+  /** Current quest snapshots. */
   quests: readonly GameboardQuestSnapshot[];
+  /** Optional ECS interop snapshot. */
   interop?: GameboardInteropSnapshot;
 }
 
+/**
+ * High-level facade for game-loop code, examples, and host integrations.
+ */
 export interface GameboardRuntime {
+  /** Bound Koota world. */
   readonly world: World;
+  /** Raw board placement actions. */
   readonly actions: GameboardActionBundle;
+  /** Actor actions. */
   readonly actors: GameboardActorActionBundle;
+  /** Movement actions. */
   readonly movement: GameboardMovementActionBundle;
+  /** Patrol actions. */
   readonly patrol: GameboardPatrolActionBundle;
+  /** Quest actions. */
   readonly quests: GameboardQuestActionBundle;
+  /** Command planning/execution actions. */
   readonly commands: GameboardCommandActionBundle;
+  /** System dispatch/tick actions. */
   readonly systems: GameboardSystemActionBundle;
+  /** Load a plan into the bound world. */
   loadPlan: (plan: GameboardPlan) => GameboardEntityIndex;
+  /** Project the live world to a renderable plan. */
   plan: () => GameboardPlan;
+  /** Project the live world to a plan shape suitable for validation. */
   validationPlan: () => GameboardPlan;
+  /** Read a serializable runtime snapshot. */
   snapshot: (options?: GameboardRuntimeSnapshotOptions) => GameboardRuntimeSnapshot;
+  /** Inspect one tile, placement, actor, or coordinate in live state. */
   inspectTile: (
     coordinates: SpawnGameboardActorOptions['at'],
     options?: GameboardTileInspectionOptions
   ) => GameboardTileInspection;
+  /** Inspect a radius around a tile, placement, actor, or coordinate. */
   inspectNeighborhood: (
     center: GameboardNeighborhoodCenter,
     options?: GameboardNeighborhoodInspectionOptions
   ) => GameboardNeighborhoodInspection;
+  /** Select actors from live state using actor-aware filters. */
   selectActors: (options?: GameboardActorSelectionOptions) => GameboardActorSelection;
+  /** Select and rank actor targets with path and command planning. */
   inspectActorTargets: (options: GameboardActorTargetingOptions) => GameboardActorTargetingReport;
+  /** Create an ECS interop snapshot from the live runtime. */
   createInteropSnapshot: (options?: GameboardRuntimeInteropOptions) => GameboardInteropSnapshot;
+  /** Mount the live runtime snapshot into another ECS/store adapter. */
   mountInterop: <TEntity>(
     adapter: GameboardEcsAdapter<TEntity>,
     options?: GameboardRuntimeInteropOptions
   ) => GameboardEcsMountResult<TEntity>;
+  /** Spawn explicit layout placements into the live world. */
   spawnLayoutPlacements: (options: GameboardLayoutPlacementOptions) => Entity[];
+  /** Spawn a generated layout fill into the live world. */
   spawnLayoutFill: (options: GameboardLayoutFillOptions) => Entity[];
+  /** Convert a piece declaration to layout placement options. */
   createPiecePlacementOptions: (
     piece: GameboardPieceDeclaration,
     options?: GameboardPiecePlacementOptions
   ) => GameboardLayoutPlacementOptions;
+  /** Create placement options for a piece against the current projected plan. */
   createPiecePlacements: (
     piece: GameboardPieceDeclaration,
     options?: GameboardPiecePlacementOptions
   ) => SpawnGameboardPlacementOptions[];
+  /** Inspect where a piece can be placed against the current projected plan. */
   inspectPiecePlacement: (
     piece: GameboardPieceDeclaration,
     options?: GameboardPiecePlacementOptions
   ) => GameboardPiecePlacementInspection;
+  /** Spawn one declared piece into the live world. */
   spawnPiece: (
     piece: GameboardPieceDeclaration,
     options?: GameboardPiecePlacementOptions
   ) => Entity[];
+  /** Analyze a custom piece registry. */
   analyzePieceRegistry: (
     registry: GameboardPieceRegistry,
     options?: AnalyzeGameboardPieceRegistryOptions
   ) => GameboardPieceRegistryAnalysis;
+  /** Select declarations from a custom piece registry. */
   selectPieces: (
     registry: GameboardPieceRegistry,
     selection?: GameboardPieceRegistrySelection
   ) => GameboardPieceDeclaration[];
+  /** Create layout fill rules from selected registry pieces. */
   createPieceFillRules: (
     registry: GameboardPieceRegistry,
     options?: GameboardPieceRegistryFillRulesOptions
   ) => GameboardLayoutFillRule[];
+  /** Create one pooled fill rule from a piece collection. */
   createPiecePoolFillRule: (
     pieces: readonly GameboardPieceDeclaration[],
     options?: GameboardPieceCollectionLayoutRuleOptions
   ) => GameboardLayoutFillRule;
+  /** Analyze generated piece fills against the current projected plan. */
   analyzePieceFills: (
     registry: GameboardPieceRegistry,
     fills: readonly SeededGameboardPieceFillOptions[],
     options?: InspectSeededGameboardPieceFillsOptions
   ) => GameboardLayoutFillAnalysis;
+  /** Inspect generated piece fills with candidate and rejection details. */
   inspectPieceFills: (
     registry: GameboardPieceRegistry,
     fills: readonly SeededGameboardPieceFillOptions[],
     options?: InspectSeededGameboardPieceFillsOptions
   ) => SeededGameboardPieceFillInspection;
+  /** Spawn generated piece fills into the live world. */
   spawnPieceFills: (
     registry: GameboardPieceRegistry,
     fills: readonly SeededGameboardPieceFillOptions[],
     options?: InspectSeededGameboardPieceFillsOptions
   ) => Entity[];
+  /** Create an asset-id-to-URL map for local custom pieces. */
   createPieceSourceUrlMap: (
     registry: GameboardPieceRegistry,
     options?: GameboardPieceSourceUrlOptions
   ) => Readonly<Record<string, string>>;
+  /** Spawn an actor-backed placement. */
   spawnActor: (options: SpawnGameboardActorOptions) => Entity;
+  /** Move an actor-backed placement by actor id or entity. */
   moveActor: (
     actor: Entity | string,
     to: SpawnGameboardActorOptions['at'],
     options?: MoveGameboardActorOptions
   ) => Entity;
+  /** Spawn a quest definition into the live world. */
   spawnQuest: (
     definition: GameboardQuestDefinition,
     options?: SpawnGameboardQuestOptions
   ) => Entity;
+  /** Plan a command from a renderer or gameplay target. */
   planCommand: (
     target: GameboardInteractionTargetInput,
     options?: GameboardInteractionCommandOptions
   ) => GameboardInteractionCommand;
+  /** Plan a command against the selected actor target. */
   planActorTargetCommand: (
     options: GameboardActorTargetCommandOptions
   ) => GameboardActorTargetCommandPlan;
+  /** Preview command execution without mutating state. */
   previewCommand: (
     commandOrTarget: GameboardInteractionCommandInput,
     options?: GameboardInteractionCommandPreviewOptions
   ) => GameboardInteractionCommandPreview;
+  /** Execute a command and return dispatch events. */
   dispatchCommand: (
     commandOrTarget: GameboardInteractionCommandInput,
     options?: DispatchGameboardInteractionCommandOptions
   ) => DispatchGameboardInteractionCommandResult;
+  /** Select an actor target and dispatch the planned command. */
   dispatchActorTargetCommand: (
     options: GameboardActorTargetCommandOptions,
     commandOptions?: DispatchGameboardInteractionCommandOptions
   ) => DispatchGameboardActorTargetCommandResult;
+  /** Execute a command without wrapping it in system events. */
   executeCommand: (
     commandOrTarget: GameboardInteractionCommandInput,
     options?: GameboardInteractionCommandExecutionOptions
   ) => GameboardInteractionCommandExecution;
+  /** Dispatch a command and optionally run systems. */
   interact: (
     commandOrTarget: GameboardInteractionCommandInput,
     options?: RunGameboardInteractionOptions
   ) => RunGameboardInteractionResult;
+  /** Target an actor, dispatch the command, and optionally run systems. */
   interactActorTarget: (
     options: GameboardActorTargetCommandOptions,
     interactionOptions?: RunGameboardInteractionOptions
   ) => RunGameboardActorTargetInteractionResult;
+  /** Run enabled systems for one game-loop tick. */
   tick: (options?: RunGameboardSystemsOptions) => RunGameboardSystemsResult;
 }
 
+/**
+ * Runtime facade created from a scenario, preserving scenario-specific indexes
+ * and source URL helpers.
+ */
 export interface GameboardScenarioGameRuntime extends GameboardRuntime {
+  /** Scenario runtime produced by `createGameboardWorldFromScenario`. */
   readonly scenarioRuntime: GameboardScenarioRuntime;
+  /** Scenario actor entity index by actor id. */
   readonly actorEntities: GameboardScenarioRuntime['actorEntities'];
+  /** Scenario quest entity index by quest id. */
   readonly questEntities: GameboardScenarioRuntime['questEntities'];
+  /** Layout archetypes declared by the scenario recipe. */
   readonly scenarioLayoutArchetypes?: GameboardLayoutArchetypeRegistry;
+  /** Piece registry declared by the scenario recipe. */
   readonly scenarioPieceRegistry?: GameboardPieceRegistry;
+  /** Create an interop snapshot from the original scenario definition. */
   createScenarioInteropSnapshot: (
     options?: GameboardScenarioInteropOptions
   ) => GameboardInteropSnapshot;
+  /** Mount the original scenario definition into another ECS/store adapter. */
   mountScenarioInterop: <TEntity>(
     adapter: GameboardEcsAdapter<TEntity>,
     options?: GameboardScenarioInteropOptions
   ) => GameboardEcsMountResult<TEntity>;
+  /** Create an asset-id-to-URL map for scenario-local custom pieces. */
   createScenarioPieceSourceUrlMap: (
     options?: GameboardPieceSourceUrlOptions
   ) => Readonly<Record<string, string>>;
 }
 
+/**
+ * Runtime facade created from a recipe, preserving recipe-specific registries.
+ */
 export interface GameboardRecipeGameRuntime extends GameboardRuntime {
+  /** Source recipe used to create the runtime. */
   readonly recipe: GameboardRecipe;
+  /** Layout archetypes declared by the recipe. */
   readonly recipeLayoutArchetypes?: GameboardLayoutArchetypeRegistry;
+  /** Piece registry declared by the recipe. */
   readonly recipePieceRegistry?: GameboardPieceRegistry;
+  /** Create an asset-id-to-URL map for recipe-local custom pieces. */
   createRecipePieceSourceUrlMap: (
     options?: GameboardPieceSourceUrlOptions
   ) => Readonly<Record<string, string>>;
 }
 
+/**
+ * Creates a runtime facade from an existing world, a serializable plan, or
+ * explicit runtime options.
+ */
 export function createGameboardRuntime(input: CreateGameboardRuntimeInput): GameboardRuntime {
   const world = resolveRuntimeWorld(input);
   return bindGameboardRuntime(world);
 }
 
+/**
+ * Compiles a recipe into a live runtime while preserving recipe-local layout
+ * archetypes and piece registry helpers.
+ */
 export function createGameboardRuntimeFromRecipe(
   recipe: GameboardRecipe,
   overrides: GameboardRecipePlanOptionsOverride = {}
@@ -355,6 +480,10 @@ export function createGameboardRuntimeFromRecipe(
   };
 }
 
+/**
+ * Compiles a scenario into a live runtime while preserving actor/quest indexes,
+ * scenario interop helpers, and scenario-local piece source URL helpers.
+ */
 export function createGameboardRuntimeFromScenario(
   scenario: GameboardScenario,
   overrides: GameboardRecipePlanOptionsOverride = {}

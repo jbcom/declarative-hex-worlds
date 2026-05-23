@@ -33,6 +33,9 @@ import {
   type GameboardQuestSnapshot,
 } from './quests';
 
+/**
+ * Event emitted by one high-level gameboard system pass.
+ */
 export type GameboardSystemEvent =
   | GameboardMovementRequestedEvent
   | GameboardCommandHandledEvent
@@ -50,228 +53,444 @@ export type GameboardSystemEvent =
   | GameboardQuestCompletedEvent
   | GameboardQuestBlockedEvent;
 
+/**
+ * Command execution requested a movement path.
+ */
 export interface GameboardMovementRequestedEvent {
+  /** Event discriminator. */
   type: 'movement-requested';
+  /** Command execution that produced the movement request. */
   execution: GameboardInteractionCommandExecution;
 }
 
+/**
+ * Command execution completed through a handler.
+ */
 export interface GameboardCommandHandledEvent {
+  /** Event discriminator. */
   type: 'command-handled';
+  /** Command execution that was handled. */
   execution: GameboardInteractionCommandExecution;
 }
 
+/**
+ * Command execution was blocked before mutation.
+ */
 export interface GameboardCommandBlockedEvent {
+  /** Event discriminator. */
   type: 'command-blocked';
+  /** Command execution that failed. */
   execution: GameboardInteractionCommandExecution;
+  /** Blocked reason. */
   reason?: string;
 }
 
+/**
+ * Command execution had no effect.
+ */
 export interface GameboardCommandIgnoredEvent {
+  /** Event discriminator. */
   type: 'command-ignored';
+  /** Command execution that was ignored. */
   execution: GameboardInteractionCommandExecution;
+  /** Ignored reason. */
   reason?: string;
 }
 
+/**
+ * Command requires a host-game handler before it can mutate state.
+ */
 export interface GameboardCommandHandlerRequiredEvent {
+  /** Event discriminator. */
   type: 'command-handler-required';
+  /** Command execution awaiting a handler. */
   execution: GameboardInteractionCommandExecution;
 }
 
+/**
+ * Patrol system requested movement for a patrol agent.
+ */
 export interface GameboardPatrolMoveRequestedEvent {
+  /** Event discriminator. */
   type: 'patrol-move-requested';
+  /** Patrol advancement result. */
   patrol: GameboardPatrolAdvanceResult;
 }
 
+/**
+ * Patrol agent entered or remained in a waiting state.
+ */
 export interface GameboardPatrolWaitingEvent {
+  /** Event discriminator. */
   type: 'patrol-waiting';
+  /** Patrol advancement result. */
   patrol: GameboardPatrolAdvanceResult;
 }
 
+/**
+ * Patrol agent completed its route or configured rounds.
+ */
 export interface GameboardPatrolCompletedEvent {
+  /** Event discriminator. */
   type: 'patrol-completed';
+  /** Patrol advancement result. */
   patrol: GameboardPatrolAdvanceResult;
 }
 
+/**
+ * Patrol agent could not advance.
+ */
 export interface GameboardPatrolBlockedEvent {
+  /** Event discriminator. */
   type: 'patrol-blocked';
+  /** Patrol advancement result. */
   patrol: GameboardPatrolAdvanceResult;
+  /** Blocked reason. */
   reason?: string;
 }
 
+/**
+ * Movement system advanced a placement along a path.
+ */
 export interface GameboardMovementSteppedEvent {
+  /** Event discriminator. */
   type: 'movement-stepped';
+  /** Movement advancement result. */
   movement: GameboardMovementAdvanceResult;
 }
 
+/**
+ * Movement system completed a path.
+ */
 export interface GameboardMovementCompletedEvent {
+  /** Event discriminator. */
   type: 'movement-completed';
+  /** Movement advancement result. */
   movement: GameboardMovementAdvanceResult;
 }
 
+/**
+ * Movement system could not advance a path.
+ */
 export interface GameboardMovementBlockedEvent {
+  /** Event discriminator. */
   type: 'movement-blocked';
+  /** Movement advancement result. */
   movement: GameboardMovementAdvanceResult;
+  /** Blocked reason. */
   reason?: string;
 }
 
+/**
+ * Quest state advanced but may not yet be completed.
+ */
 export interface GameboardQuestAdvancedEvent {
+  /** Event discriminator. */
   type: 'quest-advanced';
+  /** Quest snapshot before the advance. */
   before?: GameboardQuestSnapshot;
+  /** Quest snapshot after the advance. */
   quest: GameboardQuestSnapshot;
 }
 
+/**
+ * Quest completed during a system pass.
+ */
 export interface GameboardQuestCompletedEvent {
+  /** Event discriminator. */
   type: 'quest-completed';
+  /** Quest snapshot before completion. */
   before?: GameboardQuestSnapshot;
+  /** Quest snapshot after completion. */
   quest: GameboardQuestSnapshot;
 }
 
+/**
+ * Quest became blocked during a system pass.
+ */
 export interface GameboardQuestBlockedEvent {
+  /** Event discriminator. */
   type: 'quest-blocked';
+  /** Quest snapshot before the blocked state. */
   before?: GameboardQuestSnapshot;
+  /** Quest snapshot after the blocked state. */
   quest: GameboardQuestSnapshot;
+  /** Blocked reason from objective progress. */
   reason?: string;
 }
 
+/**
+ * Command dispatch options used by system helpers.
+ */
 export interface DispatchGameboardInteractionCommandOptions extends GameboardInteractionCommandExecutionOptions {}
 
+/**
+ * Result of dispatching one interaction command.
+ */
 export interface DispatchGameboardInteractionCommandResult {
+  /** Command execution result. */
   execution: GameboardInteractionCommandExecution;
+  /** In-memory events emitted by the dispatch. */
   events: readonly GameboardSystemEvent[];
+  /** Serializable event records derived from `events`. */
   eventRecords: readonly GameboardSystemEventRecord[];
 }
 
+/**
+ * Result of selecting an actor target and dispatching the planned command.
+ */
 export interface DispatchGameboardActorTargetCommandResult {
+  /** Actor-target command plan. */
   targetCommand: GameboardActorTargetCommandPlan;
+  /** Dispatch result when the target command was executable. */
   dispatch?: DispatchGameboardInteractionCommandResult;
+  /** In-memory events emitted by the dispatch. */
   events: readonly GameboardSystemEvent[];
+  /** Serializable event records derived from `events`. */
   eventRecords: readonly GameboardSystemEventRecord[];
+  /** Reason no command was dispatched or dispatch was blocked. */
   reason?: string;
 }
 
+/**
+ * System tick options. Set a subsystem to false to skip it for this tick.
+ */
 export interface RunGameboardSystemsOptions {
+  /** Patrol advancement options or false to skip patrols. */
   patrols?: AdvanceGameboardPatrolOptions | false;
+  /** Movement advancement options or false to skip movement. */
   movement?: AdvanceGameboardMovementOptions | false;
+  /** Quest advancement options or false to skip quests. */
   quests?: AdvanceGameboardQuestOptions | false;
 }
 
+/**
+ * Result of running patrol, movement, and quest systems.
+ */
 export interface RunGameboardSystemsResult {
+  /** Patrol results produced by this tick. */
   patrols: readonly GameboardPatrolAdvanceResult[];
+  /** Movement results produced by this tick. */
   movement: readonly GameboardMovementAdvanceResult[];
+  /** Quest snapshots after advancement. */
   quests: readonly GameboardQuestSnapshot[];
+  /** In-memory events emitted by all enabled systems. */
   events: readonly GameboardSystemEvent[];
+  /** Serializable event records derived from `events`. */
   eventRecords: readonly GameboardSystemEventRecord[];
 }
 
+/**
+ * Options for dispatching a command and then optionally running systems.
+ */
 export interface RunGameboardInteractionOptions extends DispatchGameboardInteractionCommandOptions {
+  /** Systems to run after dispatch, or false to only dispatch the command. */
   systems?: RunGameboardSystemsOptions | false;
 }
 
+/**
+ * Result of command dispatch plus optional system advancement.
+ */
 export interface RunGameboardInteractionResult {
+  /** Command dispatch result. */
   dispatch: DispatchGameboardInteractionCommandResult;
+  /** System result when systems were enabled. */
   systems?: RunGameboardSystemsResult;
+  /** Combined dispatch and system events. */
   events: readonly GameboardSystemEvent[];
+  /** Serializable event records derived from `events`. */
   eventRecords: readonly GameboardSystemEventRecord[];
 }
 
+/**
+ * Result of target selection, command dispatch, and optional system advancement.
+ */
 export interface RunGameboardActorTargetInteractionResult {
+  /** Actor-target command plan. */
   targetCommand: GameboardActorTargetCommandPlan;
+  /** Interaction result when the target command was executable. */
   interaction?: RunGameboardInteractionResult;
+  /** Dispatch result when command dispatch occurred. */
   dispatch?: DispatchGameboardInteractionCommandResult;
+  /** System result when systems were enabled. */
   systems?: RunGameboardSystemsResult;
+  /** Combined dispatch and system events. */
   events: readonly GameboardSystemEvent[];
+  /** Serializable event records derived from `events`. */
   eventRecords: readonly GameboardSystemEventRecord[];
+  /** Reason no interaction occurred or dispatch was blocked. */
   reason?: string;
 }
 
+/**
+ * Serializable event record for tests, logs, interop snapshots, and simulations.
+ */
 export interface GameboardSystemEventRecord {
+  /** Event discriminator. */
   type: GameboardSystemEvent['type'];
+  /** Optional failure or blocked reason. */
   reason?: string;
+  /** Command record for command-related events. */
   command?: GameboardInteractionCommandRecord;
+  /** Patrol record for patrol-related events. */
   patrol?: GameboardPatrolEventRecord;
+  /** Movement record for movement-related events. */
   movement?: GameboardMovementEventRecord;
+  /** Quest record after quest-related events. */
   quest?: GameboardQuestEventRecord;
+  /** Quest record before quest-related events. */
   beforeQuest?: GameboardQuestEventRecord;
 }
 
+/**
+ * Serializable command execution record.
+ */
 export interface GameboardInteractionCommandRecord {
+  /** Command kind. */
   kind: GameboardInteractionCommand['kind'];
+  /** Command intent. */
   intent: GameboardInteractionCommand['intent'];
+  /** Execution status. */
   status: GameboardInteractionCommandExecution['status'];
+  /** Whether the command could execute at dispatch time. */
   canExecute: boolean;
+  /** Optional blocked or handler reason. */
   reason?: string;
+  /** Handler id when a handler processed the command. */
   handlerId?: string;
+  /** Handler status when a handler processed the command. */
   handlerStatus?: GameboardInteractionHandlerResult['status'];
+  /** Handler metadata when supplied. */
   handlerMetadata?: GameboardInteractionHandlerResult['metadata'];
+  /** Side-effect type list for compact reporting. */
   effectTypes?: readonly GameboardInteractionHandlerEffect['type'][];
+  /** Full handler side effects. */
   effects?: readonly GameboardInteractionHandlerEffect[];
+  /** Target tile key, when applicable. */
   tileKey?: string;
+  /** Target placement id, when applicable. */
   placementId?: string;
+  /** Target actor id, when applicable. */
   actorId?: string;
+  /** Source actor id, when applicable. */
   sourceActorId?: string;
+  /** Source placement id, when applicable. */
   sourcePlacementId?: string;
+  /** Resolved target summary. */
   target: {
+    /** Target kind. */
     kind: GameboardInteractionCommand['target']['kind'];
+    /** Target intent. */
     intent: GameboardInteractionCommand['target']['intent'];
+    /** Target tile key. */
     tileKey?: string;
+    /** Target placement id. */
     placementId?: string;
+    /** Target actor id. */
     actorId?: string;
+    /** Whether the source can enter the target tile. */
     canEnter: boolean;
   };
 }
 
+/**
+ * Serializable movement event record.
+ */
 export interface GameboardMovementEventRecord {
+  /** Placement id being moved. */
   placementId: string;
+  /** Actor id when the moved placement is actor-backed. */
   actorId?: string;
+  /** Current tile key for the moved placement. */
   tileKey: string;
+  /** Placement asset id. */
   assetId: string;
+  /** Movement profile id used for the move. */
   profileId: GameboardMovementProfile['id'];
+  /** Whether the placement moved during this event. */
   moved: boolean;
+  /** Snapshot of the path state. */
   state: MovementPathStateValue;
 }
 
+/**
+ * Serializable patrol event record.
+ */
 export interface GameboardPatrolEventRecord {
+  /** Placement id controlled by the patrol agent. */
   placementId: string;
+  /** Actor id when the patrol placement is actor-backed. */
   actorId?: string;
+  /** Patrol route id. */
   routeId: string;
+  /** Patrol status after advancement. */
   status: GameboardPatrolStatus;
+  /** Current target waypoint tile key. */
   targetKey?: string;
+  /** Current waypoint index. */
   currentWaypointIndex: number;
+  /** Target waypoint index. */
   targetWaypointIndex: number;
+  /** Completed route rounds. */
   roundsCompleted: number;
+  /** Whether movement was requested. */
   requested: boolean;
+  /** Whether the patrol pointer advanced. */
   advanced: boolean;
+  /** Optional patrol blocked/waiting reason. */
   reason?: string;
 }
 
+/**
+ * Serializable quest event record.
+ */
 export interface GameboardQuestEventRecord {
+  /** Quest id. */
   questId: string;
+  /** Quest title. */
   title: string;
+  /** Quest status. */
   status: GameboardQuestSnapshot['quest']['status'];
+  /** Active objective index. */
   activeObjectiveIndex: number;
+  /** Active objective id. */
   activeObjectiveId?: string;
+  /** Quest objectives. */
   objectives: readonly GameboardQuestObjective[];
+  /** Objective progress snapshots. */
   progress: readonly GameboardQuestObjectiveProgress[];
 }
 
+/**
+ * Koota action bundle for high-level game-loop dispatch and system ticks.
+ */
 export const gameboardSystemActions = createActions((world) => ({
+  /** Execute one command and emit dispatch event records. */
   dispatchCommand: (
     commandOrTarget: GameboardInteractionCommandInput,
     options: DispatchGameboardInteractionCommandOptions = {}
   ) => dispatchGameboardInteractionCommand(world, commandOrTarget, options),
+  /** Select an actor target, then execute its planned command. */
   dispatchActorTargetCommand: (
     options: GameboardActorTargetCommandOptions,
     commandOptions: DispatchGameboardInteractionCommandOptions = {}
   ) => dispatchGameboardActorTargetCommand(world, options, commandOptions),
+  /** Run enabled patrol, movement, and quest systems for one tick. */
   run: (options: RunGameboardSystemsOptions = {}) => runGameboardSystems(world, options),
+  /** Dispatch a command and optionally tick systems. */
   interact: (commandOrTarget: GameboardInteractionCommandInput, options: RunGameboardInteractionOptions = {}) =>
     runGameboardInteraction(world, commandOrTarget, options),
+  /** Target an actor, dispatch the command, and optionally tick systems. */
   interactActorTarget: (
     options: GameboardActorTargetCommandOptions,
     interactionOptions: RunGameboardInteractionOptions = {}
   ) => runGameboardActorTargetInteraction(world, options, interactionOptions),
 }));
 
+/**
+ * Executes one interaction command and converts the execution into system
+ * events and serializable records.
+ */
 export function dispatchGameboardInteractionCommand(
   world: World,
   commandOrTarget: GameboardInteractionCommandInput,
@@ -286,6 +505,9 @@ export function dispatchGameboardInteractionCommand(
   };
 }
 
+/**
+ * Plans a command against an actor target, then dispatches it when executable.
+ */
 export function dispatchGameboardActorTargetCommand(
   world: World,
   options: GameboardActorTargetCommandOptions,
@@ -311,6 +533,9 @@ export function dispatchGameboardActorTargetCommand(
   };
 }
 
+/**
+ * Runs the enabled patrol, movement, and quest systems for one game-loop tick.
+ */
 export function runGameboardSystems(
   world: World,
   options: RunGameboardSystemsOptions = {}
@@ -333,6 +558,9 @@ export function runGameboardSystems(
   };
 }
 
+/**
+ * Dispatches an interaction command and then runs systems unless disabled.
+ */
 export function runGameboardInteraction(
   world: World,
   commandOrTarget: GameboardInteractionCommandInput,
@@ -353,6 +581,10 @@ export function runGameboardInteraction(
   };
 }
 
+/**
+ * Selects an actor target, dispatches the planned command, and then runs
+ * systems unless disabled.
+ */
 export function runGameboardActorTargetInteraction(
   world: World,
   options: GameboardActorTargetCommandOptions,
@@ -380,6 +612,9 @@ export function runGameboardActorTargetInteraction(
   };
 }
 
+/**
+ * Converts one in-memory system event into a serializable event record.
+ */
 export function snapshotGameboardSystemEvent(event: GameboardSystemEvent): GameboardSystemEventRecord {
   switch (event.type) {
     case 'movement-requested':
@@ -443,6 +678,9 @@ export function snapshotGameboardSystemEvent(event: GameboardSystemEvent): Gameb
   }
 }
 
+/**
+ * Converts in-memory system events into serializable records.
+ */
 export function snapshotGameboardSystemEvents(events: readonly GameboardSystemEvent[]): GameboardSystemEventRecord[] {
   return events.map(snapshotGameboardSystemEvent);
 }
