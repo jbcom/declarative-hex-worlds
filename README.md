@@ -180,7 +180,12 @@ usage guides:
   local-only asset-pack rendering tests.
 
 TypeDoc API output is generated during `pnpm docs` / `pnpm docs:build`; the
-generated `docs/api/` tree is not committed.
+generated `docs/api/` tree is not committed. Public exports are expected to have
+useful JSDoc. Before claiming the API docs are complete, run the strict audit:
+
+```bash
+pnpm exec typedoc --options typedoc.json --validation.notDocumented true --logLevel Warn --out /tmp/medieval-hexagon-typedoc-audit
+```
 
 ## Development
 
@@ -191,6 +196,8 @@ pnpm assets:free
 pnpm lint
 pnpm typecheck
 pnpm build
+pnpm docs
+pnpm docs:build
 pnpm test
 pnpm test:docs-contract
 pnpm test:assets

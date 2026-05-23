@@ -17,6 +17,9 @@ contract for CI and npm consumers.
 - Keep TypeDoc comments useful on exported symbols. Public JSDoc should explain
   lifecycle, validation, and caller responsibility instead of restating a name.
 - Run `pnpm docs` or `pnpm docs:build` for docs or public API comment changes.
+- For JSDoc completion claims, also run
+  `pnpm exec typedoc --options typedoc.json --validation.notDocumented true --logLevel Warn --out /tmp/medieval-hexagon-typedoc-audit`
+  and keep the strict warning count at zero.
 
 ## Asset Rules
 
