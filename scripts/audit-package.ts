@@ -76,7 +76,7 @@ assert(
 );
 assert(
   workspacePackageJson.scripts?.['test:ci'] ===
-    'pnpm lint && pnpm typecheck && pnpm test:docs-contract && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm test && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run',
+    'pnpm lint && pnpm typecheck && pnpm test:docs-contract && pnpm test:api-docs && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm test && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run',
   'workspace test:ci must run the built CLI and packed consumer smoke before pack dry-run'
 );
 assert(

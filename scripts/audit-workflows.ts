@@ -42,7 +42,7 @@ requireIncludes(ci, 'ci.yml', [
   'pnpm/action-setup',
   'task: [lint, typecheck, build, test]',
   'pnpm test:browser:free',
-  'pnpm test:docs-contract && pnpm docs:build',
+  'pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build',
   'pnpm test:assets',
   'pnpm test:workspace',
   'pnpm test:workflows',
@@ -64,7 +64,7 @@ requireIncludes(cd, 'cd.yml', [
   'pnpm/action-setup',
   'googleapis/release-please-action',
   'secrets.CI_GITHUB_TOKEN',
-  'pnpm test:docs-contract && pnpm docs:build',
+  'pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build',
   'actions/deploy-pages',
 ]);
 requireIncludes(automerge, 'automerge.yml', [

@@ -184,7 +184,7 @@ generated `docs/api/` tree is not committed. Public exports are expected to have
 useful JSDoc. Before claiming the API docs are complete, run the strict audit:
 
 ```bash
-pnpm exec typedoc --options typedoc.json --validation.notDocumented true --logLevel Warn --out /tmp/medieval-hexagon-typedoc-audit
+pnpm test:api-docs
 ```
 
 ## Development
@@ -199,6 +199,7 @@ pnpm build
 pnpm docs
 pnpm docs:build
 pnpm test
+pnpm test:api-docs
 pnpm test:docs-contract
 pnpm test:assets
 pnpm test:workspace

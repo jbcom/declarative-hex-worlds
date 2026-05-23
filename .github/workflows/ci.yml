@@ -90,7 +90,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build docs
-        run: pnpm test:docs-contract && pnpm docs:build
+        run: pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build
 
   package:
     name: npm Pack
