@@ -86,6 +86,11 @@ requireIncludes(dependabot, 'dependabot.yml', [
   'update-types: ["major"]',
 ]);
 
+requirePinnedActions(ci, files.ci);
+requirePinnedActions(release, files.release);
+requirePinnedActions(cd, files.cd);
+requirePinnedActions(automerge, files.automerge);
+
 const releasePackage = releasePleaseConfig.packages?.['packages/medieval-hexagon-gameboard'];
 if (releasePackage?.component !== '@jbcom/medieval-hexagon-gameboard') {
   failures.push('release-please config must target @jbcom/medieval-hexagon-gameboard');
@@ -148,6 +153,29 @@ function requireExcludes(source: string, label: string, snippets: readonly strin
   for (const snippet of snippets) {
     if (source.includes(snippet)) {
       failures.push(`${label} must not include ${snippet}`);
+    }
+  }
+}
+
+function requirePinnedActions(source: string, label: string): void {
+  const lines = source.split(/\r?\n/);
+  for (const [index, line] of lines.entries()) {
+    const match = /^\s*uses:\s*([^ #]+)/.exec(line);
+    if (!match) {
+      continue;
+    }
+    const action = match[1] ?? '';
+    if (action.startsWith('./')) {
+      continue;
+    }
+    const refIndex = action.lastIndexOf('@');
+    if (refIndex === -1) {
+      failures.push(`${label}:${index + 1} uses ${action} without a pinned ref`);
+      continue;
+    }
+    const ref = action.slice(refIndex + 1);
+    if (!/^[a-f0-9]{40}$/i.test(ref)) {
+      failures.push(`${label}:${index + 1} uses ${action} without a full commit SHA`);
     }
   }
 }
