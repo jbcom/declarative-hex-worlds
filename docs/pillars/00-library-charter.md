@@ -16,6 +16,7 @@ implementation_links:
   - typedoc.json
   - scripts/audit-docs-contract.ts
   - scripts/audit-free-assets.ts
+  - scripts/audit-reference-assets.ts
   - scripts/audit-package.ts
   - scripts/audit-workspace.ts
   - scripts/audit-workflows.ts
@@ -28,6 +29,7 @@ test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/rules.test.ts
   - scripts/audit-docs-contract.ts
   - scripts/audit-free-assets.ts
+  - scripts/audit-reference-assets.ts
   - scripts/audit-package.ts
   - scripts/audit-workspace.ts
   - scripts/audit-workflows.ts
@@ -70,6 +72,10 @@ open source package useful while preserving the local-only purchased workflow.
 - `pnpm test:assets` validates the packaged FREE GLTF/BIN/PNG tree against the
   generated manifest, expected taxonomy counts, bounds, local-path exclusion, and
   NOTICE attribution.
+- `pnpm test:reference-assets` validates the exact FREE/EXTRA source inventory
+  when local `references/` folders are present, including EXTRA-only models,
+  seasonal texture sets, and duplicate source basename disambiguation without
+  committing purchased binaries.
 - `pnpm test:workspace` validates Nx target wiring, pnpm workspace config,
   VitePress docs dependency alignment, and tsup entries against the package
   export map.

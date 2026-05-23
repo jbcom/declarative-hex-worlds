@@ -1448,6 +1448,10 @@ manual screenshot review pass.
 `pnpm test:assets` verifies that every packaged FREE GLTF/BIN/PNG is accounted
 for in `assets/free/manifest.json`, that counts and bounds are still correct,
 and that NOTICE attribution remains intact.
+`pnpm test:reference-assets` verifies the exact FREE/EXTRA source inventory when
+the gitignored `references/` folders are available locally, including the 404
+EXTRA GLTFs, seasonal texture sets, every unit/building/prop/tile use case, and
+the duplicated `projectile_catapult.gltf` basename.
 `pnpm test:workspace` checks that Nx, pnpm workspace settings, VitePress docs
 dependencies, package exports, and tsup build entries stay in sync. The tsup
 build uses ESM shared chunks so mixed root/subpath imports share the same Koota

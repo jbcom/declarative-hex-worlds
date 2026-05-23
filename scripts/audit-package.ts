@@ -77,8 +77,8 @@ assert(
   'workspace test:visual must serialize the local browser review suites'
 );
 assert(
-  workspacePackageJson.scripts?.['test:assets'] === 'tsx scripts/audit-free-assets.ts',
-  'workspace test:assets must run the FREE asset audit'
+  workspacePackageJson.scripts?.['test:assets'] === 'pnpm test:assets:free && pnpm test:reference-assets',
+  'workspace test:assets must run the FREE asset audit and local reference asset audit'
 );
 assert(
   packageJson.scripts?.['test:visual'] ===

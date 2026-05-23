@@ -16,11 +16,13 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/ingest.ts
   - packages/medieval-hexagon-gameboard/src/manifest/schema.ts
   - packages/medieval-hexagon-gameboard/package.json
+  - scripts/audit-reference-assets.ts
 test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/ingest.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/manifest.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/examples.test.ts
+  - scripts/audit-reference-assets.ts
 ---
 
 # Editions And Ingest
@@ -34,7 +36,16 @@ a JSON manifest in its own output directory.
 
 - FREE GLTF model count: 221.
 - EXTRA GLTF model count: 404.
-- EXTRA-only model count relative to FREE: 183.
+- EXTRA unique generated manifest id count: 404.
+- EXTRA-only generated manifest id count relative to FREE: 183.
+
+The EXTRA source contains every FREE model plus additional buildings, props,
+textures, transitions, and units. One source basename appears twice in the owned
+pack: `projectile_catapult.gltf` exists in both `buildings/neutral` and
+`units/neutral`. Local manifest generation preserves the FREE-compatible
+`projectile_catapult` building id and exposes the unit duplicate as
+`units_neutral_projectile_catapult`, so `assetsById` covers all 404 source GLTFs
+without silently overwriting either asset.
 
 ## CLI responsibilities
 
@@ -51,6 +62,10 @@ tree, or generate a manifest without spawning the CLI. Keep it out of browser
 runtime imports because it uses Node filesystem APIs. `writeManifestModule`
 emits edition-specific `freeManifest` or `extraManifest` names by default, with
 explicit overrides for app-specific build scripts.
+Run `pnpm test:reference-assets` on a machine with `references/` populated when
+changing ingest, taxonomy, selector coverage, or EXTRA support; the command
+regenerates local FREE/EXTRA manifests and checks exact IDs, category counts,
+texture sets, duplicate basename handling, and EXTRA-only coverage.
 
 The EXTRA workflow never writes purchased files into the library package unless the
 caller explicitly chooses an output path in their own project.

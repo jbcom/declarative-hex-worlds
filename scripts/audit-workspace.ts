@@ -92,7 +92,15 @@ function requireWorkspaceScripts(): void {
     workspacePackageJson.scripts?.['typecheck:workspace']?.includes('scripts/audit-api-docs.ts'),
     'typecheck:workspace must typecheck scripts/audit-api-docs.ts'
   );
+  assert(
+    workspacePackageJson.scripts?.['typecheck:workspace']?.includes('scripts/audit-reference-assets.ts'),
+    'typecheck:workspace must typecheck scripts/audit-reference-assets.ts'
+  );
   assert(workspacePackageJson.scripts?.['test:api-docs'] === 'tsx scripts/audit-api-docs.ts', 'missing test:api-docs audit script');
+  assert(
+    workspacePackageJson.scripts?.['test:reference-assets'] === 'tsx scripts/audit-reference-assets.ts',
+    'missing test:reference-assets audit script'
+  );
   assert(
     workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:docs-contract && pnpm test:api-docs'),
     'test:ci must run api docs audit after docs contract audit'

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
 import { generateManifestFromSource, validateSourceRoot, writeManifestModule } from '../../src/ingest';
 import { freeManifest } from '../../src/manifest/free';
+import { validateMedievalHexagonManifest } from '../../src/manifest/schema';
 
 const freeSourceRoot = resolve('../../references/KayKit_Medieval_Hexagon_Pack_1.0_FREE');
 const extraSourceRoot = resolve('../../references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA');
@@ -85,8 +86,19 @@ describe('source ingestion', () => {
       assetBasePath: 'assets/extra',
     });
     expect(manifest.textureSets).toEqual(['default', 'fall', 'summer', 'winter']);
+    expect(manifest.assets).toHaveLength(404);
+    expect(Object.keys(manifest.assetsById)).toHaveLength(404);
     expect(manifest.assetsById.hex_transition.category).toBe('tiles');
     expect(manifest.assetsById.unit_blue_full.unitStyle).toBe('full');
     expect(manifest.assetsById.unit_blue_accent.unitStyle).toBe('accent');
+    expect(manifest.assetsById.projectile_catapult.sourcePath).toBe('buildings/neutral/projectile_catapult.gltf');
+    expect(manifest.assetsById.units_neutral_projectile_catapult).toMatchObject({
+      family: 'projectile_catapult',
+      sourcePath: 'units/neutral/projectile_catapult.gltf',
+      unitStyle: 'neutral',
+    });
+    expect(validateMedievalHexagonManifest(manifest).map((issue) => issue.code)).not.toContain(
+      'manifest.asset_duplicate'
+    );
   });
 });

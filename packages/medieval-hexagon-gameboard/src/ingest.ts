@@ -160,9 +160,15 @@ export function generateManifestFromSource(options: GenerateManifestOptions): Me
     throw new Error(`Missing GLTF source directory: ${gltfRoot}`);
   }
 
-  const assets = listFiles(gltfRoot, '.gltf')
-    .sort((a, b) => a.localeCompare(b))
-    .map((filePath) => assetFromGltf(filePath, gltfRoot, options.edition, assetBasePath));
+  const filePaths = listFiles(gltfRoot, '.gltf').sort((a, b) => a.localeCompare(b));
+  const duplicateBaseIds = findDuplicateBaseIds(filePaths);
+  const usedIds = new Set<string>();
+  const assets = filePaths.map((filePath) => {
+    const baseId = basename(filePath, extname(filePath));
+    const assetId = allocateAssetId(filePath, gltfRoot, baseId, duplicateBaseIds, usedIds);
+    usedIds.add(assetId);
+    return assetFromGltf(filePath, gltfRoot, options.edition, assetBasePath, assetId, baseId);
+  });
   const assetsById = Object.fromEntries(assets.map((asset) => [asset.id, asset]));
 
   return {
@@ -220,13 +226,16 @@ function assetFromGltf(
   filePath: string,
   gltfRoot: string,
   edition: PackEdition,
-  assetBasePath: string
+  assetBasePath: string,
+  assetId?: string,
+  familyId?: string
 ): MedievalHexagonAsset {
   const sourcePath = toPosixPath(relative(gltfRoot, filePath));
   const segments = sourcePath.split('/');
   const category = parseCategory(segments[0]);
   const subcategory = segments[1] ?? 'root';
-  const id = basename(filePath, extname(filePath));
+  const id = assetId ?? basename(filePath, extname(filePath));
+  const sourceId = familyId ?? id;
   const document = JSON.parse(readFileSync(filePath, 'utf8')) as GltfDocument;
   const modelPath = `${assetBasePath}/${sourcePath}`;
   const directoryPath = dirname(modelPath);
@@ -244,9 +253,9 @@ function assetFromGltf(
     edition,
     category,
     subcategory,
-    family: parseFamily(id, category),
-    faction: parseFaction(id, subcategory),
-    unitStyle: parseUnitStyle(id, category),
+    family: parseFamily(sourceId, category),
+    faction: parseFaction(sourceId, subcategory),
+    unitStyle: parseUnitStyle(sourceId, category),
     textureSet: 'default',
     modelPath,
     sourcePath,
@@ -256,6 +265,46 @@ function assetFromGltf(
     bounds: extractBounds(document),
     fileSizeBytes: statSync(filePath).size,
   };
+}
+
+function findDuplicateBaseIds(filePaths: readonly string[]): Set<string> {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const filePath of filePaths) {
+    const id = basename(filePath, extname(filePath));
+    if (seen.has(id)) {
+      duplicates.add(id);
+    }
+    seen.add(id);
+  }
+  return duplicates;
+}
+
+function allocateAssetId(
+  filePath: string,
+  gltfRoot: string,
+  baseId: string,
+  duplicateBaseIds: ReadonlySet<string>,
+  usedIds: ReadonlySet<string>
+): string {
+  if (!duplicateBaseIds.has(baseId) || !usedIds.has(baseId)) {
+    return baseId;
+  }
+
+  const sourcePath = toPosixPath(relative(gltfRoot, filePath));
+  const segments = sourcePath.split('/');
+  const category = segments[0] ?? 'asset';
+  const subcategory = segments[1] ?? 'root';
+  const candidate = `${category}_${subcategory}_${baseId}`;
+  if (!usedIds.has(candidate)) {
+    return candidate;
+  }
+
+  let suffix = 2;
+  while (usedIds.has(`${candidate}_${suffix}`)) {
+    suffix += 1;
+  }
+  return `${candidate}_${suffix}`;
 }
 
 function listFiles(root: string, extension?: string): string[] {

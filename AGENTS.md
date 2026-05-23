@@ -436,6 +436,7 @@ pnpm build
 pnpm test
 pnpm test:docs-contract
 pnpm test:assets
+pnpm test:reference-assets
 pnpm test:workspace
 pnpm test:workflows
 pnpm test:browser:free
@@ -455,6 +456,11 @@ machine-local inputs. Use `pnpm test:visual` when a change needs the complete
 local screenshot review pass across FREE, EXTRA, and third-party asset scenes.
 Use `pnpm test:assets` when touching generated FREE assets, manifests, asset
 taxonomy, NOTICE attribution, or ingest output paths.
+Use `pnpm test:reference-assets` when local `references/` source inventory,
+EXTRA support, ingest taxonomy, seasonal textures, unit/building/prop/tile
+coverage, or duplicate source basename handling changes. It skips local source
+checks when the gitignored reference folders are not present, but on this
+machine it should audit both FREE and EXTRA sources.
 Use `pnpm test:workspace` when touching Nx targets, package exports, tsup
 entries, pnpm workspace settings, or docs package dependency versions.
 Use `pnpm test:cli` after `pnpm build` when CLI commands, packaged examples,

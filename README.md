@@ -216,6 +216,7 @@ pnpm test
 pnpm test:api-docs
 pnpm test:docs-contract
 pnpm test:assets
+pnpm test:reference-assets
 pnpm test:workspace
 pnpm test:workflows
 pnpm test:browser:free
@@ -235,6 +236,9 @@ GLTF fixtures for compatibility and custom-piece declarations.
 `pnpm test:assets` audits the packaged FREE asset tree against its manifest,
 including GLTF/BIN/PNG coverage, bounds, counts, local-path exclusion, and
 NOTICE attribution.
+`pnpm test:reference-assets` also checks the exact FREE/EXTRA source inventory
+when the gitignored `references/` folders are available locally, including
+EXTRA-only categories, seasonal texture sets, and duplicate basename handling.
 `pnpm test:consumer` packs the npm tarball into a temporary app, installs it
 through npm, compiles public subpath imports with TypeScript, runs the shipped
 SimpleRPG usage example from `node_modules`, and invokes the installed CLI bin.
