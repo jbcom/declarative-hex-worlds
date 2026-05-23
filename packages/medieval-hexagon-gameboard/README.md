@@ -768,6 +768,11 @@ pack integration declarative for games that want tag/role/source queries,
 seeded variant pools, and dry-run diagnostics before spawning into a live
 board. `createPieceSourceUrlMap` is also available on the facade for renderers
 that need asset URLs for local-only registry entries.
+Runtime navigation helpers (`createOccupancyIndex`, `createNavigation`,
+`selectSpawnLocations`, `planSpawnGroups`, `planPatrolRoute`, and
+`planPatrolRoutes`) also project the live world first, so gameplay-spawned
+blockers and moved actors affect path previews, spawn planning, and NPC route
+planning without forcing the game to manually project a plan.
 Use `runtime.createInteropSnapshot()` when an active board needs a neutral ECS
 payload with live actors and quests, or `runtime.mountInterop(adapter)` when a
 host game wants callback-based mirroring into BiteCS, Miniplex, a server store,
@@ -779,13 +784,14 @@ For spawn placement, use the board-aware helpers so terrain, occupancy, tags,
 inter-group spacing, and movement profiles are respected:
 
 ```ts
-import {
-  planGameboardPatrolRoute,
-  planGameboardSpawnGroups,
-  selectGameboardSpawnLocations,
-} from '@jbcom/medieval-hexagon-gameboard/navigation';
+const liveNavigation = runtime.createNavigation({
+  blockedTerrain: ['water'],
+  blockingPlacementKinds: ['structure', 'unit'],
+});
+const playerRoutePreview = liveNavigation.findPath('0,0', '6,3');
+if (!playerRoutePreview.found) showNoRouteHint();
 
-const spawns = selectGameboardSpawnLocations(plan, {
+const spawns = runtime.selectSpawnLocations({
   count: 4,
   seed: 'campaign-01:spawns',
   tileTags: ['spawn-zone'],
@@ -794,7 +800,7 @@ const spawns = selectGameboardSpawnLocations(plan, {
   profile: { blockedTerrain: ['water'], blockingPlacementKinds: ['structure', 'unit'] },
 });
 
-const spawnPlan = planGameboardSpawnGroups(plan, {
+const spawnPlan = runtime.planSpawnGroups({
   seed: 'campaign-01:quest-spawns',
   groups: [
     { id: 'player', count: 1, tileTags: ['player-spawn'] },
@@ -807,7 +813,7 @@ if (spawnPlan.errors.length > 0) {
   throw new Error(spawnPlan.errors.join('\n'));
 }
 
-const patrol = planGameboardPatrolRoute(plan, {
+const patrol = runtime.planPatrolRoute({
   id: 'north-watch',
   seed: 'campaign-01:north-watch',
   count: 4,
@@ -823,13 +829,15 @@ if (!patrol.found) {
 }
 ```
 
-The same preflight is available from the CLI with `spawn-groups --plan`,
-`--recipe`, or `--scenario` plus a JSON group file shaped like
-`{ "seed": "...", "groups": [...] }`. Scenarios can also embed the same
-`spawnGroups` block and let actors reference `spawnGroupId` instead of hard-coded
-coordinates; validation checks the group routes and runtime actors are spawned
-at unique resolved group locations. Duplicate group ids and duplicate actor
-claims on the same `spawnLocationIndex` are treated as preflight errors.
+The lower-level `./navigation` functions accept a plain `GameboardPlan` for
+build tools and editor previews before a runtime exists. The same preflight is
+available from the CLI with `spawn-groups --plan`, `--recipe`, or `--scenario`
+plus a JSON group file shaped like `{ "seed": "...", "groups": [...] }`.
+Scenarios can also embed the same `spawnGroups` block and let actors reference
+`spawnGroupId` instead of hard-coded coordinates; validation checks the group
+routes and runtime actors are spawned at unique resolved group locations.
+Duplicate group ids and duplicate actor claims on the same `spawnLocationIndex`
+are treated as preflight errors.
 Use `planGameboardPatrolRoute` or `planGameboardPatrolRoutes` for guard loops,
 NPC schedules, enemy wander routes, and encounter waypoints; the returned
 waypoints, segment path keys, warnings, and errors are serializable and can be

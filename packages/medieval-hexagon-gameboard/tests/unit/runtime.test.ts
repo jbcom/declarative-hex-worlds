@@ -284,6 +284,126 @@ describe('gameboard runtime facade', () => {
     ).toEqual(expect.arrayContaining([expect.objectContaining({ pieceId: 'runtime-tree' })]));
   });
 
+  it('plans navigation, spawn groups, and patrol routes against live runtime occupancy', () => {
+    const runtime = createGameboardRuntime(
+      createGameboardBuilder({
+        seed: 'runtime-navigation',
+        shape: { kind: 'rectangle', width: 5, height: 3 },
+      })
+        .setTileAsset({
+          at: { q: 0, r: 1 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['player-spawn'],
+        })
+        .setTileAsset({
+          at: { q: 4, r: 1 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['enemy-spawn'],
+        })
+        .setTileAsset({
+          at: { q: 2, r: 0 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['watch-point'],
+        })
+        .setTileAsset({
+          at: { q: 4, r: 2 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['watch-point'],
+        })
+        .addPlacement({
+          at: { q: 2, r: 1 },
+          assetId: 'building_tower_A_blue',
+          kind: 'structure',
+          layer: 'structure',
+        })
+        .build()
+    );
+
+    const occupancy = runtime.createOccupancyIndex();
+    const navigation = runtime.createNavigation();
+    const path = navigation.findPath('0,1', '4,1');
+
+    expect(occupancy.blockingTileKeys.has('2,1')).toBe(true);
+    expect(navigation.isBlocked('2,1')).toBe(true);
+    expect(path.found).toBe(true);
+    expect(path.path.map((tile) => tile.key)).not.toContain('2,1');
+    expect(
+      runtime.selectSpawnLocations({
+        count: 1,
+        seed: 'runtime-player-spawn',
+        tileTags: ['player-spawn'],
+      })
+    ).toMatchObject([{ key: '0,1' }]);
+
+    const spawnGroups = runtime.planSpawnGroups({
+      seed: 'runtime-spawn-groups',
+      groups: [
+        { id: 'player', count: 1, tileTags: ['player-spawn'] },
+        { id: 'enemy', count: 1, tileTags: ['enemy-spawn'], pathToGroups: ['player'] },
+      ],
+    });
+    expect(spawnGroups).toMatchObject({
+      errors: [],
+      selectedLocationCount: 2,
+      routeChecks: [{ fromGroupId: 'enemy', toGroupId: 'player', found: true }],
+    });
+
+    const patrol = runtime.planPatrolRoute({
+      id: 'runtime-watch',
+      seed: 'runtime-watch',
+      count: 2,
+      startGroupId: 'enemy',
+      spawnGroups,
+      tileTags: ['watch-point'],
+      loop: true,
+    });
+    expect(patrol).toMatchObject({
+      id: 'runtime-watch',
+      found: true,
+      selectedWaypointCount: 2,
+      errors: [],
+    });
+    expect(patrol.pathKeys).not.toContain('2,1');
+    expect(
+      runtime.planPatrolRoutes({
+        seed: 'runtime-watch-routes',
+        spawnGroups,
+        routes: [
+          {
+            id: 'runtime-watch-set',
+            count: 2,
+            startGroupId: 'enemy',
+            tileTags: ['watch-point'],
+          },
+        ],
+      })
+    ).toMatchObject({
+      routeCount: 1,
+      routes: [{ id: 'runtime-watch-set', found: true }],
+    });
+
+    runtime.spawnActor({
+      actorId: 'runtime-player-blocker',
+      actorKind: 'player',
+      at: '0,1',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+
+    expect(runtime.createNavigation().isBlocked('0,1')).toBe(true);
+    expect(
+      runtime.selectSpawnLocations({
+        count: 1,
+        seed: 'runtime-player-spawn-blocked',
+        tileTags: ['player-spawn'],
+      })
+    ).toEqual([]);
+  });
+
   it('lets piece spawn guards fail fast when live occupancy changed', () => {
     const runtime = createGameboardRuntime(
       createGameboardBuilder({

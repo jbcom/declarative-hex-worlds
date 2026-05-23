@@ -366,6 +366,11 @@ helpers for actor spawning/moving, command planning/preview/dispatch,
 actor-target command planning, interaction, tile inspection, actor
 selection/targeting, ticks, live
 `GameboardPlan` projection, validation projection, and serializable snapshots.
+Runtime navigation helpers (`createOccupancyIndex`, `createNavigation`,
+`selectSpawnLocations`, `planSpawnGroups`, `planPatrolRoute`, and
+`planPatrolRoutes`) project the live world before reading occupancy, so path
+previews, spawn candidates, spawn-group routes, and patrol schedules account for
+actors and blockers spawned after the board loaded.
 It also exposes declared piece and layout helpers:
 `inspectLayoutSites`, `createLayoutPlacements`, `analyzeLayoutFill`,
 `createLayoutFillPlacements`, `inspectPiecePlacement`, `createPiecePlacements`,
@@ -393,7 +398,8 @@ facade and preserves `recipePieceRegistry` plus
 `createRecipePieceSourceUrlMap` for generated local pieces.
 `createGameboardRuntimeFromScenario` composes scenario instantiation with the
 same facade and preserves resolved actor and quest entity indexes,
-`scenarioPieceRegistry`, `createScenarioPieceSourceUrlMap`,
+planned `spawnGroups`, planned `patrolRoutes`, `scenarioPieceRegistry`,
+`createScenarioPieceSourceUrlMap`,
 `createScenarioInteropSnapshot`, and `mountScenarioInterop` for SimpleRPG-style
 startup flows.
 

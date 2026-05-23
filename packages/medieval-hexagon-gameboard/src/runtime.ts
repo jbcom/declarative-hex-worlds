@@ -63,6 +63,7 @@ import {
   type PlacementStateValue,
   type SpawnGameboardPlacementOptions,
 } from './koota';
+import type { SpawnLocation } from './grid';
 import {
   type GameboardLayoutArchetypeRegistry,
   analyzeGameboardLayoutFill,
@@ -79,6 +80,24 @@ import {
   type InspectGameboardLayoutSitesOptions,
 } from './layout';
 import { gameboardMovementActions } from './movement';
+import {
+  createGameboardNavigation,
+  createGameboardOccupancyIndex,
+  planGameboardPatrolRoute,
+  planGameboardPatrolRoutes,
+  planGameboardSpawnGroups,
+  selectGameboardSpawnLocations,
+  type GameboardNavigation,
+  type GameboardNavigationProfile,
+  type GameboardOccupancyIndex,
+  type GameboardPatrolRouteOptions,
+  type GameboardPatrolRoutePlan,
+  type GameboardPatrolRouteSet,
+  type GameboardPatrolRouteSetOptions,
+  type GameboardSpawnGroupOptions,
+  type GameboardSpawnGroupPlan,
+  type GameboardSpawnLocationOptions,
+} from './navigation';
 import { gameboardPatrolActions } from './patrol';
 import {
   analyzeGameboardPieceRegistry,
@@ -286,6 +305,18 @@ export interface GameboardRuntime {
     adapter: GameboardEcsAdapter<TEntity>,
     options?: GameboardRuntimeInteropOptions
   ) => GameboardEcsMountResult<TEntity>;
+  /** Create a navigation occupancy index from the live projected world. */
+  createOccupancyIndex: (profile?: GameboardNavigationProfile) => GameboardOccupancyIndex;
+  /** Create a pathfinding/navigation facade from the live projected world. */
+  createNavigation: (profile?: GameboardNavigationProfile) => GameboardNavigation;
+  /** Select deterministic spawn locations from the live projected world. */
+  selectSpawnLocations: (options: GameboardSpawnLocationOptions) => SpawnLocation[];
+  /** Plan spawn groups from the live projected world. */
+  planSpawnGroups: (options: GameboardSpawnGroupOptions) => GameboardSpawnGroupPlan;
+  /** Plan one patrol route from the live projected world. */
+  planPatrolRoute: (options: GameboardPatrolRouteOptions) => GameboardPatrolRoutePlan;
+  /** Plan a patrol route set from the live projected world. */
+  planPatrolRoutes: (options: GameboardPatrolRouteSetOptions) => GameboardPatrolRouteSet;
   /** Inspect layout candidates and rejections against the live projected world. */
   inspectLayoutSites: (
     options?: InspectGameboardLayoutSitesOptions
@@ -434,6 +465,10 @@ export interface GameboardScenarioGameRuntime extends GameboardRuntime {
   readonly actorEntities: GameboardScenarioRuntime['actorEntities'];
   /** Scenario quest entity index by quest id. */
   readonly questEntities: GameboardScenarioRuntime['questEntities'];
+  /** Scenario spawn groups planned during startup. */
+  readonly spawnGroups?: GameboardScenarioRuntime['spawnGroups'];
+  /** Scenario patrol routes planned during startup. */
+  readonly patrolRoutes?: GameboardScenarioRuntime['patrolRoutes'];
   /** Layout archetypes declared by the scenario recipe. */
   readonly scenarioLayoutArchetypes?: GameboardLayoutArchetypeRegistry;
   /** Piece registry declared by the scenario recipe. */
@@ -518,6 +553,8 @@ export function createGameboardRuntimeFromScenario(
     scenarioRuntime,
     actorEntities: scenarioRuntime.actorEntities,
     questEntities: scenarioRuntime.questEntities,
+    spawnGroups: scenarioRuntime.spawnGroups,
+    patrolRoutes: scenarioRuntime.patrolRoutes,
     scenarioLayoutArchetypes,
     scenarioPieceRegistry,
     createScenarioInteropSnapshot: (options = {}) =>
@@ -562,6 +599,18 @@ function bindGameboardRuntime(
         runtimeInteropSnapshot(world, { ...options, scenario: context.interopScenario }),
         adapter
       ),
+    createOccupancyIndex: (profile = {}) =>
+      createGameboardOccupancyIndex(projectWorldToGameboardPlan(world), profile),
+    createNavigation: (profile = {}) =>
+      createGameboardNavigation(projectWorldToGameboardPlan(world), profile),
+    selectSpawnLocations: (options) =>
+      selectGameboardSpawnLocations(projectWorldToGameboardPlan(world), options),
+    planSpawnGroups: (options) =>
+      planGameboardSpawnGroups(projectWorldToGameboardPlan(world), options),
+    planPatrolRoute: (options) =>
+      planGameboardPatrolRoute(projectWorldToGameboardPlan(world), options),
+    planPatrolRoutes: (options) =>
+      planGameboardPatrolRoutes(projectWorldToGameboardPlan(world), options),
     inspectLayoutSites: (options = {}) =>
       inspectGameboardLayoutSites(projectWorldToGameboardPlan(world), options),
     createLayoutPlacements: (options) =>

@@ -157,9 +157,10 @@ contract for CI and npm consumers.
   integration already has in-process event objects.
 - Use `./runtime` when a game or integration needs one bound public surface for
   a board. It should compose the same lower-level Koota action bundles, actor
-  helpers, declared piece/layout placement helpers, command helpers, system
-  ticks, projection, snapshots, live interop records/mounting, recipe startup,
-  and scenario startup rather than adding parallel orchestration state.
+  helpers, live navigation/spawn/patrol-route previews, declared piece/layout
+  placement helpers, command helpers, system ticks, projection, snapshots, live
+  interop records/mounting, recipe startup, and scenario startup rather than
+  adding parallel orchestration state.
 - Use `./quests` when gameplay progression is under test. Prefer serializable
   quest objectives for reach, interaction, collision, and defeat checks instead
   of ad hoc fixture-only objective arrays.
@@ -167,7 +168,8 @@ contract for CI and npm consumers.
   a board recipe, named actor spawn groups, patrol routes, actors, movement
   agents, patrol agents, and quests together into a ready Koota world. Prefer
   `createGameboardRuntimeFromScenario` when the consumer needs the bound runtime
-  facade, actor/quest indexes, and scenario piece registry/source URL helpers.
+  facade, actor/quest indexes, planned spawn groups/patrol routes, and scenario
+  piece registry/source URL helpers.
 - Use `./simulation` when saved scenarios need to be exercised as a headless
   game flow. Scripts should dispatch public commands, run systems, apply explicit
   read-only actor target scans with `inspect-actor-targets`, use
@@ -312,8 +314,9 @@ contract for CI and npm consumers.
   quest advancement, and serializable event snapshots.
 - `./runtime`: high-level bound facade around Koota world actions, actor/quest
   helpers, actor selection/targeting, actor-target command planning/dispatch,
-  declared pieces, registry selection/fills/source URL maps, layout inspection,
-  layout placement/fill previews and spawns,
+  live occupancy/navigation, spawn group and patrol route previews, declared
+  pieces, registry selection/fills/source URL maps, layout inspection, layout
+  placement/fill previews and spawns,
   command dispatch, system ticks, projection, snapshots, interop records,
   recipe startup, and scenario startup.
 - `./react`: React providers and hooks for runtime facades, live projection,
