@@ -34,7 +34,11 @@ const expectedFiles = ['assets/free', 'dist', 'examples/*.json', 'README.md', 'N
 const allowedPackRoots = ['assets/free/', 'dist/', 'examples/'];
 const allowedPackFiles = new Set(['package.json', 'README.md', 'NOTICE.md']);
 const privateEntryModules = new Set(['cli', 'index']);
-const optionalPeerEntryImports = new Set(['react', 'three', 'koota/react']);
+const optionalPeerImports = new Set(['react', 'three', 'koota/react']);
+const optionalPeerImportAllowlist = new Map<string, ReadonlySet<string>>([
+  ['./react', new Set(['react', 'koota/react'])],
+  ['./three', new Set(['three'])],
+]);
 const textPackFileSuffixes = ['.d.ts', '.js', '.json', '.map', '.md'];
 const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp }[] = [
   { label: 'macOS home path', pattern: /\/Users\// },
@@ -97,7 +101,7 @@ assertExports();
 assertSourceModulesExported();
 assertPackedConsumerSmokeCoversExports();
 await assertExportImports();
-assertCoreEntryAvoidsOptionalPeerImports();
+assertOptionalPeerImportIsolation();
 assertPackFileList();
 
 console.log('package audit passed');
@@ -186,10 +190,29 @@ async function assertExportImports(): Promise<void> {
   }
 }
 
-function assertCoreEntryAvoidsOptionalPeerImports(): void {
-  const rootEntry = join(packageRoot, 'dist/index.js');
+function assertOptionalPeerImportIsolation(): void {
+  for (const [subpath, target] of Object.entries(packageJson.exports ?? {})) {
+    if (typeof target === 'string' || !target.import) {
+      continue;
+    }
+    const entryPath = join(packageRoot, target.import.replace(/^\.\//, ''));
+    const allowedImports = optionalPeerImportAllowlist.get(subpath) ?? new Set<string>();
+    for (const importRecord of collectTransitiveImports(entryPath)) {
+      if (!optionalPeerImports.has(importRecord.specifier)) {
+        continue;
+      }
+      assert(
+        allowedImports.has(importRecord.specifier),
+        `export ${subpath} transitively imports optional peer ${importRecord.specifier} through ${relativePackagePath(importRecord.filePath)}`
+      );
+    }
+  }
+}
+
+function collectTransitiveImports(entryPath: string): { specifier: string; filePath: string }[] {
+  const imports: { specifier: string; filePath: string }[] = [];
   const visited = new Set<string>();
-  const stack = [rootEntry];
+  const stack = [entryPath];
 
   while (stack.length > 0) {
     const filePath = stack.pop();
@@ -202,10 +225,7 @@ function assertCoreEntryAvoidsOptionalPeerImports(): void {
 
     for (const match of source.matchAll(importPattern)) {
       const specifier = match[1] ?? '';
-      assert(
-        !optionalPeerEntryImports.has(specifier),
-        `root entry transitively imports optional peer ${specifier} through ${relativePackagePath(filePath)}`
-      );
+      imports.push({ specifier, filePath });
       if (specifier.startsWith('./') || specifier.startsWith('../')) {
         const resolved = resolve(dirname(filePath), specifier);
         if (resolved.startsWith(join(packageRoot, 'dist')) && resolved.endsWith('.js')) {
@@ -214,6 +234,8 @@ function assertCoreEntryAvoidsOptionalPeerImports(): void {
       }
     }
   }
+
+  return imports;
 }
 
 function collectSourceModules(root: string, prefix = ''): string[] {
