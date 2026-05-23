@@ -5,12 +5,21 @@ import { pathToFileURL } from 'node:url';
 
 interface PackageJson {
   bin?: Record<string, string>;
+  dependencies?: Record<string, string>;
+  license?: string;
+  main?: string;
+  module?: string;
+  name?: string;
   engines?: Record<string, string>;
   exports?: Record<string, string | { import?: string; types?: string }>;
   files?: string[];
   packageManager?: string;
   peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+  publishConfig?: { access?: string };
+  sideEffects?: boolean;
   scripts?: Record<string, string>;
+  type?: string;
+  types?: string;
 }
 
 interface PackFile {
@@ -48,10 +57,18 @@ const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp 
 ];
 
 assertEqualSet(packageJson.files ?? [], expectedFiles, 'package files whitelist changed');
+assert(packageJson.name === '@jbcom/medieval-hexagon-gameboard', 'package name changed');
+assert(packageJson.type === 'module', 'package must publish as ESM');
+assert(packageJson.sideEffects === false, 'package must remain side-effect-free for bundlers');
+assert(packageJson.license === 'MIT', 'package code license must stay MIT');
+assert(packageJson.publishConfig?.access === 'public', 'package publishConfig.access must be public');
 assert(workspacePackageJson.packageManager === 'pnpm@9.15.9', 'workspace packageManager must pin pnpm@9.15.9');
 assert(workspacePackageJson.engines?.node === '>=22', 'workspace engines.node must be >=22');
 assert(workspacePackageJson.engines?.pnpm === '>=9 <10', 'workspace engines.pnpm must be >=9 <10');
 assert(packageJson.engines?.node === '>=22', 'package engines.node must be >=22');
+assert(packageJson.dependencies?.['honeycomb-grid'], 'honeycomb-grid must remain a runtime dependency');
+assert(packageJson.dependencies?.koota, 'koota must remain a runtime dependency');
+assert(packageJson.dependencies?.seedrandom, 'seedrandom must remain a runtime dependency');
 assert(!forbiddenMetadataPattern.test(JSON.stringify(packageJson.scripts ?? {})), 'package scripts contain local-only paths');
 assert(packageJson.scripts?.prepublishOnly === 'pnpm -w test:ci', 'prepublishOnly must run the workspace CI gate');
 assert(
@@ -96,6 +113,7 @@ assert(
 assertOptionalPeer('react');
 assertOptionalPeer('@types/react');
 assertOptionalPeer('three');
+assertRootEntrypointMetadata();
 assertBin();
 assertExports();
 assertSourceModulesExported();
@@ -123,6 +141,16 @@ function assertEqualSet(actual: readonly string[], expected: readonly string[], 
 
 function assertOptionalPeer(name: string): void {
   assert(packageJson.peerDependenciesMeta?.[name]?.optional === true, `${name} must be an optional peer dependency`);
+}
+
+function assertRootEntrypointMetadata(): void {
+  const rootExport = packageJson.exports?.['.'];
+  assert(typeof rootExport === 'object' && rootExport !== null, 'root export must be an object export');
+  assert(rootExport.import === './dist/index.js', 'root export import must point at ./dist/index.js');
+  assert(rootExport.types === './dist/index.d.ts', 'root export types must point at ./dist/index.d.ts');
+  assert(packageJson.main === rootExport.import, 'package main must mirror root export import');
+  assert(packageJson.module === rootExport.import, 'package module must mirror root export import');
+  assert(packageJson.types === rootExport.types, 'package types must mirror root export types');
 }
 
 function assertBin(): void {
