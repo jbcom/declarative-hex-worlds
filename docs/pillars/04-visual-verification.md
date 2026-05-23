@@ -11,6 +11,7 @@ source_images:
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
   - package.json
+  - packages/medieval-hexagon-gameboard/src/catalog.ts
   - packages/medieval-hexagon-gameboard/src/compatibility.ts
   - packages/medieval-hexagon-gameboard/src/three.ts
   - packages/medieval-hexagon-gameboard/src/gameboard.ts
@@ -45,17 +46,25 @@ Every Three.js browser render asserts renderer draw calls and triangles before a
 screenshot is accepted. The package browser scripts also run
 `tests/scripts/assert-screenshots.ts` after capture, parsing the PNG artifacts
 directly and failing on undersized, low-variance, or visually flat screenshots.
+Contact sheets are labeled at the cell level, so guide labels, rotation steps,
+water/waterless modes, and public treatment roles remain visible in the artifact
+instead of being implicit in test code.
 
 ## Required review surfaces
 
 - FREE catalog contact sheet with every published FREE model.
-- Road A-M variation sheet with all six rotation inputs for each guide label.
-- River A-L, curvy, crossing, and waterless sheet with all six rotation inputs
-  for each rotatable guide label.
-- Coast A-E and waterless sheet with all six rotation inputs for each guide
-  label.
-- Terrain composition sheet covering tall tiles, sloped tiles, decoration, and
-  water-shader mode.
+- Road A-M variation sheet with all six rotation inputs for each guide label,
+  labeled by guide label, rotation, and edge mask.
+- River A-L sheets with all six rotation inputs for each guide label in both
+  water and waterless modes, labeled by guide label, rotation, mode, and edge
+  mask.
+- Curvy river and river crossing sheet covering curvy A rotations, crossing A/B,
+  and water/waterless modes.
+- Coast A-E sheet with all six rotation inputs for each guide label in both
+  water and waterless modes.
+- Terrain/public-treatment sheet covering base, bottom, sloped, water, mountain,
+  hill, forest, water-plant, building, wall, bridge, prop, resource, and flag
+  helpers from the extracted guide pages.
 - FREE composed gameboard recipe covering elevated mountain stacks, roads,
   rivers, coasts, water, structures, and scatter using only packaged assets.
 - FREE seeded random gameboard projection covering the Koota rule/generation path.
@@ -77,8 +86,9 @@ directly and failing on undersized, low-variance, or visually flat screenshots.
   tower, square piece, tree, and a KayKit Adventurers rigged unit with facing and
   animation metadata loaded through Vite `@fs`, all positioned through seeded
   layout archetypes and footprint reservations instead of hard-coded tile picks.
-- EXTRA local sheets for transitions, seasonal textures, units, shipyard,
-  stables/horses, workshop/siege, and unit combinations.
+- EXTRA local sheets for every source asset by category: all 61 tiles, all 129
+  buildings, all 77 decorations, all 137 units, seasonal textures, and the
+  composed harbor board.
 - EXTRA composed harbor board covering local-only shipyard/townhall/props in the
   same placement-plan renderer.
 
@@ -94,8 +104,16 @@ manifests, loader logic, or asset generation changes.
 the browser captures. The reviewed screenshots included:
 
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-catalog.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-permutations.png`
-  covering 310 guide permutation renders.
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
+  covering all 78 road label/rotation permutations.
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`
+  covering all 144 river label/rotation/water-mode permutations.
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png`
+  covering curvy river and crossing variants in water and waterless modes.
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png`
+  covering all 60 coast label/rotation/water-mode permutations.
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`
+  covering the non-connectivity guide use cases through public builder helpers.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png`
@@ -105,6 +123,9 @@ the browser captures. The reviewed screenshots included:
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-packaged-scenario.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-simulation-report.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-guide-assets.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`

@@ -36,6 +36,8 @@ export interface AssetRenderRequest {
   asset: MedievalHexagonAsset;
   url: string;
   rotationY?: number;
+  label?: string;
+  caption?: string;
 }
 
 export interface GameboardRenderOptions {
@@ -74,22 +76,25 @@ export async function renderContactSheet(
   const columns = options.columns ?? Math.ceil(Math.sqrt(requests.length));
   const cellSize = options.cellSize ?? 3.4;
   const rows = Math.ceil(requests.length / columns);
-  const worldWidth = Math.max(columns * cellSize, 1);
-  const worldDepth = Math.max(rows * cellSize, 1);
   const background = options.background ?? '#1f2320';
 
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  canvas.dataset.testid = slug(options.title);
+  const webglCanvas = document.createElement('canvas');
+  webglCanvas.width = width;
+  webglCanvas.height = height;
+  const outputCanvas = document.createElement('canvas');
+  outputCanvas.width = width;
+  outputCanvas.height = height;
+  outputCanvas.dataset.testid = slug(options.title);
   document.body.innerHTML = '';
   document.body.style.margin = '0';
   document.body.style.background = options.background ?? '#1f2320';
-  document.body.append(canvas);
+  document.body.append(outputCanvas);
 
-  const renderer = new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+  const renderer = new WebGLRenderer({ canvas: webglCanvas, antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(width, height, false);
   renderer.setClearColor(new Color(background), 1);
+  renderer.setScissorTest(true);
+  renderer.info.autoReset = false;
 
   const scene = new Scene();
   scene.add(new AmbientLight(0xffffff, 1.8));
@@ -99,24 +104,55 @@ export async function renderContactSheet(
 
   const requestCache = new Map<string, Promise<LoadedGltf>>();
   const objects = await Promise.all(requests.map((request) => loadRequest(request, requestCache)));
+  const cellWidth = width / columns;
+  const cellHeight = height / rows;
   objects.forEach((object, index) => {
     const column = index % columns;
     const row = Math.floor(index / columns);
-    object.position.x = (column - (columns - 1) / 2) * cellSize;
-    object.position.z = (row - (rows - 1) / 2) * cellSize;
+    const viewportX = Math.floor(column * cellWidth);
+    const viewportY = Math.floor(height - (row + 1) * cellHeight);
+    const viewportWidth = Math.ceil(cellWidth);
+    const viewportHeight = Math.ceil(cellHeight);
+    object.position.set(0, 0, 0);
     scene.add(object);
+    renderer.setViewport(viewportX, viewportY, viewportWidth, viewportHeight);
+    renderer.setScissor(viewportX, viewportY, viewportWidth, viewportHeight);
+    renderer.setClearColor(new Color(background), 1);
+    const aspect = viewportWidth / viewportHeight;
+    const viewSize = cellSize;
+    const camera = new OrthographicCamera(
+      (-viewSize * aspect) / 2,
+      (viewSize * aspect) / 2,
+      viewSize / 2,
+      -viewSize / 2,
+      0.1,
+      300
+    );
+    camera.position.set(2.2, 2.35, 2.2);
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+    scene.remove(object);
   });
 
-  const viewWidth = worldWidth * 1.35;
-  const viewDepth = worldDepth * 1.8;
-  const camera = new OrthographicCamera(-viewWidth / 2, viewWidth / 2, viewDepth / 2, -viewDepth / 2, 0.1, 300);
-  camera.position.set(worldWidth * 0.55, Math.max(worldWidth, worldDepth) * 1.15, worldDepth * 0.95);
-  camera.lookAt(0, 0, 0);
-  renderer.render(scene, camera);
-  attachCanvasContentStats(canvas, captureRendererContentStats(renderer));
-  disposeObject(scene);
+  const stats = captureRendererContentStats(renderer);
+  const context = outputCanvas.getContext('2d');
+  if (!context) {
+    throw new Error('Unable to create 2D contact-sheet output context');
+  }
+  context.drawImage(webglCanvas, 0, 0);
+  drawContactSheetLabels(context, requests, {
+    width,
+    height,
+    columns,
+    rows,
+    title: options.title,
+  });
+  attachCanvasContentStats(outputCanvas, stats);
+  for (const object of objects) {
+    disposeObject(object);
+  }
   disposeRenderer(renderer);
-  return canvas;
+  return outputCanvas;
 }
 
 export function assetUrl(asset: MedievalHexagonAsset): string {
@@ -298,4 +334,53 @@ function disposeMaterial(material: Material): void {
     }
   }
   material.dispose();
+}
+
+function drawContactSheetLabels(
+  context: CanvasRenderingContext2D,
+  requests: readonly AssetRenderRequest[],
+  options: { width: number; height: number; columns: number; rows: number; title: string }
+): void {
+  const cellWidth = options.width / options.columns;
+  const cellHeight = options.height / options.rows;
+  context.save();
+  context.textBaseline = 'top';
+  context.font = '700 16px ui-monospace, SFMono-Regular, Menlo, monospace';
+  context.fillStyle = 'rgba(0, 0, 0, 0.72)';
+  context.fillRect(0, 0, Math.min(options.width, options.title.length * 10 + 32), 30);
+  context.fillStyle = '#f8f7e9';
+  context.fillText(options.title, 12, 7);
+
+  context.font = `${Math.max(8, Math.min(11, Math.floor(cellHeight * 0.12)))}px ui-monospace, SFMono-Regular, Menlo, monospace`;
+  for (const [index, request] of requests.entries()) {
+    const column = index % options.columns;
+    const row = Math.floor(index / options.columns);
+    const x = column * cellWidth;
+    const y = row * cellHeight;
+    context.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+    context.strokeRect(x + 0.5, y + 0.5, cellWidth - 1, cellHeight - 1);
+    const label = request.label ?? request.asset.id;
+    const caption = request.caption;
+    const labelHeight = caption ? 28 : 17;
+    context.fillStyle = 'rgba(0, 0, 0, 0.66)';
+    context.fillRect(x + 2, y + cellHeight - labelHeight - 2, cellWidth - 4, labelHeight);
+    context.fillStyle = '#ffffff';
+    context.fillText(fitLabel(context, label, cellWidth - 8), x + 5, y + cellHeight - labelHeight + 1);
+    if (caption) {
+      context.fillStyle = '#c9f3b1';
+      context.fillText(fitLabel(context, caption, cellWidth - 8), x + 5, y + cellHeight - 13);
+    }
+  }
+  context.restore();
+}
+
+function fitLabel(context: CanvasRenderingContext2D, value: string, maxWidth: number): string {
+  if (context.measureText(value).width <= maxWidth) {
+    return value;
+  }
+  let next = value;
+  while (next.length > 4 && context.measureText(`${next}...`).width > maxWidth) {
+    next = next.slice(0, -1);
+  }
+  return `${next}...`;
 }

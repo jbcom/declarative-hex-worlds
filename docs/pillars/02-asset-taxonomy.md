@@ -13,6 +13,7 @@ source_images:
   - docs/assets/kaykit-guide/pages/page-18.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
+  - packages/medieval-hexagon-gameboard/src/catalog.ts
   - packages/medieval-hexagon-gameboard/src/manifest/free.ts
   - packages/medieval-hexagon-gameboard/src/types.ts
   - packages/medieval-hexagon-gameboard/src/gameboard.ts
@@ -21,6 +22,7 @@ implementation_links:
   - scripts/audit-free-assets.ts
   - scripts/audit-reference-assets.ts
 test_links:
+  - packages/medieval-hexagon-gameboard/tests/unit/catalog.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/manifest.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/gameboard.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/koota.test.ts
@@ -61,6 +63,10 @@ still credits KayKit under CC0-1.0.
 local `references/` source folders without committing purchased EXTRA binaries.
 The audit always checks the packaged FREE manifest and, when the gitignored
 source folders are available, regenerates FREE and EXTRA manifests from source.
+It also verifies `listKayKitAssetPublicTreatments()` so every source asset has an
+intent-level role, guide image link, placement kind/layer, and public API helper
+route. An asset that is only present in a manifest but lacks a builder, selector,
+layout, or unit API path is incomplete.
 
 | Edition | Source GLTFs | Unique manifest ids | Texture sets | Categories |
 | --- | ---: | ---: | --- | --- |
@@ -83,6 +89,9 @@ exists under both `buildings/neutral` and `units/neutral`. In generated manifest
 the building keeps the FREE-compatible `projectile_catapult` id and the unit
 asset is exposed as `units_neutral_projectile_catapult`, preserving all 404 source
 GLTFs without an `assetsById` overwrite.
+The public `neutralUnitAssetId("projectile_catapult")` helper resolves to that
+unit-safe id so unit composition APIs do not accidentally spawn the building
+projectile asset.
 
 Use-case coverage in that audit is intentionally explicit:
 
@@ -111,3 +120,7 @@ The gameboard API adds a second, intent-level taxonomy on top of asset ids:
 - Koota traits mirror those tile and placement records so consumers can query
   roads, rivers, coasts, structures, harbors, stacked terrain, and local-only
   EXTRA placements without reparsing filenames.
+- Public treatment records in `catalog.ts` bridge the file taxonomy to gameboard
+  intent. They classify base/support/road/river/coast/transition tiles, faction
+  buildings, neutral structures, nature, props, colored units, and neutral unit
+  parts, and name the API route that exercises each class.

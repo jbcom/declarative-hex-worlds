@@ -303,7 +303,8 @@ contract for CI and npm consumers.
 
 - `.` main package: manifests, catalog, builders, Koota runtime, rules, selectors,
   and grid helpers.
-- `./catalog`: typed asset-family constants and id builders.
+- `./catalog`: typed asset-family constants, id builders, and public treatment
+  metadata for every FREE/EXTRA asset id.
 - `./coordinates`: axial keys, neighbors, ranges, lines, pathfinding, and spawn
   coordinate selection.
 - `./compatibility`: external GLB/GLTF fit checks, KayKit hex-footprint warnings,
@@ -453,6 +454,11 @@ pnpm pack:dry-run
 Use `pnpm test:ci` for the serialized non-browser release gate. Keep browser
 visual commands separate because EXTRA and local third-party assets are
 machine-local inputs. Use `pnpm test:visual` when a change needs the complete
+manual screenshot review pass. `pnpm test:reference-assets` must fail if an
+asset exists only as a manifest entry without `listKayKitAssetPublicTreatments()`
+coverage. FREE guide screenshots are labeled by guide label, rotation, water
+mode, and role; EXTRA screenshots are category-wide sheets for all 404 local
+source assets, not a sampled subset.
 local screenshot review pass across FREE, EXTRA, and third-party asset scenes.
 Use `pnpm test:assets` when touching generated FREE assets, manifests, asset
 taxonomy, NOTICE attribution, or ingest output paths.
@@ -511,4 +517,5 @@ ignored. The browser scripts run `tests/scripts/assert-screenshots.ts` after
 capture, so existing artifacts can be rechecked with the package-level
 `test:screenshots:free`, `test:screenshots:extra`, and
 `test:screenshots:local-assets` scripts. Review screenshots manually when
-selectors, manifests, rules, loaders, or board recipes change.
+selectors, manifests, public asset treatments, rules, loaders, or board recipes
+change.

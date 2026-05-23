@@ -1,67 +1,94 @@
 import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
+import { describeKayKitAssetTreatment, listKayKitAssetPublicTreatments } from '../../src/catalog';
 import { createMedievalHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard';
 import { freeManifest } from '../../src/manifest/free';
-import type { MedievalHexagonAsset } from '../../src/types';
+import type { AssetCategory, MedievalHexagonAsset } from '../../src/types';
 import { assertCanvasHasRenderableContent, referenceExtraUrl, renderContactSheet, renderGameboardPlan } from './rendering';
 
 declare const __EXTRA_TEXTURE_ROOT__: string;
 
-const factionColors = ['blue', 'green', 'red', 'yellow'] as const;
-const unitStyleFixtures = factionColors.flatMap((color) => [
-  `units/${color}/unit_${color}_full.gltf`,
-  `units/${color}/unit_${color}_accent.gltf`,
-  `units/${color}/horse_${color}_full.gltf`,
-  `units/${color}/horse_${color}_accent.gltf`,
-  `units/${color}/ship_${color}_full.gltf`,
-  `units/${color}/ship_${color}_accent.gltf`,
-  `units/${color}/catapult_${color}_full.gltf`,
-  `units/${color}/catapult_${color}_accent.gltf`,
-]);
-
-const extraFixtures = [
-  'tiles/base/hex_transition.gltf',
-  'units/neutral/helmet.gltf',
-  'units/neutral/shovel.gltf',
-  'units/neutral/sword.gltf',
-  'units/neutral/spear.gltf',
-  'units/neutral/bow.gltf',
-  'units/neutral/shield.gltf',
-  'buildings/blue/building_shipyard_blue.gltf',
-  'buildings/blue/building_stables_blue.gltf',
-  'buildings/blue/building_workshop_blue.gltf',
-  'buildings/blue/building_tower_cannon_blue.gltf',
-  'decoration/props/boat.gltf',
-  'decoration/props/boatrack.gltf',
-  'decoration/props/haybale.gltf',
-  'decoration/props/icon_combat.gltf',
-  ...unitStyleFixtures,
-] as const;
+const extraTreatments = listKayKitAssetPublicTreatments();
 
 describe('EXTRA local visual coverage', () => {
-  it('captures EXTRA-only guide assets from local references', async () => {
-    await page.viewport(1600, 1050);
-    const requests = extraFixtures.map((sourcePath) => {
-      const id = sourcePath.split('/').at(-1)?.replace('.gltf', '') ?? sourcePath;
-      return {
-        asset: minimalAsset(id, sourcePath),
-        url: referenceExtraUrl(sourcePath),
-      };
-    });
+  it('captures every local EXTRA tile asset including FREE-compatible copies', async () => {
+    await page.viewport(1700, 1050);
+    const requests = requestsForCategory('tiles');
+    expect(requests).toHaveLength(61);
 
     const canvas = await renderContactSheet(requests, {
-      title: 'extra-local-guide-assets',
-      width: 1500,
+      title: 'extra-local-all-tiles-guide-and-transitions',
+      width: 1600,
       height: 950,
-      columns: 8,
+      columns: 10,
+      cellSize: 2.7,
+    });
+    assertCanvasHasRenderableContent(canvas);
+    const screenshot = await page.screenshot({
+      element: canvas,
+      path: '__screenshots__/extra-local-all-tiles-guide-and-transitions.png',
+    });
+    expect(screenshot).toContain('extra-local-all-tiles-guide-and-transitions.png');
+  });
+
+  it('captures every local EXTRA building asset including faction structures', async () => {
+    await page.viewport(1900, 1300);
+    const requests = requestsForCategory('buildings');
+    expect(requests).toHaveLength(129);
+
+    const canvas = await renderContactSheet(requests, {
+      title: 'extra-local-all-buildings-factions-neutral-harbors',
+      width: 1800,
+      height: 1200,
+      columns: 13,
       cellSize: 2.9,
     });
     assertCanvasHasRenderableContent(canvas);
     const screenshot = await page.screenshot({
       element: canvas,
-      path: '__screenshots__/extra-local-guide-assets.png',
+      path: '__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png',
     });
-    expect(screenshot).toContain('extra-local-guide-assets.png');
+    expect(screenshot).toContain('extra-local-all-buildings-factions-neutral-harbors.png');
+  });
+
+  it('captures every local EXTRA decoration asset including props and nature', async () => {
+    await page.viewport(1700, 1050);
+    const requests = requestsForCategory('decoration');
+    expect(requests).toHaveLength(77);
+
+    const canvas = await renderContactSheet(requests, {
+      title: 'extra-local-all-decoration-nature-props',
+      width: 1600,
+      height: 950,
+      columns: 11,
+      cellSize: 2.9,
+    });
+    assertCanvasHasRenderableContent(canvas);
+    const screenshot = await page.screenshot({
+      element: canvas,
+      path: '__screenshots__/extra-local-all-decoration-nature-props.png',
+    });
+    expect(screenshot).toContain('extra-local-all-decoration-nature-props.png');
+  });
+
+  it('captures every local EXTRA unit asset including full, accent, neutral, and siege parts', async () => {
+    await page.viewport(1900, 1300);
+    const requests = requestsForCategory('units');
+    expect(requests).toHaveLength(137);
+
+    const canvas = await renderContactSheet(requests, {
+      title: 'extra-local-all-units-full-accent-neutral-siege',
+      width: 1800,
+      height: 1200,
+      columns: 14,
+      cellSize: 2.8,
+    });
+    assertCanvasHasRenderableContent(canvas);
+    const screenshot = await page.screenshot({
+      element: canvas,
+      path: '__screenshots__/extra-local-all-units-full-accent-neutral-siege.png',
+    });
+    expect(screenshot).toContain('extra-local-all-units-full-accent-neutral-siege.png');
   });
 
   it('captures EXTRA seasonal texture sheets', async () => {
@@ -131,29 +158,31 @@ function extraUrlForPlacement(placement: GameboardPlacementSpec): string | undef
 }
 
 function extraSourcePathForAssetId(assetId: string): string | undefined {
-  const freeAsset = freeManifest.assetsById[assetId];
-  if (freeAsset) {
-    return freeAsset.sourcePath;
-  }
-
-  const faction = factionColors.find((color) => assetId.endsWith(`_${color}`));
-  if (assetId.startsWith('building_') && faction) {
-    return `buildings/${faction}/${assetId}.gltf`;
-  }
-
-  if (['anchor', 'boat', 'boatrack', 'haybale', 'trough', 'trough_long'].includes(assetId)) {
-    return `decoration/props/${assetId}.gltf`;
-  }
-
-  return undefined;
+  return describeKayKitAssetTreatment(assetId)?.sourcePath ?? freeManifest.assetsById[assetId]?.sourcePath;
 }
 
-function minimalAsset(id: string, sourcePath: string): MedievalHexagonAsset {
+function requestsForCategory(category: AssetCategory) {
+  return extraTreatments
+    .filter((treatment) => treatment.category === category)
+    .map((treatment) => ({
+      asset: minimalAsset(treatment.assetId, treatment.sourcePath, treatment.category, treatment.subcategory),
+      url: referenceExtraUrl(treatment.sourcePath),
+      label: treatment.assetId,
+      caption: `${treatment.role} ${treatment.minimumEdition}`,
+    }));
+}
+
+function minimalAsset(
+  id: string,
+  sourcePath: string,
+  category: AssetCategory,
+  subcategory: string
+): MedievalHexagonAsset {
   return {
     id,
     edition: 'extra',
-    category: sourcePath.split('/')[0] as MedievalHexagonAsset['category'],
-    subcategory: sourcePath.split('/')[1] ?? 'root',
+    category,
+    subcategory,
     family: id,
     textureSet: 'default',
     modelPath: sourcePath,

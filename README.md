@@ -9,6 +9,9 @@ and release automation.
 The package is not just an asset bundle. It provides:
 
 - FREE KayKit GLTF assets and typed manifests.
+- Public asset treatment metadata for every FREE and local EXTRA asset id,
+  connecting each file to a gameboard role, source guide image, placement
+  kind/layer, and the builder/selector/unit API that intentionally exercises it.
 - Deterministic seeded rectangle and hexagon board generation with `seedrandom`.
 - Koota tile traits, adjacency, origin-tile, and footprint-occupancy relations,
   serializable occupancy snapshots, placement state, rule validators, and
@@ -239,6 +242,8 @@ NOTICE attribution.
 `pnpm test:reference-assets` also checks the exact FREE/EXTRA source inventory
 when the gitignored `references/` folders are available locally, including
 EXTRA-only categories, seasonal texture sets, and duplicate basename handling.
+That audit also fails if a source asset is merely present but lacks a public
+asset treatment via `listKayKitAssetPublicTreatments()`.
 `pnpm test:consumer` packs the npm tarball into a temporary app, installs it
 through npm, compiles public subpath imports with TypeScript, runs the shipped
 SimpleRPG usage example from `node_modules`, and invokes the installed CLI bin.
@@ -250,8 +255,12 @@ For local visual review, run `pnpm test:visual`; it serializes the FREE browser
 suite, local EXTRA suite, and local third-party asset E2E suite.
 
 The browser commands run both in-browser render assertions and post-capture PNG
-artifact checks. To re-check existing screenshots without relaunching Chromium,
-run `pnpm test:screenshots:free`, `pnpm test:screenshots:extra`, or
+artifact checks. FREE guide coverage is split into labeled sheets for roads,
+rivers, curvy/crossing rivers, coasts, and non-connectivity guide treatments
+instead of one ambiguous repeated-looking montage. EXTRA local coverage renders
+all 404 source assets by category: tiles, buildings, decoration, and units. To
+re-check existing screenshots without relaunching Chromium, run
+`pnpm test:screenshots:free`, `pnpm test:screenshots:extra`, or
 `pnpm test:screenshots:local-assets`.
 
 See `docs/examples/generated-piece-scenario.recipe.json` and

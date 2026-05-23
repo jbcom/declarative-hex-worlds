@@ -19,7 +19,7 @@ import {
 } from '@jbcom/medieval-hexagon-gameboard/manifest/schema';
 
 const bundle = createManifestBundle([freeManifest]);
-const asset = getManifestAsset(bundle, 'river_A');
+const asset = getManifestAsset(bundle, 'hex_river_A');
 
 const url = asset
   ? resolveManifestAssetUrl(asset, {
@@ -30,6 +30,12 @@ const url = asset
 
 Browser bundles often rewrite package asset URLs. Keep that mapping at the app
 boundary instead of baking local absolute paths into manifests.
+
+Use `describeKayKitAssetTreatment(assetId)` from `./catalog` when an editor or
+tool needs to explain what an asset is for. Treatment records connect each
+FREE/EXTRA asset id to a role, placement kind/layer, extracted guide image, and
+the public builder or selector API that exercises it. This prevents an asset
+from being merely present in a manifest without a gameboard-facing path.
 
 ## EXTRA Assets
 

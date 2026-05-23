@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { describeKayKitAssetTreatment, listKayKitAssetPublicTreatments } from '../packages/medieval-hexagon-gameboard/src/catalog';
 import { generateManifestFromSource, validateSourceRoot } from '../packages/medieval-hexagon-gameboard/src/ingest';
 import { freeManifest } from '../packages/medieval-hexagon-gameboard/src/manifest/free';
 import { validateMedievalHexagonManifest } from '../packages/medieval-hexagon-gameboard/src/manifest/schema';
@@ -264,6 +265,7 @@ const expectedExtraIds = uniqueSorted([
   ...factionUnitIds(factionUnitParts),
 ]);
 
+auditPublicTreatments(expectedExtraIds);
 auditManifest('packaged FREE manifest', freeManifest, {
   expectedIds: expectedFreeIds,
   expectedTextureSets: ['default'],
@@ -396,12 +398,34 @@ function auditManifest(
   );
 
   for (const asset of manifest.assets) {
+    const treatment = describeKayKitAssetTreatment(asset.id);
+    assert(treatment !== undefined, `${label} ${asset.id} must have an explicit public API treatment`);
+    assert(
+      treatment?.sourcePath === asset.sourcePath,
+      `${label} ${asset.id} treatment sourcePath expected ${asset.sourcePath}, got ${treatment?.sourcePath}`
+    );
+    assert((treatment?.publicApi.length ?? 0) > 0, `${label} ${asset.id} treatment must list public APIs`);
+    assert((treatment?.sourceImages.length ?? 0) > 0, `${label} ${asset.id} treatment must link guide images`);
     assert(asset.sourcePath.endsWith('.gltf'), `${label} ${asset.id} sourcePath must point at a GLTF`);
     assert(asset.modelPath.endsWith(asset.sourcePath), `${label} ${asset.id} modelPath must end with sourcePath`);
     assert(asset.materialSlots.length > 0, `${label} ${asset.id} must expose material slots`);
     assert(asset.bufferPaths.length > 0, `${label} ${asset.id} must expose buffers`);
     assert(asset.texturePaths.length > 0, `${label} ${asset.id} must expose textures`);
     assert(Math.max(...asset.bounds.size) > 0, `${label} ${asset.id} must expose non-empty bounds`);
+  }
+}
+
+function auditPublicTreatments(expectedIds: readonly string[]): void {
+  const treatments = listKayKitAssetPublicTreatments();
+  assertEqualList(
+    treatments.map((treatment) => treatment.assetId).sort(),
+    [...expectedIds].sort(),
+    'public API treatment asset ids'
+  );
+  for (const treatment of treatments) {
+    assert(treatment.publicApi.length > 0, `${treatment.assetId} treatment must list public APIs`);
+    assert(treatment.sourceImages.length > 0, `${treatment.assetId} treatment must link guide images`);
+    assert(treatment.sourcePath.endsWith('.gltf'), `${treatment.assetId} treatment sourcePath must point at GLTF`);
   }
 }
 
