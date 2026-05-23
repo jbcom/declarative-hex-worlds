@@ -1,6 +1,7 @@
 import { FACTIONS, TEXTURE_SETS, UNIT_STYLES } from './types';
 import type { Faction, TextureSet, UnitStyle } from './types';
 
+/** All faction-colored building ids supported across FREE and EXTRA editions. */
 export const FACTION_BUILDING_KINDS = [
   'archeryrange',
   'barracks',
@@ -31,6 +32,7 @@ export const FACTION_BUILDING_KINDS = [
   'workshop',
 ] as const;
 
+/** Faction-colored building kinds available in the FREE KayKit pack. */
 export const FREE_FACTION_BUILDING_KINDS = [
   'archeryrange',
   'barracks',
@@ -52,6 +54,7 @@ export const FREE_FACTION_BUILDING_KINDS = [
   'windmill',
 ] as const satisfies readonly FactionBuildingKind[];
 
+/** Faction-colored building kinds expected from the local EXTRA ingest. */
 export const EXTRA_FACTION_BUILDING_KINDS = [
   'docks',
   'shipyard',
@@ -64,6 +67,7 @@ export const EXTRA_FACTION_BUILDING_KINDS = [
   'workshop',
 ] as const satisfies readonly FactionBuildingKind[];
 
+/** Neutral structure asset ids available to placement helpers. */
 export const NEUTRAL_STRUCTURE_KINDS = [
   'building_bridge_A',
   'building_bridge_B',
@@ -88,6 +92,7 @@ export const NEUTRAL_STRUCTURE_KINDS = [
   'wall_straight_gate',
 ] as const;
 
+/** Nature and terrain-detail asset ids available to placement helpers. */
 export const NATURE_ASSET_IDS = [
   'cloud_big',
   'cloud_small',
@@ -133,6 +138,7 @@ export const NATURE_ASSET_IDS = [
   'waterplant_C',
 ] as const;
 
+/** All prop asset ids supported across FREE and EXTRA editions. */
 export const PROP_ASSET_IDS = [
   'anchor',
   'barrel',
@@ -171,6 +177,7 @@ export const PROP_ASSET_IDS = [
   'wheelbarrow',
 ] as const;
 
+/** Prop asset ids available in the FREE KayKit pack. */
 export const FREE_PROP_ASSET_IDS = [
   'barrel',
   'bucket_arrows',
@@ -200,6 +207,7 @@ export const FREE_PROP_ASSET_IDS = [
   'wheelbarrow',
 ] as const satisfies readonly PropAssetId[];
 
+/** Prop asset ids expected from the local EXTRA ingest. */
 export const EXTRA_PROP_ASSET_IDS = [
   'anchor',
   'boat',
@@ -212,6 +220,7 @@ export const EXTRA_PROP_ASSET_IDS = [
   'trough_long',
 ] as const satisfies readonly PropAssetId[];
 
+/** Faction-colored unit part ids expected from the local EXTRA ingest. */
 export const COLORED_UNIT_PARTS = [
   'banner',
   'bow',
@@ -229,6 +238,7 @@ export const COLORED_UNIT_PARTS = [
   'unit',
 ] as const;
 
+/** Neutral unit and equipment part ids expected from the local EXTRA ingest. */
 export const NEUTRAL_UNIT_PARTS = [
   'banner',
   'bow',
@@ -257,31 +267,46 @@ export const NEUTRAL_UNIT_PARTS = [
   'unit',
 ] as const;
 
+/** Unit texture application styles available for colored unit parts. */
 export const EXTRA_UNIT_STYLES = ['accent', 'full'] as const satisfies readonly UnitStyle[];
 
+/** Any faction building kind supported by catalog helpers. */
 export type FactionBuildingKind = (typeof FACTION_BUILDING_KINDS)[number];
+/** FREE faction building kind. */
 export type FreeFactionBuildingKind = (typeof FREE_FACTION_BUILDING_KINDS)[number];
+/** EXTRA-only faction building kind. */
 export type ExtraFactionBuildingKind = (typeof EXTRA_FACTION_BUILDING_KINDS)[number];
+/** Neutral structure kind. */
 export type NeutralStructureKind = (typeof NEUTRAL_STRUCTURE_KINDS)[number];
+/** Nature asset id. */
 export type NatureAssetId = (typeof NATURE_ASSET_IDS)[number];
+/** Prop asset id. */
 export type PropAssetId = (typeof PROP_ASSET_IDS)[number];
+/** Faction-colored unit part id. */
 export type ColoredUnitPart = (typeof COLORED_UNIT_PARTS)[number];
+/** Neutral unit part id. */
 export type NeutralUnitPart = (typeof NEUTRAL_UNIT_PARTS)[number];
+/** Colored unit style id. */
 export type ColoredUnitStyle = (typeof EXTRA_UNIT_STYLES)[number];
+/** Any unit part id supported by catalog helpers. */
 export type UnitPart = ColoredUnitPart | NeutralUnitPart;
 
+/** Builds a faction-colored building asset id. */
 export function factionBuildingAssetId(kind: FactionBuildingKind, faction: Faction): string {
   return `building_${kind}_${faction}`;
 }
 
+/** Builds a faction-colored unit part asset id. */
 export function coloredUnitAssetId(part: ColoredUnitPart, faction: Faction, style: ColoredUnitStyle): string {
   return `${part}_${faction}_${style}`;
 }
 
+/** Returns the neutral unit/equipment asset id for a part. */
 export function neutralUnitAssetId(part: NeutralUnitPart): string {
   return part;
 }
 
+/** Checks whether an asset id belongs to known local-only EXTRA content. */
 export function isKnownExtraAssetId(assetId: string): boolean {
   if ((EXTRA_PROP_ASSET_IDS as readonly string[]).includes(assetId)) {
     return true;
@@ -313,10 +338,12 @@ export function isKnownExtraAssetId(assetId: string): boolean {
   return false;
 }
 
+/** Builds a faction flag prop asset id. */
 export function flagAssetId(faction: Faction): PropAssetId {
   return `flag_${faction}` as PropAssetId;
 }
 
+/** Returns the texture filename for a KayKit texture set. */
 export function textureFileName(textureSet: TextureSet): string {
   switch (textureSet) {
     case 'fall':
@@ -330,14 +357,17 @@ export function textureFileName(textureSet: TextureSet): string {
   }
 }
 
+/** Type guard for supported faction ids. */
 export function isFaction(value: string): value is Faction {
   return (FACTIONS as readonly string[]).includes(value);
 }
 
+/** Type guard for supported KayKit texture set ids. */
 export function isTextureSet(value: string): value is TextureSet {
   return (TEXTURE_SETS as readonly string[]).includes(value);
 }
 
+/** Type guard for supported colored unit styles. */
 export function isUnitStyle(value: string): value is UnitStyle {
   return (UNIT_STYLES as readonly string[]).includes(value);
 }

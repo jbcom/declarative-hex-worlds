@@ -1,36 +1,60 @@
 import type { HexEdgeIndex, HexEdgeInput, VariantSelection } from './types';
 
+/** Canonical guide asset variant before rotation and waterless/curvy modifiers. */
 export interface CanonicalVariant {
+  /** KayKit guide label, such as `A` or `crossing_A`. */
   label: string;
+  /** Manifest asset id for the unrotated canonical variant. */
   assetId: string;
+  /** Six-bit edge mask represented by the canonical orientation. */
   canonicalMask: number;
 }
 
+/** Guide permutation families that must be covered by visual tests. */
 export type GuideTilePermutationKind = 'road' | 'river' | 'river-curvy' | 'river-crossing' | 'coast';
 
+/** One concrete guide-described tile variant, modifier, and rotation. */
 export interface GuideTilePermutation {
+  /** Stable id for screenshots and test parametrization. */
   id: string;
+  /** Permutation family. */
   kind: GuideTilePermutationKind;
+  /** Manifest variant family used by selectors. */
   family: VariantSelection['family'];
+  /** KayKit guide label. */
   label: string;
+  /** Concrete asset id to render for this permutation. */
   assetId: string;
+  /** Edge mask after applying the permutation rotation. */
   inputMask: number;
+  /** Edge mask in the canonical unrotated asset orientation. */
   canonicalMask: number;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps: number;
+  /** Clockwise rotation in radians. */
   rotationRadians: number;
+  /** Whether this permutation uses a waterless asset variant. */
   waterless: boolean;
+  /** Whether this permutation uses the curvy river asset variant. */
   curvy: boolean;
 }
 
+/** Options for expanding guide tile permutation lists. */
 export interface GuidePermutationOptions {
+  /** Rotation steps to include; defaults to all six. */
   rotationSteps?: readonly number[];
+  /** Whether to include waterless variants, water variants, or both. */
   waterless?: boolean | 'both';
 }
 
+/** Number of edges on every hex tile. */
 export const HEX_EDGE_COUNT = 6;
+/** Rotation in radians for one clockwise hex edge step. */
 export const HEX_ROTATION_RADIANS = Math.PI / 3;
+/** All valid clockwise 60-degree rotation steps. */
 export const HEX_ROTATION_STEPS = [0, 1, 2, 3, 4, 5] as const;
 
+/** Road variants from the KayKit guide with canonical edge masks. */
 export const ROAD_VARIANTS = [
   variant('A', 'hex_road_A', [0, 3]),
   variant('B', 'hex_road_B', [0, 1]),
@@ -47,6 +71,7 @@ export const ROAD_VARIANTS = [
   variant('M', 'hex_road_M', [0]),
 ] as const satisfies readonly CanonicalVariant[];
 
+/** River variants from the KayKit guide with canonical edge masks. */
 export const RIVER_VARIANTS = [
   variant('A', 'hex_river_A', [0, 3]),
   variant('B', 'hex_river_B', [0, 1]),
@@ -62,6 +87,7 @@ export const RIVER_VARIANTS = [
   variant('L', 'hex_river_L', [0, 1, 2, 3, 4]),
 ] as const satisfies readonly CanonicalVariant[];
 
+/** Coast variants from the KayKit guide with canonical water-edge masks. */
 export const COAST_VARIANTS = [
   variant('A', 'hex_coast_A', [0]),
   variant('B', 'hex_coast_B', [0, 1]),
@@ -70,6 +96,7 @@ export const COAST_VARIANTS = [
   variant('E', 'hex_coast_E', [0, 1, 2, 3, 4]),
 ] as const satisfies readonly CanonicalVariant[];
 
+/** Converts an edge, edge list, or bit mask into a normalized six-bit edge mask. */
 export function edgeMask(edges: HexEdgeInput): number {
   if (typeof edges === 'number') {
     return edges & 0b111111;
@@ -81,6 +108,7 @@ export function edgeMask(edges: HexEdgeInput): number {
   return mask & 0b111111;
 }
 
+/** Rotates a six-bit hex edge mask clockwise by the requested number of steps. */
 export function rotateMask(mask: number, steps: number): number {
   const normalizedSteps = ((steps % HEX_EDGE_COUNT) + HEX_EDGE_COUNT) % HEX_EDGE_COUNT;
   let rotated = 0;
@@ -92,14 +120,17 @@ export function rotateMask(mask: number, steps: number): number {
   return rotated;
 }
 
+/** Selects the road guide asset and rotation for an edge mask. */
 export function selectRoadVariant(edges: HexEdgeInput): VariantSelection {
   return selectVariant('road', edgeMask(edges), ROAD_VARIANTS);
 }
 
+/** Selects an unrotated road guide asset by KayKit label. */
 export function selectRoadVariantByLabel(label: string): VariantSelection {
   return selectVariantByLabel('road', label, ROAD_VARIANTS);
 }
 
+/** Selects the river guide asset and rotation for an edge mask. */
 export function selectRiverVariant(
   edges: HexEdgeInput,
   options: { waterless?: boolean; curvy?: boolean } = {}
@@ -111,6 +142,7 @@ export function selectRiverVariant(
   return { ...selection, assetId: withWaterless(selection.assetId, options.waterless) };
 }
 
+/** Selects an unrotated river guide asset by KayKit label. */
 export function selectRiverVariantByLabel(
   label: string,
   options: { waterless?: boolean; curvy?: boolean } = {}
@@ -122,6 +154,7 @@ export function selectRiverVariantByLabel(
   return { ...selection, assetId: withWaterless(selection.assetId, options.waterless) };
 }
 
+/** Selects one of the river crossing guide variants. */
 export function selectRiverCrossingVariant(
   label: 'A' | 'B',
   options: { waterless?: boolean } = {}
@@ -138,6 +171,7 @@ export function selectRiverCrossingVariant(
   };
 }
 
+/** Selects the coast guide asset and rotation for water-facing edges. */
 export function selectCoastVariant(
   waterEdges: HexEdgeInput,
   options: { waterless?: boolean } = {}
@@ -146,6 +180,7 @@ export function selectCoastVariant(
   return { ...selection, assetId: withWaterless(selection.assetId, options.waterless) };
 }
 
+/** Selects an unrotated coast guide asset by KayKit label. */
 export function selectCoastVariantByLabel(
   label: string,
   options: { waterless?: boolean } = {}
@@ -154,6 +189,7 @@ export function selectCoastVariantByLabel(
   return { ...selection, assetId: withWaterless(selection.assetId, options.waterless) };
 }
 
+/** Lists every requested road guide variant/rotation permutation. */
 export function listRoadGuidePermutations(options: Pick<GuidePermutationOptions, 'rotationSteps'> = {}): GuideTilePermutation[] {
   return ROAD_VARIANTS.flatMap((variant) =>
     normalizedRotationSteps(options.rotationSteps).map((rotationSteps) =>
@@ -167,6 +203,7 @@ export function listRoadGuidePermutations(options: Pick<GuidePermutationOptions,
   );
 }
 
+/** Lists every requested river guide variant/rotation/waterless permutation. */
 export function listRiverGuidePermutations(options: GuidePermutationOptions = {}): GuideTilePermutation[] {
   return RIVER_VARIANTS.flatMap((variant) =>
     normalizedRotationSteps(options.rotationSteps).flatMap((rotationSteps) =>
@@ -183,6 +220,7 @@ export function listRiverGuidePermutations(options: GuidePermutationOptions = {}
   );
 }
 
+/** Lists every requested curvy river guide rotation/waterless permutation. */
 export function listRiverCurvyGuidePermutations(options: GuidePermutationOptions = {}): GuideTilePermutation[] {
   const [variant] = RIVER_VARIANTS;
   return normalizedRotationSteps(options.rotationSteps).flatMap((rotationSteps) =>
@@ -200,6 +238,7 @@ export function listRiverCurvyGuidePermutations(options: GuidePermutationOptions
   );
 }
 
+/** Lists every requested river crossing guide waterless permutation. */
 export function listRiverCrossingGuidePermutations(
   options: Pick<GuidePermutationOptions, 'waterless'> = {}
 ): GuideTilePermutation[] {
@@ -223,6 +262,7 @@ export function listRiverCrossingGuidePermutations(
   );
 }
 
+/** Lists every requested coast guide variant/rotation/waterless permutation. */
 export function listCoastGuidePermutations(options: GuidePermutationOptions = {}): GuideTilePermutation[] {
   return COAST_VARIANTS.flatMap((variant) =>
     normalizedRotationSteps(options.rotationSteps).flatMap((rotationSteps) =>
@@ -239,6 +279,7 @@ export function listCoastGuidePermutations(options: GuidePermutationOptions = {}
   );
 }
 
+/** Lists the full guide permutation matrix used by visual coverage tests. */
 export function listGuideTilePermutations(): GuideTilePermutation[] {
   return [
     ...listRoadGuidePermutations(),

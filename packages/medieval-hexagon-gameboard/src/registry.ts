@@ -20,6 +20,7 @@ import type {
   TextureSet,
 } from './types';
 
+/** Describes how a registered tile-like declaration participates in board construction. */
 export type TileDeclarationRole =
   | 'base'
   | 'support'
@@ -32,108 +33,193 @@ export type TileDeclarationRole =
   | 'unit'
   | 'custom';
 
+/** Normalized edge mask for a connection channel on a registered tile. */
 export interface TileEdgeDeclaration {
+  /** Connection channel, such as `road`, `river`, or `coast`. */
   channel: string;
+  /** Six-bit clockwise edge mask after canonicalization. */
   mask: number;
+  /** Whether neighboring tiles are expected to expose a matching edge. */
   reciprocal: boolean;
 }
 
+/** Adjacency rule attached to a tile declaration for validation and generation. */
 export interface TileAdjacencyRule {
+  /** Connection channel that the rule applies to. */
   channel: string;
+  /** Six-bit clockwise edge mask the rule constrains. */
   mask: number;
+  /** Whether neighbors should satisfy the same channel in the opposite direction. */
   reciprocal?: boolean;
+  /** Neighbor terrain values that are allowed for the masked edges. */
   requiresNeighborTerrain?: readonly string[];
+  /** Neighbor terrain values that are rejected for the masked edges. */
   forbidsNeighborTerrain?: readonly string[];
+  /** Allows masked edges to face outside the board instead of another tile. */
   allowOffBoard?: boolean;
 }
 
+/** Stacking behavior for a registered tile declaration. */
 export interface TileStackRule {
+  /** Whether this declaration may be used as a vertical stack/support piece. */
   canStack: boolean;
+  /** Maximum supported elevation for repeated stack placement. */
   maxElevation?: number;
+  /** Asset to use as the support piece when this declaration is a visible top. */
   supportAssetId?: string;
+  /** World-space Y increment for each stacked elevation step. */
   heightStep?: number;
 }
 
+/** Author input for registering KayKit-compatible or custom hex pieces. */
 export interface HexTileDeclarationInput {
+  /** Stable declaration id used by recipes and registry lookups. */
   id: string;
+  /** Manifest asset id to place when this declaration is applied. */
   assetId?: string;
+  /** Human-readable source label, commonly `manifest`, `extra`, or a pack id. */
   source?: string;
+  /** Board construction role for the declaration. */
   role?: TileDeclarationRole;
+  /** Default terrain assigned when the declaration becomes the base tile. */
   terrain?: GameboardTerrain;
+  /** Texture set associated with the declaration when it came from a pack variant. */
   textureSet?: TextureSet;
+  /** Asset bounds used by geometry analysis and compatibility warnings. */
   bounds?: AssetBounds;
+  /** Hex footprint geometry for placement and scaling calculations. */
   geometry?: Partial<HexGeometry>;
+  /** Default placement scale for feature/unit declarations. */
   scale?: number;
+  /** Edge connection masks keyed by channel. */
   edges?: Partial<Record<'road' | 'river' | 'coast' | string, HexEdgeInput>>;
+  /** Adjacency rules consumed by validation and generators. */
   adjacency?: readonly TileAdjacencyRule[];
+  /** Stacking behavior overrides. */
   stack?: Partial<TileStackRule>;
+  /** Search and selection tags attached to the declaration. */
   tags?: readonly string[];
+  /** Additional serializable metadata to copy onto placements. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/** Normalized tile declaration stored in a registry. */
 export interface HexTileDeclaration {
+  /** Stable declaration id used by recipes and registry lookups. */
   id: string;
+  /** Manifest asset id to place when this declaration is applied. */
   assetId: string;
+  /** Human-readable source label, commonly `manifest`, `extra`, or a pack id. */
   source: string;
+  /** Board construction role for the declaration. */
   role: TileDeclarationRole;
+  /** Default terrain assigned when the declaration becomes the base tile. */
   terrain?: GameboardTerrain;
+  /** Texture set associated with the declaration when it came from a pack variant. */
   textureSet?: TextureSet;
+  /** Asset bounds used by geometry analysis and compatibility warnings. */
   bounds?: AssetBounds;
+  /** Complete hex footprint geometry for placement and scaling calculations. */
   geometry: HexGeometry;
+  /** Default placement scale for feature/unit declarations. */
   scale: number;
+  /** Normalized edge connection masks. */
   edges: readonly TileEdgeDeclaration[];
+  /** Adjacency rules consumed by validation and generators. */
   adjacency: readonly TileAdjacencyRule[];
+  /** Stacking behavior for elevation/support placement. */
   stack: TileStackRule;
+  /** Search and selection tags attached to the declaration. */
   tags: readonly string[];
+  /** Additional serializable metadata to copy onto placements. */
   metadata: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/** Lookup structure for registered tile declarations plus normalization warnings. */
 export interface HexTileRegistry {
+  /** All normalized declarations in insertion order. */
   declarations: readonly HexTileDeclaration[];
+  /** Declarations indexed by declaration id. */
   byId: Readonly<Record<string, HexTileDeclaration>>;
+  /** Declarations indexed by manifest asset id. */
   byAssetId: Readonly<Record<string, HexTileDeclaration>>;
+  /** Non-fatal duplicate or compatibility warnings emitted while creating the registry. */
   warnings: readonly string[];
 }
 
+/** Per-tile footprint and scaling analysis for compatibility diagnostics. */
 export interface TileGeometryAnalysis {
+  /** Declaration id that was analyzed. */
   id: string;
+  /** Manifest asset id that was analyzed. */
   assetId: string;
+  /** Bounds width in source asset units. */
   width: number;
+  /** Bounds depth in source asset units. */
   depth: number;
+  /** Bounds height in source asset units. */
   height: number;
+  /** Bounds center in source asset coordinates. */
   center: readonly [number, number, number];
+  /** Width divided by depth for footprint compatibility checks. */
   aspectRatio: number;
+  /** Scale required to match the KayKit canonical width. */
   scaleToKayKitWidth: number;
+  /** Scale required to match the KayKit canonical depth. */
   scaleToKayKitDepth: number;
+  /** Median of width and depth scale recommendations. */
   recommendedScale: number;
+  /** Row spacing implied by the analyzed depth and recommended scale. */
   rowSpacing: number;
+  /** Non-fatal warnings for this declaration. */
   warnings: readonly string[];
 }
 
+/** Aggregate footprint and scaling analysis for an entire registry. */
 export interface TileRegistryAnalysis {
+  /** Number of declarations in the registry. */
   tileCount: number;
+  /** Number of declarations with usable bounds. */
   analyzedCount: number;
+  /** Median scale recommendation for base/support tile footprints. */
   recommendedScale: number;
+  /** Median source width for base/support tile footprints. */
   medianWidth: number;
+  /** Median source depth for base/support tile footprints. */
   medianDepth: number;
+  /** Median source height for base/support tile footprints. */
   medianHeight: number;
+  /** Row spacing implied by the median depth and recommended scale. */
   rowSpacing: number;
+  /** Registry and per-tile warnings flattened for display. */
   warnings: readonly string[];
+  /** Per-tile analysis entries. */
   tiles: readonly TileGeometryAnalysis[];
 }
 
+/** Options for placing a registered declaration into a gameboard builder. */
 export interface ApplyTileDeclarationOptions {
+  /** Target hex coordinate. */
   at: HexCoordinates;
+  /** Declaration object, declaration id, or manifest asset id. */
   declaration: string | HexTileDeclaration;
+  /** Clockwise 60-degree rotation steps to apply to placement and edge masks. */
   rotationSteps?: HexRotationSteps | number;
+  /** Terrain override for base/support declarations. */
   terrain?: GameboardTerrain;
+  /** Elevation override for base/support declarations. */
   elevation?: number;
+  /** Scale override for non-base placements. */
   scale?: number;
+  /** Placement kind override for non-base declarations. */
   kind?: GameboardPlacementKind;
+  /** Placement layer override for non-base declarations. */
   layer?: GameboardPlacementLayer;
+  /** Additional serializable metadata merged into non-base placements. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/** Normalizes a tile declaration input using KayKit defaults and inferred roles. */
 export function declareHexTile(input: HexTileDeclarationInput): HexTileDeclaration {
   const geometry = { ...KAYKIT_HEX_GEOMETRY, ...input.geometry };
   const edges = Object.entries(input.edges ?? {})
@@ -167,6 +253,7 @@ export function declareHexTile(input: HexTileDeclarationInput): HexTileDeclarati
   };
 }
 
+/** Creates a lookup registry and reports duplicate id or asset-id warnings. */
 export function createHexTileRegistry(declarations: readonly HexTileDeclarationInput[]): HexTileRegistry {
   const normalized = declarations.map(declareHexTile);
   const byId: Record<string, HexTileDeclaration> = {};
@@ -192,6 +279,7 @@ export function createHexTileRegistry(declarations: readonly HexTileDeclarationI
   };
 }
 
+/** Creates a tile registry from all tile assets in a medieval hexagon manifest. */
 export function createHexTileRegistryFromManifest(manifest: MedievalHexagonManifest): HexTileRegistry {
   return createHexTileRegistry(
     manifest.assets
@@ -200,6 +288,7 @@ export function createHexTileRegistryFromManifest(manifest: MedievalHexagonManif
   );
 }
 
+/** Analyzes one declaration footprint against the canonical KayKit hex footprint. */
 export function analyzeTileGeometry(
   declaration: Pick<HexTileDeclaration, 'id' | 'assetId' | 'bounds' | 'geometry'> &
     Partial<Pick<HexTileDeclaration, 'role'>>
@@ -261,6 +350,7 @@ export function analyzeTileGeometry(
   };
 }
 
+/** Analyzes registry-wide tile sizing, scale recommendations, and compatibility warnings. */
 export function analyzeHexTileRegistry(registry: HexTileRegistry): TileRegistryAnalysis {
   const tiles = registry.declarations
     .map(analyzeTileGeometry)
@@ -304,6 +394,7 @@ export function analyzeHexTileRegistry(registry: HexTileRegistry): TileRegistryA
   };
 }
 
+/** Applies a registered declaration to a builder as either a base tile or feature placement. */
 export function applyTileDeclaration(
   builder: GameboardBuilder,
   registry: HexTileRegistry,

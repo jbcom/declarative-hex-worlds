@@ -1182,7 +1182,7 @@ export { HEX_DIRECTIONS, coordinatesForShape, edgeBetween, hexKey, neighbor, opp
 /**
  * Board shape descriptor accepted by generated gameboard plans.
  */
-export type { GameboardShape };
+export type { GameboardShape, HexagonGameboardShape, RectangleGameboardShape } from './types';
 
 /**
  * Resolve a placement's asset from a manifest.

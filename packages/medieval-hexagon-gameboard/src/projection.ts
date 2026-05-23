@@ -17,6 +17,7 @@ import { normalizeHexRotationSteps } from './coordinates';
 import { selectCoastVariant, selectRiverCrossingVariant, selectRiverVariant, selectRoadVariant } from './selectors';
 import type { World } from 'koota';
 
+/** Projects a Koota gameboard world into a serializable gameboard plan with render placements. */
 export function projectWorldToGameboardPlan(world: World): GameboardPlan {
   const board = world.get(GameboardState);
   if (!board) {
@@ -36,6 +37,7 @@ export function projectWorldToGameboardPlan(world: World): GameboardPlan {
   });
 }
 
+/** Reads decomposed tile components from a Koota world as plan tile specs. */
 export function readDecomposedTileSpecs(world: World): GameboardTileSpec[] {
   const tiles: GameboardTileSpec[] = [];
   world
@@ -63,6 +65,7 @@ export function readDecomposedTileSpecs(world: World): GameboardTileSpec[] {
   return tiles.sort((left, right) => left.coordinates.r - right.coordinates.r || left.coordinates.q - right.coordinates.q);
 }
 
+/** Reads a lightweight validation plan from a Koota world without rebuilding render overlays. */
 export function readValidationGameboardPlanFromWorld(world: World): GameboardPlan {
   const board = world.get(GameboardState);
   if (!board) {

@@ -218,8 +218,28 @@ export interface WorldPosition {
 }
 
 /**
+ * Rectangular board shape supported by grid, recipe, and seeded generation.
+ */
+export interface RectangleGameboardShape {
+  /** Shape discriminator. */
+  kind: 'rectangle';
+  /** Number of columns. */
+  width: number;
+  /** Number of rows. */
+  height: number;
+}
+
+/**
+ * Hexagonal board shape supported by grid, recipe, and seeded generation.
+ */
+export interface HexagonGameboardShape {
+  /** Shape discriminator. */
+  kind: 'hexagon';
+  /** Radius in rings around the origin. */
+  radius: number;
+}
+
+/**
  * Serializable board shape supported by grid, recipe, and seeded generation.
  */
-export type GameboardShape =
-  | { kind: 'rectangle'; width: number; height: number }
-  | { kind: 'hexagon'; radius: number };
+export type GameboardShape = RectangleGameboardShape | HexagonGameboardShape;

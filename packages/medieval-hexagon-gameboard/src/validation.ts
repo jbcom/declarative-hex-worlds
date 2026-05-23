@@ -11,14 +11,23 @@ import { rotateMask } from './selectors';
 import type { HexCoordinates } from './types';
 import type { GameboardRuleConfig, GameboardRuleViolation } from './rule-types';
 
+/** Validation config for complete gameboard plans. */
 export interface GameboardPlanValidationConfig extends GameboardRuleConfig {
+  /** Optional tile declaration registry for declaration-aware validation. */
   registry?: HexTileRegistry;
+  /** Whether to validate base/support assets and declaration adjacency rules. */
   validateRegisteredDeclarations?: boolean;
+  /** Optional manifest catalog used to validate asset ids and editions. */
   assetCatalog?: ManifestAssetCatalog;
+  /** Whether unknown asset ids are allowed. */
   allowUnknownAssets?: boolean;
+  /** Specific unknown asset ids to allow even when unknown assets are otherwise errors. */
   allowUnknownAssetIds?: readonly string[];
+  /** Whether EXTRA assets must be marked with `requiresExtra`. */
   requireExtraAssetFlags?: boolean;
+  /** Whether placement layout footprints must point at existing tiles. */
   validatePlacementFootprints?: boolean;
+  /** Whether blocking placements may overlap. */
   validatePlacementBlockingOverlap?: boolean;
 }
 
@@ -52,6 +61,7 @@ interface NormalizedPlanRules
     >,
     Pick<GameboardPlanValidationConfig, 'assetCatalog' | 'allowUnknownAssetIds'> {}
 
+/** Validates a gameboard plan for connectivity, stacking, asset, and occupancy rules. */
 export function validateGameboardPlan(
   plan: GameboardPlan,
   config: GameboardPlanValidationConfig = {}
@@ -89,6 +99,7 @@ export function validateGameboardPlan(
   return violations;
 }
 
+/** Checks whether a tile in a plan can support the requested elevation. */
 export function canStackInPlan(
   plan: GameboardPlan,
   coordinates: HexCoordinates | string,

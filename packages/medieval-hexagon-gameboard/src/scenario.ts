@@ -37,78 +37,132 @@ import {
 import type { GameboardRuleViolation } from './rule-types';
 import { validateGameboardPlan, type GameboardPlanValidationConfig } from './validation';
 
+/** Current schema version for serialized scenario files. */
 export const GAMEBOARD_SCENARIO_SCHEMA_VERSION = '1.0.0';
 
+/** Authored actor entry in a scenario, with optional spawn group resolution. */
 export interface GameboardScenarioActor extends Omit<SpawnGameboardActorOptions, 'at'> {
+  /** Explicit spawn coordinate or tile key; omitted when using a spawn group. */
   at?: SpawnGameboardActorOptions['at'];
+  /** Spawn group id to claim a deterministic spawn location from. */
   spawnGroupId?: string;
+  /** Explicit spawn location index inside the referenced spawn group. */
   spawnLocationIndex?: number;
+  /** Optional movement agent to attach after spawning. */
   movementAgent?: SetGameboardMovementAgentOptions;
+  /** Optional patrol agent to attach after spawning. */
   patrolAgent?: GameboardScenarioActorPatrolAgent;
 }
 
+/** Scenario actor after spawn group references have been resolved. */
 export interface ResolvedGameboardScenarioActor extends SpawnGameboardActorOptions {
+  /** Spawn group id used to resolve the actor, when any. */
   spawnGroupId?: string;
+  /** Spawn location index claimed inside the group, when any. */
   spawnLocationIndex?: number;
+  /** Spawn location id claimed inside the group, when any. */
   spawnLocationId?: string;
+  /** Spawn tile key claimed inside the group, when any. */
   spawnTileKey?: string;
+  /** Optional movement agent to attach after spawning. */
   movementAgent?: SetGameboardMovementAgentOptions;
+  /** Optional patrol agent to attach after spawning. */
   patrolAgent?: GameboardScenarioActorPatrolAgent;
 }
 
+/** Patrol route rule embedded in a scenario. */
 export interface GameboardScenarioPatrolRoute extends GameboardPatrolRouteRule {}
 
+/** Patrol agent definition that references a named scenario route. */
 export interface GameboardScenarioActorPatrolAgent
   extends Omit<SetGameboardPatrolAgentOptions, 'route'> {
+  /** Scenario patrol route id to attach to the actor. */
   routeId: string;
 }
 
+/** Serializable integration/e2e scenario using recipes, actors, routes, and quests. */
 export interface GameboardScenario {
+  /** Version tag for migration-safe scenario persistence. */
   schemaVersion: typeof GAMEBOARD_SCENARIO_SCHEMA_VERSION;
+  /** Stable scenario id. */
   id: string;
+  /** Optional display title. */
   title?: string;
+  /** Board recipe used to compile the scenario map. */
   board: GameboardRecipe;
+  /** Deterministic spawn group rules for scenario actors. */
   spawnGroups?: GameboardSpawnGroupOptions;
+  /** Deterministic patrol route rules for scenario actors. */
   patrolRoutes?: readonly GameboardScenarioPatrolRoute[];
+  /** Actors to spawn into the scenario runtime. */
   actors?: readonly GameboardScenarioActor[];
+  /** Quests to spawn into the scenario runtime. */
   quests?: readonly GameboardQuestDefinition[];
+  /** Additional serializable scenario metadata. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/** Options accepted by the scenario factory. */
 export interface CreateGameboardScenarioOptions {
+  /** Optional display title. */
   title?: string;
+  /** Deterministic spawn group rules for scenario actors. */
   spawnGroups?: GameboardSpawnGroupOptions;
+  /** Deterministic patrol route rules for scenario actors. */
   patrolRoutes?: readonly GameboardScenarioPatrolRoute[];
+  /** Actors to spawn into the scenario runtime. */
   actors?: readonly GameboardScenarioActor[];
+  /** Quests to spawn into the scenario runtime. */
   quests?: readonly GameboardQuestDefinition[];
+  /** Additional serializable scenario metadata. */
   metadata?: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/** Runtime objects produced after compiling and spawning a scenario. */
 export interface GameboardScenarioRuntime {
+  /** Scenario definition used to create the runtime. */
   scenario: GameboardScenario;
+  /** Compiled gameboard plan. */
   plan: GameboardPlan;
+  /** Planned spawn groups, when configured. */
   spawnGroups?: GameboardSpawnGroupPlan;
+  /** Planned patrol routes, when configured. */
   patrolRoutes?: GameboardPatrolRouteSet;
+  /** Koota world containing board, actor, quest, movement, and patrol state. */
   world: World;
+  /** Spawned actor entities keyed by actor id. */
   actorEntities: Readonly<Record<string, Entity>>;
+  /** Spawned quest entities keyed by quest id. */
   questEntities: Readonly<Record<string, Entity>>;
+  /** Actor snapshots after scenario spawn. */
   actors: readonly GameboardActorSnapshot[];
+  /** Quest snapshots after scenario spawn. */
   quests: readonly GameboardQuestSnapshot[];
 }
 
+/** Validation controls for scenario inspection. */
 export interface GameboardScenarioValidationConfig {
+  /** Validation config passed to compiled plan validation. */
   plan?: GameboardPlanValidationConfig;
+  /** Whether to validate the compiled plan in addition to scenario references. */
   validatePlan?: boolean;
 }
 
+/** Result from validating a scenario and its compiled board. */
 export interface GameboardScenarioValidationResult {
+  /** Scenario that was inspected. */
   scenario: GameboardScenario;
+  /** Compiled plan when the board recipe succeeds. */
   plan?: GameboardPlan;
+  /** Spawn group plan when scenario spawn groups are configured. */
   spawnGroups?: GameboardSpawnGroupPlan;
+  /** Patrol route plan when scenario patrol routes are configured. */
   patrolRoutes?: GameboardPatrolRouteSet;
+  /** Scenario, spawn, route, actor, quest, and optional plan violations. */
   violations: readonly GameboardRuleViolation[];
 }
 
+/** Creates a cloned, schema-tagged gameboard scenario. */
 export function createGameboardScenario(
   id: string,
   board: GameboardRecipe,
@@ -127,6 +181,7 @@ export function createGameboardScenario(
   };
 }
 
+/** Validates a scenario and returns all scenario/plan rule violations. */
 export function validateGameboardScenario(
   scenario: GameboardScenario,
   config: GameboardScenarioValidationConfig = {}
@@ -134,6 +189,7 @@ export function validateGameboardScenario(
   return [...inspectGameboardScenario(scenario, config).violations];
 }
 
+/** Compiles and validates a scenario, returning errors instead of throwing. */
 export function inspectGameboardScenario(
   scenario: GameboardScenario,
   config: GameboardScenarioValidationConfig = {}
@@ -227,6 +283,7 @@ export function inspectGameboardScenario(
   };
 }
 
+/** Compiles a scenario and spawns its board, actors, agents, and quests into a Koota world. */
 export function createGameboardWorldFromScenario(
   scenario: GameboardScenario,
   overrides: GameboardRecipePlanOptionsOverride = {}
@@ -290,6 +347,7 @@ export function createGameboardWorldFromScenario(
   };
 }
 
+/** Resolves scenario actors against spawn groups without creating entities. */
 export function resolveGameboardScenarioActors(
   actors: readonly GameboardScenarioActor[] = [],
   spawnGroups?: GameboardSpawnGroupPlan

@@ -1,6 +1,7 @@
 import seedrandom from 'seedrandom';
 import type { GameboardShape, HexCoordinates, HexEdgeIndex } from './types';
 
+/** Axial neighbor offsets ordered clockwise for the library edge convention. */
 export const HEX_DIRECTIONS: readonly HexCoordinates[] = [
   { q: 1, r: 0 },
   { q: 0, r: 1 },
@@ -10,34 +11,54 @@ export const HEX_DIRECTIONS: readonly HexCoordinates[] = [
   { q: 1, r: -1 },
 ];
 
+/** Options for A-star pathfinding over axial coordinates. */
 export interface HexPathOptions {
+  /** Optional shape boundary; omitted paths may explore outside an authored board. */
   shape?: GameboardShape;
+  /** Predicate for rejecting blocked coordinates. */
   passable?: (coordinates: HexCoordinates, from?: HexCoordinates) => boolean;
+  /** Movement cost callback for weighted paths. */
   cost?: (from: HexCoordinates, to: HexCoordinates) => number;
+  /** Maximum visited nodes before aborting the search. */
   maxVisited?: number;
 }
 
+/** Result from a hex pathfinding request. */
 export interface HexPathResult {
+  /** Whether a complete path was found. */
   found: boolean;
+  /** Ordered path from start to goal, empty when no path is found. */
   path: readonly HexCoordinates[];
+  /** Total path cost, or positive infinity when no path is found. */
   cost: number;
+  /** Number of nodes visited before the search stopped. */
   visited: number;
 }
 
+/** Options for deterministic spawn coordinate selection. */
 export interface SpawnCoordinateOptions {
+  /** Board shape that bounds spawn selection. */
   shape: GameboardShape;
+  /** Number of coordinates to select. */
   count: number;
+  /** Seed used to shuffle candidates deterministically. */
   seed?: string | number;
+  /** Explicit candidate coordinates to choose from. */
   candidates?: readonly HexCoordinates[];
+  /** Predicate for rejecting blocked coordinates. */
   passable?: (coordinates: HexCoordinates) => boolean;
+  /** Minimum axial distance between selected coordinates. */
   minDistance?: number;
+  /** Number of outer rows/rings to avoid. */
   edgePadding?: number;
 }
 
+/** Converts axial coordinates into a stable string key. */
 export function hexKey(coordinates: HexCoordinates): string {
   return `${coordinates.q},${coordinates.r}`;
 }
 
+/** Parses a string key produced by {@link hexKey}. */
 export function parseHexKey(key: string): HexCoordinates {
   const [q, r] = key.split(',').map(Number);
   if (!Number.isFinite(q) || !Number.isFinite(r)) {
@@ -46,19 +67,23 @@ export function parseHexKey(key: string): HexCoordinates {
   return { q, r };
 }
 
+/** Returns the neighbor coordinate at a clockwise edge index. */
 export function neighbor(coordinates: HexCoordinates, edge: HexEdgeIndex | number): HexCoordinates {
   const direction = HEX_DIRECTIONS[normalizeHexRotationSteps(edge)];
   return { q: coordinates.q + direction.q, r: coordinates.r + direction.r };
 }
 
+/** Returns all six neighboring axial coordinates. */
 export function neighbors(coordinates: HexCoordinates): HexCoordinates[] {
   return HEX_DIRECTIONS.map((_, edge) => neighbor(coordinates, edge));
 }
 
+/** Returns the opposite edge index for a given edge. */
 export function oppositeEdge(edge: HexEdgeIndex | number): HexEdgeIndex {
   return normalizeHexRotationSteps(edge + 3) as HexEdgeIndex;
 }
 
+/** Returns the edge index from one coordinate to an adjacent coordinate. */
 export function edgeBetween(from: HexCoordinates, to: HexCoordinates): HexEdgeIndex | undefined {
   const dq = to.q - from.q;
   const dr = to.r - from.r;
@@ -66,6 +91,7 @@ export function edgeBetween(from: HexCoordinates, to: HexCoordinates): HexEdgeIn
   return index === -1 ? undefined : (index as HexEdgeIndex);
 }
 
+/** Lists all axial coordinates inside a supported board shape. */
 export function coordinatesForShape(shape: GameboardShape): HexCoordinates[] {
   if (shape.kind === 'rectangle') {
     return Array.from({ length: shape.width * shape.height }, (_value, index) => ({
@@ -85,6 +111,7 @@ export function coordinatesForShape(shape: GameboardShape): HexCoordinates[] {
   return coordinates;
 }
 
+/** Checks whether an axial coordinate is inside a supported board shape. */
 export function containsHex(shape: GameboardShape, coordinates: HexCoordinates): boolean {
   if (shape.kind === 'rectangle') {
     return coordinates.q >= 0 && coordinates.r >= 0 && coordinates.q < shape.width && coordinates.r < shape.height;
@@ -93,6 +120,7 @@ export function containsHex(shape: GameboardShape, coordinates: HexCoordinates):
   return Math.max(Math.abs(coordinates.q), Math.abs(coordinates.r), Math.abs(s)) <= shape.radius;
 }
 
+/** Computes axial hex distance between two coordinates. */
 export function hexDistance(left: HexCoordinates, right: HexCoordinates): number {
   const dq = left.q - right.q;
   const dr = left.r - right.r;
@@ -100,6 +128,7 @@ export function hexDistance(left: HexCoordinates, right: HexCoordinates): number
   return (Math.abs(dq) + Math.abs(dr) + Math.abs(ds)) / 2;
 }
 
+/** Returns a rounded axial line between two coordinates, inclusive. */
 export function hexLine(start: HexCoordinates, end: HexCoordinates): HexCoordinates[] {
   const distance = hexDistance(start, end);
   if (distance === 0) {
@@ -108,6 +137,7 @@ export function hexLine(start: HexCoordinates, end: HexCoordinates): HexCoordina
   return Array.from({ length: distance + 1 }, (_value, index) => cubeRound(cubeLerp(start, end, index / distance)));
 }
 
+/** Returns coordinates exactly one radius away from a center. */
 export function hexRing(center: HexCoordinates, radius: number): HexCoordinates[] {
   const normalizedRadius = Math.max(0, Math.floor(radius));
   if (normalizedRadius === 0) {
@@ -128,6 +158,7 @@ export function hexRing(center: HexCoordinates, radius: number): HexCoordinates[
   return results;
 }
 
+/** Returns all coordinates within a radius of a center. */
 export function hexRange(center: HexCoordinates, radius: number): HexCoordinates[] {
   const normalizedRadius = Math.max(0, Math.floor(radius));
   const results: HexCoordinates[] = [];
@@ -141,6 +172,7 @@ export function hexRange(center: HexCoordinates, radius: number): HexCoordinates
   return results;
 }
 
+/** Finds a weighted shortest path across axial neighbors. */
 export function findHexPath(start: HexCoordinates, goal: HexCoordinates, options: HexPathOptions = {}): HexPathResult {
   if (hexKey(start) === hexKey(goal)) {
     return { found: true, path: [{ ...start }], cost: 0, visited: 1 };
@@ -198,6 +230,7 @@ export function findHexPath(start: HexCoordinates, goal: HexCoordinates, options
   return { found: false, path: [], cost: Number.POSITIVE_INFINITY, visited };
 }
 
+/** Selects deterministic spawn coordinates that satisfy spacing and passability rules. */
 export function selectSpawnCoordinates(options: SpawnCoordinateOptions): HexCoordinates[] {
   const rng = seedrandom(String(options.seed ?? 'spawn'));
   const minDistance = Math.max(0, Math.floor(options.minDistance ?? 0));
@@ -220,6 +253,7 @@ export function selectSpawnCoordinates(options: SpawnCoordinateOptions): HexCoor
   return selected;
 }
 
+/** Normalizes any integer-ish rotation step value into the range 0 through 5. */
 export function normalizeHexRotationSteps(steps: number): number {
   return ((Math.floor(steps) % 6) + 6) % 6;
 }

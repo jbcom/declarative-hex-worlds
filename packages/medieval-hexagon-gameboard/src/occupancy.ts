@@ -4,24 +4,36 @@ import type {
   GameboardPlacementSpec,
 } from './gameboard';
 
+/** Minimal placement shape required by occupancy helpers. */
 export interface GameboardPlacementOccupancyLike {
+  /** Placement id. */
   id: string;
+  /** Primary tile occupied by the placement. */
   tileKey: string;
+  /** Placement kind used by blocking rules. */
   kind: GameboardPlacementKind;
+  /** Placement layer used by blocking rules. */
   layer: GameboardPlacementLayer;
+  /** Placement metadata, including layout footprint and blocking hints. */
   metadata: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/** Options controlling occupancy and blocking checks. */
 export interface GameboardPlacementOccupancyOptions {
+  /** Whether to include `layoutFootprintTiles` metadata in occupied tile checks. */
   includeLayoutFootprint?: boolean;
+  /** Placement kinds that should block occupancy by default. */
   blockingPlacementKinds?: readonly GameboardPlacementKind[];
+  /** Placement layers that should block occupancy by default. */
   blockingPlacementLayers?: readonly GameboardPlacementLayer[];
+  /** Placement ids ignored by blocking checks. */
   ignorePlacementIds?: readonly string[];
 }
 
 const DEFAULT_BLOCKING_KINDS = ['structure', 'unit'] as const satisfies readonly GameboardPlacementKind[];
 const DEFAULT_BLOCKING_LAYERS = [] as const satisfies readonly GameboardPlacementLayer[];
 
+/** Returns every tile key occupied by a placement footprint. */
 export function gameboardPlacementFootprintKeys(
   placement: Pick<GameboardPlacementSpec, 'tileKey' | 'metadata'>,
   options: Pick<GameboardPlacementOccupancyOptions, 'includeLayoutFootprint'> = {}
@@ -36,6 +48,7 @@ export function gameboardPlacementFootprintKeys(
   return [...new Set(keys)];
 }
 
+/** Checks whether a placement footprint includes a tile key. */
 export function gameboardPlacementOccupiesTile(
   placement: Pick<GameboardPlacementSpec, 'tileKey' | 'metadata'>,
   tileKey: string,
@@ -44,6 +57,7 @@ export function gameboardPlacementOccupiesTile(
   return gameboardPlacementFootprintKeys(placement, options).includes(tileKey);
 }
 
+/** Checks whether a placement should block another placement from occupying the same tile. */
 export function gameboardPlacementBlocksOccupancy(
   placement: GameboardPlacementOccupancyLike,
   options: GameboardPlacementOccupancyOptions = {}
@@ -59,6 +73,7 @@ export function gameboardPlacementBlocksOccupancy(
   return blockingKinds.includes(placement.kind) || blockingLayers.includes(placement.layer);
 }
 
+/** Returns the occupancy group id used to collapse multi-placement composites. */
 export function gameboardPlacementOccupancyGroup(
   placement: Pick<GameboardPlacementOccupancyLike, 'id' | 'metadata'>
 ): string {

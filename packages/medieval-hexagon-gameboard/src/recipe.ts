@@ -43,23 +43,36 @@ import type { GameboardRuleViolation } from './rule-types';
 import type { Faction, HexCoordinates, HexEdgeIndex } from './types';
 import { validateGameboardPlan, type GameboardPlanValidationConfig } from './validation';
 
+/** Current schema version for serialized gameboard recipes. */
 export const GAMEBOARD_RECIPE_SCHEMA_VERSION = '1.0.0';
 
+/** Serializable recipe for constructing and optionally generating a gameboard plan. */
 export interface GameboardRecipe {
+  /** Version tag for migration-safe recipe persistence. */
   schemaVersion: typeof GAMEBOARD_RECIPE_SCHEMA_VERSION;
+  /** Base plan options used before step and generation application. */
   options: GameboardPlanOptions;
+  /** Ordered imperative builder steps. */
   steps: readonly GameboardRecipeStep[];
+  /** Optional seeded generation configuration applied after explicit steps. */
   generation?: GameboardRecipeGeneration;
 }
 
+/** Seeded generation configuration embedded in a recipe. */
 export interface GameboardRecipeGeneration {
+  /** Layout archetypes available to layout and piece fill rules. */
   layoutArchetypes?: GameboardLayoutArchetypeRegistry;
+  /** Seed used by layout fill spawning. */
   layoutFillSeed?: string | number;
+  /** Rules that spawn placements directly from layout archetypes. */
   layoutFills?: readonly GameboardLayoutFillRule[];
+  /** Piece declarations used by seeded piece fill rules. */
   pieceDeclarations?: readonly GameboardPieceDeclarationInput[];
+  /** Rules that spawn registered pieces from seeded percentage fills. */
   pieceFills?: readonly SeededGameboardPieceFillOptions[];
 }
 
+/** Discriminated union of all recipe actions supported by the builder adapter. */
 export type GameboardRecipeStep =
   | SetTerrainRecipeStep
   | SetTileAssetRecipeStep
@@ -81,120 +94,194 @@ export type GameboardRecipeStep =
   | AddHarborRecipeStep
   | ScatterDecorationsRecipeStep;
 
+/** Recipe step that assigns grass or water terrain to one hex. */
 export interface SetTerrainRecipeStep {
+  /** Discriminator for terrain assignment. */
   action: 'setTerrain';
+  /** Target hex coordinate. */
   at: HexCoordinates;
+  /** Terrain value to assign. */
   terrain: Extract<GameboardTerrain, 'grass' | 'water'>;
+  /** Optional elevation to assign with the terrain. */
   elevation?: number;
+  /** Optional base tile asset override for the terrain. */
   baseAssetId?: string;
 }
 
+/** Recipe step that applies a fully specified tile asset option object. */
 export interface SetTileAssetRecipeStep extends TileAssetOptions {
+  /** Discriminator for direct tile asset assignment. */
   action: 'setTileAsset';
 }
 
+/** Recipe step that changes one hex elevation. */
 export interface SetElevationRecipeStep {
+  /** Discriminator for elevation assignment. */
   action: 'setElevation';
+  /** Target hex coordinate. */
   at: HexCoordinates;
+  /** Elevation level to assign. */
   elevation: number;
 }
 
+/** Recipe step that records coastal water edge connectivity for one hex. */
 export interface SetCoastEdgesRecipeStep {
+  /** Discriminator for coastal edge assignment. */
   action: 'setCoastEdges';
+  /** Target hex coordinate. */
   at: HexCoordinates;
+  /** Water-facing edges as indexes or a canonical bit mask. */
   waterEdges: readonly HexEdgeIndex[] | number;
+  /** Whether to choose the waterless coast variant. */
   waterless?: boolean;
 }
 
+/** Recipe step that lays road surfaces along a coordinate path. */
 export interface AddRoadPathRecipeStep {
+  /** Discriminator for road path creation. */
   action: 'addRoadPath';
+  /** Ordered coordinates along the road. */
   path: readonly HexCoordinates[];
+  /** Optional road slope variant for the path. */
   slope?: RoadSlope;
 }
 
+/** Recipe step that lays river surfaces along a coordinate path. */
 export interface AddRiverPathRecipeStep {
+  /** Discriminator for river path creation. */
   action: 'addRiverPath';
+  /** Ordered coordinates along the river. */
   path: readonly HexCoordinates[];
+  /** Whether to use waterless river banks. */
   waterless?: boolean;
+  /** Whether to prefer curvy river variants. */
   curvy?: boolean;
+  /** Crossing variant to place where road/river crossings are desired. */
   crossing?: RiverCrossing;
 }
 
+/** Recipe step that places a composed mountain stack. */
 export interface AddMountainStackRecipeStep extends MountainStackOptions {
+  /** Discriminator for mountain stack placement. */
   action: 'addMountainStack';
 }
 
+/** Recipe step that places a hill tile. */
 export interface AddHillRecipeStep {
+  /** Discriminator for hill placement. */
   action: 'addHill';
+  /** Target hex coordinate. */
   at: HexCoordinates;
+  /** KayKit hill variant to place. */
   variant?: HillVariant;
+  /** Whether to use a hill asset with trees. */
   withTrees?: boolean;
+  /** Whether to use the single-hex hill style. */
   single?: boolean;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: number;
 }
 
+/** Recipe step that places a KayKit forest feature. */
 export interface AddForestRecipeStep {
+  /** Discriminator for forest placement. */
   action: 'addForest';
+  /** Target hex coordinate. */
   at: HexCoordinates;
+  /** Tree species variant. */
   species?: 'A' | 'B';
+  /** Forest size variant. */
   size?: 'small' | 'medium' | 'large';
+  /** Whether to use a cut/logged forest variant. */
   cut?: boolean;
 }
 
+/** Recipe step that places a faction building. */
 export interface AddFactionBuildingRecipeStep extends FactionBuildingOptions {
+  /** Discriminator for faction building placement. */
   action: 'addFactionBuilding';
 }
 
+/** Recipe step that places a neutral structure. */
 export interface AddNeutralStructureRecipeStep extends NeutralStructureOptions {
+  /** Discriminator for neutral structure placement. */
   action: 'addNeutralStructure';
 }
 
+/** Recipe step that places a nature asset. */
 export interface AddNatureRecipeStep extends NaturePlacementOptions {
+  /** Discriminator for nature placement. */
   action: 'addNature';
 }
 
+/** Recipe step that places a prop asset. */
 export interface AddPropRecipeStep extends PropPlacementOptions {
+  /** Discriminator for prop placement. */
   action: 'addProp';
 }
 
+/** Recipe step that places a faction flag. */
 export interface AddFlagRecipeStep {
+  /** Discriminator for flag placement. */
   action: 'addFlag';
+  /** Target hex coordinate. */
   at: HexCoordinates;
+  /** Faction color/style to use for the flag. */
   faction: Faction;
+  /** Clockwise 60-degree rotation steps. */
   rotationSteps?: HexRotationSteps | number;
+  /** Optional placement scale override. */
   scale?: number;
 }
 
+/** Recipe step that places an EXTRA transition asset. */
 export interface AddTransitionRecipeStep extends TransitionPlacementOptions {
+  /** Discriminator for transition placement. */
   action: 'addTransition';
 }
 
+/** Recipe step that places a single unit asset. */
 export interface AddUnitRecipeStep extends UnitPlacementOptions {
+  /** Discriminator for unit placement. */
   action: 'addUnit';
 }
 
+/** Recipe step that places a unit preset composition. */
 export interface AddUnitPresetRecipeStep extends UnitPresetOptions {
+  /** Discriminator for unit preset placement. */
   action: 'addUnitPreset';
 }
 
+/** Recipe step that places a harbor composition. */
 export interface AddHarborRecipeStep extends HarborOptions {
+  /** Discriminator for harbor placement. */
   action: 'addHarbor';
 }
 
+/** Recipe step that scatters decoration assets across matching tiles. */
 export interface ScatterDecorationsRecipeStep extends ScatterDecorationOptions {
+  /** Discriminator for decoration scatter placement. */
   action: 'scatterDecorations';
 }
 
+/** Partial plan-option override accepted when compiling a recipe. */
 export type GameboardRecipePlanOptionsOverride = Partial<GameboardPlanOptions>;
 
+/** Validation options for recipe preflight and compiled plan checks. */
 export interface GameboardRecipeValidationConfig {
+  /** Plan option overrides applied before validating the compiled plan. */
   overrides?: GameboardRecipePlanOptionsOverride;
+  /** Validation config passed through to plan validation. */
   plan?: GameboardPlanValidationConfig;
 }
 
+/** Result from compiling and validating a recipe. */
 export interface GameboardRecipeValidationResult {
+  /** Recipe that was inspected. */
   recipe: GameboardRecipe;
+  /** Compiled plan when compilation succeeds. */
   plan?: GameboardPlan;
+  /** Preflight and compiled-plan validation violations. */
   violations: readonly GameboardRuleViolation[];
 }
 
@@ -204,6 +291,7 @@ interface RecipeArchetypeReference {
   explicitKind?: string;
 }
 
+/** Creates a cloned, schema-tagged gameboard recipe. */
 export function createGameboardRecipe(
   options: GameboardPlanOptions,
   steps: readonly GameboardRecipeStep[] = [],
@@ -217,6 +305,7 @@ export function createGameboardRecipe(
   };
 }
 
+/** Returns a new recipe with additional steps appended. */
 export function appendGameboardRecipeSteps(
   recipe: GameboardRecipe,
   steps: readonly GameboardRecipeStep[]
@@ -229,6 +318,7 @@ export function appendGameboardRecipeSteps(
   };
 }
 
+/** Merges explicit steps and generation config into one recipe. */
 export function mergeGameboardRecipes(base: GameboardRecipe, recipes: readonly GameboardRecipe[]): GameboardRecipe {
   return {
     schemaVersion: base.schemaVersion,
@@ -241,6 +331,7 @@ export function mergeGameboardRecipes(base: GameboardRecipe, recipes: readonly G
   };
 }
 
+/** Compiles a recipe into a concrete gameboard plan. */
 export function createGameboardPlanFromRecipe(
   recipe: GameboardRecipe,
   overrides: GameboardRecipePlanOptionsOverride = {}
@@ -250,6 +341,7 @@ export function createGameboardPlanFromRecipe(
   return applyGameboardRecipeGeneration(builder.build(), recipe.generation);
 }
 
+/** Compiles and validates a recipe, returning errors instead of throwing. */
 export function inspectGameboardRecipe(
   recipe: GameboardRecipe,
   config: GameboardRecipeValidationConfig = {}
@@ -283,6 +375,7 @@ export function inspectGameboardRecipe(
   }
 }
 
+/** Validates a recipe and returns all recipe/plan rule violations. */
 export function validateGameboardRecipe(
   recipe: GameboardRecipe,
   config: GameboardRecipeValidationConfig = {}
@@ -290,6 +383,7 @@ export function validateGameboardRecipe(
   return [...inspectGameboardRecipe(recipe, config).violations];
 }
 
+/** Validates generation-specific references before a recipe is compiled. */
 export function validateGameboardRecipeGeneration(recipe: GameboardRecipe): GameboardRuleViolation[] {
   const generation = recipe.generation;
   if (!generation) {
@@ -331,6 +425,7 @@ export function validateGameboardRecipeGeneration(recipe: GameboardRecipe): Game
   return violations;
 }
 
+/** Applies all recipe steps to an existing builder. */
 export function applyGameboardRecipe(
   builder: GameboardBuilder,
   recipeOrSteps: GameboardRecipe | readonly GameboardRecipeStep[]
@@ -342,6 +437,7 @@ export function applyGameboardRecipe(
   return builder;
 }
 
+/** Applies one recipe step to an existing builder. */
 export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipeStep): GameboardBuilder {
   switch (step.action) {
     case 'setTerrain':
@@ -436,6 +532,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/** Runs seeded recipe generation over a built plan and returns the projected result. */
 export function applyGameboardRecipeGeneration(
   plan: GameboardPlan,
   generation: GameboardRecipeGeneration | undefined
@@ -452,18 +549,21 @@ export function applyGameboardRecipeGeneration(
   return projectWorldToGameboardPlan(world);
 }
 
+/** Creates the piece registry declared by a recipe, when any pieces are present. */
 export function createGameboardPieceRegistryFromRecipe(
   recipe: GameboardRecipe
 ): GameboardPieceRegistry | undefined {
   return createGameboardPieceRegistryFromRecipeGeneration(recipe.generation);
 }
 
+/** Creates the layout archetype registry declared by a recipe, when present. */
 export function createGameboardLayoutArchetypeRegistryFromRecipe(
   recipe: GameboardRecipe
 ): GameboardLayoutArchetypeRegistry | undefined {
   return createGameboardLayoutArchetypeRegistryFromRecipeGeneration(recipe.generation);
 }
 
+/** Creates a layout archetype registry from recipe generation config. */
 export function createGameboardLayoutArchetypeRegistryFromRecipeGeneration(
   generation: GameboardRecipeGeneration | undefined
 ): GameboardLayoutArchetypeRegistry | undefined {
@@ -472,6 +572,7 @@ export function createGameboardLayoutArchetypeRegistryFromRecipeGeneration(
     : undefined;
 }
 
+/** Creates a piece registry from recipe generation config. */
 export function createGameboardPieceRegistryFromRecipeGeneration(
   generation: GameboardRecipeGeneration | undefined
 ): GameboardPieceRegistry | undefined {
@@ -480,6 +581,7 @@ export function createGameboardPieceRegistryFromRecipeGeneration(
     : undefined;
 }
 
+/** Creates all layout fill rules implied by recipe generation config. */
 export function createGameboardRecipeGenerationFillRules(
   generation: GameboardRecipeGeneration | undefined
 ): GameboardLayoutFillRule[] {

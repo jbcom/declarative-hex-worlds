@@ -50,82 +50,141 @@ export {
   validateGameboardRules,
 } from './world-rules';
 
+/** Built-in seeded fill presets for common board decoration and encounter roles. */
 export type SeededGameboardDensityPresetId = 'trees' | 'rocks' | 'props' | 'harbors' | 'landmarks' | 'units';
 
+/** User-facing density value where numbers mean fill percentage and false disables a preset. */
 export type SeededGameboardDensityValue = number | SeededGameboardDensityRuleOptions | false | null | undefined;
 
+/** Overrides for one built-in seeded density preset. */
 export interface SeededGameboardDensityRuleOptions
   extends Omit<GameboardLayoutFillRule, 'archetype' | 'assetId' | 'assets' | 'count' | 'fill' | 'id'> {
+  /** Explicit fill rule id. */
   id?: string;
+  /** Single asset id to spawn for the preset. */
   assetId?: string;
+  /** Asset pool to choose from for the preset. */
   assets?: readonly string[];
+  /** Exact placement count for the preset. */
   count?: number;
+  /** Fraction of eligible tiles to fill for the preset. */
   fill?: number;
+  /** Archetype id or inline archetype to use for placement constraints. */
   archetype?: GameboardLayoutFillRule['archetype'];
 }
 
+/** Density controls for built-in seeded board fill presets. */
 export interface SeededGameboardLayoutDensityOptions {
+  /** Tree scatter density. */
   trees?: SeededGameboardDensityValue;
+  /** Rock scatter density. */
   rocks?: SeededGameboardDensityValue;
+  /** Prop scatter density. */
   props?: SeededGameboardDensityValue;
+  /** Harbor or dock density. */
   harbors?: SeededGameboardDensityValue;
+  /** Landmark structure density. */
   landmarks?: SeededGameboardDensityValue;
+  /** Unit placement density. */
   units?: SeededGameboardDensityValue;
 }
 
+/** Context used while expanding built-in density presets. */
 export interface SeededGameboardDensityContext {
+  /** Faction used for faction-colored preset assets. */
   faction?: Faction;
 }
 
+/** Strategy for converting selected registered pieces into fill rules. */
 export type SeededGameboardPieceFillMode = 'per-piece' | 'pool';
 
+/** Options for generating layout fill rules from a registered piece selection. */
 export interface SeededGameboardPieceFillOptions extends Omit<GameboardPieceLayoutRuleOptions, 'assetId'> {
+  /** Registry selection used to choose pieces for the fill. */
   selection?: GameboardPieceRegistrySelection;
+  /** Whether to create one rule per piece or a single pooled rule. */
   mode?: SeededGameboardPieceFillMode;
+  /** Prefix used when generated per-piece rules need ids. */
   ruleIdPrefix?: string;
 }
 
+/** Inspection result for one piece-fill selection. */
 export interface SeededGameboardPieceFillSelectionInspection {
+  /** Fill id or generated inspection id. */
   id: string;
+  /** Fill mode used for the selection. */
   mode: SeededGameboardPieceFillMode;
+  /** Selection criteria that were inspected. */
   selection: GameboardPieceRegistrySelection;
+  /** Number of pieces matched by the selection. */
   selectedCount: number;
+  /** Matched piece declaration ids. */
   selectedPieceIds: readonly string[];
+  /** Matched asset ids. */
   selectedAssetIds: readonly string[];
+  /** Non-fatal selection warnings. */
   warnings: readonly string[];
+  /** Fatal selection errors. */
   errors: readonly string[];
 }
 
+/** Options for dry-running seeded piece fills. */
 export interface InspectSeededGameboardPieceFillsOptions {
+  /** Seed used to evaluate deterministic placements. */
   seed?: string | number;
 }
 
+/** Full dry-run result for seeded piece fills against a plan. */
 export interface SeededGameboardPieceFillInspection {
+  /** Seed used for the inspection. */
   seed: string;
+  /** Number of fill selections inspected. */
   selectionCount: number;
+  /** Number of unique piece ids selected across all fills. */
   selectedPieceCount: number;
+  /** Fill rules generated from the selections. */
   rules: readonly GameboardLayoutFillRule[];
+  /** Eligibility and scoring analysis for the generated rules. */
   analysis: GameboardLayoutFillAnalysis;
+  /** Deterministic placements that would be spawned. */
   placements: readonly SpawnGameboardPlacementOptions[];
+  /** Per-selection inspection details. */
   selections: readonly SeededGameboardPieceFillSelectionInspection[];
+  /** Flattened non-fatal warnings. */
   warnings: readonly string[];
+  /** Flattened fatal errors. */
   errors: readonly string[];
 }
 
+/** High-level options for generating a playable seeded medieval gameboard. */
 export interface SeededGameboardOptions extends Partial<GameboardPlanOptions> {
+  /** Board shape to generate. */
   shape?: GameboardShape;
+  /** Primary faction used for settlements, harbors, and generated units. */
   faction?: Faction;
+  /** Harbor composition variant to place on the coast. */
   harborKind?: HarborKind;
+  /** Number of mountain stacks to place. */
   mountainStacks?: number;
+  /** Number of forest tiles to place. */
   forestTiles?: number;
+  /** Number of hill tiles to place. */
   hillTiles?: number;
+  /** Number of faction settlements to place. */
   settlements?: number;
+  /** Number of loose prop decorations to scatter. */
   scatterProps?: number;
+  /** Built-in density preset overrides for layout fill. */
   layoutDensity?: SeededGameboardLayoutDensityOptions;
+  /** Additional archetypes available to generated layout fill rules. */
   layoutArchetypes?: GameboardLayoutArchetypeRegistry;
+  /** Seed used for the layout fill pass. */
   layoutFillSeed?: string | number;
+  /** Additional layout fill rules to run after built-in density and piece rules. */
   layoutFills?: readonly GameboardLayoutFillRule[];
+  /** Piece registry used by seeded piece fill rules. */
   pieceRegistry?: GameboardPieceRegistry;
+  /** Piece fill rules that spawn registered external or custom pieces. */
   pieceFills?: readonly SeededGameboardPieceFillOptions[];
 }
 
@@ -141,6 +200,7 @@ const SETTLEMENT_SEQUENCE = [
 const DEFAULT_DENSITY_FACTION = 'blue' as const satisfies Faction;
 const EDGE_INDEXES = [0, 1, 2, 3, 4, 5] as const satisfies readonly HexEdgeIndex[];
 
+/** Creates a deterministic generated board with terrain, roads, rivers, structures, and fills. */
 export function createSeededGameboardPlan(options: SeededGameboardOptions = {}): GameboardPlan {
   const shape = options.shape ?? { kind: 'rectangle', width: 10, height: 8 };
   const shapeCoordinates = coordinatesForShape(shape);
@@ -296,10 +356,12 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
   return plan;
 }
 
+/** Creates a Koota world from a deterministic generated board. */
 export function createSeededGameboardWorld(options: SeededGameboardOptions = {}): World {
   return createGameboardWorld(createSeededGameboardPlan(options));
 }
 
+/** Expands built-in density preset options into concrete layout fill rules. */
 export function createSeededGameboardDensityFillRules(
   density: SeededGameboardLayoutDensityOptions | undefined,
   context: SeededGameboardDensityContext = {}
@@ -373,6 +435,7 @@ export function createSeededGameboardDensityFillRules(
   ].filter((rule): rule is GameboardLayoutFillRule => rule !== undefined);
 }
 
+/** Expands registered piece fill options into concrete layout fill rules. */
 export function createSeededGameboardPieceFillRules(
   registry: GameboardPieceRegistry | undefined,
   fills: readonly SeededGameboardPieceFillOptions[] | undefined
@@ -413,6 +476,7 @@ export function createSeededGameboardPieceFillRules(
   });
 }
 
+/** Dry-runs seeded piece fill selection, scoring, and placement for a plan. */
 export function inspectSeededGameboardPieceFills(
   plan: GameboardPlan,
   registry: GameboardPieceRegistry,
@@ -437,6 +501,7 @@ export function inspectSeededGameboardPieceFills(
   };
 }
 
+/** Inspects which registered pieces each seeded piece-fill option selects. */
 export function inspectSeededGameboardPieceFillSelections(
   registry: GameboardPieceRegistry,
   fills: readonly SeededGameboardPieceFillOptions[]
