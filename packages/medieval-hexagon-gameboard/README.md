@@ -42,7 +42,9 @@ contract:
   connectivity, editions, visual verification, and Koota runtime rules.
 
 The generated TypeDoc API reference is rebuilt by `pnpm docs` and
-`pnpm docs:build`.
+`pnpm docs:build`. Every TypeDoc entry point carries top-level `@module` JSDoc
+so the generated module pages explain what each public subpath owns; the
+workspace `pnpm test:api-docs` audit enforces that contract.
 
 ## Install
 

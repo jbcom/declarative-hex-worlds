@@ -14,11 +14,14 @@ contract for CI and npm consumers.
 - The guide imagery lives in `docs/assets/kaykit-guide/` and is generated from
   `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/Medieval_Hexagon_UserGuide_v1.pdf`.
 - Keep pillar frontmatter current when implementation or tests change.
-- Keep TypeDoc comments useful on exported symbols. Public JSDoc should explain
-  lifecycle, validation, and caller responsibility instead of restating a name.
+- Keep TypeDoc comments useful on exported symbols. Every TypeDoc entry point
+  in `typedoc.json` must start with top-level `@module` JSDoc, and public
+  symbol docs should explain lifecycle, validation, and caller responsibility
+  instead of restating a name.
 - Run `pnpm docs` or `pnpm docs:build` for docs or public API comment changes.
-- For JSDoc completion claims, also run `pnpm test:api-docs` and keep the
-  strict TypeDoc warning count at zero.
+- For JSDoc completion claims, also run `pnpm test:api-docs`; it enforces the
+  `@module` entry-point contract and keeps the strict TypeDoc warning count at
+  zero.
 
 ## Asset Rules
 
