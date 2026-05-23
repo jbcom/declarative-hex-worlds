@@ -51,7 +51,9 @@ requireIncludes(ci, 'ci.yml', [
   'pnpm test:consumer',
   'pnpm pack:dry-run',
   'actions/upload-artifact',
+  'fail-on-severity: high',
 ]);
+requireExcludes(ci, 'ci.yml', ['continue-on-error: true']);
 requireIncludes(release, 'release.yml', [
   "NODE_VERSION: '22'",
   'pnpm/action-setup',
@@ -138,6 +140,14 @@ function requireIncludes(source: string, label: string, snippets: readonly strin
   for (const snippet of snippets) {
     if (!source.includes(snippet)) {
       failures.push(`${label} is missing ${snippet}`);
+    }
+  }
+}
+
+function requireExcludes(source: string, label: string, snippets: readonly string[]): void {
+  for (const snippet of snippets) {
+    if (source.includes(snippet)) {
+      failures.push(`${label} must not include ${snippet}`);
     }
   }
 }
