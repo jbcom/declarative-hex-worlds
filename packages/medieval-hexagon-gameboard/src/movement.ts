@@ -28,60 +28,123 @@ import {
 } from './navigation';
 import type { HexCoordinates } from './types';
 
+/**
+ * Built-in movement profile ids for common medieval board actors.
+ */
 export type BuiltInGameboardMovementProfileId = 'ground' | 'worker' | 'cavalry' | 'ship' | 'flying';
+/**
+ * Movement profile id accepted by movement helpers.
+ */
 export type GameboardMovementProfileId = BuiltInGameboardMovementProfileId | (string & {});
+/**
+ * Runtime movement path status.
+ */
 export type GameboardMovementStatus = 'idle' | 'ready' | 'moving' | 'completed' | 'blocked' | 'out-of-range';
 
+/**
+ * Movement profile combining a movement budget with a navigation profile.
+ */
 export interface GameboardMovementProfile {
+  /** Stable profile id. */
   id: GameboardMovementProfileId;
+  /** Human-readable label. */
   label: string;
+  /** Default movement budget for one movement cycle. */
   movementBudget: number;
+  /** Navigation profile used by this movement profile. */
   navigation: GameboardNavigationProfile;
 }
 
+/**
+ * Profile id or inline profile accepted by movement APIs.
+ */
 export type GameboardMovementProfileInput = GameboardMovementProfileId | GameboardMovementProfile;
 
+/**
+ * Movement profiles keyed by id.
+ */
 export interface GameboardMovementProfileRegistry {
+  /** Movement profile for the profile id key. */
   readonly [profileId: string]: GameboardMovementProfile;
 }
 
+/**
+ * Shared options for actor/placement movement helpers.
+ */
 export interface GameboardMovementOptions {
+  /** Movement profile id or inline profile. */
   profile?: GameboardMovementProfileInput;
+  /** Registry used to resolve profile ids. */
   profiles?: GameboardMovementProfileRegistry;
+  /** Movement budget override. */
   movementBudget?: number;
+  /** Placement ids ignored during pathing. */
   ignorePlacementIds?: readonly string[];
+  /** Navigation profile overrides merged over the movement profile. */
   navigation?: GameboardNavigationProfile;
 }
 
+/**
+ * Options for registering or updating a movement agent.
+ */
 export interface SetGameboardMovementAgentOptions extends GameboardMovementOptions {
+  /** Remaining movement override. Defaults to full budget. */
   remainingMovement?: number;
 }
 
+/**
+ * Options for requesting a path for a movement agent.
+ */
 export interface GameboardMovementPathRequestOptions extends GameboardMovementOptions {
+  /** Keep a found path even when it exceeds the current budget. */
   allowOutOfRangePath?: boolean;
 }
 
+/**
+ * Options for advancing movement.
+ */
 export interface AdvanceGameboardMovementOptions extends GameboardMovementOptions {
+  /** Number of path steps to advance. Defaults to `1`. */
   steps?: number;
 }
 
+/**
+ * Result returned after requesting movement.
+ */
 export interface GameboardMovementRequestResult {
+  /** Movement agent entity. */
   entity: Entity;
+  /** Placement state after the request. */
   placement: PlacementStateValue;
+  /** Resolved movement profile. */
   profile: GameboardMovementProfile;
+  /** Planned path. */
   path: GameboardNavigationPathResult;
+  /** Movement path state written to the entity. */
   state: MovementPathStateValue;
 }
 
+/**
+ * Result returned after advancing movement.
+ */
 export interface GameboardMovementAdvanceResult {
+  /** Movement agent entity. */
   entity: Entity;
+  /** Placement state after advancement. */
   placement: PlacementStateValue;
+  /** Resolved movement profile. */
   profile: GameboardMovementProfile;
+  /** Movement path state after advancement. */
   state: MovementPathStateValue;
+  /** Whether the placement moved during this advance call. */
   moved: boolean;
 }
 
-export const GAMEBOARD_MOVEMENT_PROFILES = {
+/**
+ * Built-in movement profiles for ground units, workers, cavalry, ships, and
+ * flying units.
+ */
+export const GAMEBOARD_MOVEMENT_PROFILES: GameboardMovementProfileRegistry = {
   ground: {
     id: 'ground',
     label: 'Ground',
@@ -135,28 +198,48 @@ export const GAMEBOARD_MOVEMENT_PROFILES = {
       maxElevationStep: 999,
     },
   },
-} as const satisfies GameboardMovementProfileRegistry;
+} as const;
 
+/**
+ * Movement agent trait attached to placement entities that can move.
+ */
 export const MovementAgent = trait({
+  /** Movement profile id used by this agent. */
   profileId: 'ground' as GameboardMovementProfileId,
+  /** Maximum movement budget. */
   movementBudget: 6,
+  /** Remaining movement budget in the current cycle. */
   remainingMovement: 6,
 });
 
+/**
+ * Runtime path state for a movement agent.
+ */
 export const MovementPathState = trait({
+  /** Current movement status. */
   status: 'idle' as GameboardMovementStatus,
+  /** Destination tile key for the current request. */
   destinationKey: '',
+  /** Planned path tile keys. */
   pathKeys: () => [] as string[],
+  /** Next path index to advance to. */
   nextIndex: 0,
+  /** Total planned path cost. */
   cost: 0,
+  /** Cost spent so far. */
   spentCost: 0,
+  /** Number of pathfinder nodes visited for the request. */
   visited: 0,
+  /** Blocked or out-of-range reason. */
   reason: undefined as string | undefined,
 });
 
+/** Marker trait for placements with active movement. */
 export const IsMoving = trait();
 
+/** Query for placements with movement agents. */
 export const MovementAgentQuery = createQuery(IsGameboardPlacement, PlacementState, MovementAgent);
+/** Query for placements currently advancing along a path. */
 export const ActiveMovementQuery = createQuery(
   IsGameboardPlacement,
   IsMoving,
@@ -164,29 +247,46 @@ export const ActiveMovementQuery = createQuery(
   MovementAgent,
   MovementPathState
 );
+/** Query for unit placements that have movement agents. */
 export const UnitMovementQuery = createQuery(IsUnitPlacement, PlacementState, MovementAgent);
 
+/** Movement agent trait value. */
 export type MovementAgentValue = TraitRecord<typeof MovementAgent>;
+/** Movement path state trait value. */
 export type MovementPathStateValue = TraitRecord<typeof MovementPathState>;
 
+/**
+ * Koota action bundle for movement agents, path requests, reachability, and
+ * advancement.
+ */
 export const gameboardMovementActions = createActions((world) => ({
+  /** Add or update a movement agent on a placement. */
   setAgent: (placement: Entity | string, options: SetGameboardMovementAgentOptions = {}) =>
     setGameboardMovementAgent(world, placement, options),
+  /** Clear active movement path state for a placement. */
   clear: (placement: Entity | string) => clearGameboardMovement(world, placement),
+  /** Reset movement budget for one or all movement agents. */
   resetBudget: (placement?: Entity | string, options: GameboardMovementOptions = {}) =>
     resetGameboardMovementBudget(world, placement, options),
+  /** Request movement to a destination. */
   requestMove: (
     placement: Entity | string,
     destination: HexCoordinates | string,
     options: GameboardMovementPathRequestOptions = {}
   ) => requestGameboardMovement(world, placement, destination, options),
+  /** Advance one placement along its requested path. */
   advance: (placement: Entity | string, options: AdvanceGameboardMovementOptions = {}) =>
     advanceGameboardMovement(world, placement, options),
+  /** Advance all active movement agents. */
   runSystem: (options: AdvanceGameboardMovementOptions = {}) => runGameboardMovementSystem(world, options),
+  /** Return tiles reachable by one movement agent. */
   reachable: (placement: Entity | string, options: GameboardMovementOptions = {}) =>
     reachableGameboardMovementTiles(world, placement, options),
 }));
 
+/**
+ * Resolve a movement profile id or inline profile.
+ */
 export function resolveGameboardMovementProfile(
   profile: GameboardMovementProfileInput | undefined,
   profiles: GameboardMovementProfileRegistry = GAMEBOARD_MOVEMENT_PROFILES
@@ -204,6 +304,9 @@ export function resolveGameboardMovementProfile(
   return resolved;
 }
 
+/**
+ * Add or update movement-agent state for a placement.
+ */
 export function setGameboardMovementAgent(
   world: World,
   placement: Entity | string,
@@ -228,6 +331,9 @@ export function setGameboardMovementAgent(
   return entity;
 }
 
+/**
+ * Create navigation for one movement agent, ignoring the agent's own placement.
+ */
 export function createGameboardMovementNavigation(
   world: World,
   placement: Entity | string,
@@ -239,6 +345,9 @@ export function createGameboardMovementNavigation(
   return createGameboardNavigation(projectWorldForMovement(world), navigationProfileForMovement(profile, state, options));
 }
 
+/**
+ * Find a movement path from a placement to a destination.
+ */
 export function findGameboardMovementPath(
   world: World,
   placement: Entity | string,
@@ -250,6 +359,9 @@ export function findGameboardMovementPath(
   return createGameboardMovementNavigation(world, entity, options).findPath(state.tileKey, destination);
 }
 
+/**
+ * Return tiles reachable by a placement under its movement profile and budget.
+ */
 export function reachableGameboardMovementTiles(
   world: World,
   placement: Entity | string,
@@ -262,6 +374,9 @@ export function reachableGameboardMovementTiles(
   return createGameboardMovementNavigation(world, entity, options).reachable(state.tileKey, budget);
 }
 
+/**
+ * Request movement for a placement and write path state back to its entity.
+ */
 export function requestGameboardMovement(
   world: World,
   placement: Entity | string,
@@ -302,6 +417,9 @@ export function requestGameboardMovement(
   };
 }
 
+/**
+ * Advance one movement agent by one or more path steps.
+ */
 export function advanceGameboardMovement(
   world: World,
   placement: Entity | string,
@@ -316,6 +434,9 @@ export function advanceGameboardMovement(
   return result;
 }
 
+/**
+ * Advance every active movement agent in the world.
+ */
 export function runGameboardMovementSystem(
   world: World,
   options: AdvanceGameboardMovementOptions = {}
@@ -327,6 +448,9 @@ export function runGameboardMovementSystem(
   return results;
 }
 
+/**
+ * Clear active path state for one movement agent.
+ */
 export function clearGameboardMovement(world: World, placement: Entity | string): Entity {
   const entity = requirePlacementEntity(world, placement);
   entity.remove(IsMoving);
@@ -334,6 +458,9 @@ export function clearGameboardMovement(world: World, placement: Entity | string)
   return entity;
 }
 
+/**
+ * Reset the movement budget for one placement or all movement agents.
+ */
 export function resetGameboardMovementBudget(
   world: World,
   placement?: Entity | string,

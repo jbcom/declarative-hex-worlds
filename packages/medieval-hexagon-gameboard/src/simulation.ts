@@ -399,26 +399,47 @@ export interface GameboardScenarioSimulationExpectations {
  * Expected command record in a simulation report.
  */
 export interface GameboardScenarioSimulationCommandExpectation {
+  /** Step id that should emit the command. */
   stepId?: string;
+  /** Step index that should emit the command. */
   stepIndex?: number;
+  /** Expected command kind. */
   kind?: GameboardInteractionCommandRecord['kind'];
+  /** Expected command intent. */
   intent?: GameboardInteractionCommandRecord['intent'];
+  /** Expected command status. */
   status?: GameboardInteractionCommandRecord['status'];
+  /** Expected command executability. */
   canExecute?: boolean;
+  /** Expected command reason. */
   reason?: string;
+  /** Expected command tile key. */
   tileKey?: string;
+  /** Expected command placement id. */
   placementId?: string;
+  /** Expected command actor id. */
   actorId?: string;
+  /** Expected source actor id. */
   sourceActorId?: string;
+  /** Expected source placement id. */
   sourcePlacementId?: string;
+  /** Expected handler id. */
   handlerId?: string;
+  /** Expected handler status. */
   handlerStatus?: GameboardInteractionCommandRecord['handlerStatus'];
+  /** Expected command effect types. */
   effectTypes?: readonly GameboardInteractionHandlerEffect['type'][];
+  /** Expected target kind. */
   targetKind?: GameboardInteractionCommandRecord['target']['kind'];
+  /** Expected target intent. */
   targetIntent?: GameboardInteractionCommandRecord['target']['intent'];
+  /** Expected target tile key. */
   targetTileKey?: string;
+  /** Expected target placement id. */
   targetPlacementId?: string;
+  /** Expected target actor id. */
   targetActorId?: string;
+  /** Expected target enterability. */
   targetCanEnter?: boolean;
 }
 
@@ -426,28 +447,51 @@ export interface GameboardScenarioSimulationCommandExpectation {
  * Expected actor-targeting record in a simulation report.
  */
 export interface GameboardScenarioSimulationActorTargetsExpectation {
+  /** Step id that should emit the target report. */
   stepId?: string;
+  /** Step index that should emit the target report. */
   stepIndex?: number;
+  /** Expected source actor id. */
   sourceActorId?: string;
+  /** Exact target actor ids expected in the report. */
   targetActorIds?: readonly string[];
+  /** Exact reachable actor ids expected in the report. */
   reachableActorIds?: readonly string[];
+  /** Expected nearest target actor id. */
   nearestActorId?: string;
+  /** Expected nearest target approach. */
   nearestApproach?: GameboardScenarioSimulationActorTargetRecord['approach'];
+  /** Expected nearest target approach tile key. */
   nearestApproachTileKey?: string;
+  /** Expected nearest target reachability. */
   nearestReachable?: boolean;
+  /** Expected nearest target path-found flag. */
   nearestPathFound?: boolean;
+  /** Expected nearest target path cost. */
   nearestPathCost?: number;
+  /** Expected nearest target path tile keys. */
   nearestPathKeys?: readonly string[];
+  /** Specific target actor id to inspect. */
   targetActorId?: string;
+  /** Expected specific target reachability. */
   targetReachable?: boolean;
+  /** Expected specific target approach. */
   targetApproach?: GameboardScenarioSimulationActorTargetRecord['approach'];
+  /** Expected specific target approach tile key. */
   targetApproachTileKey?: string;
+  /** Expected specific target path-found flag. */
   targetPathFound?: boolean;
+  /** Expected specific target path cost. */
   targetPathCost?: number;
+  /** Expected specific target path tile keys. */
   targetPathKeys?: readonly string[];
+  /** Expected specific target command kind. */
   targetCommandKind?: GameboardInteractionCommandRecord['kind'];
+  /** Expected specific target command intent. */
   targetCommandIntent?: GameboardInteractionCommandRecord['intent'];
+  /** Expected specific target command executability. */
   targetCommandCanExecute?: boolean;
+  /** Expected target report reason. */
   reason?: string;
 }
 
@@ -455,23 +499,41 @@ export interface GameboardScenarioSimulationActorTargetsExpectation {
  * Expected movement record in a simulation report.
  */
 export interface GameboardScenarioSimulationMovementExpectation {
+  /** Step id that should emit the movement record. */
   stepId?: string;
+  /** Step index that should emit the movement record. */
   stepIndex?: number;
+  /** Expected movement event type. */
   eventType?: (typeof SIMULATION_MOVEMENT_EVENT_TYPES)[number];
+  /** Expected actor id. */
   actorId?: string;
+  /** Expected placement id. */
   placementId?: string;
+  /** Expected current tile key. */
   tileKey?: string;
+  /** Expected placement asset id. */
   assetId?: string;
+  /** Expected movement profile id. */
   profileId?: string;
+  /** Expected moved flag. */
   moved?: boolean;
+  /** Expected movement status. */
   status?: GameboardMovementEventRecord['state']['status'];
+  /** Expected movement destination key. */
   destinationKey?: string;
+  /** Expected exact path tile keys. */
   pathKeys?: readonly string[];
+  /** Path tile keys that must be included. */
   pathIncludes?: readonly string[];
+  /** Expected next path index. */
   nextIndex?: number;
+  /** Expected planned path cost. */
   cost?: number;
+  /** Expected spent path cost. */
   spentCost?: number;
+  /** Expected pathfinder visited count. */
   visited?: number;
+  /** Expected movement reason. */
   reason?: string;
 }
 
@@ -479,19 +541,33 @@ export interface GameboardScenarioSimulationMovementExpectation {
  * Expected patrol record in a simulation report.
  */
 export interface GameboardScenarioSimulationPatrolExpectation {
+  /** Step id that should emit the patrol record. */
   stepId?: string;
+  /** Step index that should emit the patrol record. */
   stepIndex?: number;
+  /** Expected patrol event type. */
   eventType?: (typeof SIMULATION_PATROL_EVENT_TYPES)[number];
+  /** Expected actor id. */
   actorId?: string;
+  /** Expected placement id. */
   placementId?: string;
+  /** Expected patrol route id. */
   routeId?: string;
+  /** Expected patrol status. */
   status?: GameboardPatrolEventRecord['status'];
+  /** Expected target tile key. */
   targetKey?: string;
+  /** Expected current waypoint index. */
   currentWaypointIndex?: number;
+  /** Expected target waypoint index. */
   targetWaypointIndex?: number;
+  /** Expected completed route rounds. */
   roundsCompleted?: number;
+  /** Expected movement-request flag. */
   requested?: boolean;
+  /** Expected waypoint-advanced flag. */
   advanced?: boolean;
+  /** Expected patrol reason. */
   reason?: string;
 }
 
@@ -499,11 +575,17 @@ export interface GameboardScenarioSimulationPatrolExpectation {
  * Expected mutation record in a simulation report.
  */
 export interface GameboardScenarioSimulationMutationExpectation {
+  /** Expected mutation type. */
   type?: GameboardScenarioSimulationMutationRecord['type'];
+  /** Expected actor id. */
   actorId?: string;
+  /** Expected placement id. */
   placementId?: string;
+  /** Expected removed flag. */
   removed?: boolean;
+  /** Expected spawned flag. */
   spawned?: boolean;
+  /** Expected updated flag. */
   updated?: boolean;
 }
 
@@ -511,18 +593,31 @@ export interface GameboardScenarioSimulationMutationExpectation {
  * Expected final actor state in a simulation report.
  */
 export interface GameboardScenarioSimulationActorExpectation {
+  /** Actor id to inspect. */
   actorId: string;
+  /** Whether the actor is expected to exist. */
   exists?: boolean;
+  /** Expected actor kind. */
   kind?: GameboardActorKind;
+  /** Expected actor faction. */
   faction?: string;
+  /** Expected actor team. */
   team?: string;
+  /** Expected hostile flag. */
   hostile?: boolean;
+  /** Expected movement-blocking flag. */
   blocksMovement?: boolean;
+  /** Expected interactive flag. */
   interactive?: boolean;
+  /** Actor tags that must be present. */
   tags?: readonly string[];
+  /** Actor metadata entries that must match. */
   metadata?: Readonly<Record<string, GameboardActorMetadataValue>>;
+  /** Expected actor tile key. */
   tileKey?: string;
+  /** Expected actor placement id. */
   placementId?: string;
+  /** Expected actor placement asset id. */
   assetId?: string;
 }
 
@@ -530,13 +625,21 @@ export interface GameboardScenarioSimulationActorExpectation {
  * Expected final placement state in a simulation report.
  */
 export interface GameboardScenarioSimulationPlacementExpectation {
+  /** Placement id to inspect. */
   placementId: string;
+  /** Whether the placement is expected to exist. */
   exists?: boolean;
+  /** Expected tile key. */
   tileKey?: string;
+  /** Expected asset id. */
   assetId?: string;
+  /** Expected placement kind. */
   kind?: GameboardPlacementKind;
+  /** Expected placement layer. */
   layer?: GameboardPlacementLayer;
+  /** Expected local-only asset flag. */
   requiresExtra?: boolean;
+  /** Placement metadata entries that must match. */
   metadata?: Readonly<Record<string, GameboardActorMetadataValue>>;
 }
 
@@ -544,11 +647,17 @@ export interface GameboardScenarioSimulationPlacementExpectation {
  * Expected final quest state in a simulation report.
  */
 export interface GameboardScenarioSimulationQuestExpectation {
+  /** Quest id to inspect. */
   questId: string;
+  /** Expected quest status. */
   status?: GameboardQuestStatus;
+  /** Expected active objective id. */
   activeObjectiveId?: string;
+  /** Objective ids expected to be completed. */
   completedObjectives?: readonly string[];
+  /** Objective ids expected to be blocked. */
   blockedObjectives?: readonly string[];
+  /** Objective ids expected to be pending. */
   pendingObjectives?: readonly string[];
 }
 

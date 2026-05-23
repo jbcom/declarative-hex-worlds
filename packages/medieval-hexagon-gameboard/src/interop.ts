@@ -42,6 +42,9 @@ import type {
 } from './simulation';
 import type { HexCoordinates, HexEdgeIndex, WorldPosition } from './types';
 
+/**
+ * Entity kind emitted by interop snapshots for external ECS adapters.
+ */
 export type GameboardInteropEntityKind =
   | 'tile'
   | 'placement'
@@ -59,131 +62,262 @@ export type GameboardInteropEntityKind =
   | 'simulation-movement'
   | 'simulation-mutation';
 
+/**
+ * Portable ECS-style entity with named components.
+ */
 export interface GameboardInteropEntity {
+  /** Stable entity id. */
   id: string;
+  /** Entity kind. */
   kind: GameboardInteropEntityKind;
+  /** Component payloads keyed by component name. */
   components: Readonly<Record<string, unknown>>;
 }
 
+/**
+ * Directional adjacency relation between two tiles.
+ */
 export interface GameboardAdjacencyRecord {
+  /** Source tile key. */
   from: string;
+  /** Target tile key. */
   to: string;
+  /** Source edge leading to the target tile. */
   edge: HexEdgeIndex;
+  /** Target edge leading back to the source tile. */
   reciprocalEdge: HexEdgeIndex;
 }
 
+/**
+ * Relation payload connecting a placement to its origin tile.
+ */
 export interface GameboardPlacementTileRecord {
+  /** Placement id. */
   placementId: string;
+  /** Origin tile key. */
   tileKey: string;
+  /** Origin tile coordinates. */
   coordinates: HexCoordinates;
 }
 
+/**
+ * Relation payload connecting a placement to every occupied footprint tile.
+ */
 export interface GameboardPlacementOccupancyRecord {
+  /** Placement id. */
   placementId: string;
+  /** Occupied tile key. */
   tileKey: string;
+  /** Occupied tile coordinates. */
   coordinates: HexCoordinates;
+  /** Origin tile key for the placement. */
   originTileKey: string;
+  /** Zero-based footprint index. */
   footprintIndex: number;
+  /** Whether this occupancy blocks movement. */
   blocksMovement: boolean;
+  /** Occupancy group used to allow compatible colocation. */
   occupancyGroup: string;
 }
 
+/**
+ * Relation payload connecting a spawn location to a tile.
+ */
 export interface GameboardSpawnTileRecord {
+  /** Spawn location id. */
   spawnId: string;
+  /** Spawn tile key. */
   tileKey: string;
+  /** Spawn tile coordinates. */
   coordinates: HexCoordinates;
 }
 
+/**
+ * Interop record for one spawn group.
+ */
 export interface GameboardSpawnGroupRecord {
+  /** Spawn group id. */
   groupId: string;
+  /** Number of requested locations. */
   requestedCount: number;
+  /** Number of selected locations. */
   selectedCount: number;
+  /** Number of candidate locations. */
   candidateCount: number;
+  /** Number of candidates rejected by group-distance filtering. */
   rejectedByGroupDistanceCount: number;
+  /** Non-fatal group diagnostics. */
   warnings: readonly string[];
+  /** Fatal group diagnostics. */
   errors: readonly string[];
 }
 
+/**
+ * Relation payload connecting a spawn group to a selected location.
+ */
 export interface GameboardSpawnGroupLocationRecord {
+  /** Spawn group id. */
   groupId: string;
+  /** Spawn location id. */
   spawnId: string;
+  /** Spawn tile key. */
   tileKey: string;
+  /** Spawn tile coordinates. */
   coordinates: HexCoordinates;
+  /** Location index inside the group. */
   index: number;
 }
 
+/**
+ * Interop route-check record between spawn groups.
+ */
 export interface GameboardSpawnGroupRouteRecord extends GameboardSpawnGroupRoute {}
 
+/**
+ * Interop record for one patrol route.
+ */
 export interface GameboardPatrolRouteRecord {
+  /** Patrol route id. */
   routeId: string;
+  /** Requested waypoint count. */
   requestedWaypointCount: number;
+  /** Selected waypoint count. */
   selectedWaypointCount: number;
+  /** Whether the route loops. */
   loop: boolean;
+  /** Whether all required route segments were found. */
   found: boolean;
+  /** Total route cost. */
   cost: number;
+  /** Total pathfinder visits. */
   visited: number;
+  /** Combined path tile keys. */
   pathKeys: readonly string[];
+  /** Non-fatal route diagnostics. */
   warnings: readonly string[];
+  /** Fatal route diagnostics. */
   errors: readonly string[];
 }
 
+/**
+ * Interop record for one patrol waypoint.
+ */
 export interface GameboardPatrolWaypointRecord {
+  /** Patrol route id. */
   routeId: string;
+  /** Waypoint entity id. */
   waypointId: string;
+  /** Waypoint tile key. */
   tileKey: string;
+  /** Waypoint tile coordinates. */
   coordinates: HexCoordinates;
+  /** Waypoint index in route order. */
   index: number;
+  /** Source used to create the waypoint. */
   source: GameboardPatrolWaypointSource;
+  /** Spawn group id when sourced from a group. */
   spawnGroupId?: string;
+  /** Spawn location index when sourced from a group. */
   spawnLocationIndex?: number;
 }
 
+/**
+ * Interop record for one patrol route segment.
+ */
 export interface GameboardPatrolRouteSegmentRecord extends GameboardPatrolRouteSegment {
+  /** Patrol route id. */
   routeId: string;
+  /** Segment entity id. */
   segmentId: string;
 }
 
+/**
+ * Relation payload connecting an actor to a tile.
+ */
 export interface GameboardActorTileRecord {
+  /** Actor id. */
   actorId: string;
+  /** Tile key occupied by the actor. */
   tileKey: string;
+  /** Tile coordinates occupied by the actor. */
   coordinates: HexCoordinates;
 }
 
+/**
+ * Relation payload connecting an actor to its placement.
+ */
 export interface GameboardActorPlacementRecord {
+  /** Actor id. */
   actorId: string;
+  /** Placement id. */
   placementId: string;
 }
 
+/**
+ * Relation payload connecting an actor to a patrol route.
+ */
 export interface GameboardActorPatrolRouteRecord {
+  /** Actor id. */
   actorId: string;
+  /** Patrol route id. */
   routeId: string;
 }
 
+/**
+ * Quest-to-actor reference role.
+ */
 export type GameboardQuestActorReferenceRole = 'actor' | 'targetActor';
 
+/**
+ * Relation payload connecting a quest objective to an actor.
+ */
 export interface GameboardQuestActorReferenceRecord {
+  /** Quest id. */
   questId: string;
+  /** Objective id. */
   objectiveId: string;
+  /** Actor id. */
   actorId: string;
+  /** Reference role. */
   role: GameboardQuestActorReferenceRole;
 }
 
+/**
+ * Quest-to-tile reference role.
+ */
 export type GameboardQuestTileReferenceRole = 'tile' | 'targetTile';
 
+/**
+ * Relation payload connecting a quest objective to a tile.
+ */
 export interface GameboardQuestTileReferenceRecord {
+  /** Quest id. */
   questId: string;
+  /** Objective id. */
   objectiveId: string;
+  /** Tile key. */
   tileKey: string;
+  /** Tile coordinates. */
   coordinates: HexCoordinates;
+  /** Reference role. */
   role: GameboardQuestTileReferenceRole;
 }
 
+/**
+ * Scenario metadata embedded in an interop snapshot.
+ */
 export interface GameboardInteropScenarioRecord {
+  /** Scenario id. */
   id: string;
+  /** Scenario title. */
   title?: string;
+  /** Serializable scenario metadata. */
   metadata: Readonly<Record<string, string | number | boolean | null>>;
 }
 
+/**
+ * Role used by simulation relation records.
+ */
 export type GameboardSimulationRelationRole =
   | 'step'
   | 'command'
@@ -198,85 +332,165 @@ export type GameboardSimulationRelationRole =
   | 'actor'
   | 'placement';
 
+/**
+ * Relation payload for simulation timeline entities.
+ */
 export interface GameboardSimulationRelationRecord {
+  /** Scenario id that produced the simulation. */
   scenarioId: string;
+  /** Simulation relation role. */
   role: GameboardSimulationRelationRole;
+  /** Simulation step index. */
   stepIndex?: number;
+  /** Simulation step entity id. */
   stepId?: string;
+  /** Timeline record id. */
   recordId?: string;
+  /** Related actor id. */
   actorId?: string;
+  /** Related placement id. */
   placementId?: string;
+  /** Command kind, when related to a command. */
   commandKind?: GameboardScenarioSimulationCommandRecord['command']['kind'];
+  /** Command status, when related to a command. */
   commandStatus?: GameboardScenarioSimulationCommandRecord['command']['status'];
+  /** Handler id, when a command handler ran. */
   handlerId?: string;
+  /** Handler status, when a command handler ran. */
   handlerStatus?: GameboardScenarioSimulationCommandRecord['command']['handlerStatus'];
+  /** Command effect types. */
   effectTypes?: NonNullable<GameboardScenarioSimulationCommandRecord['command']['effectTypes']>;
+  /** Mutation type, when related to a mutation. */
   mutationType?: GameboardScenarioSimulationMutationRecord['type'];
+  /** Whether an actor target was reachable. */
   targetReachable?: boolean;
+  /** Approach mode for an actor target. */
   targetApproach?: GameboardScenarioSimulationActorTargetsRecord['targets'][number]['approach'];
+  /** Approach tile key for an actor target. */
   targetApproachTileKey?: string;
+  /** Path cost for an actor target. */
   targetPathCost?: number;
+  /** Command kind planned for an actor target. */
   targetCommandKind?: GameboardScenarioSimulationActorTargetsRecord['targets'][number]['commandKind'];
+  /** Whether the target command can execute. */
   targetCommandCanExecute?: boolean;
+  /** Individual command effect type. */
   effectType?: NonNullable<
     GameboardScenarioSimulationCommandRecord['command']['effectTypes']
   >[number];
 }
 
+/**
+ * Portable interop snapshot containing entities, relations, and spawn locations.
+ */
 export interface GameboardInteropSnapshot {
+  /** Snapshot schema version. */
   schemaVersion: string;
+  /** Plan or scenario seed. */
   seed: string;
+  /** Optional scenario metadata. */
   scenario?: GameboardInteropScenarioRecord;
+  /** Portable interop entities. */
   entities: readonly GameboardInteropEntity[];
+  /** Tile adjacency records. */
   adjacency: readonly GameboardAdjacencyRecord[];
+  /** ECS relation records. */
   relations: readonly GameboardEcsRelation[];
+  /** Spawn locations included in the snapshot. */
   spawnLocations: readonly SpawnLocation[];
 }
 
+/**
+ * Indexes for fast relation and entity lookup from an interop snapshot.
+ */
 export interface GameboardInteropSnapshotIndex {
+  /** Entities keyed by id. */
   entitiesById: ReadonlyMap<string, GameboardInteropEntity>;
+  /** All relations. */
   relations: readonly GameboardEcsRelation[];
+  /** Relations grouped by relation name. */
   relationsByName: ReadonlyMap<GameboardEcsRelationName, readonly GameboardEcsRelation[]>;
+  /** Relations grouped by source id. */
   relationsFromId: ReadonlyMap<string, readonly GameboardEcsRelation[]>;
+  /** Relations grouped by target id. */
   relationsToId: ReadonlyMap<string, readonly GameboardEcsRelation[]>;
 }
 
+/**
+ * Filter used to select interop relations.
+ */
 export interface GameboardInteropRelationFilter {
+  /** Relation name to include. */
   name?: GameboardEcsRelationName;
+  /** Source entity id to include. */
   fromId?: string;
+  /** Target entity id to include. */
   toId?: string;
 }
 
+/**
+ * Options for base plan interop snapshots.
+ */
 export interface GameboardInteropOptions {
+  /** Include placement entities and relations. Defaults to true. */
   includePlacements?: boolean;
+  /** Optional spawn-location generation options. */
   spawnLocations?: Omit<SpawnLocationOptions, 'shape'>;
 }
 
+/**
+ * Options for scenario interop snapshots.
+ */
 export interface GameboardScenarioInteropOptions extends GameboardInteropOptions {
+  /** Include resolved actor entities and relations. */
   includeActors?: boolean;
+  /** Include quest entities and relations. */
   includeQuests?: boolean;
+  /** Include spawn-group entities and relations. */
   includeSpawnGroups?: boolean;
+  /** Include patrol-route entities and relations. */
   includePatrolRoutes?: boolean;
 }
 
+/**
+ * Options for simulation interop snapshots.
+ */
 export interface GameboardSimulationInteropOptions extends GameboardInteropOptions {
+  /** Include final actor entities and relations. */
   includeActors?: boolean;
+  /** Include final quest entities and relations. */
   includeQuests?: boolean;
+  /** Include simulation timeline entities and relations. */
   includeTimeline?: boolean;
 }
 
+/**
+ * Runtime state accepted by runtime interop snapshots.
+ */
 export interface GameboardRuntimeInteropState {
+  /** Current board plan. */
   plan: GameboardPlan;
+  /** Runtime actor snapshots. */
   actors?: readonly GameboardActorSnapshot[];
+  /** Runtime quest snapshots. */
   quests?: readonly GameboardQuestSnapshot[];
+  /** Optional scenario metadata. */
   scenario?: GameboardInteropScenarioRecord;
 }
 
+/**
+ * Options for runtime interop snapshots.
+ */
 export interface GameboardRuntimeInteropOptions extends GameboardInteropOptions {
+  /** Include actor entities and relations. */
   includeActors?: boolean;
+  /** Include quest entities and relations. */
   includeQuests?: boolean;
 }
 
+/**
+ * Relation name emitted by interop snapshots.
+ */
 export type GameboardEcsRelationName =
   | 'AdjacentTo'
   | 'PlacementOnTile'
@@ -311,10 +525,17 @@ export type GameboardEcsRelationName =
   | 'MutationActor'
   | 'MutationPlacement';
 
+/**
+ * Portable relation between two interop entities.
+ */
 export interface GameboardEcsRelation {
+  /** Relation name. */
   name: GameboardEcsRelationName;
+  /** Source entity id. */
   fromId: string;
+  /** Target entity id. */
   toId: string;
+  /** Relation payload. */
   data:
     | GameboardAdjacencyRecord
     | GameboardPlacementTileRecord
@@ -332,34 +553,60 @@ export interface GameboardEcsRelation {
     | GameboardSimulationRelationRecord;
 }
 
+/**
+ * Adapter interface for mounting a gameboard snapshot into another ECS.
+ */
 export interface GameboardEcsAdapter<TEntity> {
+  /** Create a host ECS entity from an interop entity. */
   createEntity: (entity: GameboardInteropEntity) => TEntity;
+  /** Add a component to a host ECS entity. */
   addComponent?: (
     entity: TEntity,
     componentName: string,
     componentValue: unknown,
     source: GameboardInteropEntity
   ) => void;
+  /** Add a relation between two host ECS entities. */
   addRelation?: (from: TEntity, to: TEntity, relation: GameboardEcsRelation) => void;
 }
 
+/**
+ * Result of mounting an interop snapshot into an ECS adapter.
+ */
 export interface GameboardEcsMountResult<TEntity> {
+  /** Mounted host entities keyed by interop entity id. */
   entitiesById: ReadonlyMap<string, TEntity>;
+  /** Relations whose source or target entities were missing. */
   missingRelations: readonly GameboardEcsRelation[];
 }
 
+/**
+ * Entity shape used by the in-memory ECS adapter.
+ */
 export interface InMemoryGameboardEcsEntity {
+  /** Entity id. */
   id: string;
+  /** Entity kind. */
   kind: GameboardInteropEntityKind;
+  /** Components keyed by component name. */
   components: Map<string, unknown>;
+  /** Outgoing relations from this entity. */
   relations: GameboardEcsRelation[];
 }
 
+/**
+ * Minimal in-memory ECS useful for tests, examples, and adapter prototyping.
+ */
 export interface InMemoryGameboardEcs {
+  /** Mounted entities keyed by id. */
   entities: Map<string, InMemoryGameboardEcsEntity>;
+  /** Adapter that populates `entities`. */
   adapter: GameboardEcsAdapter<InMemoryGameboardEcsEntity>;
 }
 
+/**
+ * Create an interop snapshot from a generated board plan.
+ */
 export function createGameboardInteropSnapshot(
   plan: GameboardPlan,
   options: GameboardInteropOptions = {}
@@ -395,6 +642,10 @@ export function createGameboardInteropSnapshot(
   };
 }
 
+/**
+ * Create an interop snapshot from a scenario recipe, including optional actors,
+ * quests, spawn groups, and patrol routes.
+ */
 export function createGameboardScenarioInteropSnapshot(
   scenario: GameboardScenario,
   options: GameboardScenarioInteropOptions = {}
@@ -484,6 +735,9 @@ export function createGameboardScenarioInteropSnapshot(
   };
 }
 
+/**
+ * Create an interop snapshot from a completed scenario simulation report.
+ */
 export function createGameboardSimulationInteropSnapshot(
   report: GameboardScenarioSimulationReport,
   options: GameboardSimulationInteropOptions = {}
@@ -529,6 +783,9 @@ export function createGameboardSimulationInteropSnapshot(
   };
 }
 
+/**
+ * Create an interop snapshot from live runtime state.
+ */
 export function createGameboardRuntimeInteropSnapshot(
   state: GameboardRuntimeInteropState,
   options: GameboardRuntimeInteropOptions = {}
@@ -554,12 +811,18 @@ export function createGameboardRuntimeInteropSnapshot(
   };
 }
 
+/**
+ * Return only the entity index for an interop snapshot.
+ */
 export function indexGameboardInteropSnapshot(
   snapshot: GameboardInteropSnapshot
 ): ReadonlyMap<string, GameboardInteropEntity> {
   return createGameboardInteropSnapshotIndex(snapshot).entitiesById;
 }
 
+/**
+ * Create lookup indexes for an interop snapshot.
+ */
 export function createGameboardInteropSnapshotIndex(
   snapshot: GameboardInteropSnapshot
 ): GameboardInteropSnapshotIndex {
@@ -583,6 +846,9 @@ export function createGameboardInteropSnapshotIndex(
   };
 }
 
+/**
+ * Select relations by name, source id, and/or target id.
+ */
 export function selectGameboardInteropRelations(
   source: GameboardInteropSnapshot | GameboardInteropSnapshotIndex,
   filter: GameboardInteropRelationFilter = {}
@@ -604,6 +870,9 @@ export function selectGameboardInteropRelations(
   );
 }
 
+/**
+ * Mount an interop snapshot into a host ECS adapter.
+ */
 export function mountGameboardInteropSnapshot<TEntity>(
   snapshot: GameboardInteropSnapshot,
   adapter: GameboardEcsAdapter<TEntity>
@@ -636,6 +905,9 @@ export function mountGameboardInteropSnapshot<TEntity>(
   };
 }
 
+/**
+ * Create a small in-memory ECS adapter for examples and integration tests.
+ */
 export function createInMemoryGameboardEcs(): InMemoryGameboardEcs {
   const entities = new Map<string, InMemoryGameboardEcsEntity>();
   return {

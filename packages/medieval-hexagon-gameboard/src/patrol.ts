@@ -26,6 +26,9 @@ import {
 } from './movement';
 import type { GameboardPatrolRoutePlan } from './navigation';
 
+/**
+ * Runtime patrol status for a patrol agent.
+ */
 export type GameboardPatrolStatus =
   | 'idle'
   | 'waiting'
@@ -35,65 +38,124 @@ export type GameboardPatrolStatus =
   | 'blocked'
   | 'paused';
 
+/**
+ * Lightweight patrol route input accepted by patrol agents.
+ */
 export interface GameboardPatrolRouteInput {
+  /** Stable route id. */
   id: string;
+  /** Ordered waypoint tile keys. */
   waypointKeys: readonly string[];
+  /** Whether the route loops back to the first waypoint. */
   loop?: boolean;
+  /** Optional movement budget per route segment. */
   segmentCosts?: readonly number[];
 }
 
+/**
+ * Options for attaching a patrol agent to a placement or actor.
+ */
 export interface SetGameboardPatrolAgentOptions {
+  /** Route plan or route input to follow. */
   route: GameboardPatrolRoutePlan | GameboardPatrolRouteInput;
+  /** Starting waypoint index. */
   currentWaypointIndex?: number;
+  /** Align starting waypoint to the placement's current tile when possible. */
   alignToCurrentTile?: boolean;
+  /** Whether the patrol starts active. */
   active?: boolean;
+  /** Ticks to wait after reaching each waypoint. */
   pauseTicks?: number;
+  /** Movement options used when requesting segment movement. */
   movement?: GameboardMovementPathRequestOptions;
 }
 
+/**
+ * Options for advancing patrol agents.
+ */
 export interface AdvanceGameboardPatrolOptions {
+  /** Movement options used when requesting segment movement. */
   movement?: GameboardMovementPathRequestOptions;
+  /** Reset movement budget before each patrol segment request. */
   resetMovementBudget?: boolean;
+  /** Deactivate the patrol when movement is blocked. */
   deactivateOnBlocked?: boolean;
 }
 
+/**
+ * Joined runtime snapshot for a patrol agent.
+ */
 export interface GameboardPatrolSnapshot {
+  /** Live Koota entity. */
   entity: Entity;
+  /** Placement state associated with the patrol. */
   placement: PlacementStateValue;
+  /** Actor snapshot when the patrol placement is registered as an actor. */
   actor?: GameboardActorSnapshot;
+  /** Patrol agent trait value. */
   agent: GameboardPatrolAgentValue;
+  /** Patrol state trait value. */
   state: GameboardPatrolStateValue;
 }
 
+/**
+ * Result returned after advancing a patrol agent.
+ */
 export interface GameboardPatrolAdvanceResult extends GameboardPatrolSnapshot {
+  /** Patrol state before advancement. */
   previousState: GameboardPatrolStateValue;
+  /** Movement request produced during advancement. */
   movement?: GameboardMovementRequestResult;
+  /** Whether this advance call requested a new movement segment. */
   requested: boolean;
+  /** Whether this advance call completed a waypoint transition. */
   advanced: boolean;
 }
 
+/**
+ * Patrol agent trait storing route progress and wait state.
+ */
 export const GameboardPatrolAgent = trait({
+  /** Route id followed by this patrol. */
   routeId: '',
+  /** Ordered route waypoint tile keys. */
   waypointKeys: () => [] as string[],
+  /** Optional movement budget per route segment. */
   segmentCosts: () => [] as number[],
+  /** Whether the route loops back to the first waypoint. */
   loop: true,
+  /** Whether the patrol agent is active. */
   active: true,
+  /** Current waypoint index. */
   currentWaypointIndex: 0,
+  /** Target waypoint index for an in-flight segment. */
   targetWaypointIndex: -1,
+  /** Number of completed route rounds. */
   roundsCompleted: 0,
+  /** Ticks to wait after reaching each waypoint. */
   pauseTicks: 0,
+  /** Remaining wait ticks before the next segment. */
   waitTicksRemaining: 0,
 });
 
+/**
+ * Patrol state trait exposed for systems and UIs.
+ */
 export const GameboardPatrolState = trait({
+  /** Current patrol status. */
   status: 'idle' as GameboardPatrolStatus,
+  /** Current target waypoint tile key. */
   targetKey: '',
+  /** Blocked or paused reason. */
   reason: undefined as string | undefined,
+  /** Last requested movement path tile keys. */
   lastPathKeys: () => [] as string[],
 });
 
+/** Marker trait for patrol agents. */
 export const IsGameboardPatrolAgent = trait();
 
+/** Query for every patrol agent placement. */
 export const GameboardPatrolAgentQuery = createQuery(
   IsGameboardPlacement,
   PlacementState,
@@ -102,19 +164,32 @@ export const GameboardPatrolAgentQuery = createQuery(
   GameboardPatrolState
 );
 
+/** Patrol agent trait value. */
 export type GameboardPatrolAgentValue = TraitRecord<typeof GameboardPatrolAgent>;
+/** Patrol state trait value. */
 export type GameboardPatrolStateValue = TraitRecord<typeof GameboardPatrolState>;
 
+/**
+ * Koota action bundle for patrol setup, clearing, advancement, and reads.
+ */
 export const gameboardPatrolActions = createActions((world) => ({
+  /** Attach or replace a patrol agent. */
   set: (placement: Entity | string, options: SetGameboardPatrolAgentOptions) =>
     setGameboardPatrolAgent(world, placement, options),
+  /** Remove patrol traits from a placement. */
   clear: (placement: Entity | string) => clearGameboardPatrolAgent(world, placement),
+  /** Advance one patrol agent. */
   advance: (placement: Entity | string, options: AdvanceGameboardPatrolOptions = {}) =>
     advanceGameboardPatrol(world, placement, options),
+  /** Advance every patrol agent in the world. */
   run: (options: AdvanceGameboardPatrolOptions = {}) => runGameboardPatrolSystem(world, options),
+  /** Read all patrol snapshots. */
   read: () => readGameboardPatrolAgents(world),
 }));
 
+/**
+ * Attach a patrol route to a placement or actor.
+ */
 export function setGameboardPatrolAgent(
   world: World,
   placement: Entity | string,
@@ -153,12 +228,18 @@ export function setGameboardPatrolAgent(
   return entity;
 }
 
+/**
+ * Remove patrol state from a placement or actor.
+ */
 export function clearGameboardPatrolAgent(world: World, placement: Entity | string): Entity {
   const entity = requirePatrolPlacementEntity(world, placement);
   entity.remove(IsGameboardPatrolAgent, GameboardPatrolAgent, GameboardPatrolState);
   return entity;
 }
 
+/**
+ * Read all patrol agents sorted by route id and placement id.
+ */
 export function readGameboardPatrolAgents(world: World): GameboardPatrolSnapshot[] {
   return world
     .query(GameboardPatrolAgentQuery)
@@ -166,6 +247,9 @@ export function readGameboardPatrolAgents(world: World): GameboardPatrolSnapshot
     .sort((left, right) => left.agent.routeId.localeCompare(right.agent.routeId) || left.placement.id.localeCompare(right.placement.id));
 }
 
+/**
+ * Advance one patrol agent through waiting, movement requests, and route completion.
+ */
 export function advanceGameboardPatrol(
   world: World,
   placement: Entity | string,
@@ -175,6 +259,9 @@ export function advanceGameboardPatrol(
   return advancePatrolEntity(world, entity, options);
 }
 
+/**
+ * Advance every patrol agent in the world.
+ */
 export function runGameboardPatrolSystem(
   world: World,
   options: AdvanceGameboardPatrolOptions = {}
