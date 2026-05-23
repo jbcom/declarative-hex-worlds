@@ -53,6 +53,7 @@ const typedocJson = readJson<TypeDocJson>('typedoc.json');
 const tsupConfig = readRequired('packages/medieval-hexagon-gameboard/tsup.config.ts');
 const docsIndex = readRequired('docs/index.md');
 const docsVitePressConfig = readRequired('docs/.vitepress/config.ts');
+const publicApiGuide = readRequired('docs/guides/public-api.md');
 const guideDocs = readGuideDocs();
 const tsupEntries = readTsupEntries(tsupConfig);
 
@@ -151,6 +152,7 @@ function requireDocsConfiguration(): void {
     'workspace and docs app must use the same vitepress version specifier'
   );
   requireDocsGuideNavigation();
+  requirePublicApiSubpathGuide();
 }
 
 function requireDocsGuideNavigation(): void {
@@ -163,6 +165,17 @@ function requireDocsGuideNavigation(): void {
     assert(
       docsVitePressConfig.includes(`link: '${vitePressLink}'`),
       `docs/.vitepress/config.ts sidebar must link ${vitePressLink}`
+    );
+  }
+}
+
+function requirePublicApiSubpathGuide(): void {
+  const packageName = '@jbcom/medieval-hexagon-gameboard';
+  for (const subpath of Object.keys(packageJson.exports ?? {})) {
+    const documentedImport = subpath === '.' ? packageName : `${packageName}/${subpath.slice(2)}`;
+    assert(
+      publicApiGuide.includes(`\`${documentedImport}\``),
+      `docs/guides/public-api.md must document export ${documentedImport}`
     );
   }
 }

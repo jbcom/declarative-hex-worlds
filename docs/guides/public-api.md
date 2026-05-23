@@ -16,26 +16,43 @@ should flow through the same layers:
 | Subpath | Use it for |
 | --- | --- |
 | `@jbcom/medieval-hexagon-gameboard` | Core manifests, seeded board creation, plan validation, selectors, and the runtime facade. |
+| `@jbcom/medieval-hexagon-gameboard/actors` | Player, NPC, enemy, prop, collision, interaction-target, and actor-selection helpers. |
+| `@jbcom/medieval-hexagon-gameboard/assets/free/*` | Published FREE GLTF, BIN, PNG, and manifest files for bundlers that need direct asset URLs. |
+| `@jbcom/medieval-hexagon-gameboard/catalog` | KayKit faction building ids, unit parts, prop ids, nature ids, texture names, and typed asset-id constructors. |
+| `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
+| `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit analysis, facing correction, placement recommendations, and spawn-option conversion. |
+| `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, paths, rotations, and deterministic coordinate selection. |
+| `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled SimpleRPG usage example for consumer smoke tests and app reference code. |
+| `@jbcom/medieval-hexagon-gameboard/examples/*.json` | Packaged recipe, scenario, and simulation JSON examples without exposing raw TypeScript example source. |
+| `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction, terrain stacks, roads, rivers, coasts, buildings, units, and serialization. |
+| `@jbcom/medieval-hexagon-gameboard/grid` | Honeycomb-compatible board grids, KayKit dimensions, world/axial conversion, pathfinding, and spawn locations. |
+| `@jbcom/medieval-hexagon-gameboard/ingest` | Node/build-time source validation, FREE/EXTRA manifest generation, GLTF copying, and manifest module writing. |
+| `@jbcom/medieval-hexagon-gameboard/interop` | Neutral ECS snapshots, relation indexes/selectors, and adapter mounting for non-Koota engines. |
+| `@jbcom/medieval-hexagon-gameboard/koota` | Koota traits, relations, projections, actions, occupancy guards, and runtime placement snapshots. |
+| `@jbcom/medieval-hexagon-gameboard/layout` | Archetypes, site inspection, percentage fills, scatter slots, footprints, and seeded placement generation. |
 | `@jbcom/medieval-hexagon-gameboard/manifest/free` | The packaged FREE KayKit asset manifest. |
 | `@jbcom/medieval-hexagon-gameboard/manifest/schema` | Manifest bundle validation, lookup, URL resolution, and app-local FREE/EXTRA manifests. |
-| `@jbcom/medieval-hexagon-gameboard/grid` | Honeycomb-compatible board grids and shape helpers. |
-| `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial/world conversion, path coordinates, and spawn-location helpers. |
-| `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction and serialization. |
-| `@jbcom/medieval-hexagon-gameboard/layout` | Archetypes, site inspection, percentage fills, scatter slots, and seeded placement generation. |
-| `@jbcom/medieval-hexagon-gameboard/pieces` | Reusable declarations for external buildings, props, units, landmarks, and scatter assets. |
-| `@jbcom/medieval-hexagon-gameboard/recipe` | Serializable board intent for saved maps, editors, and generated plans. |
-| `@jbcom/medieval-hexagon-gameboard/scenario` | Recipes plus actors, spawn groups, patrols, movement, and quests. |
-| `@jbcom/medieval-hexagon-gameboard/simulation` | Headless scenario scripts and deterministic integration-test logs. |
-| `@jbcom/medieval-hexagon-gameboard/koota` | Koota traits, relations, projections, actions, and selectors. |
-| `@jbcom/medieval-hexagon-gameboard/actors` | Player, NPC, enemy, prop, collision, interaction-target, and actor-selection helpers. |
-| `@jbcom/medieval-hexagon-gameboard/movement` | Movement profiles, path requests, movement budgets, and frame-loop stepping. |
+| `@jbcom/medieval-hexagon-gameboard/movement` | Movement profiles, path requests, movement budgets, range queries, budget resets, and frame-loop stepping. |
+| `@jbcom/medieval-hexagon-gameboard/navigation` | Terrain-aware pathfinding, movement ranges, spawn-group planning, and patrol-route planning. |
+| `@jbcom/medieval-hexagon-gameboard/occupancy` | Placement footprint keys, occupancy indexes, and movement-blocking footprint semantics. |
 | `@jbcom/medieval-hexagon-gameboard/patrol` | Patrol agents and route execution inside the same movement system. |
+| `@jbcom/medieval-hexagon-gameboard/pieces` | Reusable declarations for external buildings, props, units, landmarks, and scatter assets. |
+| `@jbcom/medieval-hexagon-gameboard/projection` | Lightweight Koota world projection back into serializable gameboard plans and validation plans. |
 | `@jbcom/medieval-hexagon-gameboard/quests` | Reach, interaction, collision, and defeat quest objectives. |
-| `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
-| `@jbcom/medieval-hexagon-gameboard/systems` | Game-loop helpers for commands, patrols, movement, quests, and target dispatch. |
-| `@jbcom/medieval-hexagon-gameboard/interop` | Neutral ECS snapshots and adapter mounting for non-Koota engines. |
 | `@jbcom/medieval-hexagon-gameboard/react` | React provider, query hooks, actions, tile-scoped actor/occupancy reads, layout/piece previews, runtime snapshots, and runtime-aware UI helpers. |
+| `@jbcom/medieval-hexagon-gameboard/recipe` | Serializable board intent for saved maps, editors, and generated plans. |
+| `@jbcom/medieval-hexagon-gameboard/registry` | Custom hex tile declarations, adjacency/stack rules, KayKit geometry analysis, and declaration application. |
+| `@jbcom/medieval-hexagon-gameboard/rules` | Seeded generation helpers, density fills, piece-fill inspection, and compatibility re-exports for generation workflows. |
+| `@jbcom/medieval-hexagon-gameboard/rule-types` | Shared validation rule config and violation types without runtime code. |
+| `@jbcom/medieval-hexagon-gameboard/runtime` | One-object game-loop facade for Koota state, actors, quests, commands, systems, pieces, scenarios, and interop. |
+| `@jbcom/medieval-hexagon-gameboard/scenario` | Recipes plus actors, spawn groups, patrols, movement, and quests. |
+| `@jbcom/medieval-hexagon-gameboard/selectors` | Guide-defined road, river, coast, edge-mask, rotation, and permutation selectors. |
+| `@jbcom/medieval-hexagon-gameboard/simulation` | Headless scenario scripts and deterministic integration-test logs. |
+| `@jbcom/medieval-hexagon-gameboard/systems` | Game-loop helpers for commands, patrols, movement, quests, and target dispatch. |
 | `@jbcom/medieval-hexagon-gameboard/three` | Asset URL resolution, GLTF loading, transform sync, raycast lookup, and animation clip metadata. |
+| `@jbcom/medieval-hexagon-gameboard/types` | Shared manifest, edition, category, faction, texture, coordinate, and shape types plus runtime constants. |
+| `@jbcom/medieval-hexagon-gameboard/validation` | Koota-free plan, declaration, stack, adjacency, asset, recipe, and scenario validation boundaries. |
+| `@jbcom/medieval-hexagon-gameboard/world-rules` | Lightweight Koota runtime predicates and validation helpers without seeded generation imports. |
 
 ## Plan Versus Runtime
 
