@@ -206,8 +206,27 @@ function requireDocumentedPublicImports(section: string, label: string): void {
 }
 
 function requireAgentsPublicApiSurfaces(): void {
-  for (const subpath of Object.keys(packageJson.exports ?? {})) {
-    assert(agentsGuide.includes(`\`${subpath}\``), `AGENTS.md Public API Surfaces must document export ${subpath}`);
+  const section = extractMarkdownSection(agentsGuide, '## Public API Surfaces', 'AGENTS.md');
+  const expected = new Set(Object.keys(packageJson.exports ?? {}));
+  const actual = [...section.matchAll(/`(\.|\.[/][^`]+)`/g)]
+    .map((match) => match[1])
+    .filter((value): value is string => Boolean(value));
+  const actualSet = new Set(actual);
+
+  for (const subpath of expected) {
+    assert(actualSet.has(subpath), `AGENTS.md Public API Surfaces must document export ${subpath}`);
+  }
+
+  for (const subpath of actualSet) {
+    assert(expected.has(subpath), `AGENTS.md Public API Surfaces documents stale export ${subpath}`);
+  }
+
+  const seen = new Set<string>();
+  for (const subpath of actual) {
+    if (seen.has(subpath)) {
+      failures.push(`AGENTS.md Public API Surfaces repeats export ${subpath}`);
+    }
+    seen.add(subpath);
   }
 }
 

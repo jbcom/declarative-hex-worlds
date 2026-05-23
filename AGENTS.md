@@ -316,8 +316,6 @@ contract for CI and npm consumers.
   interaction targets into actor-aware movement requests or handler-required
   interact/attack/inspect commands, actor-target command planners for UI/AI
   queues, and explicit opt-in handler helpers for common RPG effects.
-- `./patrol`: Koota patrol traits, route assignment helpers, patrol snapshots,
-  and the patrol system that requests movement from authored waypoint routes.
 - `./systems`: game-loop action bundles and neutral event records for command
   dispatch, actor-target dispatch, patrol route advancement, movement ticks,
   quest advancement, and serializable event snapshots.
@@ -328,9 +326,6 @@ contract for CI and npm consumers.
   placement/fill previews and spawns,
   command dispatch, system ticks, projection, snapshots, interop records,
   recipe startup, and scenario startup.
-- `./react`: React providers and hooks for runtime facades, live projection,
-  tile/neighborhood/actor inspection, actor target command planning, occupancy,
-  navigation, spawn, patrol, quest, movement, and command action surfaces.
 - `./quests`: serializable quest definitions, Koota quest entities, objective
   progress, and reach/interaction/collision/defeat evaluators.
 - `./scenario`: serializable board recipe plus actor/quest/movement/patrol
@@ -404,18 +399,6 @@ contract for CI and npm consumers.
 - `./rules`: seeded rectangle/hexagon generation, density and custom-piece fill
   rule generation, piece-fill inspection, and compatibility re-exports for
   projection and world-rule helpers.
-- `./scenario`: JSON-friendly board, actor, movement-agent, patrol-agent, and
-  quest bundles; validate these before runtime instantiation so duplicate actor
-  IDs and broken route/quest references do not silently corrupt the Koota indexes.
-- `docs/guides/runtime-integration.md`: scene ownership, tick-loop, runtime
-  mutation, React, external ECS, and integration-test guidance for humans and
-  future agents wiring the package into an actual game.
-- `./simulation`: serializable scenario scripts, command/system/mutation
-  execution, patrol-route script generation, report expectations, and final
-  actor/quest/placement plus command/patrol/movement timelines for integration
-  fixtures. Prefer the `./commands` handler preset registry in JSON when a
-  packaged script should prove common RPG effects such as enemy removal or NPC
-  interaction metadata.
 - `./selectors`: guide-defined road, river, coast, mask, rotation, and label
   selectors for exact tile-variant authoring. Use `listGuideTilePermutations`
   when visual tests or editors need the full guide-labeled matrix instead of
