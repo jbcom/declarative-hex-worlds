@@ -40,6 +40,9 @@ The package is not just an asset bundle. It provides:
   per-piece rules, same-role variant pools, and registry-fill inspection before
   mutating a board, plus runtime facade helpers for selecting, inspecting, and
   spawning those registries against live Koota state.
+- Runtime facade helpers for layout site inspection, single-placement previews,
+  fill analysis, and fill placement previews against the live projected board
+  before committing generated props or landmarks into Koota state.
 - Recipe- and scenario-backed runtime startup that preserves generated
   archetype registries, piece registries, and renderer source URL maps for saved
   game content.

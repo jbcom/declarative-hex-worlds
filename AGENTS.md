@@ -312,7 +312,8 @@ contract for CI and npm consumers.
   quest advancement, and serializable event snapshots.
 - `./runtime`: high-level bound facade around Koota world actions, actor/quest
   helpers, actor selection/targeting, actor-target command planning/dispatch,
-  declared pieces, registry selection/fills/source URL maps, layout fills,
+  declared pieces, registry selection/fills/source URL maps, layout inspection,
+  layout placement/fill previews and spawns,
   command dispatch, system ticks, projection, snapshots, interop records,
   recipe startup, and scenario startup.
 - `./react`: React providers and hooks for runtime facades, live projection,

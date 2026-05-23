@@ -80,7 +80,8 @@ while exposing safe helpers for the common loops:
 - inspect a tile or neighborhood.
 - select or target actors.
 - preview and execute commands.
-- spawn declared pieces or generated layout fills.
+- inspect layout sites, preview generated placement/fill options, and spawn
+  declared pieces or generated layout fills.
 - advance patrol, movement, command, actor-target, and quest systems.
 - project the board to a `GameboardPlan`.
 - emit or mount interop snapshots.

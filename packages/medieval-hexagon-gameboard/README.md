@@ -703,11 +703,24 @@ const campProps = declareGameboardPiece({
   assetId: 'crate_A_small',
   role: 'scatter',
 });
-runtime.spawnPiece(campProps, { count: 3, seed: 'camp', occupancyGuard: true });
-runtime.spawnLayoutFill({
+const campPlacementPreview = runtime.createLayoutPlacements({
+  archetype: 'scatter',
+  assetId: 'crate_A_small',
+  count: 3,
+  seed: 'camp',
+});
+if (campPlacementPreview.length === 3) {
+  runtime.spawnPiece(campProps, { count: 3, seed: 'camp', occupancyGuard: true });
+}
+const ambientTrees = {
   seed: 'ambient-trees',
   rules: [{ id: 'trees', archetype: 'tree', assetId: 'tree_single_A', fill: 0.15 }],
-});
+} as const;
+const ambientAnalysis = runtime.analyzeLayoutFill(ambientTrees);
+const ambientPlacements = runtime.createLayoutFillPlacements(ambientTrees);
+if (ambientAnalysis.errors.length === 0 && ambientPlacements.length > 0) {
+  runtime.spawnLayoutFill(ambientTrees);
+}
 
 const localPieces = createGameboardPieceRegistry([
   { id: 'castle-tower', assetId: 'kenney:round-tower', source: 'Kenney Castle Kit', role: 'landmark' },
@@ -743,16 +756,18 @@ facade while preserving `recipePieceRegistry` and
 and keeps the resolved actor/quest entity indexes, `scenarioPieceRegistry`, and
 `createScenarioPieceSourceUrlMap` beside the same runtime facade, which is the
 shortest path for SimpleRPG-style fixtures and host games that load JSON
-scenario content. `spawnPiece`, `inspectPiecePlacement`, and
-`spawnLayoutFill` run against the current projected world, so generated props,
-trees, landmarks, units, harbors, and local third-party pieces respect live
-occupancy before they mutate the board. Registry helpers on the same facade
-(`analyzePieceRegistry`, `selectPieces`, `createPieceFillRules`,
-`createPiecePoolFillRule`, `analyzePieceFills`, `inspectPieceFills`, and
-`spawnPieceFills`) keep local pack integration declarative for games that want
-tag/role/source queries, seeded variant pools, and dry-run diagnostics before
-spawning into a live board. `createPieceSourceUrlMap` is also available on the
-facade for renderers that need asset URLs for local-only registry entries.
+scenario content. `inspectLayoutSites`, `createLayoutPlacements`,
+`analyzeLayoutFill`, `createLayoutFillPlacements`, `inspectPiecePlacement`,
+`createPiecePlacements`, `spawnPiece`, and `spawnLayoutFill` run against the
+current projected world, so generated props, trees, landmarks, units, harbors,
+and local third-party pieces respect live occupancy before they mutate the
+board. Registry helpers on the same facade (`analyzePieceRegistry`,
+`selectPieces`, `createPieceFillRules`, `createPiecePoolFillRule`,
+`analyzePieceFills`, `inspectPieceFills`, and `spawnPieceFills`) keep local
+pack integration declarative for games that want tag/role/source queries,
+seeded variant pools, and dry-run diagnostics before spawning into a live
+board. `createPieceSourceUrlMap` is also available on the facade for renderers
+that need asset URLs for local-only registry entries.
 Use `runtime.createInteropSnapshot()` when an active board needs a neutral ECS
 payload with live actors and quests, or `runtime.mountInterop(adapter)` when a
 host game wants callback-based mirroring into BiteCS, Miniplex, a server store,

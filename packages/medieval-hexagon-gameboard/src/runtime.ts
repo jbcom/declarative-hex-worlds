@@ -66,12 +66,17 @@ import {
 import {
   type GameboardLayoutArchetypeRegistry,
   analyzeGameboardLayoutFill,
+  createGameboardLayoutFillPlacements,
+  createGameboardLayoutPlacements,
+  inspectGameboardLayoutSites,
   spawnGameboardLayoutFill,
   spawnGameboardLayoutPlacements,
   type GameboardLayoutFillAnalysis,
   type GameboardLayoutFillOptions,
   type GameboardLayoutFillRule,
   type GameboardLayoutPlacementOptions,
+  type GameboardLayoutSiteInspection,
+  type InspectGameboardLayoutSitesOptions,
 } from './layout';
 import { gameboardMovementActions } from './movement';
 import { gameboardPatrolActions } from './patrol';
@@ -281,6 +286,20 @@ export interface GameboardRuntime {
     adapter: GameboardEcsAdapter<TEntity>,
     options?: GameboardRuntimeInteropOptions
   ) => GameboardEcsMountResult<TEntity>;
+  /** Inspect layout candidates and rejections against the live projected world. */
+  inspectLayoutSites: (
+    options?: InspectGameboardLayoutSitesOptions
+  ) => GameboardLayoutSiteInspection;
+  /** Create layout placement spawn options without mutating the live world. */
+  createLayoutPlacements: (
+    options: GameboardLayoutPlacementOptions
+  ) => SpawnGameboardPlacementOptions[];
+  /** Analyze seeded layout fill rules against the live projected world. */
+  analyzeLayoutFill: (options: GameboardLayoutFillOptions) => GameboardLayoutFillAnalysis;
+  /** Create seeded layout fill placement options without mutating the live world. */
+  createLayoutFillPlacements: (
+    options: GameboardLayoutFillOptions
+  ) => SpawnGameboardPlacementOptions[];
   /** Spawn explicit layout placements into the live world. */
   spawnLayoutPlacements: (options: GameboardLayoutPlacementOptions) => Entity[];
   /** Spawn a generated layout fill into the live world. */
@@ -543,6 +562,14 @@ function bindGameboardRuntime(
         runtimeInteropSnapshot(world, { ...options, scenario: context.interopScenario }),
         adapter
       ),
+    inspectLayoutSites: (options = {}) =>
+      inspectGameboardLayoutSites(projectWorldToGameboardPlan(world), options),
+    createLayoutPlacements: (options) =>
+      createGameboardLayoutPlacements(projectWorldToGameboardPlan(world), options),
+    analyzeLayoutFill: (options) =>
+      analyzeGameboardLayoutFill(projectWorldToGameboardPlan(world), options),
+    createLayoutFillPlacements: (options) =>
+      createGameboardLayoutFillPlacements(projectWorldToGameboardPlan(world), options),
     spawnLayoutPlacements: (options) => spawnGameboardLayoutPlacements(world, options),
     spawnLayoutFill: (options) => spawnGameboardLayoutFill(world, options),
     createPiecePlacementOptions: (piece, options = {}) =>

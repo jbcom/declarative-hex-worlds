@@ -226,6 +226,42 @@ describe('gameboard runtime facade', () => {
     });
     expect(runtime.createPiecePlacements(tree, { count: 1, seed: 'runtime-piece-create' })).toHaveLength(1);
 
+    const emptyDecorationSites = runtime.inspectLayoutSites({
+      criteria: { allowOccupied: false, blockingPlacementKinds: ['decoration'], maxPerTile: 1 },
+    });
+    expect(emptyDecorationSites.candidateCount).toBe(6);
+    expect(
+      runtime.inspectLayoutSites({
+        count: 2,
+        seed: 'runtime-layout-sites',
+        criteria: { terrain: 'grass' },
+      })
+    ).toMatchObject({
+      selectedCount: 2,
+    });
+    expect(
+      runtime.createLayoutPlacements({
+        archetype: 'tree',
+        assetId: 'tree_single_A',
+        count: 1,
+        seed: 'runtime-layout-create',
+      })
+    ).toHaveLength(1);
+    const layoutFillOptions = {
+      seed: 'runtime-layout-fill-create',
+      rules: [{ id: 'runtime-crates-preview', archetype: 'scatter', assetId: 'crate_A_small', count: 1 }],
+    } as const;
+    expect(runtime.analyzeLayoutFill(layoutFillOptions)).toMatchObject({
+      errorCount: 0,
+      placementCount: 1,
+    });
+    expect(runtime.createLayoutFillPlacements(layoutFillOptions)).toMatchObject([
+      expect.objectContaining({ assetId: 'crate_A_small' }),
+    ]);
+    expect(
+      runtime.snapshot({ includeInterop: false }).placements.some((placement) => placement.assetId === 'crate_A_small')
+    ).toBe(false);
+
     const spawnedPiece = runtime.spawnPiece(tree, {
       count: 1,
       seed: 'runtime-piece-spawn',
@@ -238,6 +274,11 @@ describe('gameboard runtime facade', () => {
 
     expect(spawnedPiece).toHaveLength(1);
     expect(spawnedFill).toHaveLength(1);
+    expect(
+      runtime.inspectLayoutSites({
+        criteria: { allowOccupied: false, blockingPlacementKinds: ['decoration'], maxPerTile: 1 },
+      }).candidateCount
+    ).toBeLessThan(emptyDecorationSites.candidateCount);
     expect(
       runtime.snapshot({ includeInterop: false }).placements.map((placement) => placement.metadata)
     ).toEqual(expect.arrayContaining([expect.objectContaining({ pieceId: 'runtime-tree' })]));

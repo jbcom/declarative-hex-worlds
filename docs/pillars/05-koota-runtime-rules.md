@@ -367,10 +367,14 @@ actor-target command planning, interaction, tile inspection, actor
 selection/targeting, ticks, live
 `GameboardPlan` projection, validation projection, and serializable snapshots.
 It also exposes declared piece and layout helpers:
-`inspectPiecePlacement`, `createPiecePlacements`, `spawnPiece`,
-`spawnLayoutPlacements`, and `spawnLayoutFill` all run against the current
-projected world so generated props, trees, landmarks, units, harbors, and custom
-third-party pieces respect live occupancy before they mutate Koota state.
+`inspectLayoutSites`, `createLayoutPlacements`, `analyzeLayoutFill`,
+`createLayoutFillPlacements`, `inspectPiecePlacement`, `createPiecePlacements`,
+`spawnPiece`, `spawnLayoutPlacements`, and `spawnLayoutFill` all run against the
+current projected world so generated props, trees, landmarks, units, harbors,
+and custom third-party pieces respect live occupancy before they mutate Koota
+state. The inspection and `create*` helpers are dry-runs for editor previews,
+tooltips, and seeded-generation diagnostics; the spawn helpers commit the same
+checked placement options into Koota state.
 Registry-level runtime helpers (`analyzePieceRegistry`, `selectPieces`,
 `createPieceFillRules`, `createPiecePoolFillRule`, `analyzePieceFills`,
 `inspectPieceFills`, and `spawnPieceFills`) are the recommended game-facing
