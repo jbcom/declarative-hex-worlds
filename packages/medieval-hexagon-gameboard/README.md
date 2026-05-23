@@ -1758,6 +1758,15 @@ runtime was created outside React, or mount saved content directly with
 `MedievalGameboardPlanProvider`, `MedievalGameboardRecipeProvider`, and
 `MedievalGameboardScenarioProvider`; those providers keep generated piece
 registries and source URL map helpers available through `useGameboardRuntime`.
+`useGameboardLayoutSiteInspection`, `useGameboardLayoutFillAnalysis`, and
+`useGameboardLayoutPlacements` mirror `./layout` for React build cursors,
+procedural-map previews, and editor overlays without spawning entities.
+`useGameboardPieceRegistryAnalysis`, `useGameboardPieceSelection`,
+`useGameboardPiecePlacementInspection`, `useGameboardPieceFillInspection`, and
+`useGameboardPieceSourceUrlMap` mirror `./pieces` and seeded piece-fill
+inspection so React UIs can validate external-pack declarations, preview where
+trees/props/landmarks/units will land, and build renderer URL maps without
+touching raw Koota state.
 
 ```tsx
 import {
@@ -1770,23 +1779,38 @@ import {
   useGameboardActorSelection,
   useGameboardActorTargetCommand,
   useGameboardActorTargets,
+  useGameboardLayoutFillAnalysis,
+  useGameboardLayoutSiteInspection,
   useGameboardNavigation,
   useGameboardNeighborhoodInspection,
   useGameboardPatrolActions,
   useGameboardPatrolAgent,
   useGameboardPatrolAgentEntities,
   useGameboardPatrolRoute,
+  useGameboardPieceFillInspection,
+  useGameboardPiecePlacementInspection,
+  useGameboardPieceSelection,
+  useGameboardPieceSourceUrlMap,
   useGameboardSpawnLocations,
   useGameboardPlacementEntities,
   useGameboardPlacementOccupancyInspection,
-  useGameboardRuntime,
   useGameboardTileInspection,
   usePlacementState,
   useProjectedGameboardPlan,
   useGameboardSystemActions,
 } from '@jbcom/medieval-hexagon-gameboard/react';
-import type { GameboardPlan } from '@jbcom/medieval-hexagon-gameboard';
+import { createGameboardPieceRegistry, type GameboardPlan } from '@jbcom/medieval-hexagon-gameboard';
 import type { Entity, World } from 'koota';
+
+const localPieceRegistry = createGameboardPieceRegistry([
+  {
+    id: 'ui-tree',
+    assetId: 'tree_single_A',
+    source: 'Local editor assets',
+    role: 'tree',
+    metadata: { sourceRelativePath: 'trees/ui-tree.gltf' },
+  },
+]);
 
 function BoardFromPlan({ plan }: { plan: GameboardPlan }) {
   return (
@@ -1857,6 +1881,27 @@ function PlaceMarkerButton() {
     start: '0,0',
     terrain: 'grass',
   });
+  const buildSites = useGameboardLayoutSiteInspection({
+    count: 3,
+    criteria: { terrain: 'grass', allowOccupied: false },
+  });
+  const grovePreview = useGameboardLayoutFillAnalysis({
+    seed: 'ui-grove',
+    rules: [{ id: 'ui-grove', archetype: 'tree', assetId: 'tree_single_A', count: 3 }],
+  });
+  const treePieces = useGameboardPieceSelection(localPieceRegistry, { roles: ['tree'] });
+  const treePreview = useGameboardPiecePlacementInspection(treePieces[0], {
+    count: 1,
+    seed: 'ui-tree-preview',
+  });
+  const pieceFillPreview = useGameboardPieceFillInspection(
+    localPieceRegistry,
+    [{ selection: { roles: ['tree'] }, count: 2 }],
+    { seed: 'ui-piece-fill' }
+  );
+  const pieceUrls = useGameboardPieceSourceUrlMap(localPieceRegistry, {
+    sourceRoot: '/local-assets',
+  });
   const command = useGameboardInteractionCommand('0,0', { sourceActor: 'player' });
   const preview = useGameboardInteractionCommandPreview(command, { sourceActor: 'player' });
   return (
@@ -1868,6 +1913,11 @@ function PlaceMarkerButton() {
         nearbyActors.hostileActors.length > 0 ||
         ((nearbyTargets?.reachableTargets.length ?? 0) > 0 && !targetCommand?.canExecute) ||
         nearbyHostiles.hostileActors.length > 0 ||
+        (buildSites?.selectedCount ?? 0) === 0 ||
+        (grovePreview?.errorCount ?? 0) > 0 ||
+        (treePreview?.placements.length ?? 0) === 0 ||
+        (pieceFillPreview?.analysis.errorCount ?? 0) > 0 ||
+        Object.keys(pieceUrls).length === 0 ||
         !navigation?.canEnter('0,0') ||
         patrol?.found === false
       }

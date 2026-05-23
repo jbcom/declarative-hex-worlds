@@ -4,6 +4,7 @@ import type { World } from 'koota';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   createGameboardBuilder,
+  createGameboardPieceRegistry,
   createGameboardRecipe,
   createGameboardScenario,
   createGameboardWorld,
@@ -14,10 +15,14 @@ import {
   type GameboardActorValue,
   type GameboardInteractionCommand,
   type GameboardInteractionTargetReport,
+  type GameboardLayoutFillAnalysis,
+  type GameboardLayoutSiteInspection,
   type GameboardNeighborhoodInspection,
   type GameboardPatrolAgentValue,
   type GameboardPatrolStateValue,
   type GameboardPlacementOccupancyInspection,
+  type GameboardPiecePlacementInspection,
+  type GameboardPieceRegistryAnalysis,
   type GameboardQuestValue,
   type GameboardRecipeGameRuntime,
   type GameboardScenarioGameRuntime,
@@ -25,6 +30,7 @@ import {
   type GameboardTileInspection,
   type MovementAgentValue,
   type PlacementOccupancySnapshot,
+  type SeededGameboardPieceFillInspection,
   type TileCoordinatesValue,
 } from '../../src';
 import {
@@ -43,6 +49,9 @@ import {
   useGameboardInteractionCommand,
   useGameboardInteractionCommandPreview,
   useGameboardInteractionTarget,
+  useGameboardLayoutFillAnalysis,
+  useGameboardLayoutPlacements,
+  useGameboardLayoutSiteInspection,
   useGameboardNavigation,
   useGameboardOccupancyIndex,
   useGameboardPatrolRoute,
@@ -54,6 +63,11 @@ import {
   useGameboardPlacementOccupancy,
   useGameboardPlacementOccupancyInspection,
   useGameboardPlacementEntities,
+  useGameboardPieceFillInspection,
+  useGameboardPiecePlacementInspection,
+  useGameboardPieceRegistryAnalysis,
+  useGameboardPieceSelection,
+  useGameboardPieceSourceUrlMap,
   useGameboardMovementActions,
   useGameboardNeighborhoodInspection,
   useGameboardQuest,
@@ -84,10 +98,18 @@ interface ReactBindingReport {
   movePreview?: ReturnType<typeof useGameboardInteractionCommandPreview>;
   moveTarget?: GameboardInteractionTargetReport;
   navigationPathFound: boolean;
+  layoutFillAnalysis?: GameboardLayoutFillAnalysis;
+  layoutPlacementCount: number;
+  layoutSiteInspection?: GameboardLayoutSiteInspection;
   placementOccupancyInspection?: GameboardPlacementOccupancyInspection;
   canOccupyActorTile?: boolean;
   occupancyBlockingTileCount: number;
   occupancySnapshotCount: number;
+  pieceFillInspection?: SeededGameboardPieceFillInspection;
+  piecePlacementInspection?: GameboardPiecePlacementInspection;
+  pieceRegistryAnalysis?: GameboardPieceRegistryAnalysis;
+  pieceSelectionIds: readonly string[];
+  pieceSourceUrl?: string;
   originNeighborhood: GameboardNeighborhoodInspection;
   playerSelection: GameboardActorSelection;
   playerTargetCommand?: GameboardActorTargetCommandPlan;
@@ -155,7 +177,18 @@ describe('React bindings browser integration', () => {
 
     expect(report).toMatchObject({
       actorCount: 0,
+      layoutFillAnalysis: { errorCount: 0, placementCount: 1 },
+      layoutPlacementCount: 1,
+      layoutSiteInspection: { selectedCount: 2 },
       originNeighborhood: { centerKey: '0,0', radius: 1, actors: [] },
+      pieceFillInspection: {
+        selectedPieceCount: 1,
+        analysis: { errorCount: 0, placementCount: 1 },
+      },
+      piecePlacementInspection: { pieceId: 'react-piece-tree', siteInspection: { selectedCount: 1 } },
+      pieceRegistryAnalysis: { pieceCount: 2, roleCounts: { scatter: 1, tree: 1 } },
+      pieceSelectionIds: ['react-piece-tree'],
+      pieceSourceUrl: '/react-hook-fixtures/trees/react-piece-tree.gltf',
       playerSelection: { count: 0, actorIds: [] },
       playerTargets: undefined,
       questCount: 0,
@@ -215,6 +248,14 @@ describe('React bindings browser integration', () => {
       movePreview: { canExecute: true, movementBudget: 3 },
       moveTarget: { kind: 'tile', intent: 'move', tileKey: '0,0', canEnter: true },
       navigationPathFound: true,
+      layoutFillAnalysis: { errorCount: 0, placementCount: 1 },
+      layoutPlacementCount: 1,
+      layoutSiteInspection: { selectedCount: 1 },
+      pieceFillInspection: {
+        selectedPieceCount: 1,
+        analysis: { errorCount: 0, placementCount: 1 },
+      },
+      pieceSelectionIds: ['react-piece-tree'],
       placementOccupancyInspection: {
         canOccupy: false,
       },
@@ -518,6 +559,67 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
       },
     ],
   });
+  const pieceRegistry = React.useMemo(
+    () =>
+      createGameboardPieceRegistry([
+        {
+          id: 'react-piece-tree',
+          assetId: 'tree_single_A',
+          source: 'React Hook Fixtures',
+          role: 'tree',
+          tags: ['react-piece', 'nature'],
+          metadata: { sourceRelativePath: 'trees/react-piece-tree.gltf' },
+        },
+        {
+          id: 'react-piece-crate',
+          assetId: 'crate_A_small',
+          source: 'React Hook Fixtures',
+          role: 'scatter',
+          tags: ['react-piece', 'camp'],
+        },
+      ]),
+    []
+  );
+  const layoutSiteInspection = useGameboardLayoutSiteInspection({
+    count: 2,
+    seed: 'react-bindings:layout-sites',
+    criteria: { terrain: ['grass', 'road'] },
+  });
+  const layoutFillAnalysis = useGameboardLayoutFillAnalysis({
+    seed: 'react-bindings:layout-fill',
+    rules: [{ id: 'react-scatter', archetype: 'scatter', assetId: 'crate_A_small', count: 1 }],
+  });
+  const layoutPlacements = useGameboardLayoutPlacements({
+    assetId: 'tree_single_A',
+    archetype: 'tree',
+    count: 1,
+    seed: 'react-bindings:layout-placement',
+  });
+  const pieceRegistryAnalysis = useGameboardPieceRegistryAnalysis(pieceRegistry, {
+    checks: [{ id: 'react-nature', selection: { tags: ['nature'] } }],
+  });
+  const pieceSelection = useGameboardPieceSelection(pieceRegistry, {
+    roles: ['tree'],
+    tags: ['react-piece'],
+  });
+  const piecePlacementInspection = useGameboardPiecePlacementInspection(pieceSelection[0], {
+    count: 1,
+    seed: 'react-bindings:piece-placement',
+  });
+  const pieceFillInspection = useGameboardPieceFillInspection(
+    pieceRegistry,
+    [
+      {
+        selection: { ids: ['react-piece-tree'] },
+        count: 1,
+        ruleIdPrefix: 'react-piece',
+      },
+    ],
+    { seed: 'react-bindings:piece-fill' }
+  );
+  const pieceSourceUrls = useGameboardPieceSourceUrlMap(pieceRegistry, {
+    sourceRoots: { 'React Hook Fixtures': '/react-hook-fixtures' },
+  });
   const actions = useGameboardActions();
   const actorActions = useGameboardActorActions();
   const commandActions = useGameboardCommandActions();
@@ -541,10 +643,18 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
     movePreview,
     moveTarget,
     navigationPathFound: navigation?.findPath('1,1', '0,0').found ?? false,
+    layoutFillAnalysis,
+    layoutPlacementCount: layoutPlacements.length,
+    layoutSiteInspection,
     placementOccupancyInspection,
     canOccupyActorTile,
     occupancyBlockingTileCount: occupancy?.blockingTileKeys.size ?? 0,
     occupancySnapshotCount: occupancySnapshots.length,
+    pieceFillInspection,
+    piecePlacementInspection,
+    pieceRegistryAnalysis,
+    pieceSelectionIds: pieceSelection.map((piece) => piece.id),
+    pieceSourceUrl: pieceSourceUrls.tree_single_A,
     originNeighborhood,
     playerSelection,
     playerTargetCommand,

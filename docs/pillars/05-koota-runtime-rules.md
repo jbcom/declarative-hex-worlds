@@ -200,6 +200,15 @@ non-Koota paths stay aligned.
   games the same board-aware blocking, path preview, reachability, deterministic
   spawn selection, and NPC/enemy schedule preflight APIs as the non-React
   runtime.
+- `useGameboardLayoutSiteInspection`, `useGameboardLayoutFillAnalysis`, and
+  `useGameboardLayoutPlacements` give React build cursors, seeded-board editors,
+  and procedural map previews the same layout diagnostics and generated
+  placement options as `./layout` without mutating Koota state.
+- `useGameboardPieceRegistryAnalysis`, `useGameboardPieceSelection`,
+  `useGameboardPiecePlacementInspection`, `useGameboardPieceFillInspection`, and
+  `useGameboardPieceSourceUrlMap` give React external-pack setup screens and
+  renderer panels the same declaration analysis, seeded piece-fill previews, and
+  URL override maps as `./pieces`.
 - `useGameboardRuntime` exposes the bound `./runtime` facade from the current
   provider world, so React components can spawn actors, dispatch commands, tick
   systems, project plans, and produce runtime snapshots without manually

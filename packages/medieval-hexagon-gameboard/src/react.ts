@@ -46,6 +46,7 @@ import {
   type InspectGameboardPlacementOccupancyOptions,
   type PlacementOccupancySnapshot,
   type PlacementStateValue,
+  type SpawnGameboardPlacementOptions,
   type TileConnectivityValue,
   type TileCoordinatesValue,
   type TileElevationValue,
@@ -138,6 +139,36 @@ import {
   type GameboardPatrolRouteSetOptions,
   type GameboardSpawnLocationOptions,
 } from './navigation';
+import {
+  analyzeGameboardLayoutFill,
+  createGameboardLayoutPlacements,
+  inspectGameboardLayoutSites,
+  type GameboardLayoutFillAnalysis,
+  type GameboardLayoutFillOptions,
+  type GameboardLayoutPlacementOptions,
+  type GameboardLayoutSiteInspection,
+  type InspectGameboardLayoutSitesOptions,
+} from './layout';
+import {
+  analyzeGameboardPieceRegistry,
+  createGameboardPieceSourceUrlMap,
+  inspectGameboardPiecePlacement,
+  selectGameboardPieces,
+  type AnalyzeGameboardPieceRegistryOptions,
+  type GameboardPieceDeclaration,
+  type GameboardPiecePlacementInspection,
+  type GameboardPiecePlacementOptions,
+  type GameboardPieceRegistry,
+  type GameboardPieceRegistryAnalysis,
+  type GameboardPieceRegistrySelection,
+  type GameboardPieceSourceUrlOptions,
+} from './pieces';
+import {
+  inspectSeededGameboardPieceFills,
+  type InspectSeededGameboardPieceFillsOptions,
+  type SeededGameboardPieceFillInspection,
+  type SeededGameboardPieceFillOptions,
+} from './rules';
 import type { Entity, World } from 'koota';
 import type { SpawnLocation } from './grid';
 import type { HexCoordinates } from './types';
@@ -148,6 +179,15 @@ export { MedievalGameboardProvider, useWorld as useGameboardWorld };
 
 const DEFAULT_RULE_CONFIG = {} as const satisfies GameboardRuleConfig;
 const DEFAULT_NAVIGATION_PROFILE_OPTIONS = {} as const satisfies GameboardNavigationProfile;
+const DEFAULT_LAYOUT_SITE_INSPECTION_OPTIONS = {} as const satisfies InspectGameboardLayoutSitesOptions;
+const DEFAULT_PIECE_REGISTRY_ANALYSIS_OPTIONS = {} as const satisfies AnalyzeGameboardPieceRegistryOptions;
+const DEFAULT_PIECE_REGISTRY_SELECTION = {} as const satisfies GameboardPieceRegistrySelection;
+const DEFAULT_PIECE_PLACEMENT_OPTIONS = {} as const satisfies GameboardPiecePlacementOptions;
+const DEFAULT_PIECE_FILL_INSPECTION_OPTIONS = {} as const satisfies InspectSeededGameboardPieceFillsOptions;
+const DEFAULT_PIECE_SOURCE_URL_OPTIONS = {} as const satisfies GameboardPieceSourceUrlOptions;
+const EMPTY_PLACEMENT_OPTIONS = [] as const satisfies readonly SpawnGameboardPlacementOptions[];
+const EMPTY_PIECE_SELECTION = [] as const satisfies readonly GameboardPieceDeclaration[];
+const EMPTY_SOURCE_URL_MAP = {} as const satisfies Readonly<Record<string, string>>;
 const GameboardRuntimeContext = createContext<GameboardRuntime | undefined>(undefined);
 
 export interface GameboardRuntimeProviderProps<TRuntime extends GameboardRuntime = GameboardRuntime> {
@@ -635,6 +675,107 @@ export function useGameboardPatrolRoutes(
   return useMemo(
     () => (plan && options ? planGameboardPatrolRoutes(plan, options) : undefined),
     [plan, options]
+  );
+}
+
+/**
+ * Inspect layout sites for the current projected board without mutating Koota
+ * state.
+ */
+export function useGameboardLayoutSiteInspection(
+  options: InspectGameboardLayoutSitesOptions = DEFAULT_LAYOUT_SITE_INSPECTION_OPTIONS
+): GameboardLayoutSiteInspection | undefined {
+  const plan = useProjectedGameboardPlan();
+  return useMemo(() => (plan ? inspectGameboardLayoutSites(plan, options) : undefined), [plan, options]);
+}
+
+/**
+ * Analyze seeded layout fill rules against the current projected board.
+ */
+export function useGameboardLayoutFillAnalysis(
+  options: GameboardLayoutFillOptions | undefined
+): GameboardLayoutFillAnalysis | undefined {
+  const plan = useProjectedGameboardPlan();
+  return useMemo(() => (plan && options ? analyzeGameboardLayoutFill(plan, options) : undefined), [plan, options]);
+}
+
+/**
+ * Preview layout placement options for the current projected board without
+ * spawning entities.
+ */
+export function useGameboardLayoutPlacements(
+  options: GameboardLayoutPlacementOptions | undefined
+): readonly SpawnGameboardPlacementOptions[] {
+  const plan = useProjectedGameboardPlan();
+  return useMemo(
+    () => (plan && options ? createGameboardLayoutPlacements(plan, options) : EMPTY_PLACEMENT_OPTIONS),
+    [plan, options]
+  );
+}
+
+/**
+ * Analyze a piece registry for React editor panels and pack setup screens.
+ */
+export function useGameboardPieceRegistryAnalysis(
+  registry: GameboardPieceRegistry | undefined,
+  options: AnalyzeGameboardPieceRegistryOptions = DEFAULT_PIECE_REGISTRY_ANALYSIS_OPTIONS
+): GameboardPieceRegistryAnalysis | undefined {
+  return useMemo(() => (registry ? analyzeGameboardPieceRegistry(registry, options) : undefined), [registry, options]);
+}
+
+/**
+ * Select registered pieces by role, source, tag, asset id, or local-only state.
+ */
+export function useGameboardPieceSelection(
+  registry: GameboardPieceRegistry | undefined,
+  selection: GameboardPieceRegistrySelection = DEFAULT_PIECE_REGISTRY_SELECTION
+): readonly GameboardPieceDeclaration[] {
+  return useMemo(
+    () => (registry ? selectGameboardPieces(registry, selection) : EMPTY_PIECE_SELECTION),
+    [registry, selection]
+  );
+}
+
+/**
+ * Inspect one declared piece against the current projected board.
+ */
+export function useGameboardPiecePlacementInspection(
+  piece: GameboardPieceDeclaration | undefined,
+  options: GameboardPiecePlacementOptions = DEFAULT_PIECE_PLACEMENT_OPTIONS
+): GameboardPiecePlacementInspection | undefined {
+  const plan = useProjectedGameboardPlan();
+  return useMemo(
+    () => (plan && piece ? inspectGameboardPiecePlacement(plan, piece, options) : undefined),
+    [plan, piece, options]
+  );
+}
+
+/**
+ * Dry-run selected registry pieces as seeded layout fills for the current
+ * projected board.
+ */
+export function useGameboardPieceFillInspection(
+  registry: GameboardPieceRegistry | undefined,
+  fills: readonly SeededGameboardPieceFillOptions[] | undefined,
+  options: InspectSeededGameboardPieceFillsOptions = DEFAULT_PIECE_FILL_INSPECTION_OPTIONS
+): SeededGameboardPieceFillInspection | undefined {
+  const plan = useProjectedGameboardPlan();
+  return useMemo(
+    () => (plan && registry && fills ? inspectSeededGameboardPieceFills(plan, registry, fills, options) : undefined),
+    [plan, registry, fills, options]
+  );
+}
+
+/**
+ * Build renderer URL overrides from registered piece source metadata.
+ */
+export function useGameboardPieceSourceUrlMap(
+  registry: GameboardPieceRegistry | undefined,
+  options: GameboardPieceSourceUrlOptions = DEFAULT_PIECE_SOURCE_URL_OPTIONS
+): Readonly<Record<string, string>> {
+  return useMemo(
+    () => (registry ? createGameboardPieceSourceUrlMap(registry, options) : EMPTY_SOURCE_URL_MAP),
+    [registry, options]
   );
 }
 
