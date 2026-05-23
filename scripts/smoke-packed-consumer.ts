@@ -47,6 +47,8 @@ try {
         type: 'module',
         dependencies: {
           '@jbcom/medieval-hexagon-gameboard': `file:${tarballPath}`,
+          '@types/react': '^19.0.0',
+          react: '^19.0.0',
         },
       },
       null,
@@ -192,6 +194,15 @@ import {
   type GameboardRecipeGameRuntime,
   type GameboardRuntimeSnapshot,
 } from '@jbcom/medieval-hexagon-gameboard/runtime';
+import {
+  MedievalGameboardProvider,
+  useGameboardActorsForTile,
+  useGameboardActorSnapshots,
+  useGameboardPlacementOccupancy,
+  useGameboardRuntime,
+  useGameboardRuntimeSnapshot,
+  type GameboardRuntimeProviderProps,
+} from '@jbcom/medieval-hexagon-gameboard/react';
 import type { GameboardScenario } from '@jbcom/medieval-hexagon-gameboard/scenario';
 import {
   GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS as GAMEBOARD_SCENARIO_SIMULATION_SUBPATH_STEP_ACTIONS,
@@ -486,6 +497,17 @@ const runtimePieceSourceUrls: Readonly<Record<string, string>> = runtimePieceReg
   runtimePieceRegistry,
   { sourceRoots: { 'Packed Fixtures': '/packed-fixtures' } }
 );
+const reactProvider: typeof MedievalGameboardProvider = MedievalGameboardProvider;
+const reactRuntimeProviderProps: GameboardRuntimeProviderProps = {
+  runtime,
+  children: undefined,
+};
+const reactActorSnapshots: readonly GameboardActorSnapshot[] = [] as ReturnType<typeof useGameboardActorSnapshots>;
+const reactTileActorSnapshots: readonly GameboardActorSnapshot[] = [] as ReturnType<typeof useGameboardActorsForTile>;
+const reactPlacementOccupancy: readonly PlacementOccupancySnapshot[] = [] as ReturnType<typeof useGameboardPlacementOccupancy>;
+const reactRuntimeFromHook: GameboardRecipeGameRuntime =
+  undefined as unknown as ReturnType<typeof useGameboardRuntime<GameboardRecipeGameRuntime>>;
+const reactRuntimeSnapshot: GameboardRuntimeSnapshot = undefined as unknown as ReturnType<typeof useGameboardRuntimeSnapshot>;
 const occupancyInspectionOptions: InspectGameboardPlacementOccupancyOptions = { at: '0,0', kind: 'unit' };
 const actorSpawnOptions: SpawnGameboardActorOptions = {
   actorId: 'packed-types-actor',
@@ -578,6 +600,13 @@ void runtimePieceFillAnalysis;
 void runtimePieceFillInspection;
 void runtimePieceFillEntities;
 void runtimePieceSourceUrls;
+void reactProvider;
+void reactRuntimeProviderProps;
+void reactActorSnapshots;
+void reactTileActorSnapshots;
+void reactPlacementOccupancy;
+void reactRuntimeFromHook;
+void reactRuntimeSnapshot;
 void pieceInspection;
 void pieceRuleWithGuard;
 void pieceOptionsWithGuard;
