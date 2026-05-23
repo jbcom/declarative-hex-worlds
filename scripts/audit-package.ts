@@ -28,6 +28,7 @@ const packageRoot = join(workspaceRoot, 'packages/medieval-hexagon-gameboard');
 const packageSrcRoot = join(packageRoot, 'src');
 const packageJsonPath = join(packageRoot, 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as PackageJson;
+const packedConsumerSmoke = readFileSync(join(workspaceRoot, 'scripts/smoke-packed-consumer.ts'), 'utf8');
 const forbiddenMetadataPattern = /references|\/Volumes\/home|kenney_castle|KayKit_Adventurers/;
 const expectedFiles = ['assets/free', 'dist', 'examples/*.json', 'README.md', 'NOTICE.md'];
 const allowedPackRoots = ['assets/free/', 'dist/', 'examples/'];
@@ -93,6 +94,7 @@ assertOptionalPeer('three');
 assertBin();
 assertExports();
 assertSourceModulesExported();
+assertPackedConsumerSmokeCoversExports();
 await assertExportImports();
 assertPackFileList();
 
@@ -148,6 +150,22 @@ function assertSourceModulesExported(): void {
     }
     const subpath = `./${moduleId}`;
     assert(exportKeys.has(subpath), `source module ${moduleId} is missing from package exports`);
+  }
+}
+
+function assertPackedConsumerSmokeCoversExports(): void {
+  const packageName = '@jbcom/medieval-hexagon-gameboard';
+  for (const subpath of Object.keys(packageJson.exports ?? {})) {
+    const exportPattern = subpath.slice(2);
+    const coveredImport =
+      subpath === '.'
+        ? packageName
+        : `${packageName}/${subpath.includes('*') ? exportPattern.slice(0, exportPattern.indexOf('*')) : exportPattern}`;
+    const documentedExport = subpath === '.' ? packageName : `${packageName}/${exportPattern}`;
+    assert(
+      packedConsumerSmoke.includes(coveredImport),
+      `packed consumer smoke must import or load export ${documentedExport}`
+    );
   }
 }
 
