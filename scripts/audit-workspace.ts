@@ -175,18 +175,20 @@ function requireDocsGuideNavigation(): void {
 }
 
 function requirePublicApiSubpathGuide(): void {
-  const packageName = '@jbcom/medieval-hexagon-gameboard';
-  for (const subpath of Object.keys(packageJson.exports ?? {})) {
-    const documentedImport = subpath === '.' ? packageName : `${packageName}/${subpath.slice(2)}`;
-    assert(
-      publicApiGuide.includes(`\`${documentedImport}\``),
-      `docs/guides/public-api.md must document export ${documentedImport}`
-    );
-  }
+  requireDocumentedPublicImports(
+    extractMarkdownSection(publicApiGuide, '## Subpaths', 'docs/guides/public-api.md'),
+    'docs/guides/public-api.md Subpaths table'
+  );
 }
 
 function requirePackageReadmePublicImports(): void {
-  const section = extractMarkdownSection(packageReadme, '## Public Imports');
+  requireDocumentedPublicImports(
+    extractMarkdownSection(packageReadme, '## Public Imports', 'package README'),
+    'package README Public Imports table'
+  );
+}
+
+function requireDocumentedPublicImports(section: string, label: string): void {
   const expected = new Set(publicImportsFromExports());
   const actual = new Set(
     [...section.matchAll(/`(@jbcom\/medieval-hexagon-gameboard(?:\/[^`]+)?)`/g)]
@@ -195,11 +197,11 @@ function requirePackageReadmePublicImports(): void {
   );
 
   for (const documentedImport of expected) {
-    assert(actual.has(documentedImport), `package README Public Imports table must document ${documentedImport}`);
+    assert(actual.has(documentedImport), `${label} must document ${documentedImport}`);
   }
 
   for (const documentedImport of actual) {
-    assert(expected.has(documentedImport), `package README Public Imports table documents stale import ${documentedImport}`);
+    assert(expected.has(documentedImport), `${label} documents stale import ${documentedImport}`);
   }
 }
 
@@ -292,10 +294,10 @@ function publicImportsFromExports(): string[] {
   );
 }
 
-function extractMarkdownSection(source: string, heading: string): string {
+function extractMarkdownSection(source: string, heading: string, label: string): string {
   const start = source.indexOf(`${heading}\n`);
   if (start === -1) {
-    failures.push(`package README is missing ${heading}`);
+    failures.push(`${label} is missing ${heading}`);
     return '';
   }
 
