@@ -186,13 +186,20 @@ function requirePublicApiSubpathGuide(): void {
 }
 
 function requirePackageReadmePublicImports(): void {
-  const packageName = '@jbcom/medieval-hexagon-gameboard';
-  for (const subpath of Object.keys(packageJson.exports ?? {})) {
-    const documentedImport = subpath === '.' ? packageName : `${packageName}/${subpath.slice(2)}`;
-    assert(
-      packageReadme.includes(`\`${documentedImport}\``),
-      `package README must document public import ${documentedImport}`
-    );
+  const section = extractMarkdownSection(packageReadme, '## Public Imports');
+  const expected = new Set(publicImportsFromExports());
+  const actual = new Set(
+    [...section.matchAll(/`(@jbcom\/medieval-hexagon-gameboard(?:\/[^`]+)?)`/g)]
+      .map((match) => match[1])
+      .filter((value): value is string => Boolean(value))
+  );
+
+  for (const documentedImport of expected) {
+    assert(actual.has(documentedImport), `package README Public Imports table must document ${documentedImport}`);
+  }
+
+  for (const documentedImport of actual) {
+    assert(expected.has(documentedImport), `package README Public Imports table documents stale import ${documentedImport}`);
   }
 }
 
@@ -276,6 +283,24 @@ function expectedSourceForEntry(entryName: string): string {
     return `${entryName}.ts`;
   }
   return `src/${entryName}.ts`;
+}
+
+function publicImportsFromExports(): string[] {
+  const packageName = '@jbcom/medieval-hexagon-gameboard';
+  return Object.keys(packageJson.exports ?? {}).map((subpath) =>
+    subpath === '.' ? packageName : `${packageName}/${subpath.slice(2)}`
+  );
+}
+
+function extractMarkdownSection(source: string, heading: string): string {
+  const start = source.indexOf(`${heading}\n`);
+  if (start === -1) {
+    failures.push(`package README is missing ${heading}`);
+    return '';
+  }
+
+  const nextHeading = source.indexOf('\n## ', start + heading.length);
+  return nextHeading === -1 ? source.slice(start) : source.slice(start, nextHeading);
 }
 
 function readTsupEntries(source: string): Map<string, string> {
