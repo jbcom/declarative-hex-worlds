@@ -3,12 +3,24 @@ import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
 import { generateManifestFromSource, validateSourceRoot, writeManifestModule } from '../../src/ingest';
+import { freeManifest } from '../../src/manifest/free';
 
 const freeSourceRoot = resolve('../../references/KayKit_Medieval_Hexagon_Pack_1.0_FREE');
 const extraSourceRoot = resolve('../../references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA');
+const hasFreeSource = existsSync(join(freeSourceRoot, 'Assets', 'gltf'));
 
 describe('source ingestion', () => {
-  it('validates the local FREE source count', () => {
+  it('reports missing source roots without throwing', () => {
+    const result = validateSourceRoot(join(tmpdir(), 'missing-kaykit-source'), 'free');
+    expect(result).toMatchObject({
+      edition: 'free',
+      gltfCount: 0,
+      expectedCount: 221,
+      ok: false,
+    });
+  });
+
+  it.skipIf(!hasFreeSource)('validates the local FREE source count', () => {
     const result = validateSourceRoot(freeSourceRoot, 'free');
     expect(result).toMatchObject({
       edition: 'free',
@@ -18,7 +30,7 @@ describe('source ingestion', () => {
     });
   });
 
-  it('generates a manifest from the FREE source', () => {
+  it.skipIf(!hasFreeSource)('generates a manifest from the FREE source', () => {
     const manifest = generateManifestFromSource({
       sourceRoot: freeSourceRoot,
       edition: 'free',
@@ -29,21 +41,16 @@ describe('source ingestion', () => {
   });
 
   it('writes manifest modules with edition-specific export names', () => {
-    const manifest = generateManifestFromSource({
-      sourceRoot: freeSourceRoot,
-      edition: 'free',
-      assetBasePath: 'assets/free',
-    });
     const tempRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-ingest-'));
     try {
       const freeModulePath = join(tempRoot, 'free.ts');
       const extraModulePath = join(tempRoot, 'extra.ts');
-      writeManifestModule(manifest, freeModulePath);
+      writeManifestModule(freeManifest, freeModulePath);
       writeManifestModule(
         {
-          ...manifest,
+          ...freeManifest,
           edition: 'extra',
-          sourcePack: { ...manifest.sourcePack, edition: 'extra' },
+          sourcePack: { ...freeManifest.sourcePack, edition: 'extra' },
         },
         extraModulePath,
         { typeImportPath: '@jbcom/medieval-hexagon-gameboard' }
@@ -58,12 +65,7 @@ describe('source ingestion', () => {
   });
 
   it('rejects invalid manifest module export names', () => {
-    const manifest = generateManifestFromSource({
-      sourceRoot: freeSourceRoot,
-      edition: 'free',
-      assetBasePath: 'assets/free',
-    });
-    expect(() => writeManifestModule(manifest, join(tmpdir(), 'bad.ts'), { exportName: 'bad-name' })).toThrow(
+    expect(() => writeManifestModule(freeManifest, join(tmpdir(), 'bad.ts'), { exportName: 'bad-name' })).toThrow(
       /Invalid manifest module export name/
     );
   });
