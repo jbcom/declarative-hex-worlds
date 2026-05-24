@@ -862,7 +862,11 @@ also cover common game-loop mutations and reads: `readPlacements`,
 `canOccupyPlacement`, `spawnPlacement`, `updatePlacement`, `movePlacement`,
 `removePlacement`, `registerActor`, `updateActor`, `findActor`, `readActors`,
 `readActorsForTile`, `findQuest`, `readQuests`, `advanceQuest`, and
-`advanceAllQuests`.
+`advanceAllQuests`. Use `summarizeGameboardPlan(plan)` for static plans and
+`runtime.summarizePlan()` for live worlds when an editor, renderer queue, CI
+artifact, or external ECS bridge needs aggregate counts by terrain, texture,
+elevation, tile tag, placement kind/layer, semantic feature, asset id, and
+local-only asset usage before rendering or mutating the board.
 Runtime navigation helpers (`createOccupancyIndex`, `createNavigation`,
 `selectSpawnLocations`, `planSpawnGroups`, `planPatrolRoute`, and
 `planPatrolRoutes`) also project the live world first, so gameplay-spawned

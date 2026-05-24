@@ -70,6 +70,10 @@ The package is not just an asset bundle. It provides:
 - Runtime facade helpers for reading and mutating live placements, registering
   and updating actors, and advancing quests without reaching into raw action
   bundles from game-loop code.
+- Plan summary helpers for editor panels, CI diagnostics, visual-test queues,
+  and external ECS bridges that need aggregate terrain, texture, elevation,
+  placement-kind, feature, asset, and local-only usage counts from either a
+  static `GameboardPlan` or live runtime projection.
 - Recipe- and scenario-backed runtime startup that preserves generated
   archetype registries, piece registries, and renderer source URL maps for saved
   game content.

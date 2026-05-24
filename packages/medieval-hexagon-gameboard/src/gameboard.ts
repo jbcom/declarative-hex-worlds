@@ -243,6 +243,83 @@ export interface GameboardPlan {
 }
 
 /**
+ * Options for summarizing a generated or projected gameboard plan.
+ */
+export interface SummarizeGameboardPlanOptions {
+  /**
+   * Maximum number of high-frequency assets to include in `topAssets`.
+   *
+   * Defaults to 20. Use `0` when only aggregate counts are needed.
+   */
+  topAssetLimit?: number;
+}
+
+/**
+ * Asset-level count and semantic treatment in a summarized gameboard plan.
+ */
+export interface GameboardPlanAssetSummary {
+  /** Manifest or external registry asset id. */
+  assetId: string;
+  /** Number of placements that use the asset. */
+  count: number;
+  /** Whether any placement using this asset requires local-only assets. */
+  requiresExtra: boolean;
+  /** Placement kinds where the asset appears. */
+  kinds: readonly GameboardPlacementKind[];
+  /** Render/gameplay layers where the asset appears. */
+  layers: readonly GameboardPlacementLayer[];
+  /** Semantic features inferred from placement metadata or placement kind. */
+  features: readonly string[];
+}
+
+/**
+ * Aggregate inspection result for a generated or projected gameboard plan.
+ *
+ * This is designed for editor panels, CI diagnostics, screenshot manifests,
+ * external ECS bridges, and tests that need to prove which terrain, texture,
+ * elevation, placement, guide-feature, and local-only asset cases are present
+ * without reverse-engineering the raw tile and placement arrays.
+ */
+export interface GameboardPlanSummary {
+  /** Schema version used to interpret this plan. */
+  schemaVersion: typeof GAMEBOARD_SCHEMA_VERSION;
+  /** Seed used to create this plan. */
+  seed: string;
+  /** Board shape. */
+  shape: GameboardShape;
+  /** Active texture set. */
+  textureSet: TextureSet;
+  /** Number of tile specs. */
+  tileCount: number;
+  /** Number of generated and custom placement specs. */
+  placementCount: number;
+  /** Number of non-fatal generation warnings. */
+  warningCount: number;
+  /** Number of placements marked as requiring local-only assets. */
+  requiresExtraPlacementCount: number;
+  /** Tile count by terrain category. */
+  tileTerrainCounts: Readonly<Record<string, number>>;
+  /** Tile count by texture set. */
+  tileTextureSetCounts: Readonly<Record<string, number>>;
+  /** Tile count by stacked elevation level. */
+  tileElevationCounts: Readonly<Record<string, number>>;
+  /** Tile tag counts derived from builder/connectivity metadata. */
+  tileTagCounts: Readonly<Record<string, number>>;
+  /** Placement count by semantic kind. */
+  placementKindCounts: Readonly<Record<string, number>>;
+  /** Placement count by render/gameplay layer. */
+  placementLayerCounts: Readonly<Record<string, number>>;
+  /** Placement count by metadata feature, falling back to placement kind. */
+  placementFeatureCounts: Readonly<Record<string, number>>;
+  /** Placement count by asset id. */
+  assetCounts: Readonly<Record<string, number>>;
+  /** Unique asset ids used by placements marked as requiring local-only assets. */
+  extraAssetIds: readonly string[];
+  /** Highest-frequency asset summaries, sorted by count then asset id. */
+  topAssets: readonly GameboardPlanAssetSummary[];
+}
+
+/**
  * Options for creating a plan from already assembled tile and placement specs.
  */
 export interface GameboardPlanFromTilesOptions {
@@ -1420,6 +1497,108 @@ export function createGameboardPlanFromTiles(options: GameboardPlanFromTilesOpti
 }
 
 /**
+ * Summarize terrain, elevation, placement, feature, and local-only asset usage
+ * in a generated or live-projected gameboard plan.
+ */
+export function summarizeGameboardPlan(
+  plan: GameboardPlan,
+  options: SummarizeGameboardPlanOptions = {}
+): GameboardPlanSummary {
+  const tileTerrainCounts: Record<string, number> = {};
+  const tileTextureSetCounts: Record<string, number> = {};
+  const tileElevationCounts: Record<string, number> = {};
+  const tileTagCounts: Record<string, number> = {};
+  const placementKindCounts: Record<string, number> = {};
+  const placementLayerCounts: Record<string, number> = {};
+  const placementFeatureCounts: Record<string, number> = {};
+  const assetCounts: Record<string, number> = {};
+  const extraAssetIds = new Set<string>();
+  const assetSummaries = new Map<
+    string,
+    {
+      assetId: string;
+      count: number;
+      requiresExtra: boolean;
+      kinds: Set<GameboardPlacementKind>;
+      layers: Set<GameboardPlacementLayer>;
+      features: Set<string>;
+    }
+  >();
+
+  for (const tile of plan.tiles) {
+    incrementCount(tileTerrainCounts, tile.terrain);
+    incrementCount(tileTextureSetCounts, tile.textureSet);
+    incrementCount(tileElevationCounts, tile.elevation);
+    for (const tag of tile.tags) {
+      incrementCount(tileTagCounts, tag);
+    }
+  }
+
+  let requiresExtraPlacementCount = 0;
+  for (const placement of plan.placements) {
+    const feature = placementFeature(placement);
+    incrementCount(placementKindCounts, placement.kind);
+    incrementCount(placementLayerCounts, placement.layer);
+    incrementCount(placementFeatureCounts, feature);
+    incrementCount(assetCounts, placement.assetId);
+
+    if (placement.requiresExtra) {
+      requiresExtraPlacementCount += 1;
+      extraAssetIds.add(placement.assetId);
+    }
+
+    const assetSummary = assetSummaries.get(placement.assetId) ?? {
+      assetId: placement.assetId,
+      count: 0,
+      requiresExtra: false,
+      kinds: new Set<GameboardPlacementKind>(),
+      layers: new Set<GameboardPlacementLayer>(),
+      features: new Set<string>(),
+    };
+    assetSummary.count += 1;
+    assetSummary.requiresExtra = assetSummary.requiresExtra || placement.requiresExtra;
+    assetSummary.kinds.add(placement.kind);
+    assetSummary.layers.add(placement.layer);
+    assetSummary.features.add(feature);
+    assetSummaries.set(placement.assetId, assetSummary);
+  }
+
+  const topAssetLimit = Math.max(0, Math.floor(options.topAssetLimit ?? 20));
+  const topAssets = [...assetSummaries.values()]
+    .sort((left, right) => right.count - left.count || left.assetId.localeCompare(right.assetId))
+    .slice(0, topAssetLimit)
+    .map<GameboardPlanAssetSummary>((summary) => ({
+      assetId: summary.assetId,
+      count: summary.count,
+      requiresExtra: summary.requiresExtra,
+      kinds: sortedStrings(summary.kinds) as readonly GameboardPlacementKind[],
+      layers: sortedStrings(summary.layers) as readonly GameboardPlacementLayer[],
+      features: sortedStrings(summary.features),
+    }));
+
+  return {
+    schemaVersion: plan.schemaVersion,
+    seed: plan.seed,
+    shape: plan.shape,
+    textureSet: plan.textureSet,
+    tileCount: plan.tiles.length,
+    placementCount: plan.placements.length,
+    warningCount: plan.warnings.length,
+    requiresExtraPlacementCount,
+    tileTerrainCounts: sortedCountRecord(tileTerrainCounts),
+    tileTextureSetCounts: sortedCountRecord(tileTextureSetCounts),
+    tileElevationCounts: sortedCountRecord(tileElevationCounts),
+    tileTagCounts: sortedCountRecord(tileTagCounts),
+    placementKindCounts: sortedCountRecord(placementKindCounts),
+    placementLayerCounts: sortedCountRecord(placementLayerCounts),
+    placementFeatureCounts: sortedCountRecord(placementFeatureCounts),
+    assetCounts: sortedCountRecord(assetCounts),
+    extraAssetIds: [...extraAssetIds].sort((left, right) => left.localeCompare(right)),
+    topAssets,
+  };
+}
+
+/**
  * Create the built-in medieval harbor sample board used by examples and tests.
  */
 export function createMedievalHarborBoard(options: MedievalHarborBoardOptions = {}): GameboardPlan {
@@ -1594,6 +1773,24 @@ export function listPropClusterAssets(
     return assets;
   }
   return assets.filter((assetId) => !requiresExtraAsset(assetId));
+}
+
+function incrementCount(counts: Record<string, number>, key: string | number): void {
+  const normalized = String(key);
+  counts[normalized] = (counts[normalized] ?? 0) + 1;
+}
+
+function sortedCountRecord(counts: Record<string, number>): Readonly<Record<string, number>> {
+  return Object.fromEntries(Object.entries(counts).sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function sortedStrings<T extends string>(values: Iterable<T>): readonly T[] {
+  return [...values].sort((left, right) => left.localeCompare(right));
+}
+
+function placementFeature(placement: GameboardPlacementSpec): string {
+  const feature = placement.metadata.feature;
+  return typeof feature === 'string' && feature.length > 0 ? feature : placement.kind;
 }
 
 function createTile(

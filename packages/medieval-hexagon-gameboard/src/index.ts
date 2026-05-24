@@ -357,6 +357,7 @@ export {
   getPlacementAsset,
   listPropClusterAssets,
   requiresExtraAsset,
+  summarizeGameboardPlan,
 } from './gameboard';
 export type {
   BuiltInGameboardTerrain,
@@ -374,8 +375,10 @@ export type {
   GameboardPlacementLayer,
   GameboardPlacementSpec,
   GameboardPlan,
+  GameboardPlanAssetSummary,
   GameboardPlanFromTilesOptions,
   GameboardPlanOptions,
+  GameboardPlanSummary,
   GameboardShape,
   GameboardTerrain,
   GameboardTileSpec,
@@ -402,6 +405,7 @@ export type {
   SettlementOptions,
   SiegeProjectileKind,
   SiegeProjectileOptions,
+  SummarizeGameboardPlanOptions,
   TileAssetOptions,
   TransitionPlacementOptions,
   UnitPlacementOptions,

@@ -109,6 +109,9 @@ Koota is the built-in runtime adapter, but it is not the only consumer. The
 library also exposes neutral contracts for games with their own ECS:
 
 - `GameboardPlan`: serializable board state and render placements.
+- `summarizeGameboardPlan` and `runtime.summarizePlan`: aggregate plan
+  inspection for terrain, texture, elevation, tile tag, placement, feature,
+  asset, and local-only usage counts.
 - `./projection`: lightweight Koota-world-to-plan projection for renderers,
   React hooks, and tests that do not need seeded map generation.
 - `GameboardRecipe`: JSON-friendly board intent steps that compile to
@@ -385,7 +388,12 @@ helpers for placement occupancy inspection, placement spawn/update/move/remove,
 actor spawn/register/update/find/read, quest spawn/find/read/advance, command
 planning/preview/dispatch, actor-target command planning, interaction, tile
 inspection, actor selection/targeting, ticks, live `GameboardPlan` projection,
-validation projection, and serializable snapshots.
+aggregate plan summaries, validation projection, and serializable snapshots.
+`runtime.summarizePlan()` projects the current world and returns the same
+`GameboardPlanSummary` as `summarizeGameboardPlan(plan)`, so editor panels,
+visual-test queues, CI assertions, and external ECS bridges can prove that a
+fixed or seeded board includes the expected terrain, elevation, feature,
+asset, and local-only cases before rendering.
 Runtime navigation helpers (`createOccupancyIndex`, `createNavigation`,
 `selectSpawnLocations`, `planSpawnGroups`, `planPatrolRoute`, and
 `planPatrolRoutes`) project the live world before reading occupancy, so path

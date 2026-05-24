@@ -237,6 +237,18 @@ describe('gameboard runtime facade', () => {
       assetId: 'building_tower_A_blue',
       kind: 'structure',
     });
+    expect(runtime.summarizePlan()).toMatchObject({
+      seed: 'runtime-mutations',
+      tileCount: 3,
+      assetCounts: expect.objectContaining({
+        building_tower_A_blue: 1,
+        flag_green: 1,
+      }),
+      placementKindCounts: expect.objectContaining({
+        structure: 1,
+        prop: 1,
+      }),
+    });
     expect(runtime.canOccupyPlacement({ at: '2,0', kind: 'unit' })).toBe(false);
     expect(runtime.inspectPlacementOccupancy({ at: '2,0', kind: 'unit' })).toMatchObject({
       canOccupy: false,

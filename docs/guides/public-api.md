@@ -26,7 +26,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` | Compiled blueprint-board usage example for board-scale authoring, runtime, and interop smoke tests. |
 | `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled SimpleRPG usage example for consumer smoke tests and app reference code. |
 | `@jbcom/medieval-hexagon-gameboard/examples/*.json` | Packaged recipe, scenario, and simulation JSON examples without exposing raw TypeScript example source. |
-| `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction, terrain stacks, roads, rivers, coasts, buildings, fortifications, construction sites, siege projectiles, prop clusters, units, and serialization. |
+| `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction, terrain stacks, roads, rivers, coasts, buildings, fortifications, construction sites, siege projectiles, prop clusters, units, serialization, and aggregate plan summaries. |
 | `@jbcom/medieval-hexagon-gameboard/grid` | Honeycomb-compatible board grids, KayKit dimensions, world/axial conversion, pathfinding, and spawn locations. |
 | `@jbcom/medieval-hexagon-gameboard/ingest` | Node/build-time source validation, FREE/EXTRA manifest generation, GLTF copying, and manifest module writing. |
 | `@jbcom/medieval-hexagon-gameboard/interop` | Neutral ECS snapshots, relation indexes/selectors, and adapter mounting for non-Koota engines. |
@@ -88,7 +88,15 @@ const nearbyThreats = runtime.selectActors({
   hostileToSource: true,
   radius: 4,
 });
+const planSummary = runtime.summarizePlan();
 ```
+
+Use `summarizeGameboardPlan(plan)` or `runtime.summarizePlan()` for editor and
+CI checks that need counts by terrain, texture set, elevation, tile tag,
+placement kind/layer, semantic feature, asset id, and local-only asset usage.
+That summary is the package-level way to verify a fixed or seeded board actually
+contains the roads, rivers, coasts, stacks, towns, harbors, props, units, and
+custom pieces a game or visual test expects.
 
 ## Board Blueprints
 

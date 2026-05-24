@@ -50,7 +50,12 @@ import {
   type GameboardInteractionCommandPreview,
   type GameboardInteractionCommandPreviewOptions,
 } from './commands';
-import type { GameboardPlan } from './gameboard';
+import {
+  summarizeGameboardPlan,
+  type GameboardPlan,
+  type GameboardPlanSummary,
+  type SummarizeGameboardPlanOptions,
+} from './gameboard';
 import {
   createGameboardRuntimeInteropSnapshot,
   createGameboardScenarioInteropSnapshot,
@@ -314,6 +319,8 @@ export interface GameboardRuntime {
   loadPlan: (plan: GameboardPlan) => GameboardEntityIndex;
   /** Project the live world to a renderable plan. */
   plan: () => GameboardPlan;
+  /** Summarize the live projected plan for editor, diagnostics, and bridge code. */
+  summarizePlan: (options?: SummarizeGameboardPlanOptions) => GameboardPlanSummary;
   /** Project the live world to a plan shape suitable for validation. */
   validationPlan: () => GameboardPlan;
   /** Read a serializable runtime snapshot. */
@@ -733,6 +740,7 @@ function bindGameboardRuntime(
     systems: gameboardSystemActions(world),
     loadPlan: (plan) => actions.loadPlan(plan),
     plan: () => projectWorldToGameboardPlan(world),
+    summarizePlan: (options = {}) => summarizeGameboardPlan(projectWorldToGameboardPlan(world), options),
     validationPlan: () => readValidationGameboardPlanFromWorld(world),
     snapshot: (options = {}) => runtimeSnapshot(world, options, context),
     readPlacements: () => readGameboardPlacements(world),

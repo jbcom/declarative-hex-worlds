@@ -107,6 +107,13 @@ records. Use `runtime.removePlacement(id)` for cleanup; it removes the placement
 entity and its placement relations so future navigation and occupancy reads use
 the current world.
 
+Use `runtime.summarizePlan()` when a tool needs aggregate coverage from the
+current live board instead of raw placement arrays. It returns counts by terrain,
+texture set, elevation, tile tag, placement kind/layer, semantic feature, asset
+id, and local-only asset usage. The same pure helper is available as
+`summarizeGameboardPlan(plan)` for build-time recipes, browser screenshot
+manifests, editor sidebars, and ECS bridge preflight checks.
+
 ## Actor And Quest Reads
 
 Actors are placement-backed. That keeps render transforms, collision, target

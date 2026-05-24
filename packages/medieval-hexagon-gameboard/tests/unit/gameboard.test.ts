@@ -9,6 +9,7 @@ import {
   neighbor,
   oppositeEdge,
   requiresExtraAsset,
+  summarizeGameboardPlan,
 } from '../../src/gameboard';
 
 describe('gameboard plan builder', () => {
@@ -267,6 +268,40 @@ describe('gameboard plan builder', () => {
     expect(plan.placements.some((placement) => placement.metadata.feature === 'prop-cluster')).toBe(true);
     expect(plan.placements.some((placement) => placement.kind === 'road')).toBe(true);
     expect(plan.placements.some((placement) => placement.kind === 'river')).toBe(true);
+  });
+
+  it('summarizes terrain, placement features, and local-only asset usage for consumers', () => {
+    const plan = createMedievalHarborBoard({ seed: 'summary', faction: 'green' });
+    const summary = summarizeGameboardPlan(plan, { topAssetLimit: 100 });
+    const shipyard = summary.topAssets.find((asset) => asset.assetId === 'building_shipyard_green');
+
+    expect(summary).toMatchObject({
+      schemaVersion: '1.0.0',
+      seed: 'summary',
+      tileCount: plan.tiles.length,
+      placementCount: plan.placements.length,
+      warningCount: plan.warnings.length,
+    });
+    expect(summary.tileTerrainCounts.water).toBeGreaterThan(0);
+    expect(summary.tileTerrainCounts.coast).toBeGreaterThan(0);
+    expect(summary.tileTagCounts.road).toBeGreaterThan(0);
+    expect(summary.tileElevationCounts['2']).toBeGreaterThan(0);
+    expect(summary.placementKindCounts.structure).toBeGreaterThan(0);
+    expect(summary.placementLayerCounts.surface).toBeGreaterThan(0);
+    expect(summary.placementFeatureCounts.harbor).toBe(1);
+    expect(summary.placementFeatureCounts['mountain-stack']).toBe(2);
+    expect(summary.requiresExtraPlacementCount).toBeGreaterThan(0);
+    expect(summary.assetCounts.building_shipyard_green).toBe(1);
+    expect(summary.extraAssetIds).toContain('building_shipyard_green');
+    expect(shipyard).toEqual({
+      assetId: 'building_shipyard_green',
+      count: 1,
+      requiresExtra: true,
+      kinds: ['structure'],
+      layers: ['structure'],
+      features: ['harbor'],
+    });
+    expect(summarizeGameboardPlan(plan, { topAssetLimit: 0 }).topAssets).toEqual([]);
   });
 
   it('ships the harbor-town board recipe on hexagon shapes', () => {
