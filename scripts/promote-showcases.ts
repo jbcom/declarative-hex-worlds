@@ -1,26 +1,17 @@
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
-import { basename, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
+import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../packages/medieval-hexagon-gameboard/src/coverage';
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const screenshotDir = join(workspaceRoot, 'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__');
-const showcaseDirs = [
-  join(workspaceRoot, 'docs/assets/showcases'),
-  join(workspaceRoot, 'packages/medieval-hexagon-gameboard/docs/showcases'),
-];
-
-const curatedShowcaseFiles = [
-  'extra-blueprint-biome-transition-showcase.png',
-  'extra-harbor-gameboard.png',
-  'free-blueprint-builder-showcase.png',
-  'free-guide-coasts-all-labels-rotations-water-waterless.png',
-  'free-guide-rivers-all-labels-rotations-water-waterless.png',
-  'free-guide-roads-all-labels-rotations.png',
-  'free-guide-scenarios-by-extracted-page.png',
-  'simple-rpg-fixed-completed.png',
-  'simple-rpg-local-third-party-assets.png',
-  'simple-rpg-seeded-completed.png',
-] as const;
+const showcaseTargets = GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS.map((path) => ({
+  path,
+  source: join(screenshotDir, basename(path)),
+  target: join(workspaceRoot, path),
+}));
+const showcaseDirs = [...new Set(showcaseTargets.map((showcase) => dirname(showcase.target)))];
+const curatedShowcaseFileCount = new Set(showcaseTargets.map((showcase) => basename(showcase.path))).size;
 
 const args = new Set(process.argv.slice(2));
 
@@ -41,27 +32,24 @@ for (const directory of showcaseDirs) {
   mkdirSync(directory, { recursive: true });
 }
 
-for (const file of curatedShowcaseFiles) {
-  const source = join(screenshotDir, file);
+for (const showcase of showcaseTargets) {
+  const { source, target } = showcase;
   if (!existsSync(source)) {
     failures.push(`missing source screenshot ${relativeToWorkspace(source)}`);
     continue;
   }
 
-  for (const directory of showcaseDirs) {
-    const target = join(directory, file);
-    if (checkOnly) {
-      if (!existsSync(target)) {
-        failures.push(`missing showcase ${relativeToWorkspace(target)}`);
-      } else if (sha256(source) !== sha256(target)) {
-        failures.push(`showcase ${relativeToWorkspace(target)} does not match ${relativeToWorkspace(source)}`);
-      }
-      continue;
+  if (checkOnly) {
+    if (!existsSync(target)) {
+      failures.push(`missing showcase ${relativeToWorkspace(target)}`);
+    } else if (sha256(source) !== sha256(target)) {
+      failures.push(`showcase ${relativeToWorkspace(target)} does not match ${relativeToWorkspace(source)}`);
     }
-
-    copyFileSync(source, target);
-    console.log(`promoted ${basename(source)} -> ${relativeToWorkspace(target)}`);
+    continue;
   }
+
+  copyFileSync(source, target);
+  console.log(`promoted ${basename(source)} -> ${relativeToWorkspace(target)}`);
 }
 
 if (failures.length > 0) {
@@ -73,8 +61,8 @@ if (failures.length > 0) {
 
 console.log(
   checkOnly
-    ? `showcase promotion check passed for ${curatedShowcaseFiles.length} curated screenshot(s)`
-    : `promoted ${curatedShowcaseFiles.length} curated screenshot(s) to ${showcaseDirs.length} showcase destination(s)`
+    ? `showcase promotion check passed for ${curatedShowcaseFileCount} curated screenshot(s)`
+    : `promoted ${curatedShowcaseFileCount} curated screenshot(s) to ${showcaseDirs.length} showcase destination(s)`
 );
 
 function sha256(path: string): string {

@@ -558,11 +558,11 @@ function requireShowcaseCopiesMatch(): void {
     'coverage curated showcase artifacts'
   );
 
+  assert(
+    promoteShowcasesScript.includes('GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS'),
+    'scripts/promote-showcases.ts must read the curated showcase list from coverage source'
+  );
   for (const filename of docsShowcases) {
-    assert(
-      promoteShowcasesScript.includes(`'${filename}'`),
-      `scripts/promote-showcases.ts must promote curated showcase ${filename}`
-    );
     const docsHash = sha256(join(docsShowcaseDir, filename));
     const packageHash = sha256(join(packageShowcaseDir, filename));
     assert(
@@ -575,9 +575,12 @@ function requireShowcaseCopiesMatch(): void {
     'scripts/promote-showcases.ts must copy from the ignored browser screenshot output'
   );
   assert(
-    promoteShowcasesScript.includes('docs/assets/showcases') &&
-      promoteShowcasesScript.includes('packages/medieval-hexagon-gameboard/docs/showcases'),
-    'scripts/promote-showcases.ts must copy to both docs and package showcase directories'
+    curatedShowcaseArtifactsFromCoverage().some((path) => path.startsWith('docs/assets/showcases/')) &&
+      curatedShowcaseArtifactsFromCoverage().some((path) =>
+        path.startsWith('packages/medieval-hexagon-gameboard/docs/showcases/')
+      ) &&
+      promoteShowcasesScript.includes('dirname(showcase.target)'),
+    'scripts/promote-showcases.ts must derive both docs and package showcase destinations from coverage source'
   );
 }
 

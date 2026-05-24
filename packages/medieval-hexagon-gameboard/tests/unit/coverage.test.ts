@@ -79,6 +79,24 @@ describe('release-readiness coverage', () => {
     expect(report.releaseGateCommands).toEqual(GAMEBOARD_RELEASE_GATE_COMMANDS);
   });
 
+  it('keeps each curated showcase wired to both docs and package README destinations', () => {
+    const byFilename = new Map<string, string[]>();
+
+    for (const path of GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS) {
+      const filename = path.split('/').at(-1);
+      expect(filename).toMatch(/\.png$/);
+      byFilename.set(filename ?? '', [...(byFilename.get(filename ?? '') ?? []), path]);
+    }
+
+    expect(byFilename.size).toBe(10);
+    for (const [filename, paths] of byFilename) {
+      expect(paths.sort()).toEqual([
+        `docs/assets/showcases/${filename}`,
+        `packages/medieval-hexagon-gameboard/docs/showcases/${filename}`,
+      ]);
+    }
+  });
+
   it('marks local reference, docs, and visual gaps without requiring EXTRA binaries', () => {
     const pathStatus: GameboardCoveragePathStatusInput = {
       sourceImages: {
