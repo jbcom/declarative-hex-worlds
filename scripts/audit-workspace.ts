@@ -118,6 +118,7 @@ const projectJson = readJson<ProjectJson>('packages/medieval-hexagon-gameboard/p
 const scriptsTsconfig = readJson<TsConfigJson>('tsconfig.scripts.json');
 const typedocJson = readJson<TypeDocJson>('typedoc.json');
 const tsupConfig = readRequired('packages/medieval-hexagon-gameboard/tsup.config.ts');
+const promoteShowcasesScript = readRequired('scripts/promote-showcases.ts');
 const agentsGuide = readRequired('AGENTS.md');
 const rootReadme = readRequired('README.md');
 const packageReadme = readRequired('packages/medieval-hexagon-gameboard/README.md');
@@ -197,6 +198,10 @@ function requireWorkspaceScripts(): void {
   assert(
     workspacePackageJson.scripts?.['assets:guide'] === 'tsx scripts/extract-kaykit-guide.ts',
     'assets:guide must use the TypeScript guide extraction entrypoint'
+  );
+  assert(
+    workspacePackageJson.scripts?.['showcases:promote'] === 'tsx scripts/promote-showcases.ts',
+    'showcases:promote must promote curated visual artifacts reproducibly'
   );
   assert(
     workspacePackageJson.scripts?.['build:package'] === 'nx run @jbcom/medieval-hexagon-gameboard:build',
@@ -554,6 +559,10 @@ function requireShowcaseCopiesMatch(): void {
   );
 
   for (const filename of docsShowcases) {
+    assert(
+      promoteShowcasesScript.includes(`'${filename}'`),
+      `scripts/promote-showcases.ts must promote curated showcase ${filename}`
+    );
     const docsHash = sha256(join(docsShowcaseDir, filename));
     const packageHash = sha256(join(packageShowcaseDir, filename));
     assert(
@@ -561,6 +570,15 @@ function requireShowcaseCopiesMatch(): void {
       `published README showcase ${filename} must match docs/assets/showcases/${filename}`
     );
   }
+  assert(
+    promoteShowcasesScript.includes('packages/medieval-hexagon-gameboard/tests/browser/__screenshots__'),
+    'scripts/promote-showcases.ts must copy from the ignored browser screenshot output'
+  );
+  assert(
+    promoteShowcasesScript.includes('docs/assets/showcases') &&
+      promoteShowcasesScript.includes('packages/medieval-hexagon-gameboard/docs/showcases'),
+    'scripts/promote-showcases.ts must copy to both docs and package showcase directories'
+  );
 }
 
 function requireReadmeGuideCoverage(): void {

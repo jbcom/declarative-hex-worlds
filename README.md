@@ -260,6 +260,7 @@ pnpm test:browser:free
 pnpm test:browser:extra
 pnpm test:e2e:local-assets
 pnpm test:visual
+pnpm showcases:promote
 pnpm test:package
 pnpm test:cli
 pnpm test:consumer
@@ -278,6 +279,10 @@ GLTF fixtures for compatibility and custom-piece declarations.
 `pnpm expectations` runs the behavior-drift checks for simulation expectations,
 packaged SimpleRPG examples, quest status, actor positions, final placements,
 event records, and command/actor-target/patrol/movement/mutation timelines.
+`pnpm showcases:promote` copies the curated README/docs screenshots from the
+ignored browser screenshot output into both committed showcase directories; run
+`pnpm showcases:promote -- --check` after `pnpm test:visual` to verify they
+already match.
 `pnpm test:assets` audits the packaged FREE asset tree against its manifest,
 including GLTF/BIN/PNG coverage, bounds, counts, local-path exclusion, and
 NOTICE attribution.

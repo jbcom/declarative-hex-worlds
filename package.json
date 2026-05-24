@@ -11,6 +11,7 @@
   "scripts": {
     "assets:guide": "tsx scripts/extract-kaykit-guide.ts",
     "assets:free": "tsx scripts/generate-package-assets.ts --edition free --source references/KayKit_Medieval_Hexagon_Pack_1.0_FREE --package packages/medieval-hexagon-gameboard",
+    "showcases:promote": "tsx scripts/promote-showcases.ts",
     "build": "nx run-many -t build",
     "build:package": "nx run @jbcom/medieval-hexagon-gameboard:build",
     "lint": "pnpm lint:workspace && nx run-many -t lint",

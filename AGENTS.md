@@ -541,6 +541,7 @@ pnpm test:browser:free
 pnpm test:browser:extra
 pnpm test:e2e:local-assets
 pnpm test:visual
+pnpm showcases:promote
 pnpm docs:build
 pnpm test:package
 pnpm test:cli
@@ -644,4 +645,8 @@ drift silently.
 Curated README screenshots must be promoted out of the ignored browser output.
 For blueprint board examples, keep matching copies in `docs/assets/showcases/`
 for VitePress and `packages/medieval-hexagon-gameboard/docs/showcases/` for the
-published package README.
+published package README. After `pnpm test:visual`, run
+`pnpm showcases:promote` to refresh those committed copies from
+`packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/`; run
+`pnpm showcases:promote -- --check` when you only need to verify the committed
+copies already match the latest ignored screenshots.
