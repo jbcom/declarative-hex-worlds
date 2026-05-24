@@ -39,6 +39,12 @@ contract:
 
 - `docs/guides/public-api.md` maps the public subpaths to runtime, rendering,
   manifest, recipe, scenario, simulation, and interop responsibilities.
+- `docs/guides/guide-scenario-coverage.md` maps every extracted KayKit guide
+  page to its scenario id, source PNG, asset counts, public API surfaces, docs,
+  and visual artifacts.
+- `docs/guides/release-readiness.md` is the generated release ledger that joins
+  guide coverage, manifest coverage, public API treatment, screenshots, local
+  reference availability, and package gate evidence.
 - `docs/guides/runtime-integration.md` explains how a game should own a runtime,
   dispatch commands, tick systems, mirror another ECS, and test fixed/seeded
   scenes through the public API.

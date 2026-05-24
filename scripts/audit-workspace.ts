@@ -116,6 +116,7 @@ const scriptsTsconfig = readJson<TsConfigJson>('tsconfig.scripts.json');
 const typedocJson = readJson<TypeDocJson>('typedoc.json');
 const tsupConfig = readRequired('packages/medieval-hexagon-gameboard/tsup.config.ts');
 const agentsGuide = readRequired('AGENTS.md');
+const rootReadme = readRequired('README.md');
 const packageReadme = readRequired('packages/medieval-hexagon-gameboard/README.md');
 const docsIndex = readRequired('docs/index.md');
 const docsVitePressConfig = readRequired('docs/.vitepress/config.ts');
@@ -253,6 +254,13 @@ function requireDocsConfiguration(): void {
   requireDocsGuideNavigation();
   requireDocsMarkdownLinksResolve();
   requireMarkdownFileLinksResolve(
+    rootReadme,
+    'root README',
+    workspaceRoot,
+    workspaceRoot,
+    join(workspaceRoot, 'README.md')
+  );
+  requireMarkdownFileLinksResolve(
     packageReadme,
     'package README',
     join(workspaceRoot, 'packages/medieval-hexagon-gameboard'),
@@ -260,6 +268,7 @@ function requireDocsConfiguration(): void {
     join(workspaceRoot, 'packages/medieval-hexagon-gameboard/README.md')
   );
   requireShowcaseCopiesMatch();
+  requireReadmeGuideCoverage();
   requirePublicApiSubpathGuide();
   requirePackageReadmePublicImports();
   requireAgentsPublicApiSurfaces();
@@ -486,6 +495,21 @@ function requireShowcaseCopiesMatch(): void {
     assert(
       packageHash === docsHash,
       `published README showcase ${filename} must match docs/assets/showcases/${filename}`
+    );
+  }
+}
+
+function requireReadmeGuideCoverage(): void {
+  for (const guideFile of guideDocs) {
+    const rootGuidePath = `docs/guides/${guideFile}`;
+    const packageGuidePath = `docs/guides/${guideFile}`;
+    assert(
+      rootReadme.includes(`](${rootGuidePath})`),
+      `root README Documentation section must link ${rootGuidePath}`
+    );
+    assert(
+      packageReadme.includes(`\`${packageGuidePath}\``),
+      `package README Documentation section must mention ${packageGuidePath}`
     );
   }
 }

@@ -212,15 +212,18 @@ usage guides:
 
 - `docs/pillars/` records the implementation contract, source guide imagery,
   package editions, asset taxonomy, Koota runtime model, and visual coverage.
-- `docs/guides/public-api.md` explains the public subpaths and when to use a
+- [`docs/guides/public-api.md`](docs/guides/public-api.md) explains the public subpaths and when to use a
   neutral plan, live Koota runtime, manifest bundle, or external ECS bridge.
-- `docs/guides/guide-scenario-coverage.md` maps all 19 extracted guide pages to
+- [`docs/guides/guide-scenario-coverage.md`](docs/guides/guide-scenario-coverage.md) maps all 19 extracted guide pages to
   roles, asset counts, public API surfaces, docs, and visual artifacts.
-- `docs/guides/runtime-integration.md` covers runtime ownership, mutations,
+- [`docs/guides/release-readiness.md`](docs/guides/release-readiness.md) is the generated release ledger that joins
+  guide coverage, manifests, public API treatment, visual artifacts, local
+  references, and package gate evidence.
+- [`docs/guides/runtime-integration.md`](docs/guides/runtime-integration.md) covers runtime ownership, mutations,
   React hook families, external ECS snapshots, and integration-test patterns.
-- `docs/guides/recipes-scenarios-and-simulation.md` covers recipes, scenarios,
+- [`docs/guides/recipes-scenarios-and-simulation.md`](docs/guides/recipes-scenarios-and-simulation.md) covers recipes, scenarios,
   generated fills, SimpleRPG-style integration fixtures, and simulation scripts.
-- `docs/guides/rendering-assets-and-external-packs.md` covers packaged FREE
+- [`docs/guides/rendering-assets-and-external-packs.md`](docs/guides/rendering-assets-and-external-packs.md) covers packaged FREE
   assets, local EXTRA ingest, Three.js sync, external compatibility checks, and
   local-only asset-pack rendering tests.
 
