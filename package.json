@@ -12,6 +12,7 @@
     "assets:guide": "tsx scripts/extract-kaykit-guide.ts",
     "assets:free": "tsx scripts/generate-package-assets.ts --edition free --source references/KayKit_Medieval_Hexagon_Pack_1.0_FREE --package packages/medieval-hexagon-gameboard",
     "build": "nx run-many -t build",
+    "build:package": "nx run @jbcom/medieval-hexagon-gameboard:build",
     "lint": "pnpm lint:workspace && nx run-many -t lint",
     "lint:workspace": "biome lint .github apps docs scripts *.json *.md",
     "typecheck": "pnpm typecheck:workspace && nx run-many -t typecheck",
@@ -36,7 +37,7 @@
     "test:workflows": "tsx scripts/audit-workflows.ts",
     "test:reference-assets": "tsx scripts/audit-reference-assets.ts",
     "cli": "node packages/medieval-hexagon-gameboard/dist/cli.js",
-    "coverage:ledger": "pnpm build && node packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md",
+    "coverage:ledger": "pnpm build:package && node packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md",
     "docs": "typedoc --options typedoc.json",
     "docs:build": "pnpm run docs && pnpm --dir apps/docs build",
     "pack:dry-run": "cd packages/medieval-hexagon-gameboard && npm pack --dry-run"

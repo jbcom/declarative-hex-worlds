@@ -109,6 +109,10 @@ function requireWorkspaceScripts(): void {
     workspacePackageJson.scripts?.['assets:guide'] === 'tsx scripts/extract-kaykit-guide.ts',
     'assets:guide must use the TypeScript guide extraction entrypoint'
   );
+  assert(
+    workspacePackageJson.scripts?.['build:package'] === 'nx run @jbcom/medieval-hexagon-gameboard:build',
+    'build:package must build only the package project for CLI-backed generated artifacts'
+  );
   assert(workspacePackageJson.scripts?.['test:api-docs'] === 'tsx scripts/audit-api-docs.ts', 'missing test:api-docs audit script');
   assert(
     workspacePackageJson.scripts?.['test:reference-assets'] === 'tsx scripts/audit-reference-assets.ts',
@@ -120,7 +124,7 @@ function requireWorkspaceScripts(): void {
   );
   assert(
     workspacePackageJson.scripts?.['coverage:ledger'] ===
-      'pnpm build && node packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md',
+      'pnpm build:package && node packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md',
     'workspace coverage:ledger shortcut must regenerate release-readiness docs through the built CLI'
   );
   assert(
