@@ -15,6 +15,10 @@ interface PillarFrontmatter {
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const pillarsDir = resolve(workspaceRoot, 'docs/pillars');
 const allowedStatuses = new Set<PillarStatus>(['draft', 'implemented', 'verified']);
+const allowedSourcePacks = new Set([
+  'references/KayKit_Medieval_Hexagon_Pack_1.0_FREE',
+  'references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA',
+]);
 const requiredKeys = [
   'status',
   'last_verified',
@@ -74,9 +78,55 @@ function auditPillar(pillarPath: string): void {
     allowIgnoredReferencePath: false,
   });
   auditPathList(label, 'test_links', frontmatter.test_links, { allowIgnoredReferencePath: false });
+  auditSourceImages(label, frontmatter.source_images);
+  auditImplementedPillarLinks(label, frontmatter);
 
-  if (!frontmatter.source_pack?.startsWith('references/')) {
-    failures.push(`${label} source_pack must point at the local references/ input pack`);
+  if (!frontmatter.source_pack || !allowedSourcePacks.has(frontmatter.source_pack)) {
+    failures.push(`${label} source_pack must point at a known local KayKit references/ input pack`);
+  }
+}
+
+function auditSourceImages(label: string, paths: string[] | undefined): void {
+  for (const path of paths ?? []) {
+    if (!/^docs\/assets\/kaykit-guide\/(?:montage|pages\/page-(?:0[1-9]|1[0-9]))\.png$/.test(path)) {
+      failures.push(`${label} source_images must point at extracted KayKit guide PNGs, got ${path}`);
+    }
+  }
+}
+
+function auditImplementedPillarLinks(label: string, frontmatter: PillarFrontmatter): void {
+  if (frontmatter.status !== 'implemented' && frontmatter.status !== 'verified') {
+    return;
+  }
+
+  assertPathListIncludes(
+    label,
+    'implementation_links',
+    frontmatter.implementation_links,
+    (path) =>
+      path.startsWith('packages/medieval-hexagon-gameboard/src/') ||
+      path.startsWith('docs/') ||
+      path.startsWith('scripts/'),
+    'a package source, docs, or script implementation path'
+  );
+  assertPathListIncludes(
+    label,
+    'test_links',
+    frontmatter.test_links,
+    (path) => path.startsWith('packages/medieval-hexagon-gameboard/tests/') || path.startsWith('scripts/'),
+    'a package test or script audit path'
+  );
+}
+
+function assertPathListIncludes(
+  label: string,
+  key: keyof Pick<PillarFrontmatter, 'implementation_links' | 'test_links'>,
+  paths: string[] | undefined,
+  predicate: (path: string) => boolean,
+  expectation: string
+): void {
+  if (!(paths ?? []).some(predicate)) {
+    failures.push(`${label} ${key} must include ${expectation}`);
   }
 }
 
