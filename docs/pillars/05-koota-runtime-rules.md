@@ -549,10 +549,13 @@ The CLI `analyze` command uses manifest bounds to report tile footprint, row
 spacing, recommended scale, and warnings for off-center or irregular tile sets.
 The CLI `declarations` command emits registry JSON. The CLI
 `guide-permutations` command emits the exported selector matrix and can validate
-that every guide permutation asset exists in a manifest. `validate-plan` validates
-saved board JSON, `validate-recipe` compiles a recipe JSON into a plan, and
-`validate-scenario` validates scenario IDs, actor references, quest references,
-and asset manifest membership before creating Koota runtime state. When those
+that every guide permutation asset exists in a manifest. The CLI
+`guide-scenarios` command emits the 19-page extracted guide scenario matrix and
+can validate FREE page assets against a FREE manifest or all FREE+EXTRA page
+assets against an EXTRA manifest. `validate-plan` validates saved board JSON,
+`validate-recipe` compiles a recipe JSON into a plan, and `validate-scenario`
+validates scenario IDs, actor references, quest references, and asset manifest
+membership before creating Koota runtime state. When those
 validation commands receive `--manifest` or a local source folder, they also
 check tile, placement, and scenario actor asset ids plus `requiresExtra`
 consistency. `analyze-layout` checks layout fill rule JSON against a saved plan,

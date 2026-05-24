@@ -1516,12 +1516,19 @@ layout rules. `./compatibility` and `./pieces` expose the same building blocks
 as library APIs for custom pipelines and editors.
 
 For guide-audit tooling, the CLI can also emit the full selector permutation
-matrix and validate it against a manifest:
+matrix and the 19-page guide scenario matrix. `guide-permutations` validates the
+guide-labeled tile variants against a manifest; `guide-scenarios` validates
+FREE-owned page assets against a FREE manifest, or all 404 FREE+EXTRA page
+assets against an EXTRA manifest.
 
 ```bash
 medieval-hexagon-gameboard guide-permutations \
   --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json \
   --out /tmp/kaykit-guide-permutations.json
+
+medieval-hexagon-gameboard guide-scenarios \
+  --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json \
+  --out /tmp/kaykit-guide-scenarios.json
 ```
 
 ## Authoring Boards

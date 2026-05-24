@@ -16,6 +16,23 @@ interface GuidePermutationSmoke {
   missingAssetIds: string[];
 }
 
+interface GuideScenarioSmoke {
+  count: number;
+  pages: number[];
+  assetScope: string;
+  assetCounts: {
+    total: number;
+    free: number;
+    extra: number;
+    checked: number;
+    missing: number;
+  };
+  sourceImages: string[];
+  docs: string[];
+  visualArtifacts: string[];
+  missingAssetIds: string[];
+}
+
 interface LayoutAnalysisSmoke {
   placementCount: number;
   warningCount: number;
@@ -202,6 +219,58 @@ try {
   assert(
     guide.missingAssetIds.length === 0,
     `guide permutations reference missing assets: ${guide.missingAssetIds.join(', ')}`
+  );
+
+  const guideScenariosPath = join(tempRoot, 'kaykit-guide-scenarios.json');
+  const guideScenariosOutput = runCli([
+    'guide-scenarios',
+    '--manifest',
+    freeManifestPath,
+    '--out',
+    guideScenariosPath,
+  ]);
+  const guideScenarios = readJson<GuideScenarioSmoke>(guideScenariosPath);
+  assert(
+    guideScenariosOutput.includes('Wrote 19 guide scenarios'),
+    'guide-scenarios output count changed'
+  );
+  assert(guideScenarios.count === 19, `guide scenario count changed to ${guideScenarios.count}`);
+  assert(
+    guideScenarios.pages.join(',') === '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19',
+    `guide scenario page sequence changed to ${guideScenarios.pages.join(',')}`
+  );
+  assert(
+    guideScenarios.assetScope === 'free',
+    `guide scenario manifest validation scope changed to ${guideScenarios.assetScope}`
+  );
+  assert(
+    guideScenarios.assetCounts.total === 404,
+    `guide scenario total asset count changed to ${guideScenarios.assetCounts.total}`
+  );
+  assert(
+    guideScenarios.assetCounts.free === 221,
+    `guide scenario FREE asset count changed to ${guideScenarios.assetCounts.free}`
+  );
+  assert(
+    guideScenarios.assetCounts.extra === 183,
+    `guide scenario EXTRA-only asset count changed to ${guideScenarios.assetCounts.extra}`
+  );
+  assert(
+    guideScenarios.assetCounts.checked === 221,
+    `guide scenario checked asset count changed to ${guideScenarios.assetCounts.checked}`
+  );
+  assert(
+    guideScenarios.missingAssetIds.length === 0,
+    `guide scenarios reference missing FREE assets: ${guideScenarios.missingAssetIds.join(', ')}`
+  );
+  assert(
+    guideScenarios.sourceImages.length === 19,
+    `guide scenario source image count changed to ${guideScenarios.sourceImages.length}`
+  );
+  assert(guideScenarios.docs.length > 0, 'guide-scenarios did not emit docs');
+  assert(
+    guideScenarios.visualArtifacts.length > 0,
+    'guide-scenarios did not emit visual artifacts'
   );
 
   const recipePlanPath = join(tempRoot, 'generated-piece-scenario.plan.json');

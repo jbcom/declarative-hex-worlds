@@ -15,6 +15,10 @@ import {
   type ExternalAssetIntendedRole,
 } from './compatibility';
 import {
+  listKayKitAssetPublicTreatments,
+  listKayKitGuideScenarios,
+} from './catalog';
+import {
   analyzeHexTileRegistry,
   createHexTileRegistry,
   createHexTileRegistryFromManifest,
@@ -112,6 +116,8 @@ interface ParsedArgs {
   flags: Record<string, string | boolean>;
 }
 
+type GuideScenarioAssetScope = PackEdition | 'all';
+
 interface AssetInputRoot {
   input: string;
   base: string;
@@ -199,6 +205,11 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'guide-permutations') {
     runGuidePermutations(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'guide-scenarios') {
+    runGuideScenarios(parsed, sourceRoot, edition);
     return;
   }
 
@@ -1401,6 +1412,79 @@ function runGuidePermutations(parsed: ParsedArgs, sourceRoot: string, edition: P
   }
 }
 
+function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const scenarios = listKayKitGuideScenarios();
+  const treatmentByAssetId = new Map(
+    listKayKitAssetPublicTreatments().map((treatment) => [treatment.assetId, treatment])
+  );
+  const catalog = validationCatalogFromArgs(parsed, sourceRoot, edition);
+  const assetScope = readGuideScenarioAssetScope(parsed.flags.assetScope, catalog?.edition);
+  const allAssetIds = uniqueStrings(scenarios.flatMap((scenario) => scenario.assetIds));
+  const checkedAssetIds = allAssetIds.filter((assetId) => {
+    const treatment = treatmentByAssetId.get(assetId);
+    if (!treatment) {
+      return false;
+    }
+    return assetScope === 'free' ? treatment.minimumEdition === 'free' : true;
+  });
+  const missingAssetIds = catalog
+    ? checkedAssetIds.filter((assetId) => !catalog.assetsById[assetId])
+    : [];
+  const docs = uniqueStrings(scenarios.flatMap((scenario) => scenario.docs));
+  const sourceImages = uniqueStrings(scenarios.map((scenario) => scenario.sourceImage));
+  const visualArtifacts = uniqueStrings(scenarios.flatMap((scenario) => scenario.visualArtifacts));
+  const payload = {
+    schemaVersion: '1.0.0',
+    count: scenarios.length,
+    pages: scenarios.map((scenario) => scenario.page),
+    assetScope,
+    assetCounts: {
+      total: allAssetIds.length,
+      free: allAssetIds.filter(
+        (assetId) => treatmentByAssetId.get(assetId)?.minimumEdition === 'free'
+      ).length,
+      extra: allAssetIds.filter(
+        (assetId) => treatmentByAssetId.get(assetId)?.minimumEdition === 'extra'
+      ).length,
+      checked: checkedAssetIds.length,
+      missing: missingAssetIds.length,
+    },
+    sourceImages,
+    docs,
+    visualArtifacts,
+    missingAssetIds,
+    scenarios,
+  };
+
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${scenarios.length} guide scenarios to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true) {
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    console.log(`guide scenarios: ${scenarios.length}`);
+    console.log(`pages: ${payload.pages[0]}-${payload.pages[payload.pages.length - 1]}`);
+    console.log(
+      `assets: ${payload.assetCounts.total} total, ${payload.assetCounts.free} free, ${payload.assetCounts.extra} extra`
+    );
+    if (catalog) {
+      console.log(`asset scope: ${assetScope}`);
+      console.log(`checked assets: ${checkedAssetIds.length}`);
+      console.log(`missing assets: ${missingAssetIds.length}`);
+      for (const assetId of missingAssetIds) {
+        console.log(`  - ${assetId}`);
+      }
+    }
+    console.log(`source images: ${sourceImages.length}`);
+    console.log(`docs: ${docs.length}`);
+    console.log(`visual artifacts: ${visualArtifacts.length}`);
+  }
+
+  if (missingAssetIds.length > 0) {
+    process.exit(1);
+  }
+}
+
 function countGuidePermutationsByKind(
   permutations: readonly { kind: GuideTilePermutationKind }[]
 ): Record<GuideTilePermutationKind, number> {
@@ -2509,6 +2593,10 @@ function readCsv(value: string | boolean | undefined): string[] {
     : [];
 }
 
+function uniqueStrings(values: readonly string[]): string[] {
+  return [...new Set(values)].sort();
+}
+
 function normalizePieceId(value: string): string {
   return value
     .trim()
@@ -2584,6 +2672,20 @@ function readEdition(value: string | boolean | undefined): PackEdition {
   throw new Error(`Unsupported edition: ${String(value)}`);
 }
 
+function readGuideScenarioAssetScope(
+  value: string | boolean | undefined,
+  manifestEdition: PackEdition | undefined
+): GuideScenarioAssetScope {
+  const defaultScope = manifestEdition ?? 'all';
+  if (value === undefined || value === false) {
+    return defaultScope;
+  }
+  if (value === 'free' || value === 'extra' || value === 'all') {
+    return value;
+  }
+  throw new Error(`Unsupported guide scenario asset scope: ${String(value)}`);
+}
+
 function usage(exitCode: number): never {
   console.log(`medieval-hexagon-gameboard <command> [options]
 
@@ -2595,6 +2697,7 @@ Commands:
   analyze    Analyze tile bounds, grid scale, row spacing, and warnings
   declarations  Emit tile declarations from a source folder, manifest, or registry
   guide-permutations Emit guide-labeled road, river, crossing, and coast permutation metadata
+  guide-scenarios Emit extracted guide-page scenario metadata and validate page assets
   pieces    Validate piece declarations and optionally emit seeded piece fill rules
   place-piece Inspect and append one declared piece against a saved GameboardPlan, recipe, or scenario
   validate-plan Validate a GameboardPlan JSON with optional registry rules
@@ -2653,6 +2756,7 @@ Options:
   --freeOnly
   --allowUnknownAssets
   --allowUnknownAssetIds <comma,separated,assetIds>
+  --assetScope free|extra|all
   --allowInvalid
   --allowExpectationFailures
   --excludePlacements
