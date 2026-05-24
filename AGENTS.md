@@ -572,7 +572,9 @@ not present; when local reference packs are available, it should audit FREE and
 EXTRA sources plus the Kenney Castle Kit and KayKit Adventurers fixture
 inventories used by the local browser E2E harness.
 Use `pnpm test:workspace` when touching Nx targets, package exports, tsup
-entries, pnpm workspace settings, or docs package dependency versions.
+entries, pnpm workspace settings, docs package dependency versions, or Markdown
+TypeScript examples; it also rejects duplicate object keys in documented
+snippets.
 Use `pnpm test:cli` after `pnpm build` when CLI commands, packaged examples,
 scenario simulation, compatibility scans, or custom piece declarations change;
 it executes the built `dist/cli.js` with packaged and synthetic fixture inputs.

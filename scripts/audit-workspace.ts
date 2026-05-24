@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
+import ts from 'typescript';
 
 interface PackageJson {
   devDependencies?: Record<string, string>;
@@ -57,6 +58,12 @@ interface TsConfigJson {
 interface MarkdownLocalLink {
   fragment?: string;
   path: string;
+}
+
+interface MarkdownCodeFence {
+  language: string;
+  source: string;
+  startLine: number;
 }
 
 interface ReleaseReadinessLedger {
@@ -314,6 +321,7 @@ function requireDocsConfiguration(): void {
     join(workspaceRoot, 'packages/medieval-hexagon-gameboard/README.md')
   );
   requireShowcaseCopiesMatch();
+  requireMarkdownTypeScriptSnippetsHaveUniqueObjectKeys();
   requireReadmeGuideCoverage();
   requireReadmeAttribution();
   requirePublicApiSubpathGuide();
@@ -417,6 +425,76 @@ function requireAgentsPublicApiSurfaces(): void {
     }
     seen.add(subpath);
   }
+}
+
+function requireMarkdownTypeScriptSnippetsHaveUniqueObjectKeys(): void {
+  const auditedMarkdownPaths = [
+    'README.md',
+    'AGENTS.md',
+    'packages/medieval-hexagon-gameboard/README.md',
+    ...docsMarkdownPaths,
+  ];
+  for (const path of auditedMarkdownPaths) {
+    for (const fence of markdownCodeFences(readRequired(path))) {
+      if (!isTypeScriptFence(fence.language)) {
+        continue;
+      }
+      requireUniqueObjectKeysInTypeScriptSnippet(path, fence);
+    }
+  }
+}
+
+function requireUniqueObjectKeysInTypeScriptSnippet(path: string, fence: MarkdownCodeFence): void {
+  const sourceFile = ts.createSourceFile(
+    `${path}:${fence.startLine}`,
+    fence.source,
+    ts.ScriptTarget.Latest,
+    true,
+    fence.language === 'tsx' ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+  );
+
+  function visit(node: ts.Node): void {
+    if (ts.isObjectLiteralExpression(node)) {
+      const seen = new Map<string, ts.Node>();
+      for (const property of node.properties) {
+        if (
+          !ts.isPropertyAssignment(property) &&
+          !ts.isShorthandPropertyAssignment(property) &&
+          !ts.isMethodDeclaration(property)
+        ) {
+          continue;
+        }
+        const name = staticPropertyName(property.name);
+        if (!name) {
+          continue;
+        }
+        const existing = seen.get(name);
+        if (existing) {
+          const first = sourceFile.getLineAndCharacterOfPosition(existing.getStart(sourceFile));
+          const duplicate = sourceFile.getLineAndCharacterOfPosition(property.name.getStart(sourceFile));
+          failures.push(
+            `${path}:${fence.startLine + duplicate.line} TypeScript snippet duplicates object key ${name}; first seen at line ${fence.startLine + first.line}`
+          );
+          continue;
+        }
+        seen.set(name, property.name);
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+}
+
+function staticPropertyName(name: ts.PropertyName): string | undefined {
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) {
+    return name.text;
+  }
+  return undefined;
+}
+
+function isTypeScriptFence(language: string): boolean {
+  return language === 'ts' || language === 'tsx' || language === 'typescript';
 }
 
 function requireAgentsLocalAssetGuidance(): void {
@@ -955,6 +1033,18 @@ function extractMarkdownSection(source: string, heading: string, label: string):
 
   const nextHeading = source.indexOf('\n## ', start + heading.length);
   return nextHeading === -1 ? source.slice(start) : source.slice(start, nextHeading);
+}
+
+function markdownCodeFences(source: string): MarkdownCodeFence[] {
+  const fences: MarkdownCodeFence[] = [];
+  const fencePattern = /^```([^\s`]*)[^\n]*\n([\s\S]*?)^```/gm;
+  for (const match of source.matchAll(fencePattern)) {
+    const language = (match[1] ?? '').toLowerCase();
+    const fenceSource = match[2] ?? '';
+    const startLine = source.slice(0, match.index).split(/\r?\n/).length + 1;
+    fences.push({ language, source: fenceSource, startLine });
+  }
+  return fences;
 }
 
 function readTsupEntries(source: string): Map<string, string> {

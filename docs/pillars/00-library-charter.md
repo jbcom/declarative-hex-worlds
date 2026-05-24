@@ -108,6 +108,9 @@ open source package useful while preserving the local-only purchased workflow.
   published README gallery links, packed showcase PNG quality, and absence of
   machine-local paths or embedded source-map source content in packed text
   files.
+- `pnpm test:workspace` validates Markdown TypeScript snippets for duplicate
+  object keys, keeping documented recipes and scenario examples from drifting
+  into copy/paste-invalid shapes.
 - TypeDoc entry points are derived from every public TypeScript export surface;
   every entry point must carry top-level `@module` JSDoc, and
   `pnpm test:api-docs` must verify the public export map, top-level module docs,

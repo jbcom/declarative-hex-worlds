@@ -324,7 +324,8 @@ packed `docs/showcases/*.png` image with the shared PNG quality analyzer so
 shipped README screenshots cannot be missing, blank, visually flat, or
 undiscoverable.
 `pnpm test:workspace` audits Nx targets, pnpm workspace config, VitePress docs
-dependency alignment, and tsup entries against the package export map.
+dependency alignment, Markdown TypeScript snippet object keys, and tsup entries
+against the package export map.
 `pnpm test:workflows` audits the CI/CD, Release Please, automerge, and Dependabot
 contracts requested for this package.
 For local visual review, run `pnpm test:visual`; it serializes the FREE browser
