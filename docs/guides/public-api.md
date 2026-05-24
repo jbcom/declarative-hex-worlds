@@ -98,15 +98,40 @@ harbors, semantic prop-cluster dressing, biome texture percentages, transition
 tiles, elevation ramps, sloped roads, bridges, and optional density fills into
 ordinary recipe JSON.
 `createMedievalGameboardBlueprintPlan` immediately compiles that recipe to a
-`GameboardPlan`; `inspectMedievalGameboardBlueprint` returns counts and
-warnings for authoring UIs and CI.
+`GameboardPlan`; `createMedievalGameboardBlueprintScenario` wraps the generated
+recipe with spawn groups, patrol routes, actors, movement agents, and quests;
+`createMedievalGameboardWorldFromBlueprint` instantiates that scenario into a
+ready Koota runtime. `inspectMedievalGameboardBlueprint` and
+`inspectMedievalGameboardBlueprintScenario` return counts, generated plans,
+spawn-group route diagnostics, patrol-route diagnostics, and validation results
+for authoring UIs and CI.
 
 ```ts
-import { createMedievalShowcaseBlueprintRecipe } from '@jbcom/medieval-hexagon-gameboard/blueprint';
-import { createGameboardPlanFromRecipe } from '@jbcom/medieval-hexagon-gameboard/recipe';
+import {
+  createMedievalGameboardBlueprintScenario,
+  createMedievalGameboardWorldFromBlueprint,
+} from '@jbcom/medieval-hexagon-gameboard/blueprint';
 
-const recipe = createMedievalShowcaseBlueprintRecipe();
-const plan = createGameboardPlanFromRecipe(recipe);
+const blueprint = {
+  scenarioId: 'campaign-01:intro',
+  seed: 'campaign-01',
+  shape: { kind: 'rectangle', width: 12, height: 9 },
+  towns: [{ center: { q: 4, r: 4 }, includeWalls: true }],
+  harbors: [{ at: { q: 6, r: 7 }, facing: 1, kind: 'shipyard', roadTo: { q: 4, r: 4 } }],
+  spawnGroups: {
+    groups: [
+      { id: 'party', count: 1, terrain: ['grass', 'road', 'coast'] },
+      { id: 'raiders', count: 2, terrain: ['forest', 'hill', 'grass'], minDistanceFromGroups: 4, pathToGroups: ['party'] },
+    ],
+  },
+  actors: [
+    { actorId: 'player', actorKind: 'player', spawnGroupId: 'party', assetId: 'flag_blue', kind: 'unit' },
+    { actorId: 'raider', actorKind: 'enemy', hostile: true, spawnGroupId: 'raiders', assetId: 'flag_red', kind: 'unit' },
+  ],
+};
+
+const scenario = createMedievalGameboardBlueprintScenario(blueprint);
+const runtime = createMedievalGameboardWorldFromBlueprint(blueprint);
 ```
 
 Blueprints accept `propClusterDressing` for board-scale camps, resource caches,

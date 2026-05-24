@@ -112,6 +112,10 @@ The package is not just an asset bundle. It provides:
   worlds, with validation for duplicate IDs, unresolved spawn groups, duplicate
   spawn-location claims, patrol/spawn route failures, missing patrol-agent
   routes, and broken actor/tile references before runtime instantiation.
+- Blueprint-to-scenario helpers that turn high-level medieval board intent into
+  a playable scenario or ready Koota runtime with the generated board recipe,
+  authored spawn groups, patrol routes, actors, movement agents, and quests
+  kept together.
 - Scenario simulation scripts that run commands, actor-target command planning,
   handler mutations, movement, actor-target inspections,
   runtime spawn/update/removal mutations, and quests headlessly while emitting serializable event logs, top-level command,

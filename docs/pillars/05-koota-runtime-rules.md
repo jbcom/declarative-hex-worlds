@@ -115,6 +115,11 @@ library also exposes neutral contracts for games with their own ECS:
   groups, patrol routes, actors, movement agents, patrol agents, and quests that
   instantiate into a ready Koota world for tests, examples, and starter gameplay
   scenes.
+- `createMedievalGameboardBlueprintScenario` and
+  `createMedievalGameboardWorldFromBlueprint`: board-scale medieval intent plus
+  scenario runtime content in one API, so generated 2.5D boards can ship with
+  spawn groups, route-checked NPC/enemy patrols, actors, movement agents, and
+  quests without a second stitching layer.
 - `GameboardScenarioSimulationScript`: JSON-friendly scripted command/system
   steps that run a scenario headlessly and emit serializable event records,
   mutation records, final actors, quests, projected plan state, and optional

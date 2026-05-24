@@ -452,15 +452,20 @@ export type {
   SetTileAssetRecipeStep,
 } from './recipe';
 export {
+  createMedievalGameboardBlueprintScenario,
+  createMedievalGameboardWorldFromBlueprint,
   createMedievalGameboardBlueprintPlan,
   createMedievalGameboardBlueprintRecipe,
   createMedievalShowcaseBlueprintRecipe,
   inspectMedievalGameboardBlueprint,
+  inspectMedievalGameboardBlueprintScenario,
 } from './blueprint';
 export type {
   MedievalBiomeFillSpec,
   MedievalGameboardBlueprintInspection,
   MedievalGameboardBlueprintOptions,
+  MedievalGameboardBlueprintScenarioInspection,
+  MedievalGameboardBlueprintScenarioOptions,
   MedievalHarborSpec,
   MedievalMountainRangeSpec,
   MedievalPropClusterDressingOptions,

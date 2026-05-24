@@ -244,10 +244,14 @@ contract for CI and npm consumers.
   yards, and harbor support clusters around authored towns and harbors. Prefer
   `createMedievalGameboardBlueprintRecipe` when the result should be saved or
   inspected, `createMedievalGameboardBlueprintPlan` when a game needs the plan
-  directly, and `inspectMedievalGameboardBlueprint` when an agent/editor needs
-  counts and warnings before rendering. Keep new board-scale README examples and
-  screenshots anchored to the blueprint API unless the task is specifically
-  about low-level builder behavior.
+  directly, `createMedievalGameboardBlueprintScenario` when the generated board
+  should also carry spawn groups, actors, patrol routes, movement agents, and
+  quests, `createMedievalGameboardWorldFromBlueprint` when a game/test needs the
+  ready Koota runtime, and `inspectMedievalGameboardBlueprintScenario` when an
+  agent/editor needs both board counts and scenario route diagnostics before
+  rendering. Keep new board-scale README examples and screenshots anchored to
+  the blueprint API unless the task is specifically about low-level builder
+  behavior.
 - Use `GameboardBuilder.addBridge` or recipe `addBridge` for authored road,
   river, or water crossings that need a specific FREE KayKit bridge variant.
   Do not make callers place `building_bridge_A` or `building_bridge_B` as raw
@@ -360,7 +364,9 @@ contract for CI and npm consumers.
   interaction command planning, and actor-aware navigation profile helpers.
 - `./blueprint`: board-scale 2.5D intent compiler for biome percentages,
   mountain ranges, towns, roads, rivers, harbors, elevation ramps, sloped roads,
-  bridges, semantic prop-cluster dressing, density fills, and showcase recipes.
+  bridges, semantic prop-cluster dressing, density fills, showcase recipes, and
+  playable scenario/world helpers that attach spawn groups, actors, patrols,
+  movement agents, and quests to the generated board recipe.
 - `./commands`: command action bundles plus preview/execution helpers that turn
   interaction targets into actor-aware movement requests or handler-required
   interact/attack/inspect commands, actor-target command planners for UI/AI

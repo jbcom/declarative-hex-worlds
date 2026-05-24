@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   createMedievalGameboardBlueprintPlan,
   createMedievalGameboardBlueprintRecipe,
+  createMedievalGameboardBlueprintScenario,
+  createMedievalGameboardWorldFromBlueprint,
   createMedievalShowcaseBlueprintRecipe,
   inspectMedievalGameboardBlueprint,
+  inspectMedievalGameboardBlueprintScenario,
 } from '../../src/blueprint';
 import { freeManifest } from '../../src/manifest/free';
 import { createGameboardPlanFromRecipe } from '../../src/recipe';
@@ -184,5 +187,149 @@ describe('medieval gameboard blueprints', () => {
 
     expect(plan.tiles.length).toBeGreaterThan(0);
     expect(plan.placements.some((placement) => placement.metadata.feature === 'harbor')).toBe(true);
+  });
+
+  it('compiles board intent into a playable scenario with spawn groups, patrols, actors, and quests', () => {
+    const options = {
+      scenarioId: 'blueprint:playable-scene',
+      title: 'Playable Blueprint Scene',
+      seed: 'blueprint-playable-scene',
+      shape: { kind: 'rectangle', width: 10, height: 8 },
+      faction: 'blue',
+      waterFill: 0.1,
+      maxElevation: 1,
+      mountainRanges: [{ id: 'north-hill', path: [{ q: 0, r: 0 }, { q: 1, r: 0 }], width: 0, height: 1 }],
+      towns: [
+        {
+          id: 'blue-hold',
+          center: { q: 4, r: 3 },
+          buildings: ['market', 'home_A', 'barracks'],
+        },
+      ],
+      harbors: [{ id: 'blue-dock', at: { q: 5, r: 6 }, facing: 1, kind: 'docks', roadTo: { q: 4, r: 3 } }],
+      rivers: [],
+      propClusterDressing: { density: 0.4 },
+      transitionPolicy: { biomeTransitions: false, elevationRamps: false, roadSlopes: true, bridges: true },
+      spawnGroups: {
+        seed: 'blueprint-playable-scene:spawns',
+        profile: {
+          blockedTerrain: ['water'],
+          maxElevationStep: 3,
+        },
+        groups: [
+          { id: 'party', count: 1, terrain: ['grass', 'road', 'coast'], edgePadding: 1 },
+          {
+            id: 'villagers',
+            count: 1,
+            terrain: ['grass', 'road', 'coast'],
+            edgePadding: 1,
+            minDistanceFromGroups: 2,
+            pathToGroups: ['party'],
+            routeProfile: { blockedTerrain: ['water'], maxElevationStep: 3, blockingPlacementKinds: ['unit'] },
+          },
+          {
+            id: 'raiders',
+            count: 1,
+            terrain: ['forest', 'hill', 'grass'],
+            edgePadding: 1,
+            minDistanceFromGroups: 3,
+            pathToGroups: ['party'],
+            routeProfile: { blockedTerrain: ['water'], maxElevationStep: 3, blockingPlacementKinds: ['unit'] },
+          },
+        ],
+      },
+      patrolRoutes: [
+        {
+          id: 'raider-watch',
+          count: 2,
+          startGroupId: 'raiders',
+          terrain: ['grass', 'forest', 'hill'],
+          loop: false,
+          routeProfile: { blockedTerrain: ['water'], maxElevationStep: 3, blockingPlacementKinds: ['unit'] },
+        },
+      ],
+      actors: [
+        {
+          actorId: 'player',
+          actorKind: 'player',
+          team: 'blue',
+          spawnGroupId: 'party',
+          assetId: 'flag_blue',
+          kind: 'unit',
+          movementAgent: { profile: 'worker', movementBudget: 5 },
+        },
+        {
+          actorId: 'elder',
+          actorKind: 'npc',
+          team: 'blue',
+          interactive: true,
+          spawnGroupId: 'villagers',
+          assetId: 'flag_green',
+          kind: 'prop',
+        },
+        {
+          actorId: 'raider',
+          actorKind: 'enemy',
+          hostile: true,
+          spawnGroupId: 'raiders',
+          assetId: 'flag_red',
+          kind: 'unit',
+          patrolAgent: { routeId: 'raider-watch', movement: { profile: 'ground' } },
+        },
+      ],
+      quests: [
+        {
+          id: 'blueprint:playable-scene:quest',
+          title: 'Reach The Elder',
+          objectives: [
+            {
+              id: 'reach-elder',
+              kind: 'reach-actor',
+              actor: 'player',
+              targetActor: 'elder',
+            },
+          ],
+        },
+      ],
+      scenarioMetadata: { fixture: true },
+    } as const;
+
+    const scenario = createMedievalGameboardBlueprintScenario(options);
+    const inspection = inspectMedievalGameboardBlueprintScenario(options);
+    const runtime = createMedievalGameboardWorldFromBlueprint(options);
+
+    expect(scenario).toMatchObject({
+      id: 'blueprint:playable-scene',
+      title: 'Playable Blueprint Scene',
+      metadata: {
+        source: 'medieval-gameboard-blueprint',
+        blueprintSeed: 'blueprint-playable-scene',
+        blueprintShape: 'rectangle:10x8',
+        fixture: true,
+      },
+    });
+    expect(inspection.blueprint.counts.towns).toBe(1);
+    expect(inspection.blueprint.counts.harbors).toBe(1);
+    expect(inspection.scenarioInspection.violations.filter((violation) => violation.severity === 'error')).toEqual([]);
+    expect(inspection.scenarioInspection.spawnGroups?.groups.map((group) => group.id)).toEqual([
+      'party',
+      'villagers',
+      'raiders',
+    ]);
+    expect(inspection.scenarioInspection.patrolRoutes?.routes[0]).toMatchObject({
+      id: 'raider-watch',
+      found: true,
+    });
+    expect(runtime.actorEntities.player).toBeDefined();
+    expect(runtime.questEntities['blueprint:playable-scene:quest']).toBeDefined();
+    expect(runtime.actors.map((actor) => actor.actor.actorId).sort()).toEqual([
+      'elder',
+      'player',
+      'raider',
+    ]);
+    expect(runtime.actors.find((actor) => actor.actor.actorId === 'player')?.actor.metadata).toMatchObject({
+      scenarioSpawnGroupId: 'party',
+    });
+    expect(runtime.patrolRoutes?.routes[0]?.pathKeys.length).toBeGreaterThan(0);
   });
 });

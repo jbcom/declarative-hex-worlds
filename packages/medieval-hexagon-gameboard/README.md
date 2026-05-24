@@ -1584,6 +1584,8 @@ and transition policy" without hand placing every supporting tile.
 ```ts
 import {
   createMedievalGameboardBlueprintPlan,
+  createMedievalGameboardBlueprintScenario,
+  createMedievalGameboardWorldFromBlueprint,
   inspectMedievalGameboardBlueprint,
 } from '@jbcom/medieval-hexagon-gameboard/blueprint';
 
@@ -1621,11 +1623,34 @@ const plan = createMedievalGameboardBlueprintPlan({
 
 const inspection = inspectMedievalGameboardBlueprint({ seed: 'campaign-01' });
 console.table(inspection.counts);
+
+const playableScene = {
+  scenarioId: 'campaign-01:intro',
+  seed: 'campaign-01:intro',
+  shape: { kind: 'rectangle', width: 12, height: 9 },
+  towns: [{ center: { q: 4, r: 4 }, includeWalls: true }],
+  harbors: [{ at: { q: 6, r: 7 }, facing: 1, kind: 'shipyard', roadTo: { q: 4, r: 4 } }],
+  spawnGroups: {
+    groups: [
+      { id: 'party', count: 1, terrain: ['grass', 'road', 'coast'] },
+      { id: 'raiders', count: 2, terrain: ['forest', 'hill', 'grass'], minDistanceFromGroups: 4, pathToGroups: ['party'] },
+    ],
+  },
+  actors: [
+    { actorId: 'player', actorKind: 'player', spawnGroupId: 'party', assetId: 'flag_blue', kind: 'unit' },
+    { actorId: 'raider', actorKind: 'enemy', hostile: true, spawnGroupId: 'raiders', assetId: 'flag_red', kind: 'unit' },
+  ],
+};
+
+const scenario = createMedievalGameboardBlueprintScenario(playableScene);
+const runtime = createMedievalGameboardWorldFromBlueprint(playableScene);
 ```
 
 Blueprints compile to regular recipe JSON and then to a regular `GameboardPlan`,
-so renderers, Koota, external ECS adapters, validators, and saved scenarios do
-not need a special runtime. `biomeFills` controls texture-set percentages;
+or to a regular `GameboardScenario` when the same board intent should include
+spawn groups, actors, patrol routes, and quests. Renderers, Koota, external ECS
+adapters, validators, and saved scenarios do not need a special runtime.
+`biomeFills` controls texture-set percentages;
 `maxElevation` and `mountainRanges` create stacked multi-tile ridges;
 `propClusterDressing` compiles generated or authored camps, resource caches,
 worksites, training yards, stable yards, and harbor support clusters into normal

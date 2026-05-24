@@ -37,6 +37,16 @@ import {
   createSeededGameboardDensityFillRules,
   type SeededGameboardLayoutDensityOptions,
 } from './rules';
+import {
+  createGameboardScenario,
+  createGameboardWorldFromScenario,
+  inspectGameboardScenario,
+  type CreateGameboardScenarioOptions,
+  type GameboardScenario,
+  type GameboardScenarioRuntime,
+  type GameboardScenarioValidationConfig,
+  type GameboardScenarioValidationResult,
+} from './scenario';
 import type { Faction, GameboardShape, HexCoordinates, HexEdgeIndex, TextureSet } from './types';
 
 /** Texture-set fill target for authored or generated biome regions. */
@@ -203,6 +213,26 @@ export interface MedievalGameboardBlueprintInspection {
   counts: Readonly<Record<string, number>>;
 }
 
+/** Scenario-level options for compiling a blueprint into playable content. */
+export interface MedievalGameboardBlueprintScenarioOptions
+  extends MedievalGameboardBlueprintOptions,
+    Omit<CreateGameboardScenarioOptions, 'metadata'> {
+  /** Stable scenario id. Defaults to `medieval-blueprint:<seed>`. */
+  scenarioId?: string;
+  /** Serializable metadata attached to the scenario. */
+  scenarioMetadata?: CreateGameboardScenarioOptions['metadata'];
+}
+
+/** Combined blueprint and scenario diagnostics for generated playable boards. */
+export interface MedievalGameboardBlueprintScenarioInspection {
+  /** Blueprint inspection, including the generated recipe and compiled plan. */
+  blueprint: MedievalGameboardBlueprintInspection;
+  /** Scenario produced from the generated recipe and authored runtime content. */
+  scenario: GameboardScenario;
+  /** Scenario validation result, including spawn groups and patrol routes. */
+  scenarioInspection: GameboardScenarioValidationResult;
+}
+
 interface MutableBlueprintTile {
   coordinates: HexCoordinates;
   terrain: GameboardTerrain;
@@ -255,6 +285,34 @@ export function inspectMedievalGameboardBlueprint(
   return {
     ...result,
     plan: createGameboardPlanFromRecipe(result.recipe),
+  };
+}
+
+/** Compile board intent plus spawn groups, actors, patrols, and quests into a scenario. */
+export function createMedievalGameboardBlueprintScenario(
+  options: MedievalGameboardBlueprintScenarioOptions = {}
+): GameboardScenario {
+  return createScenarioFromBlueprintRecipe(createMedievalGameboardBlueprintRecipe(options), options);
+}
+
+/** Compile a blueprint scenario and instantiate it into a ready Koota runtime. */
+export function createMedievalGameboardWorldFromBlueprint(
+  options: MedievalGameboardBlueprintScenarioOptions = {}
+): GameboardScenarioRuntime {
+  return createGameboardWorldFromScenario(createMedievalGameboardBlueprintScenario(options));
+}
+
+/** Inspect both generated board intent and playable scenario wiring. */
+export function inspectMedievalGameboardBlueprintScenario(
+  options: MedievalGameboardBlueprintScenarioOptions = {},
+  config: GameboardScenarioValidationConfig = {}
+): MedievalGameboardBlueprintScenarioInspection {
+  const blueprint = inspectMedievalGameboardBlueprint(options);
+  const scenario = createScenarioFromBlueprintRecipe(blueprint.recipe, options);
+  return {
+    blueprint,
+    scenario,
+    scenarioInspection: inspectGameboardScenario(scenario, config),
   };
 }
 
@@ -393,6 +451,32 @@ function buildMedievalGameboardBlueprint(options: MedievalGameboardBlueprintOpti
     warnings,
     counts,
   };
+}
+
+function createScenarioFromBlueprintRecipe(
+  recipe: GameboardRecipe,
+  options: MedievalGameboardBlueprintScenarioOptions
+): GameboardScenario {
+  const seed = String(recipe.options.seed ?? options.seed ?? 'medieval-gameboard-blueprint');
+  return createGameboardScenario(options.scenarioId ?? `medieval-blueprint:${seed}`, recipe, {
+    title: options.title,
+    spawnGroups: options.spawnGroups,
+    patrolRoutes: options.patrolRoutes,
+    actors: options.actors,
+    quests: options.quests,
+    metadata: {
+      source: 'medieval-gameboard-blueprint',
+      blueprintSeed: seed,
+      blueprintShape: blueprintShapeLabel(recipe.options.shape),
+      ...(options.scenarioMetadata ?? {}),
+    },
+  });
+}
+
+function blueprintShapeLabel(shape: GameboardShape): string {
+  return shape.kind === 'rectangle'
+    ? `rectangle:${shape.width}x${shape.height}`
+    : `hexagon:${shape.radius}`;
 }
 
 function applyWaterBand(
