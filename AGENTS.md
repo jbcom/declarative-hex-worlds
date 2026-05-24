@@ -576,6 +576,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js blueprint --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --outInterop /tmp/blueprint.interop.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js summarize-plan --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --out /tmp/blueprint.summary.json --outPlan /tmp/blueprint.summary.plan.json --allowUnknownAssets
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze-layout --recipe docs/examples/generated-piece-scenario.recipe.json --rules layout-rules.json --out /tmp/layout-analysis.json --outPlan /tmp/scenario-plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js spawn-groups --recipe docs/examples/generated-piece-scenario.recipe.json --groups spawn-groups.json --out /tmp/spawn-groups.json

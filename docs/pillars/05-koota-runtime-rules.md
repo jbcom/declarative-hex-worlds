@@ -600,7 +600,11 @@ validates scenario IDs, actor references, quest references, and asset manifest
 membership before creating Koota runtime state. When those
 validation commands receive `--manifest` or a local source folder, they also
 check tile, placement, and scenario actor asset ids plus `requiresExtra`
-consistency. `analyze-layout` checks layout fill rule JSON against a saved plan,
+consistency. `summarize-plan` accepts a saved plan, recipe, scenario, or
+blueprint and emits validation counts plus the same `GameboardPlanSummary` as
+the public API, which gives CI, visual queues, editors, and agents a no-code way
+to prove terrain, texture, elevation, feature, asset, and local-only coverage
+before rendering. `analyze-layout` checks layout fill rule JSON against a saved plan,
 recipe, or scenario and emits the same candidate, selected, warning, and error
 diagnostics as `analyzeGameboardLayoutFill` for build-time tuning. With recipe
 or scenario inputs, `--outPlan` also writes the compiled board JSON so one build

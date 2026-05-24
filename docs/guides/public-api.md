@@ -186,6 +186,12 @@ medieval-hexagon-gameboard blueprint \
   --outInterop campaign.interop.json \
   --out campaign.inspection.json \
   --allowUnknownAssets
+
+medieval-hexagon-gameboard summarize-plan \
+  --blueprint examples/blueprint-board.json \
+  --out campaign.summary.json \
+  --outPlan campaign.summary.plan.json \
+  --allowUnknownAssets
 ```
 
 ## Runtime Facade

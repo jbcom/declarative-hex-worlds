@@ -56,7 +56,12 @@ import {
   type HexTileRegistry,
 } from './registry';
 import { validateGameboardPlan, type GameboardPlanValidationConfig } from './validation';
-import type { GameboardPlan } from './gameboard';
+import {
+  summarizeGameboardPlan,
+  type GameboardPlan,
+  type GameboardPlanSummary,
+  type SummarizeGameboardPlanOptions,
+} from './gameboard';
 import { inspectGameboardRecipe, type GameboardRecipe } from './recipe';
 import {
   createGameboardWorldFromScenario,
@@ -180,6 +185,28 @@ interface PiecesFromAssetsSummary {
   registryErrors: readonly string[];
 }
 
+type GameboardPlanInputKind = 'plan' | 'recipe' | 'scenario' | 'blueprint';
+type GameboardPlanValidationViolation = ReturnType<typeof validateGameboardPlan>[number];
+
+interface GameboardPlanSummaryInput {
+  source: {
+    kind: GameboardPlanInputKind;
+    path: string;
+  };
+  plan: GameboardPlan;
+  violations: readonly GameboardPlanValidationViolation[];
+}
+
+interface GameboardPlanSummaryPayload {
+  source: GameboardPlanSummaryInput['source'];
+  validation: {
+    errorCount: number;
+    warningCount: number;
+    violations: readonly GameboardPlanValidationViolation[];
+  };
+  summary: GameboardPlanSummary;
+}
+
 function main(argv: string[]): void {
   const parsed = parseArgs(argv);
   const edition = readEdition(parsed.flags.edition);
@@ -277,6 +304,11 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'blueprint') {
     runBlueprint(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'summarize-plan') {
+    runSummarizePlan(parsed, sourceRoot, edition);
     return;
   }
 
@@ -1021,6 +1053,50 @@ function runSnapshot(parsed: ParsedArgs, sourceRoot: string, edition: PackEditio
   }
 }
 
+function runSummarizePlan(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const input = summaryPlanFromArgs(
+    parsed,
+    validationConfigFromArgs(parsed, sourceRoot, edition),
+    parsed.flags.allowInvalid === true
+  );
+  const errorCount = input.violations.filter((violation) => violation.severity === 'error').length;
+  const warningCount = input.violations.filter(
+    (violation) => violation.severity === 'warning'
+  ).length;
+  if (errorCount > 0 && parsed.flags.allowInvalid !== true) {
+    printViolations(input.violations);
+    process.exit(1);
+  }
+
+  const payload: GameboardPlanSummaryPayload = {
+    source: input.source,
+    validation: {
+      errorCount,
+      warningCount,
+      violations: input.violations,
+    },
+    summary: summarizeGameboardPlan(input.plan, summaryOptionsFromFlags(parsed.flags)),
+  };
+
+  if (typeof parsed.flags.outPlan === 'string') {
+    writeFileSync(resolve(parsed.flags.outPlan), `${JSON.stringify(input.plan, null, 2)}\n`, 'utf8');
+    console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+  }
+
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote plan summary to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true) {
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    printGameboardPlanSummary(payload);
+  }
+
+  if (parsed.flags.failOnWarning === true && warningCount > 0) {
+    process.exit(1);
+  }
+}
+
 function runAnalyzeLayout(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
   const inputFlags = ['plan', 'recipe', 'scenario'].filter(
     (key) => typeof parsed.flags[key] === 'string'
@@ -1338,6 +1414,91 @@ function layoutAnalysisPlanFromArgs(
     plan: inspection.plan,
     violations: inspection.violations,
   };
+}
+
+function summaryPlanFromArgs(
+  parsed: ParsedArgs,
+  validationConfig: GameboardPlanValidationConfig,
+  allowInvalid: boolean
+): GameboardPlanSummaryInput {
+  const blueprintPath =
+    typeof parsed.flags.blueprint === 'string'
+      ? parsed.flags.blueprint
+      : typeof parsed.flags.config === 'string'
+        ? parsed.flags.config
+        : undefined;
+  const inputFlags = [
+    ...['plan', 'recipe', 'scenario'].filter((key) => typeof parsed.flags[key] === 'string'),
+    ...(blueprintPath ? ['blueprint'] : []),
+  ];
+  if (inputFlags.length !== 1) {
+    throw new Error(
+      'summarize-plan requires exactly one of --plan <path>, --recipe <path>, --scenario <path>, or --blueprint <path>'
+    );
+  }
+
+  if (typeof parsed.flags.plan === 'string') {
+    const path = resolve(parsed.flags.plan);
+    const plan = readJson<GameboardPlan>(path);
+    return {
+      source: { kind: 'plan', path },
+      plan,
+      violations: validateGameboardPlan(plan, validationConfig),
+    };
+  }
+
+  if (typeof parsed.flags.recipe === 'string') {
+    const path = resolve(parsed.flags.recipe);
+    const inspection = inspectGameboardRecipe(readJson<GameboardRecipe>(path), {
+      plan: validationConfig,
+    });
+    if (!inspection.plan) {
+      if (!allowInvalid) {
+        printViolations(inspection.violations);
+        process.exit(1);
+      }
+      throw new Error(`Recipe ${path} did not compile to a GameboardPlan`);
+    }
+    return {
+      source: { kind: 'recipe', path },
+      plan: inspection.plan,
+      violations: inspection.violations,
+    };
+  }
+
+  if (typeof parsed.flags.scenario === 'string') {
+    const path = resolve(parsed.flags.scenario);
+    const inspection = inspectGameboardScenario(readJson<GameboardScenario>(path), {
+      plan: validationConfig,
+    });
+    if (!inspection.plan) {
+      if (!allowInvalid) {
+        printViolations(inspection.violations);
+        process.exit(1);
+      }
+      throw new Error(`Scenario ${path} did not compile to a GameboardPlan`);
+    }
+    return {
+      source: { kind: 'scenario', path },
+      plan: inspection.plan,
+      violations: inspection.violations,
+    };
+  }
+
+  const path = resolve(String(blueprintPath));
+  const inspection = inspectMedievalGameboardBlueprint(readBlueprintOptions(parsed.flags));
+  return {
+    source: { kind: 'blueprint', path },
+    plan: inspection.plan,
+    violations: validateGameboardPlan(inspection.plan, validationConfig),
+  };
+}
+
+function summaryOptionsFromFlags(
+  flags: Record<string, string | boolean>
+): SummarizeGameboardPlanOptions {
+  const topAssetLimit = readNumberFlag(flags.topAssetLimit ?? flags.topAssets);
+  return topAssetLimit === undefined ? {} : { topAssetLimit };
 }
 
 function routePlanningPlanFromArgs(
@@ -2798,6 +2959,41 @@ function printAnalysis(analysis: ReturnType<typeof analyzeHexTileRegistry>): voi
   }
 }
 
+function printGameboardPlanSummary(payload: GameboardPlanSummaryPayload): void {
+  const { summary, validation, source } = payload;
+  const topAssets = summary.topAssets.slice(0, 10).map((asset) => {
+    const suffix = asset.requiresExtra ? '*' : '';
+    return `${asset.assetId}${suffix}=${asset.count}`;
+  });
+  console.log(`source: ${source.kind} ${source.path}`);
+  console.log(`seed: ${summary.seed}`);
+  console.log(`shape: ${formatShape(summary.shape)}`);
+  console.log(`texture set: ${summary.textureSet}`);
+  console.log(`tiles: ${summary.tileCount}`);
+  console.log(`placements: ${summary.placementCount}`);
+  console.log(`plan warnings: ${summary.warningCount}`);
+  console.log(`validation: ${validation.errorCount} error(s), ${validation.warningCount} warning(s)`);
+  console.log(`terrain: ${formatCounts(summary.tileTerrainCounts)}`);
+  console.log(`textures: ${formatCounts(summary.tileTextureSetCounts)}`);
+  console.log(`elevations: ${formatCounts(summary.tileElevationCounts)}`);
+  console.log(`tile tags: ${formatCounts(summary.tileTagCounts)}`);
+  console.log(`placement kinds: ${formatCounts(summary.placementKindCounts)}`);
+  console.log(`placement layers: ${formatCounts(summary.placementLayerCounts)}`);
+  console.log(`features: ${formatCounts(summary.placementFeatureCounts)}`);
+  console.log(`requires extra placements: ${summary.requiresExtraPlacementCount}`);
+  console.log(
+    `extra assets: ${summary.extraAssetIds.length ? summary.extraAssetIds.join(', ') : 'none'}`
+  );
+  console.log(`top assets: ${topAssets.length ? topAssets.join(', ') : 'none'}`);
+}
+
+function formatShape(shape: GameboardPlan['shape']): string {
+  if (shape.kind === 'rectangle') {
+    return `rectangle ${shape.width}x${shape.height}`;
+  }
+  return `hexagon radius ${shape.radius}`;
+}
+
 function printBlueprintInspection(
   inspection: MedievalGameboardBlueprintInspection,
   violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>
@@ -3693,6 +3889,7 @@ Commands:
   guide-roles Emit public role to guide-page, asset, and API coverage metadata
   guide-apis Emit public API to guide-page and asset coverage metadata
   blueprint Compile high-level 2.5D board intent to a recipe, plan, scenario, and diagnostics
+  summarize-plan Summarize terrain, placement, feature, asset, and local-only usage in a plan, recipe, scenario, or blueprint
   pieces    Validate piece declarations and optionally emit seeded piece fill rules
   place-piece Inspect and append one declared piece against a saved GameboardPlan, recipe, or scenario
   validate-plan Validate a GameboardPlan JSON with optional registry rules
@@ -3801,6 +3998,7 @@ Options:
   --fill <number>
   --minCount <number>
   --maxCount <number>
+  --topAssetLimit <number>
   --failOnWarning
   --failOnBlockedQuest
   --includeReport

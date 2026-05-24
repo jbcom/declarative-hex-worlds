@@ -217,6 +217,154 @@ describe('CLI', () => {
     expect(invalidOutput).not.toContain('recipe.compile_failed');
   });
 
+  it('summarizes plans, recipes, scenarios, and blueprints through the CLI', () => {
+    const root = createTempRoot();
+    const planPath = resolve(root, 'summary-plan.json');
+    const recipeCompiledPlanPath = resolve(root, 'summary-recipe.plan.json');
+    const blueprintPath = resolve(root, 'summary-blueprint.json');
+    const blueprintSummaryPath = resolve(root, 'summary-blueprint.summary.json');
+    const blueprintPlanPath = resolve(root, 'summary-blueprint.plan.json');
+    const plan = createGameboardBuilder({
+      seed: 'cli-summary-plan',
+      shape: { kind: 'rectangle', width: 4, height: 3 },
+    })
+      .addHarbor({ at: { q: 1, r: 1 }, facing: 1, faction: 'green', kind: 'shipyard' })
+      .addRoadPath([
+        { q: 0, r: 1 },
+        { q: 1, r: 1 },
+        { q: 2, r: 1 },
+      ])
+      .addMountainStack({ at: { q: 3, r: 0 }, height: 2, variant: 'A', withTrees: true })
+      .build();
+    writeFileSync(planPath, `${JSON.stringify(plan, null, 2)}\n`, 'utf8');
+    writeFileSync(
+      blueprintPath,
+      `${JSON.stringify(
+        {
+          seed: 'cli-summary-blueprint',
+          shape: { kind: 'rectangle', width: 5, height: 4 },
+          waterFill: 0.2,
+          maxElevation: 2,
+          towns: 0,
+          harbors: 0,
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const textOutput = runCli(['summarize-plan', '--plan', planPath, '--topAssetLimit', '5']);
+    const planPayload = JSON.parse(
+      runCli(['summarize-plan', '--plan', planPath, '--json', '--topAssetLimit', '100'])
+    ) as {
+      source: { kind: string; path: string };
+      validation: { errorCount: number; warningCount: number };
+      summary: {
+        seed: string;
+        tileTerrainCounts: Record<string, number>;
+        tileElevationCounts: Record<string, number>;
+        placementFeatureCounts: Record<string, number>;
+        extraAssetIds: string[];
+        topAssets: Array<{ assetId: string; requiresExtra: boolean; features: string[] }>;
+      };
+    };
+    const recipeOutput = runCli([
+      'summarize-plan',
+      '--recipe',
+      docsRecipePath,
+      '--manifest',
+      freeManifestPath,
+      '--json',
+      '--outPlan',
+      recipeCompiledPlanPath,
+    ]);
+    const recipePayload = JSON.parse(jsonPayload(recipeOutput)) as {
+      source: { kind: string };
+      validation: { errorCount: number };
+      summary: { tileCount: number; placementCount: number };
+    };
+    const scenarioPayload = JSON.parse(
+      runCli([
+        'summarize-plan',
+        '--scenario',
+        docsScenarioPath,
+        '--manifest',
+        freeManifestPath,
+        '--json',
+      ])
+    ) as {
+      source: { kind: string };
+      validation: { errorCount: number };
+      summary: { tileCount: number; placementCount: number; tileTerrainCounts: Record<string, number> };
+    };
+    const blueprintOutput = runCli([
+      'summarize-plan',
+      '--blueprint',
+      blueprintPath,
+      '--out',
+      blueprintSummaryPath,
+      '--outPlan',
+      blueprintPlanPath,
+      '--topAssetLimit',
+      '8',
+    ]);
+    const blueprintPayload = JSON.parse(readFileSync(blueprintSummaryPath, 'utf8')) as {
+      source: { kind: string };
+      validation: { errorCount: number };
+      summary: { seed: string; tileCount: number; placementCount: number };
+    };
+
+    expect(textOutput).toContain(`source: plan ${planPath}`);
+    expect(textOutput).toContain('terrain:');
+    expect(textOutput).toContain('features:');
+    expect(textOutput).toContain('extra assets: anchor, boat, building_shipyard_green');
+    expect(planPayload).toMatchObject({
+      source: { kind: 'plan', path: planPath },
+      validation: { errorCount: 0, warningCount: 0 },
+      summary: {
+        seed: 'cli-summary-plan',
+      },
+    });
+    expect(planPayload.summary.tileTerrainCounts.coast).toBeGreaterThan(0);
+    expect(planPayload.summary.tileElevationCounts['2']).toBeGreaterThan(0);
+    expect(planPayload.summary.placementFeatureCounts.harbor).toBe(1);
+    expect(planPayload.summary.extraAssetIds).toContain('building_shipyard_green');
+    expect(planPayload.summary.topAssets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          assetId: 'building_shipyard_green',
+          requiresExtra: true,
+          features: ['harbor'],
+        }),
+      ])
+    );
+    expect(recipeOutput).toContain(`Wrote compiled GameboardPlan to ${recipeCompiledPlanPath}`);
+    expect(recipePayload).toMatchObject({
+      source: { kind: 'recipe' },
+      validation: { errorCount: 0 },
+    });
+    expect(recipePayload.summary.tileCount).toBeGreaterThan(0);
+    expect(recipePayload.summary.placementCount).toBeGreaterThan(0);
+    expect(existsSync(recipeCompiledPlanPath)).toBe(true);
+    expect(scenarioPayload).toMatchObject({
+      source: { kind: 'scenario' },
+      validation: { errorCount: 0 },
+    });
+    expect(scenarioPayload.summary.tileCount).toBeGreaterThan(0);
+    expect(scenarioPayload.summary.tileTerrainCounts.road).toBeGreaterThan(0);
+    expect(blueprintOutput).toContain(`Wrote compiled GameboardPlan to ${blueprintPlanPath}`);
+    expect(blueprintOutput).toContain(`Wrote plan summary to ${blueprintSummaryPath}`);
+    expect(blueprintPayload).toMatchObject({
+      source: { kind: 'blueprint' },
+      validation: { errorCount: 0 },
+      summary: { seed: 'cli-summary-blueprint' },
+    });
+    expect(blueprintPayload.summary.tileCount).toBeGreaterThan(0);
+    expect(blueprintPayload.summary.placementCount).toBeGreaterThan(0);
+    expect(existsSync(blueprintPlanPath)).toBe(true);
+  });
+
   it('compiles high-level blueprint board specs through the CLI', () => {
     const root = createTempRoot();
     const blueprintPath = resolve(root, 'campaign-blueprint.json');

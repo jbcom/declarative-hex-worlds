@@ -113,6 +113,36 @@ try {
       installedGuideUsage.assetIds.includes('unit_blue_full'),
     'packed CLI guide-usages command did not emit page 14 renderer rows'
   );
+  const installedSummaryOutput = execFileSync(
+    process.execPath,
+    [
+      installedCliPath,
+      'summarize-plan',
+      '--scenario',
+      join(installedPackageRoot, 'examples/simple-rpg-scenario.json'),
+      '--manifest',
+      join(installedPackageRoot, 'assets/free/manifest.json'),
+      '--json',
+    ],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  const installedSummary = JSON.parse(installedSummaryOutput) as {
+    source: { kind: string };
+    validation: { errorCount: number };
+    summary: { tileCount: number; placementCount: number; placementKindCounts: Record<string, number> };
+  };
+  assert(
+    installedSummary.source.kind === 'scenario' &&
+      installedSummary.validation.errorCount === 0 &&
+      installedSummary.summary.tileCount > 0 &&
+      installedSummary.summary.placementCount > 0 &&
+      installedSummary.summary.placementKindCounts.terrain > 0,
+    'packed CLI summarize-plan command did not emit scenario board counts'
+  );
 
   writeFileSync(
     join(appRoot, 'smoke-types.ts'),
@@ -149,6 +179,7 @@ import {
   selectGameboardActors,
   selectGameboardInteropRelations,
   spawnGameboardActor,
+  summarizeGameboardPlan,
   validateGameboardRecipeGeneration,
   type DispatchGameboardActorTargetCommandResult,
   type GameboardActorSelection,
@@ -177,6 +208,7 @@ import {
   type SpawnGameboardPlacementOptions,
   type InspectGameboardPlacementOccupancyOptions,
   type GameboardPlan,
+  type GameboardPlanSummary,
   type GameboardPlacementOccupancyRecord,
   type GameboardQuestSnapshot,
   type PlacementOccupancySnapshot,
@@ -280,6 +312,8 @@ import {
 import {
   GAMEBOARD_SCHEMA_VERSION,
   createGameboardBuilder as createGameboardBuilderFromGameboard,
+  summarizeGameboardPlan as summarizeGameboardPlanFromGameboard,
+  type GameboardPlanSummary as GameboardPlanSummaryFromGameboard,
   type GameboardPlacementSpec as GameboardPlacementSpecFromGameboard,
 } from '@jbcom/medieval-hexagon-gameboard/gameboard';
 import {
@@ -392,6 +426,7 @@ const plan: GameboardPlan = createSeededGameboardPlan({
   shape: { kind: 'rectangle', width: 2, height: 2 },
   layoutDensity: { harbors: { count: 0 } },
 });
+const planSummary: GameboardPlanSummary = summarizeGameboardPlan(plan);
 const blueprintUsage: BlueprintBoardUsageSummary = runBlueprintBoardUsageExample();
 const blueprintScenarioId: string = blueprintBoardJson.scenarioId;
 const usage: SimpleRpgUsageSummary = runSimpleRpgUsageExample();
@@ -541,6 +576,8 @@ const gameboardBuilderFromGameboard = createGameboardBuilderFromGameboard({
   shape: { kind: 'rectangle', width: 1, height: 1 },
 });
 const placementFromGameboard: GameboardPlacementSpecFromGameboard | undefined = plan.placements[0];
+const planSummaryFromGameboard: GameboardPlanSummaryFromGameboard =
+  summarizeGameboardPlanFromGameboard(plan);
 const factionBuildingKindFromCatalog: FactionBuildingKindFromCatalog = FACTION_BUILDING_KINDS[0]!;
 const factionBuildingAssetFromCatalog: string = factionBuildingAssetId(factionBuildingKindFromCatalog, 'blue');
 const flagAssetFromCatalog: string = flagAssetId('green');
@@ -672,6 +709,7 @@ runtime.movement.setAgent(runtimeActor, { profile: 'ground', movementBudget: 2 }
 runtime.dispatchCommand('1,0', { sourceActor: 'packed-runtime-player' });
 runtime.tick({ patrols: false, movement: { steps: 2 }, quests: false });
 const runtimeSnapshot: GameboardRuntimeSnapshot = runtime.snapshot({ includeInterop: false });
+const runtimePlanSummary: GameboardPlanSummary = runtime.summarizePlan();
 const runtimeMarker = runtime.spawnPlacement({
   id: 'packed-runtime-marker',
   at: '0,0',
@@ -915,6 +953,8 @@ void packedEditionsFromTypes;
 void patrolActionsFromPatrol;
 void patrolStatusFromPatrol;
 void placementAssetUrlFromThree;
+void planSummary;
+void planSummaryFromGameboard;
 void projectedPlanFromProjection;
 void questSchemaVersionFromQuests;
 void questSnapshotsFromQuests;
@@ -961,6 +1001,7 @@ void placementOccupancyInspection;
 void occupancySnapshots;
 void occupancyValue;
 void runtimeSnapshot;
+void runtimePlanSummary;
 void runtimePlacementRecords;
 void runtimeActorRecords;
 void runtimeTileActorRecords;
@@ -1092,6 +1133,7 @@ import {
   selectGameboardInteropRelations,
   spawnGameboardActor,
   spawnGameboardPlacement,
+  summarizeGameboardPlan,
 } from '@jbcom/medieval-hexagon-gameboard';
 import { runBlueprintBoardUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
 import { runSimpleRpgUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
@@ -1142,6 +1184,7 @@ import { readGameboardActors as readGameboardActorsFromActors } from '@jbcom/med
 import {
   GAMEBOARD_SCHEMA_VERSION,
   createGameboardBuilder as createGameboardBuilderFromGameboard,
+  summarizeGameboardPlan as summarizeGameboardPlanFromGameboard,
 } from '@jbcom/medieval-hexagon-gameboard/gameboard';
 import {
   FACTION_BUILDING_KINDS,
@@ -1245,6 +1288,7 @@ const plan = createSeededGameboardPlan({
   shape: { kind: 'rectangle', width: 4, height: 3 },
   layoutDensity: { harbors: { count: 1 }, trees: 0.1, props: 0.05 },
 });
+const planSummary = summarizeGameboardPlan(plan);
 const blueprintInspection = inspectMedievalGameboardBlueprint({
   seed: 'packed-consumer-blueprint-runtime',
   shape: { kind: 'rectangle', width: 6, height: 4 },
@@ -1276,6 +1320,7 @@ if (!navigation.canEnter('0,0')) {
 }
 const subpathWorld = createGameboardWorld(plan);
 const subpathProjectedPlan = projectWorldToGameboardPlan(subpathWorld);
+const subpathPlanSummary = summarizeGameboardPlanFromGameboard(subpathProjectedPlan);
 const subpathValidationPlan = readValidationGameboardPlanFromWorld(subpathWorld);
 const subpathInteropSnapshot = createGameboardInteropSnapshotFromInterop(plan);
 const subpathCoordinateSystem = createGameboardCoordinateSystem();
@@ -1364,6 +1409,8 @@ if (
   !subpathPath.found ||
   readGameboardActorsFromActors(subpathWorld).length !== 0 ||
   readGameboardPlacementsFromKoota(subpathWorld).length !== plan.placements.length ||
+  planSummary.tileCount !== plan.tiles.length ||
+  subpathPlanSummary.placementCount !== subpathProjectedPlan.placements.length ||
   GAMEBOARD_MOVEMENT_PROFILES.ground.id !== 'ground' ||
   typeof gameboardMovementActionsFromMovement(subpathWorld).runSystem !== 'function' ||
   gameboardPatrolActionsFromPatrol(subpathWorld).read().length !== 0 ||

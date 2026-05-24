@@ -2285,6 +2285,7 @@ medieval-hexagon-gameboard analyze --manifest assets/free/manifest.json --json
 medieval-hexagon-gameboard declarations --manifest assets/free/manifest.json --out kaykit-declarations.json
 medieval-hexagon-gameboard analyze --registry kaykit-declarations.json
 medieval-hexagon-gameboard blueprint --blueprint examples/blueprint-board.json --outRecipe campaign.recipe.json --outPlan campaign.plan.json --outScenario campaign.scenario.json --outScenarioInspection campaign.scenario-inspection.json --outInterop campaign.interop.json --out campaign.inspection.json --allowUnknownAssets
+medieval-hexagon-gameboard summarize-plan --blueprint examples/blueprint-board.json --out campaign.summary.json --outPlan campaign.summary.plan.json --allowUnknownAssets
 medieval-hexagon-gameboard validate-plan --plan board.json --manifest assets/free/manifest.json
 medieval-hexagon-gameboard validate-recipe --recipe scenario.json --manifest assets/free/manifest.json --outPlan board.json
 medieval-hexagon-gameboard analyze-layout --recipe scenario.recipe.json --rules layout-rules.json --out layout-analysis.json --outPlan board.json
@@ -2311,6 +2312,12 @@ and inspection JSON with counts and validation diagnostics. Use it when agents,
 map editors, or content pipelines need to generate stacked mountain ranges,
 towns, roads, harbors, biome percentages, prop-cluster dressing, ramps, bridges,
 and density fills without loading application code.
+`summarize-plan` accepts exactly one `--plan`, `--recipe`, `--scenario`, or
+`--blueprint` input and emits the same aggregate `GameboardPlanSummary` as the
+public API, with validation counts and optional `--outPlan` output. Use it for
+CI gates, visual-test manifests, editor sidebars, and agent audits that need to
+prove a board contains the expected terrain, texture, elevation, feature, asset,
+and local-only cases before rendering.
 `analyze-layout` checks saved fill rules against a saved plan, recipe, or
 scenario and reports candidate counts, selected tile keys, and warnings when
 requested counts or `minCount` values cannot be satisfied by the board. The same
