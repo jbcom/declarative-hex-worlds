@@ -1,6 +1,7 @@
 import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
 import generatedPieceScenario from '../../examples/generated-piece-scenario.recipe.json';
+import { listKayKitGuideScenarios } from '../../src/catalog';
 import { createMedievalHarborBoard } from '../../src/gameboard';
 import { freeManifest } from '../../src/manifest/free';
 import { createGameboardPlanFromRecipe, type GameboardRecipe } from '../../src/recipe';
@@ -14,6 +15,8 @@ import {
 } from '../../src/selectors';
 import type { GuideTilePermutation } from '../../src/selectors';
 import { assertCanvasHasRenderableContent, assetUrl, renderContactSheet, renderGameboardPlan } from './rendering';
+
+declare const __WORKSPACE_ROOT__: string;
 
 describe('FREE visual coverage', () => {
   it('captures a contact sheet for every FREE model', async () => {
@@ -34,6 +37,51 @@ describe('FREE visual coverage', () => {
       path: '__screenshots__/free-catalog.png',
     });
     expect(screenshot).toContain('free-catalog.png');
+  });
+
+  it('captures extracted guide pages and scenario-scoped FREE treatments', async () => {
+    await page.viewport(2000, 2300);
+    const scenarios = listKayKitGuideScenarios();
+    expect(scenarios).toHaveLength(19);
+
+    const guideMatrix = await renderGuidePageMatrix(scenarios);
+    const guideScreenshot = await page.screenshot({
+      element: guideMatrix,
+      path: '__screenshots__/free-guide-source-pages.png',
+    });
+    expect(guideScreenshot).toContain('free-guide-source-pages.png');
+
+    const requests = scenarios.flatMap((scenario) =>
+      scenario.assetIds.flatMap((assetId) => {
+        const asset = freeManifest.assetsById[assetId];
+        if (!asset) {
+          return [];
+        }
+        return [
+          {
+            asset,
+            url: assetUrl(asset),
+            label: `p${String(scenario.page).padStart(2, '0')}:${asset.id}`,
+            caption: scenario.id,
+          },
+        ];
+      })
+    );
+    expect(requests).toHaveLength(459);
+
+    const assetMatrix = await renderContactSheet(requests, {
+      title: 'free-guide-scenarios-by-extracted-page',
+      width: 1900,
+      height: 2200,
+      columns: 17,
+      cellSize: 2.65,
+    });
+    assertCanvasHasRenderableContent(assetMatrix, { minDrawCalls: requests.length });
+    const assetScreenshot = await page.screenshot({
+      element: assetMatrix,
+      path: '__screenshots__/free-guide-scenarios-by-extracted-page.png',
+    });
+    expect(assetScreenshot).toContain('free-guide-scenarios-by-extracted-page.png');
   });
 
   it('captures all road guide permutations by label and rotation', async () => {
@@ -261,4 +309,68 @@ function requestForPermutation(permutation: GuideTilePermutation) {
     label: `${permutation.kind}:${permutation.label}:r${permutation.rotationSteps}`,
     caption: `${permutation.waterless ? 'waterless' : 'water'} mask=${permutation.inputMask.toString(2).padStart(6, '0')}`,
   };
+}
+
+async function renderGuidePageMatrix(scenarios: ReturnType<typeof listKayKitGuideScenarios>): Promise<HTMLElement> {
+  const matrix = document.createElement('section');
+  matrix.dataset.testid = 'free-guide-source-pages';
+  matrix.style.boxSizing = 'border-box';
+  matrix.style.width = '1900px';
+  matrix.style.padding = '20px';
+  matrix.style.background = '#20251f';
+  matrix.style.color = '#f8f7e9';
+  matrix.style.display = 'grid';
+  matrix.style.gridTemplateColumns = 'repeat(5, 1fr)';
+  matrix.style.gap = '14px';
+  matrix.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, monospace';
+  document.body.innerHTML = '';
+  document.body.style.margin = '0';
+  document.body.style.background = '#20251f';
+  document.body.append(matrix);
+
+  const imageLoads: Promise<void>[] = [];
+  for (const scenario of scenarios) {
+    const card = document.createElement('article');
+    card.style.background = '#2b3029';
+    card.style.border = '1px solid rgba(255, 255, 255, 0.16)';
+    card.style.padding = '10px';
+    card.style.minHeight = '290px';
+    card.style.display = 'grid';
+    card.style.gridTemplateRows = 'auto 1fr auto';
+    card.style.gap = '8px';
+
+    const title = document.createElement('div');
+    title.textContent = `page-${String(scenario.page).padStart(2, '0')} ${scenario.title}`;
+    title.style.fontSize = '13px';
+    title.style.fontWeight = '700';
+
+    const image = document.createElement('img');
+    image.src = guideSourceImageUrl(scenario.sourceImage);
+    image.alt = scenario.title;
+    image.style.width = '100%';
+    image.style.height = '220px';
+    image.style.objectFit = 'contain';
+    image.style.background = '#11140f';
+
+    const caption = document.createElement('div');
+    caption.textContent = `${scenario.edition} assets=${scenario.assetIds.length} api=${scenario.publicApi.length}`;
+    caption.style.fontSize = '11px';
+    caption.style.color = '#c9f3b1';
+
+    card.append(title, image, caption);
+    matrix.append(card);
+    imageLoads.push(
+      new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error(`Unable to load guide source image ${scenario.sourceImage}`));
+      })
+    );
+  }
+
+  await Promise.all(imageLoads);
+  return matrix;
+}
+
+function guideSourceImageUrl(sourceImage: string): string {
+  return `/@fs/${__WORKSPACE_ROOT__}/${sourceImage}`;
 }

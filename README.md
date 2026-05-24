@@ -259,11 +259,12 @@ For local visual review, run `pnpm test:visual`; it serializes the FREE browser
 suite, local EXTRA suite, and local third-party asset E2E suite.
 
 The browser commands run both in-browser render assertions and post-capture PNG
-artifact checks. FREE guide coverage is split into labeled sheets for roads,
-rivers, curvy/crossing rivers, coasts, and non-connectivity guide treatments
-instead of one ambiguous repeated-looking montage. EXTRA local coverage renders
-all 404 source assets by category: tiles, buildings, decoration, and units. To
-re-check existing screenshots without relaunching Chromium, run
+artifact checks. FREE guide coverage includes all 19 extracted source pages,
+FREE treatments grouped by guide page, and labeled sheets for roads, rivers,
+curvy/crossing rivers, coasts, and non-connectivity guide treatments instead of
+one ambiguous repeated-looking montage. EXTRA local coverage renders all 404
+source assets by category: tiles, buildings, decoration, and units. To re-check
+existing screenshots without relaunching Chromium, run
 `pnpm test:screenshots:free`, `pnpm test:screenshots:extra`, or
 `pnpm test:screenshots:local-assets`.
 

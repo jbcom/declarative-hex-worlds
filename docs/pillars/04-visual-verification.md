@@ -70,6 +70,11 @@ visual artifacts that should be reviewed.
 ## Required review surfaces
 
 - FREE catalog contact sheet with every published FREE model.
+- FREE extracted guide-page matrix with all 19 source PNGs, page titles,
+  edition scopes, asset counts, and public API counts.
+- FREE guide-scenario treatment sheet with every FREE asset occurrence grouped
+  by extracted guide page, so review follows the decomposed README rather than
+  only category sheets.
 - Road A-M variation sheet with all six rotation inputs for each guide label,
   labeled by guide label, rotation, and edge mask.
 - River A-L sheets with all six rotation inputs for each guide label in both
@@ -121,6 +126,11 @@ manifests, loader logic, or asset generation changes.
 the browser captures. The reviewed screenshots included:
 
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-catalog.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-source-pages.png`
+  covering all 19 extracted guide PNGs as source material.
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png`
+  covering the 459 FREE asset occurrences referenced by the page-level guide
+  scenario matrix.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
   covering all 78 road label/rotation permutations.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`

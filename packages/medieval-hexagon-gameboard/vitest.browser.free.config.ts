@@ -1,6 +1,10 @@
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const packageRoot = dirname(fileURLToPath(import.meta.url));
+const workspaceRoot = resolve(packageRoot, '../..');
 
 export default defineConfig({
   optimizeDeps: {
@@ -17,6 +21,14 @@ export default defineConfig({
         replacement: resolve(__dirname, 'src/$1.ts'),
       },
     ],
+  },
+  define: {
+    __WORKSPACE_ROOT__: JSON.stringify(workspaceRoot),
+  },
+  server: {
+    fs: {
+      allow: [workspaceRoot],
+    },
   },
   test: {
     fileParallelism: false,

@@ -1461,7 +1461,8 @@ the duplicated `projectile_catapult.gltf` basename. It also verifies that every
 asset has public treatment metadata through `listKayKitAssetPublicTreatments()`
 and appears in the page-level guide matrix returned by
 `listKayKitGuideScenarios()`.
-The FREE browser suite renders labeled guide sheets for every road, river,
+The FREE browser suite renders the extracted guide pages, the FREE asset
+treatments grouped by guide page, and labeled guide sheets for every road, river,
 curvy/crossing river, coast, and guide-page treatment case; the EXTRA browser
 suite renders all 404 local source assets by category.
 `pnpm test:workspace` checks that Nx, pnpm workspace settings, VitePress docs

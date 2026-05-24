@@ -171,4 +171,8 @@ pnpm test:visual
 Screenshots are deterministic artifacts. The test suite checks image size,
 variance, and flat-output failures after Chromium captures the PNGs. When adding
 new visible behavior, prefer a scenario or recipe fixture that can also be used
-by CLI validation and headless simulation tests.
+by CLI validation and headless simulation tests. The FREE browser suite also
+captures `free-guide-source-pages.png` and
+`free-guide-scenarios-by-extracted-page.png` so visual review can start from the
+decomposed KayKit guide pages and then inspect every FREE treatment associated
+with those pages.
