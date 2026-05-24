@@ -40,6 +40,16 @@ describe('release-readiness coverage', () => {
     expect(report.pages.map((page) => page.page)).toEqual(
       Array.from({ length: 19 }, (_, index) => index + 1)
     );
+    const visualArtifactPaths = report.visualArtifacts.map((artifact) => artifact.path);
+    expect(
+      visualArtifactPaths.filter((path) => path.startsWith('docs/assets/kaykit-guide/pages/page-'))
+    ).toHaveLength(19);
+    for (const page of report.pages) {
+      expect(visualArtifactPaths).toContain(page.sourceImage.path);
+      expect(page.visualArtifactCoverage.map((artifact) => artifact.path)).toContain(
+        page.sourceImage.path
+      );
+    }
     expect(report.publicApi).toHaveLength(74);
     expect(report.roles).toHaveLength(12);
     expect(report.assets).toHaveLength(404);

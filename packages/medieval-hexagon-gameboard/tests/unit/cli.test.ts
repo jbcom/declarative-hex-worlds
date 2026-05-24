@@ -564,6 +564,9 @@ describe('CLI', () => {
     expect(report.visualArtifacts.map((artifact) => artifact.path)).toContain(
       'docs/assets/showcases/free-blueprint-builder-showcase.png'
     );
+    expect(report.visualArtifacts.map((artifact) => artifact.path)).toContain(
+      'docs/assets/kaykit-guide/pages/page-16.png'
+    );
     expect(report.references).toHaveLength(4);
     expect(report.packageChecks.every((check) => check.status === 'passed')).toBe(true);
     expect(markdown).toContain('# Release Readiness Coverage');

@@ -565,6 +565,16 @@ function summarizeVisualArtifacts(
   const artifactsByPath = new Map<string, VisualArtifactCoverage>();
 
   for (const scenario of scenarios) {
+    const existingSourceImage = artifactsByPath.get(scenario.sourceImage);
+    artifactsByPath.set(scenario.sourceImage, {
+      path: scenario.sourceImage,
+      status: statusForPath(statusByPath, scenario.sourceImage),
+      source: 'guide',
+      scenarioIds: uniqueSorted([...(existingSourceImage?.scenarioIds ?? []), scenario.id]),
+      pages: uniqueNumbers([...(existingSourceImage?.pages ?? []), scenario.page]),
+      required: true,
+    });
+
     for (const path of scenario.visualArtifacts) {
       const existing = artifactsByPath.get(path);
       artifactsByPath.set(path, {

@@ -16,7 +16,7 @@ pnpm coverage:ledger
 - Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences
 - Public API surfaces: 74
 - Public roles: 12
-- Visual artifacts: 44 available, 0 missing, 0 skipped
+- Visual artifacts: 61 available, 0 missing, 0 skipped
 - Local references: 4 available, 0 missing, 0 skipped
 - Release checks: 9 passed, 0 failed, 0 not run, 0 skipped
 
@@ -62,6 +62,23 @@ pnpm coverage:ledger
 | --- | --- | --- | --- |
 | available | guide | `docs/assets/kaykit-guide/montage.png` | 1 |
 | available | guide | `docs/assets/kaykit-guide/pages/page-01.png` | 1 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-02.png` | 2 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-03.png` | 3 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-04.png` | 4 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-05.png` | 5 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-06.png` | 6 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-07.png` | 7 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-08.png` | 8 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-09.png` | 9 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-10.png` | 10 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-11.png` | 11 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-12.png` | 12 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-13.png` | 13 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-14.png` | 14 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-15.png` | 15 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-16.png` | 16 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-17.png` | 17 |
+| available | guide | `docs/assets/kaykit-guide/pages/page-18.png` | 18 |
 | available | guide | `docs/assets/kaykit-guide/pages/page-19.png` | 19 |
 | available | showcase | `docs/assets/showcases/extra-blueprint-biome-transition-showcase.png` | - |
 | available | showcase | `docs/assets/showcases/extra-harbor-gameboard.png` | - |

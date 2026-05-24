@@ -2338,6 +2338,7 @@ function coveragePathStatuses(): GameboardCoveragePathStatusInput {
   const sourceImages = uniqueStrings(scenarios.map((scenario) => scenario.sourceImage));
   const docs = uniqueStrings(scenarios.flatMap((scenario) => scenario.docs));
   const visualArtifacts = uniqueStrings([
+    ...sourceImages,
     ...scenarios.flatMap((scenario) => scenario.visualArtifacts),
     ...GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   ]);

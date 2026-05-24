@@ -353,6 +353,18 @@
       ],
       "visualArtifactCoverage": [
         {
+          "path": "docs/assets/kaykit-guide/pages/page-02.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-02-buildings-props-and-factions"
+          ],
+          "pages": [
+            2
+          ],
+          "required": true
+        },
+        {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
           "status": "available",
           "source": "guide",
@@ -418,6 +430,18 @@
       ],
       "visualArtifactCoverage": [
         {
+          "path": "docs/assets/kaykit-guide/pages/page-03.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-03-road-variations"
+          ],
+          "pages": [
+            3
+          ],
+          "required": true
+        },
+        {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png",
           "status": "available",
           "source": "guide",
@@ -458,6 +482,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-04.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-04-river-variations"
+          ],
+          "pages": [
+            4
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png",
           "status": "available",
@@ -513,6 +549,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-05.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-05-nature-contents"
+          ],
+          "pages": [
+            5
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
           "status": "available",
@@ -577,6 +625,18 @@
       ],
       "visualArtifactCoverage": [
         {
+          "path": "docs/assets/kaykit-guide/pages/page-06.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-06-nature-usage"
+          ],
+          "pages": [
+            6
+          ],
+          "required": true
+        },
+        {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
           "status": "available",
           "source": "guide",
@@ -637,6 +697,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-07.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-07-water-usage"
+          ],
+          "pages": [
+            7
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
           "status": "available",
@@ -706,6 +778,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-08.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-08-taller-hex-tiles"
+          ],
+          "pages": [
+            8
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
           "status": "available",
@@ -783,6 +867,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-09.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-09-world-design-example"
+          ],
+          "pages": [
+            9
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
           "status": "available",
@@ -881,6 +977,18 @@
       ],
       "visualArtifactCoverage": [
         {
+          "path": "docs/assets/kaykit-guide/pages/page-10.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-10-floating-islands"
+          ],
+          "pages": [
+            10
+          ],
+          "required": true
+        },
+        {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
           "status": "available",
           "source": "guide",
@@ -941,6 +1049,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-11.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-11-biomes"
+          ],
+          "pages": [
+            11
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
           "status": "available",
@@ -1019,6 +1139,18 @@
       ],
       "visualArtifactCoverage": [
         {
+          "path": "docs/assets/kaykit-guide/pages/page-12.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-12-alternate-textures"
+          ],
+          "pages": [
+            12
+          ],
+          "required": true
+        },
+        {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
           "status": "available",
           "source": "guide",
@@ -1079,6 +1211,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-13.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-13-transition-tiles"
+          ],
+          "pages": [
+            13
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
           "status": "available",
@@ -1157,6 +1301,18 @@
       ],
       "visualArtifactCoverage": [
         {
+          "path": "docs/assets/kaykit-guide/pages/page-14.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-14-units"
+          ],
+          "pages": [
+            14
+          ],
+          "required": true
+        },
+        {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
           "status": "available",
           "source": "guide",
@@ -1216,6 +1372,18 @@
       ],
       "visualArtifactCoverage": [
         {
+          "path": "docs/assets/kaykit-guide/pages/page-15.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-15-shipyard-harbors"
+          ],
+          "pages": [
+            15
+          ],
+          "required": true
+        },
+        {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
           "status": "available",
           "source": "guide",
@@ -1274,6 +1442,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-16.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-16-stables-and-horses"
+          ],
+          "pages": [
+            16
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
           "status": "available",
@@ -1335,6 +1515,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-17.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-17-workshop-and-siege"
+          ],
+          "pages": [
+            17
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
           "status": "available",
@@ -1398,6 +1590,18 @@
         }
       ],
       "visualArtifactCoverage": [
+        {
+          "path": "docs/assets/kaykit-guide/pages/page-18.png",
+          "status": "available",
+          "source": "guide",
+          "scenarioIds": [
+            "page-18-unit-combinations"
+          ],
+          "pages": [
+            18
+          ],
+          "required": true
+        },
         {
           "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
           "status": "available",
@@ -34670,6 +34874,210 @@
       ],
       "pages": [
         1
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-02.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-02-buildings-props-and-factions"
+      ],
+      "pages": [
+        2
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-03.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-03-road-variations"
+      ],
+      "pages": [
+        3
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-04.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-04-river-variations"
+      ],
+      "pages": [
+        4
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-05.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-05-nature-contents"
+      ],
+      "pages": [
+        5
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-06.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-06-nature-usage"
+      ],
+      "pages": [
+        6
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-07.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-07-water-usage"
+      ],
+      "pages": [
+        7
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-08.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-08-taller-hex-tiles"
+      ],
+      "pages": [
+        8
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-09.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-09-world-design-example"
+      ],
+      "pages": [
+        9
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-10.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-10-floating-islands"
+      ],
+      "pages": [
+        10
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-11.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-11-biomes"
+      ],
+      "pages": [
+        11
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-12.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-12-alternate-textures"
+      ],
+      "pages": [
+        12
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-13.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-13-transition-tiles"
+      ],
+      "pages": [
+        13
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-14.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-14-units"
+      ],
+      "pages": [
+        14
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-15.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-15-shipyard-harbors"
+      ],
+      "pages": [
+        15
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-16.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-16-stables-and-horses"
+      ],
+      "pages": [
+        16
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-17.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-17-workshop-and-siege"
+      ],
+      "pages": [
+        17
+      ],
+      "required": true
+    },
+    {
+      "path": "docs/assets/kaykit-guide/pages/page-18.png",
+      "status": "available",
+      "source": "guide",
+      "scenarioIds": [
+        "page-18-unit-combinations"
+      ],
+      "pages": [
+        18
       ],
       "required": true
     },
