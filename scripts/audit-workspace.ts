@@ -311,6 +311,7 @@ function requireDocsConfiguration(): void {
   requirePublicApiSubpathGuide();
   requirePackageReadmePublicImports();
   requireAgentsPublicApiSurfaces();
+  requireAgentsLocalAssetGuidance();
 }
 
 function requireDocsMarkdownLinksResolve(): void {
@@ -408,6 +409,18 @@ function requireAgentsPublicApiSurfaces(): void {
     }
     seen.add(subpath);
   }
+}
+
+function requireAgentsLocalAssetGuidance(): void {
+  assert(
+    agentsGuide.includes('MEDIEVAL_HEXAGON_ASSET_LIBRARY_ROOT'),
+    'AGENTS.md must document MEDIEVAL_HEXAGON_ASSET_LIBRARY_ROOT for optional local asset-library smoke tests'
+  );
+  const derivedMountExpression = 'ASSET_LIBRARY_MOUNT=$' + '{ASSET_LIBRARY_ROOT%/assets}';
+  assert(agentsGuide.includes(derivedMountExpression), 'AGENTS.md local asset-library mount check must derive from MEDIEVAL_HEXAGON_ASSET_LIBRARY_ROOT');
+  assert(!agentsGuide.includes('/Volumes/home'), 'AGENTS.md shared contributor guidance must not hardcode workstation NAS paths');
+  assert(!agentsGuide.includes('this workstation'), 'AGENTS.md shared contributor guidance must not use workstation-specific wording');
+  assert(!agentsGuide.includes('on this machine'), 'AGENTS.md shared contributor guidance must not use machine-specific wording');
 }
 
 function requireReleaseReadinessLedger(): void {

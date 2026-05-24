@@ -59,10 +59,10 @@ contract for CI and npm consumers.
   but generated placements must set `requiresExtra: true` when the asset is not
   in the FREE manifest.
 - Optional wider asset-library smoke tests should read
-  `MEDIEVAL_HEXAGON_ASSET_LIBRARY_ROOT` when a contributor provides it. On this
-  workstation the user-local value is `/Volumes/home/assets`; check that
-  `/Volumes/home` is mounted before using that local NAS path:
-  `mount | grep -q /Volumes/home && echo MOUNTED || echo "NOT MOUNTED"`.
+  `MEDIEVAL_HEXAGON_ASSET_LIBRARY_ROOT` when a contributor provides it. For
+  mounted NAS or removable-disk paths, verify the configured mount point before
+  running local smoke tests:
+  `ASSET_LIBRARY_ROOT=${MEDIEVAL_HEXAGON_ASSET_LIBRARY_ROOT:-/path/to/assets}; ASSET_LIBRARY_MOUNT=${ASSET_LIBRARY_ROOT%/assets}; mount | grep -q "$ASSET_LIBRARY_MOUNT" && echo MOUNTED || echo "NOT MOUNTED"`.
 
 ## Architecture Rules
 
@@ -566,9 +566,9 @@ Use `pnpm test:reference-assets` when local `references/` source inventory,
 EXTRA support, ingest taxonomy, seasonal textures, unit/building/prop/tile
 coverage, duplicate source basename handling, or third-party E2E fixture paths
 change. It skips local source checks when the gitignored reference folders are
-not present, but on this machine it should audit both FREE and EXTRA sources
-plus the Kenney Castle Kit and KayKit Adventurers fixture inventories used by
-the local browser E2E harness.
+not present; when local reference packs are available, it should audit FREE and
+EXTRA sources plus the Kenney Castle Kit and KayKit Adventurers fixture
+inventories used by the local browser E2E harness.
 Use `pnpm test:workspace` when touching Nx targets, package exports, tsup
 entries, pnpm workspace settings, or docs package dependency versions.
 Use `pnpm test:cli` after `pnpm build` when CLI commands, packaged examples,
