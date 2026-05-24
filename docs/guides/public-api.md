@@ -192,6 +192,11 @@ medieval-hexagon-gameboard summarize-plan \
   --out campaign.summary.json \
   --outPlan campaign.summary.plan.json \
   --allowUnknownAssets
+
+medieval-hexagon-gameboard summarize-scenario \
+  --scenario examples/simple-rpg-scenario.json \
+  --out simple-rpg.scenario-summary.json \
+  --allowUnknownAssets
 ```
 
 ## Runtime Facade

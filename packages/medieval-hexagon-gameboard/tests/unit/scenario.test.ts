@@ -3,11 +3,13 @@ import {
   GAMEBOARD_SCENARIO_SCHEMA_VERSION,
   advanceGameboardQuest,
   createGameboardRecipe,
+  createGameboardRuntimeFromScenario,
   createGameboardScenario,
   createGameboardWorldFromScenario,
   inspectGameboardScenario,
   readGameboardActors,
   runGameboardSystems,
+  summarizeGameboardScenario,
   validateGameboardScenario,
 } from '../../src';
 import { freeManifest } from '../../src/manifest/free';
@@ -403,6 +405,176 @@ describe('gameboard scenarios', () => {
         },
       },
     ]);
+  });
+
+  it('summarizes playable scenario actors, spawns, patrols, quests, and local-only actors', () => {
+    const board = createGameboardRecipe(
+      { seed: 'scenario-summary', shape: { kind: 'rectangle', width: 5, height: 2 } },
+      [
+        {
+          action: 'setTileAsset',
+          at: { q: 0, r: 0 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['player-spawn'],
+        },
+        {
+          action: 'setTileAsset',
+          at: { q: 2, r: 0 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['elder-spawn'],
+        },
+        {
+          action: 'setTileAsset',
+          at: { q: 4, r: 0 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['enemy-spawn'],
+        },
+        {
+          action: 'setTileAsset',
+          at: { q: 3, r: 1 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['watch-point'],
+        },
+      ]
+    );
+    const scenario = createGameboardScenario('scenario:summary', board, {
+      title: 'Summary Scenario',
+      spawnGroups: {
+        groups: [
+          { id: 'player', count: 1, tileTags: ['player-spawn'] },
+          { id: 'elder', count: 1, tileTags: ['elder-spawn'] },
+          {
+            id: 'enemy',
+            count: 1,
+            tileTags: ['enemy-spawn'],
+            minDistanceFromGroups: 2,
+            pathToGroups: ['player'],
+          },
+        ],
+      },
+      patrolRoutes: [
+        {
+          id: 'enemy-watch',
+          count: 2,
+          startGroupId: 'enemy',
+          tileTags: ['watch-point'],
+        },
+      ],
+      actors: [
+        {
+          actorId: 'player',
+          actorKind: 'player',
+          team: 'blue',
+          spawnGroupId: 'player',
+          assetId: 'flag_blue',
+          kind: 'unit',
+          tags: ['party'],
+          movementAgent: { profile: 'worker', movementBudget: 3 },
+        },
+        {
+          actorId: 'elder',
+          actorKind: 'npc',
+          team: 'blue',
+          interactive: true,
+          spawnGroupId: 'elder',
+          assetId: 'flag_green',
+          kind: 'prop',
+        },
+        {
+          actorId: 'raider',
+          actorKind: 'enemy',
+          team: 'red',
+          hostile: true,
+          blocksMovement: true,
+          spawnGroupId: 'enemy',
+          assetId: 'unit_red_full',
+          kind: 'unit',
+          requiresExtra: true,
+          movementAgent: { profile: 'ground' },
+          patrolAgent: { routeId: 'enemy-watch', movement: { profile: 'ground' } },
+        },
+      ],
+      quests: [
+        {
+          id: 'scenario:summary:quest',
+          objectives: [
+            { id: 'reach-elder', kind: 'reach-actor', actor: 'player', targetActor: 'elder' },
+            { id: 'talk-elder', kind: 'interact-actor', actor: 'player', targetActor: 'elder' },
+            { id: 'spot-raider', kind: 'collision', actor: 'player', targetActor: 'raider', expect: 'hostile' },
+            { id: 'defeat-raider', kind: 'defeat-actor', targetActor: 'raider' },
+          ],
+        },
+      ],
+    });
+
+    const summary = summarizeGameboardScenario(scenario, {
+      plan: { assetCatalog: freeManifest, allowUnknownAssets: true },
+      topAssetLimit: 100,
+    });
+    const runtimeSummary = createGameboardRuntimeFromScenario(scenario).summarizeScenario({
+      topAssetLimit: 100,
+    });
+
+    expect(summary).toMatchObject({
+      schemaVersion: GAMEBOARD_SCENARIO_SCHEMA_VERSION,
+      scenarioId: 'scenario:summary',
+      title: 'Summary Scenario',
+      validation: { errorCount: 0, warningCount: 0 },
+      actorCount: 3,
+      resolvedActorCount: 3,
+      movementAgentCount: 2,
+      patrolAgentCount: 1,
+      hostileActorCount: 1,
+      interactiveActorCount: 1,
+      blockingActorCount: 1,
+      questCount: 1,
+      objectiveCount: 4,
+      spawnGroupCount: 3,
+      spawnLocationCount: 3,
+      spawnRouteCheckCount: 1,
+      spawnRouteFoundCount: 1,
+      patrolRouteCount: 1,
+      patrolRouteFoundCount: 1,
+      patrolWaypointCount: 2,
+    });
+    expect(summary.board?.tileCount).toBe(10);
+    expect(summary.actorKindCounts).toMatchObject({ enemy: 1, npc: 1, player: 1 });
+    expect(summary.actorTeamCounts).toMatchObject({ blue: 2, red: 1 });
+    expect(summary.actorSpawnGroupCounts).toMatchObject({ elder: 1, enemy: 1, player: 1 });
+    expect(summary.actorTileCounts).toMatchObject({ '0,0': 1, '2,0': 1, '4,0': 1 });
+    expect(summary.actorTagCounts).toMatchObject({ party: 1 });
+    expect(summary.actorAssetCounts).toMatchObject({
+      flag_blue: 1,
+      flag_green: 1,
+      unit_red_full: 1,
+    });
+    expect(summary.actorExtraAssetIds).toEqual(['unit_red_full']);
+    expect(summary.topActorAssets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          assetId: 'unit_red_full',
+          requiresExtra: true,
+          actorKinds: ['enemy'],
+          teams: ['red'],
+        }),
+      ])
+    );
+    expect(summary.objectiveKindCounts).toMatchObject({
+      collision: 1,
+      'defeat-actor': 1,
+      'interact-actor': 1,
+      'reach-actor': 1,
+    });
+    expect(summary.objectiveActorCounts).toMatchObject({ player: 3 });
+    expect(summary.objectiveTargetActorCounts).toMatchObject({ elder: 2, raider: 2 });
+    expect(summary.spawnGroupLocationCounts).toMatchObject({ elder: 1, enemy: 1, player: 1 });
+    expect(summary.patrolRouteWaypointCounts).toMatchObject({ 'enemy-watch': 2 });
+    expect(runtimeSummary.scenarioId).toBe(summary.scenarioId);
+    expect(runtimeSummary.actorExtraAssetIds).toEqual(['unit_red_full']);
   });
 
   it('reports authored patrol routes that cannot be completed', () => {

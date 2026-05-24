@@ -365,6 +365,156 @@ describe('CLI', () => {
     expect(existsSync(blueprintPlanPath)).toBe(true);
   });
 
+  it('summarizes scenario actors, spawns, patrols, quests, and local-only assets through the CLI', () => {
+    const root = createTempRoot();
+    const scenarioPath = resolve(root, 'scenario-summary.json');
+    const summaryPath = resolve(root, 'scenario-summary.out.json');
+    const board = createGameboardRecipe(
+      { seed: 'cli-scenario-summary', shape: { kind: 'rectangle', width: 4, height: 2 } },
+      [
+        {
+          action: 'setTileAsset',
+          at: { q: 0, r: 0 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['player-spawn'],
+        },
+        {
+          action: 'setTileAsset',
+          at: { q: 3, r: 0 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['enemy-spawn'],
+        },
+        {
+          action: 'setTileAsset',
+          at: { q: 2, r: 1 },
+          assetId: 'hex_grass',
+          terrain: 'grass',
+          tags: ['watch-point'],
+        },
+      ]
+    );
+    const scenario = createGameboardScenario('cli:scenario-summary', board, {
+      spawnGroups: {
+        groups: [
+          { id: 'player', count: 1, tileTags: ['player-spawn'] },
+          { id: 'enemy', count: 1, tileTags: ['enemy-spawn'], pathToGroups: ['player'] },
+        ],
+      },
+      patrolRoutes: [
+        { id: 'enemy-watch', count: 2, startGroupId: 'enemy', tileTags: ['watch-point'] },
+      ],
+      actors: [
+        {
+          actorId: 'player',
+          actorKind: 'player',
+          team: 'blue',
+          spawnGroupId: 'player',
+          assetId: 'flag_blue',
+          kind: 'unit',
+          movementAgent: { profile: 'ground' },
+        },
+        {
+          actorId: 'raider',
+          actorKind: 'enemy',
+          team: 'red',
+          hostile: true,
+          blocksMovement: true,
+          spawnGroupId: 'enemy',
+          assetId: 'unit_red_full',
+          kind: 'unit',
+          requiresExtra: true,
+          movementAgent: { profile: 'ground' },
+          patrolAgent: { routeId: 'enemy-watch' },
+        },
+      ],
+      quests: [
+        {
+          id: 'cli:scenario-summary:quest',
+          objectives: [
+            { id: 'spot-raider', kind: 'collision', actor: 'player', targetActor: 'raider', expect: 'hostile' },
+            { id: 'defeat-raider', kind: 'defeat-actor', targetActor: 'raider' },
+          ],
+        },
+      ],
+    });
+    writeFileSync(scenarioPath, `${JSON.stringify(scenario, null, 2)}\n`, 'utf8');
+
+    const textOutput = runCli([
+      'summarize-scenario',
+      '--scenario',
+      scenarioPath,
+      '--manifest',
+      freeManifestPath,
+      '--allowUnknownAssets',
+      '--topAssetLimit',
+      '10',
+    ]);
+    const jsonOutput = runCli([
+      'summarize-scenario',
+      '--scenario',
+      scenarioPath,
+      '--manifest',
+      freeManifestPath,
+      '--allowUnknownAssets',
+      '--json',
+      '--topAssetLimit',
+      '100',
+    ]);
+    const outOutput = runCli([
+      'summarize-scenario',
+      '--scenario',
+      scenarioPath,
+      '--manifest',
+      freeManifestPath,
+      '--allowUnknownAssets',
+      '--out',
+      summaryPath,
+    ]);
+    const summary = JSON.parse(jsonOutput) as {
+      scenarioId: string;
+      validation: { errorCount: number; warningCount: number };
+      actorCount: number;
+      hostileActorCount: number;
+      blockingActorCount: number;
+      actorExtraAssetIds: string[];
+      actorKindCounts: Record<string, number>;
+      objectiveKindCounts: Record<string, number>;
+      spawnRouteFoundCount: number;
+      patrolRouteFoundCount: number;
+      topActorAssets: Array<{ assetId: string; requiresExtra: boolean; actorKinds: string[] }>;
+    };
+
+    expect(textOutput).toContain(`source: scenario ${scenarioPath}`);
+    expect(textOutput).toContain('actors: 2 authored, 2 resolved');
+    expect(textOutput).toContain('actor extra assets: unit_red_full');
+    expect(textOutput).toContain('spawn groups: 2 group(s), 2 location(s), 1/1 route check(s) found');
+    expect(outOutput).toContain(`Wrote scenario summary to ${summaryPath}`);
+    expect(existsSync(summaryPath)).toBe(true);
+    expect(summary).toMatchObject({
+      scenarioId: 'cli:scenario-summary',
+      validation: { errorCount: 0, warningCount: 0 },
+      actorCount: 2,
+      hostileActorCount: 1,
+      blockingActorCount: 1,
+      actorKindCounts: { enemy: 1, player: 1 },
+      objectiveKindCounts: { collision: 1, 'defeat-actor': 1 },
+      spawnRouteFoundCount: 1,
+      patrolRouteFoundCount: 1,
+    });
+    expect(summary.actorExtraAssetIds).toEqual(['unit_red_full']);
+    expect(summary.topActorAssets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          assetId: 'unit_red_full',
+          requiresExtra: true,
+          actorKinds: ['enemy'],
+        }),
+      ])
+    );
+  });
+
   it('compiles high-level blueprint board specs through the CLI', () => {
     const root = createTempRoot();
     const blueprintPath = resolve(root, 'campaign-blueprint.json');

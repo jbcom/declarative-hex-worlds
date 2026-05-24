@@ -143,6 +143,40 @@ try {
       installedSummary.summary.placementKindCounts.terrain > 0,
     'packed CLI summarize-plan command did not emit scenario board counts'
   );
+  const installedScenarioSummaryOutput = execFileSync(
+    process.execPath,
+    [
+      installedCliPath,
+      'summarize-scenario',
+      '--scenario',
+      join(installedPackageRoot, 'examples/simple-rpg-scenario.json'),
+      '--manifest',
+      join(installedPackageRoot, 'assets/free/manifest.json'),
+      '--json',
+    ],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  const installedScenarioSummary = JSON.parse(installedScenarioSummaryOutput) as {
+    scenarioId: string;
+    validation: { errorCount: number };
+    actorCount: number;
+    questCount: number;
+    objectiveCount: number;
+    actorKindCounts: Record<string, number>;
+  };
+  assert(
+    installedScenarioSummary.scenarioId === 'docs-simple-rpg-scenario' &&
+      installedScenarioSummary.validation.errorCount === 0 &&
+      installedScenarioSummary.actorCount > 0 &&
+      installedScenarioSummary.questCount > 0 &&
+      installedScenarioSummary.objectiveCount > 0 &&
+      installedScenarioSummary.actorKindCounts.player > 0,
+    'packed CLI summarize-scenario command did not emit playable scenario counts'
+  );
 
   writeFileSync(
     join(appRoot, 'smoke-types.ts'),
@@ -180,6 +214,7 @@ import {
   selectGameboardInteropRelations,
   spawnGameboardActor,
   summarizeGameboardPlan,
+  summarizeGameboardScenario,
   validateGameboardRecipeGeneration,
   type DispatchGameboardActorTargetCommandResult,
   type GameboardActorSelection,
@@ -209,6 +244,7 @@ import {
   type InspectGameboardPlacementOccupancyOptions,
   type GameboardPlan,
   type GameboardPlanSummary,
+  type GameboardScenarioSummary,
   type GameboardPlacementOccupancyRecord,
   type GameboardQuestSnapshot,
   type PlacementOccupancySnapshot,
@@ -286,7 +322,11 @@ import {
   useGameboardRuntimeSnapshot,
   type GameboardRuntimeProviderProps,
 } from '@jbcom/medieval-hexagon-gameboard/react';
-import type { GameboardScenario } from '@jbcom/medieval-hexagon-gameboard/scenario';
+import {
+  summarizeGameboardScenario as summarizeGameboardScenarioFromScenario,
+  type GameboardScenario,
+  type GameboardScenarioSummary as GameboardScenarioSummaryFromScenario,
+} from '@jbcom/medieval-hexagon-gameboard/scenario';
 import {
   GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS as GAMEBOARD_SCENARIO_SIMULATION_SUBPATH_STEP_ACTIONS,
   type GameboardScenarioSimulationActorTargetCommandStep,
@@ -430,6 +470,11 @@ const planSummary: GameboardPlanSummary = summarizeGameboardPlan(plan);
 const blueprintUsage: BlueprintBoardUsageSummary = runBlueprintBoardUsageExample();
 const blueprintScenarioId: string = blueprintBoardJson.scenarioId;
 const usage: SimpleRpgUsageSummary = runSimpleRpgUsageExample();
+const scenarioSummary: GameboardScenarioSummary = summarizeGameboardScenario(
+  simpleRpgScenario as GameboardScenario
+);
+const scenarioSummaryFromScenario: GameboardScenarioSummaryFromScenario =
+  summarizeGameboardScenarioFromScenario(simpleRpgScenario as GameboardScenario);
 const manifestInspection: MedievalHexagonManifestInspection = inspectMedievalHexagonManifest(assetManifest);
 const ingestSourceRoot: string = defaultSourceRoot('free', '/packed-consumer');
 const ingestExpectedCount: number = expectedModelCount('free');
@@ -814,6 +859,7 @@ const runtimeInteropMount = runtime.mountInterop(createInMemoryGameboardEcs().ad
 const scenarioRuntime = createGameboardRuntimeFromScenario(simpleRpgScenario as GameboardScenario);
 const scenarioRuntimeInteropSnapshot = scenarioRuntime.createScenarioInteropSnapshot();
 const scenarioRuntimeInteropMount = scenarioRuntime.mountScenarioInterop(createInMemoryGameboardEcs().adapter);
+const scenarioRuntimeSummary: GameboardScenarioSummary = scenarioRuntime.summarizeScenario();
 const recipeRuntime: GameboardRecipeGameRuntime = createGameboardRuntimeFromRecipe(packedRecipe);
 const recipeRuntimeSourceUrls: Readonly<Record<string, string>> = recipeRuntime.createRecipePieceSourceUrlMap({
   sourceRoots: { 'Packed Recipe Fixtures': '/packed-recipe-fixtures' },
@@ -955,6 +1001,8 @@ void patrolStatusFromPatrol;
 void placementAssetUrlFromThree;
 void planSummary;
 void planSummaryFromGameboard;
+void scenarioSummary;
+void scenarioSummaryFromScenario;
 void projectedPlanFromProjection;
 void questSchemaVersionFromQuests;
 void questSnapshotsFromQuests;
@@ -1031,6 +1079,7 @@ void runtimeInteropMount;
 void scenarioRuntime;
 void scenarioRuntimeInteropSnapshot;
 void scenarioRuntimeInteropMount;
+void scenarioRuntimeSummary;
 void genericPlacementStep;
 void genericPlacementStepFromRecipe;
 void recipeRuntime;
@@ -1134,6 +1183,7 @@ import {
   spawnGameboardActor,
   spawnGameboardPlacement,
   summarizeGameboardPlan,
+  summarizeGameboardScenario,
 } from '@jbcom/medieval-hexagon-gameboard';
 import { runBlueprintBoardUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
 import { runSimpleRpgUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
@@ -1227,6 +1277,7 @@ import {
   GAMEBOARD_RECIPE_SCHEMA_VERSION,
   createGameboardRecipe as createGameboardRecipeFromRecipe,
 } from '@jbcom/medieval-hexagon-gameboard/recipe';
+import { summarizeGameboardScenario as summarizeGameboardScenarioFromScenario } from '@jbcom/medieval-hexagon-gameboard/scenario';
 import {
   KAYKIT_HEX_WIDTH,
   createGameboardCoordinateSystem,
@@ -1321,6 +1372,9 @@ if (!navigation.canEnter('0,0')) {
 const subpathWorld = createGameboardWorld(plan);
 const subpathProjectedPlan = projectWorldToGameboardPlan(subpathWorld);
 const subpathPlanSummary = summarizeGameboardPlanFromGameboard(subpathProjectedPlan);
+const packagedScenarioSummary = summarizeGameboardScenario(scenarioModule.default);
+const packagedScenarioSummaryFromScenario =
+  summarizeGameboardScenarioFromScenario(scenarioModule.default);
 const subpathValidationPlan = readValidationGameboardPlanFromWorld(subpathWorld);
 const subpathInteropSnapshot = createGameboardInteropSnapshotFromInterop(plan);
 const subpathCoordinateSystem = createGameboardCoordinateSystem();
@@ -1411,6 +1465,8 @@ if (
   readGameboardPlacementsFromKoota(subpathWorld).length !== plan.placements.length ||
   planSummary.tileCount !== plan.tiles.length ||
   subpathPlanSummary.placementCount !== subpathProjectedPlan.placements.length ||
+  packagedScenarioSummary.actorCount < 1 ||
+  packagedScenarioSummaryFromScenario.questCount < 1 ||
   GAMEBOARD_MOVEMENT_PROFILES.ground.id !== 'ground' ||
   typeof gameboardMovementActionsFromMovement(subpathWorld).runSystem !== 'function' ||
   gameboardPatrolActionsFromPatrol(subpathWorld).read().length !== 0 ||
@@ -1644,9 +1700,12 @@ if (
   throw new Error('packed runtime interop facade did not expose live actors for external ECS mounting');
 }
 const packagedScenarioRuntime = createGameboardRuntimeFromScenario(scenarioModule.default);
+const packagedScenarioRuntimeSummary = packagedScenarioRuntime.summarizeScenario();
 if (
   !packagedScenarioRuntime.actorEntities.player ||
-  packagedScenarioRuntime.snapshot({ includeInterop: false }).actors.length < 1
+  packagedScenarioRuntime.snapshot({ includeInterop: false }).actors.length < 1 ||
+  packagedScenarioRuntimeSummary.actorCount < 1 ||
+  packagedScenarioRuntimeSummary.questCount < 1
 ) {
   throw new Error('packed scenario runtime facade did not expose actor indexes');
 }

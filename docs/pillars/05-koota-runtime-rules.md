@@ -604,7 +604,12 @@ consistency. `summarize-plan` accepts a saved plan, recipe, scenario, or
 blueprint and emits validation counts plus the same `GameboardPlanSummary` as
 the public API, which gives CI, visual queues, editors, and agents a no-code way
 to prove terrain, texture, elevation, feature, asset, and local-only coverage
-before rendering. `analyze-layout` checks layout fill rule JSON against a saved plan,
+before rendering. `summarize-scenario` is the playable companion: it emits the
+compiled board summary plus actor kind/team/asset counts, local-only actor
+usage, spawn group route checks, patrol route coverage, quest objective kinds,
+and validation counts so SimpleRPG-style fixtures can prove the scenario has
+the expected spawns, enemies, props, routes, and objectives. `analyze-layout`
+checks layout fill rule JSON against a saved plan,
 recipe, or scenario and emits the same candidate, selected, warning, and error
 diagnostics as `analyzeGameboardLayoutFill` for build-time tuning. With recipe
 or scenario inputs, `--outPlan` also writes the compiled board JSON so one build

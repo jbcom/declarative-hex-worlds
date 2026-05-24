@@ -914,6 +914,7 @@ export {
   createGameboardWorldFromScenario,
   inspectGameboardScenario,
   resolveGameboardScenarioActors,
+  summarizeGameboardScenario,
   validateGameboardScenario,
 } from './scenario';
 export type {
@@ -921,11 +922,16 @@ export type {
   GameboardScenario,
   GameboardScenarioActor,
   GameboardScenarioActorPatrolAgent,
+  GameboardScenarioActorSummary,
+  GameboardScenarioAssetSummary,
   GameboardScenarioPatrolRoute,
   GameboardScenarioRuntime,
+  GameboardScenarioSummary,
+  GameboardScenarioSummaryValidation,
   GameboardScenarioValidationConfig,
   GameboardScenarioValidationResult,
   ResolvedGameboardScenarioActor,
+  SummarizeGameboardScenarioOptions,
 } from './scenario';
 export {
   GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,

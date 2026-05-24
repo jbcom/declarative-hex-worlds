@@ -2286,6 +2286,7 @@ medieval-hexagon-gameboard declarations --manifest assets/free/manifest.json --o
 medieval-hexagon-gameboard analyze --registry kaykit-declarations.json
 medieval-hexagon-gameboard blueprint --blueprint examples/blueprint-board.json --outRecipe campaign.recipe.json --outPlan campaign.plan.json --outScenario campaign.scenario.json --outScenarioInspection campaign.scenario-inspection.json --outInterop campaign.interop.json --out campaign.inspection.json --allowUnknownAssets
 medieval-hexagon-gameboard summarize-plan --blueprint examples/blueprint-board.json --out campaign.summary.json --outPlan campaign.summary.plan.json --allowUnknownAssets
+medieval-hexagon-gameboard summarize-scenario --scenario examples/simple-rpg-scenario.json --out simple-rpg.scenario-summary.json --allowUnknownAssets
 medieval-hexagon-gameboard validate-plan --plan board.json --manifest assets/free/manifest.json
 medieval-hexagon-gameboard validate-recipe --recipe scenario.json --manifest assets/free/manifest.json --outPlan board.json
 medieval-hexagon-gameboard analyze-layout --recipe scenario.recipe.json --rules layout-rules.json --out layout-analysis.json --outPlan board.json
@@ -2318,6 +2319,11 @@ public API, with validation counts and optional `--outPlan` output. Use it for
 CI gates, visual-test manifests, editor sidebars, and agent audits that need to
 prove a board contains the expected terrain, texture, elevation, feature, asset,
 and local-only cases before rendering.
+`summarize-scenario` emits the scenario-level companion summary: compiled board
+summary, actor kinds/teams/assets, local-only actor usage, spawn group route
+checks, patrol route coverage, quest objective kinds, and validation counts. Use
+it for SimpleRPG-style integration fixtures and editor/game CI that must prove a
+scenario is playable, not only renderable.
 `analyze-layout` checks saved fill rules against a saved plan, recipe, or
 scenario and reports candidate counts, selected tile keys, and warnings when
 requested counts or `minCount` values cannot be satisfied by the board. The same

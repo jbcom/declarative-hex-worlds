@@ -179,8 +179,11 @@ import {
 } from './rules';
 import {
   createGameboardWorldFromScenario,
+  summarizeGameboardScenario,
   type GameboardScenario,
   type GameboardScenarioRuntime,
+  type GameboardScenarioSummary,
+  type SummarizeGameboardScenarioOptions,
 } from './scenario';
 import {
   dispatchGameboardActorTargetCommand,
@@ -632,6 +635,8 @@ export interface GameboardScenarioGameRuntime extends GameboardRuntime {
   createScenarioInteropSnapshot: (
     options?: GameboardScenarioInteropOptions
   ) => GameboardInteropSnapshot;
+  /** Summarize the original scenario definition, actors, quests, spawns, and routes. */
+  summarizeScenario: (options?: SummarizeGameboardScenarioOptions) => GameboardScenarioSummary;
   /** Mount the original scenario definition into another ECS/store adapter. */
   mountScenarioInterop: <TEntity>(
     adapter: GameboardEcsAdapter<TEntity>,
@@ -714,6 +719,7 @@ export function createGameboardRuntimeFromScenario(
     scenarioPieceRegistry,
     createScenarioInteropSnapshot: (options = {}) =>
       createGameboardScenarioInteropSnapshot(scenario, options),
+    summarizeScenario: (options = {}) => summarizeGameboardScenario(scenario, options),
     mountScenarioInterop: (adapter, options = {}) =>
       mountGameboardInteropSnapshot(
         createGameboardScenarioInteropSnapshot(scenario, options),

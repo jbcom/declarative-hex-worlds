@@ -12,7 +12,12 @@ import {
   type SpawnGameboardActorOptions,
 } from './actors';
 import { hexKey, parseHexKey } from './coordinates';
-import type { GameboardPlan } from './gameboard';
+import {
+  summarizeGameboardPlan,
+  type GameboardPlan,
+  type GameboardPlanSummary,
+  type SummarizeGameboardPlanOptions,
+} from './gameboard';
 import { createGameboardWorld } from './koota';
 import { getManifestAsset } from './manifest/schema';
 import { setGameboardMovementAgent, type SetGameboardMovementAgentOptions } from './movement';
@@ -168,6 +173,162 @@ export interface GameboardScenarioValidationResult {
   violations: readonly GameboardRuleViolation[];
 }
 
+/** Options for summarizing an authored scenario and its compiled board. */
+export interface SummarizeGameboardScenarioOptions
+  extends GameboardScenarioValidationConfig,
+    SummarizeGameboardPlanOptions {}
+
+/** Asset-level count and gameplay treatment for scenario actors. */
+export interface GameboardScenarioAssetSummary {
+  /** Manifest or external registry asset id. */
+  assetId: string;
+  /** Number of actors that use the asset. */
+  count: number;
+  /** Whether any actor using this asset requires local-only assets. */
+  requiresExtra: boolean;
+  /** Actor kinds using this asset. */
+  actorKinds: readonly string[];
+  /** Teams or factions using this asset. */
+  teams: readonly string[];
+}
+
+/** Serializable row for one authored or spawn-group-resolved scenario actor. */
+export interface GameboardScenarioActorSummary {
+  /** Stable actor id. */
+  actorId: string;
+  /** Gameplay actor kind. */
+  actorKind: string;
+  /** Manifest or external registry asset id. */
+  assetId: string;
+  /** Resolved or explicit spawn tile key, when known. */
+  tileKey?: string;
+  /** Referenced spawn group, when any. */
+  spawnGroupId?: string;
+  /** Claimed spawn location index, when any. */
+  spawnLocationIndex?: number;
+  /** Movement profile id, when a movement agent is authored. */
+  movementProfileId?: string;
+  /** Referenced patrol route, when a patrol agent is authored. */
+  patrolRouteId?: string;
+  /** Team or faction id used for interaction logic. */
+  team?: string;
+  /** Whether this actor is generally hostile. */
+  hostile: boolean;
+  /** Whether this actor is an interaction target. */
+  interactive: boolean;
+  /** Whether this actor blocks movement. */
+  blocksMovement: boolean;
+  /** Whether this actor depends on local-only assets. */
+  requiresExtra: boolean;
+  /** Selector tags authored on the actor. */
+  tags: readonly string[];
+}
+
+/** Validation counts and violations included in scenario summaries. */
+export interface GameboardScenarioSummaryValidation {
+  /** Number of error-level violations. */
+  errorCount: number;
+  /** Number of warning-level violations. */
+  warningCount: number;
+  /** Scenario, spawn, route, actor, quest, and optional plan violations. */
+  violations: readonly GameboardRuleViolation[];
+}
+
+/**
+ * Aggregate inspection result for a playable scenario.
+ *
+ * This is designed for editor panels, CI diagnostics, screenshot manifests,
+ * external ECS bridges, and agent audits that need to prove a board is not only
+ * visually complete, but also has the expected actors, spawns, routes, and
+ * quest objectives before a renderer loads it.
+ */
+export interface GameboardScenarioSummary {
+  /** Scenario schema version. */
+  schemaVersion: typeof GAMEBOARD_SCENARIO_SCHEMA_VERSION;
+  /** Stable scenario id. */
+  scenarioId: string;
+  /** Optional display title. */
+  title?: string;
+  /** Summary of the compiled board, when the board recipe compiles. */
+  board?: GameboardPlanSummary;
+  /** Validation counts and diagnostics. */
+  validation: GameboardScenarioSummaryValidation;
+  /** Number of authored actors. */
+  actorCount: number;
+  /** Number of actors whose spawn tile could be resolved. */
+  resolvedActorCount: number;
+  /** Number of actors with movement agents. */
+  movementAgentCount: number;
+  /** Number of actors with patrol agents. */
+  patrolAgentCount: number;
+  /** Number of generally hostile actors. */
+  hostileActorCount: number;
+  /** Number of interaction-target actors. */
+  interactiveActorCount: number;
+  /** Number of movement-blocking actors. */
+  blockingActorCount: number;
+  /** Actor count by gameplay kind. */
+  actorKindCounts: Readonly<Record<string, number>>;
+  /** Actor count by team or faction. */
+  actorTeamCounts: Readonly<Record<string, number>>;
+  /** Actor count by referenced spawn group. */
+  actorSpawnGroupCounts: Readonly<Record<string, number>>;
+  /** Actor count by resolved or explicit spawn tile key. */
+  actorTileCounts: Readonly<Record<string, number>>;
+  /** Actor tag counts. */
+  actorTagCounts: Readonly<Record<string, number>>;
+  /** Actor count by asset id. */
+  actorAssetCounts: Readonly<Record<string, number>>;
+  /** Unique actor asset ids marked as requiring local-only assets. */
+  actorExtraAssetIds: readonly string[];
+  /** Highest-frequency actor asset summaries, sorted by count then asset id. */
+  topActorAssets: readonly GameboardScenarioAssetSummary[];
+  /** Per-actor rows useful for editor sidebars and E2E fixtures. */
+  actors: readonly GameboardScenarioActorSummary[];
+  /** Number of authored quests. */
+  questCount: number;
+  /** Number of authored quest objectives. */
+  objectiveCount: number;
+  /** Objective count by objective kind. */
+  objectiveKindCounts: Readonly<Record<string, number>>;
+  /** Objective references by source actor id. */
+  objectiveActorCounts: Readonly<Record<string, number>>;
+  /** Objective references by target actor id. */
+  objectiveTargetActorCounts: Readonly<Record<string, number>>;
+  /** Number of planned spawn groups. */
+  spawnGroupCount: number;
+  /** Number of selected spawn locations. */
+  spawnLocationCount: number;
+  /** Spawn location count by group id. */
+  spawnGroupLocationCounts: Readonly<Record<string, number>>;
+  /** Spawn candidate count by group id after filtering. */
+  spawnGroupCandidateCounts: Readonly<Record<string, number>>;
+  /** Number of spawn route checks. */
+  spawnRouteCheckCount: number;
+  /** Number of spawn route checks that found a path. */
+  spawnRouteFoundCount: number;
+  /** Number of spawn route checks that could not find a path. */
+  spawnRouteMissingCount: number;
+  /** Spawn planning warning count. */
+  spawnWarningCount: number;
+  /** Spawn planning error count. */
+  spawnErrorCount: number;
+  /** Number of planned patrol routes. */
+  patrolRouteCount: number;
+  /** Number of planned patrol routes that satisfy required segments. */
+  patrolRouteFoundCount: number;
+  /** Number of planned patrol routes with missing required segments. */
+  patrolRouteMissingCount: number;
+  /** Number of selected patrol waypoints. */
+  patrolWaypointCount: number;
+  /** Waypoint count by patrol route id. */
+  patrolRouteWaypointCounts: Readonly<Record<string, number>>;
+  /** Patrol route warning count. */
+  patrolWarningCount: number;
+  /** Patrol route error count. */
+  patrolErrorCount: number;
+}
+
 /** Creates a cloned, schema-tagged gameboard scenario. */
 export function createGameboardScenario(
   id: string,
@@ -286,6 +447,193 @@ export function inspectGameboardScenario(
     spawnGroups,
     patrolRoutes,
     violations,
+  };
+}
+
+/** Summarizes playable scenario content without creating a live Koota world. */
+export function summarizeGameboardScenario(
+  scenario: GameboardScenario,
+  options: SummarizeGameboardScenarioOptions = {}
+): GameboardScenarioSummary {
+  const inspection = inspectGameboardScenario(scenario, options);
+  const actorRows = summarizeScenarioActors(scenario.actors ?? [], inspection.spawnGroups);
+  const actorKindCounts: Record<string, number> = {};
+  const actorTeamCounts: Record<string, number> = {};
+  const actorSpawnGroupCounts: Record<string, number> = {};
+  const actorTileCounts: Record<string, number> = {};
+  const actorTagCounts: Record<string, number> = {};
+  const actorAssetCounts: Record<string, number> = {};
+  const actorExtraAssetIds = new Set<string>();
+  const actorAssetSummaries = new Map<
+    string,
+    {
+      assetId: string;
+      count: number;
+      requiresExtra: boolean;
+      actorKinds: Set<string>;
+      teams: Set<string>;
+    }
+  >();
+  let movementAgentCount = 0;
+  let patrolAgentCount = 0;
+  let hostileActorCount = 0;
+  let interactiveActorCount = 0;
+  let blockingActorCount = 0;
+
+  for (const actor of actorRows) {
+    incrementSummaryCount(actorKindCounts, actor.actorKind);
+    incrementSummaryCount(actorAssetCounts, actor.assetId);
+    if (actor.team) {
+      incrementSummaryCount(actorTeamCounts, actor.team);
+    }
+    if (actor.spawnGroupId) {
+      incrementSummaryCount(actorSpawnGroupCounts, actor.spawnGroupId);
+    }
+    if (actor.tileKey) {
+      incrementSummaryCount(actorTileCounts, actor.tileKey);
+    }
+    for (const tag of actor.tags) {
+      incrementSummaryCount(actorTagCounts, tag);
+    }
+    if (actor.movementProfileId) {
+      movementAgentCount += 1;
+    }
+    if (actor.patrolRouteId) {
+      patrolAgentCount += 1;
+    }
+    if (actor.hostile) {
+      hostileActorCount += 1;
+    }
+    if (actor.interactive) {
+      interactiveActorCount += 1;
+    }
+    if (actor.blocksMovement) {
+      blockingActorCount += 1;
+    }
+    if (actor.requiresExtra) {
+      actorExtraAssetIds.add(actor.assetId);
+    }
+
+    const assetSummary = actorAssetSummaries.get(actor.assetId) ?? {
+      assetId: actor.assetId,
+      count: 0,
+      requiresExtra: false,
+      actorKinds: new Set<string>(),
+      teams: new Set<string>(),
+    };
+    assetSummary.count += 1;
+    assetSummary.requiresExtra = assetSummary.requiresExtra || actor.requiresExtra;
+    assetSummary.actorKinds.add(actor.actorKind);
+    if (actor.team) {
+      assetSummary.teams.add(actor.team);
+    }
+    actorAssetSummaries.set(actor.assetId, assetSummary);
+  }
+
+  const objectiveKindCounts: Record<string, number> = {};
+  const objectiveActorCounts: Record<string, number> = {};
+  const objectiveTargetActorCounts: Record<string, number> = {};
+  let objectiveCount = 0;
+  for (const quest of scenario.quests ?? []) {
+    for (const objective of quest.objectives ?? []) {
+      objectiveCount += 1;
+      incrementSummaryCount(objectiveKindCounts, objective.kind);
+      if ('actor' in objective && objective.actor) {
+        incrementSummaryCount(objectiveActorCounts, objective.actor);
+      }
+      if ('targetActor' in objective && objective.targetActor) {
+        incrementSummaryCount(objectiveTargetActorCounts, objective.targetActor);
+      }
+    }
+  }
+
+  const spawnGroupLocationCounts: Record<string, number> = {};
+  const spawnGroupCandidateCounts: Record<string, number> = {};
+  for (const group of inspection.spawnGroups?.groups ?? []) {
+    spawnGroupLocationCounts[group.id] = group.selectedCount;
+    spawnGroupCandidateCounts[group.id] = group.candidateCount;
+  }
+
+  const patrolRouteWaypointCounts: Record<string, number> = {};
+  for (const route of inspection.patrolRoutes?.routes ?? []) {
+    patrolRouteWaypointCounts[route.id] = route.selectedWaypointCount;
+  }
+
+  const topAssetLimit = Math.max(0, Math.floor(options.topAssetLimit ?? 20));
+  const topActorAssets = [...actorAssetSummaries.values()]
+    .sort((left, right) => right.count - left.count || left.assetId.localeCompare(right.assetId))
+    .slice(0, topAssetLimit)
+    .map<GameboardScenarioAssetSummary>((asset) => ({
+      assetId: asset.assetId,
+      count: asset.count,
+      requiresExtra: asset.requiresExtra,
+      actorKinds: sortedSummaryStrings(asset.actorKinds),
+      teams: sortedSummaryStrings(asset.teams),
+    }));
+  const errorCount = inspection.violations.filter((violation) => violation.severity === 'error').length;
+  const warningCount = inspection.violations.filter(
+    (violation) => violation.severity === 'warning'
+  ).length;
+  const spawnRouteCheckCount = inspection.spawnGroups?.routeChecks.length ?? 0;
+  const spawnRouteFoundCount =
+    inspection.spawnGroups?.routeChecks.filter((route) => route.found).length ?? 0;
+  const patrolRouteCount = inspection.patrolRoutes?.routeCount ?? 0;
+  const patrolRouteFoundCount =
+    inspection.patrolRoutes?.routes.filter((route) => route.found).length ?? 0;
+
+  return {
+    schemaVersion: scenario.schemaVersion,
+    scenarioId: scenario.id,
+    title: scenario.title,
+    board: inspection.plan
+      ? summarizeGameboardPlan(inspection.plan, { topAssetLimit: options.topAssetLimit })
+      : undefined,
+    validation: {
+      errorCount,
+      warningCount,
+      violations: inspection.violations,
+    },
+    actorCount: scenario.actors?.length ?? 0,
+    resolvedActorCount: actorRows.filter((actor) => actor.tileKey).length,
+    movementAgentCount,
+    patrolAgentCount,
+    hostileActorCount,
+    interactiveActorCount,
+    blockingActorCount,
+    actorKindCounts: sortedSummaryCountRecord(actorKindCounts),
+    actorTeamCounts: sortedSummaryCountRecord(actorTeamCounts),
+    actorSpawnGroupCounts: sortedSummaryCountRecord(actorSpawnGroupCounts),
+    actorTileCounts: sortedSummaryCountRecord(actorTileCounts),
+    actorTagCounts: sortedSummaryCountRecord(actorTagCounts),
+    actorAssetCounts: sortedSummaryCountRecord(actorAssetCounts),
+    actorExtraAssetIds: [...actorExtraAssetIds].sort((left, right) => left.localeCompare(right)),
+    topActorAssets,
+    actors: actorRows,
+    questCount: scenario.quests?.length ?? 0,
+    objectiveCount,
+    objectiveKindCounts: sortedSummaryCountRecord(objectiveKindCounts),
+    objectiveActorCounts: sortedSummaryCountRecord(objectiveActorCounts),
+    objectiveTargetActorCounts: sortedSummaryCountRecord(objectiveTargetActorCounts),
+    spawnGroupCount: inspection.spawnGroups?.groupCount ?? 0,
+    spawnLocationCount: inspection.spawnGroups?.selectedLocationCount ?? 0,
+    spawnGroupLocationCounts: sortedSummaryCountRecord(spawnGroupLocationCounts),
+    spawnGroupCandidateCounts: sortedSummaryCountRecord(spawnGroupCandidateCounts),
+    spawnRouteCheckCount,
+    spawnRouteFoundCount,
+    spawnRouteMissingCount: spawnRouteCheckCount - spawnRouteFoundCount,
+    spawnWarningCount: inspection.spawnGroups?.warnings.length ?? 0,
+    spawnErrorCount: inspection.spawnGroups?.errors.length ?? 0,
+    patrolRouteCount,
+    patrolRouteFoundCount,
+    patrolRouteMissingCount: patrolRouteCount - patrolRouteFoundCount,
+    patrolWaypointCount:
+      inspection.patrolRoutes?.routes.reduce(
+        (count, route) => count + route.selectedWaypointCount,
+        0
+      ) ?? 0,
+    patrolRouteWaypointCounts: sortedSummaryCountRecord(patrolRouteWaypointCounts),
+    patrolWarningCount: inspection.patrolRoutes?.warnings.length ?? 0,
+    patrolErrorCount: inspection.patrolRoutes?.errors.length ?? 0,
   };
 }
 
@@ -990,4 +1338,81 @@ function cloneQuestDefinition(quest: GameboardQuestDefinition): GameboardQuestDe
     objectives: quest.objectives.map((objective) => ({ ...objective })),
     metadata: quest.metadata ? { ...quest.metadata } : undefined,
   };
+}
+
+function summarizeScenarioActors(
+  actors: readonly GameboardScenarioActor[],
+  spawnGroups: GameboardSpawnGroupPlan | undefined
+): readonly GameboardScenarioActorSummary[] {
+  const resolvedActors = tryResolveScenarioActors(actors, spawnGroups);
+  return resolvedActors.map((actor) => {
+    const team = actor.team ?? actor.faction ?? undefined;
+    return {
+      actorId: actor.actorId,
+      actorKind: actor.actorKind ?? actor.kind,
+      assetId: actor.assetId,
+      tileKey: actor.spawnTileKey ?? tileKeyFromScenarioTarget(actor.at),
+      spawnGroupId: actor.spawnGroupId,
+      spawnLocationIndex: actor.spawnLocationIndex,
+      movementProfileId: movementProfileId(actor.movementAgent?.profile),
+      patrolRouteId: actor.patrolAgent?.routeId,
+      team,
+      hostile: actor.hostile ?? false,
+      interactive: actor.interactive ?? false,
+      blocksMovement: actor.blocksMovement ?? false,
+      requiresExtra: actor.requiresExtra ?? false,
+      tags: actor.tags ? [...actor.tags].sort((left, right) => left.localeCompare(right)) : [],
+    };
+  });
+}
+
+function tryResolveScenarioActors(
+  actors: readonly GameboardScenarioActor[],
+  spawnGroups: GameboardSpawnGroupPlan | undefined
+): readonly ResolvedGameboardScenarioActor[] {
+  try {
+    return resolveGameboardScenarioActors(actors, spawnGroups);
+  } catch {
+    return actors.map((actor) => ({
+      ...actor,
+      at: actor.at ?? '',
+      tags: actor.tags ? [...actor.tags] : undefined,
+      metadata: actor.metadata ? { ...actor.metadata } : undefined,
+      actorMetadata: actor.actorMetadata ? { ...actor.actorMetadata } : undefined,
+      movementAgent: actor.movementAgent ? cloneMovementAgent(actor.movementAgent) : undefined,
+      patrolAgent: actor.patrolAgent ? clonePatrolAgent(actor.patrolAgent) : undefined,
+    }));
+  }
+}
+
+function movementProfileId(
+  profile: SetGameboardMovementAgentOptions['profile'] | undefined
+): string | undefined {
+  if (!profile) {
+    return undefined;
+  }
+  return typeof profile === 'string' ? profile : profile.id;
+}
+
+function incrementSummaryCount(
+  counts: Record<string, number>,
+  key: string | number | undefined
+): void {
+  if (key === undefined || key === '') {
+    return;
+  }
+  const countKey = String(key);
+  counts[countKey] = (counts[countKey] ?? 0) + 1;
+}
+
+function sortedSummaryCountRecord(
+  counts: Record<string, number>
+): Readonly<Record<string, number>> {
+  return Object.fromEntries(
+    Object.entries(counts).sort(([left], [right]) => left.localeCompare(right))
+  );
+}
+
+function sortedSummaryStrings(values: ReadonlySet<string>): readonly string[] {
+  return [...values].sort((left, right) => left.localeCompare(right));
 }
