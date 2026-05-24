@@ -3,8 +3,8 @@
 The KayKit user guide is decomposed into 19 source-page scenarios. This page is
 the human-facing map for those scenarios; the machine-readable source remains
 `listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,
-`listKayKitGuidePublicApiCoverages()`, and the `guide-scenarios` / `guide-apis`
-CLI commands.
+`listKayKitGuideRoleCoverages()`, `listKayKitGuidePublicApiCoverages()`,
+and the `guide-scenarios` / `guide-roles` / `guide-apis` CLI commands.
 
 Use this page when deciding whether a guide image has public API treatment, docs,
 and visual review coverage. Use the catalog API or CLI when a tool needs exact
@@ -13,6 +13,7 @@ asset ids or public treatment records.
 ```sh
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 15 --includeTreatments --json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 ```
 
@@ -25,6 +26,8 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   is a reference-only license/supporter page with no assets.
 - Every asset-bearing scenario can be expanded into public treatment records
   with `listKayKitGuideScenarioTreatments(id)`.
+- Every public treatment role can be inverted back to pages/assets/APIs with
+  `listKayKitGuideRoleCoverages()`.
 - Every public API string in a scenario can be inverted back to pages/assets with
   `listKayKitGuidePublicApiCoverages()`.
 
@@ -393,6 +396,162 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Public API treatment: `NOTICE.md`, `listKayKitGuideScenarios`, `package.json files`
 - Visual artifacts: `docs/assets/kaykit-guide/pages/page-19.png`, `NOTICE.md`
 - Docs: `NOTICE.md`, `docs/pillars/00-library-charter.md`, `README.md`
+
+## Role Coverage Index
+
+The role index starts from a gameplay use case and reports every guide page,
+asset id, public API, doc, and screenshot that exercises that role:
+
+```ts
+import {
+  describeKayKitGuideRoleCoverage,
+  listKayKitGuideRoleCoverages,
+} from '@jbcom/medieval-hexagon-gameboard/catalog';
+
+const props = describeKayKitGuideRoleCoverage('prop');
+const allRoleCoverage = listKayKitGuideRoleCoverages();
+```
+
+### Role - `base-tile`
+
+- Pages: 07, 08, 09, 10
+- Asset coverage: 4 unique, 4 FREE, 0 EXTRA, 8 occurrences
+- Public API treatment: `GameboardBuilder.addMountainStack`,
+  `GameboardBuilder.setTerrain`,
+  `GameboardBuilder.setTileAsset`,
+  `createGameboardPlanFromTiles`
+- Scenarios: `page-07-water-usage`,
+  `page-08-taller-hex-tiles`,
+  `page-09-world-design-example`,
+  `page-10-floating-islands`
+
+### Role - `coast-tile`
+
+- Pages: 07, 15
+- Asset coverage: 10 unique, 10 FREE, 0 EXTRA, 20 occurrences
+- Public API treatment: `GameboardBuilder.addHarbor`,
+  `GameboardBuilder.setCoastEdges`,
+  `listCoastGuidePermutations`,
+  `selectCoastVariant`,
+  `selectCoastVariantByLabel`
+- Scenarios: `page-07-water-usage`, `page-15-shipyard-harbors`
+
+### Role - `colored-unit-part`
+
+- Pages: 14, 16, 17, 18
+- Asset coverage: 112 unique, 0 FREE, 112 EXTRA, 448 occurrences
+- Public API treatment: `GameboardBuilder.addUnit`,
+  `GameboardBuilder.addUnitPreset`,
+  `coloredUnitAssetId`,
+  `spawnGameboardActor`
+- Scenarios: `page-14-units`,
+  `page-16-stables-and-horses`,
+  `page-17-workshop-and-siege`,
+  `page-18-unit-combinations`
+
+### Role - `faction-building`
+
+- Pages: 02, 15, 16, 17
+- Asset coverage: 108 unique, 72 FREE, 36 EXTRA, 132 occurrences
+- Public API treatment: `GameboardBuilder.addFactionBuilding`,
+  `GameboardBuilder.addHarbor`,
+  `GameboardBuilder.addSettlement`,
+  `factionBuildingAssetId`
+- Scenarios: `page-02-buildings-props-and-factions`,
+  `page-15-shipyard-harbors`,
+  `page-16-stables-and-horses`,
+  `page-17-workshop-and-siege`
+
+### Role - `nature-decoration`
+
+- Pages: 05, 06, 09, 10
+- Asset coverage: 42 unique, 42 FREE, 0 EXTRA, 168 occurrences
+- Public API treatment: `GameboardBuilder.addForest`,
+  `GameboardBuilder.addHill`,
+  `GameboardBuilder.addMountainStack`,
+  `GameboardBuilder.addNature`,
+  `GameboardBuilder.scatterDecorations`,
+  `createGameboardLayoutFillRuleFromPiece`
+- Scenarios: `page-05-nature-contents`,
+  `page-06-nature-usage`,
+  `page-09-world-design-example`,
+  `page-10-floating-islands`
+
+### Role - `neutral-structure`
+
+- Pages: 02, 16, 17
+- Asset coverage: 21 unique, 21 FREE, 0 EXTRA, 43 occurrences
+- Public API treatment: `GameboardBuilder.addNeutralStructure`, `createGameboardPlanFromRecipe`
+- Scenarios: `page-02-buildings-props-and-factions`,
+  `page-16-stables-and-horses`,
+  `page-17-workshop-and-siege`
+
+### Role - `neutral-unit-part`
+
+- Pages: 14, 16, 17, 18
+- Asset coverage: 25 unique, 0 FREE, 25 EXTRA, 100 occurrences
+- Public API treatment: `GameboardBuilder.addUnit`,
+  `GameboardBuilder.addUnitPreset`,
+  `neutralUnitAssetId`,
+  `spawnGameboardActor`
+- Scenarios: `page-14-units`,
+  `page-16-stables-and-horses`,
+  `page-17-workshop-and-siege`,
+  `page-18-unit-combinations`
+
+### Role - `prop`
+
+- Pages: 02, 05, 15, 16, 17
+- Asset coverage: 35 unique, 26 FREE, 9 EXTRA, 79 occurrences
+- Public API treatment: `GameboardBuilder.addFlag`,
+  `GameboardBuilder.addHarbor`,
+  `GameboardBuilder.addProp`,
+  `createGameboardLayoutFillRuleFromPiece`,
+  `flagAssetId`
+- Scenarios: `page-02-buildings-props-and-factions`,
+  `page-05-nature-contents`,
+  `page-15-shipyard-harbors`,
+  `page-16-stables-and-horses`,
+  `page-17-workshop-and-siege`
+
+### Role - `river-tile`
+
+- Pages: 04, 07
+- Asset coverage: 30 unique, 30 FREE, 0 EXTRA, 60 occurrences
+- Public API treatment: `GameboardBuilder.addRiverPath`,
+  `listRiverCrossingGuidePermutations`,
+  `listRiverCurvyGuidePermutations`,
+  `listRiverGuidePermutations`,
+  `selectRiverCrossingVariant`,
+  `selectRiverVariant`,
+  `selectRiverVariantByLabel`
+- Scenarios: `page-04-river-variations`, `page-07-water-usage`
+
+### Role - `road-tile`
+
+- Pages: 03, 09
+- Asset coverage: 15 unique, 15 FREE, 0 EXTRA, 30 occurrences
+- Public API treatment: `GameboardBuilder.addRoadPath`,
+  `listRoadGuidePermutations`,
+  `selectRoadVariant`,
+  `selectRoadVariantByLabel`
+- Scenarios: `page-03-road-variations`, `page-09-world-design-example`
+
+### Role - `support-tile`
+
+- Pages: 08, 10
+- Asset coverage: 1 unique, 1 FREE, 0 EXTRA, 2 occurrences
+- Public API treatment: `GameboardBuilder.addMountainStack`, `GameboardBuilder.setTileAsset`
+- Scenarios: `page-08-taller-hex-tiles`, `page-10-floating-islands`
+
+### Role - `transition-tile`
+
+- Pages: 11, 12, 13
+- Asset coverage: 1 unique, 0 FREE, 1 EXTRA, 3 occurrences
+- Public API treatment: `GameboardBuilder.addTransition`,
+  `createGameboardPlanFromRecipe`,
+  `validateGameboardRecipe`
+- Scenarios: `page-11-biomes`, `page-12-alternate-textures`, `page-13-transition-tiles`
 
 ## Public API Inversion
 

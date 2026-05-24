@@ -75,6 +75,8 @@ any FREE/EXTRA asset is missing from that matrix. Tooling should use
 `listKayKitGuideScenarioTreatments(id)` instead of manually joining asset ids to
 treatment records, `describeKayKitGuideScenarioCoverage(id)` when it needs a
 single page report with counts and treatments, and
+`listKayKitGuideRoleCoverages()` when it needs the inverse map from a gameplay
+role to pages, assets, APIs, docs, and screenshots. Use
 `listKayKitGuidePublicApiCoverages()` when it needs the inverse map from a
 builder, selector, or runtime API to guide pages and assets.
 `summarizeKayKitGuideCoverage()` is for stable unique/occurrence counts used by

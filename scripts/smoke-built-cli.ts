@@ -75,6 +75,17 @@ interface GuidePublicApiSmoke {
   }>;
 }
 
+interface GuideRoleSmoke {
+  count: number;
+  roles: string[];
+  coverage: Array<{
+    role: string;
+    pages: number[];
+    assetCounts: { unique: number; free: number; extra: number };
+    publicApi: string[];
+  }>;
+}
+
 interface LayoutAnalysisSmoke {
   placementCount: number;
   warningCount: number;
@@ -419,6 +430,22 @@ try {
   assert(
     guideApiHarbor.coverage[0]?.assetCounts.free > 0 && guideApiHarbor.coverage[0]?.assetCounts.extra > 0,
     'guide-apis harbor asset edition coverage changed'
+  );
+
+  const guideRoleRoad = JSON.parse(runCli(['guide-roles', '--role', 'road-tile', '--json'])) as GuideRoleSmoke;
+  assert(
+    guideRoleRoad.count === 1 && guideRoleRoad.roles.join(',') === 'road-tile',
+    'guide-roles did not isolate road-tile'
+  );
+  assert(
+    guideRoleRoad.coverage[0]?.pages.join(',') === '3,9',
+    'guide-roles road page coverage changed'
+  );
+  assert(
+    guideRoleRoad.coverage[0]?.assetCounts.unique === 15 &&
+      guideRoleRoad.coverage[0]?.assetCounts.free === 15 &&
+      guideRoleRoad.coverage[0]?.publicApi.includes('GameboardBuilder.addRoadPath'),
+    'guide-roles road role/API coverage changed'
   );
 
   const recipePlanPath = join(tempRoot, 'generated-piece-scenario.plan.json');

@@ -793,6 +793,45 @@ describe('CLI', () => {
     expect(scenarioPayload).toMatchObject({ count: 4, pages: [2, 5, 7, 15] });
   });
 
+  it('emits public role guide coverage and filters scenarios by role', () => {
+    const roleOutputPath = resolve(createTempRoot(), 'guide-role-road.json');
+    const roleOutput = runCli([
+      'guide-roles',
+      '--role',
+      'road-tile',
+      '--out',
+      roleOutputPath,
+    ]);
+    const rolePayload = JSON.parse(readFileSync(roleOutputPath, 'utf8')) as {
+      count: number;
+      roles: string[];
+      coverage: Array<{
+        role: string;
+        pages: number[];
+        assetCounts: { unique: number; free: number; extra: number; occurrences: number };
+        publicApi: string[];
+      }>;
+    };
+
+    expect(roleOutput).toContain(`Wrote 1 guide role coverages to ${roleOutputPath}`);
+    expect(rolePayload).toMatchObject({
+      count: 1,
+      roles: ['road-tile'],
+      coverage: [
+        {
+          role: 'road-tile',
+          pages: [3, 9],
+          assetCounts: { unique: 15, free: 15, extra: 0, occurrences: 30 },
+          publicApi: expect.arrayContaining(['selectRoadVariant', 'GameboardBuilder.addRoadPath']),
+        },
+      ],
+    });
+
+    const scenarioOutput = runCli(['guide-scenarios', '--guideRole', 'colored-unit-part', '--json']);
+    const scenarioPayload = JSON.parse(scenarioOutput) as { count: number; pages: number[] };
+    expect(scenarioPayload).toMatchObject({ count: 4, pages: [14, 16, 17, 18] });
+  });
+
   it('scans local GLTF folders into compatibility-backed piece registries', () => {
     const assetRoot = createExternalPackFixtureRoot();
     const registryPath = resolve(createTempRoot(), 'pieces.json');

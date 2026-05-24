@@ -16,14 +16,17 @@ import {
 } from './compatibility';
 import {
   describeKayKitGuidePublicApiCoverage,
+  describeKayKitGuideRoleCoverage,
   describeKayKitGuideScenarioCoverage,
   listKayKitAssetPublicTreatments,
   listKayKitGuidePublicApiCoverages,
+  listKayKitGuideRoleCoverages,
   listKayKitGuideScenarios,
   renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
   type KayKitAssetPublicTreatment,
   type KayKitGuidePublicApiCoverage,
+  type KayKitGuideRoleCoverage,
   type KayKitGuideScenario,
   type KayKitGuideScenarioCoverage,
 } from './catalog';
@@ -224,6 +227,11 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'guide-apis') {
     runGuidePublicApis(parsed);
+    return;
+  }
+
+  if (parsed.command === 'guide-roles') {
+    runGuideRoles(parsed);
     return;
   }
 
@@ -1431,11 +1439,13 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
   const pageFilter = readGuideScenarioPageFilter(parsed.flags.page);
   const editionFilter = readGuideScenarioEditionFilter(parsed.flags.editionScope);
   const publicApiFilter = readCsv(parsed.flags.publicApi);
+  const roleFilter = readCsv(parsed.flags.role ?? parsed.flags.guideRole);
   const scenarios = filterGuideScenarios(listKayKitGuideScenarios(), {
     scenarioIds: scenarioFilter,
     pages: pageFilter,
     editions: editionFilter,
     publicApis: publicApiFilter,
+    roles: roleFilter,
   });
   if (scenarios.length === 0) {
     throw new Error('guide-scenarios selection did not match any extracted guide scenarios');
@@ -1486,6 +1496,7 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
       pages: pageFilter,
       editions: editionFilter,
       publicApis: publicApiFilter,
+      roles: roleFilter,
     },
     sourceImages,
     docs,
@@ -1588,6 +1599,39 @@ function runGuidePublicApis(parsed: ParsedArgs): void {
   }
 }
 
+function runGuideRoles(parsed: ParsedArgs): void {
+  const roleFilter = readCsv(parsed.flags.role ?? parsed.flags.guideRole);
+  const coverages = filterGuideRoleCoverages(listKayKitGuideRoleCoverages(), roleFilter);
+  if (coverages.length === 0) {
+    throw new Error('guide-roles selection did not match any public role coverage records');
+  }
+  const payload = {
+    schemaVersion: '1.0.0',
+    count: coverages.length,
+    selection: { roles: roleFilter },
+    roles: coverages.map((coverage) => coverage.role),
+    coverage: coverages,
+    ...(roleFilter.length === 1 ? { selected: describeKayKitGuideRoleCoverage(roleFilter[0] ?? '') } : {}),
+  };
+
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${coverages.length} guide role coverages to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    console.log(`guide public roles: ${coverages.length}`);
+    for (const coverage of coverages.slice(0, 20)) {
+      console.log(
+        `${coverage.role}: pages ${formatGuideScenarioPages(coverage.pages)}, assets ${coverage.assetCounts.unique}, APIs ${coverage.publicApi.length}`
+      );
+    }
+    if (coverages.length > 20) {
+      console.log(`...${coverages.length - 20} more`);
+    }
+  }
+}
+
 function readGuideScenarioPageFilter(value: string | boolean | undefined): number[] {
   return readCsv(value).map((page) => {
     const parsedPage = Number(page);
@@ -1618,12 +1662,14 @@ function filterGuideScenarios(
     pages: readonly number[];
     editions: ReadonlyArray<KayKitGuideScenario['edition']>;
     publicApis: readonly string[];
+    roles: readonly string[];
   }
 ): KayKitGuideScenario[] {
   const scenarioIds = new Set(filters.scenarioIds);
   const pages = new Set(filters.pages);
   const editions = new Set(filters.editions);
   const publicApis = new Set(filters.publicApis);
+  const roles = new Set(filters.roles);
   return scenarios.filter((scenario) => {
     if (scenarioIds.size > 0 && !scenarioIds.has(scenario.id)) {
       return false;
@@ -1637,6 +1683,9 @@ function filterGuideScenarios(
     if (publicApis.size > 0 && !scenario.publicApi.some((publicApi) => publicApis.has(publicApi))) {
       return false;
     }
+    if (roles.size > 0 && !scenario.treatmentRoles.some((role) => roles.has(role))) {
+      return false;
+    }
     return true;
   });
 }
@@ -1647,6 +1696,14 @@ function filterGuidePublicApiCoverages(
 ): KayKitGuidePublicApiCoverage[] {
   const publicApiSet = new Set(publicApis);
   return coverages.filter((coverage) => publicApiSet.size === 0 || publicApiSet.has(coverage.publicApi));
+}
+
+function filterGuideRoleCoverages(
+  coverages: readonly KayKitGuideRoleCoverage[],
+  roles: readonly string[]
+): KayKitGuideRoleCoverage[] {
+  const roleSet = new Set(roles);
+  return coverages.filter((coverage) => roleSet.size === 0 || roleSet.has(coverage.role));
 }
 
 function countGuideScenarioAssetsByEdition(
@@ -2882,6 +2939,7 @@ Commands:
   declarations  Emit tile declarations from a source folder, manifest, or registry
   guide-permutations Emit guide-labeled road, river, crossing, and coast permutation metadata
   guide-scenarios Emit extracted guide-page scenario metadata and validate page assets
+  guide-roles Emit public role to guide-page, asset, and API coverage metadata
   guide-apis Emit public API to guide-page and asset coverage metadata
   pieces    Validate piece declarations and optionally emit seeded piece fill rules
   place-piece Inspect and append one declared piece against a saved GameboardPlan, recipe, or scenario
@@ -2920,6 +2978,7 @@ Options:
   --page <comma,separated,guide-pages>
   --editionScope free|extra|mixed|reference
   --publicApi <comma,separated,api-names>
+  --guideRole <comma,separated,asset-treatment-roles>
   --includeTreatments
   --asset <path>
   --assets <comma,separated,paths>

@@ -487,6 +487,14 @@ function auditGuideScenarios(expectedIds: readonly string[]): void {
     'guide scenario coverage docs must explain public API inversion'
   );
   assert(
+    guideScenarioCoverageDoc.includes('listKayKitGuideRoleCoverages()'),
+    'guide scenario coverage docs must explain public role inversion'
+  );
+  assert(
+    guideScenarioCoverageDoc.includes('guide-roles --role prop --json'),
+    'guide scenario coverage docs must show guide-roles usage'
+  );
+  assert(
     guideScenarioCoverageDoc.includes('guide-apis --publicApi GameboardBuilder.addHarbor --json'),
     'guide scenario coverage docs must show guide-apis usage'
   );

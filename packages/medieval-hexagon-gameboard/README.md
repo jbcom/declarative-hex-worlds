@@ -1525,8 +1525,11 @@ assets against an EXTRA manifest, and includes the same coverage summary exposed
 by `summarizeKayKitGuideCoverage()`. Use `--page`, `--scenarioId`, or
 `--editionScope` to isolate a guide case, and `--includeTreatments` to attach
 the same per-asset public treatment join exposed by
-`describeKayKitGuideScenarioCoverage()`. `guide-apis` emits the inverse
-builder/selector/runtime API index exposed by
+`describeKayKitGuideScenarioCoverage()`. `guide-roles` emits the inverse
+gameplay-role index exposed by `listKayKitGuideRoleCoverages()`, so tools can
+start from props, roads, units, structures, or scatter use cases and find the
+guide pages, assets, APIs, docs, and screenshots that cover them. `guide-apis`
+emits the inverse builder/selector/runtime API index exposed by
 `listKayKitGuidePublicApiCoverages()`, so tools can answer which guide pages and
 assets prove a public API surface. The workspace
 `docs/guides/guide-scenario-coverage.md` page mirrors all 19 extracted guide
@@ -1548,6 +1551,10 @@ medieval-hexagon-gameboard guide-scenarios \
 medieval-hexagon-gameboard guide-scenarios \
   --page 14 \
   --includeTreatments \
+  --json
+
+medieval-hexagon-gameboard guide-roles \
+  --role prop \
   --json
 
 medieval-hexagon-gameboard guide-apis \

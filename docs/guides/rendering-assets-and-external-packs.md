@@ -40,7 +40,8 @@ Use `listKayKitGuideScenarios()` when the tool needs the page-level source
 contract: each extracted guide page lists its source PNG, covered assets, public
 APIs, docs, and visual artifacts. Use `listKayKitGuideScenarioTreatments(id)` or
 `describeKayKitGuideScenarioCoverage(id)` to join a page back to the asset
-treatment records, `listKayKitGuidePublicApiCoverages()` when a tool needs to
+treatment records, `listKayKitGuideRoleCoverages()` when a tool needs to start
+from a gameplay role, `listKayKitGuidePublicApiCoverages()` when it needs to
 start from a public API surface, and `summarizeKayKitGuideCoverage()` when a
 build tool or editor needs stable counts for pages, editions, roles, unique
 assets, repeated page-level asset occurrences, docs, and visual artifacts.

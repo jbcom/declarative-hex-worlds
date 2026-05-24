@@ -20,7 +20,9 @@ The package is not just an asset bundle. It provides:
   `summarizeKayKitGuideCoverage()` for tools that need page-to-treatment joins
   or stable coverage counts. `listKayKitGuidePublicApiCoverages()` provides the
   inverse index from builder/selector/runtime APIs back to guide pages and
-  treated assets.
+  treated assets, while `listKayKitGuideRoleCoverages()` starts from gameplay
+  roles such as props, roads, units, and structures and returns the pages,
+  assets, APIs, docs, and screenshots that intentionally exercise them.
 - Deterministic seeded rectangle and hexagon board generation with `seedrandom`.
 - Koota tile traits, adjacency, origin-tile, and footprint-occupancy relations,
   serializable occupancy snapshots, placement state, rule validators, and
@@ -303,6 +305,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-permutations --m
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-scenarios.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 14 --includeTreatments --json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json

@@ -3,8 +3,10 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   describeKayKitGuidePublicApiCoverage as describeKayKitGuidePublicApiCoverageFromRoot,
+  describeKayKitGuideRoleCoverage as describeKayKitGuideRoleCoverageFromRoot,
   describeKayKitGuideScenarioCoverage as describeKayKitGuideScenarioCoverageFromRoot,
   listKayKitGuidePublicApiCoverages as listKayKitGuidePublicApiCoveragesFromRoot,
+  listKayKitGuideRoleCoverages as listKayKitGuideRoleCoveragesFromRoot,
   listKayKitGuideScenarioTreatments as listKayKitGuideScenarioTreatmentsFromRoot,
   listKayKitGuideScenarios as listKayKitGuideScenariosFromRoot,
   renderKayKitGuideScenarioCoverageMarkdown as renderKayKitGuideScenarioCoverageMarkdownFromRoot,
@@ -18,12 +20,14 @@ import {
   ROAD_TILE_ASSET_IDS,
   describeKayKitAssetTreatment,
   describeKayKitGuidePublicApiCoverage,
+  describeKayKitGuideRoleCoverage,
   describeKayKitGuideScenario,
   describeKayKitGuideScenarioCoverage,
   hasKayKitAssetTreatment,
   isKnownExtraAssetId,
   listKayKitAssetPublicTreatments,
   listKayKitGuidePublicApiCoverages,
+  listKayKitGuideRoleCoverages,
   listKayKitGuideScenarioTreatments,
   listKayKitGuideScenarios,
   neutralUnitAssetId,
@@ -247,6 +251,48 @@ describe('asset catalog public treatments', () => {
     expect(describeKayKitGuidePublicApiCoverage('missing-api')).toBeUndefined();
   });
 
+  it('exposes public role coverage back to guide pages, APIs, and treated assets', () => {
+    const roleCoverages = listKayKitGuideRoleCoverages();
+    const roleNames = roleCoverages.map((coverage) => coverage.role);
+
+    expect(roleCoverages).toHaveLength(12);
+    expect(listKayKitGuideRoleCoveragesFromRoot().map((coverage) => coverage.role)).toEqual(roleNames);
+    expect(roleNames).toEqual([...roleNames].sort());
+
+    const roadRole = describeKayKitGuideRoleCoverage('road-tile');
+    expect(describeKayKitGuideRoleCoverageFromRoot('road-tile')?.assetCounts).toEqual(
+      roadRole?.assetCounts
+    );
+    expect(roadRole).toMatchObject({
+      pages: [3, 9],
+      scenarioIds: ['page-03-road-variations', 'page-09-world-design-example'],
+      publicApi: expect.arrayContaining(['selectRoadVariant', 'GameboardBuilder.addRoadPath']),
+      assetCounts: { unique: 15, free: 15, extra: 0, occurrences: 30 },
+    });
+
+    const propRole = describeKayKitGuideRoleCoverage('prop');
+    expect(propRole).toMatchObject({
+      pages: [2, 5, 15, 16, 17],
+      publicApi: expect.arrayContaining(['GameboardBuilder.addHarbor', 'GameboardBuilder.addProp']),
+    });
+    expect(propRole?.assetCounts.free).toBeGreaterThan(0);
+    expect(propRole?.assetCounts.extra).toBeGreaterThan(0);
+
+    const natureRole = describeKayKitGuideRoleCoverage('nature-decoration');
+    expect(natureRole).toMatchObject({
+      pages: [5, 6, 9, 10],
+      publicApi: expect.arrayContaining(['GameboardBuilder.scatterDecorations']),
+    });
+
+    const unitRole = describeKayKitGuideRoleCoverage('colored-unit-part');
+    expect(unitRole).toMatchObject({
+      pages: [14, 16, 17, 18],
+      assetCounts: { unique: 112, free: 0, extra: 112 },
+      publicApi: expect.arrayContaining(['GameboardBuilder.addUnitPreset']),
+    });
+    expect(describeKayKitGuideRoleCoverage('missing-role')).toBeUndefined();
+  });
+
   it('renders the guide scenario coverage matrix as reproducible Markdown', () => {
     const markdown = renderKayKitGuideScenarioCoverageMarkdown();
 
@@ -258,6 +304,9 @@ describe('asset catalog public treatments', () => {
     expect(markdown).toContain('Scenario: `page-03-road-variations`');
     expect(markdown).toContain('Scenario: `page-19-supporters-and-attribution`');
     expect(markdown).toContain('GameboardBuilder.addHarbor');
+    expect(markdown).toContain('## Role Coverage Index');
+    expect(markdown).toContain('describeKayKitGuideRoleCoverage');
+    expect(markdown).toContain('Role - `prop`');
     expect(markdown).toContain('listKayKitGuidePublicApiCoverages()');
     expect(markdown.endsWith('\n')).toBe(true);
   });

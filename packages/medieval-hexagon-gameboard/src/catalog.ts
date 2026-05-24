@@ -563,12 +563,36 @@ export interface KayKitGuidePublicApiCoverage {
   visualArtifacts: readonly string[];
 }
 
+/** Coverage record that maps one public asset role back to guide pages, APIs, and assets. */
+export interface KayKitGuideRoleCoverage {
+  /** Public treatment role assigned to the covered asset group. */
+  role: KayKitAssetPublicRole;
+  /** Guide scenario ids that list or inherit this public role. */
+  scenarioIds: readonly string[];
+  /** One-based extracted guide pages that exercise this role. */
+  pages: readonly number[];
+  /** Edition scopes represented by the guide scenarios. */
+  editions: readonly KayKitGuideScenarioEdition[];
+  /** Asset ids whose treatment uses this role. */
+  assetIds: readonly string[];
+  /** Public helper/API entries attached to assets with this role. */
+  publicApi: readonly string[];
+  /** Unique and repeated asset counts for this role across matching guide pages. */
+  assetCounts: KayKitGuideAssetCoverageCounts;
+  /** Documentation pages linked by the matching guide scenarios. */
+  docs: readonly string[];
+  /** Visual artifacts linked by the matching guide scenarios. */
+  visualArtifacts: readonly string[];
+}
+
 /** Options for rendering the extracted guide scenario matrix as Markdown. */
 export interface KayKitGuideScenarioCoverageMarkdownOptions {
   /** Heading used for the generated document. */
   title?: string;
   /** Scenario subset to render; defaults to all extracted guide scenarios. */
   scenarios?: readonly KayKitGuideScenario[];
+  /** Whether to append the public role coverage index. */
+  includeRoleCoverage?: boolean;
   /** Whether to append the public API inverse-coverage usage section. */
   includePublicApiInversion?: boolean;
 }
@@ -652,6 +676,22 @@ export function describeKayKitGuidePublicApiCoverage(
   return listKayKitGuidePublicApiCoverages().find((coverage) => coverage.publicApi === publicApi);
 }
 
+/** Lists public asset roles and the guide pages/assets/APIs that intentionally exercise them. */
+export function listKayKitGuideRoleCoverages(): KayKitGuideRoleCoverage[] {
+  const scenarios = listKayKitGuideScenarios();
+  const treatments = listKayKitAssetPublicTreatments();
+  const roles = uniqueSortedRoles([
+    ...scenarios.flatMap((scenario) => scenario.treatmentRoles),
+    ...treatments.map((treatment) => treatment.role),
+  ]);
+  return roles.map((role) => guideRoleCoverage(role, scenarios, treatments));
+}
+
+/** Returns guide-page, API, and asset coverage for one public asset role. */
+export function describeKayKitGuideRoleCoverage(role: string): KayKitGuideRoleCoverage | undefined {
+  return listKayKitGuideRoleCoverages().find((coverage) => coverage.role === role);
+}
+
 /** Summarizes source images, docs, visual artifacts, assets, roles, and page coverage. */
 export function summarizeKayKitGuideCoverage(): KayKitGuideCoverageSummary {
   const scenarios = listKayKitGuideScenarios();
@@ -691,6 +731,7 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
   options: KayKitGuideScenarioCoverageMarkdownOptions = {}
 ): string {
   const scenarios = options.scenarios ? [...options.scenarios] : listKayKitGuideScenarios();
+  const includeRoleCoverage = options.includeRoleCoverage ?? options.scenarios === undefined;
   const includePublicApiInversion = options.includePublicApiInversion ?? options.scenarios === undefined;
   const lines = [
     `# ${options.title ?? 'Guide Scenario Coverage'}`,
@@ -698,8 +739,8 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
     'The KayKit user guide is decomposed into 19 source-page scenarios. This page is',
     'the human-facing map for those scenarios; the machine-readable source remains',
     '`listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,',
-    '`listKayKitGuidePublicApiCoverages()`, and the `guide-scenarios` / `guide-apis`',
-    'CLI commands.',
+    '`listKayKitGuideRoleCoverages()`, `listKayKitGuidePublicApiCoverages()`,',
+    'and the `guide-scenarios` / `guide-roles` / `guide-apis` CLI commands.',
     '',
     'Use this page when deciding whether a guide image has public API treatment, docs,',
     'and visual review coverage. Use the catalog API or CLI when a tool needs exact',
@@ -708,6 +749,7 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
     '```sh',
     'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md',
     'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 15 --includeTreatments --json',
+    'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json',
     'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json',
     '```',
     '',
@@ -720,6 +762,8 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
     '  is a reference-only license/supporter page with no assets.',
     '- Every asset-bearing scenario can be expanded into public treatment records',
     '  with `listKayKitGuideScenarioTreatments(id)`.',
+    '- Every public treatment role can be inverted back to pages/assets/APIs with',
+    '  `listKayKitGuideRoleCoverages()`.',
     '- Every public API string in a scenario can be inverted back to pages/assets with',
     '  `listKayKitGuidePublicApiCoverages()`.',
     '',
@@ -750,6 +794,38 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
     pushMarkdownCodeList(lines, 'Public API treatment', scenario.publicApi);
     pushMarkdownCodeList(lines, 'Visual artifacts', scenario.visualArtifacts);
     pushMarkdownCodeList(lines, 'Docs', scenario.docs);
+  }
+
+  if (includeRoleCoverage) {
+    lines.push(
+      '',
+      '## Role Coverage Index',
+      '',
+      'The role index starts from a gameplay use case and reports every guide page,',
+      'asset id, public API, doc, and screenshot that exercises that role:',
+      '',
+      '```ts',
+      'import {',
+      '  describeKayKitGuideRoleCoverage,',
+      '  listKayKitGuideRoleCoverages,',
+      "} from '@jbcom/medieval-hexagon-gameboard/catalog';",
+      '',
+      "const props = describeKayKitGuideRoleCoverage('prop');",
+      'const allRoleCoverage = listKayKitGuideRoleCoverages();',
+      '```'
+    );
+
+    for (const coverage of listKayKitGuideRoleCoverages()) {
+      lines.push(
+        '',
+        `### Role - \`${coverage.role}\``,
+        '',
+        `- Pages: ${formatGuideScenarioPagesForMarkdown(coverage.pages)}`,
+        `- Asset coverage: ${coverage.assetCounts.unique} unique, ${coverage.assetCounts.free} FREE, ${coverage.assetCounts.extra} EXTRA, ${coverage.assetCounts.occurrences} occurrences`
+      );
+      pushMarkdownCodeList(lines, 'Public API treatment', coverage.publicApi);
+      pushMarkdownCodeList(lines, 'Scenarios', coverage.scenarioIds);
+    }
   }
 
   if (includePublicApiInversion) {
@@ -1579,6 +1655,13 @@ function markdownTitleCase(value: string): string {
     .join(' ');
 }
 
+function formatGuideScenarioPagesForMarkdown(pages: readonly number[]): string {
+  if (pages.length === 0) {
+    return 'none';
+  }
+  return pages.map((page) => String(page).padStart(2, '0')).join(', ');
+}
+
 function uniqueSortedScenarioEditions(
   values: readonly KayKitGuideScenarioEdition[]
 ): KayKitGuideScenarioEdition[] {
@@ -1642,6 +1725,42 @@ function guidePublicApiCoverage(
     editions: uniqueSortedScenarioEditions(scenarioMatches.map((scenario) => scenario.edition)),
     assetIds,
     treatmentRoles: uniqueSortedRoles(treatmentMatches.map((treatment) => treatment.role)),
+    assetCounts: {
+      unique: assetIds.length,
+      free: countUniqueAssetsByEdition(assetIds, treatmentByAssetId, 'free'),
+      extra: countUniqueAssetsByEdition(assetIds, treatmentByAssetId, 'extra'),
+      occurrences: occurrenceTreatments.length,
+      freeOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'free').length,
+      extraOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'extra').length,
+    },
+    docs: uniqueSortedStrings(scenarioMatches.flatMap((scenario) => scenario.docs)),
+    visualArtifacts: uniqueSortedStrings(scenarioMatches.flatMap((scenario) => scenario.visualArtifacts)),
+  };
+}
+
+function guideRoleCoverage(
+  role: KayKitAssetPublicRole,
+  scenarios: readonly KayKitGuideScenario[],
+  treatments: readonly KayKitAssetPublicTreatment[]
+): KayKitGuideRoleCoverage {
+  const scenarioMatches = scenarios.filter((scenario) => scenario.treatmentRoles.includes(role));
+  const treatmentMatches = treatments.filter((treatment) => treatment.role === role);
+  const treatmentByAssetId = new Map(treatments.map((treatment) => [treatment.assetId, treatment]));
+  const assetIds = uniqueSortedStrings(treatmentMatches.map((treatment) => treatment.assetId));
+  const assetIdSet = new Set(assetIds);
+  const occurrenceTreatments = scenarioMatches
+    .flatMap((scenario) => scenario.assetIds)
+    .filter((assetId) => assetIdSet.has(assetId))
+    .map((assetId) => treatmentByAssetId.get(assetId))
+    .filter((treatment): treatment is KayKitAssetPublicTreatment => treatment !== undefined);
+
+  return {
+    role,
+    scenarioIds: scenarioMatches.map((scenario) => scenario.id),
+    pages: [...new Set(scenarioMatches.map((scenario) => scenario.page))].sort((a, b) => a - b),
+    editions: uniqueSortedScenarioEditions(scenarioMatches.map((scenario) => scenario.edition)),
+    assetIds,
+    publicApi: uniqueSortedStrings(treatmentMatches.flatMap((treatment) => treatment.publicApi)),
     assetCounts: {
       unique: assetIds.length,
       free: countUniqueAssetsByEdition(assetIds, treatmentByAssetId, 'free'),
