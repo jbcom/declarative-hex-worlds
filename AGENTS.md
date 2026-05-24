@@ -10,12 +10,14 @@ contract for CI and npm consumers.
 
 - Start with `docs/pillars/`, especially `05-koota-runtime-rules.md`.
 - Use `docs/guides/` for the public API workflow: plan versus runtime, recipes
-  and scenarios, simulation, rendering, manifests, and external pack ingestion.
+  and scenarios, guide scenario coverage, simulation, rendering, manifests, and
+  external pack ingestion.
 - The guide imagery lives in `docs/assets/kaykit-guide/` and is generated from
   `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/Medieval_Hexagon_UserGuide_v1.pdf`.
 - Use `listKayKitGuideScenarios()` from `./catalog` when mapping guide pages to
-  assets, public APIs, docs, and screenshot artifacts. Do not duplicate the
-  page-to-asset matrix in ad hoc test data.
+  assets, public APIs, docs, and screenshot artifacts. Keep
+  `docs/guides/guide-scenario-coverage.md` synchronized with those scenario ids
+  and do not duplicate the page-to-asset matrix in ad hoc test data.
 - Keep pillar frontmatter current when implementation or tests change.
 - Keep TypeDoc comments useful on exported symbols. Every TypeDoc entry point
   in `typedoc.json` must start with top-level `@module` JSDoc, and public

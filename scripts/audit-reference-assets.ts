@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
   describeKayKitAssetTreatment,
@@ -12,6 +12,7 @@ import type { MedievalHexagonManifest, PackEdition } from '../packages/medieval-
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const failures: string[] = [];
+const guideScenarioCoverageDoc = readRequired('docs/guides/guide-scenario-coverage.md');
 const factions = ['blue', 'green', 'red', 'yellow'] as const;
 const unitStyles = ['accent', 'full'] as const;
 
@@ -457,6 +458,10 @@ function auditGuideScenarios(expectedIds: readonly string[]): void {
   assertEqualList(scenarioAssetIds, [...expectedIds].sort(), 'guide scenario asset coverage');
 
   for (const scenario of scenarios) {
+    assert(
+      guideScenarioCoverageDoc.includes(`Scenario: \`${scenario.id}\``),
+      `guide scenario coverage docs must list ${scenario.id}`
+    );
     assert(scenario.publicApi.length > 0, `${scenario.id} must list public APIs`);
     assert(scenario.visualArtifacts.length > 0, `${scenario.id} must list visual artifacts`);
     assert(scenario.docs.length > 0, `${scenario.id} must list docs`);
@@ -475,6 +480,15 @@ function auditGuideScenarios(expectedIds: readonly string[]): void {
       );
     }
   }
+
+  assert(
+    guideScenarioCoverageDoc.includes('listKayKitGuidePublicApiCoverages()'),
+    'guide scenario coverage docs must explain public API inversion'
+  );
+  assert(
+    guideScenarioCoverageDoc.includes('guide-apis --publicApi GameboardBuilder.addHarbor --json'),
+    'guide scenario coverage docs must show guide-apis usage'
+  );
 }
 
 function factionAssetIds(kinds: readonly string[], prefix: 'building'): string[] {
@@ -489,6 +503,12 @@ function factionUnitIds(parts: readonly string[]): string[] {
 
 function uniqueSorted(values: readonly string[]): string[] {
   return [...new Set(values)].sort();
+}
+
+function readRequired(path: string): string {
+  const resolved = join(workspaceRoot, path);
+  assert(existsSync(resolved), `missing ${path}`);
+  return existsSync(resolved) ? readFileSync(resolved, 'utf8') : '';
 }
 
 function assert(condition: unknown, message: string): asserts condition {

@@ -1528,7 +1528,9 @@ the same per-asset public treatment join exposed by
 `describeKayKitGuideScenarioCoverage()`. `guide-apis` emits the inverse
 builder/selector/runtime API index exposed by
 `listKayKitGuidePublicApiCoverages()`, so tools can answer which guide pages and
-assets prove a public API surface.
+assets prove a public API surface. The workspace
+`docs/guides/guide-scenario-coverage.md` page mirrors all 19 extracted guide
+scenarios for human review.
 
 ```bash
 medieval-hexagon-gameboard guide-permutations \

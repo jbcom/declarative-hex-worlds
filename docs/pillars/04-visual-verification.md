@@ -24,6 +24,7 @@ source_images:
   - docs/assets/kaykit-guide/pages/page-19.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
+  - docs/guides/guide-scenario-coverage.md
   - package.json
   - packages/medieval-hexagon-gameboard/src/catalog.ts
   - packages/medieval-hexagon-gameboard/src/compatibility.ts
