@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -35,6 +36,7 @@ interface ProjectJson {
 
 interface TypeDocJson {
   entryPoints?: string[];
+  out?: string;
   tsconfig?: string;
   validation?: {
     invalidLink?: boolean;
@@ -702,6 +704,7 @@ function requireTypeDocConfiguration(): void {
     typedocJson.tsconfig === 'packages/medieval-hexagon-gameboard/tsconfig.json',
     'typedoc must use the package tsconfig so public subpath examples resolve to source before dist exists'
   );
+  assert(typedocJson.out === 'docs/api', 'typedoc output must stay in the ignored docs/api directory');
   assertEqualList(
     typedocJson.entryPoints ?? [],
     expectedTypeDocEntryPoints(),
@@ -710,6 +713,19 @@ function requireTypeDocConfiguration(): void {
   assert(typedocJson.validation?.notExported === true, 'typedoc must validate notExported links');
   assert(typedocJson.validation?.invalidLink === true, 'typedoc must validate invalid links');
   assert(typedocJson.validation?.notDocumented === false, 'typedoc config should leave notDocumented to test:api-docs');
+  requireGeneratedApiDocsStayIgnored();
+}
+
+function requireGeneratedApiDocsStayIgnored(): void {
+  const gitignore = readRequired('.gitignore');
+  assert(
+    gitignore
+      .split(/\r?\n/)
+      .some((line) => line.trim() === 'docs/api'),
+    '.gitignore must ignore generated TypeDoc docs/api output'
+  );
+  assertGitOutputEmpty(['ls-files', 'docs/api'], 'generated TypeDoc docs/api output must not be committed');
+  assertGitCommandSucceeds(['check-ignore', 'docs/api/index.html'], '.gitignore must ignore docs/api/index.html');
 }
 
 function expectedTypeDocEntryPoints(): string[] {
@@ -901,6 +917,30 @@ function requireIncludes(source: string, label: string, snippets: readonly strin
   for (const snippet of snippets) {
     assert(source.includes(snippet), `${label} is missing ${snippet}`);
   }
+}
+
+function assertGitOutputEmpty(args: readonly string[], message: string): void {
+  try {
+    const output = execFileSync('git', [...args], { cwd: workspaceRoot, encoding: 'utf8' }).trim();
+    assert(output.length === 0, `${message}: ${output}`);
+  } catch (error) {
+    failures.push(`git ${args.join(' ')} failed while checking workspace contract: ${formatError(error)}`);
+  }
+}
+
+function assertGitCommandSucceeds(args: readonly string[], message: string): void {
+  try {
+    execFileSync('git', [...args], { cwd: workspaceRoot, encoding: 'utf8', stdio: 'pipe' });
+  } catch (error) {
+    failures.push(`${message}: git ${args.join(' ')} failed: ${formatError(error)}`);
+  }
+}
+
+function formatError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
 }
 
 function countReleaseStatus(values: readonly { status?: string }[] | undefined, status: string): number {

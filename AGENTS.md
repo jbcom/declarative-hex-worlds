@@ -42,6 +42,8 @@ contract for CI and npm consumers.
   symbol docs should explain lifecycle, validation, and caller responsibility
   instead of restating a name.
 - Run `pnpm docs` or `pnpm docs:build` for docs or public API comment changes.
+  TypeDoc writes `docs/api/`, which is generated, ignored, and must remain
+  untracked; `pnpm test:workspace` enforces that contract.
 - For JSDoc completion claims, also run `pnpm test:api-docs`; it enforces the
   `@module` entry-point contract and keeps the strict TypeDoc warning count at
   zero.
