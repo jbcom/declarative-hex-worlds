@@ -181,6 +181,7 @@ requireDocsConfiguration();
 requireReleaseReadinessLedger();
 requireTypeDocConfiguration();
 requireTsupConfiguration();
+requirePackageAuditConsumerCoverage();
 
 if (failures.length > 0) {
   for (const failure of failures) {
@@ -978,6 +979,22 @@ function requireTsupConfiguration(): void {
   assert(![...tsupEntries.keys()].some((entry) => entry.startsWith('src/')), 'tsup entries must use named output keys');
   assertArrayIncludes(packageJson.files, 'LICENSE', 'package files must ship the MIT LICENSE text');
   assertArrayIncludes(packageJson.files, 'NOTICE.md', 'package files must ship KayKit attribution notices');
+}
+
+function requirePackageAuditConsumerCoverage(): void {
+  requireIncludes(packageAuditScript, 'package audit script', [
+    "import ts from 'typescript'",
+    'collectConsumerSmokePackageSpecifiers',
+    'collectConsumerSmokeSnippetPackageSpecifiers',
+    'collectPackageImportSpecifierFromNode',
+    'ts.createSourceFile(',
+    'ts.SyntaxKind.ImportKeyword',
+    'isConsumerSmokeExportCovered(coveredImportPattern, subpath.includes',
+  ]);
+  assert(
+    !packageAuditScript.includes('packedConsumerSmoke.includes(coveredImport)'),
+    'package audit must verify packed consumer exports through parsed import specifiers, not raw substring matching'
+  );
 }
 
 function importTargetToEntryName(target: string): string {
