@@ -105,6 +105,7 @@ interface ReleaseReadinessLedger {
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const failures: string[] = [];
 const markdownAnchorCache = new Map<string, Set<string>>();
+const rootReadmeGuideBaseUrl = 'https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides';
 
 const workspacePackageJson = readJson<PackageJson>('package.json');
 const packageJson = readJson<PackageJson>('packages/medieval-hexagon-gameboard/package.json');
@@ -504,8 +505,8 @@ function requireReadmeGuideCoverage(): void {
     const rootGuidePath = `docs/guides/${guideFile}`;
     const packageGuidePath = `docs/guides/${guideFile}`;
     assert(
-      rootReadme.includes(`](${rootGuidePath})`),
-      `root README Documentation section must link ${rootGuidePath}`
+      rootReadme.includes(`](${rootReadmeGuideBaseUrl}/${guideFile})`),
+      `root README Documentation section must link ${rootGuidePath} through GitHub so TypeDoc does not ingest guide Markdown as media`
     );
     assert(
       packageReadme.includes(`\`${packageGuidePath}\``),
