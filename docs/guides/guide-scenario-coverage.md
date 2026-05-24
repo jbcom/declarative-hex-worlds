@@ -3,8 +3,9 @@
 The KayKit user guide is decomposed into 19 source-page scenarios. This page is
 the human-facing map for those scenarios; the machine-readable source remains
 `listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,
-`listKayKitGuideRoleCoverages()`, `listKayKitGuidePublicApiCoverages()`,
-and the `guide-scenarios` / `guide-roles` / `guide-apis` CLI commands.
+`listKayKitGuideAssetCoverages()`, `listKayKitGuideRoleCoverages()`,
+`listKayKitGuidePublicApiCoverages()`, and the `guide-scenarios` /
+`guide-assets` / `guide-roles` / `guide-apis` CLI commands.
 
 Use this page when deciding whether a guide image has public API treatment, docs,
 and visual review coverage. Use the catalog API or CLI when a tool needs exact
@@ -13,6 +14,7 @@ asset ids or public treatment records.
 ```sh
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 15 --includeTreatments --json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 ```
@@ -26,6 +28,8 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   is a reference-only license/supporter page with no assets.
 - Every asset-bearing scenario can be expanded into public treatment records
   with `listKayKitGuideScenarioTreatments(id)`.
+- Every FREE and local EXTRA asset id can be inverted back to pages/APIs/docs
+  and screenshots with `listKayKitGuideAssetCoverages()`.
 - Every public treatment role can be inverted back to pages/assets/APIs with
   `listKayKitGuideRoleCoverages()`.
 - Every public API string in a scenario can be inverted back to pages/assets with
@@ -396,6 +400,22 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Public API treatment: `NOTICE.md`, `listKayKitGuideScenarios`, `package.json files`
 - Visual artifacts: `docs/assets/kaykit-guide/pages/page-19.png`, `NOTICE.md`
 - Docs: `NOTICE.md`, `docs/pillars/00-library-charter.md`, `README.md`
+
+## Asset Coverage Query
+
+The asset index starts from a manifest id and reports the exact role, public
+API surface, source images, docs, and screenshots that keep that GLTF from
+being a passive file reference:
+
+```ts
+import {
+  describeKayKitGuideAssetCoverage,
+  listKayKitGuideAssetCoverages,
+} from '@jbcom/medieval-hexagon-gameboard/catalog';
+
+const roadM = describeKayKitGuideAssetCoverage('hex_road_M');
+const allAssetCoverage = listKayKitGuideAssetCoverages();
+```
 
 ## Role Coverage Index
 

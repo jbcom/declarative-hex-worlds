@@ -75,6 +75,18 @@ interface GuidePublicApiSmoke {
   }>;
 }
 
+interface GuideAssetSmoke {
+  count: number;
+  assetIds: string[];
+  coverage: Array<{
+    assetId: string;
+    role: string;
+    pages: number[];
+    publicApi: string[];
+    occurrences: number;
+  }>;
+}
+
 interface GuideRoleSmoke {
   count: number;
   roles: string[];
@@ -430,6 +442,23 @@ try {
   assert(
     guideApiHarbor.coverage[0]?.assetCounts.free > 0 && guideApiHarbor.coverage[0]?.assetCounts.extra > 0,
     'guide-apis harbor asset edition coverage changed'
+  );
+
+  const guideAssetRoadM = JSON.parse(runCli(['guide-assets', '--assetId', 'hex_road_M', '--json'])) as GuideAssetSmoke;
+  assert(
+    guideAssetRoadM.count === 1 && guideAssetRoadM.assetIds.join(',') === 'hex_road_M',
+    'guide-assets did not isolate hex_road_M'
+  );
+  assert(
+    guideAssetRoadM.coverage[0]?.pages.join(',') === '3,9' &&
+      guideAssetRoadM.coverage[0]?.role === 'road-tile' &&
+      guideAssetRoadM.coverage[0]?.occurrences === 2,
+    'guide-assets road page/role coverage changed'
+  );
+  assert(
+    guideAssetRoadM.coverage[0]?.publicApi.includes('GameboardBuilder.addRoadPath') &&
+      !guideAssetRoadM.coverage[0]?.publicApi.includes('GameboardBuilder.addForest'),
+    'guide-assets road API treatment changed'
   );
 
   const guideRoleRoad = JSON.parse(runCli(['guide-roles', '--role', 'road-tile', '--json'])) as GuideRoleSmoke;

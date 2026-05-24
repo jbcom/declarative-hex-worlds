@@ -487,6 +487,14 @@ function auditGuideScenarios(expectedIds: readonly string[]): void {
     'guide scenario coverage docs must explain public API inversion'
   );
   assert(
+    guideScenarioCoverageDoc.includes('listKayKitGuideAssetCoverages()'),
+    'guide scenario coverage docs must explain public asset inversion'
+  );
+  assert(
+    guideScenarioCoverageDoc.includes('guide-assets --assetId hex_road_M --json'),
+    'guide scenario coverage docs must show guide-assets usage'
+  );
+  assert(
     guideScenarioCoverageDoc.includes('listKayKitGuideRoleCoverages()'),
     'guide scenario coverage docs must explain public role inversion'
   );

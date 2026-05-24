@@ -18,7 +18,9 @@ The package is not just an asset bundle. It provides:
   `listKayKitGuideScenarioTreatments()`,
   `describeKayKitGuideScenarioCoverage()`, and
   `summarizeKayKitGuideCoverage()` for tools that need page-to-treatment joins
-  or stable coverage counts. `listKayKitGuidePublicApiCoverages()` provides the
+  or stable coverage counts. `listKayKitGuideAssetCoverages()` starts from any
+  FREE or local EXTRA asset id and returns its guide pages, role, public APIs,
+  docs, and screenshots. `listKayKitGuidePublicApiCoverages()` provides the
   inverse index from builder/selector/runtime APIs back to guide pages and
   treated assets, while `listKayKitGuideRoleCoverages()` starts from gameplay
   roles such as props, roads, units, and structures and returns the pages,
@@ -305,6 +307,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-permutations --m
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-scenarios.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 14 --includeTreatments --json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --json

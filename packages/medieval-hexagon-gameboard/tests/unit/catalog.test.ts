@@ -2,9 +2,11 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  describeKayKitGuideAssetCoverage as describeKayKitGuideAssetCoverageFromRoot,
   describeKayKitGuidePublicApiCoverage as describeKayKitGuidePublicApiCoverageFromRoot,
   describeKayKitGuideRoleCoverage as describeKayKitGuideRoleCoverageFromRoot,
   describeKayKitGuideScenarioCoverage as describeKayKitGuideScenarioCoverageFromRoot,
+  listKayKitGuideAssetCoverages as listKayKitGuideAssetCoveragesFromRoot,
   listKayKitGuidePublicApiCoverages as listKayKitGuidePublicApiCoveragesFromRoot,
   listKayKitGuideRoleCoverages as listKayKitGuideRoleCoveragesFromRoot,
   listKayKitGuideScenarioTreatments as listKayKitGuideScenarioTreatmentsFromRoot,
@@ -19,6 +21,7 @@ import {
   RIVER_TILE_ASSET_IDS,
   ROAD_TILE_ASSET_IDS,
   describeKayKitAssetTreatment,
+  describeKayKitGuideAssetCoverage,
   describeKayKitGuidePublicApiCoverage,
   describeKayKitGuideRoleCoverage,
   describeKayKitGuideScenario,
@@ -26,6 +29,7 @@ import {
   hasKayKitAssetTreatment,
   isKnownExtraAssetId,
   listKayKitAssetPublicTreatments,
+  listKayKitGuideAssetCoverages,
   listKayKitGuidePublicApiCoverages,
   listKayKitGuideRoleCoverages,
   listKayKitGuideScenarioTreatments,
@@ -249,6 +253,51 @@ describe('asset catalog public treatments', () => {
       assetCounts: { unique: 137, free: 0, extra: 137, occurrences: 548 },
     });
     expect(describeKayKitGuidePublicApiCoverage('missing-api')).toBeUndefined();
+  });
+
+  it('exposes asset-level guide coverage for every treated FREE and EXTRA asset id', () => {
+    const assetCoverages = listKayKitGuideAssetCoverages();
+    const assetIds = assetCoverages.map((coverage) => coverage.assetId);
+
+    expect(assetCoverages).toHaveLength(404);
+    expect(listKayKitGuideAssetCoveragesFromRoot().map((coverage) => coverage.assetId)).toEqual(assetIds);
+    expect(assetIds).toEqual([...assetIds].sort());
+
+    for (const coverage of assetCoverages) {
+      expect(coverage.scenarioIds.length, coverage.assetId).toBeGreaterThan(0);
+      expect(coverage.pages.length, coverage.assetId).toBeGreaterThan(0);
+      expect(coverage.publicApi.length, coverage.assetId).toBeGreaterThan(0);
+      expect(coverage.docs.length, coverage.assetId).toBeGreaterThan(0);
+      expect(coverage.visualArtifacts.length, coverage.assetId).toBeGreaterThan(0);
+      expect(coverage.occurrences, coverage.assetId).toBeGreaterThan(0);
+      expect(coverage.treatment.assetId).toBe(coverage.assetId);
+    }
+
+    const roadM = describeKayKitGuideAssetCoverage('hex_road_M');
+    expect(describeKayKitGuideAssetCoverageFromRoot('hex_road_M')?.pages).toEqual(roadM?.pages);
+    expect(roadM).toMatchObject({
+      assetId: 'hex_road_M',
+      minimumEdition: 'free',
+      role: 'road-tile',
+      placementKind: 'road',
+      pages: [3, 9],
+      scenarioIds: ['page-03-road-variations', 'page-09-world-design-example'],
+      publicApi: expect.arrayContaining(['selectRoadVariant', 'GameboardBuilder.addRoadPath']),
+      occurrences: 2,
+    });
+    expect(roadM?.publicApi).not.toContain('GameboardBuilder.addForest');
+
+    const unitFull = describeKayKitGuideAssetCoverage('unit_blue_full');
+    expect(unitFull).toMatchObject({
+      assetId: 'unit_blue_full',
+      minimumEdition: 'extra',
+      role: 'colored-unit-part',
+      placementKind: 'unit',
+      pages: [14, 16, 17, 18],
+      publicApi: expect.arrayContaining(['GameboardBuilder.addUnitPreset']),
+      occurrences: 4,
+    });
+    expect(describeKayKitGuideAssetCoverage('missing-asset')).toBeUndefined();
   });
 
   it('exposes public role coverage back to guide pages, APIs, and treated assets', () => {

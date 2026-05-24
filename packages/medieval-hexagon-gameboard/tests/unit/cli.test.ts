@@ -793,6 +793,48 @@ describe('CLI', () => {
     expect(scenarioPayload).toMatchObject({ count: 4, pages: [2, 5, 7, 15] });
   });
 
+  it('emits asset guide coverage and filters scenarios by asset id', () => {
+    const assetOutputPath = resolve(createTempRoot(), 'guide-asset-road-m.json');
+    const assetOutput = runCli([
+      'guide-assets',
+      '--assetId',
+      'hex_road_M',
+      '--out',
+      assetOutputPath,
+    ]);
+    const assetPayload = JSON.parse(readFileSync(assetOutputPath, 'utf8')) as {
+      count: number;
+      assetIds: string[];
+      coverage: Array<{
+        assetId: string;
+        role: string;
+        pages: number[];
+        publicApi: string[];
+        occurrences: number;
+      }>;
+    };
+
+    expect(assetOutput).toContain(`Wrote 1 guide asset coverages to ${assetOutputPath}`);
+    expect(assetPayload).toMatchObject({
+      count: 1,
+      assetIds: ['hex_road_M'],
+      coverage: [
+        {
+          assetId: 'hex_road_M',
+          role: 'road-tile',
+          pages: [3, 9],
+          publicApi: expect.arrayContaining(['selectRoadVariant', 'GameboardBuilder.addRoadPath']),
+          occurrences: 2,
+        },
+      ],
+    });
+    expect(assetPayload.coverage[0]?.publicApi).not.toContain('GameboardBuilder.addForest');
+
+    const scenarioOutput = runCli(['guide-scenarios', '--assetId', 'hex_road_M', '--json']);
+    const scenarioPayload = JSON.parse(scenarioOutput) as { count: number; pages: number[] };
+    expect(scenarioPayload).toMatchObject({ count: 2, pages: [3, 9] });
+  });
+
   it('emits public role guide coverage and filters scenarios by role', () => {
     const roleOutputPath = resolve(createTempRoot(), 'guide-role-road.json');
     const roleOutput = runCli([

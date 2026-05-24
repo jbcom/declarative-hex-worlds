@@ -19,9 +19,10 @@ contract for CI and npm consumers.
   `docs/guides/guide-scenario-coverage.md` synchronized with those scenario ids
   through `renderKayKitGuideScenarioCoverageMarkdown()` and do not duplicate the
   page-to-asset matrix in ad hoc test data. Use
-  `listKayKitGuideRoleCoverages()` when starting from a gameplay role such as
-  prop, road, unit, or structure; it is the canonical role-to-page/API/docs/
-  screenshot inverse index.
+  `listKayKitGuideAssetCoverages()` when starting from an exact manifest asset
+  id and `listKayKitGuideRoleCoverages()` when starting from a gameplay role
+  such as prop, road, unit, or structure; those are the canonical
+  asset/role-to-page/API/docs/screenshot inverse indexes.
 - Keep pillar frontmatter current when implementation or tests change.
 - Keep TypeDoc comments useful on exported symbols. Every TypeDoc entry point
   in `typedoc.json` must start with top-level `@module` JSDoc, and public
@@ -506,6 +507,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js declarations --manifes
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-permutations --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-permutations.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-scenarios.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 14 --includeTreatments --json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json

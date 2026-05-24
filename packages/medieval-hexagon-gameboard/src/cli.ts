@@ -15,16 +15,19 @@ import {
   type ExternalAssetIntendedRole,
 } from './compatibility';
 import {
+  describeKayKitGuideAssetCoverage,
   describeKayKitGuidePublicApiCoverage,
   describeKayKitGuideRoleCoverage,
   describeKayKitGuideScenarioCoverage,
   listKayKitAssetPublicTreatments,
+  listKayKitGuideAssetCoverages,
   listKayKitGuidePublicApiCoverages,
   listKayKitGuideRoleCoverages,
   listKayKitGuideScenarios,
   renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
   type KayKitAssetPublicTreatment,
+  type KayKitGuideAssetCoverage,
   type KayKitGuidePublicApiCoverage,
   type KayKitGuideRoleCoverage,
   type KayKitGuideScenario,
@@ -227,6 +230,11 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'guide-apis') {
     runGuidePublicApis(parsed);
+    return;
+  }
+
+  if (parsed.command === 'guide-assets') {
+    runGuideAssets(parsed);
     return;
   }
 
@@ -1440,12 +1448,14 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
   const editionFilter = readGuideScenarioEditionFilter(parsed.flags.editionScope);
   const publicApiFilter = readCsv(parsed.flags.publicApi);
   const roleFilter = readCsv(parsed.flags.role ?? parsed.flags.guideRole);
+  const assetIdFilter = readGuideAssetIdFilter(parsed);
   const scenarios = filterGuideScenarios(listKayKitGuideScenarios(), {
     scenarioIds: scenarioFilter,
     pages: pageFilter,
     editions: editionFilter,
     publicApis: publicApiFilter,
     roles: roleFilter,
+    assetIds: assetIdFilter,
   });
   if (scenarios.length === 0) {
     throw new Error('guide-scenarios selection did not match any extracted guide scenarios');
@@ -1497,6 +1507,7 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
       editions: editionFilter,
       publicApis: publicApiFilter,
       roles: roleFilter,
+      assetIds: assetIdFilter,
     },
     sourceImages,
     docs,
@@ -1599,6 +1610,58 @@ function runGuidePublicApis(parsed: ParsedArgs): void {
   }
 }
 
+function runGuideAssets(parsed: ParsedArgs): void {
+  const assetIdFilter = readGuideAssetIdFilter(parsed);
+  const scenarioFilter = readCsv(parsed.flags.scenarioId ?? parsed.flags.scenario);
+  const pageFilter = readGuideScenarioPageFilter(parsed.flags.page);
+  const editionFilter = readGuideScenarioEditionFilter(parsed.flags.editionScope);
+  const publicApiFilter = readCsv(parsed.flags.publicApi);
+  const roleFilter = readCsv(parsed.flags.role ?? parsed.flags.guideRole);
+  const coverages = filterGuideAssetCoverages(listKayKitGuideAssetCoverages(), {
+    assetIds: assetIdFilter,
+    scenarioIds: scenarioFilter,
+    pages: pageFilter,
+    editions: editionFilter,
+    publicApis: publicApiFilter,
+    roles: roleFilter,
+  });
+  if (coverages.length === 0) {
+    throw new Error('guide-assets selection did not match any public asset coverage records');
+  }
+  const payload = {
+    schemaVersion: '1.0.0',
+    count: coverages.length,
+    selection: {
+      assetIds: assetIdFilter,
+      scenarioIds: scenarioFilter,
+      pages: pageFilter,
+      editions: editionFilter,
+      publicApis: publicApiFilter,
+      roles: roleFilter,
+    },
+    assetIds: coverages.map((coverage) => coverage.assetId),
+    coverage: coverages,
+    ...(assetIdFilter.length === 1 ? { selected: describeKayKitGuideAssetCoverage(assetIdFilter[0] ?? '') } : {}),
+  };
+
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${coverages.length} guide asset coverages to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    console.log(`guide assets: ${coverages.length}`);
+    for (const coverage of coverages.slice(0, 20)) {
+      console.log(
+        `${coverage.assetId}: ${coverage.role}, pages ${formatGuideScenarioPages(coverage.pages)}, APIs ${coverage.publicApi.length}`
+      );
+    }
+    if (coverages.length > 20) {
+      console.log(`...${coverages.length - 20} more`);
+    }
+  }
+}
+
 function runGuideRoles(parsed: ParsedArgs): void {
   const roleFilter = readCsv(parsed.flags.role ?? parsed.flags.guideRole);
   const coverages = filterGuideRoleCoverages(listKayKitGuideRoleCoverages(), roleFilter);
@@ -1655,6 +1718,13 @@ function readGuideScenarioEditionFilter(
   });
 }
 
+function readGuideAssetIdFilter(parsed: ParsedArgs): string[] {
+  return uniqueStrings([
+    ...readCsv(parsed.flags.assetId),
+    ...readCsv(parsed.flags.assetIds),
+  ]);
+}
+
 function filterGuideScenarios(
   scenarios: readonly KayKitGuideScenario[],
   filters: {
@@ -1663,6 +1733,7 @@ function filterGuideScenarios(
     editions: ReadonlyArray<KayKitGuideScenario['edition']>;
     publicApis: readonly string[];
     roles: readonly string[];
+    assetIds: readonly string[];
   }
 ): KayKitGuideScenario[] {
   const scenarioIds = new Set(filters.scenarioIds);
@@ -1670,6 +1741,7 @@ function filterGuideScenarios(
   const editions = new Set(filters.editions);
   const publicApis = new Set(filters.publicApis);
   const roles = new Set(filters.roles);
+  const assetIds = new Set(filters.assetIds);
   return scenarios.filter((scenario) => {
     if (scenarioIds.size > 0 && !scenarioIds.has(scenario.id)) {
       return false;
@@ -1684,6 +1756,53 @@ function filterGuideScenarios(
       return false;
     }
     if (roles.size > 0 && !scenario.treatmentRoles.some((role) => roles.has(role))) {
+      return false;
+    }
+    if (assetIds.size > 0 && !scenario.assetIds.some((assetId) => assetIds.has(assetId))) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function filterGuideAssetCoverages(
+  coverages: readonly KayKitGuideAssetCoverage[],
+  filters: {
+    assetIds: readonly string[];
+    scenarioIds: readonly string[];
+    pages: readonly number[];
+    editions: ReadonlyArray<KayKitGuideScenario['edition']>;
+    publicApis: readonly string[];
+    roles: readonly string[];
+  }
+): KayKitGuideAssetCoverage[] {
+  const assetIds = new Set(filters.assetIds);
+  const scenarioIds = new Set(filters.scenarioIds);
+  const pages = new Set(filters.pages);
+  const editions = new Set(filters.editions);
+  const publicApis = new Set(filters.publicApis);
+  const roles = new Set(filters.roles);
+  return coverages.filter((coverage) => {
+    if (assetIds.size > 0 && !assetIds.has(coverage.assetId)) {
+      return false;
+    }
+    if (scenarioIds.size > 0 && !coverage.scenarioIds.some((scenarioId) => scenarioIds.has(scenarioId))) {
+      return false;
+    }
+    if (pages.size > 0 && !coverage.pages.some((page) => pages.has(page))) {
+      return false;
+    }
+    if (
+      editions.size > 0 &&
+      !editions.has(coverage.minimumEdition) &&
+      !coverage.editions.some((edition) => editions.has(edition))
+    ) {
+      return false;
+    }
+    if (publicApis.size > 0 && !coverage.publicApi.some((publicApi) => publicApis.has(publicApi))) {
+      return false;
+    }
+    if (roles.size > 0 && !roles.has(coverage.role)) {
       return false;
     }
     return true;
@@ -2939,6 +3058,7 @@ Commands:
   declarations  Emit tile declarations from a source folder, manifest, or registry
   guide-permutations Emit guide-labeled road, river, crossing, and coast permutation metadata
   guide-scenarios Emit extracted guide-page scenario metadata and validate page assets
+  guide-assets Emit asset id to guide-page, API, docs, and visual coverage metadata
   guide-roles Emit public role to guide-page, asset, and API coverage metadata
   guide-apis Emit public API to guide-page and asset coverage metadata
   pieces    Validate piece declarations and optionally emit seeded piece fill rules

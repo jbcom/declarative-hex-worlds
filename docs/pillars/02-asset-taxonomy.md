@@ -74,7 +74,9 @@ public API surfaces, docs, and visual artifacts. The reference audit fails when
 any FREE/EXTRA asset is missing from that matrix. Tooling should use
 `listKayKitGuideScenarioTreatments(id)` instead of manually joining asset ids to
 treatment records, `describeKayKitGuideScenarioCoverage(id)` when it needs a
-single page report with counts and treatments, and
+single page report with counts and treatments,
+`listKayKitGuideAssetCoverages()` when it needs the inverse map from an exact
+asset id to pages, APIs, docs, and screenshots, and
 `listKayKitGuideRoleCoverages()` when it needs the inverse map from a gameplay
 role to pages, assets, APIs, docs, and screenshots. Use
 `listKayKitGuidePublicApiCoverages()` when it needs the inverse map from a
