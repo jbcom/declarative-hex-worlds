@@ -594,8 +594,8 @@ function requireReadmeGuideCoverage(): void {
       `root README Documentation section must link ${rootGuidePath} through GitHub so TypeDoc does not ingest guide Markdown as media`
     );
     assert(
-      packageReadme.includes(`\`${packageGuidePath}\``),
-      `package README Documentation section must mention ${packageGuidePath}`
+      packageReadme.includes(`](${rootReadmeGuideBaseUrl}/${guideFile})`),
+      `package README Documentation section must link ${packageGuidePath} through GitHub because package docs/guides is not published`
     );
   }
 }

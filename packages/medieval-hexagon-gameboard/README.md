@@ -37,24 +37,24 @@ subpaths and only install the optional peers they use.
 Use the package README for code examples and the docs site for the architectural
 contract:
 
-- `docs/guides/public-api.md` maps the public subpaths to runtime, rendering,
+- [`docs/guides/public-api.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/public-api.md) maps the public subpaths to runtime, rendering,
   manifest, recipe, scenario, simulation, and interop responsibilities.
-- `docs/guides/guide-scenario-coverage.md` maps every extracted KayKit guide
+- [`docs/guides/guide-scenario-coverage.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/guide-scenario-coverage.md) maps every extracted KayKit guide
   page to its scenario id, source PNG, asset counts, public API surfaces, docs,
   and visual artifacts.
-- `docs/guides/release-readiness.md` is the generated release ledger that joins
+- [`docs/guides/release-readiness.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/release-readiness.md) is the generated release ledger that joins
   guide coverage, manifest coverage, public API treatment, screenshots, local
   reference availability, and package gate evidence.
-- `docs/guides/runtime-integration.md` explains how a game should own a runtime,
+- [`docs/guides/runtime-integration.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/runtime-integration.md) explains how a game should own a runtime,
   dispatch commands, tick systems, mirror another ECS, and test fixed/seeded
   scenes through the public API.
-- `docs/guides/recipes-scenarios-and-simulation.md` explains how saved recipes,
+- [`docs/guides/recipes-scenarios-and-simulation.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/recipes-scenarios-and-simulation.md) explains how saved recipes,
   generated fills, scenarios, SimpleRPG fixtures, and simulation scripts fit
   together.
-- `docs/guides/rendering-assets-and-external-packs.md` covers FREE asset URLs,
+- [`docs/guides/rendering-assets-and-external-packs.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/rendering-assets-and-external-packs.md) covers FREE asset URLs,
   local EXTRA manifests, Three.js sync helpers, and third-party compatibility
   scans.
-- `docs/pillars/` remains the source of truth for asset taxonomy, tile
+- [`docs/pillars/`](https://github.com/jbcom/medieval-hexagon-gameboard/tree/main/docs/pillars) remains the source of truth for asset taxonomy, tile
   connectivity, editions, visual verification, and Koota runtime rules.
 
 The generated TypeDoc API reference is rebuilt by `pnpm docs` and

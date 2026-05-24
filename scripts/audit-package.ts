@@ -350,6 +350,7 @@ function assertPackFileList(): void {
     }
   }
   assertPackedFileContents(files);
+  assertPackedReadmeLocalLinks(files);
 }
 
 function assertPackedFileContents(files: readonly PackFile[]): void {
@@ -370,4 +371,24 @@ function assertPackedFileContents(files: readonly PackFile[]): void {
 
 function isTextPackFile(path: string): boolean {
   return textPackFiles.has(path) || textPackFileSuffixes.some((suffix) => path.endsWith(suffix));
+}
+
+function assertPackedReadmeLocalLinks(files: readonly PackFile[]): void {
+  const packedPaths = new Set(files.map((file) => file.path));
+  const readme = readFileSync(join(packageRoot, 'README.md'), 'utf8');
+  for (const match of readme.matchAll(/!?\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
+    const href = match[1];
+    if (!href || /^(?:[a-z][a-z0-9+.-]*:|#)/i.test(href)) {
+      continue;
+    }
+    const [pathOnly = ''] = href.split('#');
+    if (!pathOnly) {
+      continue;
+    }
+    const resolved = resolve(packageRoot, pathOnly);
+    assert(resolved.startsWith(`${packageRoot}/`), `package README link escapes package root: ${href}`);
+    const packageRelative = resolved.slice(packageRoot.length + 1);
+    assert(existsSync(resolved), `package README link ${href} points at missing ${packageRelative}`);
+    assert(packedPaths.has(packageRelative), `package README link ${href} points at unpacked ${packageRelative}`);
+  }
 }
