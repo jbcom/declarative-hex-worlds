@@ -57,6 +57,51 @@ interface MarkdownLocalLink {
   path: string;
 }
 
+interface ReleaseReadinessLedger {
+  assets?: unknown[];
+  gaps?: unknown[];
+  generatedAt?: string;
+  guide?: {
+    assetCounts?: {
+      extra?: number;
+      free?: number;
+      occurrences?: number;
+      unique?: number;
+    };
+    pageCount?: number;
+    scenarioCount?: number;
+  };
+  manifest?: {
+    edition?: string;
+    errorCount?: number;
+    extraGuideAssetsLocalOnly?: unknown[];
+    freeGuideAssetsInManifest?: number;
+    freeGuideAssetsMissingFromManifest?: unknown[];
+    guideExtraAssetCount?: number;
+    guideFreeAssetCount?: number;
+    manifestAssetCount?: number;
+    warningCount?: number;
+  };
+  packageChecks?: { command?: string; status?: string; summary?: string }[];
+  pages?: {
+    docs?: number;
+    edition?: string;
+    page?: number;
+    publicApis?: number;
+    scenarioId?: string;
+    sourceImage?: { path?: string; status?: string };
+    uniqueAssets?: number;
+    visualArtifacts?: number;
+  }[];
+  publicApi?: unknown[];
+  references?: { label?: string; path?: string; status?: string }[];
+  releaseGateCommands?: string[];
+  roles?: unknown[];
+  schemaVersion?: string;
+  status?: string;
+  visualArtifacts?: { pages?: number[]; path?: string; source?: string; status?: string }[];
+}
+
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const failures: string[] = [];
 const markdownAnchorCache = new Map<string, Set<string>>();
@@ -75,6 +120,8 @@ const packageReadme = readRequired('packages/medieval-hexagon-gameboard/README.m
 const docsIndex = readRequired('docs/index.md');
 const docsVitePressConfig = readRequired('docs/.vitepress/config.ts');
 const publicApiGuide = readRequired('docs/guides/public-api.md');
+const releaseReadinessJson = readJson<ReleaseReadinessLedger>('docs/release-readiness.json');
+const releaseReadinessMarkdown = readRequired('docs/guides/release-readiness.md');
 const coverageSource = readRequired('packages/medieval-hexagon-gameboard/src/coverage.ts');
 const guideDocs = readGuideDocs();
 const docsMarkdownPaths = readDocsMarkdownPaths();
@@ -85,6 +132,7 @@ requireWorkspacePackages();
 requireNxConfiguration();
 requireProjectTargets();
 requireDocsConfiguration();
+requireReleaseReadinessLedger();
 requireTypeDocConfiguration();
 requireTsupConfiguration();
 
@@ -311,6 +359,99 @@ function requireAgentsPublicApiSurfaces(): void {
       failures.push(`AGENTS.md Public API Surfaces repeats export ${subpath}`);
     }
     seen.add(subpath);
+  }
+}
+
+function requireReleaseReadinessLedger(): void {
+  assert(releaseReadinessJson.schemaVersion === '1.0.0', 'release-readiness JSON schema version changed');
+  assert(
+    releaseReadinessJson.generatedAt === '2026-05-24T00:00:00.000Z',
+    'release-readiness JSON generatedAt must stay deterministic'
+  );
+  assert(
+    releaseReadinessMarkdown.includes('# Release Readiness Coverage'),
+    'release-readiness Markdown must keep the generated title'
+  );
+  assert(
+    releaseReadinessMarkdown.includes('## Summary'),
+    'release-readiness Markdown must keep the Summary anchor target'
+  );
+
+  const guide = releaseReadinessJson.guide;
+  const guideAssetCounts = guide?.assetCounts;
+  assert(guide?.pageCount === 19, 'release-readiness JSON must report 19 guide pages');
+  assert(guide?.scenarioCount === 19, 'release-readiness JSON must report 19 guide scenarios');
+  assert(guideAssetCounts?.unique === 404, 'release-readiness JSON must report 404 unique guide assets');
+  assert(guideAssetCounts?.free === 221, 'release-readiness JSON must report 221 FREE guide assets');
+  assert(guideAssetCounts?.extra === 183, 'release-readiness JSON must report 183 EXTRA guide assets');
+  assert(guideAssetCounts?.occurrences === 1108, 'release-readiness JSON must report 1108 guide asset occurrences');
+  assert((releaseReadinessJson.publicApi ?? []).length === 74, 'release-readiness JSON must report 74 public API surfaces');
+  assert((releaseReadinessJson.roles ?? []).length === 12, 'release-readiness JSON must report 12 public roles');
+  assert((releaseReadinessJson.assets ?? []).length === 404, 'release-readiness JSON must include all 404 treated assets');
+  assert((releaseReadinessJson.pages ?? []).length === 19, 'release-readiness JSON must include all 19 page rows');
+
+  requireIncludes(releaseReadinessMarkdown, 'release-readiness Markdown summary', [
+    `- Status: ${releaseReadinessJson.status}`,
+    `- Guide pages: ${guide?.pageCount}/19`,
+    `- Guide scenarios: ${guide?.scenarioCount}`,
+    `- Guide assets: ${guideAssetCounts?.unique} unique (${guideAssetCounts?.free} FREE, ${guideAssetCounts?.extra} EXTRA), ${guideAssetCounts?.occurrences} page-level occurrences`,
+    `- Public API surfaces: ${(releaseReadinessJson.publicApi ?? []).length}`,
+    `- Public roles: ${(releaseReadinessJson.roles ?? []).length}`,
+    `- Visual artifacts: ${countReleaseStatus(releaseReadinessJson.visualArtifacts, 'available')} available, ${countReleaseStatus(releaseReadinessJson.visualArtifacts, 'missing')} missing, ${countReleaseStatus(releaseReadinessJson.visualArtifacts, 'skipped')} skipped`,
+    `- Local references: ${countReleaseStatus(releaseReadinessJson.references, 'available')} available, ${countReleaseStatus(releaseReadinessJson.references, 'missing')} missing, ${countReleaseStatus(releaseReadinessJson.references, 'skipped')} skipped`,
+    `- Release checks: ${countReleaseStatus(releaseReadinessJson.packageChecks, 'passed')} passed, ${countReleaseStatus(releaseReadinessJson.packageChecks, 'failed')} failed, ${countReleaseStatus(releaseReadinessJson.packageChecks, 'not-run')} not run, ${countReleaseStatus(releaseReadinessJson.packageChecks, 'skipped')} skipped`,
+    `- Manifest edition: ${releaseReadinessJson.manifest?.edition ?? 'unknown'}`,
+    `- Manifest assets: ${releaseReadinessJson.manifest?.manifestAssetCount}`,
+    `- FREE guide assets in manifest: ${releaseReadinessJson.manifest?.freeGuideAssetsInManifest}/${releaseReadinessJson.manifest?.guideFreeAssetCount}`,
+    `- FREE guide assets missing from manifest: ${releaseReadinessJson.manifest?.freeGuideAssetsMissingFromManifest?.length}`,
+    `- EXTRA guide assets kept local-only: ${releaseReadinessJson.manifest?.extraGuideAssetsLocalOnly?.length}/${releaseReadinessJson.manifest?.guideExtraAssetCount}`,
+    `- Manifest validation: ${releaseReadinessJson.manifest?.errorCount} error(s), ${releaseReadinessJson.manifest?.warningCount} warning(s)`,
+  ]);
+
+  if ((releaseReadinessJson.gaps ?? []).length === 0) {
+    assert(releaseReadinessMarkdown.includes('## Gaps\n\n- None'), 'release-readiness Markdown must report no gaps');
+  }
+
+  for (const artifact of releaseReadinessJson.visualArtifacts ?? []) {
+    assert(
+      artifact.path && releaseReadinessMarkdown.includes(`\`${artifact.path}\``),
+      `release-readiness Markdown must include visual artifact ${artifact.path ?? '<missing path>'}`
+    );
+  }
+
+  for (const reference of releaseReadinessJson.references ?? []) {
+    assert(
+      reference.path && releaseReadinessMarkdown.includes(`\`${reference.path}\``),
+      `release-readiness Markdown must include local reference ${reference.path ?? '<missing path>'}`
+    );
+  }
+
+  for (const page of releaseReadinessJson.pages ?? []) {
+    assert(
+      page.page && page.scenarioId && releaseReadinessMarkdown.includes(`| ${page.page} | \`${page.scenarioId}\``),
+      `release-readiness Markdown must include guide page row ${page.page ?? '<missing page>'}`
+    );
+    assert(
+      page.sourceImage?.path && releaseReadinessMarkdown.includes(`\`${page.sourceImage.path}\``),
+      `release-readiness Markdown must include source image ${page.sourceImage?.path ?? '<missing path>'}`
+    );
+  }
+
+  assertEqualList(
+    releaseReadinessJson.releaseGateCommands ?? [],
+    ['pnpm lint', 'pnpm typecheck', 'pnpm build', 'pnpm test:ci', 'pnpm docs:build', 'pnpm test:consumer', 'pnpm test:visual', 'pnpm test:workflows', 'pnpm pack:dry-run'],
+    'release-readiness JSON release gate commands'
+  );
+  assertEqualList(
+    (releaseReadinessJson.packageChecks ?? []).map((check) => check.command ?? ''),
+    releaseReadinessJson.releaseGateCommands ?? [],
+    'release-readiness package checks'
+  );
+  for (const command of releaseReadinessJson.releaseGateCommands ?? []) {
+    assert(
+      releaseReadinessMarkdown.includes(`- \`${command}\``),
+      `release-readiness Markdown must include final command ${command}`
+    );
   }
 }
 
@@ -685,6 +826,10 @@ function requireIncludes(source: string, label: string, snippets: readonly strin
   for (const snippet of snippets) {
     assert(source.includes(snippet), `${label} is missing ${snippet}`);
   }
+}
+
+function countReleaseStatus(values: readonly { status?: string }[] | undefined, status: string): number {
+  return (values ?? []).filter((value) => value.status === status).length;
 }
 
 function escapeRegExp(value: string): string {
