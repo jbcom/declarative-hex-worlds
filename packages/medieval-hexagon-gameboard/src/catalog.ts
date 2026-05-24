@@ -623,6 +623,72 @@ export interface KayKitGuideAssetCoverage {
   occurrences: number;
 }
 
+/**
+ * Page-level asset occurrence from the decomposed KayKit guide matrix. Unlike
+ * asset coverage rows, this keeps repeated scenario uses so renderers,
+ * screenshots, docs, and audits can reproduce the exact guide treatment set.
+ */
+export interface KayKitGuideScenarioAssetUsage {
+  /** Stable scenario id that introduced this asset occurrence. */
+  scenarioId: string;
+  /** One-based extracted guide page number. */
+  page: number;
+  /** Human-readable guide page title. */
+  title: string;
+  /** Extracted PNG page used as source material. */
+  sourceImage: string;
+  /** Edition scope for the source guide scenario. */
+  scenarioEdition: KayKitGuideScenarioEdition;
+  /** Stable manifest asset id used by plans and placement records. */
+  assetId: string;
+  /** Lowest edition that exposes this asset id. */
+  minimumEdition: PackEdition;
+  /** Top-level manifest category. */
+  category: AssetCategory;
+  /** Manifest subcategory or source folder. */
+  subcategory: string;
+  /** Source-relative GLTF path for FREE packaging or local EXTRA ingest. */
+  sourcePath: string;
+  /** Intent-level role used by docs, selectors, and gameplay placement helpers. */
+  role: KayKitAssetPublicRole;
+  /** Placement kind produced by the public board/runtime APIs. */
+  placementKind: KayKitAssetPublicTreatment['placementKind'];
+  /** Placement layer produced by the public board/runtime APIs. */
+  placementLayer: KayKitAssetPublicTreatment['placementLayer'];
+  /** Public helpers or selectors that intentionally exercise this asset. */
+  publicApi: readonly string[];
+  /** Documentation pages linked by the matching guide scenario. */
+  docs: readonly string[];
+  /** Screenshot or docs artifacts linked by the matching guide scenario. */
+  visualArtifacts: readonly string[];
+  /** Full public treatment record for this asset id. */
+  treatment: KayKitAssetPublicTreatment;
+  /** Whether this asset should be treated as local-only/EXTRA in apps. */
+  requiresExtra: boolean;
+  /** Stable short label for contact sheets and renderer previews. */
+  label: string;
+  /** Stable short caption for contact sheets and renderer previews. */
+  caption: string;
+}
+
+/** Filters for page-level KayKit guide asset usages. */
+export interface KayKitGuideScenarioAssetUsageOptions {
+  /** Limit usages to exact scenario ids. */
+  scenarioIds?: readonly string[];
+  /** Limit usages to one-based guide pages. */
+  pages?: readonly number[];
+  /** Limit usages by the guide scenario edition scope. */
+  editionScope?: KayKitGuideScenarioEdition | readonly KayKitGuideScenarioEdition[];
+  /** Limit usages by the asset's lowest available edition; defaults to all. */
+  minimumEdition?: PackEdition | 'all';
+  /** Limit usages to exact asset ids. */
+  assetIds?: readonly string[];
+  /** Limit usages by public treatment roles. */
+  roles?: readonly KayKitAssetPublicRole[];
+  /** Limit usages by top-level manifest categories. */
+  categories?: readonly AssetCategory[];
+}
+
 /** Options for rendering the extracted guide scenario matrix as Markdown. */
 export interface KayKitGuideScenarioCoverageMarkdownOptions {
   /** Heading used for the generated document. */
@@ -682,6 +748,63 @@ export function listKayKitGuideScenarioTreatments(id: string): KayKitAssetPublic
   return scenario.assetIds
     .map((assetId) => describeKayKitAssetTreatment(assetId))
     .filter((treatment): treatment is KayKitAssetPublicTreatment => treatment !== undefined);
+}
+
+/** Lists page-level guide asset occurrences as renderer-ready public treatment records. */
+export function listKayKitGuideScenarioAssetUsages(
+  options: KayKitGuideScenarioAssetUsageOptions = {}
+): KayKitGuideScenarioAssetUsage[] {
+  const scenarioIds = stringSet(options.scenarioIds);
+  const pages = numberSet(options.pages);
+  const editionScope = guideScenarioEditionSet(options.editionScope);
+  const assetIds = stringSet(options.assetIds);
+  const roles = roleSet(options.roles);
+  const categories = assetCategorySet(options.categories);
+  const minimumEdition = options.minimumEdition ?? 'all';
+  const usages: KayKitGuideScenarioAssetUsage[] = [];
+
+  for (const scenario of KAYKIT_GUIDE_SCENARIOS) {
+    if (scenarioIds && !scenarioIds.has(scenario.id)) {
+      continue;
+    }
+    if (pages && !pages.has(scenario.page)) {
+      continue;
+    }
+    if (editionScope && !editionScope.has(scenario.edition)) {
+      continue;
+    }
+
+    for (const rawAssetId of scenario.assetIds) {
+      if (assetIds && !assetIds.has(rawAssetId)) {
+        continue;
+      }
+      const treatment = KAYKIT_ASSET_PUBLIC_TREATMENT_BY_ID[rawAssetId];
+      if (!treatment) {
+        continue;
+      }
+      if (minimumEdition !== 'all' && treatment.minimumEdition !== minimumEdition) {
+        continue;
+      }
+      if (roles && !roles.has(treatment.role)) {
+        continue;
+      }
+      if (categories && !categories.has(treatment.category)) {
+        continue;
+      }
+
+      usages.push(guideScenarioAssetUsage(scenario, treatment));
+    }
+  }
+
+  return usages;
+}
+
+/** Lists renderer-ready guide asset occurrences for one scenario id. */
+export function listKayKitGuideScenarioAssetUsagesForScenario(
+  id: string,
+  options: Omit<KayKitGuideScenarioAssetUsageOptions, 'scenarioIds'> = {}
+): KayKitGuideScenarioAssetUsage[] {
+  return listKayKitGuideScenarioAssetUsages({ ...options, scenarioIds: [id] });
 }
 
 /** Returns the scenario, page counts, and public treatment join for one guide page scenario. */
@@ -794,8 +917,9 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
     'The KayKit user guide is decomposed into 19 source-page scenarios. This page is',
     'the human-facing map for those scenarios; the machine-readable source remains',
     '`listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,',
-    '`listKayKitGuideAssetCoverages()`, `listKayKitGuideRoleCoverages()`,',
-    '`listKayKitGuidePublicApiCoverages()`, and the `guide-scenarios` /',
+    '`listKayKitGuideScenarioAssetUsages()`, `listKayKitGuideAssetCoverages()`,',
+    '`listKayKitGuideRoleCoverages()`, `listKayKitGuidePublicApiCoverages()`,',
+    'and the `guide-scenarios` /',
     '`guide-assets` / `guide-roles` / `guide-apis` CLI commands.',
     '',
     'Use this page when deciding whether a guide image has public API treatment, docs,',
@@ -819,6 +943,8 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
     '  is a reference-only license/supporter page with no assets.',
     '- Every asset-bearing scenario can be expanded into public treatment records',
     '  with `listKayKitGuideScenarioTreatments(id)`.',
+    '- Every page-level asset occurrence can be expanded into renderer-ready usage',
+    '  records with `listKayKitGuideScenarioAssetUsages()`.',
     '- Every FREE and local EXTRA asset id can be inverted back to pages/APIs/docs',
     '  and screenshots with `listKayKitGuideAssetCoverages()`.',
     '- Every public treatment role can be inverted back to pages/assets/APIs with',
@@ -872,6 +998,23 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
       '',
       "const roadM = describeKayKitGuideAssetCoverage('hex_road_M');",
       'const allAssetCoverage = listKayKitGuideAssetCoverages();',
+      '```',
+      '',
+      '## Page-Level Usage Query',
+      '',
+      'The usage index preserves repeated page-level asset occurrences for contact',
+      'sheets, renderer tests, and audit tools that need the exact FREE/EXTRA guide',
+      'scenario workload instead of only unique coverage rows:',
+      '',
+      '```ts',
+      'import {',
+      '  listKayKitGuideScenarioAssetUsages,',
+      '  listKayKitGuideScenarioAssetUsagesForScenario,',
+      "} from '@jbcom/medieval-hexagon-gameboard/catalog';",
+      '',
+      'const freeGuideAssets = listKayKitGuideScenarioAssetUsages({ minimumEdition: "free" });',
+      'const stableWorkshopUnits = listKayKitGuideScenarioAssetUsages({ pages: [16, 17, 18] });',
+      "const page14Units = listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');",
       '```',
       '',
       '## Role Coverage Index',
@@ -1789,6 +1932,31 @@ function uniqueSortedRoles(values: readonly KayKitAssetPublicRole[]): KayKitAsse
   return [...new Set(values)].sort();
 }
 
+function stringSet(values: readonly string[] | undefined): ReadonlySet<string> | undefined {
+  return values ? new Set(values) : undefined;
+}
+
+function numberSet(values: readonly number[] | undefined): ReadonlySet<number> | undefined {
+  return values ? new Set(values) : undefined;
+}
+
+function guideScenarioEditionSet(
+  values: KayKitGuideScenarioEdition | readonly KayKitGuideScenarioEdition[] | undefined
+): ReadonlySet<KayKitGuideScenarioEdition> | undefined {
+  if (!values) {
+    return undefined;
+  }
+  return new Set(Array.isArray(values) ? values : [values]);
+}
+
+function roleSet(values: readonly KayKitAssetPublicRole[] | undefined): ReadonlySet<KayKitAssetPublicRole> | undefined {
+  return values ? new Set(values) : undefined;
+}
+
+function assetCategorySet(values: readonly AssetCategory[] | undefined): ReadonlySet<AssetCategory> | undefined {
+  return values ? new Set(values) : undefined;
+}
+
 function pushMarkdownCodeList(
   lines: string[],
   label: string,
@@ -1973,6 +2141,34 @@ function guideAssetCoverage(
       (total, scenario) => total + scenario.assetIds.filter((assetId) => assetId === treatment.assetId).length,
       0
     ),
+  };
+}
+
+function guideScenarioAssetUsage(
+  scenario: KayKitGuideScenario,
+  treatment: KayKitAssetPublicTreatment
+): KayKitGuideScenarioAssetUsage {
+  return {
+    scenarioId: scenario.id,
+    page: scenario.page,
+    title: scenario.title,
+    sourceImage: scenario.sourceImage,
+    scenarioEdition: scenario.edition,
+    assetId: treatment.assetId,
+    minimumEdition: treatment.minimumEdition,
+    category: treatment.category,
+    subcategory: treatment.subcategory,
+    sourcePath: treatment.sourcePath,
+    role: treatment.role,
+    placementKind: treatment.placementKind,
+    placementLayer: treatment.placementLayer,
+    publicApi: treatment.publicApi,
+    docs: scenario.docs,
+    visualArtifacts: scenario.visualArtifacts,
+    treatment,
+    requiresExtra: treatment.requiresExtra,
+    label: `p${String(scenario.page).padStart(2, '0')}:${treatment.assetId}`,
+    caption: `${scenario.id} ${treatment.minimumEdition}`,
   };
 }
 

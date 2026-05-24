@@ -72,16 +72,21 @@ layout, or unit API path is incomplete.
 `listKayKitGuideScenarios()` is the companion page-level contract: all 19
 extracted guide pages map to source PNGs, covered asset ids, treatment roles,
 public API surfaces, docs, and visual artifacts. The reference audit fails when
-any FREE/EXTRA asset is missing from that matrix. Tooling should use
-`listKayKitGuideScenarioTreatments(id)` instead of manually joining asset ids to
-treatment records, `describeKayKitGuideScenarioCoverage(id)` when it needs a
-single page report with counts and treatments,
-`listKayKitGuideAssetCoverages()` when it needs the inverse map from an exact
-asset id to pages, APIs, docs, and screenshots, and
-`listKayKitGuideRoleCoverages()` when it needs the inverse map from a gameplay
-role to pages, assets, APIs, docs, and screenshots. Use
-`listKayKitGuidePublicApiCoverages()` when it needs the inverse map from a
-builder, selector, or runtime API to guide pages and assets.
+any FREE/EXTRA asset is missing from that matrix. Tooling should use:
+
+- `listKayKitGuideScenarioTreatments(id)` for unique treatment records on a
+  page.
+- `listKayKitGuideScenarioAssetUsages()` for repeated page-level asset
+  occurrences rendered by visual contact sheets.
+- `describeKayKitGuideScenarioCoverage(id)` for a single page report with counts
+  and treatments.
+- `listKayKitGuideAssetCoverages()` for the inverse map from an exact asset id
+  to pages, APIs, docs, and screenshots.
+- `listKayKitGuideRoleCoverages()` for the inverse map from a gameplay role to
+  pages, assets, APIs, docs, and screenshots.
+- `listKayKitGuidePublicApiCoverages()` for the inverse map from a builder,
+  selector, or runtime API to guide pages and assets.
+
 `summarizeKayKitGuideCoverage()` is for stable unique/occurrence counts used by
 docs, CLI output, or visual-review dashboards.
 `renderKayKitGuideScenarioCoverageMarkdown()` renders the committed

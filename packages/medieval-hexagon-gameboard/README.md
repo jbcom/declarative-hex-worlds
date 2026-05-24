@@ -11,6 +11,10 @@ placement kind/layer, and builder/selector/unit API rather than being a passive
 file listing. `listKayKitGuideScenarios()` lifts the extracted 19-page KayKit
 guide into a package API so tools can trace each README page to covered assets,
 docs, visual artifacts, and public helper surfaces.
+`listKayKitGuideScenarioAssetUsages()` preserves the exact page-level asset
+occurrences as renderer-ready labels, captions, roles, categories, source paths,
+and edition flags, so screenshots and downstream audits can exercise the full
+FREE/EXTRA guide workload instead of sampling unique assets.
 It also exposes neutral tile declarations and plain ECS snapshots so engines can
 use their own state model while still sharing KayKit-aware grid, adjacency, and
 scale rules. Those snapshots include tile adjacency, canonical placement
@@ -75,7 +79,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard/actors` | Actor traits, actor actions, collision, interaction targets, selection, and path-aware targeting. |
 | `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board-intent compiler for biome fills, mountain ranges, towns, roads, rivers, harbors, prop-cluster dressing, ramps, bridges, and showcase recipes. |
 | `@jbcom/medieval-hexagon-gameboard/gameboard` | Serializable board plans, builder helpers, prop clusters, and plan utilities. |
-| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, per-scenario coverage reports, and coverage summaries for every FREE/EXTRA asset id. |
+| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, page-level scenario asset usages, per-scenario coverage reports, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit checks, facing recommendations, scale hints, and starter piece metadata. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer/input command preview, command execution, actor-target command planning, and opt-in RPG handlers. |
@@ -1462,12 +1466,12 @@ EXTRA GLTFs, seasonal texture sets, every unit/building/prop/tile use case, and
 the duplicated `projectile_catapult.gltf` basename. It also verifies that every
 asset has public treatment metadata through `listKayKitAssetPublicTreatments()`
 and appears in the page-level guide matrix returned by
-`listKayKitGuideScenarios()`.
+`listKayKitGuideScenarios()` and `listKayKitGuideScenarioAssetUsages()`.
 The FREE browser suite renders the extracted guide pages, the FREE asset
-treatments grouped by guide page, and labeled guide sheets for every road, river,
-curvy/crossing river, coast, and guide-page treatment case; the EXTRA browser
-suite renders all 404 local source assets by category and all 791 mixed/EXTRA
-guide-page asset occurrences from the decomposed README pages.
+treatment usages grouped by guide page, and labeled guide sheets for every road,
+river, curvy/crossing river, coast, and guide-page treatment case; the EXTRA
+browser suite renders all 404 local source assets by category and all 791
+mixed/EXTRA guide-page asset occurrences from the decomposed README pages.
 `pnpm test:workspace` checks that Nx, pnpm workspace settings, VitePress docs
 dependencies, package exports, and tsup build entries stay in sync. The tsup
 build uses ESM shared chunks so mixed root/subpath imports share the same Koota

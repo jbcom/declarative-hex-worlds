@@ -9,6 +9,8 @@ import {
   listKayKitGuideAssetCoverages as listKayKitGuideAssetCoveragesFromRoot,
   listKayKitGuidePublicApiCoverages as listKayKitGuidePublicApiCoveragesFromRoot,
   listKayKitGuideRoleCoverages as listKayKitGuideRoleCoveragesFromRoot,
+  listKayKitGuideScenarioAssetUsages as listKayKitGuideScenarioAssetUsagesFromRoot,
+  listKayKitGuideScenarioAssetUsagesForScenario as listKayKitGuideScenarioAssetUsagesForScenarioFromRoot,
   listKayKitGuideScenarioTreatments as listKayKitGuideScenarioTreatmentsFromRoot,
   listKayKitGuideScenarios as listKayKitGuideScenariosFromRoot,
   renderKayKitGuideScenarioCoverageMarkdown as renderKayKitGuideScenarioCoverageMarkdownFromRoot,
@@ -32,6 +34,8 @@ import {
   listKayKitGuideAssetCoverages,
   listKayKitGuidePublicApiCoverages,
   listKayKitGuideRoleCoverages,
+  listKayKitGuideScenarioAssetUsages,
+  listKayKitGuideScenarioAssetUsagesForScenario,
   listKayKitGuideScenarioTreatments,
   listKayKitGuideScenarios,
   neutralUnitAssetId,
@@ -209,6 +213,61 @@ describe('asset catalog public treatments', () => {
     });
     expect(unitScenario?.treatments.map((treatment) => treatment.assetId)).toContain('unit_blue_full');
     expect(describeKayKitGuideScenarioCoverage('missing-scenario')).toBeUndefined();
+  });
+
+  it('exposes renderer-ready page-level guide asset usages', () => {
+    const usages = listKayKitGuideScenarioAssetUsages();
+
+    expect(usages).toHaveLength(1108);
+    expect(listKayKitGuideScenarioAssetUsagesFromRoot()).toHaveLength(usages.length);
+    expect(listKayKitGuideScenarioAssetUsages({ minimumEdition: 'free' })).toHaveLength(474);
+    expect(listKayKitGuideScenarioAssetUsages({ minimumEdition: 'extra' })).toHaveLength(634);
+    expect(listKayKitGuideScenarioAssetUsages({ pages: [16, 17, 18] })).toHaveLength(462);
+    expect(listKayKitGuideScenarioAssetUsages({ pages: [2, 11, 12, 13, 14, 15] })).toHaveLength(329);
+    expect(listKayKitGuideScenarioAssetUsages({ editionScope: 'reference' })).toEqual([]);
+    expect(listKayKitGuideScenarioAssetUsages({ editionScope: ['mixed', 'extra'] })).toHaveLength(791);
+    expect(listKayKitGuideScenarioAssetUsages({ categories: ['units'] })).toHaveLength(548);
+    expect(listKayKitGuideScenarioAssetUsages({ roles: ['prop'] })).toHaveLength(82);
+
+    const pageThree = listKayKitGuideScenarioAssetUsages({ pages: [3] });
+    expect(pageThree).toHaveLength(15);
+    expect(pageThree.every((usage) => usage.role === 'road-tile')).toBe(true);
+    expect(pageThree[0]).toMatchObject({
+      scenarioId: 'page-03-road-variations',
+      page: 3,
+      title: 'Road variations',
+      sourceImage: 'docs/assets/kaykit-guide/pages/page-03.png',
+      scenarioEdition: 'free',
+      minimumEdition: 'free',
+      category: 'tiles',
+      subcategory: 'roads',
+      placementKind: 'road',
+      placementLayer: 'surface',
+      requiresExtra: false,
+      label: expect.stringMatching(/^p03:hex_road_/),
+      caption: 'page-03-road-variations free',
+    });
+
+    const roadM = listKayKitGuideScenarioAssetUsages({ assetIds: ['hex_road_M'] });
+    expect(roadM.map((usage) => usage.scenarioId)).toEqual([
+      'page-03-road-variations',
+      'page-09-world-design-example',
+    ]);
+
+    const page14Units = listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');
+    expect(listKayKitGuideScenarioAssetUsagesForScenarioFromRoot('page-14-units')).toHaveLength(
+      page14Units.length
+    );
+    expect(page14Units).toHaveLength(137);
+    expect(page14Units.every((usage) => usage.minimumEdition === 'extra')).toBe(true);
+    expect(page14Units.find((usage) => usage.assetId === 'unit_blue_full')).toMatchObject({
+      role: 'colored-unit-part',
+      sourcePath: 'units/blue/unit_blue_full.gltf',
+      label: 'p14:unit_blue_full',
+      caption: 'page-14-units extra',
+    });
+
+    expect(listKayKitGuideScenarioAssetUsagesForScenario('missing-scenario')).toEqual([]);
   });
 
   it('exposes public API coverage back to guide pages and treated assets', () => {
@@ -503,6 +562,8 @@ describe('asset catalog public treatments', () => {
     expect(markdown).toContain('GameboardBuilder.addHarbor');
     expect(markdown).toContain('## Role Coverage Index');
     expect(markdown).toContain('describeKayKitGuideRoleCoverage');
+    expect(markdown).toContain('listKayKitGuideScenarioAssetUsages()');
+    expect(markdown).toContain('## Page-Level Usage Query');
     expect(markdown).toContain('Role - `prop`');
     expect(markdown).toContain('listKayKitGuidePublicApiCoverages()');
     expect(markdown.endsWith('\n')).toBe(true);

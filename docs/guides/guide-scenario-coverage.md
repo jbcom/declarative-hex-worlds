@@ -3,8 +3,9 @@
 The KayKit user guide is decomposed into 19 source-page scenarios. This page is
 the human-facing map for those scenarios; the machine-readable source remains
 `listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,
-`listKayKitGuideAssetCoverages()`, `listKayKitGuideRoleCoverages()`,
-`listKayKitGuidePublicApiCoverages()`, and the `guide-scenarios` /
+`listKayKitGuideScenarioAssetUsages()`, `listKayKitGuideAssetCoverages()`,
+`listKayKitGuideRoleCoverages()`, `listKayKitGuidePublicApiCoverages()`,
+and the `guide-scenarios` /
 `guide-assets` / `guide-roles` / `guide-apis` CLI commands.
 
 Use this page when deciding whether a guide image has public API treatment, docs,
@@ -28,6 +29,8 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   is a reference-only license/supporter page with no assets.
 - Every asset-bearing scenario can be expanded into public treatment records
   with `listKayKitGuideScenarioTreatments(id)`.
+- Every page-level asset occurrence can be expanded into renderer-ready usage
+  records with `listKayKitGuideScenarioAssetUsages()`.
 - Every FREE and local EXTRA asset id can be inverted back to pages/APIs/docs
   and screenshots with `listKayKitGuideAssetCoverages()`.
 - Every public treatment role can be inverted back to pages/assets/APIs with
@@ -457,6 +460,23 @@ import {
 
 const roadM = describeKayKitGuideAssetCoverage('hex_road_M');
 const allAssetCoverage = listKayKitGuideAssetCoverages();
+```
+
+## Page-Level Usage Query
+
+The usage index preserves repeated page-level asset occurrences for contact
+sheets, renderer tests, and audit tools that need the exact FREE/EXTRA guide
+scenario workload instead of only unique coverage rows:
+
+```ts
+import {
+  listKayKitGuideScenarioAssetUsages,
+  listKayKitGuideScenarioAssetUsagesForScenario,
+} from '@jbcom/medieval-hexagon-gameboard/catalog';
+
+const freeGuideAssets = listKayKitGuideScenarioAssetUsages({ minimumEdition: "free" });
+const stableWorkshopUnits = listKayKitGuideScenarioAssetUsages({ pages: [16, 17, 18] });
+const page14Units = listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');
 ```
 
 ## Role Coverage Index

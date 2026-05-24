@@ -4,7 +4,7 @@ import {
   describeKayKitAssetTreatment,
   listKayKitAssetPublicTreatments,
   listKayKitGuideAssetCoverages,
-  listKayKitGuideScenarios,
+  listKayKitGuideScenarioAssetUsages,
 } from '../../src/catalog';
 import { createMedievalShowcaseBlueprintRecipe } from '../../src/blueprint';
 import { createMedievalHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard';
@@ -278,23 +278,12 @@ function requestsForCategory(category: AssetCategory) {
 }
 
 function requestsForGuidePages(pages: readonly number[]) {
-  const pageSet = new Set(pages);
-  return listKayKitGuideScenarios()
-    .filter((scenario) => pageSet.has(scenario.page))
-    .flatMap((scenario) =>
-      scenario.assetIds.map((assetId) => {
-        const treatment = describeKayKitAssetTreatment(assetId);
-        if (!treatment) {
-          throw new Error(`Guide scenario ${scenario.id} references ${assetId} without treatment metadata`);
-        }
-        return {
-          asset: minimalAsset(treatment.assetId, treatment.sourcePath, treatment.category, treatment.subcategory),
-          url: referenceExtraUrl(treatment.sourcePath),
-          label: `p${String(scenario.page).padStart(2, '0')}:${treatment.assetId}`,
-          caption: `${scenario.id} ${treatment.minimumEdition}`,
-        };
-      })
-    );
+  return listKayKitGuideScenarioAssetUsages({ pages }).map((usage) => ({
+    asset: minimalAsset(usage.assetId, usage.sourcePath, usage.category, usage.subcategory),
+    url: referenceExtraUrl(usage.sourcePath),
+    label: usage.label,
+    caption: usage.caption,
+  }));
 }
 
 function minimalAsset(

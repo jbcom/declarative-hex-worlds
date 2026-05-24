@@ -16,15 +16,18 @@ The package is not just an asset bundle. It provides:
   README page to source imagery, covered assets, public APIs, docs, and visual
   artifacts through `listKayKitGuideScenarios()`, with
   `listKayKitGuideScenarioTreatments()`,
+  `listKayKitGuideScenarioAssetUsages()`,
   `describeKayKitGuideScenarioCoverage()`, and
   `summarizeKayKitGuideCoverage()` for tools that need page-to-treatment joins
-  or stable coverage counts. `listKayKitGuideAssetCoverages()` starts from any
-  FREE or local EXTRA asset id and returns its guide pages, role, public APIs,
-  docs, and screenshots. `listKayKitGuidePublicApiCoverages()` provides the
-  inverse index from builder/selector/runtime APIs back to guide pages and
-  treated assets, while `listKayKitGuideRoleCoverages()` starts from gameplay
-  roles such as props, roads, units, and structures and returns the pages,
-  assets, APIs, docs, and screenshots that intentionally exercise them.
+  or stable coverage counts. The usage API preserves all 1,108 page-level FREE
+  and EXTRA asset occurrences with labels, captions, source paths, roles, and
+  categories for renderer/contact-sheet tests. `listKayKitGuideAssetCoverages()`
+  starts from any FREE or local EXTRA asset id and returns its guide pages, role,
+  public APIs, docs, and screenshots. `listKayKitGuidePublicApiCoverages()`
+  provides the inverse index from builder/selector/runtime APIs back to guide
+  pages and treated assets, while `listKayKitGuideRoleCoverages()` starts from
+  gameplay roles such as props, roads, units, and structures and returns the
+  pages, assets, APIs, docs, and screenshots that intentionally exercise them.
 - Deterministic seeded rectangle and hexagon board generation with `seedrandom`.
 - Koota tile traits, adjacency, origin-tile, and footprint-occupancy relations,
   serializable occupancy snapshots, placement state, rule validators, and
@@ -265,7 +268,8 @@ when the gitignored `references/` folders are available locally, including
 EXTRA-only categories, seasonal texture sets, and duplicate basename handling.
 That audit also fails if a source asset is merely present but lacks a public
 asset treatment via `listKayKitAssetPublicTreatments()` or guide-page coverage
-via `listKayKitGuideScenarios()`.
+via `listKayKitGuideScenarios()` and
+`listKayKitGuideScenarioAssetUsages()`.
 `pnpm test:consumer` packs the npm tarball into a temporary app, installs it
 through npm, compiles public subpath imports with TypeScript, runs the shipped
 SimpleRPG usage example from `node_modules`, and invokes the installed CLI bin.
@@ -278,12 +282,13 @@ suite, local EXTRA suite, and local third-party asset E2E suite.
 
 The browser commands run both in-browser render assertions and post-capture PNG
 artifact checks. FREE guide coverage includes all 19 extracted source pages,
-FREE treatments grouped by guide page, and labeled sheets for roads, rivers,
-curvy/crossing rivers, coasts, and non-connectivity guide treatments instead of
-one ambiguous repeated-looking montage. EXTRA local coverage renders all 404
-source assets by category and the 791 mixed/EXTRA guide-page asset occurrences
-from the decomposed README pages. To re-check existing screenshots without
-relaunching Chromium, run
+FREE treatment usages grouped by guide page through
+`listKayKitGuideScenarioAssetUsages({ minimumEdition: 'free' })`, and labeled
+sheets for roads, rivers, curvy/crossing rivers, coasts, and non-connectivity
+guide treatments instead of one ambiguous repeated-looking montage. EXTRA local
+coverage renders all 404 source assets by category and the 791 mixed/EXTRA
+guide-page asset occurrences from the decomposed README pages. To re-check
+existing screenshots without relaunching Chromium, run
 `pnpm test:screenshots:free`, `pnpm test:screenshots:extra`, or
 `pnpm test:screenshots:local-assets`.
 

@@ -19,10 +19,12 @@ contract for CI and npm consumers.
   `docs/guides/guide-scenario-coverage.md` synchronized with those scenario ids
   through `renderKayKitGuideScenarioCoverageMarkdown()` and do not duplicate the
   page-to-asset matrix in ad hoc test data. Use
-  `listKayKitGuideAssetCoverages()` when starting from an exact manifest asset
-  id and `listKayKitGuideRoleCoverages()` when starting from a gameplay role
-  such as prop, road, unit, or structure; those are the canonical
-  asset/role-to-page/API/docs/screenshot inverse indexes.
+  `listKayKitGuideScenarioAssetUsages()` for renderer/contact-sheet-ready
+  page-level asset occurrences. Use `listKayKitGuideAssetCoverages()` when
+  starting from an exact manifest asset id and `listKayKitGuideRoleCoverages()`
+  when starting from a gameplay role such as prop, road, unit, or structure;
+  those are the canonical asset/role-to-page/API/docs/screenshot inverse
+  indexes.
 - Keep pillar frontmatter current when implementation or tests change.
 - Keep TypeDoc comments useful on exported symbols. Every TypeDoc entry point
   in `typedoc.json` must start with top-level `@module` JSDoc, and public
@@ -524,10 +526,10 @@ manual screenshot review pass. `pnpm test:reference-assets` must fail if an
 asset exists only as a manifest entry without `listKayKitAssetPublicTreatments()`
 coverage or without `listKayKitGuideScenarios()` page coverage. FREE guide
 screenshots include the extracted source-page matrix, FREE treatments grouped by
-guide page, and selector sheets labeled by guide label, rotation, water mode,
-and role; EXTRA screenshots include category-wide sheets for all 404 local
-  source assets plus mixed/EXTRA guide-page sheets for all 791 page-level
-occurrences, not a sampled subset.
+guide page via `listKayKitGuideScenarioAssetUsages()`, and selector sheets
+labeled by guide label, rotation, water mode, and role; EXTRA screenshots
+include category-wide sheets for all 404 local source assets plus mixed/EXTRA
+guide-page sheets for all 791 page-level occurrences, not a sampled subset.
 Use `pnpm test:assets` when touching generated FREE assets, manifests, asset
 taxonomy, NOTICE attribution, or ingest output paths.
 Use `pnpm test:reference-assets` when local `references/` source inventory,

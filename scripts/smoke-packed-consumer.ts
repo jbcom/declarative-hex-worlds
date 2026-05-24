@@ -114,6 +114,8 @@ import {
   inspectGameboardPlacementOccupancy,
   inspectGameboardNeighborhood,
   inspectGameboardTile,
+  listKayKitGuideScenarioAssetUsages,
+  listKayKitGuideScenarioAssetUsagesForScenario,
   moveGameboardActor,
   PlacementOccupiesTile,
   planGameboardActorTargetCommand,
@@ -142,6 +144,7 @@ import {
   type GameboardTileInspectionOptions,
   type GameboardLayoutArchetypeRegistry,
   type GameboardPiecePlacementInspection,
+  type KayKitGuideScenarioAssetUsage,
   type MoveGameboardActorOptions,
   type SpawnGameboardActorOptions,
   type SpawnGameboardPlacementOptions,
@@ -257,6 +260,8 @@ import {
   NATURE_ASSET_IDS,
   factionBuildingAssetId,
   flagAssetId,
+  listKayKitGuideScenarioAssetUsages as listKayKitGuideScenarioAssetUsagesFromCatalog,
+  listKayKitGuideScenarioAssetUsagesForScenario as listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog,
   type FactionBuildingKind as FactionBuildingKindFromCatalog,
 } from '@jbcom/medieval-hexagon-gameboard/catalog';
 import {
@@ -511,6 +516,15 @@ const factionBuildingKindFromCatalog: FactionBuildingKindFromCatalog = FACTION_B
 const factionBuildingAssetFromCatalog: string = factionBuildingAssetId(factionBuildingKindFromCatalog, 'blue');
 const flagAssetFromCatalog: string = flagAssetId('green');
 const natureAssetFromCatalog: string = NATURE_ASSET_IDS[0]!;
+const guideAssetUsages: readonly KayKitGuideScenarioAssetUsage[] = listKayKitGuideScenarioAssetUsages({
+  pages: [16, 17, 18],
+});
+const guideAssetUsagesForScenario: readonly KayKitGuideScenarioAssetUsage[] =
+  listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');
+const guideAssetUsagesFromCatalog: readonly KayKitGuideScenarioAssetUsage[] =
+  listKayKitGuideScenarioAssetUsagesFromCatalog({ minimumEdition: 'free' });
+const guideAssetUsagesForScenarioFromCatalog: readonly KayKitGuideScenarioAssetUsage[] =
+  listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog('page-03-road-variations');
 const hexKeyFromCoordinatesResult: string = hexKeyFromCoordinates({ q: 0, r: 0 });
 const parsedHexFromCoordinates: HexCoordinatesFromTypes = parseHexKey(hexKeyFromCoordinatesResult);
 const hexPathFromCoordinates: HexPathResultFromCoordinates = findHexPath({ q: 0, r: 0 }, { q: 1, r: 0 });
@@ -849,6 +863,10 @@ void movementActionsFromMovement;
 void movementProfileFromMovement;
 void movementStatusFromMovement;
 void natureAssetFromCatalog;
+void guideAssetUsages;
+void guideAssetUsagesForScenario;
+void guideAssetUsagesFromCatalog;
+void guideAssetUsagesForScenarioFromCatalog;
 void packedEditionsFromTypes;
 void patrolActionsFromPatrol;
 void patrolStatusFromPatrol;
@@ -1017,6 +1035,7 @@ import {
   inspectGameboardPlacementOccupancy,
   inspectGameboardNeighborhood,
   inspectGameboardTile,
+  listKayKitGuideScenarioAssetUsages,
   moveGameboardActor,
   PlacementOccupiesTile,
   PlacementState,
@@ -1083,6 +1102,7 @@ import {
   NATURE_ASSET_IDS,
   factionBuildingAssetId,
   flagAssetId,
+  listKayKitGuideScenarioAssetUsagesForScenario as listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog,
 } from '@jbcom/medieval-hexagon-gameboard/catalog';
 import {
   findHexPath,
@@ -1250,6 +1270,10 @@ const subpathHexKey = hexKeyFromCoordinates({ q: 1, r: 0 });
 const subpathParsedHex = parseHexKey(subpathHexKey);
 const subpathPath = findHexPath({ q: 0, r: 0 }, { q: 1, r: 0 });
 const subpathTransform = transformForHex(subpathParsedHex);
+const guideUsagePages16To18 = listKayKitGuideScenarioAssetUsages({ pages: [16, 17, 18] });
+const guideUsageFreeAssets = listKayKitGuideScenarioAssetUsages({ minimumEdition: 'free' });
+const guideUsageRoadsFromCatalog =
+  listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog('page-03-road-variations');
 const subpathSystemsResult = runGameboardSystemsFromSystems(subpathWorld, {
   movement: false,
   patrols: false,
@@ -1302,6 +1326,11 @@ if (
   HEX_EDGE_COUNT !== 6 ||
   edgeMask([0, 3]) <= 0 ||
   selectRoadVariant([0, 3]).assetId !== 'hex_road_A' ||
+  guideUsagePages16To18.length !== 462 ||
+  guideUsageFreeAssets.length !== 474 ||
+  guideUsageFreeAssets[0]?.label.startsWith('p') !== true ||
+  guideUsageRoadsFromCatalog.length !== 15 ||
+  guideUsageRoadsFromCatalog[0]?.caption !== 'page-03-road-variations free' ||
   subpathSystemsResult.eventRecords.length !== 0 ||
   subpathRuleErrors.length !== 0 ||
   typeof canStackAt(subpathWorld, '0,0', 0) !== 'boolean' ||
