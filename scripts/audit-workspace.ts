@@ -563,6 +563,11 @@ function requireShowcaseCopiesMatch(): void {
     promoteShowcasesScript.includes('GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS'),
     'scripts/promote-showcases.ts must read the curated showcase list from coverage source'
   );
+  assert(
+    promoteShowcasesScript.includes('tests/scripts/screenshot-quality') &&
+      promoteShowcasesScript.includes('validateShowcaseQuality'),
+    'scripts/promote-showcases.ts must validate promoted showcase PNG quality'
+  );
   for (const filename of docsShowcases) {
     const docsHash = sha256(join(docsShowcaseDir, filename));
     const packageHash = sha256(join(packageShowcaseDir, filename));

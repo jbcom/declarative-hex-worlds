@@ -41,6 +41,7 @@ implementation_links:
   - package.json
   - scripts/extract-kaykit-guide.ts
   - scripts/extract-kaykit-guide.swift
+  - scripts/promote-showcases.ts
   - packages/medieval-hexagon-gameboard/docs/showcases/free-blueprint-builder-showcase.png
   - packages/medieval-hexagon-gameboard/docs/showcases/extra-blueprint-biome-transition-showcase.png
   - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-scenarios-by-extracted-page.png
@@ -71,6 +72,7 @@ test_links:
   - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts
   - packages/medieval-hexagon-gameboard/tests/browser/simple-rpg-visual.test.ts
   - packages/medieval-hexagon-gameboard/tests/scripts/assert-screenshots.ts
+  - packages/medieval-hexagon-gameboard/tests/scripts/screenshot-quality.ts
   - packages/medieval-hexagon-gameboard/tests/e2e/local-assets/third-party-assets.test.ts
   - packages/medieval-hexagon-gameboard/tests/browser/extra-visual.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/compatibility.test.ts
@@ -271,6 +273,10 @@ the browser captures. The reviewed screenshots included:
 The two blueprint showcase captures are also promoted to committed docs assets
 at `docs/assets/showcases/` for VitePress and
 `packages/medieval-hexagon-gameboard/docs/showcases/` for the published README.
+`pnpm showcases:promote -- --check` verifies those promoted files match the
+ignored browser screenshots and parses both sides with the shared PNG quality
+analyzer, so committed README images cannot be blank, undersized, or visually
+flat while the source screenshot passes.
 The release-readiness ledger also tracks every screenshot asserted by the
 `test:screenshots:*` scripts through
 `GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS`; `pnpm test:workspace` fails

@@ -283,7 +283,8 @@ event records, and command/actor-target/patrol/movement/mutation timelines.
 `pnpm showcases:promote` copies the curated README/docs screenshots from the
 ignored browser screenshot output into both committed showcase directories; run
 `pnpm showcases:promote -- --check` after `pnpm test:visual` to verify they
-already match.
+already match and still pass the PNG quality thresholds used by browser
+screenshot checks.
 `pnpm test:assets` audits the packaged FREE asset tree against its manifest,
 including GLTF/BIN/PNG coverage, bounds, counts, local-path exclusion, and
 NOTICE attribution.

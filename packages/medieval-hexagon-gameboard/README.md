@@ -1455,6 +1455,9 @@ simulation report alongside the existing catalog and guide screenshots.
 The browser scripts assert renderer draw calls and triangle counts before
 capture, then run `tests/scripts/assert-screenshots.ts` against the saved PNGs so
 blank, undersized, or visually flat artifacts fail in CI.
+The workspace `pnpm showcases:promote -- --check` command applies that same PNG
+quality analyzer to the committed README showcase copies, not just the ignored
+browser output.
 
 ## Third-Party Local Asset E2E
 

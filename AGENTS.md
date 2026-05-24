@@ -650,4 +650,7 @@ published package README. After `pnpm test:visual`, run
 `pnpm showcases:promote` to refresh those committed copies from
 `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/`; run
 `pnpm showcases:promote -- --check` when you only need to verify the committed
-copies already match the latest ignored screenshots.
+copies already match the latest ignored screenshots. The promotion check also
+parses the source and committed PNGs through the same quality analyzer as
+`test:screenshots:*`, so blank or visually flat README images fail before
+release.
