@@ -308,7 +308,8 @@ contract for CI and npm consumers.
   and grid helpers.
 - `./catalog`: typed asset-family constants, id builders, public treatment
   metadata for every FREE/EXTRA asset id, 19 extracted guide-page scenarios,
-  scenario treatment joins, and stable guide coverage summaries.
+  scenario treatment joins, per-scenario coverage reports, and stable guide
+  coverage summaries.
 - `./coordinates`: axial keys, neighbors, ranges, lines, pathfinding, and spawn
   coordinate selection.
 - `./compatibility`: external GLB/GLTF fit checks, KayKit hex-footprint warnings,
@@ -498,6 +499,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-manifest --ma
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js declarations --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-declarations.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-permutations --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-permutations.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-scenarios.json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 14 --includeTreatments --assetScope all --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze-layout --recipe docs/examples/generated-piece-scenario.recipe.json --rules layout-rules.json --out /tmp/layout-analysis.json --outPlan /tmp/scenario-plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js spawn-groups --recipe docs/examples/generated-piece-scenario.recipe.json --groups spawn-groups.json --out /tmp/spawn-groups.json

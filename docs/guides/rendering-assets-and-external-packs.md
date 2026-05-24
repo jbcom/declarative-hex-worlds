@@ -38,11 +38,11 @@ the public builder or selector API that exercises it. This prevents an asset
 from being merely present in a manifest without a gameboard-facing path.
 Use `listKayKitGuideScenarios()` when the tool needs the page-level source
 contract: each extracted guide page lists its source PNG, covered assets, public
-APIs, docs, and visual artifacts. Use `listKayKitGuideScenarioTreatments(id)` to
-join a page back to the asset treatment records, and
-`summarizeKayKitGuideCoverage()` when a build tool or editor needs stable counts
-for pages, editions, roles, unique assets, repeated page-level asset
-occurrences, docs, and visual artifacts.
+APIs, docs, and visual artifacts. Use `listKayKitGuideScenarioTreatments(id)` or
+`describeKayKitGuideScenarioCoverage(id)` to join a page back to the asset
+treatment records, and `summarizeKayKitGuideCoverage()` when a build tool or
+editor needs stable counts for pages, editions, roles, unique assets, repeated
+page-level asset occurrences, docs, and visual artifacts.
 
 ## EXTRA Assets
 

@@ -667,6 +667,71 @@ describe('CLI', () => {
     );
   });
 
+  it('filters guide scenarios and emits per-page treatment joins through the CLI', () => {
+    const outputPath = resolve(createTempRoot(), 'guide-scenario-page-14.json');
+    const output = runCli([
+      'guide-scenarios',
+      '--source',
+      resolve(createTempRoot(), 'missing-guide-source'),
+      '--assetScope',
+      'all',
+      '--page',
+      '14',
+      '--includeTreatments',
+      '--out',
+      outputPath,
+    ]);
+    const payload = JSON.parse(readFileSync(outputPath, 'utf8')) as {
+      count: number;
+      pages: number[];
+      assetCounts: {
+        total: number;
+        selected: number;
+        free: number;
+        extra: number;
+        occurrences: number;
+        checked: number;
+      };
+      selection: { pages: number[] };
+      scenarioCoverage: Array<{
+        scenario: { id: string; page: number };
+        page: { scenarioId: string; extraAssets: number };
+        assetCounts: { unique: number; extra: number; occurrences: number };
+        treatments: Array<{ assetId: string; role: string; publicApi: string[] }>;
+      }>;
+    };
+
+    expect(output).toContain(`Wrote 1 guide scenarios to ${outputPath}`);
+    expect(payload).toMatchObject({
+      count: 1,
+      pages: [14],
+      assetCounts: {
+        total: 404,
+        selected: 137,
+        free: 0,
+        extra: 137,
+        occurrences: 137,
+        checked: 137,
+      },
+      selection: { pages: [14] },
+    });
+    expect(payload.scenarioCoverage).toHaveLength(1);
+    expect(payload.scenarioCoverage[0]).toMatchObject({
+      scenario: { id: 'page-14-units', page: 14 },
+      page: { scenarioId: 'page-14-units', extraAssets: 137 },
+      assetCounts: { unique: 137, extra: 137, occurrences: 137 },
+    });
+    expect(payload.scenarioCoverage[0]?.treatments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          assetId: 'unit_blue_full',
+          role: 'colored-unit-part',
+          publicApi: expect.arrayContaining(['GameboardBuilder.addUnitPreset']),
+        }),
+      ])
+    );
+  });
+
   it('scans local GLTF folders into compatibility-backed piece registries', () => {
     const assetRoot = createExternalPackFixtureRoot();
     const registryPath = resolve(createTempRoot(), 'pieces.json');

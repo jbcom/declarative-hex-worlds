@@ -527,6 +527,20 @@ export interface KayKitGuideCoverageSummary {
   pages: readonly KayKitGuidePageCoverage[];
 }
 
+/** Public treatment join for one extracted KayKit guide scenario. */
+export interface KayKitGuideScenarioCoverage {
+  /** Decomposed guide scenario metadata. */
+  scenario: KayKitGuideScenario;
+  /** Page-level coverage counts for this scenario. */
+  page: KayKitGuidePageCoverage;
+  /** Unique and occurrence counts scoped to this scenario. */
+  assetCounts: KayKitGuideAssetCoverageCounts;
+  /** Public treatment records for the scenario assets. */
+  treatments: readonly KayKitAssetPublicTreatment[];
+  /** Scenario asset ids that do not have a known public treatment. */
+  missingTreatmentAssetIds: readonly string[];
+}
+
 /** Builds a faction-colored building asset id. */
 export function factionBuildingAssetId(kind: FactionBuildingKind, faction: Faction): string {
   return `building_${kind}_${faction}`;
@@ -574,6 +588,18 @@ export function listKayKitGuideScenarioTreatments(id: string): KayKitAssetPublic
   return scenario.assetIds
     .map((assetId) => describeKayKitAssetTreatment(assetId))
     .filter((treatment): treatment is KayKitAssetPublicTreatment => treatment !== undefined);
+}
+
+/** Returns the scenario, page counts, and public treatment join for one guide page scenario. */
+export function describeKayKitGuideScenarioCoverage(id: string): KayKitGuideScenarioCoverage | undefined {
+  const scenario = describeKayKitGuideScenario(id);
+  if (!scenario) {
+    return undefined;
+  }
+  const treatmentByAssetId = new Map(
+    listKayKitAssetPublicTreatments().map((treatment) => [treatment.assetId, treatment])
+  );
+  return guideScenarioCoverage(scenario, treatmentByAssetId);
 }
 
 /** Summarizes source images, docs, visual artifacts, assets, roles, and page coverage. */
@@ -1404,6 +1430,34 @@ function countUniqueAssetsByRole(
     counts[role] = (counts[role] ?? 0) + 1;
   }
   return counts;
+}
+
+function guideScenarioCoverage(
+  scenario: KayKitGuideScenario,
+  treatmentByAssetId: ReadonlyMap<string, KayKitAssetPublicTreatment>
+): KayKitGuideScenarioCoverage {
+  const uniqueAssetIds = uniqueSortedStrings(scenario.assetIds);
+  const occurrenceTreatments = scenario.assetIds
+    .map((assetId) => treatmentByAssetId.get(assetId))
+    .filter((treatment): treatment is KayKitAssetPublicTreatment => treatment !== undefined);
+  const treatments = uniqueAssetIds
+    .map((assetId) => treatmentByAssetId.get(assetId))
+    .filter((treatment): treatment is KayKitAssetPublicTreatment => treatment !== undefined);
+
+  return {
+    scenario,
+    page: guidePageCoverage(scenario, treatmentByAssetId),
+    assetCounts: {
+      unique: uniqueAssetIds.length,
+      free: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'free'),
+      extra: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'extra'),
+      occurrences: occurrenceTreatments.length,
+      freeOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'free').length,
+      extraOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'extra').length,
+    },
+    treatments,
+    missingTreatmentAssetIds: uniqueAssetIds.filter((assetId) => !treatmentByAssetId.has(assetId)),
+  };
 }
 
 function guidePageCoverage(

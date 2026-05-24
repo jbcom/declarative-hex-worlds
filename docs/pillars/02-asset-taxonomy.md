@@ -72,8 +72,10 @@ extracted guide pages map to source PNGs, covered asset ids, treatment roles,
 public API surfaces, docs, and visual artifacts. The reference audit fails when
 any FREE/EXTRA asset is missing from that matrix. Tooling should use
 `listKayKitGuideScenarioTreatments(id)` instead of manually joining asset ids to
-treatment records, and `summarizeKayKitGuideCoverage()` when it needs stable
-unique/occurrence counts for docs, CLI output, or visual-review dashboards.
+treatment records, `describeKayKitGuideScenarioCoverage(id)` when it needs a
+single page report with counts and treatments, and
+`summarizeKayKitGuideCoverage()` when it needs stable unique/occurrence counts
+for docs, CLI output, or visual-review dashboards.
 
 | Edition | Source GLTFs | Unique manifest ids | Texture sets | Categories |
 | --- | ---: | ---: | --- | --- |

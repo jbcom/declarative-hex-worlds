@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  describeKayKitGuideScenarioCoverage as describeKayKitGuideScenarioCoverageFromRoot,
   listKayKitGuideScenarioTreatments as listKayKitGuideScenarioTreatmentsFromRoot,
   listKayKitGuideScenarios as listKayKitGuideScenariosFromRoot,
   summarizeKayKitGuideCoverage as summarizeKayKitGuideCoverageFromRoot,
@@ -14,6 +15,7 @@ import {
   ROAD_TILE_ASSET_IDS,
   describeKayKitAssetTreatment,
   describeKayKitGuideScenario,
+  describeKayKitGuideScenarioCoverage,
   hasKayKitAssetTreatment,
   isKnownExtraAssetId,
   listKayKitAssetPublicTreatments,
@@ -180,5 +182,18 @@ describe('asset catalog public treatments', () => {
       freeAssets: 0,
       extraAssets: 137,
     });
+
+    const unitScenario = describeKayKitGuideScenarioCoverage('page-14-units');
+    expect(describeKayKitGuideScenarioCoverageFromRoot('page-14-units')?.assetCounts).toEqual(
+      unitScenario?.assetCounts
+    );
+    expect(unitScenario).toMatchObject({
+      scenario: { page: 14, title: 'Units' },
+      page: { scenarioId: 'page-14-units', extraAssets: 137 },
+      assetCounts: { unique: 137, free: 0, extra: 137, occurrences: 137 },
+      missingTreatmentAssetIds: [],
+    });
+    expect(unitScenario?.treatments.map((treatment) => treatment.assetId)).toContain('unit_blue_full');
+    expect(describeKayKitGuideScenarioCoverage('missing-scenario')).toBeUndefined();
   });
 });

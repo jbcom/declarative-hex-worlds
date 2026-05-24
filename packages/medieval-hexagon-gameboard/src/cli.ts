@@ -15,9 +15,13 @@ import {
   type ExternalAssetIntendedRole,
 } from './compatibility';
 import {
+  describeKayKitGuideScenarioCoverage,
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
   summarizeKayKitGuideCoverage,
+  type KayKitAssetPublicTreatment,
+  type KayKitGuideScenario,
+  type KayKitGuideScenarioCoverage,
 } from './catalog';
 import {
   analyzeHexTileRegistry,
@@ -1414,20 +1418,34 @@ function runGuidePermutations(parsed: ParsedArgs, sourceRoot: string, edition: P
 }
 
 function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
-  const scenarios = listKayKitGuideScenarios();
+  const scenarioFilter = readCsv(parsed.flags.scenarioId ?? parsed.flags.scenario);
+  const pageFilter = readGuideScenarioPageFilter(parsed.flags.page);
+  const editionFilter = readGuideScenarioEditionFilter(parsed.flags.editionScope);
+  const scenarios = filterGuideScenarios(listKayKitGuideScenarios(), {
+    scenarioIds: scenarioFilter,
+    pages: pageFilter,
+    editions: editionFilter,
+  });
+  if (scenarios.length === 0) {
+    throw new Error('guide-scenarios selection did not match any extracted guide scenarios');
+  }
   const coverage = summarizeKayKitGuideCoverage();
   const treatmentByAssetId = new Map(
     listKayKitAssetPublicTreatments().map((treatment) => [treatment.assetId, treatment])
   );
   const catalog = validationCatalogFromArgs(parsed, sourceRoot, edition);
   const assetScope = readGuideScenarioAssetScope(parsed.flags.assetScope, catalog?.edition);
-  const allAssetIds = uniqueStrings(scenarios.flatMap((scenario) => scenario.assetIds));
+  const scenarioAssetIds = scenarios.flatMap((scenario) => scenario.assetIds);
+  const allAssetIds = uniqueStrings(scenarioAssetIds);
+  const occurrenceTreatments = scenarioAssetIds
+    .map((assetId) => treatmentByAssetId.get(assetId))
+    .filter((treatment): treatment is KayKitAssetPublicTreatment => treatment !== undefined);
   const checkedAssetIds = allAssetIds.filter((assetId) => {
     const treatment = treatmentByAssetId.get(assetId);
     if (!treatment) {
       return false;
     }
-    return assetScope === 'free' ? treatment.minimumEdition === 'free' : true;
+    return assetScope === 'all' || treatment.minimumEdition === assetScope;
   });
   const missingAssetIds = catalog
     ? checkedAssetIds.filter((assetId) => !catalog.assetsById[assetId])
@@ -1442,20 +1460,36 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
     assetScope,
     assetCounts: {
       total: coverage.assetCounts.unique,
-      free: coverage.assetCounts.free,
-      extra: coverage.assetCounts.extra,
-      occurrences: coverage.assetCounts.occurrences,
-      freeOccurrences: coverage.assetCounts.freeOccurrences,
-      extraOccurrences: coverage.assetCounts.extraOccurrences,
+      selected: allAssetIds.length,
+      free: countGuideScenarioAssetsByEdition(allAssetIds, treatmentByAssetId, 'free'),
+      extra: countGuideScenarioAssetsByEdition(allAssetIds, treatmentByAssetId, 'extra'),
+      occurrences: occurrenceTreatments.length,
+      freeOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'free').length,
+      extraOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'extra').length,
       checked: checkedAssetIds.length,
       missing: missingAssetIds.length,
     },
     coverage,
+    selection: {
+      scenarioIds: scenarioFilter,
+      pages: pageFilter,
+      editions: editionFilter,
+    },
     sourceImages,
     docs,
     visualArtifacts,
     missingAssetIds,
     scenarios,
+    ...(parsed.flags.includeTreatments === true
+      ? {
+          scenarioCoverage: scenarios
+            .map((scenario) => describeKayKitGuideScenarioCoverage(scenario.id))
+            .filter(
+              (scenarioCoverage): scenarioCoverage is KayKitGuideScenarioCoverage =>
+                scenarioCoverage !== undefined
+            ),
+        }
+      : {}),
   };
 
   if (typeof parsed.flags.out === 'string') {
@@ -1465,9 +1499,9 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
     console.log(JSON.stringify(payload, null, 2));
   } else {
     console.log(`guide scenarios: ${scenarios.length}`);
-    console.log(`pages: ${payload.pages[0]}-${payload.pages[payload.pages.length - 1]}`);
+    console.log(`pages: ${formatGuideScenarioPages(payload.pages)}`);
     console.log(
-      `assets: ${payload.assetCounts.total} total, ${payload.assetCounts.free} free, ${payload.assetCounts.extra} extra`
+      `assets: ${payload.assetCounts.selected} selected, ${payload.assetCounts.free} free, ${payload.assetCounts.extra} extra`
     );
     console.log(
       `asset occurrences: ${payload.assetCounts.occurrences} total, ${payload.assetCounts.freeOccurrences} free, ${payload.assetCounts.extraOccurrences} extra`
@@ -1488,6 +1522,74 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
   if (missingAssetIds.length > 0) {
     process.exit(1);
   }
+}
+
+function readGuideScenarioPageFilter(value: string | boolean | undefined): number[] {
+  return readCsv(value).map((page) => {
+    const parsedPage = Number(page);
+    if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+      throw new Error(`Expected --page to contain one-based guide page numbers, received ${page}`);
+    }
+    return parsedPage;
+  });
+}
+
+function readGuideScenarioEditionFilter(
+  value: string | boolean | undefined
+): Array<KayKitGuideScenario['edition']> {
+  return readCsv(value).map((edition) => {
+    if (edition === 'free' || edition === 'extra' || edition === 'mixed' || edition === 'reference') {
+      return edition;
+    }
+    throw new Error(
+      `Expected --editionScope to contain free, extra, mixed, or reference, received ${edition}`
+    );
+  });
+}
+
+function filterGuideScenarios(
+  scenarios: readonly KayKitGuideScenario[],
+  filters: {
+    scenarioIds: readonly string[];
+    pages: readonly number[];
+    editions: ReadonlyArray<KayKitGuideScenario['edition']>;
+  }
+): KayKitGuideScenario[] {
+  const scenarioIds = new Set(filters.scenarioIds);
+  const pages = new Set(filters.pages);
+  const editions = new Set(filters.editions);
+  return scenarios.filter((scenario) => {
+    if (scenarioIds.size > 0 && !scenarioIds.has(scenario.id)) {
+      return false;
+    }
+    if (pages.size > 0 && !pages.has(scenario.page)) {
+      return false;
+    }
+    if (editions.size > 0 && !editions.has(scenario.edition)) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function countGuideScenarioAssetsByEdition(
+  assetIds: readonly string[],
+  treatmentByAssetId: ReadonlyMap<string, KayKitAssetPublicTreatment>,
+  edition: PackEdition
+): number {
+  return assetIds.filter((assetId) => treatmentByAssetId.get(assetId)?.minimumEdition === edition).length;
+}
+
+function formatGuideScenarioPages(pages: readonly number[]): string {
+  if (pages.length === 0) {
+    return 'none';
+  }
+  const sortedPages = [...pages].sort((a, b) => a - b);
+  const isContiguous = sortedPages.every((page, index) => index === 0 || page === sortedPages[index - 1] + 1);
+  if (isContiguous && sortedPages.length > 1) {
+    return `${sortedPages[0]}-${sortedPages[sortedPages.length - 1]}`;
+  }
+  return sortedPages.join(',');
 }
 
 function countGuidePermutationsByKind(
@@ -2681,7 +2783,7 @@ function readGuideScenarioAssetScope(
   value: string | boolean | undefined,
   manifestEdition: PackEdition | undefined
 ): GuideScenarioAssetScope {
-  const defaultScope = manifestEdition ?? 'all';
+  const defaultScope = manifestEdition === 'free' ? 'free' : 'all';
   if (value === undefined || value === false) {
     return defaultScope;
   }
@@ -2736,6 +2838,10 @@ Options:
   --routeId <id>
   --actorId <id>
   --rounds <number>
+  --scenarioId <comma,separated,guide-scenario-ids>
+  --page <comma,separated,guide-pages>
+  --editionScope free|extra|mixed|reference
+  --includeTreatments
   --asset <path>
   --assets <comma,separated,paths>
   --intendedRole tile|prop|structure|unit

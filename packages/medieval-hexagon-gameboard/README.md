@@ -74,7 +74,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard` | Root builders, manifests, seeded generation, Koota world helpers, selectors, rules, and common types. |
 | `@jbcom/medieval-hexagon-gameboard/actors` | Actor traits, actor actions, collision, interaction targets, selection, and path-aware targeting. |
 | `@jbcom/medieval-hexagon-gameboard/gameboard` | Serializable board plans, builder helpers, and plan utilities. |
-| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, and coverage summaries for every FREE/EXTRA asset id. |
+| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, per-scenario coverage reports, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit checks, facing recommendations, scale hints, and starter piece metadata. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer/input command preview, command execution, actor-target command planning, and opt-in RPG handlers. |
@@ -1522,7 +1522,10 @@ matrix and the 19-page guide scenario matrix. `guide-permutations` validates the
 guide-labeled tile variants against a manifest; `guide-scenarios` validates
 FREE-owned page assets against a FREE manifest, or all 404 FREE+EXTRA page
 assets against an EXTRA manifest, and includes the same coverage summary exposed
-by `summarizeKayKitGuideCoverage()`.
+by `summarizeKayKitGuideCoverage()`. Use `--page`, `--scenarioId`, or
+`--editionScope` to isolate a guide case, and `--includeTreatments` to attach
+the same per-asset public treatment join exposed by
+`describeKayKitGuideScenarioCoverage()`.
 
 ```bash
 medieval-hexagon-gameboard guide-permutations \
@@ -1532,6 +1535,12 @@ medieval-hexagon-gameboard guide-permutations \
 medieval-hexagon-gameboard guide-scenarios \
   --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json \
   --out /tmp/kaykit-guide-scenarios.json
+
+medieval-hexagon-gameboard guide-scenarios \
+  --page 14 \
+  --assetScope all \
+  --includeTreatments \
+  --json
 ```
 
 ## Authoring Boards

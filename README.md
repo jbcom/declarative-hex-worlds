@@ -15,8 +15,10 @@ The package is not just an asset bundle. It provides:
 - A decomposed 19-page guide scenario matrix that maps every extracted KayKit
   README page to source imagery, covered assets, public APIs, docs, and visual
   artifacts through `listKayKitGuideScenarios()`, with
-  `listKayKitGuideScenarioTreatments()` and `summarizeKayKitGuideCoverage()` for
-  tools that need page-to-treatment joins or stable coverage counts.
+  `listKayKitGuideScenarioTreatments()`,
+  `describeKayKitGuideScenarioCoverage()`, and
+  `summarizeKayKitGuideCoverage()` for tools that need page-to-treatment joins
+  or stable coverage counts.
 - Deterministic seeded rectangle and hexagon board generation with `seedrandom`.
 - Koota tile traits, adjacency, origin-tile, and footprint-occupancy relations,
   serializable occupancy snapshots, placement state, rule validators, and
@@ -295,6 +297,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze --edition free
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js declarations --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-declarations.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-permutations --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-permutations.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-scenarios.json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 14 --includeTreatments --assetScope all --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze-layout --recipe docs/examples/generated-piece-scenario.recipe.json --rules layout-rules.json --out /tmp/layout-analysis.json --outPlan /tmp/scenario-plan.json

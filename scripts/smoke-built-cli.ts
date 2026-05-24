@@ -22,6 +22,7 @@ interface GuideScenarioSmoke {
   assetScope: string;
   assetCounts: {
     total: number;
+    selected: number;
     free: number;
     extra: number;
     occurrences: number;
@@ -56,6 +57,11 @@ interface GuideScenarioSmoke {
   docs: string[];
   visualArtifacts: string[];
   missingAssetIds: string[];
+  scenarioCoverage?: Array<{
+    scenario: { id: string; page: number };
+    assetCounts: { unique: number; extra: number; occurrences: number };
+    treatments: Array<{ assetId: string; role: string }>;
+  }>;
 }
 
 interface LayoutAnalysisSmoke {
@@ -273,6 +279,10 @@ try {
     `guide scenario total asset count changed to ${guideScenarios.assetCounts.total}`
   );
   assert(
+    guideScenarios.assetCounts.selected === 404,
+    `guide scenario selected asset count changed to ${guideScenarios.assetCounts.selected}`
+  );
+  assert(
     guideScenarios.assetCounts.free === 221,
     `guide scenario FREE asset count changed to ${guideScenarios.assetCounts.free}`
   );
@@ -329,6 +339,40 @@ try {
   assert(
     guideScenarios.visualArtifacts.length > 0,
     'guide-scenarios did not emit visual artifacts'
+  );
+
+  const guideScenarioPage14 = JSON.parse(
+    runCli([
+      'guide-scenarios',
+      '--source',
+      join(tempRoot, 'missing-guide-source'),
+      '--assetScope',
+      'all',
+      '--page',
+      '14',
+      '--includeTreatments',
+      '--json',
+    ])
+  ) as GuideScenarioSmoke;
+  assert(
+    guideScenarioPage14.count === 1 && guideScenarioPage14.pages.join(',') === '14',
+    'guide-scenarios page filter did not isolate page 14'
+  );
+  assert(
+    guideScenarioPage14.assetCounts.selected === 137 &&
+      guideScenarioPage14.assetCounts.extra === 137 &&
+      guideScenarioPage14.assetCounts.occurrences === 137,
+    'guide-scenarios page 14 selected asset counts changed'
+  );
+  assert(
+    guideScenarioPage14.scenarioCoverage?.[0]?.scenario.id === 'page-14-units',
+    'guide-scenarios did not include page 14 scenario coverage'
+  );
+  assert(
+    guideScenarioPage14.scenarioCoverage?.[0]?.treatments.some(
+      (treatment) => treatment.assetId === 'unit_blue_full' && treatment.role === 'colored-unit-part'
+    ) === true,
+    'guide-scenarios did not include page 14 unit treatment metadata'
   );
 
   const recipePlanPath = join(tempRoot, 'generated-piece-scenario.plan.json');
