@@ -120,7 +120,7 @@ function requireWorkspaceScripts(): void {
   );
   assert(
     workspacePackageJson.scripts?.['coverage:ledger'] ===
-      'pnpm build && node packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md',
+      'pnpm build && node packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md',
     'workspace coverage:ledger shortcut must regenerate release-readiness docs through the built CLI'
   );
   assert(
