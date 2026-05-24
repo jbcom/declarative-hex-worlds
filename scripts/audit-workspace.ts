@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 
 interface PackageJson {
   devDependencies?: Record<string, string>;
@@ -71,6 +71,7 @@ const docsVitePressConfig = readRequired('docs/.vitepress/config.ts');
 const publicApiGuide = readRequired('docs/guides/public-api.md');
 const coverageSource = readRequired('packages/medieval-hexagon-gameboard/src/coverage.ts');
 const guideDocs = readGuideDocs();
+const docsMarkdownPaths = readDocsMarkdownPaths();
 const tsupEntries = readTsupEntries(tsupConfig);
 
 requireWorkspaceScripts();
@@ -196,21 +197,8 @@ function requireDocsConfiguration(): void {
     'workspace and docs app must use the same vitepress version specifier'
   );
   requireDocsGuideNavigation();
-  requireMarkdownImageLinksResolve(docsIndex, 'docs/index.md', join(workspaceRoot, 'docs'), join(workspaceRoot, 'docs'));
-  requireMarkdownLocalLinksResolve(docsIndex, 'docs/index.md', join(workspaceRoot, 'docs'), join(workspaceRoot, 'docs'));
-  requireMarkdownImageLinksResolve(
-    publicApiGuide,
-    'docs/guides/public-api.md',
-    join(workspaceRoot, 'docs/guides'),
-    join(workspaceRoot, 'docs')
-  );
-  requireMarkdownLocalLinksResolve(
-    publicApiGuide,
-    'docs/guides/public-api.md',
-    join(workspaceRoot, 'docs/guides'),
-    join(workspaceRoot, 'docs')
-  );
-  requireMarkdownImageLinksResolve(
+  requireDocsMarkdownLinksResolve();
+  requireMarkdownFileLinksResolve(
     packageReadme,
     'package README',
     join(workspaceRoot, 'packages/medieval-hexagon-gameboard'),
@@ -220,6 +208,23 @@ function requireDocsConfiguration(): void {
   requirePublicApiSubpathGuide();
   requirePackageReadmePublicImports();
   requireAgentsPublicApiSurfaces();
+}
+
+function requireDocsMarkdownLinksResolve(): void {
+  assert(docsMarkdownPaths.includes('docs/index.md'), 'docs Markdown audit must include docs/index.md');
+  for (const path of docsMarkdownPaths) {
+    requireMarkdownFileLinksResolve(
+      readRequired(path),
+      path,
+      dirname(join(workspaceRoot, path)),
+      join(workspaceRoot, 'docs')
+    );
+  }
+}
+
+function requireMarkdownFileLinksResolve(source: string, label: string, baseDir: string, rootDir: string): void {
+  requireMarkdownImageLinksResolve(source, label, baseDir, rootDir);
+  requireMarkdownLocalLinksResolve(source, label, baseDir, rootDir);
 }
 
 function requireDocsGuideNavigation(): void {
@@ -526,6 +531,34 @@ function readGuideDocs(): string[] {
   return readdirSync(guidesDir)
     .filter((entry) => entry.endsWith('.md'))
     .sort();
+}
+
+function readDocsMarkdownPaths(): string[] {
+  const docsDir = join(workspaceRoot, 'docs');
+  if (!existsSync(docsDir)) {
+    failures.push('missing docs');
+    return [];
+  }
+  return collectMarkdownPaths(docsDir, 'docs').sort();
+}
+
+function collectMarkdownPaths(root: string, prefix: string): string[] {
+  const paths: string[] = [];
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    if (entry.name === 'api' || entry.name === '.vitepress') {
+      continue;
+    }
+    const childPath = join(root, entry.name);
+    const childPrefix = `${prefix}/${entry.name}`;
+    if (entry.isDirectory()) {
+      paths.push(...collectMarkdownPaths(childPath, childPrefix));
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith('.md')) {
+      paths.push(childPrefix);
+    }
+  }
+  return paths;
 }
 
 function parseSimpleYaml(source: string, label: string): unknown {
