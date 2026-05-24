@@ -152,6 +152,7 @@ function assertWorkspaceTestCiOrder(script: string): void {
     'pnpm test:workflows',
     'pnpm build',
     'pnpm test:cli',
+    'pnpm expectations',
     'pnpm test',
     'pnpm test:package',
     'pnpm test:consumer',

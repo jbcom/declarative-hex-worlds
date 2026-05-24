@@ -249,6 +249,7 @@ pnpm build
 pnpm docs
 pnpm docs:build
 pnpm test
+pnpm expectations
 pnpm test:api-docs
 pnpm test:docs-contract
 pnpm test:assets
@@ -274,6 +275,9 @@ available; elsewhere it expects `pdftoppm` and ImageMagick's `magick` on `PATH`.
 `pnpm test:cli` runs the built `dist/cli.js` against the packaged FREE manifest,
 packaged examples, the SimpleRPG scenario/simulation, and synthetic external
 GLTF fixtures for compatibility and custom-piece declarations.
+`pnpm expectations` runs the behavior-drift checks for simulation expectations,
+packaged SimpleRPG examples, quest status, actor positions, final placements,
+event records, and command/actor-target/patrol/movement/mutation timelines.
 `pnpm test:assets` audits the packaged FREE asset tree against its manifest,
 including GLTF/BIN/PNG coverage, bounds, counts, local-path exclusion, and
 NOTICE attribution.

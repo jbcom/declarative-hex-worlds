@@ -97,6 +97,9 @@ open source package useful while preserving the local-only purchased workflow.
 - `pnpm test:cli` validates the built CLI against the packaged FREE manifest,
   packaged examples, the SimpleRPG simulation, and synthetic external GLTF
   fixtures for compatibility plus custom-piece declarations.
+- `pnpm expectations` validates behavior-drift assertions for simulation
+  expectations, packaged SimpleRPG examples, quests, actors, commands,
+  actor-target records, patrols, movement, mutations, and final placements.
 - `pnpm test:consumer` validates the npm tarball from a fresh temporary app,
   compiling public TypeScript imports from `node_modules` and running the
   installed CLI.

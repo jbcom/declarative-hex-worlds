@@ -640,8 +640,8 @@ spawn contract as initial actors. Script validation checks schema, duplicate ste
 IDs, command target references, source actors, spawn targets, spawn groups,
 update targets, remove targets, event names, mutation expectations, actor
 expectations, command expectations, placement expectations, and quest/objective
-references before execution. Script `expectations` check event sequences or required event
-types, command records, movement records, mutations, actor
+references before execution. The `pnpm expectations` gate checks event sequences
+or required event types, command records, movement records, mutations, actor
 existence/positions/metadata/tags, placement existence/metadata, and
 quest/objective status; the CLI exits non-zero on validation or expectation
 failures unless explicitly allowed. `pnpm test:cli` runs those built commands
@@ -819,9 +819,9 @@ game-handler mutations such as
 `remove-actor`, and `remove-placement`, and
 returns a serializable report containing event records, mutation records, final
 placements, final actors, final quests, the projected `GameboardPlan`, top-level
-command/actor-target/patrol/movement timelines, and expectation failures. Use script `expectations`
-to define success without writing test-only code: event sequences, required
-event types, command records, actor-target records, movement records, actor
+command/actor-target/patrol/movement timelines, and expectation failures. Use
+the simulation `expectations` block to define success without writing test-only
+code: event sequences, required event types, command records, actor-target records, movement records, actor
 existence and tile positions, actor metadata/tags, placement existence and
 metadata, mutation records, quest status, and objective status can all be checked from the
 serialized report. Use

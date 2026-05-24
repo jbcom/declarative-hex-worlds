@@ -18,7 +18,7 @@ pnpm coverage:ledger
 - Public roles: 12
 - Visual artifacts: 70 available, 0 missing, 0 skipped
 - Local references: 4 available, 0 missing, 0 skipped
-- Release checks: 9 passed, 0 failed, 0 not run, 0 skipped
+- Release checks: 10 passed, 0 failed, 0 not run, 0 skipped
 
 ## Manifest Coverage
 
@@ -50,6 +50,7 @@ pnpm coverage:ledger
 | passed | `pnpm typecheck` |  |
 | passed | `pnpm build` |  |
 | passed | `pnpm test:ci` |  |
+| passed | `pnpm expectations` |  |
 | passed | `pnpm docs:build` |  |
 | passed | `pnpm test:consumer` |  |
 | passed | `pnpm test:visual` |  |
@@ -161,6 +162,7 @@ pnpm coverage:ledger
 - `pnpm typecheck`
 - `pnpm build`
 - `pnpm test:ci`
+- `pnpm expectations`
 - `pnpm docs:build`
 - `pnpm test:consumer`
 - `pnpm test:visual`

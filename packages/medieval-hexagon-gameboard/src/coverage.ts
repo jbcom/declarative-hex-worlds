@@ -304,6 +304,7 @@ export const GAMEBOARD_RELEASE_GATE_COMMANDS = [
   'pnpm typecheck',
   'pnpm build',
   'pnpm test:ci',
+  'pnpm expectations',
   'pnpm docs:build',
   'pnpm test:consumer',
   'pnpm test:visual',

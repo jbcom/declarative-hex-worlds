@@ -35680,6 +35680,12 @@
       "status": "passed"
     },
     {
+      "id": "expectations",
+      "label": "pnpm expectations",
+      "command": "pnpm expectations",
+      "status": "passed"
+    },
+    {
       "id": "docs-build",
       "label": "pnpm docs:build",
       "command": "pnpm docs:build",
@@ -35716,6 +35722,7 @@
     "pnpm typecheck",
     "pnpm build",
     "pnpm test:ci",
+    "pnpm expectations",
     "pnpm docs:build",
     "pnpm test:consumer",
     "pnpm test:visual",

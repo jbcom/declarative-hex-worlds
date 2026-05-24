@@ -226,9 +226,10 @@ contract for CI and npm consumers.
   coordinates or scenario-owned `spawnGroupId`; keep spawn-group claim
   validation shared with `./scenario`. Use
   `createGameboardPatrolSimulationScript` for NPC/enemy route-following scripts
-  instead of hand-authoring per-waypoint move commands. Add script `expectations` for quest status, actor
-  positions/existence/metadata/tags, final placements, required event types, and
-  command/actor-target/patrol/movement/mutation records so CI can fail on behavior drift. Run
+  instead of hand-authoring per-waypoint move commands. Keep `pnpm expectations`
+  focused on quest status, actor positions/existence/metadata/tags, final
+  placements, required event types, and command/actor-target/patrol/movement/
+  mutation records so CI can fail on behavior drift. Run
   `validateGameboardScenarioSimulationScript` or the `simulate-scenario` CLI
   preflight before executing authored JSON so broken actor, placement, tile,
   event, quest, or objective references fail clearly. `simulate-scenario`
@@ -530,6 +531,7 @@ pnpm lint
 pnpm typecheck
 pnpm build
 pnpm test
+pnpm expectations
 pnpm test:docs-contract
 pnpm test:assets
 pnpm test:reference-assets
@@ -572,6 +574,9 @@ entries, pnpm workspace settings, or docs package dependency versions.
 Use `pnpm test:cli` after `pnpm build` when CLI commands, packaged examples,
 scenario simulation, compatibility scans, or custom piece declarations change;
 it executes the built `dist/cli.js` with packaged and synthetic fixture inputs.
+Use `pnpm expectations` when simulation reports, SimpleRPG examples, quests,
+actors, commands, actor-target records, patrols, movement, mutations, or final
+placement assertions change; `pnpm test:ci` runs it before the full unit suite.
 Use `pnpm test:consumer` when package exports, built examples, dependency
 metadata, CLI bin behavior, or npm tarball layout changes; it installs the
 packed tarball into a fresh temporary app, compiles a TypeScript consumer, and

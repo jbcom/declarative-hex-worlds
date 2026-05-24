@@ -208,6 +208,11 @@ function requireWorkspaceScripts(): void {
     'missing test:reference-assets audit script'
   );
   assert(
+    workspacePackageJson.scripts?.expectations ===
+      'pnpm --dir packages/medieval-hexagon-gameboard exec vitest run --config vitest.config.ts tests/unit/simulation.test.ts tests/unit/examples.test.ts tests/unit/simple-rpg.test.ts',
+    'expectations script must run the simulation/example/SimpleRPG behavior-drift tests'
+  );
+  assert(
     workspacePackageJson.scripts?.cli === 'node packages/medieval-hexagon-gameboard/dist/cli.js',
     'workspace cli shortcut must invoke the built package CLI'
   );
@@ -223,6 +228,10 @@ function requireWorkspaceScripts(): void {
   assert(
     workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:workspace && pnpm test:workflows'),
     'test:ci must run workspace audit before workflow audit'
+  );
+  assert(
+    workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:cli && pnpm expectations && pnpm test'),
+    'test:ci must run explicit behavior-drift expectations before the full test suite'
   );
 }
 
@@ -479,7 +488,18 @@ function requireReleaseReadinessLedger(): void {
 
   assertEqualList(
     releaseReadinessJson.releaseGateCommands ?? [],
-    ['pnpm lint', 'pnpm typecheck', 'pnpm build', 'pnpm test:ci', 'pnpm docs:build', 'pnpm test:consumer', 'pnpm test:visual', 'pnpm test:workflows', 'pnpm pack:dry-run'],
+    [
+      'pnpm lint',
+      'pnpm typecheck',
+      'pnpm build',
+      'pnpm test:ci',
+      'pnpm expectations',
+      'pnpm docs:build',
+      'pnpm test:consumer',
+      'pnpm test:visual',
+      'pnpm test:workflows',
+      'pnpm pack:dry-run',
+    ],
     'release-readiness JSON release gate commands'
   );
   assertEqualList(
