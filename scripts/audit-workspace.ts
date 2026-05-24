@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
@@ -193,6 +194,7 @@ function requireDocsConfiguration(): void {
     'workspace and docs app must use the same vitepress version specifier'
   );
   requireDocsGuideNavigation();
+  requireShowcaseCopiesMatch();
   requirePublicApiSubpathGuide();
   requirePackageReadmePublicImports();
   requireAgentsPublicApiSurfaces();
@@ -266,6 +268,37 @@ function requireAgentsPublicApiSurfaces(): void {
     }
     seen.add(subpath);
   }
+}
+
+function requireShowcaseCopiesMatch(): void {
+  const docsShowcaseDir = join(workspaceRoot, 'docs/assets/showcases');
+  const packageShowcaseDir = join(workspaceRoot, 'packages/medieval-hexagon-gameboard/docs/showcases');
+  assert(existsSync(docsShowcaseDir), 'missing docs/assets/showcases');
+  assert(existsSync(packageShowcaseDir), 'missing packages/medieval-hexagon-gameboard/docs/showcases');
+  if (!existsSync(docsShowcaseDir) || !existsSync(packageShowcaseDir)) {
+    return;
+  }
+
+  const docsShowcases = readdirSync(docsShowcaseDir)
+    .filter((entry) => entry.endsWith('.png'))
+    .sort();
+  const packageShowcases = readdirSync(packageShowcaseDir)
+    .filter((entry) => entry.endsWith('.png'))
+    .sort();
+  assertEqualList(packageShowcases, docsShowcases, 'published README showcase files');
+
+  for (const filename of docsShowcases) {
+    const docsHash = sha256(join(docsShowcaseDir, filename));
+    const packageHash = sha256(join(packageShowcaseDir, filename));
+    assert(
+      packageHash === docsHash,
+      `published README showcase ${filename} must match docs/assets/showcases/${filename}`
+    );
+  }
+}
+
+function sha256(path: string): string {
+  return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
 
 function requireTypeDocConfiguration(): void {
