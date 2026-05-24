@@ -178,6 +178,7 @@
     "docs/showcases",
     "dist",
     "examples/*.json",
+    "LICENSE",
     "README.md",
     "NOTICE.md"
   ],

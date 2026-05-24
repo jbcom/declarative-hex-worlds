@@ -171,6 +171,9 @@ function auditFilesystemCoverage(): void {
 function auditNotices(): void {
   const rootNotice = readFileSync(join(workspaceRoot, 'NOTICE.md'), 'utf8');
   const packageNotice = readFileSync(join(packageRoot, 'NOTICE.md'), 'utf8');
+  const rootLicense = readFileSync(join(workspaceRoot, 'LICENSE'), 'utf8');
+  const packageLicense = readFileSync(join(packageRoot, 'LICENSE'), 'utf8');
+  assert(packageLicense === rootLicense, 'package LICENSE must match root LICENSE');
   for (const [label, source] of [
     ['root NOTICE.md', rootNotice],
     ['package NOTICE.md', packageNotice],

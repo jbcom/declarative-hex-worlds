@@ -6,6 +6,7 @@ interface PackageJson {
   devDependencies?: Record<string, string>;
   engines?: Record<string, string>;
   exports?: Record<string, string | { import?: string; types?: string }>;
+  files?: string[];
   packageManager?: string;
   private?: boolean;
   scripts?: Record<string, string>;
@@ -440,6 +441,8 @@ function requireTsupConfiguration(): void {
 
   assert(tsupEntries.get('cli') === 'src/cli.ts', 'CLI bin must have a tsup cli entry');
   assert(![...tsupEntries.keys()].some((entry) => entry.startsWith('src/')), 'tsup entries must use named output keys');
+  assertArrayIncludes(packageJson.files, 'LICENSE', 'package files must ship the MIT LICENSE text');
+  assertArrayIncludes(packageJson.files, 'NOTICE.md', 'package files must ship KayKit attribution notices');
 }
 
 function importTargetToEntryName(target: string): string {
