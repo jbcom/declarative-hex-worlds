@@ -3,6 +3,10 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import ts from 'typescript';
+import {
+  GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
+  GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
+} from '../packages/medieval-hexagon-gameboard/src/coverage';
 
 interface PackageJson {
   devDependencies?: Record<string, string>;
@@ -136,7 +140,6 @@ const docsVitePressConfig = readRequired('docs/.vitepress/config.ts');
 const publicApiGuide = readRequired('docs/guides/public-api.md');
 const releaseReadinessJson = readJson<ReleaseReadinessLedger>('docs/release-readiness.json');
 const releaseReadinessMarkdown = readRequired('docs/guides/release-readiness.md');
-const coverageSource = readRequired('packages/medieval-hexagon-gameboard/src/coverage.ts');
 const guideDocs = readGuideDocs();
 const docsMarkdownPaths = readDocsMarkdownPaths();
 const tsupEntries = readTsupEntries(tsupConfig);
@@ -858,31 +861,11 @@ function sha256(path: string): string {
 }
 
 function curatedShowcaseArtifactsFromCoverage(): string[] {
-  return stringArrayConstantFromCoverage('GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS');
+  return [...GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS].sort();
 }
 
 function requiredBrowserScreenshotArtifactsFromCoverage(): string[] {
-  return stringArrayConstantFromCoverage('GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS');
-}
-
-function stringArrayConstantFromCoverage(name: string): string[] {
-  const marker = `export const ${name} = [`;
-  const start = coverageSource.indexOf(marker);
-  if (start === -1) {
-    failures.push(`coverage source is missing ${name}`);
-    return [];
-  }
-  const blockStart = start + marker.length;
-  const blockEnd = coverageSource.indexOf('] as const;', blockStart);
-  if (blockEnd === -1) {
-    failures.push(`coverage source constant ${name} is missing an array terminator`);
-    return [];
-  }
-  const block = coverageSource.slice(blockStart, blockEnd);
-  return [...block.matchAll(/'([^']+)'/g)]
-    .map((match) => match[1])
-    .filter((path): path is string => Boolean(path))
-    .sort();
+  return [...GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS].sort();
 }
 
 function requireBrowserScreenshotArtifactsTracked(): void {
