@@ -137,10 +137,13 @@ The gameboard API adds a second, intent-level taxonomy on top of asset ids:
   masks, texture set, and tags.
 - Placements track asset id, tile key, world position, layer, kind, rotation,
   stack index, EXTRA requirement, and metadata such as `feature: "harbor"` or
-  `feature: "bridge"` or `feature: "elevation-ramp"`.
+  `feature: "bridge"`, `feature: "elevation-ramp"`,
+  `feature: "fortification"`, `feature: "construction-site"`, or
+  `feature: "siege-projectile"`.
 - Koota traits mirror those tile and placement records so consumers can query
-  roads, rivers, coasts, structures, bridges, harbors, elevation ramps, stacked
-  terrain, and local-only EXTRA placements without reparsing filenames.
+  roads, rivers, coasts, structures, bridges, harbors, elevation ramps,
+  fortifications, construction sites, siege projectiles, stacked terrain, and
+  local-only EXTRA placements without reparsing filenames.
 - Public treatment records in `catalog.ts` bridge the file taxonomy to gameboard
   intent. They classify base/support/road/river/coast/transition tiles, faction
   buildings, neutral structures, nature, props, colored units, and neutral unit
@@ -150,3 +153,9 @@ The gameboard API adds a second, intent-level taxonomy on top of asset ids:
   Sloped grass tiles remain base tiles in the file taxonomy, but their treatment
   also names `GameboardBuilder.addElevationRamp` so vertical transitions are
   authored and tested as ramp intent rather than anonymous tile overrides.
+  Wall/fence, construction/ruin, and catapult projectile neutral structures also
+  name `GameboardBuilder.addFortification`,
+  `GameboardBuilder.addConstructionSite`, or
+  `GameboardBuilder.addSiegeProjectile`, respectively, so towns, stables,
+  workshops, and siege scenes can be authored from gameboard intent instead of
+  raw neutral asset ids.

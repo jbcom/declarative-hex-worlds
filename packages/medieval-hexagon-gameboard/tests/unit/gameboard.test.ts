@@ -139,6 +139,52 @@ describe('gameboard plan builder', () => {
     });
   });
 
+  it('models fortifications, construction sites, and siege projectiles as named neutral structures', () => {
+    const plan = createGameboardBuilder({
+      seed: 'neutral-semantics',
+      shape: { kind: 'rectangle', width: 4, height: 3 },
+    })
+      .addFortification({
+        at: { q: 0, r: 0 },
+        material: 'stone-fence',
+        segment: 'gate',
+        facing: 2,
+        enclosureId: 'stable-yard',
+      })
+      .addFortification({
+        at: { q: 1, r: 0 },
+        material: 'wall',
+        segment: 'corner-A-inside',
+        rotationSteps: 3,
+      })
+      .addConstructionSite({ at: { q: 2, r: 0 }, kind: 'stage-B', constructionId: 'market-upgrade' })
+      .addSiegeProjectile({ at: { q: 3, r: 0 }, facing: 4, sourceId: 'tower-cannon' })
+      .build();
+
+    expect(plan.placements.find((placement) => placement.assetId === 'fence_stone_straight_gate')).toMatchObject({
+      kind: 'structure',
+      requiresExtra: false,
+      rotationSteps: 2,
+      metadata: {
+        feature: 'fortification',
+        material: 'stone-fence',
+        segment: 'gate',
+        facing: 2,
+        enclosureId: 'stable-yard',
+      },
+    });
+    expect(plan.placements.find((placement) => placement.assetId === 'wall_corner_A_inside')).toMatchObject({
+      metadata: { feature: 'fortification', material: 'wall', segment: 'corner-A-inside' },
+      rotationSteps: 3,
+    });
+    expect(plan.placements.find((placement) => placement.assetId === 'building_stage_B')).toMatchObject({
+      metadata: { feature: 'construction-site', constructionKind: 'stage-B', constructionId: 'market-upgrade' },
+    });
+    expect(plan.placements.find((placement) => placement.assetId === 'projectile_catapult')).toMatchObject({
+      metadata: { feature: 'siege-projectile', projectileKind: 'catapult', facing: 4, sourceId: 'tower-cannon' },
+    });
+  });
+
   it('uses seedrandom for deterministic scatter and recipes', () => {
     const build = (seed: string) =>
       createGameboardBuilder({ seed, shape: { kind: 'rectangle', width: 5, height: 4 } })

@@ -7,8 +7,10 @@
 import { createGameboardBuilder, type GameboardBuilder } from './gameboard';
 import type {
   BridgeOptions,
+  ConstructionSiteOptions,
   ElevationRampOptions,
   FactionBuildingOptions,
+  FortificationOptions,
   GameboardPlan,
   GameboardPlanOptions,
   GameboardPlacementKind,
@@ -24,6 +26,7 @@ import type {
   RiverCrossing,
   RoadSlope,
   ScatterDecorationOptions,
+  SiegeProjectileOptions,
   TileAssetOptions,
   TransitionPlacementOptions,
   UnitPlacementOptions,
@@ -97,6 +100,9 @@ export type GameboardRecipeStep =
   | AddFactionBuildingRecipeStep
   | AddNeutralStructureRecipeStep
   | AddBridgeRecipeStep
+  | AddFortificationRecipeStep
+  | AddConstructionSiteRecipeStep
+  | AddSiegeProjectileRecipeStep
   | AddElevationRampRecipeStep
   | AddNatureRecipeStep
   | AddPropRecipeStep
@@ -238,6 +244,24 @@ export interface AddNeutralStructureRecipeStep extends NeutralStructureOptions {
 export interface AddBridgeRecipeStep extends BridgeOptions {
   /** Discriminator for bridge placement. */
   action: 'addBridge';
+}
+
+/** Recipe step that places a wall or fence with fortification metadata. */
+export interface AddFortificationRecipeStep extends FortificationOptions {
+  /** Discriminator for fortification placement. */
+  action: 'addFortification';
+}
+
+/** Recipe step that places a construction, ruin, or worksite structure. */
+export interface AddConstructionSiteRecipeStep extends ConstructionSiteOptions {
+  /** Discriminator for construction site placement. */
+  action: 'addConstructionSite';
+}
+
+/** Recipe step that places a neutral siege projectile. */
+export interface AddSiegeProjectileRecipeStep extends SiegeProjectileOptions {
+  /** Discriminator for siege projectile placement. */
+  action: 'addSiegeProjectile';
 }
 
 /** Recipe step that places a sloped elevation ramp with ramp-specific metadata. */
@@ -556,6 +580,18 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
     case 'addBridge': {
       const { action: _action, ...options } = step;
       return builder.addBridge(options);
+    }
+    case 'addFortification': {
+      const { action: _action, ...options } = step;
+      return builder.addFortification(options);
+    }
+    case 'addConstructionSite': {
+      const { action: _action, ...options } = step;
+      return builder.addConstructionSite(options);
+    }
+    case 'addSiegeProjectile': {
+      const { action: _action, ...options } = step;
+      return builder.addSiegeProjectile(options);
     }
     case 'addElevationRamp': {
       const { action: _action, ...options } = step;

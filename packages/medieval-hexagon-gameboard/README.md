@@ -1465,7 +1465,7 @@ and appears in the page-level guide matrix returned by
 The FREE browser suite renders the extracted guide pages, the FREE asset
 treatments grouped by guide page, and labeled guide sheets for every road, river,
 curvy/crossing river, coast, and guide-page treatment case; the EXTRA browser
-suite renders all 404 local source assets by category and all 780 mixed/EXTRA
+suite renders all 404 local source assets by category and all 788 mixed/EXTRA
 guide-page asset occurrences from the decomposed README pages.
 `pnpm test:workspace` checks that Nx, pnpm workspace settings, VitePress docs
 dependencies, package exports, and tsup build entries stay in sync. The tsup
@@ -1628,7 +1628,11 @@ tiles, sloped road segments, and bridge structures where the requested board
 shape needs them. Authored maps can use `GameboardBuilder.addElevationRamp` or
 the serializable `addElevationRamp` recipe step when a ramp should be explicit
 instead of inferred from neighboring elevation, and `GameboardBuilder.addBridge`
-or recipe `addBridge` when a crossing should use a specific bridge variant. The
+or recipe `addBridge` when a crossing should use a specific bridge variant.
+Use `GameboardBuilder.addFortification`, `addConstructionSite`, and
+`addSiegeProjectile` or their recipe actions for walls, fences, gates, staged
+construction, ruins, scaffolding, grain/dirt piles, and neutral catapult
+projectiles. The
 browser suite captures this contract in
 `docs/showcases/free-blueprint-builder-showcase.png` and
 `docs/showcases/extra-blueprint-biome-transition-showcase.png`, which are
@@ -1648,6 +1652,9 @@ const plan = createGameboardBuilder({
   .addRoadPath([{ q: 3, r: 2 }, { q: 3, r: 3 }, { q: 4, r: 4 }])
   .addElevationRamp({ at: { q: 2, r: 2 }, direction: 'up', facing: 1 })
   .addBridge({ at: { q: 3, r: 3 }, variant: 'A', facing: 1 })
+  .addFortification({ at: { q: 5, r: 3 }, material: 'wall', segment: 'straight-gate', facing: 1 })
+  .addConstructionSite({ at: { q: 5, r: 2 }, kind: 'stage-B' })
+  .addSiegeProjectile({ at: { q: 5, r: 1 }, facing: 4, sourceId: 'tower-cannon' })
   .addHarbor({ at: { q: 4, r: 4 }, facing: 1, faction: 'blue', kind: 'shipyard' })
   .addFactionBuilding({ at: { q: 3, r: 2 }, faction: 'blue', building: 'townhall' })
   .addUnitPreset({ at: { q: 2, r: 2 }, faction: 'blue', role: 'soldier' })

@@ -59,12 +59,15 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Asset coverage: 164 unique, 119 FREE, 45 EXTRA, 164 occurrences
 - Roles: `faction-building`, `neutral-structure`, `prop`
 - Public API treatment: `GameboardBuilder.addBridge`,
+  `GameboardBuilder.addConstructionSite`,
   `GameboardBuilder.addFactionBuilding`,
   `GameboardBuilder.addFlag`,
+  `GameboardBuilder.addFortification`,
   `GameboardBuilder.addHarbor`,
   `GameboardBuilder.addNeutralStructure`,
   `GameboardBuilder.addProp`,
   `GameboardBuilder.addSettlement`,
+  `GameboardBuilder.addSiegeProjectile`,
   `createGameboardLayoutFillRuleFromPiece`,
   `createGameboardPlanFromRecipe`,
   `factionBuildingAssetId`,
@@ -357,6 +360,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Asset coverage: 155 unique, 11 FREE, 144 EXTRA, 155 occurrences
 - Roles: `colored-unit-part`, `faction-building`, `neutral-structure`, `neutral-unit-part`, `prop`
 - Public API treatment: `GameboardBuilder.addFactionBuilding`,
+  `GameboardBuilder.addFortification`,
   `GameboardBuilder.addNeutralStructure`,
   `GameboardBuilder.addProp`,
   `GameboardBuilder.addSettlement`,
@@ -378,12 +382,15 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Scenario: `page-17-workshop-and-siege`
 - Edition: `extra`
 - Source image: `docs/assets/kaykit-guide/pages/page-17.png`
-- Asset coverage: 159 unique, 11 FREE, 148 EXTRA, 159 occurrences
+- Asset coverage: 167 unique, 19 FREE, 148 EXTRA, 167 occurrences
 - Roles: `colored-unit-part`, `faction-building`, `neutral-structure`, `neutral-unit-part`, `prop`
-- Public API treatment: `GameboardBuilder.addFactionBuilding`,
+- Public API treatment: `GameboardBuilder.addConstructionSite`,
+  `GameboardBuilder.addFactionBuilding`,
+  `GameboardBuilder.addFortification`,
   `GameboardBuilder.addNeutralStructure`,
   `GameboardBuilder.addProp`,
   `GameboardBuilder.addSettlement`,
+  `GameboardBuilder.addSiegeProjectile`,
   `GameboardBuilder.addUnit`,
   `GameboardBuilder.addUnitPreset`,
   `coloredUnitAssetId`,
@@ -527,9 +534,12 @@ const allRoleCoverage = listKayKitGuideRoleCoverages();
 ### Role - `neutral-structure`
 
 - Pages: 02, 07, 09, 16, 17
-- Asset coverage: 21 unique, 21 FREE, 0 EXTRA, 47 occurrences
+- Asset coverage: 21 unique, 21 FREE, 0 EXTRA, 55 occurrences
 - Public API treatment: `GameboardBuilder.addBridge`,
+  `GameboardBuilder.addConstructionSite`,
+  `GameboardBuilder.addFortification`,
   `GameboardBuilder.addNeutralStructure`,
+  `GameboardBuilder.addSiegeProjectile`,
   `createGameboardPlanFromRecipe`
 - Scenarios: `page-02-buildings-props-and-factions`,
   `page-07-water-usage`,
@@ -628,5 +638,9 @@ material. `GameboardBuilder.addBridge` maps to pages 02, 07, and 09,
 covering the FREE bridge structures used by road and water crossings.
 `GameboardBuilder.addElevationRamp` maps to pages 08 and 10, covering
 the FREE sloped grass tiles used by vertical terrain transitions.
+`GameboardBuilder.addFortification`, `GameboardBuilder.addConstructionSite`,
+and `GameboardBuilder.addSiegeProjectile` cover the remaining FREE neutral
+wall, fence, construction, ruin, and projectile structures as authored
+gameplay intent instead of only raw neutral placements.
 `GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is
 EXTRA-only because the unit assembly pieces are local-ingest assets.

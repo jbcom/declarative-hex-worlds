@@ -956,6 +956,54 @@ describe('CLI', () => {
       ],
     });
 
+    const fortificationPayload = JSON.parse(
+      runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addFortification', '--json'])
+    ) as typeof apiPayload;
+    expect(fortificationPayload).toMatchObject({
+      count: 1,
+      publicApis: ['GameboardBuilder.addFortification'],
+      coverage: [
+        {
+          publicApi: 'GameboardBuilder.addFortification',
+          pages: [2, 16, 17],
+          treatmentRoles: ['neutral-structure'],
+          assetCounts: { unique: 11, free: 11, extra: 0 },
+        },
+      ],
+    });
+
+    const constructionPayload = JSON.parse(
+      runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addConstructionSite', '--json'])
+    ) as typeof apiPayload;
+    expect(constructionPayload).toMatchObject({
+      count: 1,
+      publicApis: ['GameboardBuilder.addConstructionSite'],
+      coverage: [
+        {
+          publicApi: 'GameboardBuilder.addConstructionSite',
+          pages: [2, 17],
+          treatmentRoles: ['neutral-structure'],
+          assetCounts: { unique: 7, free: 7, extra: 0 },
+        },
+      ],
+    });
+
+    const projectilePayload = JSON.parse(
+      runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addSiegeProjectile', '--json'])
+    ) as typeof apiPayload;
+    expect(projectilePayload).toMatchObject({
+      count: 1,
+      publicApis: ['GameboardBuilder.addSiegeProjectile'],
+      coverage: [
+        {
+          publicApi: 'GameboardBuilder.addSiegeProjectile',
+          pages: [2, 17],
+          treatmentRoles: ['neutral-structure'],
+          assetCounts: { unique: 1, free: 1, extra: 0 },
+        },
+      ],
+    });
+
     const scenarioOutput = runCli([
       'guide-scenarios',
       '--publicApi',

@@ -98,6 +98,25 @@ export type HarborKind = 'docks' | 'shipyard' | 'watermill';
 export type BridgeVariant = 'A' | 'B';
 /** Sloped elevation ramp direction. */
 export type ElevationRampDirection = 'up' | 'down';
+/** Fortification material exposed by the neutral wall and fence assets. */
+export type FortificationMaterial = 'wall' | 'wood-fence' | 'stone-fence';
+/** Wall segment shape from the neutral wall asset set. */
+export type WallFortificationSegment =
+  | 'straight'
+  | 'straight-gate'
+  | 'corner-A-gate'
+  | 'corner-A-inside'
+  | 'corner-A-outside'
+  | 'corner-B-inside'
+  | 'corner-B-outside';
+/** Fence segment shape from the neutral fence asset set. */
+export type FenceFortificationSegment = 'straight' | 'gate';
+/** Segment shape accepted by fortification helpers. */
+export type FortificationSegment = WallFortificationSegment | FenceFortificationSegment;
+/** Construction and ruin state exposed by the neutral construction assets. */
+export type ConstructionSiteKind = 'destroyed' | 'dirt' | 'grain' | 'scaffolding' | 'stage-A' | 'stage-B' | 'stage-C';
+/** Siege projectile visual exposed by the neutral building asset set. */
+export type SiegeProjectileKind = 'catapult';
 /** Faction building kind accepted by settlement helpers. */
 export type SettlementBuilding = FactionBuildingKind;
 
@@ -351,6 +370,60 @@ export interface ElevationRampOptions {
   textureSet?: TextureSet;
   /** Fractional elevation offset above the tile surface. */
   elevationOffset?: number;
+  /** Uniform render scale. */
+  scale?: number;
+}
+
+/**
+ * Options for adding a wall or fence segment with fortification metadata.
+ */
+export interface FortificationOptions {
+  /** Tile where the segment is anchored. */
+  at: HexCoordinates;
+  /** Material family. Defaults to `wall`. */
+  material?: FortificationMaterial;
+  /** Segment visual shape. Defaults to `straight`. */
+  segment?: FortificationSegment;
+  /** Edge the segment faces; also used as the default rotation. */
+  facing?: HexEdgeIndex;
+  /** Clockwise 60-degree rotation steps. Overrides `facing` when provided. */
+  rotationSteps?: number;
+  /** Optional stable id for a multi-segment enclosure. */
+  enclosureId?: string;
+  /** Uniform render scale. */
+  scale?: number;
+}
+
+/**
+ * Options for adding construction, ruin, and worksite neutral structures.
+ */
+export interface ConstructionSiteOptions {
+  /** Tile where the construction asset is anchored. */
+  at: HexCoordinates;
+  /** Construction state to place. Defaults to `stage-A`. */
+  kind?: ConstructionSiteKind;
+  /** Clockwise 60-degree rotation steps. */
+  rotationSteps?: number;
+  /** Optional stable id for a multi-step construction chain. */
+  constructionId?: string;
+  /** Uniform render scale. */
+  scale?: number;
+}
+
+/**
+ * Options for adding neutral siege projectile assets with gameplay metadata.
+ */
+export interface SiegeProjectileOptions {
+  /** Tile where the projectile is anchored. */
+  at: HexCoordinates;
+  /** Projectile visual kind. Defaults to `catapult`. */
+  kind?: SiegeProjectileKind;
+  /** Edge the projectile travels or points toward; also used as the default rotation. */
+  facing?: HexEdgeIndex;
+  /** Clockwise 60-degree rotation steps. Overrides `facing` when provided. */
+  rotationSteps?: number;
+  /** Optional source actor, structure, or attack id. */
+  sourceId?: string;
   /** Uniform render scale. */
   scale?: number;
 }
@@ -784,6 +857,74 @@ export class GameboardBuilder {
         feature: 'bridge',
         bridgeVariant: variant,
         facing: options.facing ?? null,
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Add a wall or fence segment with fortification metadata.
+   */
+  addFortification(options: FortificationOptions): this {
+    const material = options.material ?? 'wall';
+    const segment = options.segment ?? 'straight';
+    const assetId = fortificationAssetId(material, segment);
+    this.addPlacement({
+      at: options.at,
+      assetId,
+      kind: 'structure',
+      layer: 'structure',
+      rotationSteps: options.rotationSteps ?? options.facing,
+      scale: options.scale,
+      metadata: {
+        feature: 'fortification',
+        material,
+        segment,
+        facing: options.facing ?? null,
+        enclosureId: options.enclosureId ?? null,
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Add a construction, ruin, or worksite structure with construction metadata.
+   */
+  addConstructionSite(options: ConstructionSiteOptions): this {
+    const kind = options.kind ?? 'stage-A';
+    this.addPlacement({
+      at: options.at,
+      assetId: constructionSiteAssetId(kind),
+      kind: 'structure',
+      layer: 'structure',
+      rotationSteps: options.rotationSteps,
+      scale: options.scale,
+      metadata: {
+        feature: 'construction-site',
+        constructionKind: kind,
+        constructionId: options.constructionId ?? null,
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Add a neutral siege projectile with projectile-specific metadata.
+   */
+  addSiegeProjectile(options: SiegeProjectileOptions): this {
+    const kind = options.kind ?? 'catapult';
+    this.addPlacement({
+      at: options.at,
+      assetId: siegeProjectileAssetId(kind),
+      kind: 'structure',
+      layer: 'structure',
+      rotationSteps: options.rotationSteps ?? options.facing,
+      scale: options.scale,
+      metadata: {
+        feature: 'siege-projectile',
+        projectileKind: kind,
+        facing: options.facing ?? null,
+        sourceId: options.sourceId ?? null,
       },
     });
     return this;
@@ -1611,6 +1752,60 @@ function mountainAssetId(
     return `mountain_${variant}_grass`;
   }
   return `mountain_${variant}`;
+}
+
+function fortificationAssetId(material: FortificationMaterial, segment: FortificationSegment): NeutralStructureKind {
+  if (material === 'wall') {
+    switch (segment) {
+      case 'straight':
+        return 'wall_straight';
+      case 'straight-gate':
+        return 'wall_straight_gate';
+      case 'corner-A-gate':
+        return 'wall_corner_A_gate';
+      case 'corner-A-inside':
+        return 'wall_corner_A_inside';
+      case 'corner-A-outside':
+        return 'wall_corner_A_outside';
+      case 'corner-B-inside':
+        return 'wall_corner_B_inside';
+      case 'corner-B-outside':
+        return 'wall_corner_B_outside';
+      case 'gate':
+        return 'wall_straight_gate';
+    }
+  }
+  if (segment !== 'straight' && segment !== 'gate' && segment !== 'straight-gate') {
+    throw new Error(`Fortification material ${material} does not support segment ${segment}`);
+  }
+  const fenceSegment = segment === 'straight' ? 'straight' : 'straight_gate';
+  return `fence_${material === 'wood-fence' ? 'wood' : 'stone'}_${fenceSegment}` as NeutralStructureKind;
+}
+
+function constructionSiteAssetId(kind: ConstructionSiteKind): NeutralStructureKind {
+  switch (kind) {
+    case 'destroyed':
+      return 'building_destroyed';
+    case 'dirt':
+      return 'building_dirt';
+    case 'grain':
+      return 'building_grain';
+    case 'scaffolding':
+      return 'building_scaffolding';
+    case 'stage-A':
+      return 'building_stage_A';
+    case 'stage-B':
+      return 'building_stage_B';
+    case 'stage-C':
+      return 'building_stage_C';
+  }
+}
+
+function siegeProjectileAssetId(kind: SiegeProjectileKind): NeutralStructureKind {
+  switch (kind) {
+    case 'catapult':
+      return 'projectile_catapult';
+  }
 }
 
 function normalizeElevation(elevation: number): number {

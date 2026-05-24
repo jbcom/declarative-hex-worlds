@@ -928,6 +928,10 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
       'covering the FREE bridge structures used by road and water crossings.',
       '`GameboardBuilder.addElevationRamp` maps to pages 08 and 10, covering',
       'the FREE sloped grass tiles used by vertical terrain transitions.',
+      '`GameboardBuilder.addFortification`, `GameboardBuilder.addConstructionSite`,',
+      'and `GameboardBuilder.addSiegeProjectile` cover the remaining FREE neutral',
+      'wall, fence, construction, ruin, and projectile structures as authored',
+      'gameplay intent instead of only raw neutral placements.',
       '`GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is',
       'EXTRA-only because the unit assembly pieces are local-ingest assets.'
     );
@@ -1570,7 +1574,17 @@ function factionBuildingTreatments(
 
 function neutralStructureTreatment(assetId: NeutralStructureKind): KayKitAssetPublicTreatment {
   const isBridge = assetId.startsWith('building_bridge_');
-  const isWallOrFence = assetId.startsWith('wall_') || assetId.startsWith('fence_');
+  const isFortification = assetId.startsWith('wall_') || assetId.startsWith('fence_');
+  const isConstruction = [
+    'building_destroyed',
+    'building_dirt',
+    'building_grain',
+    'building_scaffolding',
+    'building_stage_A',
+    'building_stage_B',
+    'building_stage_C',
+  ].includes(assetId);
+  const isSiegeProjectile = assetId === 'projectile_catapult';
   return treatment({
     assetId,
     minimumEdition: 'free',
@@ -1583,17 +1597,25 @@ function neutralStructureTreatment(assetId: NeutralStructureKind): KayKitAssetPu
     publicApi: [
       'GameboardBuilder.addNeutralStructure',
       ...(isBridge ? ['GameboardBuilder.addBridge'] : []),
+      ...(isFortification ? ['GameboardBuilder.addFortification'] : []),
+      ...(isConstruction ? ['GameboardBuilder.addConstructionSite'] : []),
+      ...(isSiegeProjectile ? ['GameboardBuilder.addSiegeProjectile'] : []),
       'createGameboardPlanFromRecipe',
     ],
     sourceImages: [
       GUIDE_IMAGE.buildings,
       ...(isBridge ? [GUIDE_IMAGE.waterUsage, GUIDE_IMAGE.worldDesign] : []),
-      ...(isWallOrFence ? [GUIDE_IMAGE.stables, GUIDE_IMAGE.workshop] : []),
+      ...(isFortification ? [GUIDE_IMAGE.stables, GUIDE_IMAGE.workshop] : []),
+      ...(isConstruction || isSiegeProjectile ? [GUIDE_IMAGE.workshop] : []),
     ],
     scenario: isBridge
       ? 'bridge structures and road crossings'
-      : isWallOrFence
+      : isFortification
         ? 'walls, fences, and enclosures'
+        : isConstruction
+          ? 'construction sites, worksites, and ruins'
+          : isSiegeProjectile
+            ? 'siege projectile structures'
         : 'neutral structures and construction',
   });
 }

@@ -674,6 +674,11 @@ directly; blueprint road crossings can infer the same bridge metadata when
 Use `GameboardBuilder.addElevationRamp` or recipe `addElevationRamp` when a
 sloped terrain transition is authored directly; blueprint elevation deltas can
 infer the same ramp metadata when `transitionPolicy.elevationRamps` is enabled.
+Use `GameboardBuilder.addFortification`, `addConstructionSite`, and
+`addSiegeProjectile` or their recipe actions for authored walls/fences/gates,
+construction stages, ruins, scaffolding, and neutral projectile structures;
+blueprint towns emit fortification recipe steps for generated wall rings and
+reserve those tiles before bridges are inferred.
 `layoutDensity` on seeded generation provides ergonomic presets for trees,
 rocks, loose props, harbors, landmarks, and units; raw `layoutFills` remain the
 lower level hook for custom-pack placements and exact ordering. Prefer `./pieces`

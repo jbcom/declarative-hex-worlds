@@ -25,7 +25,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, paths, rotations, and deterministic coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled SimpleRPG usage example for consumer smoke tests and app reference code. |
 | `@jbcom/medieval-hexagon-gameboard/examples/*.json` | Packaged recipe, scenario, and simulation JSON examples without exposing raw TypeScript example source. |
-| `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction, terrain stacks, roads, rivers, coasts, buildings, units, and serialization. |
+| `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction, terrain stacks, roads, rivers, coasts, buildings, fortifications, construction sites, siege projectiles, units, and serialization. |
 | `@jbcom/medieval-hexagon-gameboard/grid` | Honeycomb-compatible board grids, KayKit dimensions, world/axial conversion, pathfinding, and spawn locations. |
 | `@jbcom/medieval-hexagon-gameboard/ingest` | Node/build-time source validation, FREE/EXTRA manifest generation, GLTF copying, and manifest module writing. |
 | `@jbcom/medieval-hexagon-gameboard/interop` | Neutral ECS snapshots, relation indexes/selectors, and adapter mounting for non-Koota engines. |
@@ -120,7 +120,9 @@ For fixed maps, use `GameboardBuilder.addElevationRamp` or the serializable
 `addElevationRamp` recipe action when an elevation change needs an explicit
 sloped tile, and use `GameboardBuilder.addBridge` or recipe `addBridge` when a
 road crossing needs a specific bridge variant instead of relying on blueprint
-inference.
+inference. Use `GameboardBuilder.addFortification`, `addConstructionSite`, and
+`addSiegeProjectile` or their recipe actions for authored walls, fences, gates,
+ruins, scaffolding, staged construction, and neutral catapult projectiles.
 
 The CLI exposes the same compiler for agents, editors, and build pipelines:
 

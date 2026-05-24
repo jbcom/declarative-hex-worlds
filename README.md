@@ -97,8 +97,9 @@ The package is not just an asset bundle. It provides:
   into executable actor movement command steps for SimpleRPG-style integration
   tests or host-game scheduling.
 - Board builder helpers for roads, rivers, coasts, elevated terrain stacks,
-  elevation ramps, bridges, harbors, faction buildings, neutral structures,
-  props, transitions, and unit combinations.
+  elevation ramps, bridges, harbors, faction buildings, fortifications,
+  construction sites, siege projectiles, neutral structures, props,
+  transitions, and unit combinations.
 - Serializable board recipes for saved configs, AI-authored maps, and portable
   board intent, including recipe-level custom layout archetypes and generated
   placement blocks for custom pieces.
@@ -275,7 +276,7 @@ artifact checks. FREE guide coverage includes all 19 extracted source pages,
 FREE treatments grouped by guide page, and labeled sheets for roads, rivers,
 curvy/crossing rivers, coasts, and non-connectivity guide treatments instead of
 one ambiguous repeated-looking montage. EXTRA local coverage renders all 404
-source assets by category and the 780 mixed/EXTRA guide-page asset occurrences
+source assets by category and the 788 mixed/EXTRA guide-page asset occurrences
 from the decomposed README pages. To re-check existing screenshots without
 relaunching Chromium, run
 `pnpm test:screenshots:free`, `pnpm test:screenshots:extra`, or

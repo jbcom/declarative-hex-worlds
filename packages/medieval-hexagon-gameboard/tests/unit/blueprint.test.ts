@@ -91,6 +91,7 @@ describe('medieval gameboard blueprints', () => {
     expect(inspection.plan.placements.some((placement) => placement.kind === 'river')).toBe(true);
     expect(inspection.plan.placements.some((placement) => placement.metadata.feature === 'bridge')).toBe(true);
     expect(inspection.plan.placements.some((placement) => placement.metadata.feature === 'elevation-ramp')).toBe(true);
+    expect(inspection.plan.placements.some((placement) => placement.metadata.feature === 'fortification')).toBe(true);
     expect(inspection.plan.placements.some((placement) => placement.metadata.feature === 'mountain-stack')).toBe(true);
     expect(validateGameboardPlan(inspection.plan).filter((violation) => violation.severity === 'error')).toEqual([]);
     const manifestViolations = validateGameboardPlan(inspection.plan, {

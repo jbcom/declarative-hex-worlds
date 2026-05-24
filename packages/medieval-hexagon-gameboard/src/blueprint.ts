@@ -534,10 +534,12 @@ function applyTowns(
           continue;
         }
         steps.push({
-          action: 'addNeutralStructure',
+          action: 'addFortification',
           at: site,
-          structure: index % 3 === 0 ? 'wall_straight_gate' : 'wall_straight',
+          material: 'wall',
+          segment: index % 3 === 0 ? 'straight-gate' : 'straight',
           rotationSteps: index,
+          enclosureId: town.id ?? `town:${hexKey(town.center)}`,
           scale: 0.92,
         });
         buildingCount += 1;
@@ -647,6 +649,9 @@ function collectStructurePlacementKeys(steps: readonly GameboardRecipeStep[]): S
       case 'addFactionBuilding':
       case 'addNeutralStructure':
       case 'addBridge':
+      case 'addFortification':
+      case 'addConstructionSite':
+      case 'addSiegeProjectile':
       case 'addHarbor':
         keys.add(hexKey(step.at));
         break;

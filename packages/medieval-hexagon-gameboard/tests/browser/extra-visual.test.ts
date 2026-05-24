@@ -150,7 +150,7 @@ describe('EXTRA local visual coverage', () => {
   it('captures EXTRA guide scenarios for stable, workshop, and unit-combination pages', async () => {
     await page.viewport(1900, 1700);
     const requests = requestsForGuidePages([16, 17, 18]);
-    expect(requests).toHaveLength(451);
+    expect(requests).toHaveLength(459);
 
     const canvas = await renderContactSheet(requests, {
       title: 'extra-guide-scenarios-pages-16-18',

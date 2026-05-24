@@ -333,11 +333,11 @@ try {
     `guide scenario EXTRA-only asset count changed to ${guideScenarios.assetCounts.extra}`
   );
   assert(
-    guideScenarios.assetCounts.occurrences === 1097,
+    guideScenarios.assetCounts.occurrences === 1105,
     `guide scenario asset occurrence count changed to ${guideScenarios.assetCounts.occurrences}`
   );
   assert(
-    guideScenarios.assetCounts.freeOccurrences === 463,
+    guideScenarios.assetCounts.freeOccurrences === 471,
     `guide scenario FREE asset occurrence count changed to ${guideScenarios.assetCounts.freeOccurrences}`
   );
   assert(
@@ -480,6 +480,54 @@ try {
       guideApiRamp.coverage[0]?.assetCounts.free === 2 &&
       guideApiRamp.coverage[0]?.assetCounts.extra === 0,
     'guide-apis elevation ramp page/asset coverage changed'
+  );
+
+  const guideApiFortification = JSON.parse(
+    runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addFortification', '--json'])
+  ) as GuidePublicApiSmoke;
+  assert(
+    guideApiFortification.count === 1 &&
+      guideApiFortification.publicApis.join(',') === 'GameboardBuilder.addFortification',
+    'guide-apis did not isolate GameboardBuilder.addFortification'
+  );
+  assert(
+    guideApiFortification.coverage[0]?.pages.join(',') === '2,16,17' &&
+      guideApiFortification.coverage[0]?.assetCounts.unique === 11 &&
+      guideApiFortification.coverage[0]?.assetCounts.free === 11 &&
+      guideApiFortification.coverage[0]?.assetCounts.extra === 0,
+    'guide-apis fortification page/asset coverage changed'
+  );
+
+  const guideApiConstruction = JSON.parse(
+    runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addConstructionSite', '--json'])
+  ) as GuidePublicApiSmoke;
+  assert(
+    guideApiConstruction.count === 1 &&
+      guideApiConstruction.publicApis.join(',') === 'GameboardBuilder.addConstructionSite',
+    'guide-apis did not isolate GameboardBuilder.addConstructionSite'
+  );
+  assert(
+    guideApiConstruction.coverage[0]?.pages.join(',') === '2,17' &&
+      guideApiConstruction.coverage[0]?.assetCounts.unique === 7 &&
+      guideApiConstruction.coverage[0]?.assetCounts.free === 7 &&
+      guideApiConstruction.coverage[0]?.assetCounts.extra === 0,
+    'guide-apis construction site page/asset coverage changed'
+  );
+
+  const guideApiProjectile = JSON.parse(
+    runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addSiegeProjectile', '--json'])
+  ) as GuidePublicApiSmoke;
+  assert(
+    guideApiProjectile.count === 1 &&
+      guideApiProjectile.publicApis.join(',') === 'GameboardBuilder.addSiegeProjectile',
+    'guide-apis did not isolate GameboardBuilder.addSiegeProjectile'
+  );
+  assert(
+    guideApiProjectile.coverage[0]?.pages.join(',') === '2,17' &&
+      guideApiProjectile.coverage[0]?.assetCounts.unique === 1 &&
+      guideApiProjectile.coverage[0]?.assetCounts.free === 1 &&
+      guideApiProjectile.coverage[0]?.assetCounts.extra === 0,
+    'guide-apis siege projectile page/asset coverage changed'
   );
 
   const guideAssetRoadM = JSON.parse(runCli(['guide-assets', '--assetId', 'hex_road_M', '--json'])) as GuideAssetSmoke;

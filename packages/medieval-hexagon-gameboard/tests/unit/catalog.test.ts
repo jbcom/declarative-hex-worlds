@@ -175,8 +175,8 @@ describe('asset catalog public treatments', () => {
         unique: 404,
         free: 221,
         extra: 183,
-        occurrences: 1097,
-        freeOccurrences: 463,
+        occurrences: 1105,
+        freeOccurrences: 471,
         extraOccurrences: 634,
       },
       scenariosByEdition: {
@@ -268,6 +268,38 @@ describe('asset catalog public treatments', () => {
       assetCounts: { unique: 2, free: 2, extra: 0, occurrences: 4 },
     });
 
+    const fortificationApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addFortification');
+    expect(fortificationApi).toMatchObject({
+      pages: [2, 16, 17],
+      scenarioIds: [
+        'page-02-buildings-props-and-factions',
+        'page-16-stables-and-horses',
+        'page-17-workshop-and-siege',
+      ],
+      treatmentRoles: ['neutral-structure'],
+      assetCounts: { unique: 11, free: 11, extra: 0, occurrences: 33 },
+    });
+    expect(fortificationApi?.assetIds).toEqual(
+      expect.arrayContaining(['fence_wood_straight_gate', 'wall_corner_A_gate', 'wall_straight'])
+    );
+
+    const constructionApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addConstructionSite');
+    expect(constructionApi).toMatchObject({
+      pages: [2, 17],
+      scenarioIds: ['page-02-buildings-props-and-factions', 'page-17-workshop-and-siege'],
+      treatmentRoles: ['neutral-structure'],
+      assetCounts: { unique: 7, free: 7, extra: 0, occurrences: 14 },
+    });
+
+    const siegeProjectileApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addSiegeProjectile');
+    expect(siegeProjectileApi).toMatchObject({
+      pages: [2, 17],
+      scenarioIds: ['page-02-buildings-props-and-factions', 'page-17-workshop-and-siege'],
+      treatmentRoles: ['neutral-structure'],
+      assetIds: ['projectile_catapult'],
+      assetCounts: { unique: 1, free: 1, extra: 0, occurrences: 2 },
+    });
+
     const unitPresetApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addUnitPreset');
     expect(unitPresetApi).toMatchObject({
       pages: [14, 15, 16, 17, 18],
@@ -332,6 +364,39 @@ describe('asset catalog public treatments', () => {
       occurrences: 3,
     });
 
+    const wallGate = describeKayKitGuideAssetCoverage('wall_straight_gate');
+    expect(wallGate).toMatchObject({
+      assetId: 'wall_straight_gate',
+      minimumEdition: 'free',
+      role: 'neutral-structure',
+      placementKind: 'structure',
+      pages: [2, 16, 17],
+      publicApi: expect.arrayContaining(['GameboardBuilder.addFortification', 'GameboardBuilder.addNeutralStructure']),
+      occurrences: 3,
+    });
+
+    const constructionStage = describeKayKitGuideAssetCoverage('building_stage_B');
+    expect(constructionStage).toMatchObject({
+      assetId: 'building_stage_B',
+      minimumEdition: 'free',
+      role: 'neutral-structure',
+      placementKind: 'structure',
+      pages: [2, 17],
+      publicApi: expect.arrayContaining(['GameboardBuilder.addConstructionSite', 'GameboardBuilder.addNeutralStructure']),
+      occurrences: 2,
+    });
+
+    const projectile = describeKayKitGuideAssetCoverage('projectile_catapult');
+    expect(projectile).toMatchObject({
+      assetId: 'projectile_catapult',
+      minimumEdition: 'free',
+      role: 'neutral-structure',
+      placementKind: 'structure',
+      pages: [2, 17],
+      publicApi: expect.arrayContaining(['GameboardBuilder.addSiegeProjectile', 'GameboardBuilder.addNeutralStructure']),
+      occurrences: 2,
+    });
+
     const slopeHigh = describeKayKitGuideAssetCoverage('hex_grass_sloped_high');
     expect(slopeHigh).toMatchObject({
       assetId: 'hex_grass_sloped_high',
@@ -382,6 +447,15 @@ describe('asset catalog public treatments', () => {
       pages: [14, 16, 17, 18],
       assetCounts: { unique: 112, free: 0, extra: 112 },
       publicApi: expect.arrayContaining(['GameboardBuilder.addUnitPreset']),
+    });
+    const neutralRole = describeKayKitGuideRoleCoverage('neutral-structure');
+    expect(neutralRole).toMatchObject({
+      publicApi: expect.arrayContaining([
+        'GameboardBuilder.addBridge',
+        'GameboardBuilder.addConstructionSite',
+        'GameboardBuilder.addFortification',
+        'GameboardBuilder.addSiegeProjectile',
+      ]),
     });
     expect(describeKayKitGuideRoleCoverage('missing-role')).toBeUndefined();
   });

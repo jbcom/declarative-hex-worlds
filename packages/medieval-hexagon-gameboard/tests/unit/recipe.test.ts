@@ -38,6 +38,9 @@ describe('serializable gameboard recipes', () => {
       { action: 'addMountainStack', at: { q: 0, r: 0 }, height: 2, variant: 'C', withTrees: true },
       { action: 'addBridge', at: { q: 0, r: 2 }, variant: 'B', facing: 2 },
       { action: 'addElevationRamp', at: { q: 0, r: 1 }, direction: 'up', facing: 1, fromElevation: 0, toElevation: 1 },
+      { action: 'addFortification', at: { q: 4, r: 0 }, material: 'wood-fence', segment: 'gate', facing: 3 },
+      { action: 'addConstructionSite', at: { q: 4, r: 1 }, kind: 'scaffolding', constructionId: 'dock-repair' },
+      { action: 'addSiegeProjectile', at: { q: 4, r: 2 }, facing: 4, sourceId: 'tower-cannon' },
       { action: 'addUnitPreset', at: { q: 1, r: 1 }, faction: 'blue', role: 'soldier', style: 'accent' },
     ];
     const recipe = createGameboardRecipe(
@@ -54,6 +57,15 @@ describe('serializable gameboard recipes', () => {
     });
     expect(plan.placements.find((placement) => placement.assetId === 'hex_grass_sloped_high')).toMatchObject({
       metadata: { feature: 'elevation-ramp', direction: 'up', facing: 1 },
+    });
+    expect(plan.placements.find((placement) => placement.assetId === 'fence_wood_straight_gate')).toMatchObject({
+      metadata: { feature: 'fortification', material: 'wood-fence', segment: 'gate', facing: 3 },
+    });
+    expect(plan.placements.find((placement) => placement.assetId === 'building_scaffolding')).toMatchObject({
+      metadata: { feature: 'construction-site', constructionKind: 'scaffolding', constructionId: 'dock-repair' },
+    });
+    expect(plan.placements.find((placement) => placement.assetId === 'projectile_catapult')).toMatchObject({
+      metadata: { feature: 'siege-projectile', projectileKind: 'catapult', facing: 4, sourceId: 'tower-cannon' },
     });
     expect(plan.placements.map((placement) => placement.assetId)).toContain('mountain_C_grass_trees');
     expect(plan.placements.filter((placement) => placement.kind === 'unit')).toHaveLength(4);
