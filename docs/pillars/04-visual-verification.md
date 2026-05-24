@@ -3,11 +3,25 @@ status: implemented
 last_verified: 2026-05-23
 source_images:
   - docs/assets/kaykit-guide/montage.png
+  - docs/assets/kaykit-guide/pages/page-01.png
+  - docs/assets/kaykit-guide/pages/page-02.png
   - docs/assets/kaykit-guide/pages/page-03.png
   - docs/assets/kaykit-guide/pages/page-04.png
+  - docs/assets/kaykit-guide/pages/page-05.png
+  - docs/assets/kaykit-guide/pages/page-06.png
   - docs/assets/kaykit-guide/pages/page-07.png
+  - docs/assets/kaykit-guide/pages/page-08.png
+  - docs/assets/kaykit-guide/pages/page-09.png
+  - docs/assets/kaykit-guide/pages/page-10.png
   - docs/assets/kaykit-guide/pages/page-11.png
+  - docs/assets/kaykit-guide/pages/page-12.png
+  - docs/assets/kaykit-guide/pages/page-13.png
   - docs/assets/kaykit-guide/pages/page-14.png
+  - docs/assets/kaykit-guide/pages/page-15.png
+  - docs/assets/kaykit-guide/pages/page-16.png
+  - docs/assets/kaykit-guide/pages/page-17.png
+  - docs/assets/kaykit-guide/pages/page-18.png
+  - docs/assets/kaykit-guide/pages/page-19.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
   - package.json
@@ -49,6 +63,9 @@ directly and failing on undersized, low-variance, or visually flat screenshots.
 Contact sheets are labeled at the cell level, so guide labels, rotation steps,
 water/waterless modes, and public treatment roles remain visible in the artifact
 instead of being implicit in test code.
+The catalog also exposes `listKayKitGuideScenarios()` so each extracted guide
+page has an auditable link to its source PNG, assets, public APIs, docs, and the
+visual artifacts that should be reviewed.
 
 ## Required review surfaces
 

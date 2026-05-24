@@ -12,6 +12,9 @@ The package is not just an asset bundle. It provides:
 - Public asset treatment metadata for every FREE and local EXTRA asset id,
   connecting each file to a gameboard role, source guide image, placement
   kind/layer, and the builder/selector/unit API that intentionally exercises it.
+- A decomposed 19-page guide scenario matrix that maps every extracted KayKit
+  README page to source imagery, covered assets, public APIs, docs, and visual
+  artifacts through `listKayKitGuideScenarios()`.
 - Deterministic seeded rectangle and hexagon board generation with `seedrandom`.
 - Koota tile traits, adjacency, origin-tile, and footprint-occupancy relations,
   serializable occupancy snapshots, placement state, rule validators, and
@@ -243,7 +246,8 @@ NOTICE attribution.
 when the gitignored `references/` folders are available locally, including
 EXTRA-only categories, seasonal texture sets, and duplicate basename handling.
 That audit also fails if a source asset is merely present but lacks a public
-asset treatment via `listKayKitAssetPublicTreatments()`.
+asset treatment via `listKayKitAssetPublicTreatments()` or guide-page coverage
+via `listKayKitGuideScenarios()`.
 `pnpm test:consumer` packs the npm tarball into a temporary app, installs it
 through npm, compiles public subpath imports with TypeScript, runs the shipped
 SimpleRPG usage example from `node_modules`, and invokes the installed CLI bin.

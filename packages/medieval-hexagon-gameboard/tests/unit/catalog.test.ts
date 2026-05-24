@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { listKayKitGuideScenarios as listKayKitGuideScenariosFromRoot } from '../../src';
 import {
   BASE_TILE_ASSET_IDS,
   COAST_TILE_ASSET_IDS,
@@ -8,9 +9,11 @@ import {
   RIVER_TILE_ASSET_IDS,
   ROAD_TILE_ASSET_IDS,
   describeKayKitAssetTreatment,
+  describeKayKitGuideScenario,
   hasKayKitAssetTreatment,
   isKnownExtraAssetId,
   listKayKitAssetPublicTreatments,
+  listKayKitGuideScenarios,
   neutralUnitAssetId,
 } from '../../src/catalog';
 import { generateManifestFromSource } from '../../src/ingest';
@@ -90,5 +93,46 @@ describe('asset catalog public treatments', () => {
       publicApi: expect.arrayContaining(['selectCoastVariant', 'GameboardBuilder.setCoastEdges']),
     });
     expect(hasKayKitAssetTreatment('hex_transition')).toBe(true);
+  });
+
+  it('exposes a decomposed guide scenario for every extracted README page', () => {
+    const scenarios = listKayKitGuideScenarios();
+    const pages = scenarios.map((scenario) => scenario.page);
+    const sourceImages = scenarios.map((scenario) => scenario.sourceImage);
+    const scenarioAssetIds = new Set(scenarios.flatMap((scenario) => scenario.assetIds));
+    const treatmentIds = listKayKitAssetPublicTreatments().map((treatment) => treatment.assetId);
+
+    expect(scenarios).toHaveLength(19);
+    expect(listKayKitGuideScenariosFromRoot()).toHaveLength(19);
+    expect(pages).toEqual(Array.from({ length: 19 }, (_, index) => index + 1));
+    expect(sourceImages).toEqual(
+      Array.from(
+        { length: 19 },
+        (_, index) => `docs/assets/kaykit-guide/pages/page-${String(index + 1).padStart(2, '0')}.png`
+      )
+    );
+
+    for (const scenario of scenarios) {
+      expect(scenario.id).toMatch(/^page-\d{2}-/);
+      expect(scenario.summary.length).toBeGreaterThan(20);
+      expect(scenario.publicApi.length, scenario.id).toBeGreaterThan(0);
+      expect(scenario.visualArtifacts.length, scenario.id).toBeGreaterThan(0);
+      expect(scenario.docs.length, scenario.id).toBeGreaterThan(0);
+      for (const assetId of scenario.assetIds) {
+        expect(describeKayKitAssetTreatment(assetId), `${scenario.id} references ${assetId}`).toBeTruthy();
+      }
+    }
+
+    for (const assetId of treatmentIds) {
+      expect(scenarioAssetIds.has(assetId), assetId).toBe(true);
+    }
+
+    expect(describeKayKitGuideScenario('page-03-road-variations')).toMatchObject({
+      page: 3,
+      sourceImage: 'docs/assets/kaykit-guide/pages/page-03.png',
+      assetIds: expect.arrayContaining(['hex_road_A', 'hex_road_M']),
+      publicApi: expect.arrayContaining(['selectRoadVariant', 'GameboardBuilder.addRoadPath']),
+      treatmentRoles: ['road-tile'],
+    });
   });
 });

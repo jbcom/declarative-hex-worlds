@@ -13,6 +13,9 @@ contract for CI and npm consumers.
   and scenarios, simulation, rendering, manifests, and external pack ingestion.
 - The guide imagery lives in `docs/assets/kaykit-guide/` and is generated from
   `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/Medieval_Hexagon_UserGuide_v1.pdf`.
+- Use `listKayKitGuideScenarios()` from `./catalog` when mapping guide pages to
+  assets, public APIs, docs, and screenshot artifacts. Do not duplicate the
+  page-to-asset matrix in ad hoc test data.
 - Keep pillar frontmatter current when implementation or tests change.
 - Keep TypeDoc comments useful on exported symbols. Every TypeDoc entry point
   in `typedoc.json` must start with top-level `@module` JSDoc, and public
@@ -303,8 +306,8 @@ contract for CI and npm consumers.
 
 - `.` main package: manifests, catalog, builders, Koota runtime, rules, selectors,
   and grid helpers.
-- `./catalog`: typed asset-family constants, id builders, and public treatment
-  metadata for every FREE/EXTRA asset id.
+- `./catalog`: typed asset-family constants, id builders, public treatment
+  metadata for every FREE/EXTRA asset id, and 19 extracted guide-page scenarios.
 - `./coordinates`: axial keys, neighbors, ranges, lines, pathfinding, and spawn
   coordinate selection.
 - `./compatibility`: external GLB/GLTF fit checks, KayKit hex-footprint warnings,
@@ -456,10 +459,10 @@ visual commands separate because EXTRA and local third-party assets are
 machine-local inputs. Use `pnpm test:visual` when a change needs the complete
 manual screenshot review pass. `pnpm test:reference-assets` must fail if an
 asset exists only as a manifest entry without `listKayKitAssetPublicTreatments()`
-coverage. FREE guide screenshots are labeled by guide label, rotation, water
-mode, and role; EXTRA screenshots are category-wide sheets for all 404 local
-source assets, not a sampled subset.
-local screenshot review pass across FREE, EXTRA, and third-party asset scenes.
+coverage or without `listKayKitGuideScenarios()` page coverage. FREE guide
+screenshots are labeled by guide label, rotation, water mode, and role; EXTRA
+screenshots are category-wide sheets for all 404 local source assets, not a
+sampled subset.
 Use `pnpm test:assets` when touching generated FREE assets, manifests, asset
 taxonomy, NOTICE attribution, or ingest output paths.
 Use `pnpm test:reference-assets` when local `references/` source inventory,

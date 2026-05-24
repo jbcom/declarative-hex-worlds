@@ -1,6 +1,10 @@
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { describeKayKitAssetTreatment, listKayKitAssetPublicTreatments } from '../packages/medieval-hexagon-gameboard/src/catalog';
+import {
+  describeKayKitAssetTreatment,
+  listKayKitAssetPublicTreatments,
+  listKayKitGuideScenarios,
+} from '../packages/medieval-hexagon-gameboard/src/catalog';
 import { generateManifestFromSource, validateSourceRoot } from '../packages/medieval-hexagon-gameboard/src/ingest';
 import { freeManifest } from '../packages/medieval-hexagon-gameboard/src/manifest/free';
 import { validateMedievalHexagonManifest } from '../packages/medieval-hexagon-gameboard/src/manifest/schema';
@@ -266,6 +270,7 @@ const expectedExtraIds = uniqueSorted([
 ]);
 
 auditPublicTreatments(expectedExtraIds);
+auditGuideScenarios(expectedExtraIds);
 auditManifest('packaged FREE manifest', freeManifest, {
   expectedIds: expectedFreeIds,
   expectedTextureSets: ['default'],
@@ -426,6 +431,49 @@ function auditPublicTreatments(expectedIds: readonly string[]): void {
     assert(treatment.publicApi.length > 0, `${treatment.assetId} treatment must list public APIs`);
     assert(treatment.sourceImages.length > 0, `${treatment.assetId} treatment must link guide images`);
     assert(treatment.sourcePath.endsWith('.gltf'), `${treatment.assetId} treatment sourcePath must point at GLTF`);
+  }
+}
+
+function auditGuideScenarios(expectedIds: readonly string[]): void {
+  const scenarios = listKayKitGuideScenarios();
+  const scenarioIds = scenarios.map((scenario) => scenario.id);
+  const scenarioPages = scenarios.map((scenario) => scenario.page);
+  const scenarioSourceImages = scenarios.map((scenario) => scenario.sourceImage);
+  const scenarioAssetIds = uniqueSorted(scenarios.flatMap((scenario) => scenario.assetIds));
+  const scenarioSourceImageSet = new Set(scenarioSourceImages);
+  const expectedSourceImages = Array.from(
+    { length: 19 },
+    (_, index) => `docs/assets/kaykit-guide/pages/page-${String(index + 1).padStart(2, '0')}.png`
+  );
+
+  assert(scenarios.length === 19, `guide scenario count expected 19, got ${scenarios.length}`);
+  assert(new Set(scenarioIds).size === scenarios.length, 'guide scenario ids must be unique');
+  assertEqualList(
+    scenarioPages.map((page) => String(page)),
+    Array.from({ length: 19 }, (_, index) => String(index + 1)),
+    'guide scenario pages'
+  );
+  assertEqualList(scenarioSourceImages, expectedSourceImages, 'guide scenario source images');
+  assertEqualList(scenarioAssetIds, [...expectedIds].sort(), 'guide scenario asset coverage');
+
+  for (const scenario of scenarios) {
+    assert(scenario.publicApi.length > 0, `${scenario.id} must list public APIs`);
+    assert(scenario.visualArtifacts.length > 0, `${scenario.id} must list visual artifacts`);
+    assert(scenario.docs.length > 0, `${scenario.id} must list docs`);
+    for (const assetId of scenario.assetIds) {
+      const treatment = describeKayKitAssetTreatment(assetId);
+      assert(treatment !== undefined, `${scenario.id} references unknown asset id ${assetId}`);
+      assert(expectedIds.includes(assetId), `${scenario.id} references unexpected asset id ${assetId}`);
+    }
+  }
+
+  for (const treatment of listKayKitAssetPublicTreatments()) {
+    for (const sourceImage of treatment.sourceImages) {
+      assert(
+        scenarioSourceImageSet.has(sourceImage),
+        `${treatment.assetId} treatment source image ${sourceImage} must have a guide scenario`
+      );
+    }
   }
 }
 

@@ -8,7 +8,9 @@ placement helpers, and a local-only ingest path for owned EXTRA assets.
 It also ships public asset treatment metadata for every FREE and local EXTRA
 asset id, so each model is tied to a gameboard role, source guide image,
 placement kind/layer, and builder/selector/unit API rather than being a passive
-file listing.
+file listing. `listKayKitGuideScenarios()` lifts the extracted 19-page KayKit
+guide into a package API so tools can trace each README page to covered assets,
+docs, visual artifacts, and public helper surfaces.
 It also exposes neutral tile declarations and plain ECS snapshots so engines can
 use their own state model while still sharing KayKit-aware grid, adjacency, and
 scale rules. Those snapshots include tile adjacency, canonical placement
@@ -72,7 +74,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard` | Root builders, manifests, seeded generation, Koota world helpers, selectors, rules, and common types. |
 | `@jbcom/medieval-hexagon-gameboard/actors` | Actor traits, actor actions, collision, interaction targets, selection, and path-aware targeting. |
 | `@jbcom/medieval-hexagon-gameboard/gameboard` | Serializable board plans, builder helpers, and plan utilities. |
-| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, and public treatment metadata for every FREE/EXTRA asset id. |
+| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, and guide scenario metadata for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit checks, facing recommendations, scale hints, and starter piece metadata. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer/input command preview, command execution, actor-target command planning, and opt-in RPG handlers. |
@@ -1456,7 +1458,9 @@ and that NOTICE attribution remains intact.
 the gitignored `references/` folders are available locally, including the 404
 EXTRA GLTFs, seasonal texture sets, every unit/building/prop/tile use case, and
 the duplicated `projectile_catapult.gltf` basename. It also verifies that every
-asset has public treatment metadata through `listKayKitAssetPublicTreatments()`.
+asset has public treatment metadata through `listKayKitAssetPublicTreatments()`
+and appears in the page-level guide matrix returned by
+`listKayKitGuideScenarios()`.
 The FREE browser suite renders labeled guide sheets for every road, river,
 curvy/crossing river, coast, and guide-page treatment case; the EXTRA browser
 suite renders all 404 local source assets by category.

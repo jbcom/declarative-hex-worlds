@@ -36,6 +36,9 @@ tool needs to explain what an asset is for. Treatment records connect each
 FREE/EXTRA asset id to a role, placement kind/layer, extracted guide image, and
 the public builder or selector API that exercises it. This prevents an asset
 from being merely present in a manifest without a gameboard-facing path.
+Use `listKayKitGuideScenarios()` when the tool needs the page-level source
+contract: each extracted guide page lists its source PNG, covered assets, public
+APIs, docs, and visual artifacts.
 
 ## EXTRA Assets
 

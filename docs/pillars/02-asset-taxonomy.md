@@ -67,6 +67,10 @@ It also verifies `listKayKitAssetPublicTreatments()` so every source asset has a
 intent-level role, guide image link, placement kind/layer, and public API helper
 route. An asset that is only present in a manifest but lacks a builder, selector,
 layout, or unit API path is incomplete.
+`listKayKitGuideScenarios()` is the companion page-level contract: all 19
+extracted guide pages map to source PNGs, covered asset ids, treatment roles,
+public API surfaces, docs, and visual artifacts. The reference audit fails when
+any FREE/EXTRA asset is missing from that matrix.
 
 | Edition | Source GLTFs | Unique manifest ids | Texture sets | Categories |
 | --- | ---: | ---: | --- | --- |
