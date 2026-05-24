@@ -49,6 +49,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts
   - packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts
 test_links:
+  - packages/medieval-hexagon-gameboard/tests/unit/catalog.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/actors.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/commands.test.ts
@@ -570,8 +571,11 @@ isolate one use case, and `--includeTreatments` to include the
 `guide-usages` emits the renderer-ready
 `listKayKitGuideScenarioAssetUsages()` rows with repeated page-level
 occurrences, labels, captions, source paths, roles, public APIs, docs, and
-visual artifacts. Use it for contact-sheet queues, README screenshot work, or
-agent audits that need every page occurrence rather than unique asset coverage.
+visual artifacts. Library users can feed the same filters into
+`listKayKitGuideScenarioAssetRenderRequests()` or
+`listKayKitGuideScenarioAssetRenderGroups()` to get URL-resolved contact-sheet
+queues. Use these for README screenshot work or agent audits that need every
+page occurrence rather than unique asset coverage.
 `guide-assets` emits the inverse `listKayKitGuideAssetCoverages()` map from an
 exact FREE or local EXTRA asset id to guide pages, role, APIs, docs, and
 screenshots.

@@ -79,7 +79,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard/actors` | Actor traits, actor actions, collision, interaction targets, selection, and path-aware targeting. |
 | `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board-intent compiler for biome fills, mountain ranges, towns, roads, rivers, harbors, prop-cluster dressing, ramps, bridges, and showcase recipes. |
 | `@jbcom/medieval-hexagon-gameboard/gameboard` | Serializable board plans, builder helpers, prop clusters, and plan utilities. |
-| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, page-level scenario asset usages, per-scenario coverage reports, and coverage summaries for every FREE/EXTRA asset id. |
+| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, page-level scenario asset usages, render request/group queues, per-scenario coverage reports, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit checks, facing recommendations, scale hints, and starter piece metadata. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer/input command preview, command execution, actor-target command planning, and opt-in RPG handlers. |
@@ -1467,6 +1467,9 @@ the duplicated `projectile_catapult.gltf` basename. It also verifies that every
 asset has public treatment metadata through `listKayKitAssetPublicTreatments()`
 and appears in the page-level guide matrix returned by
 `listKayKitGuideScenarios()` and `listKayKitGuideScenarioAssetUsages()`.
+Renderer queues should use `listKayKitGuideScenarioAssetRenderRequests()` for
+URL-resolved rows or `listKayKitGuideScenarioAssetRenderGroups()` when preserving
+guide-page group boundaries for screenshots and docs.
 The FREE browser suite renders the extracted guide pages, the FREE asset
 treatment usages grouped by guide page, and labeled guide sheets for every road,
 river, curvy/crossing river, coast, and guide-page treatment case; the EXTRA

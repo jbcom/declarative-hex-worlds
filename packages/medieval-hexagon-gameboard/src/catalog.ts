@@ -691,6 +691,75 @@ export interface KayKitGuideScenarioAssetUsageOptions {
   publicApis?: readonly string[];
 }
 
+/** Resolves a guide usage row to an app, package, or local reference URL. */
+export type KayKitGuideScenarioAssetUrlResolver = (
+  usage: KayKitGuideScenarioAssetUsage
+) => string | undefined;
+
+/** Options for creating renderer-facing guide asset requests. */
+export interface KayKitGuideScenarioAssetRenderRequestOptions
+  extends KayKitGuideScenarioAssetUsageOptions {
+  /** Base URL/path prepended to each source-relative GLTF path. */
+  assetBaseUrl?: string;
+  /** Custom URL resolver, used before `assetBaseUrl` when provided. */
+  urlResolver?: KayKitGuideScenarioAssetUrlResolver;
+}
+
+/**
+ * Renderer-facing row for one guide asset occurrence. It keeps the original
+ * usage row attached while exposing the repeated fields renderers usually need.
+ */
+export interface KayKitGuideScenarioAssetRenderRequest {
+  /** Stable scenario id that introduced this render request. */
+  scenarioId: string;
+  /** One-based extracted guide page number. */
+  page: number;
+  /** Human-readable guide page title. */
+  title: string;
+  /** Extracted PNG page used as source material. */
+  sourceImage: string;
+  /** Stable manifest asset id used by renderers and placement records. */
+  assetId: string;
+  /** Source-relative GLTF path for FREE packaging or local EXTRA ingest. */
+  sourcePath: string;
+  /** Optional resolved URL for loading the GLTF. */
+  url?: string;
+  /** Top-level manifest category. */
+  category: AssetCategory;
+  /** Manifest subcategory or source folder. */
+  subcategory: string;
+  /** Lowest edition that exposes this asset id. */
+  minimumEdition: PackEdition;
+  /** Whether this request requires local-only EXTRA assets. */
+  requiresExtra: boolean;
+  /** Intent-level role used by docs, selectors, and gameplay placement helpers. */
+  role: KayKitAssetPublicRole;
+  /** Stable short label for contact sheets and renderer previews. */
+  label: string;
+  /** Stable short caption for contact sheets and renderer previews. */
+  caption: string;
+  /** Original page-level usage row. */
+  usage: KayKitGuideScenarioAssetUsage;
+}
+
+/** Render-request group for one extracted guide scenario. */
+export interface KayKitGuideScenarioAssetRenderGroup {
+  /** Stable scenario id. */
+  scenarioId: string;
+  /** One-based extracted guide page number. */
+  page: number;
+  /** Human-readable guide page title. */
+  title: string;
+  /** Extracted PNG page used as source material. */
+  sourceImage: string;
+  /** Scenario edition scope. */
+  edition: KayKitGuideScenarioEdition;
+  /** Renderer-ready asset requests for this page. */
+  requests: readonly KayKitGuideScenarioAssetRenderRequest[];
+  /** Number of repeated asset occurrences in this group. */
+  count: number;
+}
+
 /** Options for rendering the extracted guide scenario matrix as Markdown. */
 export interface KayKitGuideScenarioCoverageMarkdownOptions {
   /** Heading used for the generated document. */
@@ -813,6 +882,47 @@ export function listKayKitGuideScenarioAssetUsagesForScenario(
   return listKayKitGuideScenarioAssetUsages({ ...options, scenarioIds: [id] });
 }
 
+/** Lists renderer-ready guide asset requests with optional URL resolution. */
+export function listKayKitGuideScenarioAssetRenderRequests(
+  options: KayKitGuideScenarioAssetRenderRequestOptions = {}
+): KayKitGuideScenarioAssetRenderRequest[] {
+  const { assetBaseUrl, urlResolver, ...usageOptions } = options;
+  return listKayKitGuideScenarioAssetUsages(usageOptions).map((usage) =>
+    guideScenarioAssetRenderRequest(usage, { assetBaseUrl, urlResolver })
+  );
+}
+
+/** Groups renderer-ready guide asset requests by extracted guide scenario. */
+export function listKayKitGuideScenarioAssetRenderGroups(
+  options: KayKitGuideScenarioAssetRenderRequestOptions = {}
+): KayKitGuideScenarioAssetRenderGroup[] {
+  const requests = listKayKitGuideScenarioAssetRenderRequests(options);
+  const requestsByScenarioId = new Map<string, KayKitGuideScenarioAssetRenderRequest[]>();
+  for (const request of requests) {
+    const group = requestsByScenarioId.get(request.scenarioId) ?? [];
+    group.push(request);
+    requestsByScenarioId.set(request.scenarioId, group);
+  }
+
+  const groups: KayKitGuideScenarioAssetRenderGroup[] = [];
+  for (const scenario of listKayKitGuideScenarios()) {
+    const requestsForScenario = requestsByScenarioId.get(scenario.id) ?? [];
+    if (requestsForScenario.length === 0) {
+      continue;
+    }
+    groups.push({
+      scenarioId: scenario.id,
+      page: scenario.page,
+      title: scenario.title,
+      sourceImage: scenario.sourceImage,
+      edition: scenario.edition,
+      requests: requestsForScenario,
+      count: requestsForScenario.length,
+    });
+  }
+  return groups;
+}
+
 /** Returns the scenario, page counts, and public treatment join for one guide page scenario. */
 export function describeKayKitGuideScenarioCoverage(id: string): KayKitGuideScenarioCoverage | undefined {
   const scenario = describeKayKitGuideScenario(id);
@@ -923,7 +1033,8 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
     'The KayKit user guide is decomposed into 19 source-page scenarios. This page is',
     'the human-facing map for those scenarios; the machine-readable source remains',
     '`listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,',
-    '`listKayKitGuideScenarioAssetUsages()`, `listKayKitGuideAssetCoverages()`,',
+    '`listKayKitGuideScenarioAssetUsages()`, `listKayKitGuideScenarioAssetRenderRequests()`,',
+    '`listKayKitGuideScenarioAssetRenderGroups()`, `listKayKitGuideAssetCoverages()`,',
     '`listKayKitGuideRoleCoverages()`, `listKayKitGuidePublicApiCoverages()`,',
     'and the `guide-scenarios` / `guide-usages` /',
     '`guide-assets` / `guide-roles` / `guide-apis` CLI commands.',
@@ -1015,12 +1126,19 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
       '',
       '```ts',
       'import {',
+      '  listKayKitGuideScenarioAssetRenderGroups,',
+      '  listKayKitGuideScenarioAssetRenderRequests,',
       '  listKayKitGuideScenarioAssetUsages,',
       '  listKayKitGuideScenarioAssetUsagesForScenario,',
       "} from '@jbcom/medieval-hexagon-gameboard/catalog';",
       '',
       'const freeGuideAssets = listKayKitGuideScenarioAssetUsages({ minimumEdition: "free" });',
       'const stableWorkshopUnits = listKayKitGuideScenarioAssetUsages({ pages: [16, 17, 18] });',
+      'const freeRenderQueue = listKayKitGuideScenarioAssetRenderRequests({',
+      '  minimumEdition: "free",',
+      '  assetBaseUrl: "/assets/free",',
+      '});',
+      'const groupedRenderQueue = listKayKitGuideScenarioAssetRenderGroups({ pages: [16, 17, 18] });',
       "const page14Units = listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');",
       '```',
       '',
@@ -2178,6 +2296,40 @@ function guideScenarioAssetUsage(
     label: `p${String(scenario.page).padStart(2, '0')}:${treatment.assetId}`,
     caption: `${scenario.id} ${treatment.minimumEdition}`,
   };
+}
+
+function guideScenarioAssetRenderRequest(
+  usage: KayKitGuideScenarioAssetUsage,
+  options: Pick<KayKitGuideScenarioAssetRenderRequestOptions, 'assetBaseUrl' | 'urlResolver'>
+): KayKitGuideScenarioAssetRenderRequest {
+  const resolvedUrl = options.urlResolver?.(usage) ?? guideScenarioAssetUrlFromBase(usage, options.assetBaseUrl);
+  return {
+    scenarioId: usage.scenarioId,
+    page: usage.page,
+    title: usage.title,
+    sourceImage: usage.sourceImage,
+    assetId: usage.assetId,
+    sourcePath: usage.sourcePath,
+    ...(resolvedUrl ? { url: resolvedUrl } : {}),
+    category: usage.category,
+    subcategory: usage.subcategory,
+    minimumEdition: usage.minimumEdition,
+    requiresExtra: usage.requiresExtra,
+    role: usage.role,
+    label: usage.label,
+    caption: usage.caption,
+    usage,
+  };
+}
+
+function guideScenarioAssetUrlFromBase(
+  usage: KayKitGuideScenarioAssetUsage,
+  assetBaseUrl: string | undefined
+): string | undefined {
+  if (!assetBaseUrl) {
+    return undefined;
+  }
+  return `${assetBaseUrl.replace(/\/+$/, '')}/${usage.sourcePath.replace(/^\/+/, '')}`;
 }
 
 function guideScenarioCoverage(

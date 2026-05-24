@@ -19,7 +19,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard/actors` | Player, NPC, enemy, prop, collision, interaction-target, and actor-selection helpers. |
 | `@jbcom/medieval-hexagon-gameboard/assets/free/*` | Published FREE GLTF, BIN, PNG, and manifest files for bundlers that need direct asset URLs. |
 | `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board blueprints for biome percentages, mountain ranges, towns, roads, rivers, harbors, prop-cluster dressing, ramps, bridges, and showcase recipes. |
-| `@jbcom/medieval-hexagon-gameboard/catalog` | KayKit faction building ids, unit parts, prop ids, nature ids, texture names, typed asset-id constructors, public treatment metadata, extracted guide scenario metadata, scenario treatment joins, page-level scenario asset usages, public API coverage joins, and coverage summaries for every FREE/EXTRA asset id. |
+| `@jbcom/medieval-hexagon-gameboard/catalog` | KayKit faction building ids, unit parts, prop ids, nature ids, texture names, typed asset-id constructors, public treatment metadata, extracted guide scenario metadata, scenario treatment joins, page-level scenario asset usages, render request/group queues, public API coverage joins, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit analysis, facing correction, placement recommendations, and spawn-option conversion. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, paths, rotations, and deterministic coordinate selection. |
@@ -259,10 +259,15 @@ Use `./catalog` when a tool or test needs to prove a guide image has a public
 API route. `listKayKitGuideScenarioAssetUsages()` is the renderer-facing query:
 it returns repeated page-level asset occurrences with labels, captions,
 source paths, categories, roles, placement kinds, edition flags, docs, and
-visual artifacts. Browser contact sheets use those rows directly.
+visual artifacts. `listKayKitGuideScenarioAssetRenderRequests()` adds optional
+URL/base-path resolution for contact sheets and engine preload queues, while
+`listKayKitGuideScenarioAssetRenderGroups()` preserves the guide-page grouping
+for screenshot review and docs tooling.
 
 ```ts
 import {
+  listKayKitGuideScenarioAssetRenderGroups,
+  listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarioAssetUsages,
   listKayKitGuideScenarioAssetUsagesForScenario,
 } from '@jbcom/medieval-hexagon-gameboard/catalog';
@@ -273,6 +278,16 @@ const freeGuideContactSheet = listKayKitGuideScenarioAssetUsages({
 
 const stableWorkshopAndUnitPages = listKayKitGuideScenarioAssetUsages({
   pages: [16, 17, 18],
+});
+
+const extraRenderQueue = listKayKitGuideScenarioAssetRenderRequests({
+  pages: [16, 17, 18],
+  assetBaseUrl: '/local/kaykit-extra',
+});
+
+const pageGroups = listKayKitGuideScenarioAssetRenderGroups({
+  minimumEdition: 'free',
+  assetBaseUrl: '/assets/free',
 });
 
 const unitPage = listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');
@@ -298,7 +313,7 @@ runtime API string.
 | --- | --- |
 | Manifest shape and stale indexes | `inspectMedievalHexagonManifest` |
 | Asset exists but lacks an intentional public API route | `listKayKitAssetPublicTreatments`, `describeKayKitAssetTreatment` |
-| Extracted guide page, asset id, or gameplay role lacks asset/API/docs/visual coverage | `listKayKitGuideScenarios`, `describeKayKitGuideScenario`, `listKayKitGuideScenarioTreatments`, `listKayKitGuideScenarioAssetUsages`, `listKayKitGuideScenarioAssetUsagesForScenario`, `describeKayKitGuideScenarioCoverage`, `listKayKitGuideAssetCoverages`, `describeKayKitGuideAssetCoverage`, `listKayKitGuideRoleCoverages`, `describeKayKitGuideRoleCoverage`, `listKayKitGuidePublicApiCoverages`, `describeKayKitGuidePublicApiCoverage`, `summarizeKayKitGuideCoverage`, `renderKayKitGuideScenarioCoverageMarkdown` |
+| Extracted guide page, asset id, or gameplay role lacks asset/API/docs/visual coverage | `listKayKitGuideScenarios`, `describeKayKitGuideScenario`, `listKayKitGuideScenarioTreatments`, `listKayKitGuideScenarioAssetUsages`, `listKayKitGuideScenarioAssetUsagesForScenario`, `listKayKitGuideScenarioAssetRenderRequests`, `listKayKitGuideScenarioAssetRenderGroups`, `describeKayKitGuideScenarioCoverage`, `listKayKitGuideAssetCoverages`, `describeKayKitGuideAssetCoverage`, `listKayKitGuideRoleCoverages`, `describeKayKitGuideRoleCoverage`, `listKayKitGuidePublicApiCoverages`, `describeKayKitGuidePublicApiCoverage`, `summarizeKayKitGuideCoverage`, `renderKayKitGuideScenarioCoverageMarkdown` |
 | Packaged or app-local manifest lookup | `createManifestBundle`, `getManifestAsset` |
 | Missing assets in plans, recipes, and scenarios | `validateGameboardPlan`, recipe/scenario validation helpers |
 | Tile declarations and neutral plan rules | `validateGameboardPlan` |

@@ -78,6 +78,9 @@ any FREE/EXTRA asset is missing from that matrix. Tooling should use:
   page.
 - `listKayKitGuideScenarioAssetUsages()` for repeated page-level asset
   occurrences rendered by visual contact sheets.
+- `listKayKitGuideScenarioAssetRenderRequests()` and
+  `listKayKitGuideScenarioAssetRenderGroups()` for URL-resolved render queues
+  and guide-page groups.
 - `describeKayKitGuideScenarioCoverage(id)` for a single page report with counts
   and treatments.
 - `listKayKitGuideAssetCoverages()` for the inverse map from an exact asset id

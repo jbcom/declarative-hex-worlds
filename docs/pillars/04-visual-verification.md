@@ -43,6 +43,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/pieces.ts
   - packages/medieval-hexagon-gameboard/src/quests.ts
 test_links:
+  - packages/medieval-hexagon-gameboard/tests/unit/catalog.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
   - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts
@@ -58,6 +59,7 @@ test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/pieces.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/quests.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/simple-rpg.test.ts
+  - scripts/smoke-packed-consumer.ts
 ---
 
 # Visual Verification
@@ -76,10 +78,11 @@ instead of being implicit in test code.
 The catalog also exposes `listKayKitGuideScenarios()` so each extracted guide
 page has an auditable link to its source PNG, assets, public APIs, docs, and the
 visual artifacts that should be reviewed. Browser contact sheets use
-`listKayKitGuideScenarioAssetUsages()` for the exact page-level asset occurrence
-rows, preserving repeated FREE/EXTRA uses, source paths, labels, captions, roles,
-categories, and edition flags instead of manually reconstructing the guide matrix
-inside tests.
+`listKayKitGuideScenarioAssetRenderRequests()` and
+`listKayKitGuideScenarioAssetRenderGroups()` for URL-resolved page-level asset
+occurrence rows, preserving repeated FREE/EXTRA uses, source paths, labels,
+captions, roles, categories, edition flags, and guide-page grouping instead of
+manually reconstructing the guide matrix inside tests.
 
 ## Required review surfaces
 

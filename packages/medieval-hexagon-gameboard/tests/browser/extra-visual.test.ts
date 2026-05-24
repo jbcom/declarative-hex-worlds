@@ -4,7 +4,7 @@ import {
   describeKayKitAssetTreatment,
   listKayKitAssetPublicTreatments,
   listKayKitGuideAssetCoverages,
-  listKayKitGuideScenarioAssetUsages,
+  listKayKitGuideScenarioAssetRenderRequests,
 } from '../../src/catalog';
 import { createMedievalShowcaseBlueprintRecipe } from '../../src/blueprint';
 import { createMedievalHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard';
@@ -14,6 +14,7 @@ import type { AssetCategory, MedievalHexagonAsset } from '../../src/types';
 import { assertCanvasHasRenderableContent, referenceExtraUrl, renderContactSheet, renderGameboardPlan } from './rendering';
 
 declare const __EXTRA_TEXTURE_ROOT__: string;
+declare const __EXTRA_SOURCE_ROOT__: string;
 
 const extraTreatments = listKayKitAssetPublicTreatments();
 
@@ -278,11 +279,14 @@ function requestsForCategory(category: AssetCategory) {
 }
 
 function requestsForGuidePages(pages: readonly number[]) {
-  return listKayKitGuideScenarioAssetUsages({ pages }).map((usage) => ({
-    asset: minimalAsset(usage.assetId, usage.sourcePath, usage.category, usage.subcategory),
-    url: referenceExtraUrl(usage.sourcePath),
-    label: usage.label,
-    caption: usage.caption,
+  return listKayKitGuideScenarioAssetRenderRequests({
+    pages,
+    assetBaseUrl: `/@fs/${__EXTRA_SOURCE_ROOT__}`,
+  }).map((request) => ({
+    asset: minimalAsset(request.assetId, request.sourcePath, request.category, request.subcategory),
+    url: request.url ?? referenceExtraUrl(request.sourcePath),
+    label: request.label,
+    caption: request.caption,
   }));
 }
 

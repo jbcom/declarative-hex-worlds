@@ -43,9 +43,12 @@ APIs, docs, and visual artifacts. Use `listKayKitGuideScenarioTreatments(id)` or
 treatment records, `listKayKitGuideAssetCoverages()` when a tool needs to start
 from an exact asset id, `listKayKitGuideRoleCoverages()` when it needs to start
 from a gameplay role, `listKayKitGuidePublicApiCoverages()` when it needs to
-start from a public API surface, and `summarizeKayKitGuideCoverage()` when a
-build tool or editor needs stable counts for pages, editions, roles, unique
-assets, repeated page-level asset occurrences, docs, and visual artifacts.
+start from a public API surface, `listKayKitGuideScenarioAssetRenderRequests()`
+when it needs URL-resolved render queues, `listKayKitGuideScenarioAssetRenderGroups()`
+when it needs guide-page contact-sheet groups, and
+`summarizeKayKitGuideCoverage()` when a build tool or editor needs stable counts
+for pages, editions, roles, unique assets, repeated page-level asset
+occurrences, docs, and visual artifacts.
 
 ## EXTRA Assets
 

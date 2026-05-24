@@ -21,7 +21,9 @@ The package is not just an asset bundle. It provides:
   `summarizeKayKitGuideCoverage()` for tools that need page-to-treatment joins
   or stable coverage counts. The usage API preserves all 1,108 page-level FREE
   and EXTRA asset occurrences with labels, captions, source paths, roles, and
-  categories for renderer/contact-sheet tests. `listKayKitGuideAssetCoverages()`
+  categories for renderer/contact-sheet tests; `listKayKitGuideScenarioAssetRenderRequests()`
+  and `listKayKitGuideScenarioAssetRenderGroups()` turn those rows into
+  URL-resolved render queues grouped by guide page. `listKayKitGuideAssetCoverages()`
   starts from any FREE or local EXTRA asset id and returns its guide pages, role,
   public APIs, docs, and screenshots. `listKayKitGuidePublicApiCoverages()`
   provides the inverse index from builder/selector/runtime APIs back to guide

@@ -3,7 +3,8 @@
 The KayKit user guide is decomposed into 19 source-page scenarios. This page is
 the human-facing map for those scenarios; the machine-readable source remains
 `listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,
-`listKayKitGuideScenarioAssetUsages()`, `listKayKitGuideAssetCoverages()`,
+`listKayKitGuideScenarioAssetUsages()`, `listKayKitGuideScenarioAssetRenderRequests()`,
+`listKayKitGuideScenarioAssetRenderGroups()`, `listKayKitGuideAssetCoverages()`,
 `listKayKitGuideRoleCoverages()`, `listKayKitGuidePublicApiCoverages()`,
 and the `guide-scenarios` / `guide-usages` /
 `guide-assets` / `guide-roles` / `guide-apis` CLI commands.
@@ -471,12 +472,19 @@ scenario workload instead of only unique coverage rows:
 
 ```ts
 import {
+  listKayKitGuideScenarioAssetRenderGroups,
+  listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarioAssetUsages,
   listKayKitGuideScenarioAssetUsagesForScenario,
 } from '@jbcom/medieval-hexagon-gameboard/catalog';
 
 const freeGuideAssets = listKayKitGuideScenarioAssetUsages({ minimumEdition: "free" });
 const stableWorkshopUnits = listKayKitGuideScenarioAssetUsages({ pages: [16, 17, 18] });
+const freeRenderQueue = listKayKitGuideScenarioAssetRenderRequests({
+  minimumEdition: "free",
+  assetBaseUrl: "/assets/free",
+});
+const groupedRenderQueue = listKayKitGuideScenarioAssetRenderGroups({ pages: [16, 17, 18] });
 const page14Units = listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');
 ```
 

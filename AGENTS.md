@@ -20,7 +20,10 @@ contract for CI and npm consumers.
   through `renderKayKitGuideScenarioCoverageMarkdown()` and do not duplicate the
   page-to-asset matrix in ad hoc test data. Use
   `listKayKitGuideScenarioAssetUsages()` for renderer/contact-sheet-ready
-  page-level asset occurrences. Use `listKayKitGuideAssetCoverages()` when
+  page-level asset occurrences, and
+  `listKayKitGuideScenarioAssetRenderRequests()` /
+  `listKayKitGuideScenarioAssetRenderGroups()` when a tool needs URL-resolved
+  render queues grouped by guide page. Use `listKayKitGuideAssetCoverages()` when
   starting from an exact manifest asset id and `listKayKitGuideRoleCoverages()`
   when starting from a gameplay role such as prop, road, unit, or structure;
   those are the canonical asset/role-to-page/API/docs/screenshot inverse

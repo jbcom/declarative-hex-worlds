@@ -137,6 +137,8 @@ import {
   inspectGameboardPlacementOccupancy,
   inspectGameboardNeighborhood,
   inspectGameboardTile,
+  listKayKitGuideScenarioAssetRenderGroups,
+  listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarioAssetUsages,
   listKayKitGuideScenarioAssetUsagesForScenario,
   moveGameboardActor,
@@ -167,6 +169,8 @@ import {
   type GameboardTileInspectionOptions,
   type GameboardLayoutArchetypeRegistry,
   type GameboardPiecePlacementInspection,
+  type KayKitGuideScenarioAssetRenderGroup,
+  type KayKitGuideScenarioAssetRenderRequest,
   type KayKitGuideScenarioAssetUsage,
   type MoveGameboardActorOptions,
   type SpawnGameboardActorOptions,
@@ -283,6 +287,8 @@ import {
   NATURE_ASSET_IDS,
   factionBuildingAssetId,
   flagAssetId,
+  listKayKitGuideScenarioAssetRenderGroups as listKayKitGuideScenarioAssetRenderGroupsFromCatalog,
+  listKayKitGuideScenarioAssetRenderRequests as listKayKitGuideScenarioAssetRenderRequestsFromCatalog,
   listKayKitGuideScenarioAssetUsages as listKayKitGuideScenarioAssetUsagesFromCatalog,
   listKayKitGuideScenarioAssetUsagesForScenario as listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog,
   type FactionBuildingKind as FactionBuildingKindFromCatalog,
@@ -542,10 +548,21 @@ const natureAssetFromCatalog: string = NATURE_ASSET_IDS[0]!;
 const guideAssetUsages: readonly KayKitGuideScenarioAssetUsage[] = listKayKitGuideScenarioAssetUsages({
   pages: [16, 17, 18],
 });
+const guideAssetRenderRequests: readonly KayKitGuideScenarioAssetRenderRequest[] =
+  listKayKitGuideScenarioAssetRenderRequests({
+    pages: [16, 17, 18],
+    assetBaseUrl: '/assets/extra',
+  });
+const guideAssetRenderGroups: readonly KayKitGuideScenarioAssetRenderGroup[] =
+  listKayKitGuideScenarioAssetRenderGroups({ pages: [16, 17, 18] });
 const guideAssetUsagesForScenario: readonly KayKitGuideScenarioAssetUsage[] =
   listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');
 const guideAssetUsagesFromCatalog: readonly KayKitGuideScenarioAssetUsage[] =
   listKayKitGuideScenarioAssetUsagesFromCatalog({ minimumEdition: 'free' });
+const guideAssetRenderRequestsFromCatalog: readonly KayKitGuideScenarioAssetRenderRequest[] =
+  listKayKitGuideScenarioAssetRenderRequestsFromCatalog({ minimumEdition: 'free' });
+const guideAssetRenderGroupsFromCatalog: readonly KayKitGuideScenarioAssetRenderGroup[] =
+  listKayKitGuideScenarioAssetRenderGroupsFromCatalog({ pages: [16, 17, 18] });
 const guideAssetUsagesForScenarioFromCatalog: readonly KayKitGuideScenarioAssetUsage[] =
   listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog('page-03-road-variations');
 const hexKeyFromCoordinatesResult: string = hexKeyFromCoordinates({ q: 0, r: 0 });
@@ -886,6 +903,10 @@ void movementActionsFromMovement;
 void movementProfileFromMovement;
 void movementStatusFromMovement;
 void natureAssetFromCatalog;
+void guideAssetRenderGroups;
+void guideAssetRenderGroupsFromCatalog;
+void guideAssetRenderRequests;
+void guideAssetRenderRequestsFromCatalog;
 void guideAssetUsages;
 void guideAssetUsagesForScenario;
 void guideAssetUsagesFromCatalog;
@@ -1058,6 +1079,8 @@ import {
   inspectGameboardPlacementOccupancy,
   inspectGameboardNeighborhood,
   inspectGameboardTile,
+  listKayKitGuideScenarioAssetRenderGroups,
+  listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarioAssetUsages,
   moveGameboardActor,
   PlacementOccupiesTile,
@@ -1125,6 +1148,8 @@ import {
   NATURE_ASSET_IDS,
   factionBuildingAssetId,
   flagAssetId,
+  listKayKitGuideScenarioAssetRenderGroups as listKayKitGuideScenarioAssetRenderGroupsFromCatalog,
+  listKayKitGuideScenarioAssetRenderRequests as listKayKitGuideScenarioAssetRenderRequestsFromCatalog,
   listKayKitGuideScenarioAssetUsagesForScenario as listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog,
 } from '@jbcom/medieval-hexagon-gameboard/catalog';
 import {
@@ -1295,6 +1320,16 @@ const subpathPath = findHexPath({ q: 0, r: 0 }, { q: 1, r: 0 });
 const subpathTransform = transformForHex(subpathParsedHex);
 const guideUsagePages16To18 = listKayKitGuideScenarioAssetUsages({ pages: [16, 17, 18] });
 const guideUsageFreeAssets = listKayKitGuideScenarioAssetUsages({ minimumEdition: 'free' });
+const guideRenderRequestsPages16To18 = listKayKitGuideScenarioAssetRenderRequests({
+  pages: [16, 17, 18],
+  assetBaseUrl: '/assets/extra',
+});
+const guideRenderGroupsPages16To18 = listKayKitGuideScenarioAssetRenderGroups({ pages: [16, 17, 18] });
+const guideRenderRequestsFreeFromCatalog =
+  listKayKitGuideScenarioAssetRenderRequestsFromCatalog({ minimumEdition: 'free' });
+const guideRenderGroupsFromCatalog = listKayKitGuideScenarioAssetRenderGroupsFromCatalog({
+  pages: [16, 17, 18],
+});
 const guideUsageRoadsFromCatalog =
   listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog('page-03-road-variations');
 const subpathSystemsResult = runGameboardSystemsFromSystems(subpathWorld, {
@@ -1352,6 +1387,12 @@ if (
   guideUsagePages16To18.length !== 462 ||
   guideUsageFreeAssets.length !== 474 ||
   guideUsageFreeAssets[0]?.label.startsWith('p') !== true ||
+  guideRenderRequestsPages16To18.length !== 462 ||
+  !guideRenderRequestsPages16To18[0]?.url?.startsWith('/assets/extra/') ||
+  guideRenderGroupsPages16To18.length !== 3 ||
+  guideRenderGroupsPages16To18[0]?.count !== 155 ||
+  guideRenderRequestsFreeFromCatalog.length !== 474 ||
+  guideRenderGroupsFromCatalog.length !== 3 ||
   guideUsageRoadsFromCatalog.length !== 15 ||
   guideUsageRoadsFromCatalog[0]?.caption !== 'page-03-road-variations free' ||
   subpathSystemsResult.eventRecords.length !== 0 ||

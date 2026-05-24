@@ -4,7 +4,7 @@ import generatedPieceScenario from '../../examples/generated-piece-scenario.reci
 import {
   listKayKitGuideAssetCoverages,
   listKayKitGuideRoleCoverages,
-  listKayKitGuideScenarioAssetUsages,
+  listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarios,
 } from '../../src/catalog';
 import { createMedievalGameboardBlueprintPlan } from '../../src/blueprint';
@@ -102,16 +102,19 @@ describe('FREE visual coverage', () => {
     });
     expect(guideScreenshot).toContain('free-guide-source-pages.png');
 
-    const requests = listKayKitGuideScenarioAssetUsages({ minimumEdition: 'free' }).map((usage) => {
-      const asset = freeManifest.assetsById[usage.assetId];
+    const requests = listKayKitGuideScenarioAssetRenderRequests({
+      minimumEdition: 'free',
+      assetBaseUrl: '/assets/free',
+    }).map((request) => {
+      const asset = freeManifest.assetsById[request.assetId];
       if (!asset) {
-        throw new Error(`FREE guide scenario usage references missing asset ${usage.assetId}`);
+        throw new Error(`FREE guide scenario usage references missing asset ${request.assetId}`);
       }
       return {
         asset,
-        url: assetUrl(asset),
-        label: usage.label,
-        caption: usage.caption,
+        url: request.url ?? assetUrl(asset),
+        label: request.label,
+        caption: request.caption,
       };
     });
     expect(requests).toHaveLength(474);

@@ -9,6 +9,8 @@ import {
   listKayKitGuideAssetCoverages as listKayKitGuideAssetCoveragesFromRoot,
   listKayKitGuidePublicApiCoverages as listKayKitGuidePublicApiCoveragesFromRoot,
   listKayKitGuideRoleCoverages as listKayKitGuideRoleCoveragesFromRoot,
+  listKayKitGuideScenarioAssetRenderGroups as listKayKitGuideScenarioAssetRenderGroupsFromRoot,
+  listKayKitGuideScenarioAssetRenderRequests as listKayKitGuideScenarioAssetRenderRequestsFromRoot,
   listKayKitGuideScenarioAssetUsages as listKayKitGuideScenarioAssetUsagesFromRoot,
   listKayKitGuideScenarioAssetUsagesForScenario as listKayKitGuideScenarioAssetUsagesForScenarioFromRoot,
   listKayKitGuideScenarioTreatments as listKayKitGuideScenarioTreatmentsFromRoot,
@@ -34,6 +36,8 @@ import {
   listKayKitGuideAssetCoverages,
   listKayKitGuidePublicApiCoverages,
   listKayKitGuideRoleCoverages,
+  listKayKitGuideScenarioAssetRenderGroups,
+  listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarioAssetUsages,
   listKayKitGuideScenarioAssetUsagesForScenario,
   listKayKitGuideScenarioTreatments,
@@ -272,6 +276,55 @@ describe('asset catalog public treatments', () => {
     });
 
     expect(listKayKitGuideScenarioAssetUsagesForScenario('missing-scenario')).toEqual([]);
+  });
+
+  it('exposes renderer-ready guide asset request queues and page groups', () => {
+    const freeRequests = listKayKitGuideScenarioAssetRenderRequests({
+      minimumEdition: 'free',
+      assetBaseUrl: '/assets/free',
+    });
+    const freeRequestsFromRoot = listKayKitGuideScenarioAssetRenderRequestsFromRoot({
+      minimumEdition: 'free',
+      assetBaseUrl: '/assets/free',
+    });
+
+    expect(freeRequests).toHaveLength(474);
+    expect(freeRequestsFromRoot).toEqual(freeRequests);
+    expect(freeRequests[0]).toMatchObject({
+      scenarioId: 'page-02-buildings-props-and-factions',
+      page: 2,
+      assetId: 'barrel',
+      sourcePath: 'decoration/props/barrel.gltf',
+      url: '/assets/free/decoration/props/barrel.gltf',
+      minimumEdition: 'free',
+      requiresExtra: false,
+      role: 'prop',
+      label: 'p02:barrel',
+    });
+    expect(freeRequests[0]?.usage.assetId).toBe(freeRequests[0]?.assetId);
+
+    const page16To18Groups = listKayKitGuideScenarioAssetRenderGroups({
+      pages: [16, 17, 18],
+      assetBaseUrl: '/@fs/references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA/Assets/gltf',
+    });
+    expect(listKayKitGuideScenarioAssetRenderGroupsFromRoot({ pages: [16, 17, 18] })).toHaveLength(
+      page16To18Groups.length
+    );
+    expect(page16To18Groups.map((group) => [group.page, group.scenarioId, group.count])).toEqual([
+      [16, 'page-16-stables-and-horses', 155],
+      [17, 'page-17-workshop-and-siege', 170],
+      [18, 'page-18-unit-combinations', 137],
+    ]);
+    expect(page16To18Groups.flatMap((group) => group.requests)).toHaveLength(462);
+    expect(page16To18Groups[0]?.requests[0]?.url).toContain('/@fs/references/');
+
+    const propCluster = listKayKitGuideScenarioAssetRenderRequests({
+      publicApis: ['GameboardBuilder.addPropCluster'],
+      urlResolver: (usage) => `/custom/${usage.minimumEdition}/${usage.sourcePath}`,
+    });
+    expect(propCluster).toHaveLength(74);
+    expect(propCluster.every((request) => request.role === 'prop')).toBe(true);
+    expect(propCluster[0]?.url).toMatch(/^\/custom\/(free|extra)\//);
   });
 
   it('exposes public API coverage back to guide pages and treated assets', () => {
