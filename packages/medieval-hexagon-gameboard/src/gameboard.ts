@@ -96,6 +96,8 @@ export type HillVariant = 'A' | 'B' | 'C';
 export type HarborKind = 'docks' | 'shipyard' | 'watermill';
 /** Neutral bridge visual variant. */
 export type BridgeVariant = 'A' | 'B';
+/** Sloped elevation ramp direction. */
+export type ElevationRampDirection = 'up' | 'down';
 /** Faction building kind accepted by settlement helpers. */
 export type SettlementBuilding = FactionBuildingKind;
 
@@ -325,6 +327,30 @@ export interface BridgeOptions {
   facing?: HexEdgeIndex;
   /** Clockwise 60-degree rotation steps. Overrides `facing` when provided. */
   rotationSteps?: number;
+  /** Uniform render scale. */
+  scale?: number;
+}
+
+/**
+ * Options for adding a sloped grass ramp between adjacent elevation levels.
+ */
+export interface ElevationRampOptions {
+  /** Lower tile where the visible ramp is anchored. */
+  at: HexCoordinates;
+  /** Visual ramp direction. Defaults to `up`. */
+  direction?: ElevationRampDirection;
+  /** Edge the ramp points toward; also used as the default rotation. */
+  facing?: HexEdgeIndex;
+  /** Clockwise 60-degree rotation steps. Overrides `facing` when provided. */
+  rotationSteps?: number;
+  /** Elevation on the anchor tile. Defaults to the tile elevation. */
+  fromElevation?: number;
+  /** Elevation reached by the ramp. Defaults to one level above or below `fromElevation`. */
+  toElevation?: number;
+  /** Texture set to apply to the anchor tile before placing the ramp. */
+  textureSet?: TextureSet;
+  /** Fractional elevation offset above the tile surface. */
+  elevationOffset?: number;
   /** Uniform render scale. */
   scale?: number;
 }
@@ -758,6 +784,38 @@ export class GameboardBuilder {
         feature: 'bridge',
         bridgeVariant: variant,
         facing: options.facing ?? null,
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Add a sloped grass ramp with ramp-specific metadata instead of requiring
+   * callers to place `hex_grass_sloped_high` or `hex_grass_sloped_low` directly.
+   */
+  addElevationRamp(options: ElevationRampOptions): this {
+    const tile = this.requireTile(options.at);
+    if (options.textureSet) {
+      tile.textureSet = options.textureSet;
+    }
+    const direction = options.direction ?? 'up';
+    const fromElevation = options.fromElevation ?? tile.elevation;
+    const toElevation = options.toElevation ?? (direction === 'up' ? fromElevation + 1 : Math.max(0, fromElevation - 1));
+    this.addPlacement({
+      at: options.at,
+      assetId: direction === 'up' ? 'hex_grass_sloped_high' : 'hex_grass_sloped_low',
+      kind: 'transition',
+      layer: 'surface',
+      rotationSteps: options.rotationSteps ?? options.facing,
+      elevationOffset: options.elevationOffset ?? 0.035,
+      scale: options.scale,
+      metadata: {
+        feature: 'elevation-ramp',
+        direction,
+        facing: options.facing ?? null,
+        fromElevation,
+        toElevation,
+        textureSet: tile.textureSet,
       },
     });
     return this;

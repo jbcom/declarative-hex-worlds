@@ -184,9 +184,11 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Source image: `docs/assets/kaykit-guide/pages/page-08.png`
 - Asset coverage: 3 unique, 3 FREE, 0 EXTRA, 3 occurrences
 - Roles: `base-tile`, `support-tile`
-- Public API treatment: `GameboardBuilder.addMountainStack`,
+- Public API treatment: `GameboardBuilder.addElevationRamp`,
+  `GameboardBuilder.addMountainStack`,
   `GameboardBuilder.setElevation`,
   `GameboardBuilder.setTileAsset`,
+  `createGameboardPlanFromRecipe`,
   `createMedievalGameboardBlueprintRecipe`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`,
@@ -235,7 +237,8 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Source image: `docs/assets/kaykit-guide/pages/page-10.png`
 - Asset coverage: 45 unique, 45 FREE, 0 EXTRA, 45 occurrences
 - Roles: `base-tile`, `nature-decoration`, `support-tile`
-- Public API treatment: `GameboardBuilder.addForest`,
+- Public API treatment: `GameboardBuilder.addElevationRamp`,
+  `GameboardBuilder.addForest`,
   `GameboardBuilder.addHill`,
   `GameboardBuilder.addMountainStack`,
   `GameboardBuilder.addNature`,
@@ -243,6 +246,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `GameboardBuilder.setElevation`,
   `GameboardBuilder.setTileAsset`,
   `createGameboardLayoutFillRuleFromPiece`,
+  `createGameboardPlanFromRecipe`,
   `createHexagonGameboardGrid`,
   `createMedievalGameboardBlueprintPlan`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png`,
@@ -457,9 +461,11 @@ const allRoleCoverage = listKayKitGuideRoleCoverages();
 
 - Pages: 07, 08, 09, 10
 - Asset coverage: 4 unique, 4 FREE, 0 EXTRA, 8 occurrences
-- Public API treatment: `GameboardBuilder.addMountainStack`,
+- Public API treatment: `GameboardBuilder.addElevationRamp`,
+  `GameboardBuilder.addMountainStack`,
   `GameboardBuilder.setTerrain`,
   `GameboardBuilder.setTileAsset`,
+  `createGameboardPlanFromRecipe`,
   `createGameboardPlanFromTiles`
 - Scenarios: `page-07-water-usage`,
   `page-08-taller-hex-tiles`,
@@ -586,7 +592,9 @@ const allRoleCoverage = listKayKitGuideRoleCoverages();
 
 - Pages: 08, 10
 - Asset coverage: 1 unique, 1 FREE, 0 EXTRA, 2 occurrences
-- Public API treatment: `GameboardBuilder.addMountainStack`, `GameboardBuilder.setTileAsset`
+- Public API treatment: `GameboardBuilder.addMountainStack`,
+  `GameboardBuilder.setTileAsset`,
+  `createGameboardPlanFromRecipe`
 - Scenarios: `page-08-taller-hex-tiles`, `page-10-floating-islands`
 
 ### Role - `transition-tile`
@@ -618,5 +626,7 @@ For example, `GameboardBuilder.addHarbor` maps to pages 02, 05, 07, and 15,
 covering coast tiles, faction buildings, and props across FREE and EXTRA source
 material. `GameboardBuilder.addBridge` maps to pages 02, 07, and 09,
 covering the FREE bridge structures used by road and water crossings.
+`GameboardBuilder.addElevationRamp` maps to pages 08 and 10, covering
+the FREE sloped grass tiles used by vertical terrain transitions.
 `GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is
 EXTRA-only because the unit assembly pieces are local-ingest assets.

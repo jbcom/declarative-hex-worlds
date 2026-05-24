@@ -351,6 +351,8 @@ export type {
   BuiltInGameboardTerrain,
   BridgeOptions,
   BridgeVariant,
+  ElevationRampDirection,
+  ElevationRampOptions,
   GameboardPlacementKind,
   GameboardPlacementLayer,
   GameboardPlacementSpec,
@@ -404,6 +406,7 @@ export {
 export type {
   AddFactionBuildingRecipeStep,
   AddBridgeRecipeStep,
+  AddElevationRampRecipeStep,
   AddFlagRecipeStep,
   AddForestRecipeStep,
   AddHarborRecipeStep,

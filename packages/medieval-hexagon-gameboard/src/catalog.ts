@@ -926,6 +926,8 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
       'covering coast tiles, faction buildings, and props across FREE and EXTRA source',
       'material. `GameboardBuilder.addBridge` maps to pages 02, 07, and 09,',
       'covering the FREE bridge structures used by road and water crossings.',
+      '`GameboardBuilder.addElevationRamp` maps to pages 08 and 10, covering',
+      'the FREE sloped grass tiles used by vertical terrain transitions.',
       '`GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is',
       'EXTRA-only because the unit assembly pieces are local-ingest assets.'
     );
@@ -1448,7 +1450,12 @@ function baseTileTreatment(assetId: BaseTileAssetId): KayKitAssetPublicTreatment
     placementKind: 'terrain',
     placementLayer: 'terrain',
     publicApi: isSupport || isSloped
-      ? ['GameboardBuilder.addMountainStack', 'GameboardBuilder.setTileAsset']
+      ? [
+          'GameboardBuilder.addMountainStack',
+          ...(isSloped ? ['GameboardBuilder.addElevationRamp'] : []),
+          'GameboardBuilder.setTileAsset',
+          'createGameboardPlanFromRecipe',
+        ]
       : ['GameboardBuilder.setTerrain', 'GameboardBuilder.setTileAsset', 'createGameboardPlanFromTiles'],
     sourceImages: isSupport || isSloped
       ? [GUIDE_IMAGE.tallerTiles, GUIDE_IMAGE.floatingIslands]

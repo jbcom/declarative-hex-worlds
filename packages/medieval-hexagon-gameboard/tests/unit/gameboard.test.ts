@@ -109,6 +109,36 @@ describe('gameboard plan builder', () => {
     });
   });
 
+  it('models elevation ramps as named FREE transition structures', () => {
+    const plan = createGameboardBuilder({
+      seed: 'elevation-ramp',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    })
+      .setElevation({ q: 1, r: 1 }, 1)
+      .addElevationRamp({ at: { q: 1, r: 1 }, direction: 'up', facing: 0, textureSet: 'winter' })
+      .build();
+
+    const ramp = plan.placements.find((placement) => placement.assetId === 'hex_grass_sloped_high');
+
+    expect(ramp).toMatchObject({
+      kind: 'transition',
+      layer: 'surface',
+      textureSet: 'winter',
+      requiresExtra: false,
+      rotationSteps: 0,
+      elevation: 1,
+      elevationOffset: 0.035,
+      metadata: {
+        feature: 'elevation-ramp',
+        direction: 'up',
+        facing: 0,
+        fromElevation: 1,
+        toElevation: 2,
+        textureSet: 'winter',
+      },
+    });
+  });
+
   it('uses seedrandom for deterministic scatter and recipes', () => {
     const build = (seed: string) =>
       createGameboardBuilder({ seed, shape: { kind: 'rectangle', width: 5, height: 4 } })

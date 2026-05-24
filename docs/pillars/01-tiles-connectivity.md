@@ -7,6 +7,7 @@ source_images:
   - docs/assets/kaykit-guide/pages/page-07.png
   - docs/assets/kaykit-guide/pages/page-08.png
   - docs/assets/kaykit-guide/pages/page-09.png
+  - docs/assets/kaykit-guide/pages/page-10.png
   - docs/assets/kaykit-guide/pages/page-13.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
@@ -59,6 +60,10 @@ The gameboard builder uses the same edge convention for paths:
 - `addBridge` places the FREE bridge structures at authored road, river, or
   water crossings with bridge-specific metadata instead of treating them as
   anonymous neutral structures.
+- `addElevationRamp` places the FREE sloped grass tiles at authored vertical
+  transitions with ramp direction, facing, and source/target elevation metadata
+  instead of requiring raw `hex_grass_sloped_high` or `hex_grass_sloped_low`
+  placement.
 - Generated road, river, and coast placements receive small deterministic Y
   offsets to avoid z-fighting when a whole placement plan is rendered directly.
 

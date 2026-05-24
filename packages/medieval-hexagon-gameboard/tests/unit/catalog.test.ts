@@ -259,6 +259,15 @@ describe('asset catalog public treatments', () => {
       assetCounts: { unique: 2, free: 2, extra: 0, occurrences: 6 },
     });
 
+    const rampApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addElevationRamp');
+    expect(rampApi).toMatchObject({
+      pages: [8, 10],
+      scenarioIds: ['page-08-taller-hex-tiles', 'page-10-floating-islands'],
+      treatmentRoles: ['base-tile'],
+      assetIds: ['hex_grass_sloped_high', 'hex_grass_sloped_low'],
+      assetCounts: { unique: 2, free: 2, extra: 0, occurrences: 4 },
+    });
+
     const unitPresetApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addUnitPreset');
     expect(unitPresetApi).toMatchObject({
       pages: [14, 15, 16, 17, 18],
@@ -321,6 +330,17 @@ describe('asset catalog public treatments', () => {
       pages: [2, 7, 9],
       publicApi: expect.arrayContaining(['GameboardBuilder.addBridge', 'GameboardBuilder.addNeutralStructure']),
       occurrences: 3,
+    });
+
+    const slopeHigh = describeKayKitGuideAssetCoverage('hex_grass_sloped_high');
+    expect(slopeHigh).toMatchObject({
+      assetId: 'hex_grass_sloped_high',
+      minimumEdition: 'free',
+      role: 'base-tile',
+      placementKind: 'terrain',
+      pages: [8, 10],
+      publicApi: expect.arrayContaining(['GameboardBuilder.addElevationRamp', 'GameboardBuilder.setTileAsset']),
+      occurrences: 2,
     });
   });
 

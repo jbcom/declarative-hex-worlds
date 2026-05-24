@@ -467,6 +467,21 @@ try {
     'guide-apis bridge page/asset coverage changed'
   );
 
+  const guideApiRamp = JSON.parse(
+    runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addElevationRamp', '--json'])
+  ) as GuidePublicApiSmoke;
+  assert(
+    guideApiRamp.count === 1 && guideApiRamp.publicApis.join(',') === 'GameboardBuilder.addElevationRamp',
+    'guide-apis did not isolate GameboardBuilder.addElevationRamp'
+  );
+  assert(
+    guideApiRamp.coverage[0]?.pages.join(',') === '8,10' &&
+      guideApiRamp.coverage[0]?.assetCounts.unique === 2 &&
+      guideApiRamp.coverage[0]?.assetCounts.free === 2 &&
+      guideApiRamp.coverage[0]?.assetCounts.extra === 0,
+    'guide-apis elevation ramp page/asset coverage changed'
+  );
+
   const guideAssetRoadM = JSON.parse(runCli(['guide-assets', '--assetId', 'hex_road_M', '--json'])) as GuideAssetSmoke;
   assert(
     guideAssetRoadM.count === 1 && guideAssetRoadM.assetIds.join(',') === 'hex_road_M',

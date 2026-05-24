@@ -249,6 +249,11 @@ contract for CI and npm consumers.
   river, or water crossings that need a specific FREE KayKit bridge variant.
   Do not make callers place `building_bridge_A` or `building_bridge_B` as raw
   neutral structures when bridge semantics matter to docs, metadata, or tests.
+- Use `GameboardBuilder.addElevationRamp` or recipe `addElevationRamp` for
+  authored vertical transitions that need the FREE sloped grass tiles. Do not
+  make callers place `hex_grass_sloped_high` or `hex_grass_sloped_low` directly
+  when ramp direction, facing, source/target elevation, or guide coverage should
+  be visible to tests, docs, runtime metadata, or external ECS adapters.
 - Use `./pieces` for reusable non-tile asset declarations. Custom buildings,
   trees, loose props, units, harbors, landmarks, and scatter assets should carry
   role, footprint, scale, source, criteria, and metadata there before being

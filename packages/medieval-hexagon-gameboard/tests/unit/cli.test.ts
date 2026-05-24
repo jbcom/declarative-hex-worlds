@@ -940,6 +940,22 @@ describe('CLI', () => {
       ],
     });
 
+    const rampPayload = JSON.parse(
+      runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addElevationRamp', '--json'])
+    ) as typeof apiPayload;
+    expect(rampPayload).toMatchObject({
+      count: 1,
+      publicApis: ['GameboardBuilder.addElevationRamp'],
+      coverage: [
+        {
+          publicApi: 'GameboardBuilder.addElevationRamp',
+          pages: [8, 10],
+          treatmentRoles: ['base-tile'],
+          assetCounts: { unique: 2, free: 2, extra: 0 },
+        },
+      ],
+    });
+
     const scenarioOutput = runCli([
       'guide-scenarios',
       '--publicApi',

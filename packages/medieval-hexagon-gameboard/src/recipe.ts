@@ -7,6 +7,7 @@
 import { createGameboardBuilder, type GameboardBuilder } from './gameboard';
 import type {
   BridgeOptions,
+  ElevationRampOptions,
   FactionBuildingOptions,
   GameboardPlan,
   GameboardPlanOptions,
@@ -96,6 +97,7 @@ export type GameboardRecipeStep =
   | AddFactionBuildingRecipeStep
   | AddNeutralStructureRecipeStep
   | AddBridgeRecipeStep
+  | AddElevationRampRecipeStep
   | AddNatureRecipeStep
   | AddPropRecipeStep
   | AddFlagRecipeStep
@@ -236,6 +238,12 @@ export interface AddNeutralStructureRecipeStep extends NeutralStructureOptions {
 export interface AddBridgeRecipeStep extends BridgeOptions {
   /** Discriminator for bridge placement. */
   action: 'addBridge';
+}
+
+/** Recipe step that places a sloped elevation ramp with ramp-specific metadata. */
+export interface AddElevationRampRecipeStep extends ElevationRampOptions {
+  /** Discriminator for elevation ramp placement. */
+  action: 'addElevationRamp';
 }
 
 /** Recipe step that places a nature asset. */
@@ -548,6 +556,10 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
     case 'addBridge': {
       const { action: _action, ...options } = step;
       return builder.addBridge(options);
+    }
+    case 'addElevationRamp': {
+      const { action: _action, ...options } = step;
+      return builder.addElevationRamp(options);
     }
     case 'addNature': {
       const { action: _action, ...options } = step;

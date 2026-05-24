@@ -137,13 +137,16 @@ The gameboard API adds a second, intent-level taxonomy on top of asset ids:
   masks, texture set, and tags.
 - Placements track asset id, tile key, world position, layer, kind, rotation,
   stack index, EXTRA requirement, and metadata such as `feature: "harbor"` or
-  `feature: "bridge"`.
+  `feature: "bridge"` or `feature: "elevation-ramp"`.
 - Koota traits mirror those tile and placement records so consumers can query
-  roads, rivers, coasts, structures, bridges, harbors, stacked terrain, and
-  local-only EXTRA placements without reparsing filenames.
+  roads, rivers, coasts, structures, bridges, harbors, elevation ramps, stacked
+  terrain, and local-only EXTRA placements without reparsing filenames.
 - Public treatment records in `catalog.ts` bridge the file taxonomy to gameboard
   intent. They classify base/support/road/river/coast/transition tiles, faction
   buildings, neutral structures, nature, props, colored units, and neutral unit
   parts, and name the API route that exercises each class. Bridge assets are
   still neutral structures in the file taxonomy, but their treatment also names
   `GameboardBuilder.addBridge` so games and docs can reach them semantically.
+  Sloped grass tiles remain base tiles in the file taxonomy, but their treatment
+  also names `GameboardBuilder.addElevationRamp` so vertical transitions are
+  authored and tested as ramp intent rather than anonymous tile overrides.

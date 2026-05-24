@@ -133,12 +133,18 @@ manifests, loader logic, or asset generation changes.
 
 ## Latest Manual Review
 
-2026-05-24 focused bridge verification ran
+2026-05-24 focused bridge/ramp verification ran
 `pnpm --dir packages/medieval-hexagon-gameboard exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t "extracted guide pages"`
-after adding `GameboardBuilder.addBridge`; the regenerated
+after adding `GameboardBuilder.addBridge` and `GameboardBuilder.addElevationRamp`; the regenerated
 `free-guide-scenarios-by-extracted-page.png` contact sheet was reviewed for the
 463 FREE guide-page asset occurrences and bridge coverage on pages 02, 07, and
-09.
+09 plus elevation-ramp coverage on pages 08 and 10.
+
+2026-05-24 local EXTRA and third-party E2E verification also reran
+`pnpm test:browser:extra` and `pnpm test:e2e:local-assets` after the ramp API
+coverage update. The reviewed artifacts included the EXTRA guide role/scenario
+contact sheets, seasonal texture sheet, EXTRA harbor/blueprint boards, and the
+Kenney Castle Kit plus KayKit Adventurers SimpleRPG scene.
 
 2026-05-23 verification ran `pnpm test:visual`, which serializes
 `pnpm test:browser:free`, `pnpm test:browser:extra`, and

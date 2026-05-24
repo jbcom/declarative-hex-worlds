@@ -116,9 +116,11 @@ The browser suite renders `free-blueprint-builder-showcase.png` and
 `extra-blueprint-biome-transition-showcase.png` so the public API proves board
 composition visually, not just through unit assertions.
 
-For fixed maps, use `GameboardBuilder.addBridge` or the serializable
-`addBridge` recipe action when a road crossing needs a specific bridge variant
-instead of relying on blueprint inference from `transitionPolicy.bridges`.
+For fixed maps, use `GameboardBuilder.addElevationRamp` or the serializable
+`addElevationRamp` recipe action when an elevation change needs an explicit
+sloped tile, and use `GameboardBuilder.addBridge` or recipe `addBridge` when a
+road crossing needs a specific bridge variant instead of relying on blueprint
+inference.
 
 The CLI exposes the same compiler for agents, editors, and build pipelines:
 

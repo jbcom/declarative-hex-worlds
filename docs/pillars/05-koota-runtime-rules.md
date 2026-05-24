@@ -671,6 +671,9 @@ traits/rules first, then expose recipes as projections. Percentage fills from
 Use `GameboardBuilder.addBridge` or recipe `addBridge` when a bridge is authored
 directly; blueprint road crossings can infer the same bridge metadata when
 `transitionPolicy.bridges` is enabled.
+Use `GameboardBuilder.addElevationRamp` or recipe `addElevationRamp` when a
+sloped terrain transition is authored directly; blueprint elevation deltas can
+infer the same ramp metadata when `transitionPolicy.elevationRamps` is enabled.
 `layoutDensity` on seeded generation provides ergonomic presets for trees,
 rocks, loose props, harbors, landmarks, and units; raw `layoutFills` remain the
 lower level hook for custom-pack placements and exact ordering. Prefer `./pieces`
