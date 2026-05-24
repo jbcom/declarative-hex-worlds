@@ -307,7 +307,8 @@ contract for CI and npm consumers.
 - `.` main package: manifests, catalog, builders, Koota runtime, rules, selectors,
   and grid helpers.
 - `./catalog`: typed asset-family constants, id builders, public treatment
-  metadata for every FREE/EXTRA asset id, and 19 extracted guide-page scenarios.
+  metadata for every FREE/EXTRA asset id, 19 extracted guide-page scenarios,
+  scenario treatment joins, and stable guide coverage summaries.
 - `./coordinates`: axial keys, neighbors, ranges, lines, pathfinding, and spawn
   coordinate selection.
 - `./compatibility`: external GLB/GLTF fit checks, KayKit hex-footprint warnings,

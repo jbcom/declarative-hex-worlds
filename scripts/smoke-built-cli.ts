@@ -24,8 +24,33 @@ interface GuideScenarioSmoke {
     total: number;
     free: number;
     extra: number;
+    occurrences: number;
+    freeOccurrences: number;
+    extraOccurrences: number;
     checked: number;
     missing: number;
+  };
+  coverage: {
+    scenarioCount: number;
+    pageCount: number;
+    sourceImageCount: number;
+    assetCounts: {
+      unique: number;
+      free: number;
+      extra: number;
+      occurrences: number;
+      freeOccurrences: number;
+      extraOccurrences: number;
+    };
+    scenariosByEdition: Record<string, number>;
+    pages: Array<{
+      page: number;
+      scenarioId: string;
+      assetOccurrences: number;
+      uniqueAssets: number;
+      freeAssets: number;
+      extraAssets: number;
+    }>;
   };
   sourceImages: string[];
   docs: string[];
@@ -256,8 +281,41 @@ try {
     `guide scenario EXTRA-only asset count changed to ${guideScenarios.assetCounts.extra}`
   );
   assert(
+    guideScenarios.assetCounts.occurrences === 1093,
+    `guide scenario asset occurrence count changed to ${guideScenarios.assetCounts.occurrences}`
+  );
+  assert(
+    guideScenarios.assetCounts.freeOccurrences === 459,
+    `guide scenario FREE asset occurrence count changed to ${guideScenarios.assetCounts.freeOccurrences}`
+  );
+  assert(
+    guideScenarios.assetCounts.extraOccurrences === 634,
+    `guide scenario EXTRA asset occurrence count changed to ${guideScenarios.assetCounts.extraOccurrences}`
+  );
+  assert(
     guideScenarios.assetCounts.checked === 221,
     `guide scenario checked asset count changed to ${guideScenarios.assetCounts.checked}`
+  );
+  assert(guideScenarios.coverage.scenarioCount === 19, 'guide scenario coverage summary count changed');
+  assert(guideScenarios.coverage.pageCount === 19, 'guide scenario coverage page count changed');
+  assert(
+    guideScenarios.coverage.assetCounts.unique === guideScenarios.assetCounts.total,
+    'guide scenario coverage unique asset count does not match assetCounts.total'
+  );
+  assert(
+    guideScenarios.coverage.assetCounts.occurrences === guideScenarios.assetCounts.occurrences,
+    'guide scenario coverage occurrence count does not match assetCounts.occurrences'
+  );
+  assert(
+    guideScenarios.coverage.scenariosByEdition.free === 8 &&
+      guideScenarios.coverage.scenariosByEdition.extra === 7 &&
+      guideScenarios.coverage.scenariosByEdition.mixed === 2 &&
+      guideScenarios.coverage.scenariosByEdition.reference === 2,
+    'guide scenario edition coverage counts changed'
+  );
+  assert(
+    guideScenarios.coverage.pages.find((page) => page.page === 18)?.assetOccurrences === 137,
+    'guide scenario page 18 coverage count changed'
   );
   assert(
     guideScenarios.missingAssetIds.length === 0,

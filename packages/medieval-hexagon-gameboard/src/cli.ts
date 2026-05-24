@@ -17,6 +17,7 @@ import {
 import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
+  summarizeKayKitGuideCoverage,
 } from './catalog';
 import {
   analyzeHexTileRegistry,
@@ -1414,6 +1415,7 @@ function runGuidePermutations(parsed: ParsedArgs, sourceRoot: string, edition: P
 
 function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
   const scenarios = listKayKitGuideScenarios();
+  const coverage = summarizeKayKitGuideCoverage();
   const treatmentByAssetId = new Map(
     listKayKitAssetPublicTreatments().map((treatment) => [treatment.assetId, treatment])
   );
@@ -1439,16 +1441,16 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
     pages: scenarios.map((scenario) => scenario.page),
     assetScope,
     assetCounts: {
-      total: allAssetIds.length,
-      free: allAssetIds.filter(
-        (assetId) => treatmentByAssetId.get(assetId)?.minimumEdition === 'free'
-      ).length,
-      extra: allAssetIds.filter(
-        (assetId) => treatmentByAssetId.get(assetId)?.minimumEdition === 'extra'
-      ).length,
+      total: coverage.assetCounts.unique,
+      free: coverage.assetCounts.free,
+      extra: coverage.assetCounts.extra,
+      occurrences: coverage.assetCounts.occurrences,
+      freeOccurrences: coverage.assetCounts.freeOccurrences,
+      extraOccurrences: coverage.assetCounts.extraOccurrences,
       checked: checkedAssetIds.length,
       missing: missingAssetIds.length,
     },
+    coverage,
     sourceImages,
     docs,
     visualArtifacts,
@@ -1466,6 +1468,9 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
     console.log(`pages: ${payload.pages[0]}-${payload.pages[payload.pages.length - 1]}`);
     console.log(
       `assets: ${payload.assetCounts.total} total, ${payload.assetCounts.free} free, ${payload.assetCounts.extra} extra`
+    );
+    console.log(
+      `asset occurrences: ${payload.assetCounts.occurrences} total, ${payload.assetCounts.freeOccurrences} free, ${payload.assetCounts.extraOccurrences} extra`
     );
     if (catalog) {
       console.log(`asset scope: ${assetScope}`);

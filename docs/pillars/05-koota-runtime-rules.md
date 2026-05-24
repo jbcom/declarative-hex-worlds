@@ -552,7 +552,10 @@ The CLI `declarations` command emits registry JSON. The CLI
 that every guide permutation asset exists in a manifest. The CLI
 `guide-scenarios` command emits the 19-page extracted guide scenario matrix and
 can validate FREE page assets against a FREE manifest or all FREE+EXTRA page
-assets against an EXTRA manifest. `validate-plan` validates saved board JSON,
+assets against an EXTRA manifest. Its JSON payload also includes the public
+`summarizeKayKitGuideCoverage()` result so tooling can consume stable page,
+edition, role, unique-asset, and repeated-asset occurrence counts without
+rejoining catalog data. `validate-plan` validates saved board JSON,
 `validate-recipe` compiles a recipe JSON into a plan, and `validate-scenario`
 validates scenario IDs, actor references, quest references, and asset manifest
 membership before creating Koota runtime state. When those

@@ -14,7 +14,9 @@ The package is not just an asset bundle. It provides:
   kind/layer, and the builder/selector/unit API that intentionally exercises it.
 - A decomposed 19-page guide scenario matrix that maps every extracted KayKit
   README page to source imagery, covered assets, public APIs, docs, and visual
-  artifacts through `listKayKitGuideScenarios()`.
+  artifacts through `listKayKitGuideScenarios()`, with
+  `listKayKitGuideScenarioTreatments()` and `summarizeKayKitGuideCoverage()` for
+  tools that need page-to-treatment joins or stable coverage counts.
 - Deterministic seeded rectangle and hexagon board generation with `seedrandom`.
 - Koota tile traits, adjacency, origin-tile, and footprint-occupancy relations,
   serializable occupancy snapshots, placement state, rule validators, and

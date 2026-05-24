@@ -74,7 +74,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard` | Root builders, manifests, seeded generation, Koota world helpers, selectors, rules, and common types. |
 | `@jbcom/medieval-hexagon-gameboard/actors` | Actor traits, actor actions, collision, interaction targets, selection, and path-aware targeting. |
 | `@jbcom/medieval-hexagon-gameboard/gameboard` | Serializable board plans, builder helpers, and plan utilities. |
-| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, and guide scenario metadata for every FREE/EXTRA asset id. |
+| `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit checks, facing recommendations, scale hints, and starter piece metadata. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer/input command preview, command execution, actor-target command planning, and opt-in RPG handlers. |
@@ -1521,7 +1521,8 @@ For guide-audit tooling, the CLI can also emit the full selector permutation
 matrix and the 19-page guide scenario matrix. `guide-permutations` validates the
 guide-labeled tile variants against a manifest; `guide-scenarios` validates
 FREE-owned page assets against a FREE manifest, or all 404 FREE+EXTRA page
-assets against an EXTRA manifest.
+assets against an EXTRA manifest, and includes the same coverage summary exposed
+by `summarizeKayKitGuideCoverage()`.
 
 ```bash
 medieval-hexagon-gameboard guide-permutations \

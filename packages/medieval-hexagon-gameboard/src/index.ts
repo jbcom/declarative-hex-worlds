@@ -293,8 +293,10 @@ export {
   isTextureSet,
   isUnitStyle,
   listKayKitAssetPublicTreatments,
+  listKayKitGuideScenarioTreatments,
   listKayKitGuideScenarios,
   neutralUnitAssetId,
+  summarizeKayKitGuideCoverage,
   textureFileName,
 } from './catalog';
 export type {
@@ -308,6 +310,9 @@ export type {
   FreeFactionBuildingKind,
   KayKitAssetPublicRole,
   KayKitAssetPublicTreatment,
+  KayKitGuideAssetCoverageCounts,
+  KayKitGuideCoverageSummary,
+  KayKitGuidePageCoverage,
   KayKitGuideScenario,
   KayKitGuideScenarioEdition,
   KayKitTileAssetId,

@@ -465,6 +465,68 @@ export interface KayKitGuideScenario {
   docs: readonly string[];
 }
 
+/** Coverage counts for KayKit guide assets by unique id and page occurrence. */
+export interface KayKitGuideAssetCoverageCounts {
+  /** Unique asset ids referenced by the guide scenario matrix. */
+  unique: number;
+  /** Unique FREE asset ids referenced by the guide scenario matrix. */
+  free: number;
+  /** Unique EXTRA asset ids referenced by the guide scenario matrix. */
+  extra: number;
+  /** Total scenario asset references, counting repeated page-level use. */
+  occurrences: number;
+  /** FREE scenario asset references, counting repeated page-level use. */
+  freeOccurrences: number;
+  /** EXTRA scenario asset references, counting repeated page-level use. */
+  extraOccurrences: number;
+}
+
+/** Coverage record for one extracted KayKit guide page. */
+export interface KayKitGuidePageCoverage {
+  /** One-based extracted guide page number. */
+  page: number;
+  /** Stable scenario id for the page. */
+  scenarioId: string;
+  /** Edition scope represented by this page. */
+  edition: KayKitGuideScenarioEdition;
+  /** Asset references on this page, counting repeated use across pages. */
+  assetOccurrences: number;
+  /** Unique asset ids on this page. */
+  uniqueAssets: number;
+  /** FREE asset ids on this page. */
+  freeAssets: number;
+  /** EXTRA asset ids on this page. */
+  extraAssets: number;
+  /** Public helper/API entries attached to this page. */
+  publicApis: number;
+  /** Review artifacts attached to this page. */
+  visualArtifacts: number;
+  /** Documentation entries attached to this page. */
+  docs: number;
+}
+
+/** Summary of the full extracted KayKit guide scenario matrix. */
+export interface KayKitGuideCoverageSummary {
+  /** Number of guide scenarios. */
+  scenarioCount: number;
+  /** Number of extracted guide pages. */
+  pageCount: number;
+  /** Number of distinct source images referenced by guide scenarios. */
+  sourceImageCount: number;
+  /** Number of distinct visual artifacts referenced by guide scenarios. */
+  visualArtifactCount: number;
+  /** Number of distinct docs referenced by guide scenarios. */
+  docsCount: number;
+  /** Unique and occurrence asset coverage counts. */
+  assetCounts: KayKitGuideAssetCoverageCounts;
+  /** Scenario counts by edition scope. */
+  scenariosByEdition: Readonly<Record<KayKitGuideScenarioEdition, number>>;
+  /** Unique asset counts by public treatment role. */
+  uniqueAssetsByRole: Readonly<Partial<Record<KayKitAssetPublicRole, number>>>;
+  /** Page-level coverage rows in guide order. */
+  pages: readonly KayKitGuidePageCoverage[];
+}
+
 /** Builds a faction-colored building asset id. */
 export function factionBuildingAssetId(kind: FactionBuildingKind, faction: Faction): string {
   return `building_${kind}_${faction}`;
@@ -501,6 +563,51 @@ export function describeKayKitAssetTreatment(assetId: string): KayKitAssetPublic
 /** Returns the decomposed guide-page scenario contract for one scenario id. */
 export function describeKayKitGuideScenario(id: string): KayKitGuideScenario | undefined {
   return KAYKIT_GUIDE_SCENARIO_BY_ID[id];
+}
+
+/** Returns public treatment records for the assets used by one guide scenario. */
+export function listKayKitGuideScenarioTreatments(id: string): KayKitAssetPublicTreatment[] {
+  const scenario = describeKayKitGuideScenario(id);
+  if (!scenario) {
+    return [];
+  }
+  return scenario.assetIds
+    .map((assetId) => describeKayKitAssetTreatment(assetId))
+    .filter((treatment): treatment is KayKitAssetPublicTreatment => treatment !== undefined);
+}
+
+/** Summarizes source images, docs, visual artifacts, assets, roles, and page coverage. */
+export function summarizeKayKitGuideCoverage(): KayKitGuideCoverageSummary {
+  const scenarios = listKayKitGuideScenarios();
+  const treatments = listKayKitAssetPublicTreatments();
+  const treatmentByAssetId = new Map(treatments.map((treatment) => [treatment.assetId, treatment]));
+  const uniqueAssetIds = uniqueSortedStrings(scenarios.flatMap((scenario) => scenario.assetIds));
+  const sourceImages = uniqueSortedStrings(scenarios.map((scenario) => scenario.sourceImage));
+  const visualArtifacts = uniqueSortedStrings(scenarios.flatMap((scenario) => scenario.visualArtifacts));
+  const docs = uniqueSortedStrings(scenarios.flatMap((scenario) => scenario.docs));
+  const occurrenceTreatments = scenarios
+    .flatMap((scenario) => scenario.assetIds)
+    .map((assetId) => treatmentByAssetId.get(assetId))
+    .filter((treatment): treatment is KayKitAssetPublicTreatment => treatment !== undefined);
+
+  return {
+    scenarioCount: scenarios.length,
+    pageCount: new Set(scenarios.map((scenario) => scenario.page)).size,
+    sourceImageCount: sourceImages.length,
+    visualArtifactCount: visualArtifacts.length,
+    docsCount: docs.length,
+    assetCounts: {
+      unique: uniqueAssetIds.length,
+      free: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'free'),
+      extra: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'extra'),
+      occurrences: occurrenceTreatments.length,
+      freeOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'free').length,
+      extraOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'extra').length,
+    },
+    scenariosByEdition: countScenariosByEdition(scenarios),
+    uniqueAssetsByRole: countUniqueAssetsByRole(uniqueAssetIds, treatmentByAssetId),
+    pages: scenarios.map((scenario) => guidePageCoverage(scenario, treatmentByAssetId)),
+  };
 }
 
 /** Returns whether an asset id has an explicit public API treatment. */
@@ -1263,6 +1370,59 @@ function uniqueSortedStrings(values: readonly string[]): string[] {
 
 function uniqueSortedRoles(values: readonly KayKitAssetPublicRole[]): KayKitAssetPublicRole[] {
   return [...new Set(values)].sort();
+}
+
+function countUniqueAssetsByEdition(
+  assetIds: readonly string[],
+  treatmentByAssetId: ReadonlyMap<string, KayKitAssetPublicTreatment>,
+  edition: PackEdition
+): number {
+  return assetIds.filter((assetId) => treatmentByAssetId.get(assetId)?.minimumEdition === edition).length;
+}
+
+function countScenariosByEdition(
+  scenarios: readonly KayKitGuideScenario[]
+): Readonly<Record<KayKitGuideScenarioEdition, number>> {
+  return {
+    free: scenarios.filter((scenario) => scenario.edition === 'free').length,
+    extra: scenarios.filter((scenario) => scenario.edition === 'extra').length,
+    mixed: scenarios.filter((scenario) => scenario.edition === 'mixed').length,
+    reference: scenarios.filter((scenario) => scenario.edition === 'reference').length,
+  };
+}
+
+function countUniqueAssetsByRole(
+  assetIds: readonly string[],
+  treatmentByAssetId: ReadonlyMap<string, KayKitAssetPublicTreatment>
+): Readonly<Partial<Record<KayKitAssetPublicRole, number>>> {
+  const counts: Partial<Record<KayKitAssetPublicRole, number>> = {};
+  for (const assetId of assetIds) {
+    const role = treatmentByAssetId.get(assetId)?.role;
+    if (!role) {
+      continue;
+    }
+    counts[role] = (counts[role] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function guidePageCoverage(
+  scenario: KayKitGuideScenario,
+  treatmentByAssetId: ReadonlyMap<string, KayKitAssetPublicTreatment>
+): KayKitGuidePageCoverage {
+  const uniqueAssetIds = uniqueSortedStrings(scenario.assetIds);
+  return {
+    page: scenario.page,
+    scenarioId: scenario.id,
+    edition: scenario.edition,
+    assetOccurrences: scenario.assetIds.length,
+    uniqueAssets: uniqueAssetIds.length,
+    freeAssets: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'free'),
+    extraAssets: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'extra'),
+    publicApis: scenario.publicApi.length,
+    visualArtifacts: scenario.visualArtifacts.length,
+    docs: scenario.docs.length,
+  };
 }
 
 function riverPublicApi(assetId: string): readonly string[] {

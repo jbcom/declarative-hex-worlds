@@ -1,7 +1,11 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { listKayKitGuideScenarios as listKayKitGuideScenariosFromRoot } from '../../src';
+import {
+  listKayKitGuideScenarioTreatments as listKayKitGuideScenarioTreatmentsFromRoot,
+  listKayKitGuideScenarios as listKayKitGuideScenariosFromRoot,
+  summarizeKayKitGuideCoverage as summarizeKayKitGuideCoverageFromRoot,
+} from '../../src';
 import {
   BASE_TILE_ASSET_IDS,
   COAST_TILE_ASSET_IDS,
@@ -13,8 +17,10 @@ import {
   hasKayKitAssetTreatment,
   isKnownExtraAssetId,
   listKayKitAssetPublicTreatments,
+  listKayKitGuideScenarioTreatments,
   listKayKitGuideScenarios,
   neutralUnitAssetId,
+  summarizeKayKitGuideCoverage,
 } from '../../src/catalog';
 import { generateManifestFromSource } from '../../src/ingest';
 import { freeManifest } from '../../src/manifest/free';
@@ -133,6 +139,46 @@ describe('asset catalog public treatments', () => {
       assetIds: expect.arrayContaining(['hex_road_A', 'hex_road_M']),
       publicApi: expect.arrayContaining(['selectRoadVariant', 'GameboardBuilder.addRoadPath']),
       treatmentRoles: ['road-tile'],
+    });
+  });
+
+  it('exposes guide scenario treatment joins and coverage summaries for tools', () => {
+    const roadTreatments = listKayKitGuideScenarioTreatments('page-03-road-variations');
+    expect(roadTreatments).toHaveLength(15);
+    expect(listKayKitGuideScenarioTreatmentsFromRoot('page-03-road-variations')).toHaveLength(15);
+    expect(roadTreatments.map((treatment) => treatment.assetId)).toContain('hex_road_M');
+    expect(listKayKitGuideScenarioTreatments('missing-scenario')).toEqual([]);
+
+    const coverage = summarizeKayKitGuideCoverage();
+    expect(summarizeKayKitGuideCoverageFromRoot().assetCounts).toEqual(coverage.assetCounts);
+    expect(coverage).toMatchObject({
+      scenarioCount: 19,
+      pageCount: 19,
+      sourceImageCount: 19,
+      assetCounts: {
+        unique: 404,
+        free: 221,
+        extra: 183,
+        occurrences: 1093,
+        freeOccurrences: 459,
+        extraOccurrences: 634,
+      },
+      scenariosByEdition: {
+        free: 8,
+        extra: 7,
+        mixed: 2,
+        reference: 2,
+      },
+    });
+    expect(coverage.uniqueAssetsByRole['road-tile']).toBe(15);
+    expect(coverage.uniqueAssetsByRole['colored-unit-part']).toBe(112);
+    expect(coverage.pages).toHaveLength(19);
+    expect(coverage.pages.find((page) => page.page === 14)).toMatchObject({
+      scenarioId: 'page-14-units',
+      assetOccurrences: 137,
+      uniqueAssets: 137,
+      freeAssets: 0,
+      extraAssets: 137,
     });
   });
 });
