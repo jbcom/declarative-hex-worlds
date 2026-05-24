@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import ts from 'typescript';
 import {
   analyzeScreenshot,
   validateScreenshot,
@@ -242,18 +243,117 @@ function assertSourceModulesExported(): void {
 
 function assertPackedConsumerSmokeCoversExports(): void {
   const packageName = '@jbcom/medieval-hexagon-gameboard';
+  const coveredSpecifiers = collectConsumerSmokePackageSpecifiers(packageName);
   for (const subpath of Object.keys(packageJson.exports ?? {})) {
     const exportPattern = subpath.slice(2);
-    const coveredImport =
+    const coveredImportPattern =
       subpath === '.'
         ? packageName
         : `${packageName}/${subpath.includes('*') ? exportPattern.slice(0, exportPattern.indexOf('*')) : exportPattern}`;
     const documentedExport = subpath === '.' ? packageName : `${packageName}/${exportPattern}`;
     assert(
-      packedConsumerSmoke.includes(coveredImport),
+      isConsumerSmokeExportCovered(coveredImportPattern, subpath.includes('*'), coveredSpecifiers),
       `packed consumer smoke must import or load export ${documentedExport}`
     );
   }
+}
+
+function collectConsumerSmokePackageSpecifiers(packageName: string): Set<string> {
+  const specifiers = new Set<string>();
+  const visitedSnippets = new Set<string>();
+  const sourceFile = ts.createSourceFile(
+    'smoke-packed-consumer.ts',
+    packedConsumerSmoke,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS
+  );
+
+  const visit = (node: ts.Node): void => {
+    collectPackageImportSpecifierFromNode(node, packageName, specifiers);
+    const snippet = nodeTextSnippet(node);
+    if (snippet?.includes(packageName) && !visitedSnippets.has(snippet)) {
+      visitedSnippets.add(snippet);
+      collectConsumerSmokeSnippetPackageSpecifiers(snippet, packageName, specifiers);
+    }
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+  return specifiers;
+}
+
+function collectConsumerSmokeSnippetPackageSpecifiers(
+  source: string,
+  packageName: string,
+  specifiers: Set<string>
+): void {
+  const sourceFile = ts.createSourceFile(
+    'packed-consumer-generated-snippet.ts',
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS
+  );
+
+  const visit = (node: ts.Node): void => {
+    collectPackageImportSpecifierFromNode(node, packageName, specifiers);
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+}
+
+function collectPackageImportSpecifierFromNode(
+  node: ts.Node,
+  packageName: string,
+  specifiers: Set<string>
+): void {
+  if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier) {
+    addPackageSpecifierFromExpression(node.moduleSpecifier, packageName, specifiers);
+    return;
+  }
+
+  if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+    addPackageSpecifierFromExpression(node.arguments[0], packageName, specifiers);
+  }
+}
+
+function addPackageSpecifierFromExpression(
+  expression: ts.Expression | undefined,
+  packageName: string,
+  specifiers: Set<string>
+): void {
+  if (!expression || !isStaticStringLiteral(expression)) {
+    return;
+  }
+  if (expression.text === packageName || expression.text.startsWith(`${packageName}/`)) {
+    specifiers.add(expression.text);
+  }
+}
+
+function nodeTextSnippet(node: ts.Node): string | undefined {
+  return isStaticStringLiteral(node) ? node.text : undefined;
+}
+
+function isStaticStringLiteral(node: ts.Node): node is ts.StringLiteral | ts.NoSubstitutionTemplateLiteral {
+  return ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node);
+}
+
+function isConsumerSmokeExportCovered(
+  importPattern: string,
+  isWildcard: boolean,
+  specifiers: ReadonlySet<string>
+): boolean {
+  if (!isWildcard) {
+    return specifiers.has(importPattern);
+  }
+  for (const specifier of specifiers) {
+    if (specifier.startsWith(importPattern)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 async function assertExportImports(): Promise<void> {
