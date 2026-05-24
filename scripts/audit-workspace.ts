@@ -68,6 +68,7 @@ const packageReadme = readRequired('packages/medieval-hexagon-gameboard/README.m
 const docsIndex = readRequired('docs/index.md');
 const docsVitePressConfig = readRequired('docs/.vitepress/config.ts');
 const publicApiGuide = readRequired('docs/guides/public-api.md');
+const coverageSource = readRequired('packages/medieval-hexagon-gameboard/src/coverage.ts');
 const guideDocs = readGuideDocs();
 const tsupEntries = readTsupEntries(tsupConfig);
 
@@ -286,6 +287,14 @@ function requireShowcaseCopiesMatch(): void {
     .filter((entry) => entry.endsWith('.png'))
     .sort();
   assertEqualList(packageShowcases, docsShowcases, 'published README showcase files');
+  assertEqualList(
+    curatedShowcaseArtifactsFromCoverage(),
+    [
+      ...docsShowcases.map((filename) => `docs/assets/showcases/${filename}`),
+      ...packageShowcases.map((filename) => `packages/medieval-hexagon-gameboard/docs/showcases/${filename}`),
+    ].sort(),
+    'coverage curated showcase artifacts'
+  );
 
   for (const filename of docsShowcases) {
     const docsHash = sha256(join(docsShowcaseDir, filename));
@@ -299,6 +308,18 @@ function requireShowcaseCopiesMatch(): void {
 
 function sha256(path: string): string {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
+}
+
+function curatedShowcaseArtifactsFromCoverage(): string[] {
+  const block = /export const GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS = \[([\s\S]*?)\] as const;/m.exec(coverageSource)?.[1];
+  if (!block) {
+    failures.push('coverage source is missing GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS');
+    return [];
+  }
+  return [...block.matchAll(/'([^']+)'/g)]
+    .map((match) => match[1])
+    .filter((path): path is string => Boolean(path))
+    .sort();
 }
 
 function requireTypeDocConfiguration(): void {
