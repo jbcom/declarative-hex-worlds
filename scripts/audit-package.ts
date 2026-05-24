@@ -49,6 +49,7 @@ const optionalPeerImportAllowlist = new Map<string, ReadonlySet<string>>([
   ['./react', new Set(['react', 'koota/react'])],
   ['./three', new Set(['three'])],
 ]);
+const textPackFiles = new Set(['LICENSE']);
 const textPackFileSuffixes = ['.d.ts', '.js', '.json', '.map', '.md'];
 const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp }[] = [
   { label: 'macOS home path', pattern: /\/Users\// },
@@ -331,7 +332,7 @@ function assertPackFileList(): void {
 function assertPackedFileContents(files: readonly PackFile[]): void {
   for (const file of files) {
     const path = file.path;
-    if (!textPackFileSuffixes.some((suffix) => path.endsWith(suffix))) {
+    if (!isTextPackFile(path)) {
       continue;
     }
     const content = readFileSync(join(packageRoot, path), 'utf8');
@@ -342,4 +343,8 @@ function assertPackedFileContents(files: readonly PackFile[]): void {
       assert(!pattern.test(content), `packed ${path} contains ${label}`);
     }
   }
+}
+
+function isTextPackFile(path: string): boolean {
+  return textPackFiles.has(path) || textPackFileSuffixes.some((suffix) => path.endsWith(suffix));
 }
