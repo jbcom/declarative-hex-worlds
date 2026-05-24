@@ -167,6 +167,7 @@
   },
   "files": [
     "assets/free",
+    "docs/showcases",
     "dist",
     "examples/*.json",
     "README.md",

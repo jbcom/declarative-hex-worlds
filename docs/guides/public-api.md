@@ -108,6 +108,10 @@ const recipe = createMedievalShowcaseBlueprintRecipe();
 const plan = createGameboardPlanFromRecipe(recipe);
 ```
 
+![FREE blueprint board with stacked mountain range, town, roads, coast, and harbor](../assets/showcases/free-blueprint-builder-showcase.png)
+
+![EXTRA blueprint board with biome transitions, harbor, town, units, and density props](../assets/showcases/extra-blueprint-biome-transition-showcase.png)
+
 The browser suite renders `free-blueprint-builder-showcase.png` and
 `extra-blueprint-biome-transition-showcase.png` so the public API proves board
 composition visually, not just through unit assertions.

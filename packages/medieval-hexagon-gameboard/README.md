@@ -1577,6 +1577,10 @@ that need to say "make a 2.5D RTS/roguelike/4X board with a coast, vertical
 mountain range, town, road network, harbor, biome fills, and transition policy"
 without hand placing every supporting tile.
 
+![FREE blueprint board with stacked mountain range, town, roads, coast, and harbor](docs/showcases/free-blueprint-builder-showcase.png)
+
+![EXTRA blueprint board with biome transitions, harbor, town, units, and density props](docs/showcases/extra-blueprint-biome-transition-showcase.png)
+
 ```ts
 import {
   createMedievalGameboardBlueprintPlan,
@@ -1622,8 +1626,9 @@ not need a special runtime. `biomeFills` controls texture-set percentages;
 `transitionPolicy` adds EXTRA biome transition overlays, sloped elevation ramp
 tiles, sloped road segments, and bridge structures where the requested board
 shape needs them. The browser suite captures this contract in
-`free-blueprint-builder-showcase.png` and
-`extra-blueprint-biome-transition-showcase.png`.
+`docs/showcases/free-blueprint-builder-showcase.png` and
+`docs/showcases/extra-blueprint-biome-transition-showcase.png`, which are
+generated from the browser visual tests and included in the published package.
 
 For deterministic authored boards:
 

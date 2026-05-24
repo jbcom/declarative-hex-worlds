@@ -24,8 +24,12 @@ source_images:
   - docs/assets/kaykit-guide/pages/page-19.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
+  - docs/assets/showcases/free-blueprint-builder-showcase.png
+  - docs/assets/showcases/extra-blueprint-biome-transition-showcase.png
   - docs/guides/guide-scenario-coverage.md
   - package.json
+  - packages/medieval-hexagon-gameboard/docs/showcases/free-blueprint-builder-showcase.png
+  - packages/medieval-hexagon-gameboard/docs/showcases/extra-blueprint-biome-transition-showcase.png
   - packages/medieval-hexagon-gameboard/src/blueprint.ts
   - packages/medieval-hexagon-gameboard/src/catalog.ts
   - packages/medieval-hexagon-gameboard/src/compatibility.ts
@@ -181,3 +185,7 @@ the browser captures. The reviewed screenshots included:
   covering the public blueprint API for local EXTRA biome transition tiles,
   texture-set fills, shipyards, towns, density units, and board-scale
   composition.
+
+The two blueprint showcase captures are also promoted to committed docs assets
+at `docs/assets/showcases/` for VitePress and
+`packages/medieval-hexagon-gameboard/docs/showcases/` for the published README.

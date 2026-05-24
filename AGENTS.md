@@ -552,3 +552,8 @@ capture, so existing artifacts can be rechecked with the package-level
 `test:screenshots:local-assets` scripts. Review screenshots manually when
 selectors, manifests, public asset treatments, rules, loaders, or board recipes
 change.
+
+Curated README screenshots must be promoted out of the ignored browser output.
+For blueprint board examples, keep matching copies in `docs/assets/showcases/`
+for VitePress and `packages/medieval-hexagon-gameboard/docs/showcases/` for the
+published package README.

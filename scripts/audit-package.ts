@@ -39,8 +39,8 @@ const packageJsonPath = join(packageRoot, 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as PackageJson;
 const packedConsumerSmoke = readFileSync(join(workspaceRoot, 'scripts/smoke-packed-consumer.ts'), 'utf8');
 const forbiddenMetadataPattern = /references|\/Volumes\/home|kenney_castle|KayKit_Adventurers/;
-const expectedFiles = ['assets/free', 'dist', 'examples/*.json', 'README.md', 'NOTICE.md'];
-const allowedPackRoots = ['assets/free/', 'dist/', 'examples/'];
+const expectedFiles = ['assets/free', 'docs/showcases', 'dist', 'examples/*.json', 'README.md', 'NOTICE.md'];
+const allowedPackRoots = ['assets/free/', 'docs/showcases/', 'dist/', 'examples/'];
 const allowedPackFiles = new Set(['package.json', 'README.md', 'NOTICE.md']);
 const privateEntryModules = new Set(['cli', 'index']);
 const optionalPeerImports = new Set(['react', 'three', 'koota/react']);
@@ -299,7 +299,10 @@ function assertPackFileList(): void {
     const path = file.path;
     assert(!path.includes('references/'), `tarball includes local references path: ${path}`);
     assert(!path.includes('/Volumes/home'), `tarball includes network asset path: ${path}`);
-    assert(!path.startsWith('docs/'), `tarball includes docs output: ${path}`);
+    assert(
+      !path.startsWith('docs/') || path.startsWith('docs/showcases/'),
+      `tarball includes docs output: ${path}`
+    );
     assert(!path.startsWith('tests/'), `tarball includes tests: ${path}`);
     assert(!path.startsWith('src/'), `tarball includes source files: ${path}`);
     assert(!path.startsWith('dist/src/'), `tarball includes nested src build output: ${path}`);
