@@ -196,7 +196,14 @@ function requireDocsConfiguration(): void {
   );
   requireDocsGuideNavigation();
   requireMarkdownImageLinksResolve(docsIndex, 'docs/index.md', join(workspaceRoot, 'docs'), join(workspaceRoot, 'docs'));
+  requireMarkdownLocalLinksResolve(docsIndex, 'docs/index.md', join(workspaceRoot, 'docs'), join(workspaceRoot, 'docs'));
   requireMarkdownImageLinksResolve(
+    publicApiGuide,
+    'docs/guides/public-api.md',
+    join(workspaceRoot, 'docs/guides'),
+    join(workspaceRoot, 'docs')
+  );
+  requireMarkdownLocalLinksResolve(
     publicApiGuide,
     'docs/guides/public-api.md',
     join(workspaceRoot, 'docs/guides'),
@@ -322,16 +329,43 @@ function requireShowcaseCopiesMatch(): void {
 function requireMarkdownImageLinksResolve(source: string, label: string, baseDir: string, rootDir: string): void {
   for (const match of source.matchAll(/!\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
     const href = match[1];
-    if (!href || /^https?:\/\//.test(href) || href.startsWith('#')) {
+    const resolved = resolveMarkdownLocalPath(href, baseDir, rootDir);
+    if (!resolved) {
       continue;
     }
 
-    const resolved = href.startsWith('/') ? join(rootDir, href.slice(1)) : join(baseDir, href);
     assert(
       existsSync(resolved),
       `${label} image link ${href} points at missing ${relative(workspaceRoot, resolved)}`
     );
   }
+}
+
+function requireMarkdownLocalLinksResolve(source: string, label: string, baseDir: string, rootDir: string): void {
+  for (const match of source.matchAll(/(^|[^!])\[[^\]]+]\(([^)\s]+)(?:\s+"[^"]*")?\)/gm)) {
+    const href = match[2];
+    const resolved = resolveMarkdownLocalPath(href, baseDir, rootDir);
+    if (!resolved) {
+      continue;
+    }
+
+    assert(
+      existsSync(resolved),
+      `${label} Markdown link ${href} points at missing ${relative(workspaceRoot, resolved)}`
+    );
+  }
+}
+
+function resolveMarkdownLocalPath(href: string | undefined, baseDir: string, rootDir: string): string | undefined {
+  if (!href || /^(?:https?:|mailto:)/.test(href) || href.startsWith('#')) {
+    return undefined;
+  }
+
+  const pathOnly = href.split('#')[0];
+  if (!pathOnly) {
+    return undefined;
+  }
+  return pathOnly.startsWith('/') ? join(rootDir, pathOnly.slice(1)) : join(baseDir, pathOnly);
 }
 
 function sha256(path: string): string {
