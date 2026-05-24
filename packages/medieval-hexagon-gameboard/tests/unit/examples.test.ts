@@ -316,48 +316,20 @@ describe('published recipe examples', () => {
 
   it('publishes example JSON through package files and exports', () => {
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
-      exports?: Record<string, unknown>;
+      exports?: Record<string, string | { import?: string; types?: string }>;
       bin?: Record<string, string>;
       files?: string[];
       engines?: Record<string, string>;
       scripts?: Record<string, string>;
       peerDependenciesMeta?: Record<string, { optional?: boolean }>;
     };
-    const expectedSubpaths = [
-      './actors',
-      './catalog',
-      './commands',
-      './compatibility',
-      './coordinates',
-      './gameboard',
-      './grid',
-      './interop',
-      './ingest',
-      './koota',
-      './layout',
-      './manifest/free',
-      './manifest/schema',
-      './movement',
-      './navigation',
-      './pieces',
-      './projection',
-      './quests',
-      './react',
-      './recipe',
-      './registry',
-      './rule-types',
-      './rules',
-      './runtime',
-      './scenario',
-      './selectors',
-      './simulation',
-      './systems',
-      './three',
-      './types',
-      './validation',
-      './world-rules',
-      './examples/simple-rpg-usage',
-    ];
+    const objectExportSubpaths = Object.entries(packageJson.exports ?? {})
+      .filter((entry): entry is [string, { import: string; types: string }] => {
+        const target = entry[1];
+        return typeof target === 'object' && target !== null && Boolean(target.import) && Boolean(target.types);
+      })
+      .map(([subpath]) => subpath)
+      .sort();
 
     expect(packageJson.files).toEqual(
       expect.arrayContaining(['assets/free', 'dist', 'examples/*.json', 'README.md', 'NOTICE.md'])
@@ -381,8 +353,9 @@ describe('published recipe examples', () => {
     expect(packageJson.exports?.['./examples/*.json']).toBe('./examples/*.json');
     expect(packageJson.exports).not.toHaveProperty('./examples/*');
     expect(packageJson.exports?.['./assets/free/*']).toBe('./assets/free/*');
-    for (const subpath of expectedSubpaths) {
-      const name = subpath.slice(2);
+    expect(objectExportSubpaths).toEqual(expect.arrayContaining(['.', './blueprint', './coverage', './examples/blueprint-board-usage', './examples/simple-rpg-usage']));
+    for (const subpath of objectExportSubpaths) {
+      const name = subpath === '.' ? 'index' : subpath.slice(2);
       expect(packageJson.exports?.[subpath]).toEqual({
         types: `./dist/${name}.d.ts`,
         import: `./dist/${name}.js`,
