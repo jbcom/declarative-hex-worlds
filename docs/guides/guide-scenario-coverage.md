@@ -58,7 +58,8 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Source image: `docs/assets/kaykit-guide/pages/page-02.png`
 - Asset coverage: 164 unique, 119 FREE, 45 EXTRA, 164 occurrences
 - Roles: `faction-building`, `neutral-structure`, `prop`
-- Public API treatment: `GameboardBuilder.addFactionBuilding`,
+- Public API treatment: `GameboardBuilder.addBridge`,
+  `GameboardBuilder.addFactionBuilding`,
   `GameboardBuilder.addFlag`,
   `GameboardBuilder.addHarbor`,
   `GameboardBuilder.addNeutralStructure`,
@@ -151,13 +152,16 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Scenario: `page-07-water-usage`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-07.png`
-- Asset coverage: 42 unique, 42 FREE, 0 EXTRA, 42 occurrences
-- Roles: `base-tile`, `coast-tile`, `river-tile`
-- Public API treatment: `GameboardBuilder.addHarbor`,
+- Asset coverage: 44 unique, 44 FREE, 0 EXTRA, 44 occurrences
+- Roles: `base-tile`, `coast-tile`, `neutral-structure`, `river-tile`
+- Public API treatment: `GameboardBuilder.addBridge`,
+  `GameboardBuilder.addHarbor`,
+  `GameboardBuilder.addNeutralStructure`,
   `GameboardBuilder.addRiverPath`,
   `GameboardBuilder.setCoastEdges`,
   `GameboardBuilder.setTerrain`,
   `GameboardBuilder.setTileAsset`,
+  `createGameboardPlanFromRecipe`,
   `createGameboardPlanFromTiles`,
   `listCoastGuidePermutations`,
   `listRiverCrossingGuidePermutations`,
@@ -194,12 +198,14 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Scenario: `page-09-world-design-example`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-09.png`
-- Asset coverage: 59 unique, 59 FREE, 0 EXTRA, 59 occurrences
-- Roles: `base-tile`, `nature-decoration`, `road-tile`
-- Public API treatment: `GameboardBuilder.addForest`,
+- Asset coverage: 61 unique, 61 FREE, 0 EXTRA, 61 occurrences
+- Roles: `base-tile`, `nature-decoration`, `neutral-structure`, `road-tile`
+- Public API treatment: `GameboardBuilder.addBridge`,
+  `GameboardBuilder.addForest`,
   `GameboardBuilder.addHill`,
   `GameboardBuilder.addMountainStack`,
   `GameboardBuilder.addNature`,
+  `GameboardBuilder.addNeutralStructure`,
   `GameboardBuilder.addRoadPath`,
   `GameboardBuilder.scatterDecorations`,
   `GameboardBuilder.setTerrain`,
@@ -514,10 +520,14 @@ const allRoleCoverage = listKayKitGuideRoleCoverages();
 
 ### Role - `neutral-structure`
 
-- Pages: 02, 16, 17
-- Asset coverage: 21 unique, 21 FREE, 0 EXTRA, 43 occurrences
-- Public API treatment: `GameboardBuilder.addNeutralStructure`, `createGameboardPlanFromRecipe`
+- Pages: 02, 07, 09, 16, 17
+- Asset coverage: 21 unique, 21 FREE, 0 EXTRA, 47 occurrences
+- Public API treatment: `GameboardBuilder.addBridge`,
+  `GameboardBuilder.addNeutralStructure`,
+  `createGameboardPlanFromRecipe`
 - Scenarios: `page-02-buildings-props-and-factions`,
+  `page-07-water-usage`,
+  `page-09-world-design-example`,
   `page-16-stables-and-horses`,
   `page-17-workshop-and-siege`
 
@@ -606,5 +616,7 @@ const allApiCoverage = listKayKitGuidePublicApiCoverages();
 
 For example, `GameboardBuilder.addHarbor` maps to pages 02, 05, 07, and 15,
 covering coast tiles, faction buildings, and props across FREE and EXTRA source
-material. `GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is
+material. `GameboardBuilder.addBridge` maps to pages 02, 07, and 09,
+covering the FREE bridge structures used by road and water crossings.
+`GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is
 EXTRA-only because the unit assembly pieces are local-ingest assets.

@@ -924,6 +924,22 @@ describe('CLI', () => {
     expect(apiPayload.coverage[0]?.assetCounts.free).toBeGreaterThan(0);
     expect(apiPayload.coverage[0]?.assetCounts.extra).toBeGreaterThan(0);
 
+    const bridgePayload = JSON.parse(
+      runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addBridge', '--json'])
+    ) as typeof apiPayload;
+    expect(bridgePayload).toMatchObject({
+      count: 1,
+      publicApis: ['GameboardBuilder.addBridge'],
+      coverage: [
+        {
+          publicApi: 'GameboardBuilder.addBridge',
+          pages: [2, 7, 9],
+          treatmentRoles: ['neutral-structure'],
+          assetCounts: { unique: 2, free: 2, extra: 0 },
+        },
+      ],
+    });
+
     const scenarioOutput = runCli([
       'guide-scenarios',
       '--publicApi',

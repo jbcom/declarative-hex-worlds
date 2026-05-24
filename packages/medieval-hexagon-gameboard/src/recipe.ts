@@ -6,6 +6,7 @@
  */
 import { createGameboardBuilder, type GameboardBuilder } from './gameboard';
 import type {
+  BridgeOptions,
   FactionBuildingOptions,
   GameboardPlan,
   GameboardPlanOptions,
@@ -94,6 +95,7 @@ export type GameboardRecipeStep =
   | AddForestRecipeStep
   | AddFactionBuildingRecipeStep
   | AddNeutralStructureRecipeStep
+  | AddBridgeRecipeStep
   | AddNatureRecipeStep
   | AddPropRecipeStep
   | AddFlagRecipeStep
@@ -228,6 +230,12 @@ export interface AddFactionBuildingRecipeStep extends FactionBuildingOptions {
 export interface AddNeutralStructureRecipeStep extends NeutralStructureOptions {
   /** Discriminator for neutral structure placement. */
   action: 'addNeutralStructure';
+}
+
+/** Recipe step that places a bridge structure with bridge-specific metadata. */
+export interface AddBridgeRecipeStep extends BridgeOptions {
+  /** Discriminator for bridge placement. */
+  action: 'addBridge';
 }
 
 /** Recipe step that places a nature asset. */
@@ -536,6 +544,10 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
     case 'addNeutralStructure': {
       const { action: _action, ...options } = step;
       return builder.addNeutralStructure(options);
+    }
+    case 'addBridge': {
+      const { action: _action, ...options } = step;
+      return builder.addBridge(options);
     }
     case 'addNature': {
       const { action: _action, ...options } = step;

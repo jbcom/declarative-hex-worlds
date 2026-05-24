@@ -175,8 +175,8 @@ describe('asset catalog public treatments', () => {
         unique: 404,
         free: 221,
         extra: 183,
-        occurrences: 1093,
-        freeOccurrences: 459,
+        occurrences: 1097,
+        freeOccurrences: 463,
         extraOccurrences: 634,
       },
       scenariosByEdition: {
@@ -246,6 +246,19 @@ describe('asset catalog public treatments', () => {
     expect(harborApi?.assetCounts.free).toBeGreaterThan(0);
     expect(harborApi?.assetCounts.extra).toBeGreaterThan(0);
 
+    const bridgeApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addBridge');
+    expect(bridgeApi).toMatchObject({
+      pages: [2, 7, 9],
+      scenarioIds: [
+        'page-02-buildings-props-and-factions',
+        'page-07-water-usage',
+        'page-09-world-design-example',
+      ],
+      treatmentRoles: ['neutral-structure'],
+      assetIds: ['building_bridge_A', 'building_bridge_B'],
+      assetCounts: { unique: 2, free: 2, extra: 0, occurrences: 6 },
+    });
+
     const unitPresetApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addUnitPreset');
     expect(unitPresetApi).toMatchObject({
       pages: [14, 15, 16, 17, 18],
@@ -298,6 +311,17 @@ describe('asset catalog public treatments', () => {
       occurrences: 4,
     });
     expect(describeKayKitGuideAssetCoverage('missing-asset')).toBeUndefined();
+
+    const bridgeA = describeKayKitGuideAssetCoverage('building_bridge_A');
+    expect(bridgeA).toMatchObject({
+      assetId: 'building_bridge_A',
+      minimumEdition: 'free',
+      role: 'neutral-structure',
+      placementKind: 'structure',
+      pages: [2, 7, 9],
+      publicApi: expect.arrayContaining(['GameboardBuilder.addBridge', 'GameboardBuilder.addNeutralStructure']),
+      occurrences: 3,
+    });
   });
 
   it('exposes public role coverage back to guide pages, APIs, and treated assets', () => {

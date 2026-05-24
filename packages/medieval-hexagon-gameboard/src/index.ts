@@ -349,6 +349,8 @@ export {
 } from './gameboard';
 export type {
   BuiltInGameboardTerrain,
+  BridgeOptions,
+  BridgeVariant,
   GameboardPlacementKind,
   GameboardPlacementLayer,
   GameboardPlacementSpec,
@@ -401,6 +403,7 @@ export {
 } from './recipe';
 export type {
   AddFactionBuildingRecipeStep,
+  AddBridgeRecipeStep,
   AddFlagRecipeStep,
   AddForestRecipeStep,
   AddHarborRecipeStep,

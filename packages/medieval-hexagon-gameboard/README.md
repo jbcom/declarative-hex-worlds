@@ -1625,7 +1625,10 @@ not need a special runtime. `biomeFills` controls texture-set percentages;
 `maxElevation` and `mountainRanges` create stacked multi-tile ridges;
 `transitionPolicy` adds EXTRA biome transition overlays, sloped elevation ramp
 tiles, sloped road segments, and bridge structures where the requested board
-shape needs them. The browser suite captures this contract in
+shape needs them. Authored maps can use `GameboardBuilder.addBridge` or the
+serializable `addBridge` recipe step when a bridge should be explicit instead
+of inferred from a blueprint road crossing. The browser suite captures this
+contract in
 `docs/showcases/free-blueprint-builder-showcase.png` and
 `docs/showcases/extra-blueprint-biome-transition-showcase.png`, which are
 generated from the browser visual tests and included in the published package.
@@ -1640,7 +1643,9 @@ const plan = createGameboardBuilder({
   shape: { kind: 'rectangle', width: 8, height: 6 },
 })
   .addMountainStack({ at: { q: 0, r: 0 }, height: 3, variant: 'A', withTrees: true })
+  .addRiverPath([{ q: 1, r: 3 }, { q: 2, r: 3 }, { q: 3, r: 3 }], { curvy: true })
   .addRoadPath([{ q: 3, r: 2 }, { q: 3, r: 3 }, { q: 4, r: 4 }])
+  .addBridge({ at: { q: 3, r: 3 }, variant: 'A', facing: 1 })
   .addHarbor({ at: { q: 4, r: 4 }, facing: 1, faction: 'blue', kind: 'shipyard' })
   .addFactionBuilding({ at: { q: 3, r: 2 }, faction: 'blue', building: 'townhall' })
   .addUnitPreset({ at: { q: 2, r: 2 }, faction: 'blue', role: 'soldier' })

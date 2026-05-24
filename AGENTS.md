@@ -245,6 +245,10 @@ contract for CI and npm consumers.
   counts and warnings before rendering. Keep new board-scale README examples and
   screenshots anchored to the blueprint API unless the task is specifically
   about low-level builder behavior.
+- Use `GameboardBuilder.addBridge` or recipe `addBridge` for authored road,
+  river, or water crossings that need a specific FREE KayKit bridge variant.
+  Do not make callers place `building_bridge_A` or `building_bridge_B` as raw
+  neutral structures when bridge semantics matter to docs, metadata, or tests.
 - Use `./pieces` for reusable non-tile asset declarations. Custom buildings,
   trees, loose props, units, harbors, landmarks, and scatter assets should carry
   role, footprint, scale, source, criteria, and metadata there before being

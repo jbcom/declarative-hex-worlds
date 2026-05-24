@@ -94,6 +94,8 @@ export type MountainVariant = 'A' | 'B' | 'C';
 export type HillVariant = 'A' | 'B' | 'C';
 /** Harbor structure variant. */
 export type HarborKind = 'docks' | 'shipyard' | 'watermill';
+/** Neutral bridge visual variant. */
+export type BridgeVariant = 'A' | 'B';
 /** Faction building kind accepted by settlement helpers. */
 export type SettlementBuilding = FactionBuildingKind;
 
@@ -306,6 +308,22 @@ export interface NeutralStructureOptions {
   /** Neutral structure asset id. */
   structure: NeutralStructureKind;
   /** Clockwise 60-degree rotation steps. */
+  rotationSteps?: number;
+  /** Uniform render scale. */
+  scale?: number;
+}
+
+/**
+ * Options for adding a neutral bridge structure.
+ */
+export interface BridgeOptions {
+  /** Tile where the bridge is anchored, usually a road crossing over water or river terrain. */
+  at: HexCoordinates;
+  /** KayKit bridge visual variant. Defaults to `A`. */
+  variant?: BridgeVariant;
+  /** Edge the bridge points toward; also used as the default rotation. */
+  facing?: HexEdgeIndex;
+  /** Clockwise 60-degree rotation steps. Overrides `facing` when provided. */
   rotationSteps?: number;
   /** Uniform render scale. */
   scale?: number;
@@ -719,6 +737,28 @@ export class GameboardBuilder {
       rotationSteps: options.rotationSteps,
       scale: options.scale,
       metadata: { feature: 'neutral-structure', structure: options.structure },
+    });
+    return this;
+  }
+
+  /**
+   * Add a bridge structure with bridge-specific metadata instead of requiring
+   * callers to know the raw neutral-structure asset ids.
+   */
+  addBridge(options: BridgeOptions): this {
+    const variant = options.variant ?? 'A';
+    this.addPlacement({
+      at: options.at,
+      assetId: `building_bridge_${variant}`,
+      kind: 'structure',
+      layer: 'structure',
+      rotationSteps: options.rotationSteps ?? options.facing,
+      scale: options.scale,
+      metadata: {
+        feature: 'bridge',
+        bridgeVariant: variant,
+        facing: options.facing ?? null,
+      },
     });
     return this;
   }

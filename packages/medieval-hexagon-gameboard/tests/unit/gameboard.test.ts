@@ -81,6 +81,34 @@ describe('gameboard plan builder', () => {
     expect(plan.placements.some((placement) => placement.assetId === 'boat')).toBe(true);
   });
 
+  it('models bridges as named FREE structures for road and river crossings', () => {
+    const plan = createGameboardBuilder({
+      seed: 'bridge',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    })
+      .addRiverPath([
+        { q: 0, r: 1 },
+        { q: 1, r: 1 },
+        { q: 2, r: 1 },
+      ])
+      .addRoadPath([
+        { q: 1, r: 0 },
+        { q: 1, r: 1 },
+        { q: 1, r: 2 },
+      ])
+      .addBridge({ at: { q: 1, r: 1 }, variant: 'B', facing: 1 })
+      .build();
+
+    const bridge = plan.placements.find((placement) => placement.assetId === 'building_bridge_B');
+
+    expect(bridge).toMatchObject({
+      kind: 'structure',
+      requiresExtra: false,
+      rotationSteps: 1,
+      metadata: { feature: 'bridge', bridgeVariant: 'B', facing: 1 },
+    });
+  });
+
   it('uses seedrandom for deterministic scatter and recipes', () => {
     const build = (seed: string) =>
       createGameboardBuilder({ seed, shape: { kind: 'rectangle', width: 5, height: 4 } })

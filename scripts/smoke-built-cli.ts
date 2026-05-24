@@ -333,11 +333,11 @@ try {
     `guide scenario EXTRA-only asset count changed to ${guideScenarios.assetCounts.extra}`
   );
   assert(
-    guideScenarios.assetCounts.occurrences === 1093,
+    guideScenarios.assetCounts.occurrences === 1097,
     `guide scenario asset occurrence count changed to ${guideScenarios.assetCounts.occurrences}`
   );
   assert(
-    guideScenarios.assetCounts.freeOccurrences === 459,
+    guideScenarios.assetCounts.freeOccurrences === 463,
     `guide scenario FREE asset occurrence count changed to ${guideScenarios.assetCounts.freeOccurrences}`
   );
   assert(
@@ -450,6 +450,21 @@ try {
   assert(
     guideApiHarbor.coverage[0]?.assetCounts.free > 0 && guideApiHarbor.coverage[0]?.assetCounts.extra > 0,
     'guide-apis harbor asset edition coverage changed'
+  );
+
+  const guideApiBridge = JSON.parse(
+    runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addBridge', '--json'])
+  ) as GuidePublicApiSmoke;
+  assert(
+    guideApiBridge.count === 1 && guideApiBridge.publicApis.join(',') === 'GameboardBuilder.addBridge',
+    'guide-apis did not isolate GameboardBuilder.addBridge'
+  );
+  assert(
+    guideApiBridge.coverage[0]?.pages.join(',') === '2,7,9' &&
+      guideApiBridge.coverage[0]?.assetCounts.unique === 2 &&
+      guideApiBridge.coverage[0]?.assetCounts.free === 2 &&
+      guideApiBridge.coverage[0]?.assetCounts.extra === 0,
+    'guide-apis bridge page/asset coverage changed'
   );
 
   const guideAssetRoadM = JSON.parse(runCli(['guide-assets', '--assetId', 'hex_road_M', '--json'])) as GuideAssetSmoke;

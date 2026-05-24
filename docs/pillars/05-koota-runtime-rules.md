@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-23
+last_verified: 2026-05-24
 source_images:
   - docs/assets/kaykit-guide/pages/page-05.png
   - docs/assets/kaykit-guide/pages/page-06.png
@@ -668,6 +668,9 @@ settlements, roads, rivers, mountains, hills, forests, and scatter.
 small authored harbor-town composition. New generation work should add Koota
 traits/rules first, then expose recipes as projections. Percentage fills from
 `./layout` are the public hook for biome-like density controls.
+Use `GameboardBuilder.addBridge` or recipe `addBridge` when a bridge is authored
+directly; blueprint road crossings can infer the same bridge metadata when
+`transitionPolicy.bridges` is enabled.
 `layoutDensity` on seeded generation provides ergonomic presets for trees,
 rocks, loose props, harbors, landmarks, and units; raw `layoutFills` remain the
 lower level hook for custom-pack placements and exact ordering. Prefer `./pieces`

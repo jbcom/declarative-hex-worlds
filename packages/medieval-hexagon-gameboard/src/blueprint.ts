@@ -625,9 +625,9 @@ function applyRoads(
           continue;
         }
         steps.push({
-          action: 'addNeutralStructure',
+          action: 'addBridge',
           at: coordinate,
-          structure: bridgeCount % 2 === 0 ? 'building_bridge_A' : 'building_bridge_B',
+          variant: bridgeCount % 2 === 0 ? 'A' : 'B',
           rotationSteps: bridgeCount % 6,
         });
         occupiedStructureKeys.add(key);
@@ -646,6 +646,7 @@ function collectStructurePlacementKeys(steps: readonly GameboardRecipeStep[]): S
     switch (step.action) {
       case 'addFactionBuilding':
       case 'addNeutralStructure':
+      case 'addBridge':
       case 'addHarbor':
         keys.add(hexKey(step.at));
         break;

@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-23
+last_verified: 2026-05-24
 source_images:
   - docs/assets/kaykit-guide/montage.png
   - docs/assets/kaykit-guide/pages/page-01.png
@@ -133,6 +133,13 @@ manifests, loader logic, or asset generation changes.
 
 ## Latest Manual Review
 
+2026-05-24 focused bridge verification ran
+`pnpm --dir packages/medieval-hexagon-gameboard exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t "extracted guide pages"`
+after adding `GameboardBuilder.addBridge`; the regenerated
+`free-guide-scenarios-by-extracted-page.png` contact sheet was reviewed for the
+463 FREE guide-page asset occurrences and bridge coverage on pages 02, 07, and
+09.
+
 2026-05-23 verification ran `pnpm test:visual`, which serializes
 `pnpm test:browser:free`, `pnpm test:browser:extra`, and
 `pnpm test:e2e:local-assets`. Those commands include PNG artifact analysis after
@@ -145,7 +152,7 @@ the browser captures. The reviewed screenshots included:
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-source-pages.png`
   covering all 19 extracted guide PNGs as source material.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png`
-  covering the 459 FREE asset occurrences referenced by the page-level guide
+  covering the 463 FREE asset occurrences referenced by the page-level guide
   scenario matrix.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
   covering all 78 road label/rotation permutations.

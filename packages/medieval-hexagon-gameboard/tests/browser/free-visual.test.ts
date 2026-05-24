@@ -117,7 +117,7 @@ describe('FREE visual coverage', () => {
         ];
       })
     );
-    expect(requests).toHaveLength(459);
+    expect(requests).toHaveLength(463);
 
     const assetMatrix = await renderContactSheet(requests, {
       title: 'free-guide-scenarios-by-extracted-page',

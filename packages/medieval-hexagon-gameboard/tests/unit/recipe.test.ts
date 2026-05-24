@@ -36,6 +36,7 @@ describe('serializable gameboard recipes', () => {
         ],
       },
       { action: 'addMountainStack', at: { q: 0, r: 0 }, height: 2, variant: 'C', withTrees: true },
+      { action: 'addBridge', at: { q: 0, r: 2 }, variant: 'B', facing: 2 },
       { action: 'addUnitPreset', at: { q: 1, r: 1 }, faction: 'blue', role: 'soldier', style: 'accent' },
     ];
     const recipe = createGameboardRecipe(
@@ -47,6 +48,9 @@ describe('serializable gameboard recipes', () => {
     expect(validateGameboardPlan(plan).filter((violation) => violation.severity === 'error')).toEqual([]);
     expect(plan.placements.map((placement) => placement.assetId)).toContain('building_shipyard_blue');
     expect(plan.placements.map((placement) => placement.assetId)).toContain('building_townhall_blue');
+    expect(plan.placements.find((placement) => placement.assetId === 'building_bridge_B')).toMatchObject({
+      metadata: { feature: 'bridge', bridgeVariant: 'B', facing: 2 },
+    });
     expect(plan.placements.map((placement) => placement.assetId)).toContain('mountain_C_grass_trees');
     expect(plan.placements.filter((placement) => placement.kind === 'unit')).toHaveLength(4);
   });

@@ -116,6 +116,10 @@ The browser suite renders `free-blueprint-builder-showcase.png` and
 `extra-blueprint-biome-transition-showcase.png` so the public API proves board
 composition visually, not just through unit assertions.
 
+For fixed maps, use `GameboardBuilder.addBridge` or the serializable
+`addBridge` recipe action when a road crossing needs a specific bridge variant
+instead of relying on blueprint inference from `transitionPolicy.bridges`.
+
 The CLI exposes the same compiler for agents, editors, and build pipelines:
 
 ```bash

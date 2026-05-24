@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-23
+last_verified: 2026-05-24
 source_images:
   - docs/assets/kaykit-guide/pages/page-02.png
   - docs/assets/kaykit-guide/pages/page-05.png
@@ -18,6 +18,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/manifest/free.ts
   - packages/medieval-hexagon-gameboard/src/types.ts
   - packages/medieval-hexagon-gameboard/src/gameboard.ts
+  - packages/medieval-hexagon-gameboard/src/recipe.ts
   - packages/medieval-hexagon-gameboard/src/ingest.ts
   - packages/medieval-hexagon-gameboard/src/koota.ts
   - scripts/audit-free-assets.ts
@@ -135,11 +136,14 @@ The gameboard API adds a second, intent-level taxonomy on top of asset ids:
 - Tiles track terrain, elevation, base/support asset ids, road/river/coast edge
   masks, texture set, and tags.
 - Placements track asset id, tile key, world position, layer, kind, rotation,
-  stack index, EXTRA requirement, and metadata such as `feature: "harbor"`.
+  stack index, EXTRA requirement, and metadata such as `feature: "harbor"` or
+  `feature: "bridge"`.
 - Koota traits mirror those tile and placement records so consumers can query
-  roads, rivers, coasts, structures, harbors, stacked terrain, and local-only
-  EXTRA placements without reparsing filenames.
+  roads, rivers, coasts, structures, bridges, harbors, stacked terrain, and
+  local-only EXTRA placements without reparsing filenames.
 - Public treatment records in `catalog.ts` bridge the file taxonomy to gameboard
   intent. They classify base/support/road/river/coast/transition tiles, faction
   buildings, neutral structures, nature, props, colored units, and neutral unit
-  parts, and name the API route that exercises each class.
+  parts, and name the API route that exercises each class. Bridge assets are
+  still neutral structures in the file taxonomy, but their treatment also names
+  `GameboardBuilder.addBridge` so games and docs can reach them semantically.

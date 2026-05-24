@@ -924,7 +924,9 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
       '',
       'For example, `GameboardBuilder.addHarbor` maps to pages 02, 05, 07, and 15,',
       'covering coast tiles, faction buildings, and props across FREE and EXTRA source',
-      'material. `GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is',
+      'material. `GameboardBuilder.addBridge` maps to pages 02, 07, and 09,',
+      'covering the FREE bridge structures used by road and water crossings.',
+      '`GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is',
       'EXTRA-only because the unit assembly pieces are local-ingest assets.'
     );
   }
@@ -1560,6 +1562,8 @@ function factionBuildingTreatments(
 }
 
 function neutralStructureTreatment(assetId: NeutralStructureKind): KayKitAssetPublicTreatment {
+  const isBridge = assetId.startsWith('building_bridge_');
+  const isWallOrFence = assetId.startsWith('wall_') || assetId.startsWith('fence_');
   return treatment({
     assetId,
     minimumEdition: 'free',
@@ -1569,12 +1573,21 @@ function neutralStructureTreatment(assetId: NeutralStructureKind): KayKitAssetPu
     role: 'neutral-structure',
     placementKind: 'structure',
     placementLayer: 'structure',
-    publicApi: ['GameboardBuilder.addNeutralStructure', 'createGameboardPlanFromRecipe'],
+    publicApi: [
+      'GameboardBuilder.addNeutralStructure',
+      ...(isBridge ? ['GameboardBuilder.addBridge'] : []),
+      'createGameboardPlanFromRecipe',
+    ],
     sourceImages: [
       GUIDE_IMAGE.buildings,
-      ...(assetId.startsWith('wall_') || assetId.startsWith('fence_') ? [GUIDE_IMAGE.stables, GUIDE_IMAGE.workshop] : []),
+      ...(isBridge ? [GUIDE_IMAGE.waterUsage, GUIDE_IMAGE.worldDesign] : []),
+      ...(isWallOrFence ? [GUIDE_IMAGE.stables, GUIDE_IMAGE.workshop] : []),
     ],
-    scenario: assetId.startsWith('wall_') || assetId.startsWith('fence_') ? 'walls, fences, and enclosures' : 'neutral structures and construction',
+    scenario: isBridge
+      ? 'bridge structures and road crossings'
+      : isWallOrFence
+        ? 'walls, fences, and enclosures'
+        : 'neutral structures and construction',
   });
 }
 

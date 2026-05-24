@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-23
+last_verified: 2026-05-24
 source_images:
   - docs/assets/kaykit-guide/pages/page-03.png
   - docs/assets/kaykit-guide/pages/page-04.png
@@ -13,6 +13,8 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/selectors.ts
   - packages/medieval-hexagon-gameboard/src/grid.ts
   - packages/medieval-hexagon-gameboard/src/gameboard.ts
+  - packages/medieval-hexagon-gameboard/src/blueprint.ts
+  - packages/medieval-hexagon-gameboard/src/recipe.ts
 test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/selectors.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/gameboard.test.ts
@@ -54,6 +56,9 @@ The gameboard builder uses the same edge convention for paths:
 - `addRoadPath` uses one-edge road caps where a path enters or exits the board.
 - `addRiverPath` expands one-edge endpoints into through-flow river tiles because
   the guide does not include river cap meshes.
+- `addBridge` places the FREE bridge structures at authored road, river, or
+  water crossings with bridge-specific metadata instead of treating them as
+  anonymous neutral structures.
 - Generated road, river, and coast placements receive small deterministic Y
   offsets to avoid z-fighting when a whole placement plan is rendered directly.
 
