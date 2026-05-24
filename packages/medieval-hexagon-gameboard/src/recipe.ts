@@ -669,11 +669,15 @@ export function applyGameboardRecipeGeneration(
     return plan;
   }
   const world = createGameboardWorld(plan);
-  spawnGameboardLayoutFill(world, {
-    seed: generation?.layoutFillSeed ?? `${plan.seed}:recipe-layout-fill`,
-    rules,
-  });
-  return projectWorldToGameboardPlan(world);
+  try {
+    spawnGameboardLayoutFill(world, {
+      seed: generation?.layoutFillSeed ?? `${plan.seed}:recipe-layout-fill`,
+      rules,
+    });
+    return projectWorldToGameboardPlan(world);
+  } finally {
+    world.destroy();
+  }
 }
 
 /** Creates the piece registry declared by a recipe, when any pieces are present. */

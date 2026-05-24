@@ -156,6 +156,10 @@
       "import": "./dist/manifest/schema.js"
     },
     "./assets/free/*": "./assets/free/*",
+    "./examples/blueprint-board-usage": {
+      "types": "./dist/examples/blueprint-board-usage.d.ts",
+      "import": "./dist/examples/blueprint-board-usage.js"
+    },
     "./examples/simple-rpg-usage": {
       "types": "./dist/examples/simple-rpg-usage.d.ts",
       "import": "./dist/examples/simple-rpg-usage.js"

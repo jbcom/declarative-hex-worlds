@@ -46,6 +46,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/three.ts
   - packages/medieval-hexagon-gameboard/src/validation.ts
   - packages/medieval-hexagon-gameboard/src/world-rules.ts
+  - packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts
   - packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts
 test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
@@ -769,6 +770,11 @@ single blueprint JSON can emit its recipe, concrete plan, generated scenario,
 scenario diagnostics, and `--outInterop` neutral ECS snapshot. Use that path for
 external engines that want board-scale authoring plus spawn/patrol/quest records
 without adopting the Koota runtime.
+`@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` is the
+packaged importable walkthrough for the same contract: it runs
+`examples/blueprint-board.json` through blueprint compilation, scenario
+inspection, Koota runtime creation, runtime facade snapshots, and scenario
+interop summary counts from an installed package.
 
 `./simulation` is the headless usage harness for scenarios. A
 `GameboardScenarioSimulationScript` runs public command targets through

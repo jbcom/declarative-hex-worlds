@@ -25,6 +25,7 @@ implementation_links:
   - scripts/audit-workflows.ts
   - scripts/smoke-built-cli.ts
   - scripts/smoke-packed-consumer.ts
+  - packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts
 test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts

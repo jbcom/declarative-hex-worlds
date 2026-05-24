@@ -108,6 +108,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard/manifest/free` | Packaged FREE KayKit manifest data. |
 | `@jbcom/medieval-hexagon-gameboard/manifest/schema` | Manifest schema, attribution constants, validation, bundle creation, filtering, and URL resolution. |
 | `@jbcom/medieval-hexagon-gameboard/assets/free/*` | Direct packaged FREE GLTF, BIN, PNG, and manifest files for bundlers and renderers. |
+| `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` | Compiled public-import blueprint-board walkthrough used by consumer smoke tests and board-scale app reference code. |
 | `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled public-import SimpleRPG usage walkthrough used by consumer smoke tests. |
 | `@jbcom/medieval-hexagon-gameboard/examples/*.json` | Packaged recipe, scenario, and simulation fixtures. |
 
@@ -1653,6 +1654,11 @@ adapters, validators, and saved scenarios do not need a special runtime.
 The CLI mirrors that full path: `blueprint --outScenario --outInterop` writes
 the generated scenario plus a neutral ECS snapshot for engines that want the
 board, spawn groups, patrol routes, actors, and quests without adopting Koota.
+The package also ships
+`@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage`, a compiled
+public-import walkthrough over `examples/blueprint-board.json` that compiles the
+board, resolves scenario spawn groups and patrols, creates a runtime facade, and
+emits a neutral ECS interop summary.
 `biomeFills` controls texture-set percentages;
 `maxElevation` and `mountainRanges` create stacked multi-tile ridges;
 `propClusterDressing` compiles generated or authored camps, resource caches,

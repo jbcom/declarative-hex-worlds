@@ -38,6 +38,7 @@
     "packages/medieval-hexagon-gameboard/src/three.ts",
     "packages/medieval-hexagon-gameboard/src/manifest/free.ts",
     "packages/medieval-hexagon-gameboard/src/manifest/schema.ts",
+    "packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts",
     "packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts"
   ],
   "entryPointStrategy": "expand",

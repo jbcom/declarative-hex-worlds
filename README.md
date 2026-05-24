@@ -291,12 +291,17 @@ See `docs/examples/generated-piece-scenario.recipe.json` and
 `packages/medieval-hexagon-gameboard/examples/generated-piece-scenario.recipe.json`
 for a complete JSON recipe that combines authored steps with generated
 custom-piece placement.
-See `packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts` in this
+See `packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts` and
+`packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts` in this
 repo and the compiled
-`@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` package export for
-a typed public-import walkthrough that instantiates the packaged SimpleRPG
-scenario, resolves embedded actor spawn groups, selects additional spawn
-locations, emits an ECS interop snapshot, and runs the scripted quest flow.
+`@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` and
+`@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` package
+exports for typed public-import walkthroughs. The SimpleRPG example instantiates
+the packaged scenario, resolves embedded actor spawn groups, selects additional
+spawn locations, emits an ECS interop snapshot, and runs the scripted quest
+flow. The blueprint example compiles `examples/blueprint-board.json` into a
+scenario, resolves spawn groups and patrols, creates a runtime facade, and emits
+an ECS interop summary.
 Packaged JSON examples are exposed as `@jbcom/medieval-hexagon-gameboard/examples/*.json`
 so consumers can import scenarios and recipes. The npm package ships compiled
 example JS/DTS and JSON example data, not raw TypeScript example source.

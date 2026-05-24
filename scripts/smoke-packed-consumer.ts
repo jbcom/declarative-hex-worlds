@@ -17,6 +17,7 @@ const keepTemp = process.env.MEDIEVAL_HEXAGON_KEEP_CONSUMER_SMOKE === '1';
 try {
   for (const requiredFile of [
     'dist/index.js',
+    'dist/examples/blueprint-board-usage.js',
     'dist/examples/simple-rpg-usage.js',
     'dist/cli.js',
   ]) {
@@ -66,12 +67,24 @@ try {
 
   const installedPackageRoot = join(appRoot, 'node_modules/@jbcom/medieval-hexagon-gameboard');
   assert(
+    existsSync(join(installedPackageRoot, 'dist/examples/blueprint-board-usage.js')),
+    'compiled blueprint usage example is missing'
+  );
+  assert(
     existsSync(join(installedPackageRoot, 'dist/examples/simple-rpg-usage.js')),
     'compiled usage example is missing'
   );
   assert(
+    existsSync(join(installedPackageRoot, 'examples/blueprint-board.json')),
+    'blueprint JSON example is missing'
+  );
+  assert(
     existsSync(join(installedPackageRoot, 'examples/simple-rpg-scenario.json')),
     'scenario JSON example is missing'
+  );
+  assert(
+    !existsSync(join(installedPackageRoot, 'examples/blueprint-board-usage.ts')),
+    'raw TypeScript blueprint usage example must not be published'
   );
   assert(
     !existsSync(join(installedPackageRoot, 'examples/simple-rpg-usage.ts')),
@@ -142,7 +155,12 @@ import {
   type AddPlacementRecipeStep,
 } from '@jbcom/medieval-hexagon-gameboard';
 import assetManifest from '@jbcom/medieval-hexagon-gameboard/assets/free/manifest.json' with { type: 'json' };
+import blueprintBoardJson from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board.json' with { type: 'json' };
 import simpleRpgScenario from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json' with { type: 'json' };
+import {
+  runBlueprintBoardUsageExample,
+  type BlueprintBoardUsageSummary,
+} from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
 import {
   runSimpleRpgUsageExample,
   type SimpleRpgUsageSummary,
@@ -340,6 +358,8 @@ const plan: GameboardPlan = createSeededGameboardPlan({
   shape: { kind: 'rectangle', width: 2, height: 2 },
   layoutDensity: { harbors: { count: 0 } },
 });
+const blueprintUsage: BlueprintBoardUsageSummary = runBlueprintBoardUsageExample();
+const blueprintScenarioId: string = blueprintBoardJson.scenarioId;
 const usage: SimpleRpgUsageSummary = runSimpleRpgUsageExample();
 const manifestInspection: MedievalHexagonManifestInspection = inspectMedievalHexagonManifest(assetManifest);
 const ingestSourceRoot: string = defaultSourceRoot('free', '/packed-consumer');
@@ -946,6 +966,8 @@ void appendedPlan;
 void scenarioId;
 void siteInspection;
 void totalAssets;
+void blueprintScenarioId;
+void blueprintUsage;
 void usage;
 `,
     'utf8'
@@ -1006,6 +1028,7 @@ import {
   spawnGameboardActor,
   spawnGameboardPlacement,
 } from '@jbcom/medieval-hexagon-gameboard';
+import { runBlueprintBoardUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
 import { runSimpleRpgUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
 import {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
@@ -1128,6 +1151,9 @@ const assetManifestModule = await import('@jbcom/medieval-hexagon-gameboard/asse
   with: { type: 'json' },
 });
 const scenarioModule = await import('@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json', {
+  with: { type: 'json' },
+});
+const blueprintBoardModule = await import('@jbcom/medieval-hexagon-gameboard/examples/blueprint-board.json', {
   with: { type: 'json' },
 });
 const ruleTypesModule = await import('@jbcom/medieval-hexagon-gameboard/rule-types');
@@ -1917,11 +1943,35 @@ if (
 ) {
   throw new Error(\`packed SimpleRPG actor-target usage was not resolved: \${JSON.stringify(usage)}\`);
 }
+const blueprintUsage = runBlueprintBoardUsageExample();
+if (
+  blueprintUsage.scenarioId !== 'docs-blueprint-board:intro' ||
+  blueprintUsage.validationErrorCount !== 0 ||
+  blueprintUsage.scenarioValidationErrorCount !== 0 ||
+  blueprintUsage.spawnGroupIds.join('|') !== 'party|raiders' ||
+  blueprintUsage.spawnLocationIds.length !== 3 ||
+  blueprintUsage.successfulSpawnRouteCount !== 1 ||
+  blueprintUsage.patrolRouteIds.join('|') !== 'raider-watch' ||
+  blueprintUsage.completePatrolRouteCount !== 1 ||
+  blueprintUsage.actorIds.length !== 3 ||
+  blueprintUsage.questIds.length !== 1 ||
+  blueprintUsage.worldActorCount !== 3 ||
+  blueprintUsage.runtimeActorCount !== 3 ||
+  blueprintUsage.interopActorCount !== 3 ||
+  blueprintUsage.interopQuestCount !== 1 ||
+  blueprintUsage.interopSpawnGroupCount !== 2 ||
+  blueprintUsage.interopPatrolRouteCount !== 1
+) {
+  throw new Error(\`packed blueprint-board usage failed: \${JSON.stringify(blueprintUsage)}\`);
+}
 if (freeManifest.counts.total !== assetManifestModule.default.counts.total) {
   throw new Error('manifest/free export and assets/free JSON disagree');
 }
 if (scenarioModule.default.id !== 'docs-simple-rpg-scenario') {
   throw new Error('packaged JSON example export returned the wrong scenario');
+}
+if (blueprintBoardModule.default.scenarioId !== 'docs-blueprint-board:intro') {
+  throw new Error('packaged blueprint JSON example export returned the wrong scenario');
 }
 const defaultRpgHandlers = createGameboardInteractionHandlerPreset('default-rpg');
 const simulationActions = GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS;
@@ -1968,6 +2018,9 @@ console.log(JSON.stringify({
   planTiles: plan.tiles.length,
   scenarioExampleId: scenarioModule.default.id,
   usageScenarioId: usage.scenarioId,
+  blueprintUsageScenarioId: blueprintUsage.scenarioId,
+  blueprintUsageActors: blueprintUsage.actorIds.length,
+  blueprintUsageInteropActors: blueprintUsage.interopActorCount,
   actorTargetScanCount: usage.actorTargetScanCount,
   actorTargetRecordCount: usage.actorTargetRecordCount,
   nearestActorTargetId: usage.nearestActorTargetId,
@@ -1998,6 +2051,10 @@ console.log(JSON.stringify({
   assert(
     smokeOutput.includes('"usageScenarioId": "docs-simple-rpg-scenario"'),
     'consumer smoke did not run usage example'
+  );
+  assert(
+    smokeOutput.includes('"blueprintUsageScenarioId": "docs-blueprint-board:intro"'),
+    'consumer smoke did not run blueprint usage example'
   );
   assert(
     smokeOutput.includes('"defaultRpgHandlers": 3'),

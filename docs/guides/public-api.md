@@ -23,6 +23,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit analysis, facing correction, placement recommendations, and spawn-option conversion. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, paths, rotations, and deterministic coordinate selection. |
+| `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` | Compiled blueprint-board usage example for board-scale authoring, runtime, and interop smoke tests. |
 | `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled SimpleRPG usage example for consumer smoke tests and app reference code. |
 | `@jbcom/medieval-hexagon-gameboard/examples/*.json` | Packaged recipe, scenario, and simulation JSON examples without exposing raw TypeScript example source. |
 | `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction, terrain stacks, roads, rivers, coasts, buildings, fortifications, construction sites, siege projectiles, prop clusters, units, and serialization. |
@@ -108,6 +109,9 @@ one blueprint file. `inspectMedievalGameboardBlueprint` and
 `inspectMedievalGameboardBlueprintScenario` return counts, generated plans,
 spawn-group route diagnostics, patrol-route diagnostics, and validation results
 for authoring UIs and CI.
+The compiled
+`@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` export is the
+packaged consumer smoke for this flow.
 
 ```ts
 import {

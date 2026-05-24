@@ -180,6 +180,30 @@ describe('serializable gameboard recipes', () => {
     expect(generatedFromAuthoredPlan.placements.filter((placement) => placement.metadata.scenario === 'recipe-generated-pieces')).toHaveLength(5);
   });
 
+  it('releases temporary Koota worlds used by generated recipe fills', () => {
+    const recipe = createGameboardRecipe(
+      { seed: 'recipe-generation-world-lifecycle', shape: { kind: 'rectangle', width: 3, height: 2 } },
+      [],
+      {
+        layoutFillSeed: 'recipe-generation-world-lifecycle:fill',
+        layoutFills: [
+          {
+            id: 'recipe-generation-lifecycle-banner',
+            archetype: 'prop',
+            assetId: 'flag_blue',
+            count: 1,
+          },
+        ],
+      }
+    );
+
+    for (let index = 0; index < 20; index += 1) {
+      const plan = createGameboardPlanFromRecipe(recipe);
+
+      expect(plan.placements.some((placement) => placement.id === 'layout:recipe-generation-lifecycle-banner:0')).toBe(true);
+    }
+  });
+
   it('exposes recipe generation registries and fill rules for saved-content runtimes', () => {
     const recipe = createGameboardRecipe(
       { seed: 'recipe-generation-api', shape: { kind: 'rectangle', width: 3, height: 2 } },

@@ -340,6 +340,12 @@ contract for CI and npm consumers.
   the human-facing example for scenario instantiation, board-aware spawn
   selection, ECS interop snapshots, simulation playback, and serializable
   smoke-test summaries.
+- Keep `packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts`
+  as the repo source for the compiled public package subpath exported as
+  `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage`. It should
+  remain the human-facing example for board-scale blueprint JSON, generated
+  scenarios, spawn groups, patrol routes, runtime facade snapshots, and neutral
+  ECS interop summaries.
 - Keep packaged JSON scenarios and recipes exposed through
   `@jbcom/medieval-hexagon-gameboard/examples/*.json`; do not restore a broad
   `./examples/*` export or package raw TypeScript example source. The tarball
@@ -424,6 +430,8 @@ contract for CI and npm consumers.
   for bundlers or renderers that need package asset URLs.
 - `./examples/simple-rpg-usage`: compiled SimpleRPG public-import walkthrough
   used by humans, agents, and packed consumer smoke tests.
+- `./examples/blueprint-board-usage`: compiled blueprint-board public-import
+  walkthrough for board-scale authoring, runtime, and interop smoke tests.
 - `./examples/*.json`: packaged recipe, scenario, and simulation fixtures.
 - `./ingest`: Node/build-time source validation, GLTF tree copying, and manifest
   generation helpers for app-local FREE/EXTRA bundles. Keep this out of browser

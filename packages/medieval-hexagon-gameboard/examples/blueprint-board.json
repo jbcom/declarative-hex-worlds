@@ -107,7 +107,7 @@
     "profile": {
       "blockedTerrain": ["water"],
       "maxElevationStep": 3,
-      "blockingPlacementKinds": ["unit"]
+      "blockingPlacementKinds": ["structure", "unit"]
     },
     "groups": [
       { "id": "party", "count": 1, "terrain": ["grass"], "edgePadding": 1 },
