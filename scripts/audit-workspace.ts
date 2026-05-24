@@ -52,8 +52,14 @@ interface TsConfigJson {
   include?: string[];
 }
 
+interface MarkdownLocalLink {
+  fragment?: string;
+  path: string;
+}
+
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const failures: string[] = [];
+const markdownAnchorCache = new Map<string, Set<string>>();
 
 const workspacePackageJson = readJson<PackageJson>('package.json');
 const packageJson = readJson<PackageJson>('packages/medieval-hexagon-gameboard/package.json');
@@ -202,7 +208,8 @@ function requireDocsConfiguration(): void {
     packageReadme,
     'package README',
     join(workspaceRoot, 'packages/medieval-hexagon-gameboard'),
-    join(workspaceRoot, 'packages/medieval-hexagon-gameboard')
+    join(workspaceRoot, 'packages/medieval-hexagon-gameboard'),
+    join(workspaceRoot, 'packages/medieval-hexagon-gameboard/README.md')
   );
   requireShowcaseCopiesMatch();
   requirePublicApiSubpathGuide();
@@ -217,14 +224,21 @@ function requireDocsMarkdownLinksResolve(): void {
       readRequired(path),
       path,
       dirname(join(workspaceRoot, path)),
-      join(workspaceRoot, 'docs')
+      join(workspaceRoot, 'docs'),
+      join(workspaceRoot, path)
     );
   }
 }
 
-function requireMarkdownFileLinksResolve(source: string, label: string, baseDir: string, rootDir: string): void {
+function requireMarkdownFileLinksResolve(
+  source: string,
+  label: string,
+  baseDir: string,
+  rootDir: string,
+  currentFile?: string
+): void {
   requireMarkdownImageLinksResolve(source, label, baseDir, rootDir);
-  requireMarkdownLocalLinksResolve(source, label, baseDir, rootDir);
+  requireMarkdownLocalLinksResolve(source, label, baseDir, rootDir, currentFile);
 }
 
 function requireDocsGuideNavigation(): void {
@@ -233,7 +247,10 @@ function requireDocsGuideNavigation(): void {
   for (const guideFile of guideDocs) {
     const guideLink = `./guides/${guideFile}`;
     const vitePressLink = `/guides/${guideFile.slice(0, -'.md'.length)}`;
-    assert(docsIndex.includes(`](${guideLink})`), `docs/index.md must link ${guideLink}`);
+    assert(
+      new RegExp(`]\\(${escapeRegExp(guideLink)}(?:#[^)]+)?\\)`).test(docsIndex),
+      `docs/index.md must link ${guideLink}`
+    );
     assert(
       docsVitePressConfig.includes(`link: '${vitePressLink}'`),
       `docs/.vitepress/config.ts sidebar must link ${vitePressLink}`
@@ -335,43 +352,117 @@ function requireShowcaseCopiesMatch(): void {
 function requireMarkdownImageLinksResolve(source: string, label: string, baseDir: string, rootDir: string): void {
   for (const match of source.matchAll(/!\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
     const href = match[1];
-    const resolved = resolveMarkdownLocalPath(href, baseDir, rootDir);
+    const resolved = resolveMarkdownLocalLink(href, baseDir, rootDir);
     if (!resolved) {
       continue;
     }
 
     assert(
-      existsSync(resolved),
-      `${label} image link ${href} points at missing ${relative(workspaceRoot, resolved)}`
+      existsSync(resolved.path),
+      `${label} image link ${href} points at missing ${relative(workspaceRoot, resolved.path)}`
     );
   }
 }
 
-function requireMarkdownLocalLinksResolve(source: string, label: string, baseDir: string, rootDir: string): void {
+function requireMarkdownLocalLinksResolve(
+  source: string,
+  label: string,
+  baseDir: string,
+  rootDir: string,
+  currentFile?: string
+): void {
   for (const match of source.matchAll(/(^|[^!])\[[^\]]+]\(([^)\s]+)(?:\s+"[^"]*")?\)/gm)) {
     const href = match[2];
-    const resolved = resolveMarkdownLocalPath(href, baseDir, rootDir);
+    const resolved = resolveMarkdownLocalLink(href, baseDir, rootDir, currentFile);
     if (!resolved) {
       continue;
     }
 
     assert(
-      existsSync(resolved),
-      `${label} Markdown link ${href} points at missing ${relative(workspaceRoot, resolved)}`
+      existsSync(resolved.path),
+      `${label} Markdown link ${href} points at missing ${relative(workspaceRoot, resolved.path)}`
     );
+    if (existsSync(resolved.path) && resolved.fragment) {
+      requireMarkdownAnchorExists(resolved.path, resolved.fragment, label, href);
+    }
   }
 }
 
-function resolveMarkdownLocalPath(href: string | undefined, baseDir: string, rootDir: string): string | undefined {
-  if (!href || /^(?:https?:|mailto:)/.test(href) || href.startsWith('#')) {
+function resolveMarkdownLocalLink(
+  href: string | undefined,
+  baseDir: string,
+  rootDir: string,
+  currentFile?: string
+): MarkdownLocalLink | undefined {
+  if (!href || /^(?:[a-z][a-z0-9+.-]*:)/i.test(href)) {
     return undefined;
   }
 
-  const pathOnly = href.split('#')[0];
-  if (!pathOnly) {
+  const [pathOnly = '', fragment] = href.split('#');
+  const path = pathOnly.startsWith('/')
+    ? join(rootDir, pathOnly.slice(1))
+    : pathOnly
+      ? join(baseDir, pathOnly)
+      : currentFile;
+  if (!path) {
     return undefined;
   }
-  return pathOnly.startsWith('/') ? join(rootDir, pathOnly.slice(1)) : join(baseDir, pathOnly);
+  return {
+    path,
+    ...(fragment ? { fragment: decodeURIComponent(fragment) } : {}),
+  };
+}
+
+function requireMarkdownAnchorExists(path: string, fragment: string, label: string, href: string): void {
+  if (!path.endsWith('.md')) {
+    return;
+  }
+  const anchors = markdownAnchorsFor(path);
+  assert(
+    anchors.has(fragment),
+    `${label} Markdown link ${href} points at missing anchor #${fragment} in ${relative(workspaceRoot, path)}`
+  );
+}
+
+function markdownAnchorsFor(path: string): Set<string> {
+  const cached = markdownAnchorCache.get(path);
+  if (cached) {
+    return cached;
+  }
+
+  const anchors = new Set<string>();
+  const duplicateCounts = new Map<string, number>();
+  const source = readFileSync(path, 'utf8');
+  for (const match of source.matchAll(/^(#{1,6})\s+(.+?)\s*#*\s*$/gm)) {
+    const rawHeading = match[2] ?? '';
+    const explicitAnchor = /\s+\{#([A-Za-z0-9_-]+)}$/.exec(rawHeading)?.[1];
+    if (explicitAnchor) {
+      anchors.add(explicitAnchor);
+      continue;
+    }
+
+    const baseSlug = markdownHeadingSlug(rawHeading);
+    if (!baseSlug) {
+      continue;
+    }
+    const duplicateCount = duplicateCounts.get(baseSlug) ?? 0;
+    duplicateCounts.set(baseSlug, duplicateCount + 1);
+    anchors.add(duplicateCount === 0 ? baseSlug : `${baseSlug}-${duplicateCount}`);
+  }
+  markdownAnchorCache.set(path, anchors);
+  return anchors;
+}
+
+function markdownHeadingSlug(heading: string): string {
+  return heading
+    .replace(/\s+\{#[A-Za-z0-9_-]+}$/, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/\[([^\]]+)]\([^)]+\)/g, '$1')
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
 }
 
 function sha256(path: string): string {
@@ -594,6 +685,10 @@ function requireIncludes(source: string, label: string, snippets: readonly strin
   for (const snippet of snippets) {
     assert(source.includes(snippet), `${label} is missing ${snippet}`);
   }
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function assert(condition: unknown, message: string): asserts condition {
