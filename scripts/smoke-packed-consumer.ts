@@ -139,6 +139,7 @@ import {
   type PlacementOccupancySnapshot,
   type PlacementOccupancyValue,
   type PlacementStateValue,
+  type AddPlacementRecipeStep,
 } from '@jbcom/medieval-hexagon-gameboard';
 import assetManifest from '@jbcom/medieval-hexagon-gameboard/assets/free/manifest.json' with { type: 'json' };
 import simpleRpgScenario from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json' with { type: 'json' };
@@ -284,6 +285,7 @@ import {
 import {
   GAMEBOARD_RECIPE_SCHEMA_VERSION,
   createGameboardRecipe as createGameboardRecipeFromRecipe,
+  type AddPlacementRecipeStep as AddPlacementRecipeStepFromRecipe,
   type GameboardRecipe as GameboardRecipeFromRecipe,
 } from '@jbcom/medieval-hexagon-gameboard/recipe';
 import {
@@ -418,6 +420,16 @@ const blueprintPlan: GameboardPlan = createMedievalGameboardBlueprintPlan({
   shape: { kind: 'hexagon', radius: 2 },
   towns: 1,
 });
+const genericPlacementStep: AddPlacementRecipeStep = {
+  action: 'addPlacement',
+  at: { q: 0, r: 0 },
+  assetId: 'hex_grass_sloped_high',
+  kind: 'transition',
+  layer: 'surface',
+  rotationSteps: 1,
+  metadata: { source: 'packed-consumer-root-type' },
+};
+const genericPlacementStepFromRecipe: AddPlacementRecipeStepFromRecipe = genericPlacementStep;
 const packedRecipe = createGameboardRecipe(
   { seed: 'packed-consumer-recipe-runtime', shape: { kind: 'rectangle', width: 3, height: 2 } },
   [],
@@ -896,6 +908,8 @@ void runtimeInteropMount;
 void scenarioRuntime;
 void scenarioRuntimeInteropSnapshot;
 void scenarioRuntimeInteropMount;
+void genericPlacementStep;
+void genericPlacementStepFromRecipe;
 void recipeRuntime;
 void recipeRuntimeSourceUrls;
 void packedRecipeRegistry;

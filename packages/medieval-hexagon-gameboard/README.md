@@ -2193,6 +2193,7 @@ medieval-hexagon-gameboard analyze --edition free
 medieval-hexagon-gameboard analyze --manifest assets/free/manifest.json --json
 medieval-hexagon-gameboard declarations --manifest assets/free/manifest.json --out kaykit-declarations.json
 medieval-hexagon-gameboard analyze --registry kaykit-declarations.json
+medieval-hexagon-gameboard blueprint --blueprint examples/blueprint-board.json --outRecipe campaign.recipe.json --outPlan campaign.plan.json --out campaign.inspection.json --allowUnknownAssets
 medieval-hexagon-gameboard validate-plan --plan board.json --manifest assets/free/manifest.json
 medieval-hexagon-gameboard validate-recipe --recipe scenario.json --manifest assets/free/manifest.json --outPlan board.json
 medieval-hexagon-gameboard analyze-layout --recipe scenario.recipe.json --rules layout-rules.json --out layout-analysis.json --outPlan board.json
@@ -2212,6 +2213,13 @@ to check referenced tile, placement, and scenario actor assets against the
 catalog, including `requiresExtra` consistency. Use `--allowUnknownAssetIds` for
 specific third-party assets that are registered through your own pipeline, or
 `--allowUnknownAssets` for intentionally open local prototyping.
+`blueprint` is the build-time path for board intent specs: it reads
+`examples/blueprint-board.json`, or any compatible
+`MedievalGameboardBlueprintOptions` JSON file, and writes normal recipe, plan,
+and inspection JSON with counts and validation diagnostics. Use it when agents,
+map editors, or content pipelines need to generate stacked mountain ranges,
+towns, roads, harbors, biome percentages, ramps, bridges, and density fills
+without loading application code.
 `analyze-layout` checks saved fill rules against a saved plan, recipe, or
 scenario and reports candidate counts, selected tile keys, and warnings when
 requested counts or `minCount` values cannot be satisfied by the board. The same

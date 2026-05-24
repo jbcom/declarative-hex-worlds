@@ -105,6 +105,13 @@ interface LayoutAnalysisSmoke {
   rules: Array<{ id: string; candidateCount: number; selectedCount: number; warnings: string[] }>;
 }
 
+interface BlueprintSmoke {
+  tileCount: number;
+  placementCount: number;
+  counts: Record<string, number>;
+  validation: { errorCount: number; warningCount: number };
+}
+
 interface SimulationReportSmoke {
   success: boolean;
   scenarioId: string;
@@ -196,6 +203,7 @@ const workspaceRoot = resolve(import.meta.dirname, '..');
 const packageRoot = join(workspaceRoot, 'packages/medieval-hexagon-gameboard');
 const cliPath = join(packageRoot, 'dist/cli.js');
 const freeManifestPath = join(packageRoot, 'assets/free/manifest.json');
+const blueprintPath = join(packageRoot, 'examples/blueprint-board.json');
 const recipePath = join(packageRoot, 'examples/generated-piece-scenario.recipe.json');
 const scenarioPath = join(packageRoot, 'examples/simple-rpg-scenario.json');
 const simulationScriptPath = join(packageRoot, 'examples/simple-rpg-simulation.script.json');
@@ -476,6 +484,40 @@ try {
       guideRoleRoad.coverage[0]?.publicApi.includes('GameboardBuilder.addRoadPath'),
     'guide-roles road role/API coverage changed'
   );
+
+  const blueprintRecipePath = join(tempRoot, 'blueprint-board.recipe.json');
+  const blueprintPlanPath = join(tempRoot, 'blueprint-board.plan.json');
+  const blueprintInspectionPath = join(tempRoot, 'blueprint-board.inspection.json');
+  const blueprintOutput = runCli([
+    'blueprint',
+    '--blueprint',
+    blueprintPath,
+    '--manifest',
+    freeManifestPath,
+    '--allowUnknownAssets',
+    '--outRecipe',
+    blueprintRecipePath,
+    '--outPlan',
+    blueprintPlanPath,
+    '--out',
+    blueprintInspectionPath,
+  ]);
+  const blueprint = readJson<BlueprintSmoke>(blueprintInspectionPath);
+  assert(
+    blueprintOutput.includes(`Wrote blueprint GameboardRecipe to ${blueprintRecipePath}`),
+    'blueprint command did not write a recipe'
+  );
+  assert(
+    blueprint.validation.errorCount === 0,
+    `blueprint command emitted ${blueprint.validation.errorCount} validation errors`
+  );
+  assert(blueprint.tileCount > 0, 'blueprint command did not compile tiles');
+  assert(blueprint.placementCount > 0, 'blueprint command did not compile placements');
+  assert(blueprint.counts.mountainStacks > 0, 'blueprint command did not compile mountains');
+  assert(blueprint.counts.townBuildings > 0, 'blueprint command did not compile town buildings');
+  assert(blueprint.counts.harbors === 1, 'blueprint command did not compile the harbor');
+  assert(existsSync(blueprintRecipePath), 'blueprint command did not write recipe JSON');
+  assert(existsSync(blueprintPlanPath), 'blueprint command did not write plan JSON');
 
   const recipePlanPath = join(tempRoot, 'generated-piece-scenario.plan.json');
   const recipeOutput = runCli([

@@ -747,13 +747,20 @@ function applyElevationRamps(
       if (Math.abs(delta) === 1) {
         const lower = delta > 0 ? tile : adjacent;
         steps.push({
-          action: 'setTileAsset',
+          action: 'addPlacement',
           at: lower.coordinates,
           assetId: delta > 0 ? 'hex_grass_sloped_high' : 'hex_grass_sloped_low',
-          terrain: lower.terrain,
-          elevation: lower.elevation,
-          textureSet: lower.textureSet,
-          tags: ['elevation-ramp'],
+          kind: 'transition',
+          layer: 'surface',
+          rotationSteps: edge,
+          elevationOffset: 0.035,
+          metadata: {
+            feature: 'elevation-ramp',
+            direction: delta > 0 ? 'up' : 'down',
+            fromElevation: lower.elevation,
+            toElevation: lower.elevation + 1,
+            textureSet: lower.textureSet,
+          },
         });
         rampCount += 1;
       } else if (Math.abs(delta) > 1) {

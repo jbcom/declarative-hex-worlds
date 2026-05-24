@@ -15,6 +15,11 @@ import {
   type ExternalAssetIntendedRole,
 } from './compatibility';
 import {
+  inspectMedievalGameboardBlueprint,
+  type MedievalGameboardBlueprintInspection,
+  type MedievalGameboardBlueprintOptions,
+} from './blueprint';
+import {
   describeKayKitGuideAssetCoverage,
   describeKayKitGuidePublicApiCoverage,
   describeKayKitGuideRoleCoverage,
@@ -240,6 +245,11 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'guide-roles') {
     runGuideRoles(parsed);
+    return;
+  }
+
+  if (parsed.command === 'blueprint') {
+    runBlueprint(parsed, sourceRoot, edition);
     return;
   }
 
@@ -838,6 +848,52 @@ function runPiecesFromAssets(parsed: ParsedArgs): void {
     reports.some((report) => report.warnings.length > 0) ||
     analysis.warnings.length > 0 ||
     overrideWarnings.length > 0;
+  if (hasErrors) {
+    process.exit(1);
+  }
+  if (parsed.flags.failOnWarning === true && hasWarnings) {
+    process.exit(1);
+  }
+}
+
+function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const inspection = inspectMedievalGameboardBlueprint(readBlueprintOptions(parsed.flags));
+  const violations = validateGameboardPlan(
+    inspection.plan,
+    validationConfigFromArgs(parsed, sourceRoot, edition)
+  );
+
+  if (typeof parsed.flags.outRecipe === 'string') {
+    writeFileSync(
+      resolve(parsed.flags.outRecipe),
+      `${JSON.stringify(inspection.recipe, null, 2)}\n`,
+      'utf8'
+    );
+    console.log(`Wrote blueprint GameboardRecipe to ${resolve(parsed.flags.outRecipe)}`);
+  }
+  if (typeof parsed.flags.outPlan === 'string') {
+    writeFileSync(
+      resolve(parsed.flags.outPlan),
+      `${JSON.stringify(inspection.plan, null, 2)}\n`,
+      'utf8'
+    );
+    console.log(`Wrote blueprint GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+  }
+
+  const payload = blueprintPayloadFromInspection(inspection, violations, parsed.flags);
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote blueprint inspection to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true) {
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    printBlueprintInspection(inspection, violations);
+  }
+
+  const hasErrors = violations.some((violation) => violation.severity === 'error');
+  const hasWarnings =
+    inspection.warnings.length > 0 ||
+    violations.some((violation) => violation.severity === 'warning');
   if (hasErrors) {
     process.exit(1);
   }
@@ -1939,6 +1995,115 @@ function runSimulateScenario(parsed: ParsedArgs, sourceRoot: string, edition: Pa
   }
 }
 
+function readBlueprintOptions(
+  flags: Record<string, string | boolean>
+): MedievalGameboardBlueprintOptions {
+  const configPath =
+    typeof flags.blueprint === 'string'
+      ? flags.blueprint
+      : typeof flags.config === 'string'
+        ? flags.config
+        : undefined;
+  const fileOptions = configPath ? readBlueprintOptionsFile(resolve(configPath)) : {};
+  const cliOptions: MedievalGameboardBlueprintOptions = {};
+  const width = readNumberFlag(flags.width);
+  const height = readNumberFlag(flags.height);
+  const radius = readNumberFlag(flags.radius);
+
+  if (typeof flags.seed === 'string') {
+    cliOptions.seed = flags.seed;
+  }
+  if (typeof flags.faction === 'string') {
+    cliOptions.faction = flags.faction as MedievalGameboardBlueprintOptions['faction'];
+  }
+  if (typeof flags.textureSet === 'string') {
+    cliOptions.textureSet = flags.textureSet as MedievalGameboardBlueprintOptions['textureSet'];
+  }
+  if (typeof flags.defaultTerrain === 'string') {
+    cliOptions.defaultTerrain =
+      flags.defaultTerrain as MedievalGameboardBlueprintOptions['defaultTerrain'];
+  }
+  if (typeof flags.waterFill === 'string') {
+    const waterFill = readNumberFlag(flags.waterFill);
+    if (waterFill !== undefined) {
+      cliOptions.waterFill = waterFill;
+    }
+  }
+  if (typeof flags.maxElevation === 'string') {
+    const maxElevation = readNumberFlag(flags.maxElevation);
+    if (maxElevation !== undefined) {
+      cliOptions.maxElevation = maxElevation;
+    }
+  }
+  if (typeof flags.towns === 'string') {
+    const towns = readNumberFlag(flags.towns);
+    if (towns !== undefined) {
+      cliOptions.towns = towns;
+    }
+  }
+  if (typeof flags.harbors === 'string') {
+    const harbors = readNumberFlag(flags.harbors);
+    if (harbors !== undefined) {
+      cliOptions.harbors = harbors;
+    }
+  }
+  if (radius !== undefined || flags.shape === 'hexagon') {
+    cliOptions.shape = { kind: 'hexagon', radius: Math.max(1, Math.floor(radius ?? 4)) };
+  } else if (width !== undefined || height !== undefined || flags.shape === 'rectangle') {
+    cliOptions.shape = {
+      kind: 'rectangle',
+      width: Math.max(1, Math.floor(width ?? 12)),
+      height: Math.max(1, Math.floor(height ?? 9)),
+    };
+  }
+
+  return {
+    ...fileOptions,
+    ...cliOptions,
+  };
+}
+
+function readBlueprintOptionsFile(path: string): MedievalGameboardBlueprintOptions {
+  const payload = readJson<unknown>(path);
+  const options =
+    isRecord(payload) && isRecord(payload.blueprint)
+      ? payload.blueprint
+      : isRecord(payload) && isRecord(payload.options)
+        ? payload.options
+        : payload;
+  if (!isRecord(options)) {
+    throw new Error(
+      `Blueprint file ${path} must be an options object, { "blueprint": ... }, or { "options": ... }`
+    );
+  }
+  return options as unknown as MedievalGameboardBlueprintOptions;
+}
+
+function blueprintPayloadFromInspection(
+  inspection: MedievalGameboardBlueprintInspection,
+  violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>,
+  flags: Record<string, string | boolean>
+): Record<string, unknown> {
+  const errorCount = violations.filter((violation) => violation.severity === 'error').length;
+  const warningCount = violations.filter((violation) => violation.severity === 'warning').length;
+  return {
+    seed: inspection.plan.seed,
+    shape: inspection.plan.shape,
+    recipeStepCount: inspection.recipe.steps.length,
+    tileCount: inspection.plan.tiles.length,
+    placementCount: inspection.plan.placements.length,
+    counts: inspection.counts,
+    warnings: inspection.warnings,
+    validation: {
+      errorCount,
+      warningCount,
+      violations,
+    },
+    ...(flags.includeRecipe === true ? { recipe: inspection.recipe } : {}),
+    ...(flags.includePlan === true ? { plan: inspection.plan } : {}),
+  };
+}
+
 function readSimulationScript(path: string): GameboardScenarioSimulationScript {
   const payload = readJson<unknown>(path);
   if (Array.isArray(payload)) {
@@ -2201,6 +2366,27 @@ function printAnalysis(analysis: ReturnType<typeof analyzeHexTileRegistry>): voi
   } else {
     console.log('warnings: none');
   }
+}
+
+function printBlueprintInspection(
+  inspection: MedievalGameboardBlueprintInspection,
+  violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>
+): void {
+  console.log(`blueprint seed: ${inspection.plan.seed}`);
+  console.log(`shape: ${JSON.stringify(inspection.plan.shape)}`);
+  console.log(`recipe steps: ${inspection.recipe.steps.length}`);
+  console.log(`tiles: ${inspection.plan.tiles.length}`);
+  console.log(`placements: ${inspection.plan.placements.length}`);
+  console.log(`counts: ${formatCounts(inspection.counts)}`);
+  if (inspection.warnings.length > 0) {
+    console.log('blueprint warnings:');
+    for (const warning of inspection.warnings) {
+      console.log(`  - ${warning}`);
+    }
+  } else {
+    console.log('blueprint warnings: none');
+  }
+  printViolations(violations);
 }
 
 function printPieceRegistryAnalysis(analysis: GameboardPieceRegistryAnalysis): void {
@@ -3062,6 +3248,7 @@ Commands:
   guide-assets Emit asset id to guide-page, API, docs, and visual coverage metadata
   guide-roles Emit public role to guide-page, asset, and API coverage metadata
   guide-apis Emit public API to guide-page and asset coverage metadata
+  blueprint Compile high-level 2.5D board intent to a recipe, plan, and diagnostics
   pieces    Validate piece declarations and optionally emit seeded piece fill rules
   place-piece Inspect and append one declared piece against a saved GameboardPlan, recipe, or scenario
   validate-plan Validate a GameboardPlan JSON with optional registry rules
@@ -3091,10 +3278,16 @@ Options:
   --recipe <path>
   --scenario <path>
   --script <path>
+  --blueprint <path>
+  --config <path>
   --assignments <path>
   --routeId <id>
   --actorId <id>
   --rounds <number>
+  --shape rectangle|hexagon
+  --width <number>
+  --height <number>
+  --radius <number>
   --scenarioId <comma,separated,guide-scenario-ids>
   --page <comma,separated,guide-pages>
   --editionScope free|extra|mixed|reference
@@ -3145,6 +3338,12 @@ Options:
   --ruleIdPrefix <prefix>
   --idPrefix <prefix>
   --seed <seed>
+  --waterFill <number>
+  --maxElevation <number>
+  --towns <number>
+  --harbors <number>
+  --textureSet <texture-set>
+  --defaultTerrain <terrain>
   --count <number>
   --fill <number>
   --minCount <number>
@@ -3153,8 +3352,11 @@ Options:
   --failOnBlockedQuest
   --includeReport
   --includeReports
+  --includeRecipe
+  --includePlan
   --includeAbsolutePaths
   --outManifest <path>
+  --outRecipe <path>
   --outPlan <path>
   --outInterop <path>
   --out <path>

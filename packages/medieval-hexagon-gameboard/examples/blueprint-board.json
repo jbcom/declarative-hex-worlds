@@ -1,0 +1,80 @@
+{
+  "seed": "docs-blueprint-board",
+  "shape": { "kind": "rectangle", "width": 12, "height": 9 },
+  "faction": "blue",
+  "waterFill": 0.18,
+  "maxElevation": 4,
+  "mountainRanges": [
+    {
+      "id": "north-ridge",
+      "path": [
+        { "q": 1, "r": 0 },
+        { "q": 4, "r": 1 },
+        { "q": 8, "r": 1 }
+      ],
+      "width": 1,
+      "height": 4,
+      "variant": "cycle"
+    }
+  ],
+  "towns": [
+    {
+      "id": "citadel",
+      "center": { "q": 4, "r": 4 },
+      "includeWalls": true,
+      "buildings": ["townhall", "market", "home_A", "home_B", "blacksmith", "barracks"]
+    },
+    {
+      "id": "frontier-village",
+      "center": { "q": 8, "r": 5 },
+      "buildings": ["market", "home_A", "home_B", "well"]
+    }
+  ],
+  "harbors": [
+    {
+      "id": "south-port",
+      "at": { "q": 6, "r": 7 },
+      "facing": 1,
+      "kind": "shipyard",
+      "roadTo": { "q": 4, "r": 4 }
+    }
+  ],
+  "roads": [
+    {
+      "id": "market-road",
+      "path": [
+        { "q": 4, "r": 4 },
+        { "q": 5, "r": 4 },
+        { "q": 6, "r": 5 },
+        { "q": 7, "r": 5 },
+        { "q": 8, "r": 5 }
+      ]
+    },
+    {
+      "id": "ridge-road",
+      "path": [
+        { "q": 2, "r": 2 },
+        { "q": 3, "r": 2 },
+        { "q": 4, "r": 3 },
+        { "q": 4, "r": 4 }
+      ]
+    }
+  ],
+  "rivers": [],
+  "biomeFills": [
+    { "id": "fall-woods", "textureSet": "fall", "fill": 0.16, "center": { "q": 2, "r": 4 }, "radius": 3 },
+    { "id": "winter-peaks", "textureSet": "winter", "fill": 0.12, "center": { "q": 8, "r": 2 }, "radius": 3 },
+    { "id": "summer-coast", "textureSet": "summer", "fill": 0.1, "center": { "q": 7, "r": 6 }, "radius": 3 }
+  ],
+  "transitionPolicy": {
+    "biomeTransitions": true,
+    "elevationRamps": true,
+    "roadSlopes": true,
+    "bridges": true
+  },
+  "layoutDensity": {
+    "trees": { "fill": 0.08, "maxCount": 12 },
+    "rocks": { "fill": 0.04, "maxCount": 8 },
+    "props": { "fill": 0.04, "maxCount": 8 }
+  }
+}

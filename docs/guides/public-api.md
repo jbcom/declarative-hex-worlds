@@ -116,6 +116,17 @@ The browser suite renders `free-blueprint-builder-showcase.png` and
 `extra-blueprint-biome-transition-showcase.png` so the public API proves board
 composition visually, not just through unit assertions.
 
+The CLI exposes the same compiler for agents, editors, and build pipelines:
+
+```bash
+medieval-hexagon-gameboard blueprint \
+  --blueprint examples/blueprint-board.json \
+  --outRecipe campaign.recipe.json \
+  --outPlan campaign.plan.json \
+  --out campaign.inspection.json \
+  --allowUnknownAssets
+```
+
 ## Runtime Facade
 
 Use `./runtime` when application code wants one game-loop object instead of

@@ -217,6 +217,131 @@ describe('CLI', () => {
     expect(invalidOutput).not.toContain('recipe.compile_failed');
   });
 
+  it('compiles high-level blueprint board specs through the CLI', () => {
+    const root = createTempRoot();
+    const blueprintPath = resolve(root, 'campaign-blueprint.json');
+    const recipePath = resolve(root, 'campaign-blueprint.recipe.json');
+    const planPath = resolve(root, 'campaign-blueprint.plan.json');
+    const inspectionPath = resolve(root, 'campaign-blueprint.inspection.json');
+    writeFileSync(
+      blueprintPath,
+      `${JSON.stringify(
+        {
+          seed: 'cli-blueprint-board',
+          shape: { kind: 'rectangle', width: 7, height: 5 },
+          faction: 'green',
+          waterFill: 0.18,
+          maxElevation: 3,
+          mountainRanges: [
+            {
+              id: 'north-ridge',
+              path: [
+                { q: 1, r: 0 },
+                { q: 3, r: 0 },
+                { q: 5, r: 1 },
+              ],
+              width: 1,
+              height: 3,
+            },
+          ],
+          towns: [
+            {
+              id: 'green-market',
+              center: { q: 3, r: 2 },
+              includeWalls: true,
+              buildings: ['market', 'home_A', 'home_B', 'well'],
+            },
+          ],
+          harbors: [
+            {
+              id: 'green-harbor',
+              at: { q: 5, r: 3 },
+              facing: 1,
+              kind: 'watermill',
+              roadTo: { q: 3, r: 2 },
+            },
+          ],
+          roads: [
+            {
+              id: 'ridge-road',
+              path: [
+                { q: 1, r: 1 },
+                { q: 2, r: 2 },
+                { q: 3, r: 2 },
+                { q: 5, r: 3 },
+              ],
+            },
+          ],
+          biomeFills: [{ id: 'fall-market', textureSet: 'fall', fill: 0.2, center: { q: 3, r: 2 }, radius: 2 }],
+          transitionPolicy: {
+            biomeTransitions: true,
+            elevationRamps: true,
+            roadSlopes: true,
+            bridges: true,
+          },
+        },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
+
+    const output = runCli([
+      'blueprint',
+      '--blueprint',
+      blueprintPath,
+      '--allowUnknownAssets',
+      '--outRecipe',
+      recipePath,
+      '--outPlan',
+      planPath,
+      '--out',
+      inspectionPath,
+    ]);
+    const recipe = JSON.parse(readFileSync(recipePath, 'utf8')) as {
+      steps: Array<{ action: string; assetId?: string }>;
+    };
+    const plan = JSON.parse(readFileSync(planPath, 'utf8')) as {
+      tiles: Array<{ textureSet?: string }>;
+      placements: Array<{ assetId: string; metadata: Record<string, unknown> }>;
+    };
+    const inspection = JSON.parse(readFileSync(inspectionPath, 'utf8')) as {
+      counts: Record<string, number>;
+      validation: { errorCount: number };
+    };
+
+    expect(output).toContain(`Wrote blueprint GameboardRecipe to ${recipePath}`);
+    expect(output).toContain(`Wrote blueprint GameboardPlan to ${planPath}`);
+    expect(output).toContain(`Wrote blueprint inspection to ${inspectionPath}`);
+    expect(inspection.validation.errorCount).toBe(0);
+    expect(inspection.counts.mountainStacks).toBeGreaterThan(0);
+    expect(inspection.counts.townBuildings).toBeGreaterThanOrEqual(4);
+    expect(inspection.counts.harbors).toBe(1);
+    expect(inspection.counts.biomeTiles).toBeGreaterThan(0);
+    expect(recipe.steps.some((step) => step.action === 'setTextureSet')).toBe(true);
+    expect(plan.tiles.some((tile) => tile.textureSet === 'fall')).toBe(true);
+    expect(plan.placements.some((placement) => placement.assetId === 'building_watermill_green')).toBe(true);
+    expect(plan.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
+
+    const jsonOutput = JSON.parse(
+      runCli([
+        'blueprint',
+        '--blueprint',
+        blueprintPath,
+        '--allowUnknownAssets',
+        '--json',
+        '--includePlan',
+      ])
+    ) as {
+      tileCount: number;
+      placementCount: number;
+      plan?: { tiles: unknown[] };
+    };
+    expect(jsonOutput.tileCount).toBe(plan.tiles.length);
+    expect(jsonOutput.placementCount).toBe(plan.placements.length);
+    expect(jsonOutput.plan?.tiles.length).toBe(plan.tiles.length);
+  });
+
   it('analyzes layout fill rules against a saved plan through the CLI', () => {
     const root = createTempRoot();
     const planPath = resolve(root, 'layout-plan.json');

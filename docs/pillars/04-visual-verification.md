@@ -26,11 +26,13 @@ source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
   - docs/assets/showcases/free-blueprint-builder-showcase.png
   - docs/assets/showcases/extra-blueprint-biome-transition-showcase.png
+  - docs/examples/blueprint-board.json
   - docs/guides/guide-scenario-coverage.md
   - package.json
   - packages/medieval-hexagon-gameboard/docs/showcases/free-blueprint-builder-showcase.png
   - packages/medieval-hexagon-gameboard/docs/showcases/extra-blueprint-biome-transition-showcase.png
   - packages/medieval-hexagon-gameboard/src/blueprint.ts
+  - packages/medieval-hexagon-gameboard/src/cli.ts
   - packages/medieval-hexagon-gameboard/src/catalog.ts
   - packages/medieval-hexagon-gameboard/src/compatibility.ts
   - packages/medieval-hexagon-gameboard/src/three.ts
@@ -42,6 +44,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/quests.ts
 test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
+  - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
   - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts
   - packages/medieval-hexagon-gameboard/tests/browser/simple-rpg-visual.test.ts
   - packages/medieval-hexagon-gameboard/tests/scripts/assert-screenshots.ts

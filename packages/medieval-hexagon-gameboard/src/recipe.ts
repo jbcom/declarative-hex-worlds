@@ -9,6 +9,8 @@ import type {
   FactionBuildingOptions,
   GameboardPlan,
   GameboardPlanOptions,
+  GameboardPlacementKind,
+  GameboardPlacementLayer,
   GameboardTerrain,
   HarborOptions,
   HexRotationSteps,
@@ -95,6 +97,7 @@ export type GameboardRecipeStep =
   | AddNatureRecipeStep
   | AddPropRecipeStep
   | AddFlagRecipeStep
+  | AddPlacementRecipeStep
   | AddTransitionRecipeStep
   | AddUnitRecipeStep
   | AddUnitPresetRecipeStep
@@ -251,6 +254,32 @@ export interface AddFlagRecipeStep {
   rotationSteps?: HexRotationSteps | number;
   /** Optional placement scale override. */
   scale?: number;
+}
+
+/** Recipe step that places an arbitrary asset with explicit placement semantics. */
+export interface AddPlacementRecipeStep {
+  /** Discriminator for custom placement creation. */
+  action: 'addPlacement';
+  /** Target hex coordinate. */
+  at: HexCoordinates;
+  /** Asset id to place. */
+  assetId: string;
+  /** Gameplay/render category for the placement. */
+  kind: GameboardPlacementKind;
+  /** Render and gameplay layer for the placement. */
+  layer: GameboardPlacementLayer;
+  /** Clockwise 60-degree rotation steps. */
+  rotationSteps?: HexRotationSteps | number;
+  /** Fractional elevation offset above the tile surface. */
+  elevationOffset?: number;
+  /** Uniform render scale. */
+  scale?: number;
+  /** Optional stack order metadata. */
+  stackIndex?: number;
+  /** Whether the placement requires local EXTRA assets. */
+  requiresExtra?: boolean;
+  /** Serializable placement metadata. */
+  metadata?: Readonly<Record<string, string | number | boolean | null>>;
 }
 
 /** Recipe step that places an EXTRA transition asset. */
@@ -521,6 +550,10 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
         rotationSteps: step.rotationSteps,
         scale: step.scale,
       });
+    case 'addPlacement': {
+      const { action: _action, ...options } = step;
+      return builder.addPlacement(options);
+    }
     case 'addTransition': {
       const { action: _action, ...options } = step;
       return builder.addTransition(options);

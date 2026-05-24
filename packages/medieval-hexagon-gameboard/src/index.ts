@@ -408,6 +408,7 @@ export type {
   AddMountainStackRecipeStep,
   AddNatureRecipeStep,
   AddNeutralStructureRecipeStep,
+  AddPlacementRecipeStep,
   AddPropRecipeStep,
   AddRiverPathRecipeStep,
   AddRoadPathRecipeStep,
