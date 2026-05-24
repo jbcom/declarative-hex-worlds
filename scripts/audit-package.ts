@@ -99,11 +99,9 @@ assert(
   workspacePackageJson.scripts?.['test:cli'] === 'tsx scripts/smoke-built-cli.ts',
   'workspace test:cli must run the built CLI smoke'
 );
-assert(
-  workspacePackageJson.scripts?.['test:ci'] ===
-    'pnpm lint && pnpm typecheck && pnpm test:docs-contract && pnpm test:api-docs && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm test && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run',
-  'workspace test:ci must run the built CLI and packed consumer smoke before pack dry-run'
-);
+const workspaceTestCi = workspacePackageJson.scripts?.['test:ci'];
+assert(workspaceTestCi, 'workspace test:ci must run the built CLI and packed consumer smoke before pack dry-run');
+assertWorkspaceTestCiOrder(workspaceTestCi);
 assert(
   packageJson.exports?.['./examples/*.json'] === './examples/*.json',
   'package must expose packaged JSON examples without exposing raw example source as executable subpaths'
@@ -139,6 +137,30 @@ function assertEqualSet(actual: readonly string[], expected: readonly string[], 
   assert(
     actualSorted.length === expectedSorted.length && actualSorted.every((value, index) => value === expectedSorted[index]),
     `${message}: expected ${expectedSorted.join(', ')}, got ${actualSorted.join(', ')}`
+  );
+}
+
+function assertWorkspaceTestCiOrder(script: string): void {
+  const expectedSteps = [
+    'pnpm lint',
+    'pnpm typecheck',
+    'pnpm test:docs-contract',
+    'pnpm test:api-docs',
+    'pnpm docs:build',
+    'pnpm test:assets',
+    'pnpm test:workspace',
+    'pnpm test:workflows',
+    'pnpm build',
+    'pnpm test:cli',
+    'pnpm test',
+    'pnpm test:package',
+    'pnpm test:consumer',
+    'pnpm pack:dry-run',
+  ];
+  const actualSteps = script.split(' && ');
+  assert(
+    actualSteps.length === expectedSteps.length && actualSteps.every((step, index) => step === expectedSteps[index]),
+    `workspace test:ci expected ${expectedSteps.join(' && ')}, got ${script}`
   );
 }
 

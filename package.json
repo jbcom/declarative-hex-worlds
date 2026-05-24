@@ -25,7 +25,7 @@
     "test:screenshots:free": "pnpm --dir packages/medieval-hexagon-gameboard run test:screenshots:free",
     "test:screenshots:extra": "pnpm --dir packages/medieval-hexagon-gameboard run test:screenshots:extra",
     "test:screenshots:local-assets": "pnpm --dir packages/medieval-hexagon-gameboard run test:screenshots:local-assets",
-    "test:ci": "pnpm lint && pnpm typecheck && pnpm test:docs-contract && pnpm test:api-docs && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm test && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run",
+    "test:ci": "pnpm lint && pnpm typecheck && pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm test && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run",
     "test:api-docs": "tsx scripts/audit-api-docs.ts",
     "test:assets": "pnpm test:assets:free && pnpm test:reference-assets",
     "test:assets:free": "tsx scripts/audit-free-assets.ts",

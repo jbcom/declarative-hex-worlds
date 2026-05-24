@@ -188,8 +188,8 @@ function requireWorkspaceScripts(): void {
     'workspace coverage:ledger shortcut must regenerate release-readiness docs through the built CLI'
   );
   assert(
-    workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:docs-contract && pnpm test:api-docs'),
-    'test:ci must run api docs audit after docs contract audit'
+    workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build'),
+    'test:ci must run docs contract, api docs audit, and docs build together'
   );
   assert(
     workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:workspace && pnpm test:workflows'),
