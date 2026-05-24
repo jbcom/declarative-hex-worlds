@@ -1538,7 +1538,6 @@ medieval-hexagon-gameboard guide-scenarios \
 
 medieval-hexagon-gameboard guide-scenarios \
   --page 14 \
-  --assetScope all \
   --includeTreatments \
   --json
 ```
