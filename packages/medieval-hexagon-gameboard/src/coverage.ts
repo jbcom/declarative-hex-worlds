@@ -510,7 +510,6 @@ export function renderGameboardCoverageMarkdown(
   for (const command of report.releaseGateCommands) {
     lines.push(`- \`${command}\``);
   }
-  lines.push('');
 
   return lines.join('\n');
 }
