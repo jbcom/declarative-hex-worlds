@@ -130,6 +130,9 @@ manifests, loader logic, or asset generation changes.
 the browser captures. The reviewed screenshots included:
 
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-catalog.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-assets-by-public-role.png`
+  covering every FREE asset through `listKayKitGuideAssetCoverages()` grouped by
+  public treatment role.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-source-pages.png`
   covering all 19 extracted guide PNGs as source material.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png`
@@ -158,6 +161,9 @@ the browser captures. The reviewed screenshots included:
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-assets-by-public-role.png`
+  covering every FREE and local EXTRA asset through
+  `listKayKitGuideAssetCoverages()` grouped by public treatment role.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png`
   covering 329 mixed/EXTRA guide-page asset occurrences across buildings,
   props, transitions, biomes, units, shipyard, harbors, and ports.

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   describeKayKitAssetTreatment,
   listKayKitAssetPublicTreatments,
+  listKayKitGuideAssetCoverages,
   listKayKitGuideScenarios,
 } from '../../src/catalog';
 import { createMedievalHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard';
@@ -93,6 +94,35 @@ describe('EXTRA local visual coverage', () => {
       path: '__screenshots__/extra-local-all-units-full-accent-neutral-siege.png',
     });
     expect(screenshot).toContain('extra-local-all-units-full-accent-neutral-siege.png');
+  });
+
+  it('captures every local asset grouped by guide asset coverage role', async () => {
+    await page.viewport(2000, 1800);
+    const coverages = listKayKitGuideAssetCoverages().sort((left, right) =>
+      left.role === right.role ? left.assetId.localeCompare(right.assetId) : left.role.localeCompare(right.role)
+    );
+    expect(coverages).toHaveLength(extraTreatments.length);
+
+    const requests = coverages.map((coverage) => ({
+      asset: minimalAsset(coverage.assetId, coverage.sourcePath, coverage.category, coverage.subcategory),
+      url: referenceExtraUrl(coverage.sourcePath),
+      label: `${coverage.role}:${coverage.assetId}`,
+      caption: `${coverage.minimumEdition} p${coverage.pages.join(',')} api=${coverage.publicApi.length}`,
+    }));
+
+    const canvas = await renderContactSheet(requests, {
+      title: 'extra-guide-assets-by-public-role',
+      width: 1900,
+      height: 1700,
+      columns: 17,
+      cellSize: 2.7,
+    });
+    assertCanvasHasRenderableContent(canvas, { minDrawCalls: requests.length });
+    const screenshot = await page.screenshot({
+      element: canvas,
+      path: '__screenshots__/extra-guide-assets-by-public-role.png',
+    });
+    expect(screenshot).toContain('extra-guide-assets-by-public-role.png');
   });
 
   it('captures mixed and EXTRA guide scenarios from pages 02 through 15', async () => {

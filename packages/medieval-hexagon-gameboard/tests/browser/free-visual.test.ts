@@ -1,7 +1,11 @@
 import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
 import generatedPieceScenario from '../../examples/generated-piece-scenario.recipe.json';
-import { listKayKitGuideScenarios } from '../../src/catalog';
+import {
+  listKayKitGuideAssetCoverages,
+  listKayKitGuideRoleCoverages,
+  listKayKitGuideScenarios,
+} from '../../src/catalog';
 import { createMedievalHarborBoard } from '../../src/gameboard';
 import { freeManifest } from '../../src/manifest/free';
 import { createGameboardPlanFromRecipe, type GameboardRecipe } from '../../src/recipe';
@@ -37,6 +41,51 @@ describe('FREE visual coverage', () => {
       path: '__screenshots__/free-catalog.png',
     });
     expect(screenshot).toContain('free-catalog.png');
+  });
+
+  it('captures a contact sheet grouped by public asset and role coverage', async () => {
+    await page.viewport(1900, 1300);
+    const roleCoverages = listKayKitGuideRoleCoverages();
+    const roleNames = new Set(roleCoverages.map((coverage) => coverage.role));
+    const coverages = listKayKitGuideAssetCoverages()
+      .filter((coverage) => coverage.minimumEdition === 'free')
+      .sort((left, right) =>
+        left.role === right.role ? left.assetId.localeCompare(right.assetId) : left.role.localeCompare(right.role)
+      );
+
+    expect(coverages).toHaveLength(freeManifest.assets.length);
+    for (const coverage of coverages) {
+      expect(roleNames.has(coverage.role), coverage.assetId).toBe(true);
+      expect(coverage.pages.length, coverage.assetId).toBeGreaterThan(0);
+      expect(coverage.publicApi.length, coverage.assetId).toBeGreaterThan(0);
+    }
+
+    const requests = coverages.map((coverage) => {
+      const asset = freeManifest.assetsById[coverage.assetId];
+      if (!asset) {
+        throw new Error(`FREE guide asset coverage references missing asset ${coverage.assetId}`);
+      }
+      return {
+        asset,
+        url: assetUrl(asset),
+        label: `${coverage.role}:${coverage.assetId}`,
+        caption: `p${coverage.pages.join(',')} api=${coverage.publicApi.length}`,
+      };
+    });
+
+    const canvas = await renderContactSheet(requests, {
+      title: 'free-guide-assets-by-public-role',
+      width: 1800,
+      height: 1300,
+      columns: 17,
+      cellSize: 2.7,
+    });
+    assertCanvasHasRenderableContent(canvas, { minDrawCalls: requests.length });
+    const screenshot = await page.screenshot({
+      element: canvas,
+      path: '__screenshots__/free-guide-assets-by-public-role.png',
+    });
+    expect(screenshot).toContain('free-guide-assets-by-public-role.png');
   });
 
   it('captures extracted guide pages and scenario-scoped FREE treatments', async () => {
