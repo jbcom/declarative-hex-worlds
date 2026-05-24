@@ -313,6 +313,29 @@ export const GAMEBOARD_RELEASE_GATE_COMMANDS = [
   'pnpm pack:dry-run',
 ] as const;
 
+/** Human-readable evidence summary for each release gate command. */
+export const GAMEBOARD_RELEASE_GATE_SUMMARIES: Readonly<
+  Record<(typeof GAMEBOARD_RELEASE_GATE_COMMANDS)[number], string>
+> = {
+  'pnpm lint': 'Biome lint over workspace packages, docs scripts, and generated public TypeScript surfaces.',
+  'pnpm typecheck': 'Strict TypeScript validation for runtime, package tests, docs scripts, and generated examples.',
+  'pnpm build': 'Nx package build including tsup ESM chunks, declarations, CLI shebang preservation, and asset copies.',
+  'pnpm test:ci':
+    'Serialized non-browser release gate: docs contracts, API docs, assets, workspace/workflow audits, CLI smoke, expectations, unit tests, package audit, consumer smoke, and dry-run pack.',
+  'pnpm expectations':
+    'Behavior-drift fixtures for seeded generation, SimpleRPG quests, movement, actor targets, patrols, mutations, and final placements.',
+  'pnpm docs:build': 'TypeDoc and VitePress documentation build with public JSDoc and guide-link validation.',
+  'pnpm test:consumer':
+    'Packed tarball installed into a temporary app, then compiled and executed through public subpaths, examples, and the CLI bin.',
+  'pnpm test:visual':
+    'FREE, EXTRA, SimpleRPG, Kenney Castle Kit, and KayKit Adventurers browser visual suites with screenshot quality checks.',
+  'pnpm showcases:promote -- --check':
+    'Curated browser screenshots match committed docs/package showcase copies and pass the shared PNG quality analyzer.',
+  'pnpm test:workflows': 'CI, Release Please, npm OIDC publish, automerge, and Dependabot workflow contract audit.',
+  'pnpm pack:dry-run':
+    'npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, NOTICE, and packaged showcase PNG quality.',
+};
+
 /**
  * Builds the default local reference-pack status inputs without probing the
  * filesystem. The CLI upgrades these statuses from `skipped` to `available` or
@@ -368,6 +391,7 @@ export function createDefaultGameboardCoveragePackageChecks(
     label: command,
     command,
     status,
+    summary: GAMEBOARD_RELEASE_GATE_SUMMARIES[command],
   }));
 }
 

@@ -35659,67 +35659,78 @@
       "id": "lint",
       "label": "pnpm lint",
       "command": "pnpm lint",
-      "status": "passed"
+      "status": "passed",
+      "summary": "Biome lint over workspace packages, docs scripts, and generated public TypeScript surfaces."
     },
     {
       "id": "typecheck",
       "label": "pnpm typecheck",
       "command": "pnpm typecheck",
-      "status": "passed"
+      "status": "passed",
+      "summary": "Strict TypeScript validation for runtime, package tests, docs scripts, and generated examples."
     },
     {
       "id": "build",
       "label": "pnpm build",
       "command": "pnpm build",
-      "status": "passed"
+      "status": "passed",
+      "summary": "Nx package build including tsup ESM chunks, declarations, CLI shebang preservation, and asset copies."
     },
     {
       "id": "test-ci",
       "label": "pnpm test:ci",
       "command": "pnpm test:ci",
-      "status": "passed"
+      "status": "passed",
+      "summary": "Serialized non-browser release gate: docs contracts, API docs, assets, workspace/workflow audits, CLI smoke, expectations, unit tests, package audit, consumer smoke, and dry-run pack."
     },
     {
       "id": "expectations",
       "label": "pnpm expectations",
       "command": "pnpm expectations",
-      "status": "passed"
+      "status": "passed",
+      "summary": "Behavior-drift fixtures for seeded generation, SimpleRPG quests, movement, actor targets, patrols, mutations, and final placements."
     },
     {
       "id": "docs-build",
       "label": "pnpm docs:build",
       "command": "pnpm docs:build",
-      "status": "passed"
+      "status": "passed",
+      "summary": "TypeDoc and VitePress documentation build with public JSDoc and guide-link validation."
     },
     {
       "id": "test-consumer",
       "label": "pnpm test:consumer",
       "command": "pnpm test:consumer",
-      "status": "passed"
+      "status": "passed",
+      "summary": "Packed tarball installed into a temporary app, then compiled and executed through public subpaths, examples, and the CLI bin."
     },
     {
       "id": "test-visual",
       "label": "pnpm test:visual",
       "command": "pnpm test:visual",
-      "status": "passed"
+      "status": "passed",
+      "summary": "FREE, EXTRA, SimpleRPG, Kenney Castle Kit, and KayKit Adventurers browser visual suites with screenshot quality checks."
     },
     {
       "id": "showcases-promote-check",
       "label": "pnpm showcases:promote -- --check",
       "command": "pnpm showcases:promote -- --check",
-      "status": "passed"
+      "status": "passed",
+      "summary": "Curated browser screenshots match committed docs/package showcase copies and pass the shared PNG quality analyzer."
     },
     {
       "id": "test-workflows",
       "label": "pnpm test:workflows",
       "command": "pnpm test:workflows",
-      "status": "passed"
+      "status": "passed",
+      "summary": "CI, Release Please, npm OIDC publish, automerge, and Dependabot workflow contract audit."
     },
     {
       "id": "pack-dry-run",
       "label": "pnpm pack:dry-run",
       "command": "pnpm pack:dry-run",
-      "status": "passed"
+      "status": "passed",
+      "summary": "npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, NOTICE, and packaged showcase PNG quality."
     }
   ],
   "gaps": [],

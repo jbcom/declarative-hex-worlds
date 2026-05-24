@@ -586,8 +586,9 @@ imports from `node_modules`. It must keep proving that mixed root/subpath import
 share live Koota trait identities; the tsup build should keep ESM code splitting
 enabled for that reason.
 Use `pnpm test:package` when README images or package file lists change; it
-validates local README links plus every packed `docs/showcases/*.png` through
-the shared PNG quality analyzer.
+validates local README links, requires the published README gallery to reference
+every curated package showcase image, and checks every packed
+`docs/showcases/*.png` through the shared PNG quality analyzer.
 Use `pnpm test:workflows` when touching GitHub Actions, Release Please,
 automerge, Dependabot, or the CI/CD release scripts.
 

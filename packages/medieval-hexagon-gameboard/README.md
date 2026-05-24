@@ -1458,8 +1458,9 @@ blank, undersized, or visually flat artifacts fail in CI.
 The workspace `pnpm showcases:promote -- --check` command applies that same PNG
 quality analyzer to the committed README showcase copies, not just the ignored
 browser output.
-The package audit also rechecks the packed README image links and every shipped
-`docs/showcases/*.png` file before publish.
+The package audit also rechecks the packed README image links, requires the
+README gallery to reference every curated package showcase image, and validates
+every shipped `docs/showcases/*.png` file before publish.
 
 ## Third-Party Local Asset E2E
 

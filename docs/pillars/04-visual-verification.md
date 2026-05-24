@@ -39,6 +39,8 @@ implementation_links:
   - docs/examples/blueprint-board.json
   - docs/guides/guide-scenario-coverage.md
   - package.json
+  - scripts/audit-package.ts
+  - scripts/audit-workspace.ts
   - scripts/extract-kaykit-guide.ts
   - scripts/extract-kaykit-guide.swift
   - scripts/promote-showcases.ts
@@ -277,6 +279,10 @@ at `docs/assets/showcases/` for VitePress and
 ignored browser screenshots and parses both sides with the shared PNG quality
 analyzer, so committed README images cannot be blank, undersized, or visually
 flat while the source screenshot passes.
+The package audit repeats that PNG quality pass against the packed
+`docs/showcases/*.png` files and requires the published README gallery to link
+every curated package showcase, so publish-time evidence uses the npm tarball
+view, not only the workspace view.
 The release-readiness ledger also tracks every screenshot asserted by the
 `test:screenshots:*` scripts through
 `GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS`; `pnpm test:workspace` fails

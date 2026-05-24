@@ -545,7 +545,7 @@ describe('CLI', () => {
       publicApi: unknown[];
       visualArtifacts: Array<{ path: string; status: string }>;
       references: unknown[];
-      packageChecks: Array<{ status: string }>;
+      packageChecks: Array<{ status: string; summary?: string }>;
     };
     const markdown = readFileSync(markdownPath, 'utf8');
 
@@ -569,8 +569,12 @@ describe('CLI', () => {
     );
     expect(report.references).toHaveLength(4);
     expect(report.packageChecks.every((check) => check.status === 'passed')).toBe(true);
+    expect(report.packageChecks.every((check) => typeof check.summary === 'string' && check.summary.length > 0)).toBe(
+      true
+    );
     expect(markdown).toContain('# Release Readiness Coverage');
     expect(markdown).toContain('| Status | Command | Summary |');
+    expect(markdown).toContain('README gallery links');
     expect(doctorOutput).toContain('guide pages: 19/19');
     expect(doctorOutput).toContain('manifest: 221 asset(s), 221/221 FREE guide asset(s)');
   });

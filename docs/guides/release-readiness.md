@@ -46,17 +46,17 @@ pnpm coverage:ledger
 
 | Status | Command | Summary |
 | --- | --- | --- |
-| passed | `pnpm lint` |  |
-| passed | `pnpm typecheck` |  |
-| passed | `pnpm build` |  |
-| passed | `pnpm test:ci` |  |
-| passed | `pnpm expectations` |  |
-| passed | `pnpm docs:build` |  |
-| passed | `pnpm test:consumer` |  |
-| passed | `pnpm test:visual` |  |
-| passed | `pnpm showcases:promote -- --check` |  |
-| passed | `pnpm test:workflows` |  |
-| passed | `pnpm pack:dry-run` |  |
+| passed | `pnpm lint` | Biome lint over workspace packages, docs scripts, and generated public TypeScript surfaces. |
+| passed | `pnpm typecheck` | Strict TypeScript validation for runtime, package tests, docs scripts, and generated examples. |
+| passed | `pnpm build` | Nx package build including tsup ESM chunks, declarations, CLI shebang preservation, and asset copies. |
+| passed | `pnpm test:ci` | Serialized non-browser release gate: docs contracts, API docs, assets, workspace/workflow audits, CLI smoke, expectations, unit tests, package audit, consumer smoke, and dry-run pack. |
+| passed | `pnpm expectations` | Behavior-drift fixtures for seeded generation, SimpleRPG quests, movement, actor targets, patrols, mutations, and final placements. |
+| passed | `pnpm docs:build` | TypeDoc and VitePress documentation build with public JSDoc and guide-link validation. |
+| passed | `pnpm test:consumer` | Packed tarball installed into a temporary app, then compiled and executed through public subpaths, examples, and the CLI bin. |
+| passed | `pnpm test:visual` | FREE, EXTRA, SimpleRPG, Kenney Castle Kit, and KayKit Adventurers browser visual suites with screenshot quality checks. |
+| passed | `pnpm showcases:promote -- --check` | Curated browser screenshots match committed docs/package showcase copies and pass the shared PNG quality analyzer. |
+| passed | `pnpm test:workflows` | CI, Release Please, npm OIDC publish, automerge, and Dependabot workflow contract audit. |
+| passed | `pnpm pack:dry-run` | npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, NOTICE, and packaged showcase PNG quality. |
 
 ## Visual Artifacts
 

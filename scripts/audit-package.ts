@@ -6,6 +6,7 @@ import {
   analyzeScreenshot,
   validateScreenshot,
 } from '../packages/medieval-hexagon-gameboard/tests/scripts/screenshot-quality';
+import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../packages/medieval-hexagon-gameboard/src/coverage';
 
 interface PackageJson {
   bin?: Record<string, string>;
@@ -47,6 +48,7 @@ const forbiddenMetadataPattern = /references|\/Volumes\/home|kenney_castle|KayKi
 const expectedFiles = ['assets/free', 'docs/showcases', 'dist', 'examples/*.json', 'LICENSE', 'README.md', 'NOTICE.md'];
 const allowedPackRoots = ['assets/free/', 'docs/showcases/', 'dist/', 'examples/'];
 const allowedPackFiles = new Set(['package.json', 'LICENSE', 'README.md', 'NOTICE.md']);
+const packageShowcaseArtifactPrefix = 'packages/medieval-hexagon-gameboard/';
 const privateEntryModules = new Set(['cli', 'index']);
 const optionalPeerImports = new Set(['react', 'three', 'koota/react']);
 const optionalPeerImportAllowlist = new Map<string, ReadonlySet<string>>([
@@ -404,6 +406,7 @@ function assertPackedReadmeLocalLinks(files: readonly PackFile[]): void {
   for (const path of imagePaths) {
     assertPackedPngQuality(path, `package README image ${path}`);
   }
+  assertPackageReadmeShowcaseImages([...imagePaths]);
 }
 
 function assertPackedShowcaseImageQuality(files: readonly PackFile[]): void {
@@ -412,9 +415,32 @@ function assertPackedShowcaseImageQuality(files: readonly PackFile[]): void {
     .filter((path) => path.startsWith('docs/showcases/') && path.endsWith('.png'))
     .sort();
   assert(showcaseImages.length > 0, 'package must include committed showcase PNGs');
+  assertEqualSet(
+    showcaseImages,
+    expectedPackageShowcaseImages(),
+    'packed showcase PNGs must match curated package showcase artifacts'
+  );
   for (const path of showcaseImages) {
     assertPackedPngQuality(path, `packed showcase ${path}`);
   }
+}
+
+function assertPackageReadmeShowcaseImages(imagePaths: readonly string[]): void {
+  const showcaseImages = imagePaths
+    .filter((path) => path.startsWith('docs/showcases/') && path.endsWith('.png'))
+    .sort();
+  assertEqualSet(
+    showcaseImages,
+    expectedPackageShowcaseImages(),
+    'package README showcase image links must match curated package showcase artifacts'
+  );
+}
+
+function expectedPackageShowcaseImages(): string[] {
+  return GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS
+    .filter((path) => path.startsWith(`${packageShowcaseArtifactPrefix}docs/showcases/`))
+    .map((path) => path.slice(packageShowcaseArtifactPrefix.length))
+    .sort();
 }
 
 function assertPackedPngQuality(packageRelativePath: string, label: string): void {

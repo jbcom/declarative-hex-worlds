@@ -533,6 +533,13 @@ function requireReleaseReadinessLedger(): void {
       `release-readiness Markdown must include final command ${command}`
     );
   }
+  for (const check of releaseReadinessJson.packageChecks ?? []) {
+    assert(check.summary, `release-readiness package check ${check.command ?? '<missing command>'} must include a summary`);
+    assert(
+      check.summary && releaseReadinessMarkdown.includes(check.summary),
+      `release-readiness Markdown must include package check summary for ${check.command ?? '<missing command>'}`
+    );
+  }
 }
 
 function requireShowcaseCopiesMatch(): void {
@@ -574,6 +581,16 @@ function requireShowcaseCopiesMatch(): void {
       packageAuditScript.includes('assertPackedShowcaseImageQuality'),
     'scripts/audit-package.ts must validate packed showcase PNG quality'
   );
+  assert(
+    packageAuditScript.includes('GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS') &&
+      packageAuditScript.includes('assertPackageReadmeShowcaseImages'),
+    'scripts/audit-package.ts must require the package README gallery to match the curated package showcase artifacts'
+  );
+  assertEqualList(
+    packageReadmeShowcaseImages(),
+    packageShowcases.map((filename) => `docs/showcases/${filename}`),
+    'package README showcase image links'
+  );
   for (const filename of docsShowcases) {
     const docsHash = sha256(join(docsShowcaseDir, filename));
     const packageHash = sha256(join(packageShowcaseDir, filename));
@@ -594,6 +611,13 @@ function requireShowcaseCopiesMatch(): void {
       promoteShowcasesScript.includes('dirname(showcase.target)'),
     'scripts/promote-showcases.ts must derive both docs and package showcase destinations from coverage source'
   );
+}
+
+function packageReadmeShowcaseImages(): string[] {
+  return [...packageReadme.matchAll(/!\[[^\]]*]\((docs\/showcases\/[^)\s#]+\.png)(?:\s+"[^"]*")?\)/g)]
+    .map((match) => match[1])
+    .filter((path): path is string => Boolean(path))
+    .sort();
 }
 
 function requireReadmeGuideCoverage(): void {

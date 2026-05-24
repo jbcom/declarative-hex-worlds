@@ -7,6 +7,7 @@ import {
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   GAMEBOARD_RELEASE_GATE_COMMANDS,
+  GAMEBOARD_RELEASE_GATE_SUMMARIES,
   GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
   createDefaultGameboardCoveragePackageChecks,
   createDefaultGameboardCoverageReferences,
@@ -77,6 +78,9 @@ describe('release-readiness coverage', () => {
       expect(report.visualArtifacts.map((artifact) => artifact.path)).toContain(screenshot);
     }
     expect(report.releaseGateCommands).toEqual(GAMEBOARD_RELEASE_GATE_COMMANDS);
+    expect(report.packageChecks.map((check) => check.summary)).toEqual(
+      GAMEBOARD_RELEASE_GATE_COMMANDS.map((command) => GAMEBOARD_RELEASE_GATE_SUMMARIES[command])
+    );
   });
 
   it('keeps each curated showcase wired to both docs and package README destinations', () => {
@@ -160,6 +164,7 @@ describe('release-readiness coverage', () => {
     expect(markdown).toContain('| Status | Reference | Path | Purpose |');
     expect(markdown).toContain('| Status | Command | Summary |');
     expect(markdown).toContain('`pnpm test:visual`');
+    expect(markdown).toContain('README gallery links');
     expect(markdown).toContain('`pnpm showcases:promote -- --check`');
     expect(markdown).toContain('`page-15-shipyard-harbors`');
   });
