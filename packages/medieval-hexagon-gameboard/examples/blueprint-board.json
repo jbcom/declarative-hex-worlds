@@ -60,7 +60,21 @@
       ]
     }
   ],
-  "rivers": [],
+  "rivers": [
+    {
+      "id": "ridge-river",
+      "path": [
+        { "q": 1, "r": 1 },
+        { "q": 2, "r": 2 },
+        { "q": 3, "r": 3 },
+        { "q": 4, "r": 4 },
+        { "q": 5, "r": 5 },
+        { "q": 6, "r": 6 },
+        { "q": 6, "r": 7 }
+      ],
+      "curvy": true
+    }
+  ],
   "biomeFills": [
     { "id": "fall-woods", "textureSet": "fall", "fill": 0.16, "center": { "q": 2, "r": 4 }, "radius": 3 },
     { "id": "winter-peaks", "textureSet": "winter", "fill": 0.12, "center": { "q": 8, "r": 2 }, "radius": 3 },

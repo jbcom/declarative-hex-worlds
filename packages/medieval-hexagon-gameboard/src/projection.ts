@@ -19,7 +19,7 @@ import {
   readGameboardPlacements,
   type PlacementStateValue,
 } from './koota';
-import { normalizeHexRotationSteps } from './coordinates';
+import { normalizeHexRotationSteps, oppositeEdge } from './coordinates';
 import { selectCoastVariant, selectRiverCrossingVariant, selectRiverVariant, selectRoadVariant } from './selectors';
 import type { World } from 'koota';
 
@@ -162,7 +162,7 @@ function connectivityPlacementsForTile(
   if (tile.riverEdges !== 0 || tile.riverCrossing) {
     const selection = tile.riverCrossing
       ? selectRiverCrossingVariant(tile.riverCrossing, { waterless: tile.riverWaterless })
-      : selectRiverVariant(tile.riverEdges, {
+      : selectRiverVariant(riverVisualMask(tile.riverEdges), {
           waterless: tile.riverWaterless,
           curvy: tile.riverCurvy,
         });
@@ -199,6 +199,33 @@ function connectivityPlacementsForTile(
   }
 
   return placements;
+}
+
+function riverVisualMask(mask: number): number {
+  if (bitCount(mask) !== 1) {
+    return mask;
+  }
+  const edge = edgeFromSingleBit(mask);
+  return (mask | (1 << oppositeEdge(edge))) & 0b111111;
+}
+
+function bitCount(mask: number): number {
+  let count = 0;
+  for (let edge = 0; edge < 6; edge += 1) {
+    if ((mask & (1 << edge)) !== 0) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+function edgeFromSingleBit(mask: number): 0 | 1 | 2 | 3 | 4 | 5 {
+  for (let edge = 0; edge < 6; edge += 1) {
+    if ((mask & (1 << edge)) !== 0) {
+      return edge as 0 | 1 | 2 | 3 | 4 | 5;
+    }
+  }
+  return 0;
 }
 
 function basePlacement(

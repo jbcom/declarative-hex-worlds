@@ -5,7 +5,9 @@ import {
   createMedievalShowcaseBlueprintRecipe,
   inspectMedievalGameboardBlueprint,
 } from '../../src/blueprint';
+import { freeManifest } from '../../src/manifest/free';
 import { createGameboardPlanFromRecipe } from '../../src/recipe';
+import { createHexTileRegistryFromManifest } from '../../src/registry';
 import { validateGameboardPlan } from '../../src/validation';
 
 describe('medieval gameboard blueprints', () => {
@@ -84,8 +86,16 @@ describe('medieval gameboard blueprints', () => {
     expect(inspection.plan.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
     expect(inspection.plan.placements.some((placement) => placement.assetId === 'building_watermill_green')).toBe(true);
     expect(inspection.plan.placements.some((placement) => placement.kind === 'road')).toBe(true);
+    expect(inspection.plan.placements.some((placement) => placement.kind === 'river')).toBe(true);
     expect(inspection.plan.placements.some((placement) => placement.metadata.feature === 'mountain-stack')).toBe(true);
     expect(validateGameboardPlan(inspection.plan).filter((violation) => violation.severity === 'error')).toEqual([]);
+    const manifestViolations = validateGameboardPlan(inspection.plan, {
+      registry: createHexTileRegistryFromManifest(freeManifest),
+      assetCatalog: freeManifest,
+      allowUnknownAssets: true,
+    });
+    expect(manifestViolations.filter((violation) => violation.severity === 'error')).toEqual([]);
+    expect(manifestViolations.filter((violation) => violation.code === 'coast.adjacent_land')).toEqual([]);
   });
 
   it('keeps recipe texture-set steps serializable', () => {

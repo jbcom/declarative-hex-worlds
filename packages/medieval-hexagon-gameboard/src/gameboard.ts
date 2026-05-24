@@ -597,7 +597,7 @@ export class GameboardBuilder {
     for (const [key, mask] of masks) {
       const tile = this.requireTile(parseHexKey(key));
       tile.terrain = tile.terrain === 'water' ? 'water' : 'river';
-      tile.riverEdges = mergeMask(tile.riverEdges, normalizeRiverPathMask(mask));
+      tile.riverEdges = mergeMask(tile.riverEdges, mask);
       tile.riverWaterless = options.waterless ?? tile.riverWaterless;
       tile.riverCurvy = options.curvy ?? tile.riverCurvy;
       tile.riverCrossing = options.crossing ?? tile.riverCrossing;
@@ -1323,7 +1323,7 @@ function connectivityPlacementsForTile(
   if (tile.riverEdges !== 0 || tile.riverCrossing) {
     const selection = tile.riverCrossing
       ? selectRiverCrossingVariant(tile.riverCrossing, { waterless: tile.riverWaterless })
-      : selectRiverVariant(tile.riverEdges, {
+      : selectRiverVariant(riverVisualMask(tile.riverEdges), {
           waterless: tile.riverWaterless,
           curvy: tile.riverCurvy,
         });
@@ -1459,7 +1459,7 @@ function mergeMask(current: number, next: number): number {
   return (current | next) & 0b111111;
 }
 
-function normalizeRiverPathMask(mask: number): number {
+function riverVisualMask(mask: number): number {
   if (bitCount(mask) !== 1) {
     return mask;
   }

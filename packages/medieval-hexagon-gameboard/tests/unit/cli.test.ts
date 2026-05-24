@@ -272,6 +272,19 @@ describe('CLI', () => {
               ],
             },
           ],
+          rivers: [
+            {
+              id: 'ridge-river',
+              path: [
+                { q: 0, r: 0 },
+                { q: 1, r: 1 },
+                { q: 2, r: 2 },
+                { q: 3, r: 3 },
+                { q: 4, r: 4 },
+              ],
+              curvy: true,
+            },
+          ],
           biomeFills: [{ id: 'fall-market', textureSet: 'fall', fill: 0.2, center: { q: 3, r: 2 }, radius: 2 }],
           transitionPolicy: {
             biomeTransitions: true,
@@ -317,10 +330,12 @@ describe('CLI', () => {
     expect(inspection.counts.mountainStacks).toBeGreaterThan(0);
     expect(inspection.counts.townBuildings).toBeGreaterThanOrEqual(4);
     expect(inspection.counts.harbors).toBe(1);
+    expect(inspection.counts.rivers).toBe(1);
     expect(inspection.counts.biomeTiles).toBeGreaterThan(0);
     expect(recipe.steps.some((step) => step.action === 'setTextureSet')).toBe(true);
     expect(plan.tiles.some((tile) => tile.textureSet === 'fall')).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId === 'building_watermill_green')).toBe(true);
+    expect(plan.placements.some((placement) => placement.assetId.startsWith('hex_river_'))).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
 
     const jsonOutput = JSON.parse(

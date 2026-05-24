@@ -193,7 +193,7 @@ function validateBuiltInConnectivity(
   }
   forEachEdge(tile.coastEdges, (edge) => {
     const adjacent = tiles.get(hexKey(neighbor(tile.coordinates, edge)));
-    if (adjacent && adjacent.terrain !== 'water') {
+    if (adjacent && adjacent.terrain !== 'water' && adjacent.terrain !== 'river') {
       violations.push({
         code: 'coast.adjacent_land',
         severity: 'warning',
@@ -512,6 +512,24 @@ function buildChannelMasks(
   for (const placement of plan.placements) {
     const declaration = declarationForPlacement(placement, registry);
     if (!declaration) {
+      const metadataChannel = placementChannelMaskFromMetadata(placement);
+      if (metadataChannel) {
+        addChannelMask(masks, placement.tileKey, metadataChannel.channel, {
+          mask: metadataChannel.mask,
+          sourceId: `${placement.id}.metadata.edgeMask`,
+          placementId: placement.id,
+        });
+      }
+      continue;
+    }
+    const metadataChannel = placementChannelMaskFromMetadata(placement);
+    if (metadataChannel) {
+      addChannelMask(masks, placement.tileKey, metadataChannel.channel, {
+        mask: metadataChannel.mask,
+        sourceId: `${declaration.id}.metadata.edgeMask`,
+        placementId: placement.id,
+        declaration,
+      });
       continue;
     }
     for (const edge of declaration.edges) {
@@ -525,6 +543,19 @@ function buildChannelMasks(
     }
   }
   return masks;
+}
+
+function placementChannelMaskFromMetadata(
+  placement: GameboardPlacementSpec
+): { channel: 'road' | 'river' | 'coast'; mask: number } | undefined {
+  if (placement.kind !== 'road' && placement.kind !== 'river' && placement.kind !== 'coast') {
+    return undefined;
+  }
+  const mask = placement.metadata.edgeMask;
+  if (typeof mask !== 'number') {
+    return undefined;
+  }
+  return { channel: placement.kind, mask: mask & 0b111111 };
 }
 
 function addChannelMask(
