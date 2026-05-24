@@ -2243,7 +2243,7 @@ medieval-hexagon-gameboard analyze --edition free
 medieval-hexagon-gameboard analyze --manifest assets/free/manifest.json --json
 medieval-hexagon-gameboard declarations --manifest assets/free/manifest.json --out kaykit-declarations.json
 medieval-hexagon-gameboard analyze --registry kaykit-declarations.json
-medieval-hexagon-gameboard blueprint --blueprint examples/blueprint-board.json --outRecipe campaign.recipe.json --outPlan campaign.plan.json --out campaign.inspection.json --allowUnknownAssets
+medieval-hexagon-gameboard blueprint --blueprint examples/blueprint-board.json --outRecipe campaign.recipe.json --outPlan campaign.plan.json --outScenario campaign.scenario.json --outScenarioInspection campaign.scenario-inspection.json --out campaign.inspection.json --allowUnknownAssets
 medieval-hexagon-gameboard validate-plan --plan board.json --manifest assets/free/manifest.json
 medieval-hexagon-gameboard validate-recipe --recipe scenario.json --manifest assets/free/manifest.json --outPlan board.json
 medieval-hexagon-gameboard analyze-layout --recipe scenario.recipe.json --rules layout-rules.json --out layout-analysis.json --outPlan board.json

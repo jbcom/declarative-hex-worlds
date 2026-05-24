@@ -222,11 +222,15 @@ describe('CLI', () => {
     const blueprintPath = resolve(root, 'campaign-blueprint.json');
     const recipePath = resolve(root, 'campaign-blueprint.recipe.json');
     const planPath = resolve(root, 'campaign-blueprint.plan.json');
+    const scenarioPath = resolve(root, 'campaign-blueprint.scenario.json');
+    const scenarioInspectionPath = resolve(root, 'campaign-blueprint.scenario-inspection.json');
     const inspectionPath = resolve(root, 'campaign-blueprint.inspection.json');
     writeFileSync(
       blueprintPath,
       `${JSON.stringify(
         {
+          scenarioId: 'cli-blueprint-board:intro',
+          title: 'CLI Blueprint Board Intro',
           seed: 'cli-blueprint-board',
           shape: { kind: 'rectangle', width: 7, height: 5 },
           faction: 'green',
@@ -296,6 +300,54 @@ describe('CLI', () => {
             roadSlopes: true,
             bridges: true,
           },
+          spawnGroups: {
+            seed: 'cli-blueprint-board:spawns',
+            profile: {
+              blockedTerrain: ['water'],
+              maxElevationStep: 3,
+              blockingPlacementKinds: ['unit'],
+            },
+            groups: [
+              { id: 'party', count: 1, terrain: ['grass', 'road', 'coast'], edgePadding: 1 },
+              {
+                id: 'raiders',
+                count: 1,
+                terrain: ['grass', 'forest', 'hill', 'road'],
+                edgePadding: 1,
+                minDistanceFromGroups: 2,
+                pathToGroups: ['party'],
+                routeProfile: {
+                  blockedTerrain: ['water'],
+                  maxElevationStep: 3,
+                  blockingPlacementKinds: ['unit'],
+                },
+              },
+            ],
+          },
+          actors: [
+            {
+              actorId: 'player',
+              actorKind: 'player',
+              team: 'green',
+              spawnGroupId: 'party',
+              assetId: 'flag_green',
+              kind: 'unit',
+            },
+            {
+              actorId: 'raider',
+              actorKind: 'enemy',
+              hostile: true,
+              spawnGroupId: 'raiders',
+              assetId: 'flag_red',
+              kind: 'unit',
+            },
+          ],
+          quests: [
+            {
+              id: 'cli-blueprint-board:intro-quest',
+              objectives: [{ id: 'reach-harbor', kind: 'reach-tile', actor: 'player', tile: '5,3' }],
+            },
+          ],
         },
         null,
         2
@@ -312,6 +364,10 @@ describe('CLI', () => {
       recipePath,
       '--outPlan',
       planPath,
+      '--outScenario',
+      scenarioPath,
+      '--outScenarioInspection',
+      scenarioInspectionPath,
       '--out',
       inspectionPath,
     ]);
@@ -325,12 +381,25 @@ describe('CLI', () => {
     const inspection = JSON.parse(readFileSync(inspectionPath, 'utf8')) as {
       counts: Record<string, number>;
       validation: { errorCount: number };
+      scenarioValidation: { errorCount: number; warningCount: number };
+    };
+    const scenario = JSON.parse(readFileSync(scenarioPath, 'utf8')) as {
+      id: string;
+      spawnGroups?: { groups: Array<{ id: string }> };
+      actors?: Array<{ actorId: string; spawnGroupId?: string }>;
+    };
+    const scenarioInspection = JSON.parse(readFileSync(scenarioInspectionPath, 'utf8')) as {
+      violations: Array<{ severity: string }>;
+      spawnGroups?: { groupCount: number; groups: Array<{ id: string; selectedCount: number }> };
     };
 
     expect(output).toContain(`Wrote blueprint GameboardRecipe to ${recipePath}`);
     expect(output).toContain(`Wrote blueprint GameboardPlan to ${planPath}`);
+    expect(output).toContain(`Wrote blueprint GameboardScenario to ${scenarioPath}`);
+    expect(output).toContain(`Wrote blueprint scenario inspection to ${scenarioInspectionPath}`);
     expect(output).toContain(`Wrote blueprint inspection to ${inspectionPath}`);
     expect(inspection.validation.errorCount).toBe(0);
+    expect(inspection.scenarioValidation.errorCount).toBe(0);
     expect(inspection.counts.mountainStacks).toBeGreaterThan(0);
     expect(inspection.counts.townBuildings).toBeGreaterThanOrEqual(4);
     expect(inspection.counts.harbors).toBe(1);
@@ -345,6 +414,22 @@ describe('CLI', () => {
     expect(plan.placements.some((placement) => placement.assetId.startsWith('hex_river_'))).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
     expect(plan.placements.some((placement) => placement.metadata.clusterId === 'cli-worksite')).toBe(true);
+    expect(scenario).toMatchObject({
+      id: 'cli-blueprint-board:intro',
+      spawnGroups: { groups: [{ id: 'party' }, { id: 'raiders' }] },
+    });
+    expect(scenario.actors?.map((actor) => [actor.actorId, actor.spawnGroupId])).toEqual([
+      ['player', 'party'],
+      ['raider', 'raiders'],
+    ]);
+    expect(scenarioInspection.violations.filter((violation) => violation.severity === 'error')).toEqual([]);
+    expect(scenarioInspection.spawnGroups).toMatchObject({
+      groupCount: 2,
+      groups: [
+        { id: 'party', selectedCount: 1 },
+        { id: 'raiders', selectedCount: 1 },
+      ],
+    });
 
     const jsonOutput = JSON.parse(
       runCli([
@@ -354,15 +439,23 @@ describe('CLI', () => {
         '--allowUnknownAssets',
         '--json',
         '--includePlan',
+        '--includeScenario',
+        '--includeScenarioInspection',
       ])
     ) as {
       tileCount: number;
       placementCount: number;
       plan?: { tiles: unknown[] };
+      scenario?: { id: string };
+      scenarioInspection?: { spawnGroups?: { groupCount: number } };
+      scenarioValidation?: { errorCount: number };
     };
     expect(jsonOutput.tileCount).toBe(plan.tiles.length);
     expect(jsonOutput.placementCount).toBe(plan.placements.length);
     expect(jsonOutput.plan?.tiles.length).toBe(plan.tiles.length);
+    expect(jsonOutput.scenario?.id).toBe('cli-blueprint-board:intro');
+    expect(jsonOutput.scenarioInspection?.spawnGroups?.groupCount).toBe(2);
+    expect(jsonOutput.scenarioValidation?.errorCount).toBe(0);
   });
 
   it('analyzes layout fill rules against a saved plan through the CLI', () => {

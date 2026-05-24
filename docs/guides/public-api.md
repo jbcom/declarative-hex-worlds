@@ -166,6 +166,8 @@ medieval-hexagon-gameboard blueprint \
   --blueprint examples/blueprint-board.json \
   --outRecipe campaign.recipe.json \
   --outPlan campaign.plan.json \
+  --outScenario campaign.scenario.json \
+  --outScenarioInspection campaign.scenario-inspection.json \
   --out campaign.inspection.json \
   --allowUnknownAssets
 ```

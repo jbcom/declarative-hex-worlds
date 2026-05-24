@@ -16,8 +16,11 @@ import {
 } from './compatibility';
 import {
   inspectMedievalGameboardBlueprint,
+  inspectMedievalGameboardBlueprintScenario,
   type MedievalGameboardBlueprintInspection,
   type MedievalGameboardBlueprintOptions,
+  type MedievalGameboardBlueprintScenarioInspection,
+  type MedievalGameboardBlueprintScenarioOptions,
 } from './blueprint';
 import {
   describeKayKitGuideAssetCoverage,
@@ -857,11 +860,13 @@ function runPiecesFromAssets(parsed: ParsedArgs): void {
 }
 
 function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
-  const inspection = inspectMedievalGameboardBlueprint(readBlueprintOptions(parsed.flags));
-  const violations = validateGameboardPlan(
-    inspection.plan,
-    validationConfigFromArgs(parsed, sourceRoot, edition)
-  );
+  const options = readBlueprintOptions(parsed.flags);
+  const validationConfig = validationConfigFromArgs(parsed, sourceRoot, edition);
+  const inspection = inspectMedievalGameboardBlueprint(options);
+  const violations = validateGameboardPlan(inspection.plan, validationConfig);
+  const scenarioInspection = shouldInspectBlueprintScenario(options, parsed.flags)
+    ? inspectMedievalGameboardBlueprintScenario(options, { plan: validationConfig })
+    : undefined;
 
   if (typeof parsed.flags.outRecipe === 'string') {
     writeFileSync(
@@ -879,8 +884,39 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
     );
     console.log(`Wrote blueprint GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
   }
+  if (typeof parsed.flags.outScenario === 'string') {
+    if (!scenarioInspection) {
+      throw new Error('blueprint --outScenario requires scenario options or --includeScenario');
+    }
+    writeFileSync(
+      resolve(parsed.flags.outScenario),
+      `${JSON.stringify(scenarioInspection.scenario, null, 2)}\n`,
+      'utf8'
+    );
+    console.log(`Wrote blueprint GameboardScenario to ${resolve(parsed.flags.outScenario)}`);
+  }
+  if (typeof parsed.flags.outScenarioInspection === 'string') {
+    if (!scenarioInspection) {
+      throw new Error(
+        'blueprint --outScenarioInspection requires scenario options or --includeScenarioInspection'
+      );
+    }
+    writeFileSync(
+      resolve(parsed.flags.outScenarioInspection),
+      `${JSON.stringify(scenarioInspection.scenarioInspection, null, 2)}\n`,
+      'utf8'
+    );
+    console.log(
+      `Wrote blueprint scenario inspection to ${resolve(parsed.flags.outScenarioInspection)}`
+    );
+  }
 
-  const payload = blueprintPayloadFromInspection(inspection, violations, parsed.flags);
+  const payload = blueprintPayloadFromInspection(
+    inspection,
+    violations,
+    parsed.flags,
+    scenarioInspection
+  );
   if (typeof parsed.flags.out === 'string') {
     writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
     console.log(`Wrote blueprint inspection to ${resolve(parsed.flags.out)}`);
@@ -888,12 +924,19 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
     console.log(JSON.stringify(payload, null, 2));
   } else {
     printBlueprintInspection(inspection, violations);
+    if (scenarioInspection) {
+      printBlueprintScenarioInspection(scenarioInspection);
+    }
   }
 
-  const hasErrors = violations.some((violation) => violation.severity === 'error');
+  const scenarioViolations = scenarioInspection?.scenarioInspection.violations ?? [];
+  const hasErrors =
+    violations.some((violation) => violation.severity === 'error') ||
+    scenarioViolations.some((violation) => violation.severity === 'error');
   const hasWarnings =
     inspection.warnings.length > 0 ||
-    violations.some((violation) => violation.severity === 'warning');
+    violations.some((violation) => violation.severity === 'warning') ||
+    scenarioViolations.some((violation) => violation.severity === 'warning');
   if (hasErrors) {
     process.exit(1);
   }
@@ -1997,7 +2040,7 @@ function runSimulateScenario(parsed: ParsedArgs, sourceRoot: string, edition: Pa
 
 function readBlueprintOptions(
   flags: Record<string, string | boolean>
-): MedievalGameboardBlueprintOptions {
+): MedievalGameboardBlueprintScenarioOptions {
   const configPath =
     typeof flags.blueprint === 'string'
       ? flags.blueprint
@@ -2005,7 +2048,7 @@ function readBlueprintOptions(
         ? flags.config
         : undefined;
   const fileOptions = configPath ? readBlueprintOptionsFile(resolve(configPath)) : {};
-  const cliOptions: MedievalGameboardBlueprintOptions = {};
+  const cliOptions: MedievalGameboardBlueprintScenarioOptions = {};
   const width = readNumberFlag(flags.width);
   const height = readNumberFlag(flags.height);
   const radius = readNumberFlag(flags.radius);
@@ -2063,7 +2106,7 @@ function readBlueprintOptions(
   };
 }
 
-function readBlueprintOptionsFile(path: string): MedievalGameboardBlueprintOptions {
+function readBlueprintOptionsFile(path: string): MedievalGameboardBlueprintScenarioOptions {
   const payload = readJson<unknown>(path);
   const options =
     isRecord(payload) && isRecord(payload.blueprint)
@@ -2076,16 +2119,24 @@ function readBlueprintOptionsFile(path: string): MedievalGameboardBlueprintOptio
       `Blueprint file ${path} must be an options object, { "blueprint": ... }, or { "options": ... }`
     );
   }
-  return options as unknown as MedievalGameboardBlueprintOptions;
+  return options as unknown as MedievalGameboardBlueprintScenarioOptions;
 }
 
 function blueprintPayloadFromInspection(
   inspection: MedievalGameboardBlueprintInspection,
   violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>,
-  flags: Record<string, string | boolean>
+  flags: Record<string, string | boolean>,
+  scenarioInspection?: MedievalGameboardBlueprintScenarioInspection
 ): Record<string, unknown> {
   const errorCount = violations.filter((violation) => violation.severity === 'error').length;
   const warningCount = violations.filter((violation) => violation.severity === 'warning').length;
+  const scenarioViolations = scenarioInspection?.scenarioInspection.violations ?? [];
+  const scenarioErrorCount = scenarioViolations.filter(
+    (violation) => violation.severity === 'error'
+  ).length;
+  const scenarioWarningCount = scenarioViolations.filter(
+    (violation) => violation.severity === 'warning'
+  ).length;
   return {
     seed: inspection.plan.seed,
     shape: inspection.plan.shape,
@@ -2101,7 +2152,47 @@ function blueprintPayloadFromInspection(
     },
     ...(flags.includeRecipe === true ? { recipe: inspection.recipe } : {}),
     ...(flags.includePlan === true ? { plan: inspection.plan } : {}),
+    ...(scenarioInspection
+      ? {
+          scenarioValidation: {
+            errorCount: scenarioErrorCount,
+            warningCount: scenarioWarningCount,
+            violations: scenarioViolations,
+          },
+        }
+      : {}),
+    ...(flags.includeScenario === true && scenarioInspection
+      ? { scenario: scenarioInspection.scenario }
+      : {}),
+    ...(flags.includeScenarioInspection === true && scenarioInspection
+      ? { scenarioInspection: scenarioInspection.scenarioInspection }
+      : {}),
   };
+}
+
+function shouldInspectBlueprintScenario(
+  options: MedievalGameboardBlueprintScenarioOptions,
+  flags: Record<string, string | boolean>
+): boolean {
+  return (
+    hasBlueprintScenarioContent(options) ||
+    typeof flags.outScenario === 'string' ||
+    typeof flags.outScenarioInspection === 'string' ||
+    flags.includeScenario === true ||
+    flags.includeScenarioInspection === true
+  );
+}
+
+function hasBlueprintScenarioContent(options: MedievalGameboardBlueprintScenarioOptions): boolean {
+  return Boolean(
+    options.scenarioId ||
+      options.title ||
+      options.spawnGroups ||
+      options.patrolRoutes?.length ||
+      options.actors?.length ||
+      options.quests?.length ||
+      options.scenarioMetadata
+  );
 }
 
 function readSimulationScript(path: string): GameboardScenarioSimulationScript {
@@ -2387,6 +2478,18 @@ function printBlueprintInspection(
     console.log('blueprint warnings: none');
   }
   printViolations(violations);
+}
+
+function printBlueprintScenarioInspection(
+  inspection: MedievalGameboardBlueprintScenarioInspection
+): void {
+  const scenarioInspection = inspection.scenarioInspection;
+  console.log(`scenario: ${inspection.scenario.id}`);
+  console.log(`scenario actors: ${inspection.scenario.actors?.length ?? 0}`);
+  console.log(`scenario quests: ${inspection.scenario.quests?.length ?? 0}`);
+  console.log(`scenario spawn groups: ${scenarioInspection.spawnGroups?.groupCount ?? 0}`);
+  console.log(`scenario patrol routes: ${scenarioInspection.patrolRoutes?.routeCount ?? 0}`);
+  printViolations(scenarioInspection.violations);
 }
 
 function printPieceRegistryAnalysis(analysis: GameboardPieceRegistryAnalysis): void {
@@ -3248,7 +3351,7 @@ Commands:
   guide-assets Emit asset id to guide-page, API, docs, and visual coverage metadata
   guide-roles Emit public role to guide-page, asset, and API coverage metadata
   guide-apis Emit public API to guide-page and asset coverage metadata
-  blueprint Compile high-level 2.5D board intent to a recipe, plan, and diagnostics
+  blueprint Compile high-level 2.5D board intent to a recipe, plan, scenario, and diagnostics
   pieces    Validate piece declarations and optionally emit seeded piece fill rules
   place-piece Inspect and append one declared piece against a saved GameboardPlan, recipe, or scenario
   validate-plan Validate a GameboardPlan JSON with optional registry rules
@@ -3280,6 +3383,10 @@ Options:
   --script <path>
   --blueprint <path>
   --config <path>
+  --outScenario <path>
+  --outScenarioInspection <path>
+  --includeScenario
+  --includeScenarioInspection
   --assignments <path>
   --routeId <id>
   --actorId <id>
