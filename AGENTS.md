@@ -557,9 +557,11 @@ Use `pnpm test:assets` when touching generated FREE assets, manifests, asset
 taxonomy, NOTICE attribution, or ingest output paths.
 Use `pnpm test:reference-assets` when local `references/` source inventory,
 EXTRA support, ingest taxonomy, seasonal textures, unit/building/prop/tile
-coverage, or duplicate source basename handling changes. It skips local source
-checks when the gitignored reference folders are not present, but on this
-machine it should audit both FREE and EXTRA sources.
+coverage, duplicate source basename handling, or third-party E2E fixture paths
+change. It skips local source checks when the gitignored reference folders are
+not present, but on this machine it should audit both FREE and EXTRA sources
+plus the Kenney Castle Kit and KayKit Adventurers fixture inventories used by
+the local browser E2E harness.
 Use `pnpm test:workspace` when touching Nx targets, package exports, tsup
 entries, pnpm workspace settings, or docs package dependency versions.
 Use `pnpm test:cli` after `pnpm build` when CLI commands, packaged examples,

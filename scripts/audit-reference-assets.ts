@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
   describeKayKitAssetTreatment,
@@ -293,8 +293,11 @@ auditManifest('packaged FREE manifest', freeManifest, {
 });
 
 let localAuditCount = 0;
+let localFixtureAuditCount = 0;
 auditLocalSource('free', 'KayKit_Medieval_Hexagon_Pack_1.0_FREE', expectedFreeIds);
 auditLocalSource('extra', 'KayKit_Medieval_Hexagon_Pack_1.0_EXTRA', expectedExtraIds);
+auditKenneyCastleKitFixture();
+auditKayKitAdventurersFixture();
 
 if (failures.length > 0) {
   for (const failure of failures) {
@@ -303,8 +306,12 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
+const localAudits = [
+  localAuditCount > 0 ? `${localAuditCount} KayKit source(s)` : undefined,
+  localFixtureAuditCount > 0 ? `${localFixtureAuditCount} third-party fixture(s)` : undefined,
+].filter((value): value is string => typeof value === 'string');
 const localSummary =
-  localAuditCount > 0 ? ` and ${localAuditCount} local reference source(s)` : '; local references not present, source audit skipped';
+  localAudits.length > 0 ? ` and ${localAudits.join(', ')}` : '; local references not present, source audit skipped';
 console.log(`reference asset audit passed for packaged FREE manifest${localSummary}`);
 
 function auditLocalSource(edition: PackEdition, rootName: string, expectedIds: readonly string[]): void {
@@ -376,6 +383,58 @@ function auditLocalSource(edition: PackEdition, rootName: string, expectedIds: r
     const extraOnlyIds = manifest.assets.filter((asset) => !freeManifest.assetsById[asset.id]).map((asset) => asset.id);
     assert(extraOnlyIds.length === 183, `EXTRA-only asset id count expected 183, got ${extraOnlyIds.length}`);
   }
+}
+
+function auditKenneyCastleKitFixture(): void {
+  const root = join(workspaceRoot, 'references', 'kenney_castle-kit');
+  if (!existsSync(root)) {
+    return;
+  }
+  localFixtureAuditCount += 1;
+
+  const glbRoot = join(root, 'Models', 'GLB format');
+  const glbFiles = listDirectFiles(glbRoot, '.glb', 'Kenney Castle Kit GLB fixture');
+  assert(glbFiles.length === 76, `Kenney Castle Kit GLB count expected 76, got ${glbFiles.length}`);
+
+  for (const fixture of ['tower-hexagon-base.glb', 'tower-square-base.glb', 'tree-large.glb']) {
+    assert(glbFiles.includes(fixture), `Kenney Castle Kit local E2E fixture is missing ${fixture}`);
+  }
+
+  const overrides = readJsonObject('docs/examples/local-piece-overrides.kenney-castle.json').overrides;
+  assert(isRecord(overrides), 'Kenney Castle Kit piece override example must expose an overrides object');
+  if (isRecord(overrides)) {
+    for (const key of Object.keys(overrides)) {
+      assert(glbFiles.includes(`${key}.glb`), `Kenney Castle Kit override ${key} does not match a local GLB file`);
+    }
+  }
+}
+
+function auditKayKitAdventurersFixture(): void {
+  const root = join(workspaceRoot, 'references', 'KayKit_Adventurers_2.0_FREE');
+  if (!existsSync(root)) {
+    return;
+  }
+  localFixtureAuditCount += 1;
+
+  assertEqualList(
+    listDirectFiles(join(root, 'Characters', 'gltf'), '.glb', 'KayKit Adventurers character fixture'),
+    ['Barbarian.glb', 'Knight.glb', 'Mage.glb', 'Ranger.glb', 'Rogue.glb', 'Rogue_Hooded.glb'],
+    'KayKit Adventurers character GLBs'
+  );
+  assertEqualList(
+    listDirectFiles(join(root, 'Animations', 'gltf', 'Rig_Medium'), '.glb', 'KayKit Adventurers animation fixture'),
+    ['Rig_Medium_General.glb', 'Rig_Medium_MovementBasic.glb'],
+    'KayKit Adventurers Rig_Medium animation GLBs'
+  );
+  assert(
+    listDirectFiles(join(root, 'Assets', 'gltf'), '.gltf', 'KayKit Adventurers prop fixture').length === 31,
+    'KayKit Adventurers prop GLTF count expected 31'
+  );
+  assert(existsSync(join(root, 'Characters', 'gltf', 'Knight.glb')), 'KayKit Adventurers local E2E fixture is missing Knight.glb');
+  assert(
+    existsSync(join(root, 'Animations', 'gltf', 'Rig_Medium', 'Rig_Medium_MovementBasic.glb')),
+    'KayKit Adventurers local E2E fixture is missing Rig_Medium_MovementBasic.glb'
+  );
 }
 
 function auditManifest(
@@ -534,6 +593,27 @@ function readRequired(path: string): string {
   const resolved = join(workspaceRoot, path);
   assert(existsSync(resolved), `missing ${path}`);
   return existsSync(resolved) ? readFileSync(resolved, 'utf8') : '';
+}
+
+function readJsonObject(path: string): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(readRequired(path));
+  assert(isRecord(parsed), `${path} must contain a JSON object`);
+  return isRecord(parsed) ? parsed : {};
+}
+
+function listDirectFiles(root: string, extension: string, label: string): string[] {
+  assert(existsSync(root), `${label} root is missing: ${root}`);
+  if (!existsSync(root)) {
+    return [];
+  }
+  return readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(extension))
+    .map((entry) => entry.name)
+    .sort();
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function assert(condition: unknown, message: string): asserts condition {

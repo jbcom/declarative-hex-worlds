@@ -277,6 +277,11 @@ NOTICE attribution.
 `pnpm test:reference-assets` also checks the exact FREE/EXTRA source inventory
 when the gitignored `references/` folders are available locally, including
 EXTRA-only categories, seasonal texture sets, and duplicate basename handling.
+When the Kenney Castle Kit and KayKit Adventurers reference folders are present,
+the same audit verifies the third-party fixture inventories used by local E2E:
+Kenney GLB count and documented override keys, Adventurers character GLBs,
+Rig_Medium animation GLBs, prop GLTF count, and the exact knight/movement assets
+used for actor-facing coverage.
 That audit also fails if a source asset is merely present but lacks a public
 asset treatment via `listKayKitAssetPublicTreatments()` or guide-page coverage
 via `listKayKitGuideScenarios()` and
