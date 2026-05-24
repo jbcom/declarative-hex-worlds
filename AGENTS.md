@@ -17,6 +17,10 @@ contract for CI and npm consumers.
   screenshot, docs, API, or package-gate changes.
 - The guide imagery lives in `docs/assets/kaykit-guide/` and is generated from
   `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/Medieval_Hexagon_UserGuide_v1.pdf`.
+  Regenerate it with `pnpm assets:guide`; that command runs the TypeScript
+  entrypoint in `scripts/extract-kaykit-guide.ts`, using the deterministic Swift
+  renderer on macOS when available and falling back to `pdftoppm` plus
+  ImageMagick's `magick` command on other contributor machines.
 - Use `listKayKitGuideScenarios()` from `./catalog` when mapping guide pages to
   assets, public APIs, docs, and screenshot artifacts. Keep
   `docs/guides/guide-scenario-coverage.md` synchronized with those scenario ids

@@ -263,6 +263,11 @@ pnpm pack:dry-run
 ```
 
 For the serialized non-browser release gate, run `pnpm test:ci`.
+`pnpm assets:guide` renders the FREE guide PDF into
+`docs/assets/kaykit-guide/pages/` and `docs/assets/kaykit-guide/montage.png`
+through the TypeScript entrypoint `scripts/extract-kaykit-guide.ts`. On macOS it
+uses the existing Swift/PDFKit renderer for deterministic output when `swift` is
+available; elsewhere it expects `pdftoppm` and ImageMagick's `magick` on `PATH`.
 `pnpm test:cli` runs the built `dist/cli.js` against the packaged FREE manifest,
 packaged examples, the SimpleRPG scenario/simulation, and synthetic external
 GLTF fixtures for compatibility and custom-piece declarations.

@@ -39,6 +39,8 @@ implementation_links:
   - docs/examples/blueprint-board.json
   - docs/guides/guide-scenario-coverage.md
   - package.json
+  - scripts/extract-kaykit-guide.ts
+  - scripts/extract-kaykit-guide.swift
   - packages/medieval-hexagon-gameboard/docs/showcases/free-blueprint-builder-showcase.png
   - packages/medieval-hexagon-gameboard/docs/showcases/extra-blueprint-biome-transition-showcase.png
   - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-scenarios-by-extracted-page.png
@@ -87,6 +89,13 @@ test_links:
 Visual coverage is part of the package contract. The tests render the guide-defined
 tile permutations and catalog contact sheets in a real browser through Vitest
 Browser Mode and Playwright Chromium.
+
+The extracted guide PNGs are regenerated with `pnpm assets:guide`, which is a
+TypeScript entrypoint around platform-specific renderers. It uses the Swift/PDFKit
+path on macOS when `swift` is present, and otherwise falls back to `pdftoppm`
+plus ImageMagick's `magick`. The output contract stays the same across backends:
+`docs/assets/kaykit-guide/pages/page-01.png` through `page-19.png` plus
+`docs/assets/kaykit-guide/montage.png`.
 
 Every Three.js browser render asserts renderer draw calls and triangles before a
 screenshot is accepted. The package browser scripts also run
