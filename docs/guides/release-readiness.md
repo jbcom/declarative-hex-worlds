@@ -18,7 +18,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPasse
 - Public roles: 12
 - Visual artifacts: 44 available, 0 missing, 0 skipped
 - Local references: 4 available, 0 missing, 0 skipped
-- Release checks: 8 passed, 0 failed, 0 not run, 0 skipped
+- Release checks: 9 passed, 0 failed, 0 not run, 0 skipped
 
 ## Manifest Coverage
 
@@ -53,6 +53,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPasse
 | passed | `pnpm docs:build` |  |
 | passed | `pnpm test:consumer` |  |
 | passed | `pnpm test:visual` |  |
+| passed | `pnpm test:workflows` |  |
 | passed | `pnpm pack:dry-run` |  |
 
 ## Visual Artifacts
@@ -137,4 +138,5 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPasse
 - `pnpm docs:build`
 - `pnpm test:consumer`
 - `pnpm test:visual`
+- `pnpm test:workflows`
 - `pnpm pack:dry-run`

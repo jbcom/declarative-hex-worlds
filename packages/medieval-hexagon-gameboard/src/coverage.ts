@@ -274,6 +274,7 @@ export const GAMEBOARD_RELEASE_GATE_COMMANDS = [
   'pnpm docs:build',
   'pnpm test:consumer',
   'pnpm test:visual',
+  'pnpm test:workflows',
   'pnpm pack:dry-run',
 ] as const;
 

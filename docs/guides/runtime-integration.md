@@ -135,7 +135,7 @@ const targetPlan = runtime.inspectActorTargets({
 
 if (targetPlan.nearestTarget) {
   runtime.interactActorTarget(
-    { sourceActor: 'player', targetActorId: targetPlan.nearestTarget.actor.actor.actorId },
+    { sourceActor: 'player', targetActorId: targetPlan.nearestTarget.actor.actorId },
     { handlers, systems: { movement: false, quests: true } }
   );
 }

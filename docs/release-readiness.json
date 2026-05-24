@@ -35218,6 +35218,12 @@
       "status": "passed"
     },
     {
+      "id": "test-workflows",
+      "label": "pnpm test:workflows",
+      "command": "pnpm test:workflows",
+      "status": "passed"
+    },
+    {
       "id": "pack-dry-run",
       "label": "pnpm pack:dry-run",
       "command": "pnpm pack:dry-run",
@@ -35233,6 +35239,7 @@
     "pnpm docs:build",
     "pnpm test:consumer",
     "pnpm test:visual",
+    "pnpm test:workflows",
     "pnpm pack:dry-run"
   ]
 }
