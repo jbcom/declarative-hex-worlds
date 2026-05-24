@@ -130,6 +130,33 @@ const coverageSource = readRequired('packages/medieval-hexagon-gameboard/src/cov
 const guideDocs = readGuideDocs();
 const docsMarkdownPaths = readDocsMarkdownPaths();
 const tsupEntries = readTsupEntries(tsupConfig);
+const ignoredUntrackedWorkspacePaths = [
+  {
+    checkPath: 'docs/api/index.html',
+    label: 'generated TypeDoc docs/api output',
+    trackedPath: 'docs/api',
+  },
+  {
+    checkPath: 'apps/docs/dist/index.html',
+    label: 'generated VitePress docs app output',
+    trackedPath: 'apps/docs/dist',
+  },
+  {
+    checkPath: 'packages/medieval-hexagon-gameboard/dist/index.js',
+    label: 'generated package dist output',
+    trackedPath: 'packages/medieval-hexagon-gameboard/dist',
+  },
+  {
+    checkPath: 'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-catalog.png',
+    label: 'generated browser screenshot output',
+    trackedPath: 'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__',
+  },
+  {
+    checkPath: 'references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA',
+    label: 'local reference asset packs',
+    trackedPath: 'references',
+  },
+] as const;
 
 requireWorkspaceScripts();
 requireWorkspacePackages();
@@ -713,19 +740,20 @@ function requireTypeDocConfiguration(): void {
   assert(typedocJson.validation?.notExported === true, 'typedoc must validate notExported links');
   assert(typedocJson.validation?.invalidLink === true, 'typedoc must validate invalid links');
   assert(typedocJson.validation?.notDocumented === false, 'typedoc config should leave notDocumented to test:api-docs');
-  requireGeneratedApiDocsStayIgnored();
+  requireGeneratedAndLocalOnlyOutputsStayIgnored();
 }
 
-function requireGeneratedApiDocsStayIgnored(): void {
-  const gitignore = readRequired('.gitignore');
-  assert(
-    gitignore
-      .split(/\r?\n/)
-      .some((line) => line.trim() === 'docs/api'),
-    '.gitignore must ignore generated TypeDoc docs/api output'
-  );
-  assertGitOutputEmpty(['ls-files', 'docs/api'], 'generated TypeDoc docs/api output must not be committed');
-  assertGitCommandSucceeds(['check-ignore', 'docs/api/index.html'], '.gitignore must ignore docs/api/index.html');
+function requireGeneratedAndLocalOnlyOutputsStayIgnored(): void {
+  for (const outputPath of ignoredUntrackedWorkspacePaths) {
+    assertGitOutputEmpty(
+      ['ls-files', outputPath.trackedPath],
+      `${outputPath.label} must not be committed`
+    );
+    assertGitCommandSucceeds(
+      ['check-ignore', outputPath.checkPath],
+      `.gitignore must ignore ${outputPath.label} at ${outputPath.checkPath}`
+    );
+  }
 }
 
 function expectedTypeDocEntryPoints(): string[] {
