@@ -1,4 +1,6 @@
 {
+  "scenarioId": "docs-blueprint-board:intro",
+  "title": "Docs Blueprint Board Intro",
   "seed": "docs-blueprint-board",
   "shape": { "kind": "rectangle", "width": 12, "height": 9 },
   "faction": "blue",
@@ -99,5 +101,89 @@
     "trees": { "fill": 0.08, "maxCount": 12 },
     "rocks": { "fill": 0.04, "maxCount": 8 },
     "props": { "fill": 0.04, "maxCount": 8 }
+  },
+  "spawnGroups": {
+    "seed": "docs-blueprint-board:spawns",
+    "profile": {
+      "blockedTerrain": ["water"],
+      "maxElevationStep": 3,
+      "blockingPlacementKinds": ["unit"]
+    },
+    "groups": [
+      { "id": "party", "count": 1, "terrain": ["grass"], "edgePadding": 1 },
+      {
+        "id": "raiders",
+        "count": 2,
+        "terrain": ["grass", "forest", "hill", "road"],
+        "edgePadding": 1,
+        "minDistanceFromGroups": 4,
+        "pathToGroups": ["party"],
+        "routeProfile": {
+          "blockedTerrain": ["water"],
+          "maxElevationStep": 3,
+          "blockingPlacementKinds": ["unit"]
+        }
+      }
+    ]
+  },
+  "patrolRoutes": [
+    {
+      "id": "raider-watch",
+      "startGroupId": "raiders",
+      "startLocationIndex": 0,
+      "terrain": ["grass", "forest", "hill", "road"],
+      "count": 3,
+      "loop": true,
+      "routeProfile": {
+        "blockedTerrain": ["water"],
+        "maxElevationStep": 3,
+        "blockingPlacementKinds": ["unit"]
+      }
+    }
+  ],
+  "actors": [
+    {
+      "actorId": "player",
+      "actorKind": "player",
+      "team": "blue",
+      "spawnGroupId": "party",
+      "assetId": "flag_blue",
+      "kind": "unit"
+    },
+    {
+      "actorId": "raider-captain",
+      "actorKind": "enemy",
+      "team": "red",
+      "hostile": true,
+      "spawnGroupId": "raiders",
+      "spawnLocationIndex": 0,
+      "assetId": "flag_red",
+      "kind": "unit",
+      "patrolAgent": { "routeId": "raider-watch", "active": true, "pauseTicks": 1 }
+    },
+    {
+      "actorId": "raider-scout",
+      "actorKind": "enemy",
+      "team": "red",
+      "hostile": true,
+      "spawnGroupId": "raiders",
+      "spawnLocationIndex": 1,
+      "assetId": "flag_yellow",
+      "kind": "unit"
+    }
+  ],
+  "quests": [
+    {
+      "id": "docs-blueprint-board:intro-quest",
+      "title": "Open the South Port",
+      "objectives": [
+        { "id": "reach-south-port", "kind": "reach-tile", "actor": "player", "tile": "6,7", "maxDistance": 1 },
+        { "id": "identify-raiders", "kind": "reach-actor", "actor": "player", "targetActor": "raider-captain", "maxDistance": 3 }
+      ]
+    }
+  ],
+  "scenarioMetadata": {
+    "example": "blueprint-board",
+    "uses": "board-scenario-interop"
   }
 }

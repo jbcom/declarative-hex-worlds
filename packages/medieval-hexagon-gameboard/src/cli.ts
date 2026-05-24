@@ -70,6 +70,7 @@ import {
   createGameboardInteropSnapshot,
   createGameboardScenarioInteropSnapshot,
   createGameboardSimulationInteropSnapshot,
+  type GameboardInteropSnapshot,
   type GameboardScenarioInteropOptions,
 } from './interop';
 import {
@@ -867,6 +868,9 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
   const scenarioInspection = shouldInspectBlueprintScenario(options, parsed.flags)
     ? inspectMedievalGameboardBlueprintScenario(options, { plan: validationConfig })
     : undefined;
+  const interop = shouldEmitBlueprintInterop(parsed.flags)
+    ? createBlueprintScenarioInteropSnapshot(parsed, scenarioInspection)
+    : undefined;
 
   if (typeof parsed.flags.outRecipe === 'string') {
     writeFileSync(
@@ -910,12 +914,26 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
       `Wrote blueprint scenario inspection to ${resolve(parsed.flags.outScenarioInspection)}`
     );
   }
+  if (typeof parsed.flags.outInterop === 'string') {
+    if (!interop) {
+      throw new Error('blueprint --outInterop requires a generated blueprint scenario');
+    }
+    writeFileSync(
+      resolve(parsed.flags.outInterop),
+      `${JSON.stringify(interop, null, 2)}\n`,
+      'utf8'
+    );
+    console.log(
+      `Wrote blueprint interop snapshot with ${interop.entities.length} entities and ${interop.relations.length} relations to ${resolve(parsed.flags.outInterop)}`
+    );
+  }
 
   const payload = blueprintPayloadFromInspection(
     inspection,
     violations,
     parsed.flags,
-    scenarioInspection
+    scenarioInspection,
+    interop
   );
   if (typeof parsed.flags.out === 'string') {
     writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
@@ -2126,7 +2144,8 @@ function blueprintPayloadFromInspection(
   inspection: MedievalGameboardBlueprintInspection,
   violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>,
   flags: Record<string, string | boolean>,
-  scenarioInspection?: MedievalGameboardBlueprintScenarioInspection
+  scenarioInspection?: MedievalGameboardBlueprintScenarioInspection,
+  interop?: GameboardInteropSnapshot
 ): Record<string, unknown> {
   const errorCount = violations.filter((violation) => violation.severity === 'error').length;
   const warningCount = violations.filter((violation) => violation.severity === 'warning').length;
@@ -2167,6 +2186,22 @@ function blueprintPayloadFromInspection(
     ...(flags.includeScenarioInspection === true && scenarioInspection
       ? { scenarioInspection: scenarioInspection.scenarioInspection }
       : {}),
+    ...(interop
+      ? {
+          interopSummary: {
+            entityCount: interop.entities.length,
+            relationCount: interop.relations.length,
+            spawnLocationCount: interop.spawnLocations.length,
+            actorCount: interop.entities.filter((entity) => entity.kind === 'actor').length,
+            questCount: interop.entities.filter((entity) => entity.kind === 'quest').length,
+            spawnGroupCount: interop.entities.filter((entity) => entity.kind === 'spawn-group')
+              .length,
+            patrolRouteCount: interop.entities.filter((entity) => entity.kind === 'patrol-route')
+              .length,
+          },
+        }
+      : {}),
+    ...(flags.includeInterop === true && interop ? { interop } : {}),
   };
 }
 
@@ -2178,8 +2213,27 @@ function shouldInspectBlueprintScenario(
     hasBlueprintScenarioContent(options) ||
     typeof flags.outScenario === 'string' ||
     typeof flags.outScenarioInspection === 'string' ||
+    typeof flags.outInterop === 'string' ||
     flags.includeScenario === true ||
-    flags.includeScenarioInspection === true
+    flags.includeScenarioInspection === true ||
+    flags.includeInterop === true
+  );
+}
+
+function shouldEmitBlueprintInterop(flags: Record<string, string | boolean>): boolean {
+  return typeof flags.outInterop === 'string' || flags.includeInterop === true;
+}
+
+function createBlueprintScenarioInteropSnapshot(
+  parsed: ParsedArgs,
+  scenarioInspection: MedievalGameboardBlueprintScenarioInspection | undefined
+): GameboardInteropSnapshot {
+  if (!scenarioInspection) {
+    throw new Error('blueprint interop output requires a generated blueprint scenario');
+  }
+  return createGameboardScenarioInteropSnapshot(
+    scenarioInspection.scenario,
+    snapshotOptionsFromFlags(parsed.flags)
   );
 }
 
@@ -3461,6 +3515,7 @@ Options:
   --includeReports
   --includeRecipe
   --includePlan
+  --includeInterop
   --includeAbsolutePaths
   --outManifest <path>
   --outRecipe <path>

@@ -101,7 +101,10 @@ ordinary recipe JSON.
 `GameboardPlan`; `createMedievalGameboardBlueprintScenario` wraps the generated
 recipe with spawn groups, patrol routes, actors, movement agents, and quests;
 `createMedievalGameboardWorldFromBlueprint` instantiates that scenario into a
-ready Koota runtime. `inspectMedievalGameboardBlueprint` and
+ready Koota runtime. The CLI can emit the generated scenario and its neutral
+ECS interop snapshot in the same compile step, so engines that do not use Koota
+can still mount the board, spawn groups, patrol routes, actors, and quests from
+one blueprint file. `inspectMedievalGameboardBlueprint` and
 `inspectMedievalGameboardBlueprintScenario` return counts, generated plans,
 spawn-group route diagnostics, patrol-route diagnostics, and validation results
 for authoring UIs and CI.
@@ -168,6 +171,7 @@ medieval-hexagon-gameboard blueprint \
   --outPlan campaign.plan.json \
   --outScenario campaign.scenario.json \
   --outScenarioInspection campaign.scenario-inspection.json \
+  --outInterop campaign.interop.json \
   --out campaign.inspection.json \
   --allowUnknownAssets
 ```

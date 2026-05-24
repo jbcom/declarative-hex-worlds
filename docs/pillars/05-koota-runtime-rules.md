@@ -764,6 +764,11 @@ with selected locations and route-check records, patrol routes become neutral
 route and waypoint entities with segment relations, quests become neutral quest
 entities, and relations preserve spawn group locations/routes, patrol waypoints,
 actor tile occupancy, and quest actor/tile targets.
+The `blueprint` CLI command is the build-time shortcut for this full path: a
+single blueprint JSON can emit its recipe, concrete plan, generated scenario,
+scenario diagnostics, and `--outInterop` neutral ECS snapshot. Use that path for
+external engines that want board-scale authoring plus spawn/patrol/quest records
+without adopting the Koota runtime.
 
 `./simulation` is the headless usage harness for scenarios. A
 `GameboardScenarioSimulationScript` runs public command targets through

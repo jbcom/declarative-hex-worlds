@@ -1650,6 +1650,9 @@ Blueprints compile to regular recipe JSON and then to a regular `GameboardPlan`,
 or to a regular `GameboardScenario` when the same board intent should include
 spawn groups, actors, patrol routes, and quests. Renderers, Koota, external ECS
 adapters, validators, and saved scenarios do not need a special runtime.
+The CLI mirrors that full path: `blueprint --outScenario --outInterop` writes
+the generated scenario plus a neutral ECS snapshot for engines that want the
+board, spawn groups, patrol routes, actors, and quests without adopting Koota.
 `biomeFills` controls texture-set percentages;
 `maxElevation` and `mountainRanges` create stacked multi-tile ridges;
 `propClusterDressing` compiles generated or authored camps, resource caches,
@@ -2243,7 +2246,7 @@ medieval-hexagon-gameboard analyze --edition free
 medieval-hexagon-gameboard analyze --manifest assets/free/manifest.json --json
 medieval-hexagon-gameboard declarations --manifest assets/free/manifest.json --out kaykit-declarations.json
 medieval-hexagon-gameboard analyze --registry kaykit-declarations.json
-medieval-hexagon-gameboard blueprint --blueprint examples/blueprint-board.json --outRecipe campaign.recipe.json --outPlan campaign.plan.json --outScenario campaign.scenario.json --outScenarioInspection campaign.scenario-inspection.json --out campaign.inspection.json --allowUnknownAssets
+medieval-hexagon-gameboard blueprint --blueprint examples/blueprint-board.json --outRecipe campaign.recipe.json --outPlan campaign.plan.json --outScenario campaign.scenario.json --outScenarioInspection campaign.scenario-inspection.json --outInterop campaign.interop.json --out campaign.inspection.json --allowUnknownAssets
 medieval-hexagon-gameboard validate-plan --plan board.json --manifest assets/free/manifest.json
 medieval-hexagon-gameboard validate-recipe --recipe scenario.json --manifest assets/free/manifest.json --outPlan board.json
 medieval-hexagon-gameboard analyze-layout --recipe scenario.recipe.json --rules layout-rules.json --out layout-analysis.json --outPlan board.json

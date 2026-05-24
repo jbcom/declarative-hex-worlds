@@ -249,9 +249,11 @@ contract for CI and npm consumers.
   quests, `createMedievalGameboardWorldFromBlueprint` when a game/test needs the
   ready Koota runtime, and `inspectMedievalGameboardBlueprintScenario` when an
   agent/editor needs both board counts and scenario route diagnostics before
-  rendering. Keep new board-scale README examples and screenshots anchored to
-  the blueprint API unless the task is specifically about low-level builder
-  behavior.
+  rendering. The `blueprint` CLI can also write `--outInterop` from the same
+  blueprint scenario so external ECS examples do not need a second
+  `snapshot --scenario` pass. Keep new board-scale README examples and
+  screenshots anchored to the blueprint API unless the task is specifically
+  about low-level builder behavior.
 - Use `GameboardBuilder.addBridge` or recipe `addBridge` for authored road,
   river, or water crossings that need a specific FREE KayKit bridge variant.
   Do not make callers place `building_bridge_A` or `building_bridge_B` as raw
@@ -366,7 +368,9 @@ contract for CI and npm consumers.
   mountain ranges, towns, roads, rivers, harbors, elevation ramps, sloped roads,
   bridges, semantic prop-cluster dressing, density fills, showcase recipes, and
   playable scenario/world helpers that attach spawn groups, actors, patrols,
-  movement agents, and quests to the generated board recipe.
+  movement agents, and quests to the generated board recipe. The packaged
+  `examples/blueprint-board.json` should stay playable and interop-ready, not
+  just a static terrain recipe.
 - `./commands`: command action bundles plus preview/execution helpers that turn
   interaction targets into actor-aware movement requests or handler-required
   interact/attack/inspect commands, actor-target command planners for UI/AI
@@ -552,7 +556,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js blueprint --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js blueprint --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --outInterop /tmp/blueprint.interop.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze-layout --recipe docs/examples/generated-piece-scenario.recipe.json --rules layout-rules.json --out /tmp/layout-analysis.json --outPlan /tmp/scenario-plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js spawn-groups --recipe docs/examples/generated-piece-scenario.recipe.json --groups spawn-groups.json --out /tmp/spawn-groups.json

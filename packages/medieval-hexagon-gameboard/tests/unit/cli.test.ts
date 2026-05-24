@@ -224,6 +224,7 @@ describe('CLI', () => {
     const planPath = resolve(root, 'campaign-blueprint.plan.json');
     const scenarioPath = resolve(root, 'campaign-blueprint.scenario.json');
     const scenarioInspectionPath = resolve(root, 'campaign-blueprint.scenario-inspection.json');
+    const interopPath = resolve(root, 'campaign-blueprint.interop.json');
     const inspectionPath = resolve(root, 'campaign-blueprint.inspection.json');
     writeFileSync(
       blueprintPath,
@@ -368,6 +369,8 @@ describe('CLI', () => {
       scenarioPath,
       '--outScenarioInspection',
       scenarioInspectionPath,
+      '--outInterop',
+      interopPath,
       '--out',
       inspectionPath,
     ]);
@@ -392,11 +395,18 @@ describe('CLI', () => {
       violations: Array<{ severity: string }>;
       spawnGroups?: { groupCount: number; groups: Array<{ id: string; selectedCount: number }> };
     };
+    const interop = JSON.parse(readFileSync(interopPath, 'utf8')) as {
+      scenario?: { id: string };
+      entities: Array<{ id: string; kind: string }>;
+      relations: Array<{ name: string }>;
+      spawnLocations: Array<{ id: string }>;
+    };
 
     expect(output).toContain(`Wrote blueprint GameboardRecipe to ${recipePath}`);
     expect(output).toContain(`Wrote blueprint GameboardPlan to ${planPath}`);
     expect(output).toContain(`Wrote blueprint GameboardScenario to ${scenarioPath}`);
     expect(output).toContain(`Wrote blueprint scenario inspection to ${scenarioInspectionPath}`);
+    expect(output).toContain(`Wrote blueprint interop snapshot with`);
     expect(output).toContain(`Wrote blueprint inspection to ${inspectionPath}`);
     expect(inspection.validation.errorCount).toBe(0);
     expect(inspection.scenarioValidation.errorCount).toBe(0);
@@ -430,6 +440,23 @@ describe('CLI', () => {
         { id: 'raiders', selectedCount: 1 },
       ],
     });
+    expect(interop.scenario?.id).toBe('cli-blueprint-board:intro');
+    expect(interop.spawnLocations.map((spawn) => spawn.id)).toEqual(
+      expect.arrayContaining(['spawn:party:0', 'spawn:raiders:0'])
+    );
+    expect(interop.entities.map((entity) => entity.id)).toEqual(
+      expect.arrayContaining([
+        'actor:player',
+        'actor:raider',
+        'quest:cli-blueprint-board:intro-quest',
+        'spawn-group:party',
+        'spawn-group:raiders',
+      ])
+    );
+    expect(interop.relations.some((relation) => relation.name === 'ActorOnTile')).toBe(true);
+    expect(interop.relations.some((relation) => relation.name === 'SpawnGroupHasLocation')).toBe(
+      true
+    );
 
     const jsonOutput = JSON.parse(
       runCli([
@@ -441,6 +468,7 @@ describe('CLI', () => {
         '--includePlan',
         '--includeScenario',
         '--includeScenarioInspection',
+        '--includeInterop',
       ])
     ) as {
       tileCount: number;
@@ -449,6 +477,12 @@ describe('CLI', () => {
       scenario?: { id: string };
       scenarioInspection?: { spawnGroups?: { groupCount: number } };
       scenarioValidation?: { errorCount: number };
+      interopSummary?: {
+        actorCount: number;
+        questCount: number;
+        spawnGroupCount: number;
+      };
+      interop?: { scenario?: { id: string }; entities: unknown[] };
     };
     expect(jsonOutput.tileCount).toBe(plan.tiles.length);
     expect(jsonOutput.placementCount).toBe(plan.placements.length);
@@ -456,6 +490,13 @@ describe('CLI', () => {
     expect(jsonOutput.scenario?.id).toBe('cli-blueprint-board:intro');
     expect(jsonOutput.scenarioInspection?.spawnGroups?.groupCount).toBe(2);
     expect(jsonOutput.scenarioValidation?.errorCount).toBe(0);
+    expect(jsonOutput.interopSummary).toMatchObject({
+      actorCount: 2,
+      questCount: 1,
+      spawnGroupCount: 2,
+    });
+    expect(jsonOutput.interop?.scenario?.id).toBe('cli-blueprint-board:intro');
+    expect(jsonOutput.interop?.entities.length).toBe(interop.entities.length);
   });
 
   it('analyzes layout fill rules against a saved plan through the CLI', () => {
