@@ -18,7 +18,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard` | Core manifests, seeded board creation, plan validation, selectors, and the runtime facade. |
 | `@jbcom/medieval-hexagon-gameboard/actors` | Player, NPC, enemy, prop, collision, interaction-target, and actor-selection helpers. |
 | `@jbcom/medieval-hexagon-gameboard/assets/free/*` | Published FREE GLTF, BIN, PNG, and manifest files for bundlers that need direct asset URLs. |
-| `@jbcom/medieval-hexagon-gameboard/catalog` | KayKit faction building ids, unit parts, prop ids, nature ids, texture names, typed asset-id constructors, public treatment metadata, extracted guide scenario metadata, scenario treatment joins, and coverage summaries for every FREE/EXTRA asset id. |
+| `@jbcom/medieval-hexagon-gameboard/catalog` | KayKit faction building ids, unit parts, prop ids, nature ids, texture names, typed asset-id constructors, public treatment metadata, extracted guide scenario metadata, scenario treatment joins, public API coverage joins, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit analysis, facing correction, placement recommendations, and spawn-option conversion. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, paths, rotations, and deterministic coordinate selection. |
@@ -167,7 +167,7 @@ building, tree, scatter asset, or unit with explicit placement criteria.
 | --- | --- |
 | Manifest shape and stale indexes | `inspectMedievalHexagonManifest` |
 | Asset exists but lacks an intentional public API route | `listKayKitAssetPublicTreatments`, `describeKayKitAssetTreatment` |
-| Extracted guide page lacks asset/API/docs/visual coverage | `listKayKitGuideScenarios`, `describeKayKitGuideScenario`, `listKayKitGuideScenarioTreatments`, `describeKayKitGuideScenarioCoverage`, `summarizeKayKitGuideCoverage` |
+| Extracted guide page lacks asset/API/docs/visual coverage | `listKayKitGuideScenarios`, `describeKayKitGuideScenario`, `listKayKitGuideScenarioTreatments`, `describeKayKitGuideScenarioCoverage`, `listKayKitGuidePublicApiCoverages`, `describeKayKitGuidePublicApiCoverage`, `summarizeKayKitGuideCoverage` |
 | Packaged or app-local manifest lookup | `createManifestBundle`, `getManifestAsset` |
 | Missing assets in plans, recipes, and scenarios | `validateGameboardPlan`, recipe/scenario validation helpers |
 | Tile declarations and neutral plan rules | `validateGameboardPlan` |

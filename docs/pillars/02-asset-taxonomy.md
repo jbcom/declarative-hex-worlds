@@ -74,8 +74,10 @@ any FREE/EXTRA asset is missing from that matrix. Tooling should use
 `listKayKitGuideScenarioTreatments(id)` instead of manually joining asset ids to
 treatment records, `describeKayKitGuideScenarioCoverage(id)` when it needs a
 single page report with counts and treatments, and
-`summarizeKayKitGuideCoverage()` when it needs stable unique/occurrence counts
-for docs, CLI output, or visual-review dashboards.
+`listKayKitGuidePublicApiCoverages()` when it needs the inverse map from a
+builder, selector, or runtime API to guide pages and assets.
+`summarizeKayKitGuideCoverage()` is for stable unique/occurrence counts used by
+docs, CLI output, or visual-review dashboards.
 
 | Edition | Source GLTFs | Unique manifest ids | Texture sets | Categories |
 | --- | ---: | ---: | --- | --- |

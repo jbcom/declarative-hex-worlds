@@ -558,6 +558,8 @@ edition, role, unique-asset, and repeated-asset occurrence counts without
 rejoining catalog data. Use `--page`, `--scenarioId`, or `--editionScope` to
 isolate one use case, and `--includeTreatments` to include the
 `describeKayKitGuideScenarioCoverage()` report for every selected page.
+`guide-apis` emits the inverse `listKayKitGuidePublicApiCoverages()` map from a
+public API surface to guide pages, treated assets, roles, docs, and screenshots.
 `validate-plan` validates saved board JSON,
 `validate-recipe` compiles a recipe JSON into a plan, and `validate-scenario`
 validates scenario IDs, actor references, quest references, and asset manifest

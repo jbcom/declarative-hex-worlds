@@ -732,6 +732,51 @@ describe('CLI', () => {
     );
   });
 
+  it('emits public API guide coverage and filters scenarios by API surface', () => {
+    const apiOutputPath = resolve(createTempRoot(), 'guide-api-harbor.json');
+    const apiOutput = runCli([
+      'guide-apis',
+      '--publicApi',
+      'GameboardBuilder.addHarbor',
+      '--out',
+      apiOutputPath,
+    ]);
+    const apiPayload = JSON.parse(readFileSync(apiOutputPath, 'utf8')) as {
+      count: number;
+      publicApis: string[];
+      coverage: Array<{
+        publicApi: string;
+        pages: number[];
+        assetCounts: { unique: number; free: number; extra: number };
+        treatmentRoles: string[];
+      }>;
+    };
+
+    expect(apiOutput).toContain(`Wrote 1 guide public API coverages to ${apiOutputPath}`);
+    expect(apiPayload).toMatchObject({
+      count: 1,
+      publicApis: ['GameboardBuilder.addHarbor'],
+      coverage: [
+        {
+          publicApi: 'GameboardBuilder.addHarbor',
+          pages: [2, 5, 7, 15],
+          treatmentRoles: expect.arrayContaining(['coast-tile', 'faction-building', 'prop']),
+        },
+      ],
+    });
+    expect(apiPayload.coverage[0]?.assetCounts.free).toBeGreaterThan(0);
+    expect(apiPayload.coverage[0]?.assetCounts.extra).toBeGreaterThan(0);
+
+    const scenarioOutput = runCli([
+      'guide-scenarios',
+      '--publicApi',
+      'GameboardBuilder.addHarbor',
+      '--json',
+    ]);
+    const scenarioPayload = JSON.parse(scenarioOutput) as { count: number; pages: number[] };
+    expect(scenarioPayload).toMatchObject({ count: 4, pages: [2, 5, 7, 15] });
+  });
+
   it('scans local GLTF folders into compatibility-backed piece registries', () => {
     const assetRoot = createExternalPackFixtureRoot();
     const registryPath = resolve(createTempRoot(), 'pieces.json');

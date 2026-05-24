@@ -1525,7 +1525,10 @@ assets against an EXTRA manifest, and includes the same coverage summary exposed
 by `summarizeKayKitGuideCoverage()`. Use `--page`, `--scenarioId`, or
 `--editionScope` to isolate a guide case, and `--includeTreatments` to attach
 the same per-asset public treatment join exposed by
-`describeKayKitGuideScenarioCoverage()`.
+`describeKayKitGuideScenarioCoverage()`. `guide-apis` emits the inverse
+builder/selector/runtime API index exposed by
+`listKayKitGuidePublicApiCoverages()`, so tools can answer which guide pages and
+assets prove a public API surface.
 
 ```bash
 medieval-hexagon-gameboard guide-permutations \
@@ -1539,6 +1542,10 @@ medieval-hexagon-gameboard guide-scenarios \
 medieval-hexagon-gameboard guide-scenarios \
   --page 14 \
   --includeTreatments \
+  --json
+
+medieval-hexagon-gameboard guide-apis \
+  --publicApi GameboardBuilder.addHarbor \
   --json
 ```
 

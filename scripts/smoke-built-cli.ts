@@ -64,6 +64,17 @@ interface GuideScenarioSmoke {
   }>;
 }
 
+interface GuidePublicApiSmoke {
+  count: number;
+  publicApis: string[];
+  coverage: Array<{
+    publicApi: string;
+    pages: number[];
+    assetCounts: { unique: number; free: number; extra: number };
+    treatmentRoles: string[];
+  }>;
+}
+
 interface LayoutAnalysisSmoke {
   placementCount: number;
   warningCount: number;
@@ -373,6 +384,22 @@ try {
       (treatment) => treatment.assetId === 'unit_blue_full' && treatment.role === 'colored-unit-part'
     ) === true,
     'guide-scenarios did not include page 14 unit treatment metadata'
+  );
+
+  const guideApiHarbor = JSON.parse(
+    runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addHarbor', '--json'])
+  ) as GuidePublicApiSmoke;
+  assert(
+    guideApiHarbor.count === 1 && guideApiHarbor.publicApis.join(',') === 'GameboardBuilder.addHarbor',
+    'guide-apis did not isolate GameboardBuilder.addHarbor'
+  );
+  assert(
+    guideApiHarbor.coverage[0]?.pages.join(',') === '2,5,7,15',
+    'guide-apis harbor page coverage changed'
+  );
+  assert(
+    guideApiHarbor.coverage[0]?.assetCounts.free > 0 && guideApiHarbor.coverage[0]?.assetCounts.extra > 0,
+    'guide-apis harbor asset edition coverage changed'
   );
 
   const recipePlanPath = join(tempRoot, 'generated-piece-scenario.plan.json');
