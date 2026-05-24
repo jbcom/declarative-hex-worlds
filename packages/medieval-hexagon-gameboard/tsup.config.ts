@@ -8,6 +8,7 @@ export default defineConfig({
     catalog: 'src/catalog.ts',
     compatibility: 'src/compatibility.ts',
     commands: 'src/commands.ts',
+    coverage: 'src/coverage.ts',
     coordinates: 'src/coordinates.ts',
     gameboard: 'src/gameboard.ts',
     grid: 'src/grid.ts',

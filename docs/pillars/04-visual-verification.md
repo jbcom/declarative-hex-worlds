@@ -24,16 +24,35 @@ source_images:
   - docs/assets/kaykit-guide/pages/page-19.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
+  - docs/release-readiness.json
+  - docs/guides/release-readiness.md
   - docs/assets/showcases/free-blueprint-builder-showcase.png
   - docs/assets/showcases/extra-blueprint-biome-transition-showcase.png
+  - docs/assets/showcases/free-guide-scenarios-by-extracted-page.png
+  - docs/assets/showcases/free-guide-roads-all-labels-rotations.png
+  - docs/assets/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png
+  - docs/assets/showcases/free-guide-coasts-all-labels-rotations-water-waterless.png
+  - docs/assets/showcases/extra-harbor-gameboard.png
+  - docs/assets/showcases/simple-rpg-fixed-completed.png
+  - docs/assets/showcases/simple-rpg-seeded-completed.png
+  - docs/assets/showcases/simple-rpg-local-third-party-assets.png
   - docs/examples/blueprint-board.json
   - docs/guides/guide-scenario-coverage.md
   - package.json
   - packages/medieval-hexagon-gameboard/docs/showcases/free-blueprint-builder-showcase.png
   - packages/medieval-hexagon-gameboard/docs/showcases/extra-blueprint-biome-transition-showcase.png
+  - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-scenarios-by-extracted-page.png
+  - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-roads-all-labels-rotations.png
+  - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png
+  - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-coasts-all-labels-rotations-water-waterless.png
+  - packages/medieval-hexagon-gameboard/docs/showcases/extra-harbor-gameboard.png
+  - packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-fixed-completed.png
+  - packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-seeded-completed.png
+  - packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-local-third-party-assets.png
   - packages/medieval-hexagon-gameboard/src/blueprint.ts
   - packages/medieval-hexagon-gameboard/src/cli.ts
   - packages/medieval-hexagon-gameboard/src/catalog.ts
+  - packages/medieval-hexagon-gameboard/src/coverage.ts
   - packages/medieval-hexagon-gameboard/src/compatibility.ts
   - packages/medieval-hexagon-gameboard/src/three.ts
   - packages/medieval-hexagon-gameboard/src/gameboard.ts
@@ -44,6 +63,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/quests.ts
 test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/catalog.test.ts
+  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
   - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts

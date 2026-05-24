@@ -83,6 +83,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit checks, facing recommendations, scale hints, and starter piece metadata. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer/input command preview, command execution, actor-target command planning, and opt-in RPG handlers. |
+| `@jbcom/medieval-hexagon-gameboard/coverage` | Release-readiness reports that join guide pages, manifests, public APIs, screenshots, local references, and package gates. |
 | `@jbcom/medieval-hexagon-gameboard/koota` | Low-level Koota traits, relations, queries, placement actions, and occupancy guards. |
 | `@jbcom/medieval-hexagon-gameboard/layout` | Seeded layout archetypes, criteria, density fills, scatter slots, and plan/runtime placement helpers. |
 | `@jbcom/medieval-hexagon-gameboard/navigation` | Board-aware paths, movement ranges, spawn groups, patrol routes, blockers, and movement profiles. |
@@ -1558,7 +1559,21 @@ contact-sheet, preload, and screenshot-review tooling. The workspace
 `docs/guides/guide-scenario-coverage.md` page mirrors all 19 extracted guide
 scenarios for human review.
 
+Use `coverage` or `doctor --coverage` as the release-readiness ledger. It joins
+the 19 guide pages, FREE manifest coverage, public API/role inverse indexes,
+browser screenshots, promoted showcase images, local reference pack status, and
+final package gate commands into JSON or Markdown. The pure
+`summarizeGameboardCoverage()` helper exposes the same data to docs tooling,
+editors, and external release dashboards without requiring local EXTRA binaries.
+
 ```bash
+medieval-hexagon-gameboard coverage \
+  --checksPassed \
+  --outJson docs/release-readiness.json \
+  --outMarkdown docs/guides/release-readiness.md
+
+medieval-hexagon-gameboard doctor --coverage --json
+
 medieval-hexagon-gameboard guide-permutations \
   --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json \
   --out /tmp/kaykit-guide-permutations.json
@@ -1613,6 +1628,22 @@ and transition policy" without hand placing every supporting tile.
 ![FREE blueprint board with stacked mountain range, town, roads, coast, and harbor](docs/showcases/free-blueprint-builder-showcase.png)
 
 ![EXTRA blueprint board with biome transitions, harbor, town, units, and density props](docs/showcases/extra-blueprint-biome-transition-showcase.png)
+
+![All 19 guide pages expressed as public scenarios](docs/showcases/free-guide-scenarios-by-extracted-page.png)
+
+![Guide road selector permutations](docs/showcases/free-guide-roads-all-labels-rotations.png)
+
+![Guide river selector permutations](docs/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png)
+
+![Guide coast selector permutations](docs/showcases/free-guide-coasts-all-labels-rotations-water-waterless.png)
+
+![Harbor and town composition using local EXTRA assets](docs/showcases/extra-harbor-gameboard.png)
+
+![SimpleRPG fixed board completed through public movement and quest APIs](docs/showcases/simple-rpg-fixed-completed.png)
+
+![SimpleRPG seeded board completed through deterministic generation](docs/showcases/simple-rpg-seeded-completed.png)
+
+![Local third-party asset compatibility with Kenney Castle Kit and KayKit Adventurers](docs/showcases/simple-rpg-local-third-party-assets.png)
 
 ```ts
 import {

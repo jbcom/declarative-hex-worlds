@@ -10,6 +10,7 @@
     "packages/medieval-hexagon-gameboard/src/coordinates.ts",
     "packages/medieval-hexagon-gameboard/src/compatibility.ts",
     "packages/medieval-hexagon-gameboard/src/commands.ts",
+    "packages/medieval-hexagon-gameboard/src/coverage.ts",
     "packages/medieval-hexagon-gameboard/src/koota.ts",
     "packages/medieval-hexagon-gameboard/src/layout.ts",
     "packages/medieval-hexagon-gameboard/src/navigation.ts",

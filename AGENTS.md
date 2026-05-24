@@ -12,6 +12,9 @@ contract for CI and npm consumers.
 - Use `docs/guides/` for the public API workflow: plan versus runtime, recipes
   and scenarios, guide scenario coverage, simulation, rendering, manifests, and
   external pack ingestion.
+- Use `docs/guides/release-readiness.md` and `docs/release-readiness.json` as
+  the generated release ledger. Regenerate them with the `coverage` CLI after
+  screenshot, docs, API, or package-gate changes.
 - The guide imagery lives in `docs/assets/kaykit-guide/` and is generated from
   `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/Medieval_Hexagon_UserGuide_v1.pdf`.
 - Use `listKayKitGuideScenarios()` from `./catalog` when mapping guide pages to
@@ -390,6 +393,11 @@ contract for CI and npm consumers.
   interaction targets into actor-aware movement requests or handler-required
   interact/attack/inspect commands, actor-target command planners for UI/AI
   queues, and explicit opt-in handler helpers for common RPG effects.
+- `./coverage`: release-readiness reports that join guide pages, public API
+  treatment, manifest coverage, screenshots, local references, and package gate
+  status. Use the `coverage` CLI command or `doctor --coverage` before release
+  closeout so README/docs claims, screenshots, and package checks share one
+  machine-readable ledger.
 - `./systems`: game-loop action bundles and neutral event records for command
   dispatch, actor-target dispatch, patrol route advancement, movement ticks,
   quest advancement, and serializable event snapshots.
@@ -523,6 +531,7 @@ pnpm docs:build
 pnpm test:package
 pnpm test:cli
 pnpm test:consumer
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md
 pnpm pack:dry-run
 ```
 

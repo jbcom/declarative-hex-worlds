@@ -7,10 +7,13 @@ source_images:
   - docs/assets/kaykit-guide/pages/page-19.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
+  - docs/release-readiness.json
+  - docs/guides/release-readiness.md
   - docs/examples/blueprint-board.json
   - packages/medieval-hexagon-gameboard/src/index.ts
   - packages/medieval-hexagon-gameboard/src/blueprint.ts
   - packages/medieval-hexagon-gameboard/src/cli.ts
+  - packages/medieval-hexagon-gameboard/src/coverage.ts
   - packages/medieval-hexagon-gameboard/src/types.ts
   - packages/medieval-hexagon-gameboard/src/gameboard.ts
   - packages/medieval-hexagon-gameboard/src/koota.ts
@@ -27,6 +30,7 @@ implementation_links:
   - scripts/smoke-packed-consumer.ts
   - packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts
 test_links:
+  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/manifest.test.ts

@@ -11,6 +11,7 @@ docs deployment and release.
 
 - [Public API guide](./guides/public-api.md)
 - [Guide scenario coverage](./guides/guide-scenario-coverage.md)
+- [Release readiness](./guides/release-readiness.md)
 - [Runtime integration](./guides/runtime-integration.md)
 - [Recipes, scenarios, and simulation](./guides/recipes-scenarios-and-simulation.md)
 - [Rendering, assets, and external packs](./guides/rendering-assets-and-external-packs.md)

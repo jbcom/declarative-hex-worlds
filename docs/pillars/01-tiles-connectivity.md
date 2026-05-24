@@ -11,13 +11,16 @@ source_images:
   - docs/assets/kaykit-guide/pages/page-13.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
+  - docs/guides/release-readiness.md
   - packages/medieval-hexagon-gameboard/src/selectors.ts
+  - packages/medieval-hexagon-gameboard/src/coverage.ts
   - packages/medieval-hexagon-gameboard/src/grid.ts
   - packages/medieval-hexagon-gameboard/src/gameboard.ts
   - packages/medieval-hexagon-gameboard/src/blueprint.ts
   - packages/medieval-hexagon-gameboard/src/recipe.ts
 test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/selectors.test.ts
+  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/gameboard.test.ts
   - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts
 ---

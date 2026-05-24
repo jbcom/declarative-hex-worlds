@@ -334,6 +334,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-render-requests 
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js blueprint --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --outInterop /tmp/blueprint.interop.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js summarize-plan --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --out /tmp/blueprint.summary.json --outPlan /tmp/blueprint.summary.plan.json --allowUnknownAssets

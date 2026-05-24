@@ -18,6 +18,7 @@ export default defineConfig({
         items: [
           { text: 'Public API Guide', link: '/guides/public-api' },
           { text: 'Guide Scenario Coverage', link: '/guides/guide-scenario-coverage' },
+          { text: 'Release Readiness', link: '/guides/release-readiness' },
           { text: 'Runtime Integration', link: '/guides/runtime-integration' },
           { text: 'Recipes, Scenarios, And Simulation', link: '/guides/recipes-scenarios-and-simulation' },
           { text: 'Rendering, Assets, And External Packs', link: '/guides/rendering-assets-and-external-packs' },

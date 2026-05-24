@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-23
+last_verified: 2026-05-24
 source_images:
   - docs/assets/kaykit-guide/pages/page-11.png
   - docs/assets/kaykit-guide/pages/page-12.png
@@ -12,13 +12,17 @@ source_images:
   - docs/assets/kaykit-guide/pages/page-18.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA
 implementation_links:
+  - docs/release-readiness.json
+  - docs/guides/release-readiness.md
   - packages/medieval-hexagon-gameboard/src/cli.ts
+  - packages/medieval-hexagon-gameboard/src/coverage.ts
   - packages/medieval-hexagon-gameboard/src/ingest.ts
   - packages/medieval-hexagon-gameboard/src/manifest/schema.ts
   - packages/medieval-hexagon-gameboard/package.json
   - scripts/audit-reference-assets.ts
 test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
+  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/ingest.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/manifest.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/examples.test.ts

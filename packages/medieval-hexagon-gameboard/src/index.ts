@@ -70,6 +70,34 @@ export type {
   ExternalAssetTileCompatibility,
 } from './compatibility';
 export {
+  GAMEBOARD_COVERAGE_SCHEMA_VERSION,
+  GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
+  GAMEBOARD_RELEASE_GATE_COMMANDS,
+  createDefaultGameboardCoveragePackageChecks,
+  createDefaultGameboardCoverageReferences,
+  renderGameboardCoverageMarkdown,
+  summarizeGameboardCoverage,
+} from './coverage';
+export type {
+  CoverageGap,
+  CoverageGapSeverity,
+  GameboardCoverageCheckStatus,
+  GameboardCoverageLinkedPath,
+  GameboardCoverageManifestSummary,
+  GameboardCoveragePackageCheck,
+  GameboardCoveragePackageCheckInput,
+  GameboardCoveragePathStatusInput,
+  GameboardCoverageReference,
+  GameboardCoverageReferenceInput,
+  GameboardCoverageReport,
+  GameboardCoverageReportStatus,
+  GameboardCoverageStatus,
+  GuidePageCoverage,
+  SummarizeGameboardCoverageOptions,
+  VisualArtifactCoverage,
+  VisualArtifactCoverageSource,
+} from './coverage';
+export {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
   createGameboardInteractionHandlerPreset,
   createMarkTargetActorInteractedHandler,

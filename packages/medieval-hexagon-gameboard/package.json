@@ -43,6 +43,10 @@
       "types": "./dist/commands.d.ts",
       "import": "./dist/commands.js"
     },
+    "./coverage": {
+      "types": "./dist/coverage.d.ts",
+      "import": "./dist/coverage.js"
+    },
     "./koota": {
       "types": "./dist/koota.d.ts",
       "import": "./dist/koota.js"

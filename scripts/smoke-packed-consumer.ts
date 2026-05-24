@@ -213,9 +213,11 @@ import {
   selectGameboardActors,
   selectGameboardInteropRelations,
   spawnGameboardActor,
+  summarizeGameboardCoverage,
   summarizeGameboardPlan,
   summarizeGameboardScenario,
   validateGameboardRecipeGeneration,
+  type GameboardCoverageReport,
   type DispatchGameboardActorTargetCommandResult,
   type GameboardActorSelection,
   type GameboardActorSnapshot,
@@ -381,6 +383,11 @@ import {
   type ExternalAssetSpawnOptionsInput,
 } from '@jbcom/medieval-hexagon-gameboard/compatibility';
 import {
+  renderGameboardCoverageMarkdown as renderGameboardCoverageMarkdownFromCoverage,
+  summarizeGameboardCoverage as summarizeGameboardCoverageFromCoverage,
+  type GameboardCoverageReport as GameboardCoverageReportFromCoverage,
+} from '@jbcom/medieval-hexagon-gameboard/coverage';
+import {
   readGameboardPlacements as readGameboardPlacementsFromKoota,
   type GameboardSnapshot as GameboardSnapshotFromKoota,
   type PlacementStateValue as PlacementStateValueFromKoota,
@@ -475,6 +482,10 @@ const scenarioSummary: GameboardScenarioSummary = summarizeGameboardScenario(
 );
 const scenarioSummaryFromScenario: GameboardScenarioSummaryFromScenario =
   summarizeGameboardScenarioFromScenario(simpleRpgScenario as GameboardScenario);
+const coverageReport: GameboardCoverageReport = summarizeGameboardCoverage();
+const coverageReportFromCoverage: GameboardCoverageReportFromCoverage =
+  summarizeGameboardCoverageFromCoverage();
+const coverageMarkdown: string = renderGameboardCoverageMarkdownFromCoverage(coverageReportFromCoverage);
 const manifestInspection: MedievalHexagonManifestInspection = inspectMedievalHexagonManifest(assetManifest);
 const ingestSourceRoot: string = defaultSourceRoot('free', '/packed-consumer');
 const ingestExpectedCount: number = expectedModelCount('free');
@@ -1182,6 +1193,7 @@ import {
   selectGameboardInteropRelations,
   spawnGameboardActor,
   spawnGameboardPlacement,
+  summarizeGameboardCoverage,
   summarizeGameboardPlan,
   summarizeGameboardScenario,
 } from '@jbcom/medieval-hexagon-gameboard';
@@ -1255,6 +1267,10 @@ import {
   externalAssetSpawnOptions,
   recommendExternalAssetFacing,
 } from '@jbcom/medieval-hexagon-gameboard/compatibility';
+import {
+  renderGameboardCoverageMarkdown as renderGameboardCoverageMarkdownFromCoverage,
+  summarizeGameboardCoverage as summarizeGameboardCoverageFromCoverage,
+} from '@jbcom/medieval-hexagon-gameboard/coverage';
 import { readGameboardPlacements as readGameboardPlacementsFromKoota } from '@jbcom/medieval-hexagon-gameboard/koota';
 import {
   GAMEBOARD_MOVEMENT_PROFILES,
@@ -1375,6 +1391,17 @@ const subpathPlanSummary = summarizeGameboardPlanFromGameboard(subpathProjectedP
 const packagedScenarioSummary = summarizeGameboardScenario(scenarioModule.default);
 const packagedScenarioSummaryFromScenario =
   summarizeGameboardScenarioFromScenario(scenarioModule.default);
+const packagedCoverageSummary = summarizeGameboardCoverage();
+const packagedCoverageSummaryFromCoverage = summarizeGameboardCoverageFromCoverage();
+const packagedCoverageMarkdown = renderGameboardCoverageMarkdownFromCoverage(packagedCoverageSummaryFromCoverage);
+if (
+  packagedCoverageSummary.guide.pageCount !== 19 ||
+  packagedCoverageSummary.manifest.freeGuideAssetsInManifest !== 221 ||
+  packagedCoverageSummaryFromCoverage.publicApi.length !== 74 ||
+  !packagedCoverageMarkdown.includes('Release Readiness Coverage')
+) {
+  throw new Error('packed coverage report did not expose guide, manifest, public API, and markdown data');
+}
 const subpathValidationPlan = readValidationGameboardPlanFromWorld(subpathWorld);
 const subpathInteropSnapshot = createGameboardInteropSnapshotFromInterop(plan);
 const subpathCoordinateSystem = createGameboardCoordinateSystem();

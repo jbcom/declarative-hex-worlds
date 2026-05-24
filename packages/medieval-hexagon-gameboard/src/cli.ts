@@ -15,6 +15,16 @@ import {
   type ExternalAssetIntendedRole,
 } from './compatibility';
 import {
+  GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
+  createDefaultGameboardCoveragePackageChecks,
+  createDefaultGameboardCoverageReferences,
+  renderGameboardCoverageMarkdown,
+  summarizeGameboardCoverage,
+  type GameboardCoveragePathStatusInput,
+  type GameboardCoverageReport,
+  type GameboardCoverageStatus,
+} from './coverage';
+import {
   inspectMedievalGameboardBlueprint,
   inspectMedievalGameboardBlueprintScenario,
   type MedievalGameboardBlueprintInspection,
@@ -215,6 +225,10 @@ function main(argv: string[]): void {
   const sourceRoot = resolve(String(parsed.flags.source ?? defaultSourceRoot(edition)));
 
   if (parsed.command === 'doctor') {
+    if (parsed.flags.coverage === true) {
+      runCoverage(parsed);
+      return;
+    }
     runDoctor(sourceRoot, edition);
     return;
   }
@@ -301,6 +315,11 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'guide-roles') {
     runGuideRoles(parsed);
+    return;
+  }
+
+  if (parsed.command === 'coverage') {
+    runCoverage(parsed);
     return;
   }
 
@@ -2255,6 +2274,119 @@ function runGuideRoles(parsed: ParsedArgs): void {
   }
 }
 
+function runCoverage(parsed: ParsedArgs): void {
+  const manifest =
+    typeof parsed.flags.manifest === 'string'
+      ? readManifest(resolve(parsed.flags.manifest))
+      : undefined;
+  const checksPassed = parsed.flags.checksPassed === true;
+  const report = summarizeGameboardCoverage({
+    manifest,
+    generatedAt:
+      typeof parsed.flags.generatedAt === 'string'
+        ? parsed.flags.generatedAt
+        : new Date().toISOString(),
+    pathStatus: coveragePathStatuses(),
+    references: createDefaultGameboardCoverageReferences().map((reference) => ({
+      ...reference,
+      status: existsSync(resolve(reference.path)) ? 'available' : 'missing',
+    })),
+    packageChecks: createDefaultGameboardCoveragePackageChecks(
+      checksPassed ? 'passed' : 'not-run'
+    ),
+  });
+  const markdown =
+    parsed.flags.markdown === true ? renderGameboardCoverageMarkdown(report) : undefined;
+
+  if (typeof parsed.flags.outJson === 'string') {
+    writeFileSync(resolve(parsed.flags.outJson), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+    console.log(`Wrote coverage JSON to ${resolve(parsed.flags.outJson)}`);
+  }
+  if (typeof parsed.flags.outMarkdown === 'string') {
+    writeFileSync(
+      resolve(parsed.flags.outMarkdown),
+      `${renderGameboardCoverageMarkdown(report)}\n`,
+      'utf8'
+    );
+    console.log(`Wrote coverage Markdown to ${resolve(parsed.flags.outMarkdown)}`);
+  }
+  if (typeof parsed.flags.out === 'string') {
+    const outputPath = resolve(parsed.flags.out);
+    const output =
+      parsed.flags.markdown === true
+        ? (markdown ?? renderGameboardCoverageMarkdown(report))
+        : JSON.stringify(report, null, 2);
+    writeFileSync(outputPath, `${output}\n`, 'utf8');
+    console.log(
+      `Wrote coverage ${parsed.flags.markdown === true ? 'Markdown' : 'JSON'} to ${outputPath}`
+    );
+  }
+  if (parsed.flags.json === true) {
+    console.log(JSON.stringify(report, null, 2));
+    return;
+  }
+  if (parsed.flags.markdown === true) {
+    console.log(markdown ?? renderGameboardCoverageMarkdown(report));
+    return;
+  }
+
+  printCoverageSummary(report);
+}
+
+function coveragePathStatuses(): GameboardCoveragePathStatusInput {
+  const scenarios = listKayKitGuideScenarios();
+  const sourceImages = uniqueStrings(scenarios.map((scenario) => scenario.sourceImage));
+  const docs = uniqueStrings(scenarios.flatMap((scenario) => scenario.docs));
+  const visualArtifacts = uniqueStrings([
+    ...scenarios.flatMap((scenario) => scenario.visualArtifacts),
+    ...GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
+  ]);
+  return {
+    sourceImages: statusMapForPaths(sourceImages),
+    docs: statusMapForPaths(docs),
+    visualArtifacts: statusMapForPaths(visualArtifacts),
+  };
+}
+
+function statusMapForPaths(paths: readonly string[]): Record<string, GameboardCoverageStatus> {
+  return Object.fromEntries(
+    paths.map((path) => [path, existsSync(resolve(path)) ? 'available' : 'missing'])
+  );
+}
+
+function printCoverageSummary(report: GameboardCoverageReport): void {
+  console.log(`coverage status: ${report.status}`);
+  console.log(`guide pages: ${report.guide.pageCount}/19`);
+  console.log(`guide scenarios: ${report.guide.scenarioCount}`);
+  console.log(
+    `guide assets: ${report.guide.assetCounts.unique} unique (${report.guide.assetCounts.free} FREE, ${report.guide.assetCounts.extra} EXTRA), ${report.guide.assetCounts.occurrences} occurrence(s)`
+  );
+  console.log(`public APIs: ${report.publicApi.length}`);
+  console.log(
+    `manifest: ${report.manifest.manifestAssetCount} asset(s), ${report.manifest.freeGuideAssetsInManifest}/${report.manifest.guideFreeAssetCount} FREE guide asset(s)`
+  );
+  console.log(
+    `visual artifacts: ${countCoverageStatus(report.visualArtifacts, 'available')} available, ${countCoverageStatus(report.visualArtifacts, 'missing')} missing, ${countCoverageStatus(report.visualArtifacts, 'skipped')} skipped`
+  );
+  console.log(
+    `local references: ${countCoverageStatus(report.references, 'available')} available, ${countCoverageStatus(report.references, 'missing')} missing, ${countCoverageStatus(report.references, 'skipped')} skipped`
+  );
+  console.log(`gaps: ${report.gaps.length}`);
+  for (const gap of report.gaps.slice(0, 20)) {
+    console.log(`- ${gap.severity} ${gap.code}: ${gap.subject ? `${gap.subject}: ` : ''}${gap.message}`);
+  }
+  if (report.gaps.length > 20) {
+    console.log(`...${report.gaps.length - 20} more gap(s)`);
+  }
+}
+
+function countCoverageStatus<T extends { status: GameboardCoverageStatus }>(
+  values: readonly T[],
+  status: GameboardCoverageStatus
+): number {
+  return values.filter((value) => value.status === status).length;
+}
+
 function readGuideScenarioPageFilter(value: string | boolean | undefined): number[] {
   return readCsv(value).map((page) => {
     const parsedPage = Number(page);
@@ -3977,6 +4109,7 @@ Commands:
   guide-assets Emit asset id to guide-page, API, docs, and visual coverage metadata
   guide-roles Emit public role to guide-page, asset, and API coverage metadata
   guide-apis Emit public API to guide-page and asset coverage metadata
+  coverage  Emit release-readiness coverage JSON or Markdown
   blueprint Compile high-level 2.5D board intent to a recipe, plan, scenario, and diagnostics
   summarize-plan Summarize terrain, placement, feature, asset, and local-only usage in a plan, recipe, scenario, or blueprint
   summarize-scenario Summarize board, actor, spawn, patrol, quest, and local-only usage in a scenario
@@ -4053,6 +4186,11 @@ Options:
   --assetBaseUrl <url-or-path>
   --groups
   --includeGroups
+  --coverage
+  --checksPassed
+  --outJson <path>
+  --outMarkdown <path>
+  --generatedAt <iso-timestamp>
   --category <comma,separated,tiles|buildings|decoration|units>
   --excludeTags <comma,separated,tags>
   --requiresExtra

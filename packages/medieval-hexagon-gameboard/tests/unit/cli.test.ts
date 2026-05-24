@@ -515,6 +515,63 @@ describe('CLI', () => {
     );
   });
 
+  it('emits release-readiness coverage JSON and Markdown through the CLI', () => {
+    const root = createTempRoot();
+    const jsonPath = resolve(root, 'release-readiness.json');
+    const markdownPath = resolve(root, 'release-readiness.md');
+
+    const output = runCli([
+      'coverage',
+      '--checksPassed',
+      '--generatedAt',
+      '2026-05-24T00:00:00.000Z',
+      '--outJson',
+      jsonPath,
+      '--outMarkdown',
+      markdownPath,
+    ]);
+    const doctorOutput = runCli(['doctor', '--coverage', '--checksPassed']);
+    const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
+      generatedAt: string;
+      guide: {
+        pageCount: number;
+        assetCounts: { unique: number; free: number; extra: number };
+      };
+      manifest: {
+        manifestAssetCount: number;
+        freeGuideAssetsInManifest: number;
+        extraGuideAssetsLocalOnly: string[];
+      };
+      publicApi: unknown[];
+      visualArtifacts: Array<{ path: string; status: string }>;
+      references: unknown[];
+      packageChecks: Array<{ status: string }>;
+    };
+    const markdown = readFileSync(markdownPath, 'utf8');
+
+    expect(output).toContain(`Wrote coverage JSON to ${jsonPath}`);
+    expect(output).toContain(`Wrote coverage Markdown to ${markdownPath}`);
+    expect(output).toContain('coverage status:');
+    expect(report.generatedAt).toBe('2026-05-24T00:00:00.000Z');
+    expect(report.guide).toMatchObject({
+      pageCount: 19,
+      assetCounts: { unique: 404, free: 221, extra: 183 },
+    });
+    expect(report.manifest.manifestAssetCount).toBe(221);
+    expect(report.manifest.freeGuideAssetsInManifest).toBe(221);
+    expect(report.manifest.extraGuideAssetsLocalOnly).toHaveLength(183);
+    expect(report.publicApi).toHaveLength(74);
+    expect(report.visualArtifacts.map((artifact) => artifact.path)).toContain(
+      'docs/assets/showcases/free-blueprint-builder-showcase.png'
+    );
+    expect(report.references).toHaveLength(4);
+    expect(report.packageChecks.every((check) => check.status === 'passed')).toBe(true);
+    expect(markdown).toContain('# Release Readiness Coverage');
+    expect(markdown).toContain('| Status | Command | Summary |');
+    expect(doctorOutput).toContain('guide pages: 19/19');
+    expect(doctorOutput).toContain('manifest: 221 asset(s), 221/221 FREE guide asset(s)');
+  });
+
   it('compiles high-level blueprint board specs through the CLI', () => {
     const root = createTempRoot();
     const blueprintPath = resolve(root, 'campaign-blueprint.json');

@@ -22,6 +22,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard/catalog` | KayKit faction building ids, unit parts, prop ids, nature ids, texture names, typed asset-id constructors, public treatment metadata, extracted guide scenario metadata, scenario treatment joins, page-level scenario asset usages, render request/group queues, public API coverage joins, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit analysis, facing correction, placement recommendations, and spawn-option conversion. |
+| `@jbcom/medieval-hexagon-gameboard/coverage` | Release-readiness reports that join guide-page coverage, manifest coverage, public API treatment, visual artifacts, local references, and package gate status. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, paths, rotations, and deterministic coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` | Compiled blueprint-board usage example for board-scale authoring, runtime, and interop smoke tests. |
 | `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled SimpleRPG usage example for consumer smoke tests and app reference code. |
@@ -98,6 +99,13 @@ That summary is the package-level way to verify a fixed or seeded board actually
 contains the roads, rivers, coasts, stacks, towns, harbors, props, units, and
 custom pieces a game or visual test expects.
 
+Use `summarizeGameboardCoverage()` from `./coverage` when a release, docs pass,
+or external dashboard needs the complete evidence ledger: all 19 guide pages,
+FREE manifest coverage, local-only EXTRA separation, public API and role
+inverse indexes, browser screenshots, promoted showcase artifacts, local
+reference pack availability, and package gate status. The CLI exposes the same
+report through `coverage` and `doctor --coverage`.
+
 ## Board Blueprints
 
 Use `./blueprint` when a game, editor, or agent should describe the whole board
@@ -158,6 +166,10 @@ editors or agents pin exact anchors while still compiling to ordinary
 ![FREE blueprint board with stacked mountain range, town, roads, coast, and harbor](../assets/showcases/free-blueprint-builder-showcase.png)
 
 ![EXTRA blueprint board with biome transitions, harbor, town, units, and density props](../assets/showcases/extra-blueprint-biome-transition-showcase.png)
+
+![All 19 guide pages expressed as public scenarios](../assets/showcases/free-guide-scenarios-by-extracted-page.png)
+
+![Guide roads, rivers, coasts, SimpleRPG, and local third-party compatibility are promoted to committed showcase assets](../assets/showcases/simple-rpg-local-third-party-assets.png)
 
 The browser suite renders `free-blueprint-builder-showcase.png` and
 `extra-blueprint-biome-transition-showcase.png` so the public API proves board

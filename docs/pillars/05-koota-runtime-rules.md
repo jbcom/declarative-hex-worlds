@@ -13,10 +13,13 @@ source_images:
   - docs/assets/kaykit-guide/pages/page-18.png
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
+  - docs/release-readiness.json
+  - docs/guides/release-readiness.md
   - docs/examples/blueprint-board.json
   - packages/medieval-hexagon-gameboard/src/actors.ts
   - packages/medieval-hexagon-gameboard/src/blueprint.ts
   - packages/medieval-hexagon-gameboard/src/commands.ts
+  - packages/medieval-hexagon-gameboard/src/coverage.ts
   - packages/medieval-hexagon-gameboard/src/catalog.ts
   - packages/medieval-hexagon-gameboard/src/cli.ts
   - packages/medieval-hexagon-gameboard/src/compatibility.ts
@@ -50,6 +53,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts
 test_links:
   - packages/medieval-hexagon-gameboard/tests/unit/catalog.test.ts
+  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/actors.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/commands.test.ts
