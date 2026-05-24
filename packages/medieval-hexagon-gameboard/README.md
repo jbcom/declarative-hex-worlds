@@ -1542,6 +1542,10 @@ medieval-hexagon-gameboard guide-scenarios \
   --out /tmp/kaykit-guide-scenarios.json
 
 medieval-hexagon-gameboard guide-scenarios \
+  --markdown \
+  --out /tmp/kaykit-guide-scenario-coverage.md
+
+medieval-hexagon-gameboard guide-scenarios \
   --page 14 \
   --includeTreatments \
   --json

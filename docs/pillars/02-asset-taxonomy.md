@@ -79,6 +79,9 @@ single page report with counts and treatments, and
 builder, selector, or runtime API to guide pages and assets.
 `summarizeKayKitGuideCoverage()` is for stable unique/occurrence counts used by
 docs, CLI output, or visual-review dashboards.
+`renderKayKitGuideScenarioCoverageMarkdown()` renders the committed
+`docs/guides/guide-scenario-coverage.md` matrix from that same catalog data, and
+`pnpm test:reference-assets` fails if the checked-in page drifts.
 
 | Edition | Source GLTFs | Unique manifest ids | Texture sets | Categories |
 | --- | ---: | ---: | --- | --- |

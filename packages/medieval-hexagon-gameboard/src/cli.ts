@@ -20,6 +20,7 @@ import {
   listKayKitAssetPublicTreatments,
   listKayKitGuidePublicApiCoverages,
   listKayKitGuideScenarios,
+  renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
   type KayKitAssetPublicTreatment,
   type KayKitGuidePublicApiCoverage,
@@ -1405,7 +1406,7 @@ function runGuidePermutations(parsed: ParsedArgs, sourceRoot: string, edition: P
   if (typeof parsed.flags.out === 'string') {
     writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
     console.log(`Wrote ${permutations.length} guide permutations to ${resolve(parsed.flags.out)}`);
-  } else if (parsed.flags.json === true) {
+  } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
     console.log(`guide permutations: ${permutations.length}`);
@@ -1503,10 +1504,27 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
       : {}),
   };
 
+  if (parsed.flags.markdown === true || parsed.flags.format === 'markdown') {
+    const markdown = renderKayKitGuideScenarioCoverageMarkdown({
+      scenarios,
+      includePublicApiInversion: scenarios.length === listKayKitGuideScenarios().length,
+    });
+    if (typeof parsed.flags.out === 'string') {
+      writeFileSync(resolve(parsed.flags.out), markdown, 'utf8');
+      console.log(`Wrote ${scenarios.length} guide scenario markdown rows to ${resolve(parsed.flags.out)}`);
+    } else {
+      process.stdout.write(markdown);
+    }
+    if (missingAssetIds.length > 0) {
+      process.exit(1);
+    }
+    return;
+  }
+
   if (typeof parsed.flags.out === 'string') {
     writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
     console.log(`Wrote ${scenarios.length} guide scenarios to ${resolve(parsed.flags.out)}`);
-  } else if (parsed.flags.json === true) {
+  } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
     console.log(`guide scenarios: ${scenarios.length}`);
@@ -1555,7 +1573,7 @@ function runGuidePublicApis(parsed: ParsedArgs): void {
   if (typeof parsed.flags.out === 'string') {
     writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
     console.log(`Wrote ${coverages.length} guide public API coverages to ${resolve(parsed.flags.out)}`);
-  } else if (parsed.flags.json === true) {
+  } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
     console.log(`guide public APIs: ${coverages.length}`);
@@ -2960,6 +2978,8 @@ Options:
   --outPlan <path>
   --outInterop <path>
   --out <path>
+  --format json|markdown
+  --markdown
   --assetBasePath <path>
   --json`);
   process.exit(exitCode);

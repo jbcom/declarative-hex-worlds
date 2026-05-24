@@ -17,7 +17,8 @@ contract for CI and npm consumers.
 - Use `listKayKitGuideScenarios()` from `./catalog` when mapping guide pages to
   assets, public APIs, docs, and screenshot artifacts. Keep
   `docs/guides/guide-scenario-coverage.md` synchronized with those scenario ids
-  and do not duplicate the page-to-asset matrix in ad hoc test data.
+  through `renderKayKitGuideScenarioCoverageMarkdown()` and do not duplicate the
+  page-to-asset matrix in ad hoc test data.
 - Keep pillar frontmatter current when implementation or tests change.
 - Keep TypeDoc comments useful on exported symbols. Every TypeDoc entry point
   in `typedoc.json` must start with top-level `@module` JSDoc, and public

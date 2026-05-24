@@ -299,6 +299,7 @@ export {
   listKayKitGuideScenarioTreatments,
   listKayKitGuideScenarios,
   neutralUnitAssetId,
+  renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
   textureFileName,
 } from './catalog';
@@ -319,6 +320,7 @@ export type {
   KayKitGuidePublicApiCoverage,
   KayKitGuideScenario,
   KayKitGuideScenarioCoverage,
+  KayKitGuideScenarioCoverageMarkdownOptions,
   KayKitGuideScenarioEdition,
   KayKitTileAssetId,
   NatureAssetId,

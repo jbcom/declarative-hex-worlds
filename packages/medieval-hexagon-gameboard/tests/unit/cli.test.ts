@@ -730,6 +730,22 @@ describe('CLI', () => {
         }),
       ])
     );
+
+    const markdownPath = resolve(createTempRoot(), 'guide-scenario-page-14.md');
+    const markdownOutput = runCli([
+      'guide-scenarios',
+      '--page',
+      '14',
+      '--markdown',
+      '--out',
+      markdownPath,
+    ]);
+    const markdown = readFileSync(markdownPath, 'utf8');
+    expect(markdownOutput).toContain(`Wrote 1 guide scenario markdown rows to ${markdownPath}`);
+    expect(markdown).toContain('# Guide Scenario Coverage');
+    expect(markdown).toContain('Scenario: `page-14-units`');
+    expect(markdown).not.toContain('Scenario: `page-13-transition-tiles`');
+    expect(markdown).toContain('GameboardBuilder.addUnitPreset');
   });
 
   it('emits public API guide coverage and filters scenarios by API surface', () => {

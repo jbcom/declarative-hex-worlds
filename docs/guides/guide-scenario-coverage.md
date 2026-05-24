@@ -11,6 +11,7 @@ and visual review coverage. Use the catalog API or CLI when a tool needs exact
 asset ids or public treatment records.
 
 ```sh
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 15 --includeTreatments --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 ```
@@ -34,9 +35,10 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Scenario: `page-01-overview-and-license`
 - Edition: `reference`
 - Source image: `docs/assets/kaykit-guide/pages/page-01.png`
-- Roles: reference-only
 - Asset coverage: 0 unique, 0 FREE, 0 EXTRA, 0 occurrences
-- Public API treatment: `freeManifest`, `listKayKitAssetPublicTreatments`,
+- Roles: reference-only
+- Public API treatment: `freeManifest`,
+  `listKayKitAssetPublicTreatments`,
   `listKayKitGuideScenarios`
 - Visual artifacts: `docs/assets/kaykit-guide/montage.png`,
   `docs/assets/kaykit-guide/pages/page-01.png`
@@ -47,15 +49,19 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Scenario: `page-02-buildings-props-and-factions`
 - Edition: `mixed`
 - Source image: `docs/assets/kaykit-guide/pages/page-02.png`
-- Roles: `faction-building`, `neutral-structure`, `prop`
 - Asset coverage: 164 unique, 119 FREE, 45 EXTRA, 164 occurrences
+- Roles: `faction-building`, `neutral-structure`, `prop`
 - Public API treatment: `GameboardBuilder.addFactionBuilding`,
-  `GameboardBuilder.addFlag`, `GameboardBuilder.addHarbor`,
-  `GameboardBuilder.addNeutralStructure`, `GameboardBuilder.addProp`,
-  `GameboardBuilder.addSettlement`, `createGameboardLayoutFillRuleFromPiece`,
-  `createGameboardPlanFromRecipe`, `factionBuildingAssetId`, `flagAssetId`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
+  `GameboardBuilder.addFlag`,
+  `GameboardBuilder.addHarbor`,
+  `GameboardBuilder.addNeutralStructure`,
+  `GameboardBuilder.addProp`,
+  `GameboardBuilder.addSettlement`,
+  `createGameboardLayoutFillRuleFromPiece`,
+  `createGameboardPlanFromRecipe`,
+  `factionBuildingAssetId`,
+  `flagAssetId`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/public-api.md`
 
@@ -64,159 +70,175 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Scenario: `page-03-road-variations`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-03.png`
-- Roles: `road-tile`
 - Asset coverage: 15 unique, 15 FREE, 0 EXTRA, 15 occurrences
+- Roles: `road-tile`
 - Public API treatment: `GameboardBuilder.addRoadPath`,
-  `listRoadGuidePermutations`, `selectRoadVariant`,
+  `listRoadGuidePermutations`,
+  `selectRoadVariant`,
   `selectRoadVariantByLabel`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
-- Docs: `docs/pillars/01-tiles-connectivity.md`,
-  `docs/pillars/04-visual-verification.md`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
+- Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/04-visual-verification.md`
 
 ### Page 04 - River Variations
 
 - Scenario: `page-04-river-variations`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-04.png`
-- Roles: `river-tile`
 - Asset coverage: 30 unique, 30 FREE, 0 EXTRA, 30 occurrences
+- Roles: `river-tile`
 - Public API treatment: `GameboardBuilder.addRiverPath`,
-  `listRiverCrossingGuidePermutations`, `listRiverCurvyGuidePermutations`,
-  `listRiverGuidePermutations`, `selectRiverCrossingVariant`,
-  `selectRiverVariant`, `selectRiverVariantByLabel`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`,
+  `listRiverCrossingGuidePermutations`,
+  `listRiverCurvyGuidePermutations`,
+  `listRiverGuidePermutations`,
+  `selectRiverCrossingVariant`,
+  `selectRiverVariant`,
+  `selectRiverVariantByLabel`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png`
-- Docs: `docs/pillars/01-tiles-connectivity.md`,
-  `docs/pillars/04-visual-verification.md`
+- Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/04-visual-verification.md`
 
 ### Page 05 - Nature And Decoration Contents
 
 - Scenario: `page-05-nature-contents`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-05.png`
-- Roles: `nature-decoration`, `prop`
 - Asset coverage: 77 unique, 68 FREE, 9 EXTRA, 77 occurrences
+- Roles: `nature-decoration`, `prop`
 - Public API treatment: `GameboardBuilder.addFlag`,
-  `GameboardBuilder.addForest`, `GameboardBuilder.addHarbor`,
-  `GameboardBuilder.addHill`, `GameboardBuilder.addMountainStack`,
-  `GameboardBuilder.addNature`, `GameboardBuilder.addProp`,
+  `GameboardBuilder.addForest`,
+  `GameboardBuilder.addHarbor`,
+  `GameboardBuilder.addHill`,
+  `GameboardBuilder.addMountainStack`,
+  `GameboardBuilder.addNature`,
+  `GameboardBuilder.addProp`,
   `GameboardBuilder.scatterDecorations`,
-  `createGameboardLayoutFillRuleFromPiece`, `flagAssetId`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
+  `createGameboardLayoutFillRuleFromPiece`,
+  `flagAssetId`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
-- Docs: `docs/pillars/02-asset-taxonomy.md`,
-  `docs/pillars/05-koota-runtime-rules.md`
+- Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 06 - Nature Usage Guide
 
 - Scenario: `page-06-nature-usage`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-06.png`
-- Roles: `nature-decoration`
 - Asset coverage: 42 unique, 42 FREE, 0 EXTRA, 42 occurrences
+- Roles: `nature-decoration`
 - Public API treatment: `GameboardBuilder.addForest`,
-  `GameboardBuilder.addHill`, `GameboardBuilder.addMountainStack`,
-  `GameboardBuilder.addNature`, `GameboardBuilder.scatterDecorations`,
+  `GameboardBuilder.addHill`,
+  `GameboardBuilder.addMountainStack`,
+  `GameboardBuilder.addNature`,
+  `GameboardBuilder.scatterDecorations`,
   `createGameboardLayoutArchetypeRegistry`,
   `createGameboardLayoutFillRuleFromPiece`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png`
-- Docs: `docs/pillars/02-asset-taxonomy.md`,
-  `docs/pillars/05-koota-runtime-rules.md`
+- Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 07 - Water Usage Guide
 
 - Scenario: `page-07-water-usage`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-07.png`
-- Roles: `base-tile`, `coast-tile`, `river-tile`
 - Asset coverage: 42 unique, 42 FREE, 0 EXTRA, 42 occurrences
+- Roles: `base-tile`, `coast-tile`, `river-tile`
 - Public API treatment: `GameboardBuilder.addHarbor`,
-  `GameboardBuilder.addRiverPath`, `GameboardBuilder.setCoastEdges`,
-  `GameboardBuilder.setTerrain`, `GameboardBuilder.setTileAsset`,
-  `createGameboardPlanFromTiles`, `listCoastGuidePermutations`,
-  `listRiverCrossingGuidePermutations`, `listRiverCurvyGuidePermutations`,
-  `listRiverGuidePermutations`, `selectCoastVariant`,
-  `selectCoastVariantByLabel`, `selectRiverCrossingVariant`,
-  `selectRiverVariant`, `selectRiverVariantByLabel`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png`,
+  `GameboardBuilder.addRiverPath`,
+  `GameboardBuilder.setCoastEdges`,
+  `GameboardBuilder.setTerrain`,
+  `GameboardBuilder.setTileAsset`,
+  `createGameboardPlanFromTiles`,
+  `listCoastGuidePermutations`,
+  `listRiverCrossingGuidePermutations`,
+  `listRiverCurvyGuidePermutations`,
+  `listRiverGuidePermutations`,
+  `selectCoastVariant`,
+  `selectCoastVariantByLabel`,
+  `selectRiverCrossingVariant`,
+  `selectRiverVariant`,
+  `selectRiverVariantByLabel`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`
-- Docs: `docs/pillars/01-tiles-connectivity.md`,
-  `docs/pillars/04-visual-verification.md`
+- Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/04-visual-verification.md`
 
 ### Page 08 - Taller Hex Tiles
 
 - Scenario: `page-08-taller-hex-tiles`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-08.png`
-- Roles: `base-tile`, `support-tile`
 - Asset coverage: 3 unique, 3 FREE, 0 EXTRA, 3 occurrences
+- Roles: `base-tile`, `support-tile`
 - Public API treatment: `GameboardBuilder.addMountainStack`,
-  `GameboardBuilder.setElevation`, `GameboardBuilder.setTileAsset`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
+  `GameboardBuilder.setElevation`,
+  `GameboardBuilder.setTileAsset`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`
-- Docs: `docs/pillars/01-tiles-connectivity.md`,
-  `docs/pillars/05-koota-runtime-rules.md`
+- Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 09 - World Design Example
 
 - Scenario: `page-09-world-design-example`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-09.png`
-- Roles: `base-tile`, `nature-decoration`, `road-tile`
 - Asset coverage: 59 unique, 59 FREE, 0 EXTRA, 59 occurrences
+- Roles: `base-tile`, `nature-decoration`, `road-tile`
 - Public API treatment: `GameboardBuilder.addForest`,
-  `GameboardBuilder.addHill`, `GameboardBuilder.addMountainStack`,
-  `GameboardBuilder.addNature`, `GameboardBuilder.addRoadPath`,
-  `GameboardBuilder.scatterDecorations`, `GameboardBuilder.setTerrain`,
-  `GameboardBuilder.setTileAsset`, `createGameboardBuilder`,
-  `createGameboardLayoutFillRuleFromPiece`, `createGameboardPlanFromRecipe`,
-  `createGameboardPlanFromTiles`, `createGameboardRuntimeFromScenario`,
-  `createSeededGameboardPlan`, `listRoadGuidePermutations`,
-  `selectRoadVariant`, `selectRoadVariantByLabel`, `selectSpawnCoordinates`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`,
+  `GameboardBuilder.addHill`,
+  `GameboardBuilder.addMountainStack`,
+  `GameboardBuilder.addNature`,
+  `GameboardBuilder.addRoadPath`,
+  `GameboardBuilder.scatterDecorations`,
+  `GameboardBuilder.setTerrain`,
+  `GameboardBuilder.setTileAsset`,
+  `createGameboardBuilder`,
+  `createGameboardLayoutFillRuleFromPiece`,
+  `createGameboardPlanFromRecipe`,
+  `createGameboardPlanFromTiles`,
+  `createGameboardRuntimeFromScenario`,
+  `createSeededGameboardPlan`,
+  `listRoadGuidePermutations`,
+  `selectRoadVariant`,
+  `selectRoadVariantByLabel`,
+  `selectSpawnCoordinates`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png`
-- Docs: `docs/guides/recipes-scenarios-and-simulation.md`,
-  `docs/pillars/05-koota-runtime-rules.md`
+- Docs: `docs/guides/recipes-scenarios-and-simulation.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 10 - Floating Islands
 
 - Scenario: `page-10-floating-islands`
 - Edition: `free`
 - Source image: `docs/assets/kaykit-guide/pages/page-10.png`
-- Roles: `base-tile`, `nature-decoration`, `support-tile`
 - Asset coverage: 45 unique, 45 FREE, 0 EXTRA, 45 occurrences
+- Roles: `base-tile`, `nature-decoration`, `support-tile`
 - Public API treatment: `GameboardBuilder.addForest`,
-  `GameboardBuilder.addHill`, `GameboardBuilder.addMountainStack`,
-  `GameboardBuilder.addNature`, `GameboardBuilder.scatterDecorations`,
-  `GameboardBuilder.setElevation`, `GameboardBuilder.setTileAsset`,
-  `createGameboardLayoutFillRuleFromPiece`, `createHexagonGameboardGrid`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png`,
+  `GameboardBuilder.addHill`,
+  `GameboardBuilder.addMountainStack`,
+  `GameboardBuilder.addNature`,
+  `GameboardBuilder.scatterDecorations`,
+  `GameboardBuilder.setElevation`,
+  `GameboardBuilder.setTileAsset`,
+  `createGameboardLayoutFillRuleFromPiece`,
+  `createHexagonGameboardGrid`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`
-- Docs: `docs/pillars/02-asset-taxonomy.md`,
-  `docs/pillars/05-koota-runtime-rules.md`
+- Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 11 - Biomes
 
 - Scenario: `page-11-biomes`
 - Edition: `extra`
 - Source image: `docs/assets/kaykit-guide/pages/page-11.png`
-- Roles: `transition-tile`
 - Asset coverage: 1 unique, 0 FREE, 1 EXTRA, 1 occurrence
+- Roles: `transition-tile`
 - Public API treatment: `GameboardBuilder.addTransition`,
-  `createGameboardPlanFromRecipe`, `textureFileName`, `validateGameboardRecipe`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
+  `createGameboardPlanFromRecipe`,
+  `textureFileName`,
+  `validateGameboardRecipe`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`
 - Docs: `docs/pillars/03-editions-and-ingest.md`,
   `docs/guides/rendering-assets-and-external-packs.md`
@@ -226,14 +248,16 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Scenario: `page-12-alternate-textures`
 - Edition: `extra`
 - Source image: `docs/assets/kaykit-guide/pages/page-12.png`
-- Roles: `transition-tile`
 - Asset coverage: 1 unique, 0 FREE, 1 EXTRA, 1 occurrence
+- Roles: `transition-tile`
 - Public API treatment: `GameboardBuilder.addTransition`,
-  `createGameboardPlanFromRecipe`, `createManifestBundle`,
-  `medieval-hexagon-gameboard manifest`, `selectManifestAssets`,
-  `textureFileName`, `validateGameboardRecipe`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`,
+  `createGameboardPlanFromRecipe`,
+  `createManifestBundle`,
+  `medieval-hexagon-gameboard manifest`,
+  `selectManifestAssets`,
+  `textureFileName`,
+  `validateGameboardRecipe`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`
 - Docs: `docs/pillars/03-editions-and-ingest.md`,
   `docs/guides/rendering-assets-and-external-packs.md`
@@ -243,123 +267,131 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Scenario: `page-13-transition-tiles`
 - Edition: `extra`
 - Source image: `docs/assets/kaykit-guide/pages/page-13.png`
-- Roles: `transition-tile`
 - Asset coverage: 1 unique, 0 FREE, 1 EXTRA, 1 occurrence
+- Roles: `transition-tile`
 - Public API treatment: `GameboardBuilder.addTransition`,
-  `analyzeHexTileRegistry`, `createGameboardPlanFromRecipe`, `declareHexTile`,
-  `validateGameboardRecipe`, `validateGameboardRecipeGeneration`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
+  `analyzeHexTileRegistry`,
+  `createGameboardPlanFromRecipe`,
+  `declareHexTile`,
+  `validateGameboardRecipe`,
+  `validateGameboardRecipeGeneration`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`
-- Docs: `docs/pillars/01-tiles-connectivity.md`,
-  `docs/pillars/03-editions-and-ingest.md`
+- Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/03-editions-and-ingest.md`
 
 ### Page 14 - Units
 
 - Scenario: `page-14-units`
 - Edition: `extra`
 - Source image: `docs/assets/kaykit-guide/pages/page-14.png`
-- Roles: `colored-unit-part`, `neutral-unit-part`
 - Asset coverage: 137 unique, 0 FREE, 137 EXTRA, 137 occurrences
+- Roles: `colored-unit-part`, `neutral-unit-part`
 - Public API treatment: `GameboardBuilder.addUnit`,
-  `GameboardBuilder.addUnitPreset`, `coloredUnitAssetId`, `neutralUnitAssetId`,
+  `GameboardBuilder.addUnitPreset`,
+  `coloredUnitAssetId`,
+  `neutralUnitAssetId`,
   `spawnGameboardActor`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png`
-- Docs: `docs/pillars/02-asset-taxonomy.md`,
-  `docs/guides/runtime-integration.md`
+- Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/runtime-integration.md`
 
 ### Page 15 - Shipyard, Harbors, And Ports
 
 - Scenario: `page-15-shipyard-harbors`
 - Edition: `mixed`
 - Source image: `docs/assets/kaykit-guide/pages/page-15.png`
-- Roles: `coast-tile`, `faction-building`, `prop`
 - Asset coverage: 25 unique, 14 FREE, 11 EXTRA, 25 occurrences
+- Roles: `coast-tile`, `faction-building`, `prop`
 - Public API treatment: `GameboardBuilder.addFactionBuilding`,
-  `GameboardBuilder.addHarbor`, `GameboardBuilder.addProp`,
-  `GameboardBuilder.addUnitPreset`, `GameboardBuilder.setCoastEdges`,
-  `createGameboardLayoutFillRuleFromPiece`, `externalAssetSpawnOptions`,
-  `factionBuildingAssetId`, `listCoastGuidePermutations`, `selectCoastVariant`,
+  `GameboardBuilder.addHarbor`,
+  `GameboardBuilder.addProp`,
+  `GameboardBuilder.addUnitPreset`,
+  `GameboardBuilder.setCoastEdges`,
+  `createGameboardLayoutFillRuleFromPiece`,
+  `externalAssetSpawnOptions`,
+  `factionBuildingAssetId`,
+  `listCoastGuidePermutations`,
+  `selectCoastVariant`,
   `selectCoastVariantByLabel`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`,
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
-- Docs: `docs/pillars/02-asset-taxonomy.md`,
-  `docs/pillars/03-editions-and-ingest.md`
+- Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/03-editions-and-ingest.md`
 
 ### Page 16 - Stables And Horses
 
 - Scenario: `page-16-stables-and-horses`
 - Edition: `extra`
 - Source image: `docs/assets/kaykit-guide/pages/page-16.png`
-- Roles: `colored-unit-part`, `faction-building`, `neutral-structure`,
-  `neutral-unit-part`, `prop`
 - Asset coverage: 155 unique, 11 FREE, 144 EXTRA, 155 occurrences
+- Roles: `colored-unit-part`, `faction-building`, `neutral-structure`, `neutral-unit-part`, `prop`
 - Public API treatment: `GameboardBuilder.addFactionBuilding`,
-  `GameboardBuilder.addNeutralStructure`, `GameboardBuilder.addProp`,
-  `GameboardBuilder.addSettlement`, `GameboardBuilder.addUnit`,
-  `GameboardBuilder.addUnitPreset`, `coloredUnitAssetId`,
-  `createGameboardLayoutFillRuleFromPiece`, `createGameboardPlanFromRecipe`,
-  `factionBuildingAssetId`, `neutralUnitAssetId`,
-  `recommendExternalAssetFacing`, `spawnGameboardActor`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
+  `GameboardBuilder.addNeutralStructure`,
+  `GameboardBuilder.addProp`,
+  `GameboardBuilder.addSettlement`,
+  `GameboardBuilder.addUnit`,
+  `GameboardBuilder.addUnitPreset`,
+  `coloredUnitAssetId`,
+  `createGameboardLayoutFillRuleFromPiece`,
+  `createGameboardPlanFromRecipe`,
+  `factionBuildingAssetId`,
+  `neutralUnitAssetId`,
+  `recommendExternalAssetFacing`,
+  `spawnGameboardActor`
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
-- Docs: `docs/pillars/02-asset-taxonomy.md`,
-  `docs/guides/rendering-assets-and-external-packs.md`
+- Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/rendering-assets-and-external-packs.md`
 
 ### Page 17 - Workshop And Siege Units
 
 - Scenario: `page-17-workshop-and-siege`
 - Edition: `extra`
 - Source image: `docs/assets/kaykit-guide/pages/page-17.png`
-- Roles: `colored-unit-part`, `faction-building`, `neutral-structure`,
-  `neutral-unit-part`, `prop`
 - Asset coverage: 159 unique, 11 FREE, 148 EXTRA, 159 occurrences
+- Roles: `colored-unit-part`, `faction-building`, `neutral-structure`, `neutral-unit-part`, `prop`
 - Public API treatment: `GameboardBuilder.addFactionBuilding`,
-  `GameboardBuilder.addNeutralStructure`, `GameboardBuilder.addProp`,
-  `GameboardBuilder.addSettlement`, `GameboardBuilder.addUnit`,
-  `GameboardBuilder.addUnitPreset`, `coloredUnitAssetId`,
-  `createGameboardLayoutFillRuleFromPiece`, `createGameboardPlanFromRecipe`,
-  `executeGameboardInteractionCommand`, `factionBuildingAssetId`,
-  `neutralUnitAssetId`, `planGameboardInteractionCommand`,
+  `GameboardBuilder.addNeutralStructure`,
+  `GameboardBuilder.addProp`,
+  `GameboardBuilder.addSettlement`,
+  `GameboardBuilder.addUnit`,
+  `GameboardBuilder.addUnitPreset`,
+  `coloredUnitAssetId`,
+  `createGameboardLayoutFillRuleFromPiece`,
+  `createGameboardPlanFromRecipe`,
+  `executeGameboardInteractionCommand`,
+  `factionBuildingAssetId`,
+  `neutralUnitAssetId`,
+  `planGameboardInteractionCommand`,
   `spawnGameboardActor`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`,
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
-- Docs: `docs/pillars/02-asset-taxonomy.md`,
-  `docs/guides/runtime-integration.md`
+- Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/runtime-integration.md`
 
 ### Page 18 - Unit Combinations
 
 - Scenario: `page-18-unit-combinations`
 - Edition: `extra`
 - Source image: `docs/assets/kaykit-guide/pages/page-18.png`
-- Roles: `colored-unit-part`, `neutral-unit-part`
 - Asset coverage: 137 unique, 0 FREE, 137 EXTRA, 137 occurrences
+- Roles: `colored-unit-part`, `neutral-unit-part`
 - Public API treatment: `GameboardBuilder.addUnit`,
-  `GameboardBuilder.addUnitPreset`, `coloredUnitAssetId`,
-  `createGameboardRuntimeFromScenario`, `neutralUnitAssetId`,
+  `GameboardBuilder.addUnitPreset`,
+  `coloredUnitAssetId`,
+  `createGameboardRuntimeFromScenario`,
+  `neutralUnitAssetId`,
   `spawnGameboardActor`
-- Visual artifacts:
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
+- Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png`
-- Docs: `docs/pillars/02-asset-taxonomy.md`,
-  `docs/guides/recipes-scenarios-and-simulation.md`
+- Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/recipes-scenarios-and-simulation.md`
 
 ### Page 19 - Supporters And Attribution
 
 - Scenario: `page-19-supporters-and-attribution`
 - Edition: `reference`
 - Source image: `docs/assets/kaykit-guide/pages/page-19.png`
-- Roles: reference-only
 - Asset coverage: 0 unique, 0 FREE, 0 EXTRA, 0 occurrences
-- Public API treatment: `NOTICE.md`, `listKayKitGuideScenarios`,
-  `package.json files`
-- Visual artifacts: `docs/assets/kaykit-guide/pages/page-19.png`,
-  `NOTICE.md`
+- Roles: reference-only
+- Public API treatment: `NOTICE.md`, `listKayKitGuideScenarios`, `package.json files`
+- Visual artifacts: `docs/assets/kaykit-guide/pages/page-19.png`, `NOTICE.md`
 - Docs: `NOTICE.md`, `docs/pillars/00-library-charter.md`, `README.md`
 
 ## Public API Inversion

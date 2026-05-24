@@ -7,6 +7,7 @@ import {
   listKayKitGuidePublicApiCoverages as listKayKitGuidePublicApiCoveragesFromRoot,
   listKayKitGuideScenarioTreatments as listKayKitGuideScenarioTreatmentsFromRoot,
   listKayKitGuideScenarios as listKayKitGuideScenariosFromRoot,
+  renderKayKitGuideScenarioCoverageMarkdown as renderKayKitGuideScenarioCoverageMarkdownFromRoot,
   summarizeKayKitGuideCoverage as summarizeKayKitGuideCoverageFromRoot,
 } from '../../src';
 import {
@@ -26,6 +27,7 @@ import {
   listKayKitGuideScenarioTreatments,
   listKayKitGuideScenarios,
   neutralUnitAssetId,
+  renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
 } from '../../src/catalog';
 import { generateManifestFromSource } from '../../src/ingest';
@@ -243,5 +245,20 @@ describe('asset catalog public treatments', () => {
       assetCounts: { unique: 137, free: 0, extra: 137, occurrences: 548 },
     });
     expect(describeKayKitGuidePublicApiCoverage('missing-api')).toBeUndefined();
+  });
+
+  it('renders the guide scenario coverage matrix as reproducible Markdown', () => {
+    const markdown = renderKayKitGuideScenarioCoverageMarkdown();
+
+    expect(renderKayKitGuideScenarioCoverageMarkdownFromRoot()).toBe(markdown);
+    expect(markdown).toContain('# Guide Scenario Coverage');
+    expect(markdown).toContain(
+      'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md'
+    );
+    expect(markdown).toContain('Scenario: `page-03-road-variations`');
+    expect(markdown).toContain('Scenario: `page-19-supporters-and-attribution`');
+    expect(markdown).toContain('GameboardBuilder.addHarbor');
+    expect(markdown).toContain('listKayKitGuidePublicApiCoverages()');
+    expect(markdown.endsWith('\n')).toBe(true);
   });
 });

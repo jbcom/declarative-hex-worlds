@@ -385,6 +385,25 @@ try {
     ) === true,
     'guide-scenarios did not include page 14 unit treatment metadata'
   );
+  const guideScenarioMarkdownPath = join(tempRoot, 'kaykit-guide-scenarios.md');
+  const guideScenarioMarkdownOutput = runCli([
+    'guide-scenarios',
+    '--page',
+    '14',
+    '--markdown',
+    '--out',
+    guideScenarioMarkdownPath,
+  ]);
+  const guideScenarioMarkdown = readFileSync(guideScenarioMarkdownPath, 'utf8');
+  assert(
+    guideScenarioMarkdownOutput.includes('Wrote 1 guide scenario markdown rows'),
+    'guide-scenarios markdown output count changed'
+  );
+  assert(
+    guideScenarioMarkdown.includes('Scenario: `page-14-units`') &&
+      guideScenarioMarkdown.includes('GameboardBuilder.addUnitPreset'),
+    'guide-scenarios markdown output did not include page 14 unit API coverage'
+  );
 
   const guideApiHarbor = JSON.parse(
     runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addHarbor', '--json'])

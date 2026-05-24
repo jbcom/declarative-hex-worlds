@@ -563,6 +563,16 @@ export interface KayKitGuidePublicApiCoverage {
   visualArtifacts: readonly string[];
 }
 
+/** Options for rendering the extracted guide scenario matrix as Markdown. */
+export interface KayKitGuideScenarioCoverageMarkdownOptions {
+  /** Heading used for the generated document. */
+  title?: string;
+  /** Scenario subset to render; defaults to all extracted guide scenarios. */
+  scenarios?: readonly KayKitGuideScenario[];
+  /** Whether to append the public API inverse-coverage usage section. */
+  includePublicApiInversion?: boolean;
+}
+
 /** Builds a faction-colored building asset id. */
 export function factionBuildingAssetId(kind: FactionBuildingKind, faction: Faction): string {
   return `building_${kind}_${faction}`;
@@ -674,6 +684,101 @@ export function summarizeKayKitGuideCoverage(): KayKitGuideCoverageSummary {
     uniqueAssetsByRole: countUniqueAssetsByRole(uniqueAssetIds, treatmentByAssetId),
     pages: scenarios.map((scenario) => guidePageCoverage(scenario, treatmentByAssetId)),
   };
+}
+
+/** Renders the guide scenario coverage matrix as reproducible Markdown docs. */
+export function renderKayKitGuideScenarioCoverageMarkdown(
+  options: KayKitGuideScenarioCoverageMarkdownOptions = {}
+): string {
+  const scenarios = options.scenarios ? [...options.scenarios] : listKayKitGuideScenarios();
+  const includePublicApiInversion = options.includePublicApiInversion ?? options.scenarios === undefined;
+  const lines = [
+    `# ${options.title ?? 'Guide Scenario Coverage'}`,
+    '',
+    'The KayKit user guide is decomposed into 19 source-page scenarios. This page is',
+    'the human-facing map for those scenarios; the machine-readable source remains',
+    '`listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,',
+    '`listKayKitGuidePublicApiCoverages()`, and the `guide-scenarios` / `guide-apis`',
+    'CLI commands.',
+    '',
+    'Use this page when deciding whether a guide image has public API treatment, docs,',
+    'and visual review coverage. Use the catalog API or CLI when a tool needs exact',
+    'asset ids or public treatment records.',
+    '',
+    '```sh',
+    'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md',
+    'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 15 --includeTreatments --json',
+    'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json',
+    '```',
+    '',
+    '## Coverage Contract',
+    '',
+    '- Every extracted guide page has exactly one `page-NN-*` scenario.',
+    '- Every scenario lists its source PNG, edition scope, public API surfaces, docs,',
+    '  and visual artifacts.',
+    '- Every FREE and local EXTRA asset id appears in at least one scenario unless it',
+    '  is a reference-only license/supporter page with no assets.',
+    '- Every asset-bearing scenario can be expanded into public treatment records',
+    '  with `listKayKitGuideScenarioTreatments(id)`.',
+    '- Every public API string in a scenario can be inverted back to pages/assets with',
+    '  `listKayKitGuidePublicApiCoverages()`.',
+    '',
+    '## Page Matrix',
+  ];
+
+  for (const scenario of scenarios) {
+    const coverage = describeKayKitGuideScenarioCoverage(scenario.id);
+    const assetCounts = coverage?.assetCounts ?? {
+      unique: 0,
+      free: 0,
+      extra: 0,
+      occurrences: 0,
+      freeOccurrences: 0,
+      extraOccurrences: 0,
+    };
+    const occurrenceLabel = assetCounts.occurrences === 1 ? 'occurrence' : 'occurrences';
+    lines.push(
+      '',
+      `### Page ${String(scenario.page).padStart(2, '0')} - ${markdownTitleCase(scenario.title)}`,
+      '',
+      `- Scenario: \`${scenario.id}\``,
+      `- Edition: \`${scenario.edition}\``,
+      `- Source image: \`${scenario.sourceImage}\``,
+      `- Asset coverage: ${assetCounts.unique} unique, ${assetCounts.free} FREE, ${assetCounts.extra} EXTRA, ${assetCounts.occurrences} ${occurrenceLabel}`
+    );
+    pushMarkdownCodeList(lines, 'Roles', scenario.treatmentRoles, 'reference-only');
+    pushMarkdownCodeList(lines, 'Public API treatment', scenario.publicApi);
+    pushMarkdownCodeList(lines, 'Visual artifacts', scenario.visualArtifacts);
+    pushMarkdownCodeList(lines, 'Docs', scenario.docs);
+  }
+
+  if (includePublicApiInversion) {
+    lines.push(
+      '',
+      '## Public API Inversion',
+      '',
+      'The page matrix flows from guide page to public API. The inverse query starts',
+      'from an API surface and reports every guide page, asset id, role, doc, and',
+      'screenshot that exercises it:',
+      '',
+      '```ts',
+      'import {',
+      '  describeKayKitGuidePublicApiCoverage,',
+      '  listKayKitGuidePublicApiCoverages,',
+      "} from '@jbcom/medieval-hexagon-gameboard/catalog';",
+      '',
+      "const harbor = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addHarbor');",
+      'const allApiCoverage = listKayKitGuidePublicApiCoverages();',
+      '```',
+      '',
+      'For example, `GameboardBuilder.addHarbor` maps to pages 02, 05, 07, and 15,',
+      'covering coast tiles, faction buildings, and props across FREE and EXTRA source',
+      'material. `GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is',
+      'EXTRA-only because the unit assembly pieces are local-ingest assets.'
+    );
+  }
+
+  return `${lines.join('\n')}\n`;
 }
 
 /** Returns whether an asset id has an explicit public API treatment. */
@@ -1436,6 +1541,42 @@ function uniqueSortedStrings(values: readonly string[]): string[] {
 
 function uniqueSortedRoles(values: readonly KayKitAssetPublicRole[]): KayKitAssetPublicRole[] {
   return [...new Set(values)].sort();
+}
+
+function pushMarkdownCodeList(
+  lines: string[],
+  label: string,
+  values: readonly string[],
+  fallback = 'none'
+): void {
+  if (values.length === 0) {
+    lines.push(`- ${label}: ${fallback}`);
+    return;
+  }
+
+  const formatted = values.map((value) => `\`${value}\``);
+  const prefix = `- ${label}: `;
+  if (formatted.length === 1) {
+    lines.push(`${prefix}${formatted[0]}`);
+    return;
+  }
+  if (`${prefix}${formatted.join(', ')}`.length <= 100) {
+    lines.push(`${prefix}${formatted.join(', ')}`);
+    return;
+  }
+
+  lines.push(`${prefix}${formatted[0]},`);
+  for (const [index, value] of formatted.slice(1).entries()) {
+    const isLast = index === formatted.length - 2;
+    lines.push(`  ${value}${isLast ? '' : ','}`);
+  }
+}
+
+function markdownTitleCase(value: string): string {
+  return value
+    .split(' ')
+    .map((word) => (word.length === 0 ? word : `${word[0]?.toUpperCase() ?? ''}${word.slice(1)}`))
+    .join(' ');
 }
 
 function uniqueSortedScenarioEditions(

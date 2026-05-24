@@ -167,7 +167,7 @@ building, tree, scatter asset, or unit with explicit placement criteria.
 | --- | --- |
 | Manifest shape and stale indexes | `inspectMedievalHexagonManifest` |
 | Asset exists but lacks an intentional public API route | `listKayKitAssetPublicTreatments`, `describeKayKitAssetTreatment` |
-| Extracted guide page lacks asset/API/docs/visual coverage | `listKayKitGuideScenarios`, `describeKayKitGuideScenario`, `listKayKitGuideScenarioTreatments`, `describeKayKitGuideScenarioCoverage`, `listKayKitGuidePublicApiCoverages`, `describeKayKitGuidePublicApiCoverage`, `summarizeKayKitGuideCoverage` |
+| Extracted guide page lacks asset/API/docs/visual coverage | `listKayKitGuideScenarios`, `describeKayKitGuideScenario`, `listKayKitGuideScenarioTreatments`, `describeKayKitGuideScenarioCoverage`, `listKayKitGuidePublicApiCoverages`, `describeKayKitGuidePublicApiCoverage`, `summarizeKayKitGuideCoverage`, `renderKayKitGuideScenarioCoverageMarkdown` |
 | Packaged or app-local manifest lookup | `createManifestBundle`, `getManifestAsset` |
 | Missing assets in plans, recipes, and scenarios | `validateGameboardPlan`, recipe/scenario validation helpers |
 | Tile declarations and neutral plan rules | `validateGameboardPlan` |

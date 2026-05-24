@@ -4,6 +4,7 @@ import {
   describeKayKitAssetTreatment,
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
+  renderKayKitGuideScenarioCoverageMarkdown,
 } from '../packages/medieval-hexagon-gameboard/src/catalog';
 import { generateManifestFromSource, validateSourceRoot } from '../packages/medieval-hexagon-gameboard/src/ingest';
 import { freeManifest } from '../packages/medieval-hexagon-gameboard/src/manifest/free';
@@ -488,6 +489,10 @@ function auditGuideScenarios(expectedIds: readonly string[]): void {
   assert(
     guideScenarioCoverageDoc.includes('guide-apis --publicApi GameboardBuilder.addHarbor --json'),
     'guide scenario coverage docs must show guide-apis usage'
+  );
+  assert(
+    guideScenarioCoverageDoc === renderKayKitGuideScenarioCoverageMarkdown(),
+    'guide scenario coverage docs must match renderKayKitGuideScenarioCoverageMarkdown() output'
   );
 }
 
