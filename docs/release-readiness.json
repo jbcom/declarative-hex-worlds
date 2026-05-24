@@ -35704,6 +35704,12 @@
       "status": "passed"
     },
     {
+      "id": "showcases-promote-check",
+      "label": "pnpm showcases:promote -- --check",
+      "command": "pnpm showcases:promote -- --check",
+      "status": "passed"
+    },
+    {
       "id": "test-workflows",
       "label": "pnpm test:workflows",
       "command": "pnpm test:workflows",
@@ -35726,6 +35732,7 @@
     "pnpm docs:build",
     "pnpm test:consumer",
     "pnpm test:visual",
+    "pnpm showcases:promote -- --check",
     "pnpm test:workflows",
     "pnpm pack:dry-run"
   ]

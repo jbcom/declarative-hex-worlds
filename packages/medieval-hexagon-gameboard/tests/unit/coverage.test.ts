@@ -160,6 +160,7 @@ describe('release-readiness coverage', () => {
     expect(markdown).toContain('| Status | Reference | Path | Purpose |');
     expect(markdown).toContain('| Status | Command | Summary |');
     expect(markdown).toContain('`pnpm test:visual`');
+    expect(markdown).toContain('`pnpm showcases:promote -- --check`');
     expect(markdown).toContain('`page-15-shipyard-harbors`');
   });
 });

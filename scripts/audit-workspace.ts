@@ -515,6 +515,7 @@ function requireReleaseReadinessLedger(): void {
       'pnpm docs:build',
       'pnpm test:consumer',
       'pnpm test:visual',
+      'pnpm showcases:promote -- --check',
       'pnpm test:workflows',
       'pnpm pack:dry-run',
     ],

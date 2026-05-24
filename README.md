@@ -261,6 +261,7 @@ pnpm test:browser:extra
 pnpm test:e2e:local-assets
 pnpm test:visual
 pnpm showcases:promote
+pnpm showcases:promote -- --check
 pnpm test:package
 pnpm test:cli
 pnpm test:consumer
