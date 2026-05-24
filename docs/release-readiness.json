@@ -35282,6 +35282,30 @@
       "required": true
     },
     {
+      "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-assets-by-public-role.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
+      "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
+      "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
       "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
       "status": "available",
       "source": "guide",
@@ -35390,6 +35414,14 @@
       "required": true
     },
     {
+      "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-catalog.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
       "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
       "status": "available",
       "source": "guide",
@@ -35413,6 +35445,14 @@
       "pages": [
         6
       ],
+      "required": true
+    },
+    {
+      "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-assets-by-public-role.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
       "required": true
     },
     {
@@ -35486,6 +35526,22 @@
       "required": true
     },
     {
+      "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
+      "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-source-pages.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
       "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
       "status": "available",
       "source": "guide",
@@ -35534,6 +35590,14 @@
       "required": true
     },
     {
+      "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-packaged-scenario.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
       "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png",
       "status": "available",
       "source": "guide",
@@ -35543,6 +35607,14 @@
       "pages": [
         18
       ],
+      "required": true
+    },
+    {
+      "path": "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-simulation-report.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
       "required": true
     }
   ],

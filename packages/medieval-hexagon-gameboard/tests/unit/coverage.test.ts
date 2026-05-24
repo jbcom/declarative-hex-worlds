@@ -7,6 +7,7 @@ import {
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   GAMEBOARD_RELEASE_GATE_COMMANDS,
+  GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
   createDefaultGameboardCoveragePackageChecks,
   createDefaultGameboardCoverageReferences,
   renderGameboardCoverageMarkdown,
@@ -71,6 +72,9 @@ describe('release-readiness coverage', () => {
     );
     for (const showcase of GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS) {
       expect(report.visualArtifacts.map((artifact) => artifact.path)).toContain(showcase);
+    }
+    for (const screenshot of GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS) {
+      expect(report.visualArtifacts.map((artifact) => artifact.path)).toContain(screenshot);
     }
     expect(report.releaseGateCommands).toEqual(GAMEBOARD_RELEASE_GATE_COMMANDS);
   });

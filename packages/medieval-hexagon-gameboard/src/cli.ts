@@ -16,6 +16,7 @@ import {
 } from './compatibility';
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
+  GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
   createDefaultGameboardCoveragePackageChecks,
   createDefaultGameboardCoverageReferences,
   renderGameboardCoverageMarkdown,
@@ -2341,6 +2342,7 @@ function coveragePathStatuses(): GameboardCoveragePathStatusInput {
     ...sourceImages,
     ...scenarios.flatMap((scenario) => scenario.visualArtifacts),
     ...GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
+    ...GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
   ]);
   return {
     sourceImages: statusMapForPaths(sourceImages),

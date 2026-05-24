@@ -271,3 +271,7 @@ the browser captures. The reviewed screenshots included:
 The two blueprint showcase captures are also promoted to committed docs assets
 at `docs/assets/showcases/` for VitePress and
 `packages/medieval-hexagon-gameboard/docs/showcases/` for the published README.
+The release-readiness ledger also tracks every screenshot asserted by the
+`test:screenshots:*` scripts through
+`GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS`; `pnpm test:workspace` fails
+if the package scripts, coverage source, or generated ledger disagree.

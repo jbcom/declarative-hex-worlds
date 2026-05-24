@@ -626,6 +626,12 @@ capture, so existing artifacts can be rechecked with the package-level
 selectors, manifests, public asset treatments, rules, loaders, or board recipes
 change.
 
+Every PNG asserted by those `test:screenshots:*` scripts must also be listed in
+`GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS` and appear in the generated
+release-readiness ledger. `pnpm test:workspace` compares the package scripts,
+coverage source, and `docs/release-readiness.json` so visual evidence cannot
+drift silently.
+
 Curated README screenshots must be promoted out of the ignored browser output.
 For blueprint board examples, keep matching copies in `docs/assets/showcases/`
 for VitePress and `packages/medieval-hexagon-gameboard/docs/showcases/` for the

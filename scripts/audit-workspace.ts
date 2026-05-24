@@ -428,6 +428,7 @@ function requireReleaseReadinessLedger(): void {
       `release-readiness Markdown must include visual artifact ${artifact.path ?? '<missing path>'}`
     );
   }
+  requireBrowserScreenshotArtifactsTracked();
 
   for (const reference of releaseReadinessJson.references ?? []) {
     assert(
@@ -636,15 +637,64 @@ function sha256(path: string): string {
 }
 
 function curatedShowcaseArtifactsFromCoverage(): string[] {
-  const block = /export const GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS = \[([\s\S]*?)\] as const;/m.exec(coverageSource)?.[1];
-  if (!block) {
-    failures.push('coverage source is missing GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS');
+  return stringArrayConstantFromCoverage('GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS');
+}
+
+function requiredBrowserScreenshotArtifactsFromCoverage(): string[] {
+  return stringArrayConstantFromCoverage('GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS');
+}
+
+function stringArrayConstantFromCoverage(name: string): string[] {
+  const marker = `export const ${name} = [`;
+  const start = coverageSource.indexOf(marker);
+  if (start === -1) {
+    failures.push(`coverage source is missing ${name}`);
     return [];
   }
+  const blockStart = start + marker.length;
+  const blockEnd = coverageSource.indexOf('] as const;', blockStart);
+  if (blockEnd === -1) {
+    failures.push(`coverage source constant ${name} is missing an array terminator`);
+    return [];
+  }
+  const block = coverageSource.slice(blockStart, blockEnd);
   return [...block.matchAll(/'([^']+)'/g)]
     .map((match) => match[1])
     .filter((path): path is string => Boolean(path))
     .sort();
+}
+
+function requireBrowserScreenshotArtifactsTracked(): void {
+  const expected = browserScreenshotArtifactsFromPackageScripts();
+  const coverageArtifacts = requiredBrowserScreenshotArtifactsFromCoverage();
+  assertEqualList(coverageArtifacts, expected, 'coverage required browser screenshot artifacts');
+
+  const ledgerArtifacts = new Set(
+    (releaseReadinessJson.visualArtifacts ?? [])
+      .map((artifact) => artifact.path)
+      .filter((path): path is string => Boolean(path))
+  );
+  for (const path of coverageArtifacts) {
+    assert(
+      ledgerArtifacts.has(path),
+      `release-readiness JSON visualArtifacts must include asserted browser screenshot ${path}`
+    );
+  }
+}
+
+function browserScreenshotArtifactsFromPackageScripts(): string[] {
+  const paths = new Set<string>();
+  for (const scriptName of ['test:screenshots:free', 'test:screenshots:extra', 'test:screenshots:local-assets']) {
+    const script = packageJson.scripts?.[scriptName] ?? '';
+    assert(
+      script.includes('tests/scripts/assert-screenshots.ts'),
+      `package ${scriptName} must run tests/scripts/assert-screenshots.ts`
+    );
+    for (const match of script.matchAll(/tests\/browser\/__screenshots__\/[^\s]+\.png/g)) {
+      paths.add(`packages/medieval-hexagon-gameboard/${match[0]}`);
+    }
+  }
+  return [...paths].sort();
 }
 
 function requireTypeDocConfiguration(): void {

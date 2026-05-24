@@ -39,7 +39,7 @@ export type GameboardCoverageReportStatus = 'passed' | 'warning' | 'failed';
 export type CoverageGapSeverity = 'info' | 'warning' | 'error';
 
 /** Review artifact source class for screenshots, guide images, or required supporting files. */
-export type VisualArtifactCoverageSource = 'guide' | 'showcase';
+export type VisualArtifactCoverageSource = 'guide' | 'showcase' | 'screenshot';
 
 /** Stable machine-readable release-readiness gap. */
 export interface CoverageGap {
@@ -263,6 +263,39 @@ export const GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS = [
   'packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-fixed-completed.png',
   'packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-seeded-completed.png',
   'packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-local-third-party-assets.png',
+] as const;
+
+/** Browser screenshot artifacts enforced by the visual test scripts. */
+export const GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS = [
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-catalog.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-assets-by-public-role.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-source-pages.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-packaged-scenario.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-simulation-report.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-assets-by-public-role.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png',
+  'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png',
 ] as const;
 
 /** Canonical final acceptance commands for release closeout. */
@@ -596,6 +629,20 @@ function summarizeVisualArtifacts(
       path,
       status: statusForPath(statusByPath, path),
       source: 'showcase',
+      scenarioIds: [],
+      pages: [],
+      required: true,
+    });
+  }
+
+  for (const path of GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS) {
+    if (artifactsByPath.has(path)) {
+      continue;
+    }
+    artifactsByPath.set(path, {
+      path,
+      status: statusForPath(statusByPath, path),
+      source: 'screenshot',
       scenarioIds: [],
       pages: [],
       required: true,
