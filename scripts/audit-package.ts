@@ -14,6 +14,7 @@ interface PackageJson {
   exports?: Record<string, string | { import?: string; types?: string }>;
   files?: string[];
   packageManager?: string;
+  peerDependencies?: Record<string, string>;
   peerDependenciesMeta?: Record<string, { optional?: boolean }>;
   publishConfig?: { access?: string };
   sideEffects?: boolean;
@@ -110,6 +111,7 @@ assert(
   !Object.hasOwn(packageJson.exports ?? {}, './examples/*'),
   'package must not expose the broad ./examples/* wildcard'
 );
+assertPeerDependencyMetadataTargetsRealPeers();
 assertOptionalPeer('react');
 assertOptionalPeer('@types/react');
 assertOptionalPeer('three');
@@ -141,6 +143,15 @@ function assertEqualSet(actual: readonly string[], expected: readonly string[], 
 
 function assertOptionalPeer(name: string): void {
   assert(packageJson.peerDependenciesMeta?.[name]?.optional === true, `${name} must be an optional peer dependency`);
+}
+
+function assertPeerDependencyMetadataTargetsRealPeers(): void {
+  for (const peerName of Object.keys(packageJson.peerDependenciesMeta ?? {})) {
+    assert(
+      packageJson.peerDependencies?.[peerName],
+      `peerDependenciesMeta entry ${peerName} must also be declared in peerDependencies`
+    );
+  }
 }
 
 function assertRootEntrypointMetadata(): void {
