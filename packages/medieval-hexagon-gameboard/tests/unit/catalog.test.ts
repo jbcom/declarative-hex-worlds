@@ -228,6 +228,10 @@ describe('asset catalog public treatments', () => {
     expect(listKayKitGuideScenarioAssetUsages({ editionScope: ['mixed', 'extra'] })).toHaveLength(791);
     expect(listKayKitGuideScenarioAssetUsages({ categories: ['units'] })).toHaveLength(548);
     expect(listKayKitGuideScenarioAssetUsages({ roles: ['prop'] })).toHaveLength(82);
+    expect(listKayKitGuideScenarioAssetUsages({ publicApis: ['GameboardBuilder.addPropCluster'] })).toHaveLength(74);
+    expect(
+      listKayKitGuideScenarioAssetUsages({ publicApis: ['GameboardBuilder.addUnitPreset'], pages: [14] })
+    ).toHaveLength(137);
 
     const pageThree = listKayKitGuideScenarioAssetUsages({ pages: [3] });
     expect(pageThree).toHaveLength(15);

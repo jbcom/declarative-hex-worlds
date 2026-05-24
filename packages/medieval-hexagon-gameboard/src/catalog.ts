@@ -687,6 +687,8 @@ export interface KayKitGuideScenarioAssetUsageOptions {
   roles?: readonly KayKitAssetPublicRole[];
   /** Limit usages by top-level manifest categories. */
   categories?: readonly AssetCategory[];
+  /** Limit usages by public helper/API entries attached to the asset treatment. */
+  publicApis?: readonly string[];
 }
 
 /** Options for rendering the extracted guide scenario matrix as Markdown. */
@@ -760,6 +762,7 @@ export function listKayKitGuideScenarioAssetUsages(
   const assetIds = stringSet(options.assetIds);
   const roles = roleSet(options.roles);
   const categories = assetCategorySet(options.categories);
+  const publicApis = stringSet(options.publicApis);
   const minimumEdition = options.minimumEdition ?? 'all';
   const usages: KayKitGuideScenarioAssetUsage[] = [];
 
@@ -789,6 +792,9 @@ export function listKayKitGuideScenarioAssetUsages(
         continue;
       }
       if (categories && !categories.has(treatment.category)) {
+        continue;
+      }
+      if (publicApis && !treatment.publicApi.some((publicApi) => publicApis.has(publicApi))) {
         continue;
       }
 
@@ -919,7 +925,7 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
     '`listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,',
     '`listKayKitGuideScenarioAssetUsages()`, `listKayKitGuideAssetCoverages()`,',
     '`listKayKitGuideRoleCoverages()`, `listKayKitGuidePublicApiCoverages()`,',
-    'and the `guide-scenarios` /',
+    'and the `guide-scenarios` / `guide-usages` /',
     '`guide-assets` / `guide-roles` / `guide-apis` CLI commands.',
     '',
     'Use this page when deciding whether a guide image has public API treatment, docs,',
@@ -929,6 +935,7 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
     '```sh',
     'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md',
     'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 15 --includeTreatments --json',
+    'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-usages --page 16,17,18 --json',
     'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json',
     'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json',
     'pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json',
@@ -1933,11 +1940,11 @@ function uniqueSortedRoles(values: readonly KayKitAssetPublicRole[]): KayKitAsse
 }
 
 function stringSet(values: readonly string[] | undefined): ReadonlySet<string> | undefined {
-  return values ? new Set(values) : undefined;
+  return values && values.length > 0 ? new Set(values) : undefined;
 }
 
 function numberSet(values: readonly number[] | undefined): ReadonlySet<number> | undefined {
-  return values ? new Set(values) : undefined;
+  return values && values.length > 0 ? new Set(values) : undefined;
 }
 
 function guideScenarioEditionSet(
@@ -1946,15 +1953,16 @@ function guideScenarioEditionSet(
   if (!values) {
     return undefined;
   }
-  return new Set(Array.isArray(values) ? values : [values]);
+  const entries = Array.isArray(values) ? values : [values];
+  return entries.length > 0 ? new Set(entries) : undefined;
 }
 
 function roleSet(values: readonly KayKitAssetPublicRole[] | undefined): ReadonlySet<KayKitAssetPublicRole> | undefined {
-  return values ? new Set(values) : undefined;
+  return values && values.length > 0 ? new Set(values) : undefined;
 }
 
 function assetCategorySet(values: readonly AssetCategory[] | undefined): ReadonlySet<AssetCategory> | undefined {
-  return values ? new Set(values) : undefined;
+  return values && values.length > 0 ? new Set(values) : undefined;
 }
 
 function pushMarkdownCodeList(

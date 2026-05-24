@@ -1030,6 +1030,148 @@ describe('CLI', () => {
     expect(markdown).toContain('GameboardBuilder.addUnitPreset');
   });
 
+  it('emits renderer-ready guide usage rows through the CLI', () => {
+    const outputPath = resolve(createTempRoot(), 'guide-usages-pages-16-18.json');
+    const output = runCli([
+      'guide-usages',
+      '--source',
+      resolve(createTempRoot(), 'missing-guide-source'),
+      '--page',
+      '16,17,18',
+      '--out',
+      outputPath,
+    ]);
+    const payload = JSON.parse(readFileSync(outputPath, 'utf8')) as {
+      count: number;
+      occurrenceCounts: {
+        total: number;
+        free: number;
+        extra: number;
+        uniqueAssets: number;
+        scenarios: number;
+        pages: number;
+        missing: number;
+      };
+      selection: { pages: number[]; minimumEdition: string };
+      pages: number[];
+      scenarioIds: string[];
+      assetIds: string[];
+      sourceImages: string[];
+      docs: string[];
+      visualArtifacts: string[];
+      missingAssetIds: string[];
+      usages: Array<{
+        scenarioId: string;
+        page: number;
+        assetId: string;
+        minimumEdition: string;
+        role: string;
+        sourcePath: string;
+        label: string;
+        caption: string;
+      }>;
+    };
+
+    expect(output).toContain(`Wrote 462 guide usage rows to ${outputPath}`);
+    expect(payload).toMatchObject({
+      count: 462,
+      occurrenceCounts: {
+        total: 462,
+        free: 33,
+        extra: 429,
+        scenarios: 3,
+        pages: 3,
+        missing: 0,
+      },
+      selection: { pages: [16, 17, 18], minimumEdition: 'all' },
+      pages: [16, 17, 18],
+      scenarioIds: [
+        'page-16-stables-and-horses',
+        'page-17-workshop-and-siege',
+        'page-18-unit-combinations',
+      ],
+      missingAssetIds: [],
+    });
+    expect(payload.occurrenceCounts.uniqueAssets).toBeGreaterThan(100);
+    expect(payload.sourceImages).toEqual([
+      'docs/assets/kaykit-guide/pages/page-16.png',
+      'docs/assets/kaykit-guide/pages/page-17.png',
+      'docs/assets/kaykit-guide/pages/page-18.png',
+    ]);
+    expect(payload.docs.length).toBeGreaterThan(0);
+    expect(payload.visualArtifacts).toEqual(
+      expect.arrayContaining([
+        'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png',
+      ])
+    );
+    expect(payload.usages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          scenarioId: 'page-16-stables-and-horses',
+          page: 16,
+          assetId: 'building_stables_blue',
+          minimumEdition: 'extra',
+          role: 'faction-building',
+        }),
+        expect.objectContaining({
+          scenarioId: 'page-17-workshop-and-siege',
+          page: 17,
+          assetId: 'building_workshop_blue',
+          minimumEdition: 'extra',
+          role: 'faction-building',
+        }),
+        expect.objectContaining({
+          scenarioId: 'page-18-unit-combinations',
+          page: 18,
+          assetId: 'unit_blue_full',
+          minimumEdition: 'extra',
+          role: 'colored-unit-part',
+        }),
+      ])
+    );
+
+    const freePayload = JSON.parse(
+      runCli(['guide-usages', '--manifest', freeManifestPath, '--minimumEdition', 'free', '--json'])
+    ) as typeof payload;
+    expect(freePayload).toMatchObject({
+      count: 474,
+      occurrenceCounts: { total: 474, free: 474, extra: 0, missing: 0 },
+      selection: { minimumEdition: 'free' },
+    });
+
+    const propClusterPayload = JSON.parse(
+      runCli([
+        'guide-usages',
+        '--source',
+        resolve(createTempRoot(), 'missing-guide-source'),
+        '--publicApi',
+        'GameboardBuilder.addPropCluster',
+        '--json',
+      ])
+    ) as typeof payload;
+    expect(propClusterPayload).toMatchObject({
+      count: 74,
+      occurrenceCounts: { total: 74 },
+      selection: { publicApis: ['GameboardBuilder.addPropCluster'] },
+    });
+    expect(propClusterPayload.usages.every((usage) => usage.role === 'prop')).toBe(true);
+
+    const roadPayload = JSON.parse(
+      runCli(['guide-usages', '--manifest', freeManifestPath, '--assetId', 'hex_road_M', '--json'])
+    ) as typeof payload;
+    expect(roadPayload).toMatchObject({
+      count: 2,
+      pages: [3, 9],
+      scenarioIds: ['page-03-road-variations', 'page-09-world-design-example'],
+      assetIds: ['hex_road_M'],
+      occurrenceCounts: { total: 2, free: 2, extra: 0, missing: 0 },
+    });
+    expect(roadPayload.usages.map((usage) => usage.label)).toEqual([
+      'p03:hex_road_M',
+      'p09:hex_road_M',
+    ]);
+  });
+
   it('emits public API guide coverage and filters scenarios by API surface', () => {
     const apiOutputPath = resolve(createTempRoot(), 'guide-api-harbor.json');
     const apiOutput = runCli([

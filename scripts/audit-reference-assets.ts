@@ -495,6 +495,10 @@ function auditGuideScenarios(expectedIds: readonly string[]): void {
     'guide scenario coverage docs must show guide-assets usage'
   );
   assert(
+    guideScenarioCoverageDoc.includes('guide-usages --page 16,17,18 --json'),
+    'guide scenario coverage docs must show guide-usages usage'
+  );
+  assert(
     guideScenarioCoverageDoc.includes('listKayKitGuideRoleCoverages()'),
     'guide scenario coverage docs must explain public role inversion'
   );

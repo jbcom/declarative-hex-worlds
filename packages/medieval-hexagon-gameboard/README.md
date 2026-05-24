@@ -1540,7 +1540,10 @@ props, roads, units, structures, or scatter use cases and find the guide pages,
 assets, APIs, docs, and screenshots that cover them. `guide-apis` emits the
 inverse builder/selector/runtime API index exposed by
 `listKayKitGuidePublicApiCoverages()`, so tools can answer which guide pages and
-assets prove a public API surface. The workspace
+assets prove a public API surface. `guide-usages` emits the renderer-ready
+`listKayKitGuideScenarioAssetUsages()` rows with repeated page occurrences,
+labels, captions, source paths, roles, public APIs, docs, screenshots, and
+FREE/EXTRA requirements for contact sheets and docs audits. The workspace
 `docs/guides/guide-scenario-coverage.md` page mirrors all 19 extracted guide
 scenarios for human review.
 
@@ -1560,6 +1563,14 @@ medieval-hexagon-gameboard guide-scenarios \
 medieval-hexagon-gameboard guide-scenarios \
   --page 14 \
   --includeTreatments \
+  --json
+
+medieval-hexagon-gameboard guide-usages \
+  --page 16,17,18 \
+  --json
+
+medieval-hexagon-gameboard guide-usages \
+  --minimumEdition free \
   --json
 
 medieval-hexagon-gameboard guide-assets \

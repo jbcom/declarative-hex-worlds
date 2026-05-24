@@ -31,14 +31,17 @@ import {
   listKayKitGuideAssetCoverages,
   listKayKitGuidePublicApiCoverages,
   listKayKitGuideRoleCoverages,
+  listKayKitGuideScenarioAssetUsages,
   listKayKitGuideScenarios,
   renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
   type KayKitAssetPublicTreatment,
+  type KayKitAssetPublicRole,
   type KayKitGuideAssetCoverage,
   type KayKitGuidePublicApiCoverage,
   type KayKitGuideRoleCoverage,
   type KayKitGuideScenario,
+  type KayKitGuideScenarioAssetUsage,
   type KayKitGuideScenarioCoverage,
 } from './catalog';
 import {
@@ -115,7 +118,13 @@ import {
   type GameboardSpawnGroupPlan,
 } from './navigation';
 import { listGuideTilePermutations, type GuideTilePermutationKind } from './selectors';
-import type { AssetBounds, HexEdgeIndex, MedievalHexagonManifest, PackEdition } from './types';
+import type {
+  AssetBounds,
+  AssetCategory,
+  HexEdgeIndex,
+  MedievalHexagonManifest,
+  PackEdition,
+} from './types';
 import {
   inspectMedievalHexagonManifest,
   type MedievalHexagonManifestInspection,
@@ -234,6 +243,11 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'guide-scenarios') {
     runGuideScenarios(parsed, sourceRoot, edition);
+    return;
+  }
+
+  if (parsed.command === 'guide-usages') {
+    runGuideUsages(parsed, sourceRoot, edition);
     return;
   }
 
@@ -1693,6 +1707,105 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
   }
 }
 
+function runGuideUsages(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
+  const scenarioFilter = readCsv(parsed.flags.scenarioId ?? parsed.flags.scenario);
+  const pageFilter = readGuideScenarioPageFilter(parsed.flags.page);
+  const editionFilter = readGuideScenarioEditionFilter(parsed.flags.editionScope);
+  const publicApiFilter = readCsv(parsed.flags.publicApi);
+  const roleFilter = readGuideUsageRoleFilter(parsed.flags.role ?? parsed.flags.guideRole);
+  const assetIdFilter = readGuideAssetIdFilter(parsed);
+  const categoryFilter = readGuideUsageCategoryFilter(parsed.flags.category ?? parsed.flags.categories);
+  const minimumEdition = readGuideUsageMinimumEdition(
+    parsed.flags.minimumEdition ?? parsed.flags.assetEdition
+  );
+  const usages = listKayKitGuideScenarioAssetUsages({
+    scenarioIds: scenarioFilter,
+    pages: pageFilter,
+    editionScope: editionFilter.length > 0 ? editionFilter : undefined,
+    minimumEdition,
+    assetIds: assetIdFilter,
+    roles: roleFilter,
+    categories: categoryFilter,
+    publicApis: publicApiFilter,
+  });
+  if (usages.length === 0) {
+    throw new Error('guide-usages selection did not match any guide scenario asset usages');
+  }
+
+  const catalog = validationCatalogFromArgs(parsed, sourceRoot, edition);
+  const assetIds = uniqueStrings(usages.map((usage) => usage.assetId));
+  const missingAssetIds = catalog
+    ? assetIds.filter((assetId) => !catalog.assetsById[assetId])
+    : [];
+  const pages = [...new Set(usages.map((usage) => usage.page))].sort((a, b) => a - b);
+  const scenarioIds = uniqueStrings(usages.map((usage) => usage.scenarioId));
+  const sourceImages = uniqueStrings(usages.map((usage) => usage.sourceImage));
+  const docs = uniqueStrings(usages.flatMap((usage) => usage.docs));
+  const visualArtifacts = uniqueStrings(usages.flatMap((usage) => usage.visualArtifacts));
+  const freeCount = usages.filter((usage) => usage.minimumEdition === 'free').length;
+  const extraCount = usages.filter((usage) => usage.minimumEdition === 'extra').length;
+  const payload = {
+    schemaVersion: '1.0.0',
+    count: usages.length,
+    occurrenceCounts: {
+      total: usages.length,
+      free: freeCount,
+      extra: extraCount,
+      uniqueAssets: assetIds.length,
+      scenarios: scenarioIds.length,
+      pages: pages.length,
+      missing: missingAssetIds.length,
+    },
+    selection: {
+      scenarioIds: scenarioFilter,
+      pages: pageFilter,
+      editions: editionFilter,
+      publicApis: publicApiFilter,
+      roles: roleFilter,
+      assetIds: assetIdFilter,
+      categories: categoryFilter,
+      minimumEdition,
+    },
+    pages,
+    scenarioIds,
+    assetIds,
+    sourceImages,
+    docs,
+    visualArtifacts,
+    missingAssetIds,
+    usages,
+  };
+
+  if (typeof parsed.flags.out === 'string') {
+    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${usages.length} guide usage rows to ${resolve(parsed.flags.out)}`);
+  } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
+    console.log(JSON.stringify(payload, null, 2));
+  } else {
+    console.log(`guide usage rows: ${usages.length}`);
+    console.log(`pages: ${formatGuideScenarioPages(pages)}`);
+    console.log(`scenarios: ${scenarioIds.length}`);
+    console.log(`unique assets: ${assetIds.length}`);
+    console.log(`asset occurrences: ${freeCount} free, ${extraCount} extra`);
+    if (catalog) {
+      console.log(`missing assets: ${missingAssetIds.length}`);
+      for (const assetId of missingAssetIds) {
+        console.log(`  - ${assetId}`);
+      }
+    }
+    for (const usage of usages.slice(0, 20)) {
+      console.log(formatGuideUsageLine(usage));
+    }
+    if (usages.length > 20) {
+      console.log(`...${usages.length - 20} more`);
+    }
+  }
+
+  if (missingAssetIds.length > 0) {
+    process.exit(1);
+  }
+}
+
 function runGuidePublicApis(parsed: ParsedArgs): void {
   const publicApiFilter = readCsv(parsed.flags.publicApi);
   const coverages = filterGuidePublicApiCoverages(listKayKitGuidePublicApiCoverages(), publicApiFilter);
@@ -1841,6 +1954,39 @@ function readGuideAssetIdFilter(parsed: ParsedArgs): string[] {
     ...readCsv(parsed.flags.assetId),
     ...readCsv(parsed.flags.assetIds),
   ]);
+}
+
+function readGuideUsageMinimumEdition(value: string | boolean | undefined): PackEdition | 'all' {
+  if (value === undefined || value === false) {
+    return 'all';
+  }
+  if (value === 'free' || value === 'extra' || value === 'all') {
+    return value;
+  }
+  throw new Error(`Expected --minimumEdition to contain free, extra, or all, received ${String(value)}`);
+}
+
+function readGuideUsageCategoryFilter(value: string | boolean | undefined): AssetCategory[] {
+  return readCsv(value).map((category) => {
+    if (category === 'tiles' || category === 'buildings' || category === 'decoration' || category === 'units') {
+      return category;
+    }
+    throw new Error(`Expected --category to contain tiles, buildings, decoration, or units, received ${category}`);
+  });
+}
+
+function readGuideUsageRoleFilter(value: string | boolean | undefined): KayKitAssetPublicRole[] {
+  const validRoles = new Set(listKayKitGuideRoleCoverages().map((coverage) => coverage.role));
+  return readCsv(value).map((role) => {
+    if (validRoles.has(role as KayKitAssetPublicRole)) {
+      return role as KayKitAssetPublicRole;
+    }
+    throw new Error(`Expected --role to contain a known guide asset role, received ${role}`);
+  });
+}
+
+function formatGuideUsageLine(usage: KayKitGuideScenarioAssetUsage): string {
+  return `${usage.label}: ${usage.role}, ${usage.minimumEdition}, ${usage.sourcePath}`;
 }
 
 function filterGuideScenarios(
@@ -3402,6 +3548,7 @@ Commands:
   declarations  Emit tile declarations from a source folder, manifest, or registry
   guide-permutations Emit guide-labeled road, river, crossing, and coast permutation metadata
   guide-scenarios Emit extracted guide-page scenario metadata and validate page assets
+  guide-usages Emit renderer-ready page-level guide asset occurrence metadata
   guide-assets Emit asset id to guide-page, API, docs, and visual coverage metadata
   guide-roles Emit public role to guide-page, asset, and API coverage metadata
   guide-apis Emit public API to guide-page and asset coverage metadata
@@ -3475,6 +3622,8 @@ Options:
   --pieceId <pieceId>
   --assetIds <comma,separated,assetIds>
   --assetId <assetId>
+  --minimumEdition free|extra|all
+  --category <comma,separated,tiles|buildings|decoration|units>
   --excludeTags <comma,separated,tags>
   --requiresExtra
   --freeOnly

@@ -567,6 +567,11 @@ edition, role, unique-asset, and repeated-asset occurrence counts without
 rejoining catalog data. Use `--page`, `--scenarioId`, or `--editionScope` to
 isolate one use case, and `--includeTreatments` to include the
 `describeKayKitGuideScenarioCoverage()` report for every selected page.
+`guide-usages` emits the renderer-ready
+`listKayKitGuideScenarioAssetUsages()` rows with repeated page-level
+occurrences, labels, captions, source paths, roles, public APIs, docs, and
+visual artifacts. Use it for contact-sheet queues, README screenshot work, or
+agent audits that need every page occurrence rather than unique asset coverage.
 `guide-assets` emits the inverse `listKayKitGuideAssetCoverages()` map from an
 exact FREE or local EXTRA asset id to guide pages, role, APIs, docs, and
 screenshots.

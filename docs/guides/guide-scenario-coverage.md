@@ -5,7 +5,7 @@ the human-facing map for those scenarios; the machine-readable source remains
 `listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,
 `listKayKitGuideScenarioAssetUsages()`, `listKayKitGuideAssetCoverages()`,
 `listKayKitGuideRoleCoverages()`, `listKayKitGuidePublicApiCoverages()`,
-and the `guide-scenarios` /
+and the `guide-scenarios` / `guide-usages` /
 `guide-assets` / `guide-roles` / `guide-apis` CLI commands.
 
 Use this page when deciding whether a guide image has public API treatment, docs,
@@ -15,6 +15,7 @@ asset ids or public treatment records.
 ```sh
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 15 --includeTreatments --json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-usages --page 16,17,18 --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json

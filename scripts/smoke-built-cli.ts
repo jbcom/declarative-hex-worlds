@@ -64,6 +64,36 @@ interface GuideScenarioSmoke {
   }>;
 }
 
+interface GuideUsageSmoke {
+  count: number;
+  occurrenceCounts: {
+    total: number;
+    free: number;
+    extra: number;
+    uniqueAssets: number;
+    scenarios: number;
+    pages: number;
+    missing: number;
+  };
+  pages: number[];
+  scenarioIds: string[];
+  assetIds: string[];
+  sourceImages: string[];
+  docs: string[];
+  visualArtifacts: string[];
+  missingAssetIds: string[];
+  usages: Array<{
+    scenarioId: string;
+    page: number;
+    assetId: string;
+    minimumEdition: string;
+    role: string;
+    sourcePath: string;
+    label: string;
+    caption: string;
+  }>;
+}
+
 interface GuidePublicApiSmoke {
   count: number;
   publicApis: string[];
@@ -434,6 +464,66 @@ try {
     guideScenarioMarkdown.includes('Scenario: `page-14-units`') &&
       guideScenarioMarkdown.includes('GameboardBuilder.addUnitPreset'),
     'guide-scenarios markdown output did not include page 14 unit API coverage'
+  );
+
+  const guideUsagesPages16To18Path = join(tempRoot, 'kaykit-guide-usages-pages-16-18.json');
+  const guideUsagesPages16To18Output = runCli([
+    'guide-usages',
+    '--source',
+    join(tempRoot, 'missing-guide-source'),
+    '--page',
+    '16,17,18',
+    '--out',
+    guideUsagesPages16To18Path,
+  ]);
+  const guideUsagesPages16To18 = readJson<GuideUsageSmoke>(guideUsagesPages16To18Path);
+  assert(
+    guideUsagesPages16To18Output.includes('Wrote 462 guide usage rows'),
+    'guide-usages pages 16-18 output count changed'
+  );
+  assert(
+    guideUsagesPages16To18.count === 462 &&
+      guideUsagesPages16To18.occurrenceCounts.extra === 429 &&
+      guideUsagesPages16To18.occurrenceCounts.free === 33 &&
+      guideUsagesPages16To18.occurrenceCounts.scenarios === 3,
+    'guide-usages pages 16-18 occurrence counts changed'
+  );
+  assert(
+    guideUsagesPages16To18.pages.join(',') === '16,17,18',
+    `guide-usages pages 16-18 page filter changed to ${guideUsagesPages16To18.pages.join(',')}`
+  );
+  assert(
+    guideUsagesPages16To18.usages.some(
+      (usage) => usage.assetId === 'unit_blue_full' && usage.role === 'colored-unit-part'
+    ) &&
+      guideUsagesPages16To18.usages.some(
+        (usage) => usage.assetId === 'building_stables_blue' && usage.role === 'faction-building'
+      ) &&
+      guideUsagesPages16To18.usages.some(
+        (usage) => usage.assetId === 'building_workshop_blue' && usage.role === 'faction-building'
+      ),
+    'guide-usages pages 16-18 did not include expected renderer-ready asset rows'
+  );
+
+  const guideUsagesFree = JSON.parse(
+    runCli(['guide-usages', '--manifest', freeManifestPath, '--minimumEdition', 'free', '--json'])
+  ) as GuideUsageSmoke;
+  assert(
+    guideUsagesFree.count === 474 &&
+      guideUsagesFree.occurrenceCounts.free === 474 &&
+      guideUsagesFree.occurrenceCounts.extra === 0 &&
+      guideUsagesFree.missingAssetIds.length === 0,
+    'guide-usages FREE occurrence validation changed'
+  );
+
+  const guideUsagesRoadM = JSON.parse(
+    runCli(['guide-usages', '--manifest', freeManifestPath, '--assetId', 'hex_road_M', '--json'])
+  ) as GuideUsageSmoke;
+  assert(
+    guideUsagesRoadM.count === 2 &&
+      guideUsagesRoadM.pages.join(',') === '3,9' &&
+      guideUsagesRoadM.usages.map((usage) => usage.label).join(',') === 'p03:hex_road_M,p09:hex_road_M',
+    'guide-usages asset id filter changed'
   );
 
   const guideApiHarbor = JSON.parse(

@@ -66,6 +66,7 @@ try {
   });
 
   const installedPackageRoot = join(appRoot, 'node_modules/@jbcom/medieval-hexagon-gameboard');
+  const installedCliPath = join(installedPackageRoot, 'dist/cli.js');
   assert(
     existsSync(join(installedPackageRoot, 'dist/examples/blueprint-board-usage.js')),
     'compiled blueprint usage example is missing'
@@ -89,6 +90,28 @@ try {
   assert(
     !existsSync(join(installedPackageRoot, 'examples/simple-rpg-usage.ts')),
     'raw TypeScript usage example must not be published'
+  );
+  const installedGuideUsageOutput = execFileSync(
+    process.execPath,
+    [installedCliPath, 'guide-usages', '--source', join(tempRoot, 'missing-guide-source'), '--page', '14', '--json'],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  const installedGuideUsage = JSON.parse(installedGuideUsageOutput) as {
+    count: number;
+    occurrenceCounts: { extra: number; scenarios: number; pages: number };
+    assetIds: string[];
+  };
+  assert(
+    installedGuideUsage.count === 137 &&
+      installedGuideUsage.occurrenceCounts.extra === 137 &&
+      installedGuideUsage.occurrenceCounts.scenarios === 1 &&
+      installedGuideUsage.occurrenceCounts.pages === 1 &&
+      installedGuideUsage.assetIds.includes('unit_blue_full'),
+    'packed CLI guide-usages command did not emit page 14 renderer rows'
   );
 
   writeFileSync(

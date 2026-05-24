@@ -278,6 +278,15 @@ const stableWorkshopAndUnitPages = listKayKitGuideScenarioAssetUsages({
 const unitPage = listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');
 ```
 
+The same occurrence rows are available from the CLI for build-time renderer
+queues and docs audits:
+
+```bash
+medieval-hexagon-gameboard guide-usages --minimumEdition free --json
+medieval-hexagon-gameboard guide-usages --page 16,17,18 --json
+medieval-hexagon-gameboard guide-usages --publicApi GameboardBuilder.addPropCluster --json
+```
+
 Use `listKayKitGuideAssetCoverages()` when starting from a manifest asset id,
 `listKayKitGuideRoleCoverages()` when starting from a gameplay role, and
 `listKayKitGuidePublicApiCoverages()` when starting from a builder, selector, or
