@@ -462,8 +462,9 @@ asset exists only as a manifest entry without `listKayKitAssetPublicTreatments()
 coverage or without `listKayKitGuideScenarios()` page coverage. FREE guide
 screenshots include the extracted source-page matrix, FREE treatments grouped by
 guide page, and selector sheets labeled by guide label, rotation, water mode,
-and role; EXTRA screenshots are category-wide sheets for all 404 local source
-assets, not a sampled subset.
+and role; EXTRA screenshots include category-wide sheets for all 404 local
+source assets plus mixed/EXTRA guide-page sheets for all 780 page-level
+occurrences, not a sampled subset.
 Use `pnpm test:assets` when touching generated FREE assets, manifests, asset
 taxonomy, NOTICE attribution, or ingest output paths.
 Use `pnpm test:reference-assets` when local `references/` source inventory,

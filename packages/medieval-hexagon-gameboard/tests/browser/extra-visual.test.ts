@@ -1,6 +1,10 @@
 import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
-import { describeKayKitAssetTreatment, listKayKitAssetPublicTreatments } from '../../src/catalog';
+import {
+  describeKayKitAssetTreatment,
+  listKayKitAssetPublicTreatments,
+  listKayKitGuideScenarios,
+} from '../../src/catalog';
 import { createMedievalHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard';
 import { freeManifest } from '../../src/manifest/free';
 import type { AssetCategory, MedievalHexagonAsset } from '../../src/types';
@@ -91,6 +95,46 @@ describe('EXTRA local visual coverage', () => {
     expect(screenshot).toContain('extra-local-all-units-full-accent-neutral-siege.png');
   });
 
+  it('captures mixed and EXTRA guide scenarios from pages 02 through 15', async () => {
+    await page.viewport(1900, 1500);
+    const requests = requestsForGuidePages([2, 11, 12, 13, 14, 15]);
+    expect(requests).toHaveLength(329);
+
+    const canvas = await renderContactSheet(requests, {
+      title: 'extra-guide-scenarios-pages-02-15',
+      width: 1800,
+      height: 1400,
+      columns: 14,
+      cellSize: 2.75,
+    });
+    assertCanvasHasRenderableContent(canvas, { minDrawCalls: requests.length });
+    const screenshot = await page.screenshot({
+      element: canvas,
+      path: '__screenshots__/extra-guide-scenarios-pages-02-15.png',
+    });
+    expect(screenshot).toContain('extra-guide-scenarios-pages-02-15.png');
+  });
+
+  it('captures EXTRA guide scenarios for stable, workshop, and unit-combination pages', async () => {
+    await page.viewport(1900, 1700);
+    const requests = requestsForGuidePages([16, 17, 18]);
+    expect(requests).toHaveLength(451);
+
+    const canvas = await renderContactSheet(requests, {
+      title: 'extra-guide-scenarios-pages-16-18',
+      width: 1800,
+      height: 1600,
+      columns: 15,
+      cellSize: 2.8,
+    });
+    assertCanvasHasRenderableContent(canvas, { minDrawCalls: requests.length });
+    const screenshot = await page.screenshot({
+      element: canvas,
+      path: '__screenshots__/extra-guide-scenarios-pages-16-18.png',
+    });
+    expect(screenshot).toContain('extra-guide-scenarios-pages-16-18.png');
+  });
+
   it('captures EXTRA seasonal texture sheets', async () => {
     await page.viewport(1200, 520);
     const sheet = document.createElement('div');
@@ -170,6 +214,26 @@ function requestsForCategory(category: AssetCategory) {
       label: treatment.assetId,
       caption: `${treatment.role} ${treatment.minimumEdition}`,
     }));
+}
+
+function requestsForGuidePages(pages: readonly number[]) {
+  const pageSet = new Set(pages);
+  return listKayKitGuideScenarios()
+    .filter((scenario) => pageSet.has(scenario.page))
+    .flatMap((scenario) =>
+      scenario.assetIds.map((assetId) => {
+        const treatment = describeKayKitAssetTreatment(assetId);
+        if (!treatment) {
+          throw new Error(`Guide scenario ${scenario.id} references ${assetId} without treatment metadata`);
+        }
+        return {
+          asset: minimalAsset(treatment.assetId, treatment.sourcePath, treatment.category, treatment.subcategory),
+          url: referenceExtraUrl(treatment.sourcePath),
+          label: `p${String(scenario.page).padStart(2, '0')}:${treatment.assetId}`,
+          caption: `${scenario.id} ${treatment.minimumEdition}`,
+        };
+      })
+    );
 }
 
 function minimalAsset(

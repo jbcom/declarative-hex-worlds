@@ -111,6 +111,9 @@ visual artifacts that should be reviewed.
 - EXTRA local sheets for every source asset by category: all 61 tiles, all 129
   buildings, all 77 decorations, all 137 units, seasonal textures, and the
   composed harbor board.
+- EXTRA guide-scenario treatment sheets covering the 780 mixed/EXTRA asset
+  occurrences from guide pages 02, 11, 12, 13, 14, 15, 16, 17, and 18, grouped
+  by extracted page instead of only source folder.
 - EXTRA composed harbor board covering local-only shipyard/townhall/props in the
   same placement-plan renderer.
 
@@ -154,5 +157,11 @@ the browser captures. The reviewed screenshots included:
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png`
+  covering 329 mixed/EXTRA guide-page asset occurrences across buildings,
+  props, transitions, biomes, units, shipyard, harbors, and ports.
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png`
+  covering 451 mixed/EXTRA guide-page asset occurrences across stables, horses,
+  workshop, siege units, and unit combinations.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`

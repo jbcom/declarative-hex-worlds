@@ -175,4 +175,8 @@ by CLI validation and headless simulation tests. The FREE browser suite also
 captures `free-guide-source-pages.png` and
 `free-guide-scenarios-by-extracted-page.png` so visual review can start from the
 decomposed KayKit guide pages and then inspect every FREE treatment associated
-with those pages.
+with those pages. The EXTRA browser suite follows the same page contract through
+`extra-guide-scenarios-pages-02-15.png` and
+`extra-guide-scenarios-pages-16-18.png`, covering mixed and EXTRA page-level
+asset occurrences for buildings, transitions, units, harbors, stables,
+workshops, siege pieces, and unit combinations.

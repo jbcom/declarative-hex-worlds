@@ -1464,7 +1464,8 @@ and appears in the page-level guide matrix returned by
 The FREE browser suite renders the extracted guide pages, the FREE asset
 treatments grouped by guide page, and labeled guide sheets for every road, river,
 curvy/crossing river, coast, and guide-page treatment case; the EXTRA browser
-suite renders all 404 local source assets by category.
+suite renders all 404 local source assets by category and all 780 mixed/EXTRA
+guide-page asset occurrences from the decomposed README pages.
 `pnpm test:workspace` checks that Nx, pnpm workspace settings, VitePress docs
 dependencies, package exports, and tsup build entries stay in sync. The tsup
 build uses ESM shared chunks so mixed root/subpath imports share the same Koota
