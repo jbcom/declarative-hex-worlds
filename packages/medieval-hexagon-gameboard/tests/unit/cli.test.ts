@@ -331,6 +331,7 @@ describe('CLI', () => {
     expect(inspection.counts.townBuildings).toBeGreaterThanOrEqual(4);
     expect(inspection.counts.harbors).toBe(1);
     expect(inspection.counts.rivers).toBe(1);
+    expect(inspection.counts.bridges).toBeGreaterThan(0);
     expect(inspection.counts.biomeTiles).toBeGreaterThan(0);
     expect(recipe.steps.some((step) => step.action === 'setTextureSet')).toBe(true);
     expect(plan.tiles.some((tile) => tile.textureSet === 'fall')).toBe(true);

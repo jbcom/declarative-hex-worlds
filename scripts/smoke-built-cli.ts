@@ -517,6 +517,7 @@ try {
   assert(blueprint.counts.townBuildings > 0, 'blueprint command did not compile town buildings');
   assert(blueprint.counts.harbors === 1, 'blueprint command did not compile the harbor');
   assert(blueprint.counts.rivers === 1, 'blueprint command did not compile the river');
+  assert(blueprint.counts.bridges > 0, 'blueprint command did not compile bridges');
   assert(existsSync(blueprintRecipePath), 'blueprint command did not write recipe JSON');
   assert(existsSync(blueprintPlanPath), 'blueprint command did not write plan JSON');
 

@@ -322,14 +322,14 @@ function buildMedievalGameboardBlueprint(options: MedievalGameboardBlueprintOpti
   const harbors = normalizeHarbors(options.harbors, tiles, faction, towns, rng);
   applyHarbors(steps, tiles, harbors, counts, warnings);
 
+  const rivers = options.rivers ?? createDefaultRivers(tiles, shape);
+  applyRivers(steps, tiles, rivers, shape, counts, warnings);
+
   const roads = [
     ...createAutoRoads(towns, harbors, shape),
     ...(options.roads ?? []),
   ];
   applyRoads(steps, tiles, roads, shape, transitionPolicy, counts, warnings);
-
-  const rivers = options.rivers ?? createDefaultRivers(tiles, shape);
-  applyRivers(steps, rivers, shape, counts, warnings);
 
   applyBiomeFills(steps, tiles, options.biomeFills ?? [], rng, counts);
   if (transitionPolicy.biomeTransitions) {
@@ -596,6 +596,8 @@ function applyRoads(
   warnings: string[]
 ): void {
   let bridgeCount = 0;
+  const occupiedStructureKeys = collectStructurePlacementKeys(steps);
+  const bridgedKeys = new Set<string>();
   for (const road of roads) {
     const path = expandWaypointPath(road.path, shape).filter((coordinate) => tiles.has(hexKey(coordinate)));
     if (path.length < 2) {
@@ -615,7 +617,11 @@ function applyRoads(
     if (road.addBridges ?? transitionPolicy.bridges) {
       for (const coordinate of path) {
         const tile = tiles.get(hexKey(coordinate));
-        if (tile?.terrain !== 'water') {
+        if (tile?.terrain !== 'water' && tile?.terrain !== 'river') {
+          continue;
+        }
+        const key = hexKey(coordinate);
+        if (occupiedStructureKeys.has(key) || bridgedKeys.has(key)) {
           continue;
         }
         steps.push({
@@ -624,6 +630,8 @@ function applyRoads(
           structure: bridgeCount % 2 === 0 ? 'building_bridge_A' : 'building_bridge_B',
           rotationSteps: bridgeCount % 6,
         });
+        occupiedStructureKeys.add(key);
+        bridgedKeys.add(key);
         bridgeCount += 1;
       }
     }
@@ -632,8 +640,30 @@ function applyRoads(
   counts.bridges = bridgeCount;
 }
 
+function collectStructurePlacementKeys(steps: readonly GameboardRecipeStep[]): Set<string> {
+  const keys = new Set<string>();
+  for (const step of steps) {
+    switch (step.action) {
+      case 'addFactionBuilding':
+      case 'addNeutralStructure':
+      case 'addHarbor':
+        keys.add(hexKey(step.at));
+        break;
+      case 'addPlacement':
+        if (step.kind === 'structure') {
+          keys.add(hexKey(step.at));
+        }
+        break;
+      default:
+        break;
+    }
+  }
+  return keys;
+}
+
 function applyRivers(
   steps: GameboardRecipeStep[],
+  tiles: Map<string, MutableBlueprintTile>,
   rivers: readonly MedievalRiverNetworkSpec[],
   shape: GameboardShape,
   counts: Record<string, number>,
@@ -644,6 +674,12 @@ function applyRivers(
     if (path.length < 2) {
       warnings.push(`River ${river.id ?? '<unnamed>'} has fewer than two coordinates`);
       continue;
+    }
+    for (const coordinates of path) {
+      const tile = tiles.get(hexKey(coordinates));
+      if (tile && tile.terrain !== 'water') {
+        tile.terrain = 'river';
+      }
     }
     steps.push({
       action: 'addRiverPath',

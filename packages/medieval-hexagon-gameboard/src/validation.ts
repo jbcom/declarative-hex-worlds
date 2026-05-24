@@ -193,7 +193,9 @@ function validateBuiltInConnectivity(
   }
   forEachEdge(tile.coastEdges, (edge) => {
     const adjacent = tiles.get(hexKey(neighbor(tile.coordinates, edge)));
-    if (adjacent && adjacent.terrain !== 'water' && adjacent.terrain !== 'river') {
+    const adjacentIsWaterLike =
+      adjacent?.terrain === 'water' || adjacent?.terrain === 'river' || (adjacent?.riverEdges ?? 0) !== 0;
+    if (adjacent && !adjacentIsWaterLike) {
       violations.push({
         code: 'coast.adjacent_land',
         severity: 'warning',

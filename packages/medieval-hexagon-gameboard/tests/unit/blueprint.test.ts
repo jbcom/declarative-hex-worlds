@@ -79,6 +79,7 @@ describe('medieval gameboard blueprints', () => {
     expect(inspection.counts.mountainStacks).toBeGreaterThan(0);
     expect(inspection.counts.townBuildings).toBeGreaterThanOrEqual(4);
     expect(inspection.counts.harbors).toBe(1);
+    expect(inspection.counts.bridges).toBeGreaterThan(0);
     expect(inspection.counts.biomeTiles).toBeGreaterThan(0);
     expect(inspection.counts.biomeTransitions).toBeGreaterThan(0);
     expect(inspection.plan.tiles.some((tile) => tile.textureSet === 'fall')).toBe(true);
