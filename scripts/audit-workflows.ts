@@ -55,6 +55,18 @@ requireIncludes(ci, 'ci.yml', [
   'fail-on-severity: high',
 ]);
 requireExcludes(ci, 'ci.yml', ['continue-on-error: true']);
+requireWorkflowJobRunCommands(ci, files.ci, 'package', [
+  'pnpm install --frozen-lockfile',
+  'pnpm test:assets',
+  'pnpm test:workspace',
+  'pnpm test:workflows',
+  'pnpm build',
+  'pnpm test:cli',
+  'pnpm expectations',
+  'pnpm test:package',
+  'pnpm test:consumer',
+  'pnpm pack:dry-run',
+]);
 requireIncludes(release, 'release.yml', [
   "NODE_VERSION: '22'",
   'pnpm/action-setup',
@@ -181,5 +193,52 @@ function requirePinnedActions(source: string, label: string): void {
     if (!/^[a-f0-9]{40}$/i.test(ref)) {
       failures.push(`${label}:${index + 1} uses ${action} without a full commit SHA`);
     }
+  }
+}
+
+function requireWorkflowJobRunCommands(
+  source: string,
+  label: string,
+  jobId: string,
+  expectedCommands: readonly string[]
+): void {
+  const block = workflowJobBlock(source, label, jobId);
+  if (!block) {
+    return;
+  }
+  const commands = [...block.matchAll(/^\s+run:\s*(.+)$/gm)].map((match) => stripYamlScalar(match[1] ?? ''));
+  assertEqualList(commands, expectedCommands, `${label} ${jobId} run command sequence`);
+}
+
+function workflowJobBlock(source: string, label: string, jobId: string): string | undefined {
+  const startPattern = new RegExp(`^  ${escapeRegExp(jobId)}:\\n`, 'm');
+  const match = startPattern.exec(source);
+  if (!match) {
+    failures.push(`${label} is missing job ${jobId}`);
+    return undefined;
+  }
+  const start = match.index;
+  const nextJobPattern = /\n {2}[A-Za-z0-9_-]+:\n/g;
+  nextJobPattern.lastIndex = start + match[0].length;
+  const next = nextJobPattern.exec(source);
+  return source.slice(start, next?.index);
+}
+
+function stripYamlScalar(value: string): string {
+  const trimmed = value.trim();
+  const quote = trimmed[0];
+  if ((quote === '"' || quote === "'") && trimmed.endsWith(quote)) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function assertEqualList(actual: readonly string[], expected: readonly string[], label: string): void {
+  if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) {
+    failures.push(`${label}: expected ${expected.join(' -> ')}, got ${actual.join(' -> ')}`);
   }
 }
