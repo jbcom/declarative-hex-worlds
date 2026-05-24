@@ -679,6 +679,11 @@ Use `GameboardBuilder.addFortification`, `addConstructionSite`, and
 construction stages, ruins, scaffolding, and neutral projectile structures;
 blueprint towns emit fortification recipe steps for generated wall rings and
 reserve those tiles before bridges are inferred.
+Use `GameboardBuilder.addPropCluster` or recipe `addPropCluster` for authored
+and generated camps, resource caches, worksites, training yards, stable yards,
+and harbor support dressing when a map needs single-hex stacking, adjacent
+spreads, density-controlled fill, FREE defaults, local EXTRA opt-in, and stable
+cluster metadata for ECS adapters.
 `layoutDensity` on seeded generation provides ergonomic presets for trees,
 rocks, loose props, harbors, landmarks, and units; raw `layoutFills` remain the
 lower level hook for custom-pack placements and exact ordering. Prefer `./pieces`

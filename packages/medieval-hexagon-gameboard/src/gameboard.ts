@@ -117,6 +117,16 @@ export type FortificationSegment = WallFortificationSegment | FenceFortification
 export type ConstructionSiteKind = 'destroyed' | 'dirt' | 'grain' | 'scaffolding' | 'stage-A' | 'stage-B' | 'stage-C';
 /** Siege projectile visual exposed by the neutral building asset set. */
 export type SiegeProjectileKind = 'catapult';
+/** Semantic prop cluster kinds for authored and generated dressing. */
+export type PropClusterKind =
+  | 'camp'
+  | 'harbor-support'
+  | 'resource-cache'
+  | 'stable-yard'
+  | 'training-yard'
+  | 'worksite';
+/** How a prop cluster is distributed around its anchor tile. */
+export type PropClusterPlacement = 'single' | 'adjacent';
 /** Faction building kind accepted by settlement helpers. */
 export type SettlementBuilding = FactionBuildingKind;
 
@@ -457,6 +467,30 @@ export interface PropPlacementOptions {
 }
 
 /**
+ * Options for adding a semantic cluster of props.
+ */
+export interface PropClusterOptions {
+  /** Anchor tile for the cluster. */
+  at: HexCoordinates;
+  /** Cluster purpose. Determines the default asset list. */
+  kind: PropClusterKind;
+  /** Edge used to orient adjacent spread patterns. */
+  facing?: HexEdgeIndex;
+  /** Whether assets stack on one tile or spread to neighboring tiles. Defaults to `adjacent`. */
+  placement?: PropClusterPlacement;
+  /** Percentage of the cluster's available asset list to place, from 0 to 1. Defaults to 1. */
+  density?: number;
+  /** Include local-only EXTRA prop assets when the cluster kind has them. Defaults to false. */
+  includeExtra?: boolean;
+  /** Optional stable id shared by all placements in the cluster. */
+  clusterId?: string;
+  /** Base clockwise 60-degree rotation steps. Defaults to `facing`. */
+  rotationSteps?: number;
+  /** Uniform render scale. */
+  scale?: number;
+}
+
+/**
  * Options for adding an EXTRA texture transition placement.
  */
 export interface TransitionPlacementOptions {
@@ -578,6 +612,37 @@ const EXTRA_HARBOR_ASSETS: Record<Exclude<HarborKind, 'watermill'>, string> = {
   docks: 'building_docks',
   shipyard: 'building_shipyard',
 };
+const PROP_CLUSTER_ASSETS = {
+  camp: ['tent', 'barrel', 'sack', 'bucket_empty', 'crate_A_small', 'crate_B_small'],
+  'harbor-support': ['anchor', 'boat', 'boatrack', 'barrel', 'crate_long_A', 'crate_long_B', 'crate_open'],
+  'resource-cache': [
+    'resource_lumber',
+    'resource_stone',
+    'crate_A_big',
+    'crate_B_big',
+    'crate_long_A',
+    'crate_long_B',
+    'crate_long_C',
+    'crate_open',
+    'sack',
+    'barrel',
+    'pallet',
+    'wheelbarrow',
+  ],
+  'stable-yard': ['haybale', 'trough', 'trough_long', 'bucket_water', 'barrel'],
+  'training-yard': ['target', 'weaponrack', 'bucket_arrows', 'icon_combat', 'icon_range', 'cannonball_pallet'],
+  worksite: [
+    'ladder',
+    'pallet',
+    'wheelbarrow',
+    'bucket_empty',
+    'bucket_water',
+    'crate_long_empty',
+    'resource_lumber',
+    'resource_stone',
+    'barrel',
+  ],
+} as const satisfies Record<PropClusterKind, readonly PropAssetId[]>;
 
 /**
  * Fluent builder for deterministic gameboard plans using KayKit guide variants,
@@ -1007,6 +1072,52 @@ export class GameboardBuilder {
   }
 
   /**
+   * Add a semantic prop cluster such as a camp, worksite, stable yard, or cache.
+   */
+  addPropCluster(options: PropClusterOptions): this {
+    const density = clampPercentage(options.density ?? 1);
+    if (density <= 0) {
+      return this;
+    }
+    const assets = listPropClusterAssets(options.kind, { includeExtra: options.includeExtra });
+    const count = Math.max(1, Math.ceil(assets.length * density));
+    const sites = propClusterSites(options.at, options.facing ?? 0, options.placement ?? 'adjacent');
+    const baseRotation = options.rotationSteps ?? options.facing ?? 0;
+    const clusterId = options.clusterId ?? `prop-cluster:${options.kind}:${hexKey(options.at)}:${this.customPlacements.length}`;
+
+    for (let index = 0; index < count; index += 1) {
+      const assetId = assets[index];
+      const site = sites[index % sites.length];
+      if (!assetId || !site) {
+        continue;
+      }
+      if (!this.tiles.has(hexKey(site))) {
+        this.warnings.push(`Skipped ${assetId}; prop cluster tile ${hexKey(site)} is outside the board`);
+        continue;
+      }
+      this.addPlacement({
+        at: site,
+        assetId,
+        kind: 'prop',
+        layer: 'feature',
+        rotationSteps: baseRotation + index,
+        scale: options.scale,
+        metadata: {
+          feature: 'prop-cluster',
+          propClusterKind: options.kind,
+          clusterId,
+          anchor: hexKey(options.at),
+          placement: options.placement ?? 'adjacent',
+          includeExtra: options.includeExtra ?? false,
+          density,
+          propIndex: index,
+        },
+      });
+    }
+    return this;
+  }
+
+  /**
    * Add an EXTRA texture transition placement.
    */
   addTransition(options: TransitionPlacementOptions): this {
@@ -1355,6 +1466,12 @@ export function createMedievalHarborBoard(options: MedievalHarborBoardOptions = 
     .addMountainStack({ at: { q: 1, r: 0 }, height: 1, variant: 'B', withGrass: true })
     .addHill({ q: shape.width - 2, r: 1 }, { variant: 'C', withTrees: true })
     .addForest({ q: shape.width - 1, r: 0 }, { species: 'B', size: 'large' })
+    .addPropCluster({
+      at: { q: Math.max(0, town.q - 2), r: Math.min(shape.height - 2, town.r + 1) },
+      kind: 'resource-cache',
+      density: 0.6,
+      facing: 1,
+    })
     .scatterDecorations({
       count: 8,
       terrain: ['grass', 'forest', 'hill'],
@@ -1424,6 +1541,12 @@ function buildHexagonMedievalHarborBoard(
       species: 'B',
       size: 'large',
     })
+    .addPropCluster({
+      at: firstExistingCoordinate(keys, [neighbor(town, 2), neighbor(town, 3), market], waterKeys),
+      kind: 'resource-cache',
+      density: 0.5,
+      facing: 2,
+    })
     .scatterDecorations({
       count: Math.max(6, Math.floor(coordinates.length / 6)),
       terrain: ['grass', 'forest', 'hill'],
@@ -1457,6 +1580,20 @@ export function getPlacementAsset(
  */
 export function requiresExtraAsset(assetId: string): boolean {
   return !freeManifest.assetsById[assetId];
+}
+
+/**
+ * List the default prop assets used by a semantic cluster kind.
+ */
+export function listPropClusterAssets(
+  kind: PropClusterKind,
+  options: { includeExtra?: boolean } = {}
+): readonly PropAssetId[] {
+  const assets = PROP_CLUSTER_ASSETS[kind];
+  if (options.includeExtra) {
+    return assets;
+  }
+  return assets.filter((assetId) => !requiresExtraAsset(assetId));
 }
 
 function createTile(
@@ -1806,6 +1943,28 @@ function siegeProjectileAssetId(kind: SiegeProjectileKind): NeutralStructureKind
     case 'catapult':
       return 'projectile_catapult';
   }
+}
+
+function propClusterSites(
+  at: HexCoordinates,
+  facing: HexEdgeIndex,
+  placement: PropClusterPlacement
+): readonly HexCoordinates[] {
+  if (placement === 'single') {
+    return [at];
+  }
+  const edgeOrder = [0, 1, 5, 2, 4, 3] as const;
+  return [
+    at,
+    ...edgeOrder.map((offset) => neighbor(at, normalizeRotationSteps(facing + offset) as HexEdgeIndex)),
+  ];
+}
+
+function clampPercentage(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 1;
+  }
+  return Math.max(0, Math.min(1, value));
 }
 
 function normalizeElevation(elevation: number): number {

@@ -25,7 +25,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, paths, rotations, and deterministic coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled SimpleRPG usage example for consumer smoke tests and app reference code. |
 | `@jbcom/medieval-hexagon-gameboard/examples/*.json` | Packaged recipe, scenario, and simulation JSON examples without exposing raw TypeScript example source. |
-| `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction, terrain stacks, roads, rivers, coasts, buildings, fortifications, construction sites, siege projectiles, units, and serialization. |
+| `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction, terrain stacks, roads, rivers, coasts, buildings, fortifications, construction sites, siege projectiles, prop clusters, units, and serialization. |
 | `@jbcom/medieval-hexagon-gameboard/grid` | Honeycomb-compatible board grids, KayKit dimensions, world/axial conversion, pathfinding, and spawn locations. |
 | `@jbcom/medieval-hexagon-gameboard/ingest` | Node/build-time source validation, FREE/EXTRA manifest generation, GLTF copying, and manifest module writing. |
 | `@jbcom/medieval-hexagon-gameboard/interop` | Neutral ECS snapshots, relation indexes/selectors, and adapter mounting for non-Koota engines. |
@@ -123,6 +123,9 @@ road crossing needs a specific bridge variant instead of relying on blueprint
 inference. Use `GameboardBuilder.addFortification`, `addConstructionSite`, and
 `addSiegeProjectile` or their recipe actions for authored walls, fences, gates,
 ruins, scaffolding, staged construction, and neutral catapult projectiles.
+Use `GameboardBuilder.addPropCluster` or recipe `addPropCluster` when authored
+or generated prop dressing needs single-hex stacks, adjacent spreads,
+density-controlled fill, FREE defaults, and local EXTRA opt-in.
 
 The CLI exposes the same compiler for agents, editors, and build pipelines:
 

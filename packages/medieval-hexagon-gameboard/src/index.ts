@@ -345,6 +345,7 @@ export {
   createGameboardPlanFromTiles,
   createMedievalHarborBoard,
   getPlacementAsset,
+  listPropClusterAssets,
   requiresExtraAsset,
 } from './gameboard';
 export type {
@@ -379,6 +380,9 @@ export type {
   MountainVariant,
   NaturePlacementOptions,
   NeutralStructureOptions,
+  PropClusterKind,
+  PropClusterOptions,
+  PropClusterPlacement,
   PropPlacementOptions,
   RectangleGameboardShape,
   RiverCrossing,
@@ -426,6 +430,7 @@ export type {
   AddNatureRecipeStep,
   AddNeutralStructureRecipeStep,
   AddPlacementRecipeStep,
+  AddPropClusterRecipeStep,
   AddPropRecipeStep,
   AddRiverPathRecipeStep,
   AddRoadPathRecipeStep,

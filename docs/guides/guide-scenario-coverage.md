@@ -66,12 +66,14 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `GameboardBuilder.addHarbor`,
   `GameboardBuilder.addNeutralStructure`,
   `GameboardBuilder.addProp`,
+  `GameboardBuilder.addPropCluster`,
   `GameboardBuilder.addSettlement`,
   `GameboardBuilder.addSiegeProjectile`,
   `createGameboardLayoutFillRuleFromPiece`,
   `createGameboardPlanFromRecipe`,
   `factionBuildingAssetId`,
-  `flagAssetId`
+  `flagAssetId`,
+  `listPropClusterAssets`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/public-api.md`
@@ -122,10 +124,12 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `GameboardBuilder.addMountainStack`,
   `GameboardBuilder.addNature`,
   `GameboardBuilder.addProp`,
+  `GameboardBuilder.addPropCluster`,
   `GameboardBuilder.scatterDecorations`,
   `createGameboardLayoutFillRuleFromPiece`,
   `createMedievalGameboardBlueprintRecipe`,
-  `flagAssetId`
+  `flagAssetId`,
+  `listPropClusterAssets`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
@@ -340,12 +344,14 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Public API treatment: `GameboardBuilder.addFactionBuilding`,
   `GameboardBuilder.addHarbor`,
   `GameboardBuilder.addProp`,
+  `GameboardBuilder.addPropCluster`,
   `GameboardBuilder.addUnitPreset`,
   `GameboardBuilder.setCoastEdges`,
   `createGameboardLayoutFillRuleFromPiece`,
   `externalAssetSpawnOptions`,
   `factionBuildingAssetId`,
   `listCoastGuidePermutations`,
+  `listPropClusterAssets`,
   `selectCoastVariant`,
   `selectCoastVariantByLabel`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`,
@@ -363,6 +369,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `GameboardBuilder.addFortification`,
   `GameboardBuilder.addNeutralStructure`,
   `GameboardBuilder.addProp`,
+  `GameboardBuilder.addPropCluster`,
   `GameboardBuilder.addSettlement`,
   `GameboardBuilder.addUnit`,
   `GameboardBuilder.addUnitPreset`,
@@ -370,6 +377,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `createGameboardLayoutFillRuleFromPiece`,
   `createGameboardPlanFromRecipe`,
   `factionBuildingAssetId`,
+  `listPropClusterAssets`,
   `neutralUnitAssetId`,
   `recommendExternalAssetFacing`,
   `spawnGameboardActor`
@@ -382,13 +390,14 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Scenario: `page-17-workshop-and-siege`
 - Edition: `extra`
 - Source image: `docs/assets/kaykit-guide/pages/page-17.png`
-- Asset coverage: 167 unique, 19 FREE, 148 EXTRA, 167 occurrences
+- Asset coverage: 170 unique, 22 FREE, 148 EXTRA, 170 occurrences
 - Roles: `colored-unit-part`, `faction-building`, `neutral-structure`, `neutral-unit-part`, `prop`
 - Public API treatment: `GameboardBuilder.addConstructionSite`,
   `GameboardBuilder.addFactionBuilding`,
   `GameboardBuilder.addFortification`,
   `GameboardBuilder.addNeutralStructure`,
   `GameboardBuilder.addProp`,
+  `GameboardBuilder.addPropCluster`,
   `GameboardBuilder.addSettlement`,
   `GameboardBuilder.addSiegeProjectile`,
   `GameboardBuilder.addUnit`,
@@ -398,6 +407,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `createGameboardPlanFromRecipe`,
   `executeGameboardInteractionCommand`,
   `factionBuildingAssetId`,
+  `listPropClusterAssets`,
   `neutralUnitAssetId`,
   `planGameboardInteractionCommand`,
   `spawnGameboardActor`
@@ -563,12 +573,14 @@ const allRoleCoverage = listKayKitGuideRoleCoverages();
 ### Role - `prop`
 
 - Pages: 02, 05, 15, 16, 17
-- Asset coverage: 35 unique, 26 FREE, 9 EXTRA, 79 occurrences
+- Asset coverage: 35 unique, 26 FREE, 9 EXTRA, 82 occurrences
 - Public API treatment: `GameboardBuilder.addFlag`,
   `GameboardBuilder.addHarbor`,
   `GameboardBuilder.addProp`,
+  `GameboardBuilder.addPropCluster`,
   `createGameboardLayoutFillRuleFromPiece`,
-  `flagAssetId`
+  `flagAssetId`,
+  `listPropClusterAssets`
 - Scenarios: `page-02-buildings-props-and-factions`,
   `page-05-nature-contents`,
   `page-15-shipyard-harbors`,
@@ -642,5 +654,8 @@ the FREE sloped grass tiles used by vertical terrain transitions.
 and `GameboardBuilder.addSiegeProjectile` cover the remaining FREE neutral
 wall, fence, construction, ruin, and projectile structures as authored
 gameplay intent instead of only raw neutral placements.
+`GameboardBuilder.addPropCluster` maps non-flag props to camps, resource
+caches, worksites, training yards, stable yards, and harbor support dressing
+with density, single-tile stacking, adjacent spread, and local EXTRA opt-in.
 `GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is
 EXTRA-only because the unit assembly pieces are local-ingest assets.

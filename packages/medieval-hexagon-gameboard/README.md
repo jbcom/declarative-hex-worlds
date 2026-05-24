@@ -74,7 +74,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard` | Root builders, manifests, seeded generation, Koota world helpers, selectors, rules, and common types. |
 | `@jbcom/medieval-hexagon-gameboard/actors` | Actor traits, actor actions, collision, interaction targets, selection, and path-aware targeting. |
 | `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board-intent compiler for biome fills, mountain ranges, towns, roads, rivers, harbors, ramps, bridges, and showcase recipes. |
-| `@jbcom/medieval-hexagon-gameboard/gameboard` | Serializable board plans, builder helpers, and plan utilities. |
+| `@jbcom/medieval-hexagon-gameboard/gameboard` | Serializable board plans, builder helpers, prop clusters, and plan utilities. |
 | `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, per-scenario coverage reports, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit checks, facing recommendations, scale hints, and starter piece metadata. |
@@ -1465,7 +1465,7 @@ and appears in the page-level guide matrix returned by
 The FREE browser suite renders the extracted guide pages, the FREE asset
 treatments grouped by guide page, and labeled guide sheets for every road, river,
 curvy/crossing river, coast, and guide-page treatment case; the EXTRA browser
-suite renders all 404 local source assets by category and all 788 mixed/EXTRA
+suite renders all 404 local source assets by category and all 791 mixed/EXTRA
 guide-page asset occurrences from the decomposed README pages.
 `pnpm test:workspace` checks that Nx, pnpm workspace settings, VitePress docs
 dependencies, package exports, and tsup build entries stay in sync. The tsup
@@ -1632,7 +1632,10 @@ or recipe `addBridge` when a crossing should use a specific bridge variant.
 Use `GameboardBuilder.addFortification`, `addConstructionSite`, and
 `addSiegeProjectile` or their recipe actions for walls, fences, gates, staged
 construction, ruins, scaffolding, grain/dirt piles, and neutral catapult
-projectiles. The
+projectiles. Use `GameboardBuilder.addPropCluster` or recipe `addPropCluster`
+for camps, resource caches, worksites, training yards, stable yards, and harbor
+support dressing when props should stack on one hex or spread across adjacent
+hexes with a density percentage. The
 browser suite captures this contract in
 `docs/showcases/free-blueprint-builder-showcase.png` and
 `docs/showcases/extra-blueprint-biome-transition-showcase.png`, which are
@@ -1655,6 +1658,7 @@ const plan = createGameboardBuilder({
   .addFortification({ at: { q: 5, r: 3 }, material: 'wall', segment: 'straight-gate', facing: 1 })
   .addConstructionSite({ at: { q: 5, r: 2 }, kind: 'stage-B' })
   .addSiegeProjectile({ at: { q: 5, r: 1 }, facing: 4, sourceId: 'tower-cannon' })
+  .addPropCluster({ at: { q: 4, r: 2 }, kind: 'resource-cache', density: 0.5, facing: 2 })
   .addHarbor({ at: { q: 4, r: 4 }, facing: 1, faction: 'blue', kind: 'shipyard' })
   .addFactionBuilding({ at: { q: 3, r: 2 }, faction: 'blue', building: 'townhall' })
   .addUnitPreset({ at: { q: 2, r: 2 }, faction: 'blue', role: 'soldier' })

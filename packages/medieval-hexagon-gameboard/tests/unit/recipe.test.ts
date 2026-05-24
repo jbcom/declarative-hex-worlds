@@ -41,6 +41,7 @@ describe('serializable gameboard recipes', () => {
       { action: 'addFortification', at: { q: 4, r: 0 }, material: 'wood-fence', segment: 'gate', facing: 3 },
       { action: 'addConstructionSite', at: { q: 4, r: 1 }, kind: 'scaffolding', constructionId: 'dock-repair' },
       { action: 'addSiegeProjectile', at: { q: 4, r: 2 }, facing: 4, sourceId: 'tower-cannon' },
+      { action: 'addPropCluster', at: { q: 3, r: 2 }, kind: 'worksite', density: 0.4, clusterId: 'dock-worksite' },
       { action: 'addUnitPreset', at: { q: 1, r: 1 }, faction: 'blue', role: 'soldier', style: 'accent' },
     ];
     const recipe = createGameboardRecipe(
@@ -66,6 +67,10 @@ describe('serializable gameboard recipes', () => {
     });
     expect(plan.placements.find((placement) => placement.assetId === 'projectile_catapult')).toMatchObject({
       metadata: { feature: 'siege-projectile', projectileKind: 'catapult', facing: 4, sourceId: 'tower-cannon' },
+    });
+    expect(plan.placements.find((placement) => placement.metadata.clusterId === 'dock-worksite')).toMatchObject({
+      assetId: 'ladder',
+      metadata: { feature: 'prop-cluster', propClusterKind: 'worksite', clusterId: 'dock-worksite' },
     });
     expect(plan.placements.map((placement) => placement.assetId)).toContain('mountain_C_grass_trees');
     expect(plan.placements.filter((placement) => placement.kind === 'unit')).toHaveLength(4);

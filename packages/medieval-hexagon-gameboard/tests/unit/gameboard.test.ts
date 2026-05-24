@@ -5,6 +5,7 @@ import {
   createMedievalHarborBoard,
   edgeBetween,
   hexKey,
+  listPropClusterAssets,
   neighbor,
   oppositeEdge,
   requiresExtraAsset,
@@ -185,6 +186,61 @@ describe('gameboard plan builder', () => {
     });
   });
 
+  it('models prop clusters as semantic single-tile and spread dressing', () => {
+    const freeTrainingAssets = listPropClusterAssets('training-yard');
+    const extraTrainingAssets = listPropClusterAssets('training-yard', { includeExtra: true });
+    const plan = createGameboardBuilder({
+      seed: 'prop-clusters',
+      shape: { kind: 'rectangle', width: 4, height: 4 },
+    })
+      .addPropCluster({
+        at: { q: 1, r: 1 },
+        kind: 'training-yard',
+        includeExtra: true,
+        density: 1,
+        facing: 1,
+        clusterId: 'yard-01',
+      })
+      .addPropCluster({
+        at: { q: 2, r: 2 },
+        kind: 'camp',
+        placement: 'single',
+        density: 0.5,
+        rotationSteps: 3,
+      })
+      .build();
+
+    expect(freeTrainingAssets).toEqual(['target', 'weaponrack', 'bucket_arrows']);
+    expect(extraTrainingAssets).toEqual([
+      'target',
+      'weaponrack',
+      'bucket_arrows',
+      'icon_combat',
+      'icon_range',
+      'cannonball_pallet',
+    ]);
+    expect(plan.placements.filter((placement) => placement.metadata.clusterId === 'yard-01')).toHaveLength(6);
+    expect(plan.placements.find((placement) => placement.assetId === 'cannonball_pallet')).toMatchObject({
+      kind: 'prop',
+      requiresExtra: true,
+      metadata: {
+        feature: 'prop-cluster',
+        propClusterKind: 'training-yard',
+        clusterId: 'yard-01',
+        includeExtra: true,
+        density: 1,
+      },
+    });
+    expect(plan.placements.filter((placement) => placement.metadata.propClusterKind === 'camp')).toHaveLength(3);
+    expect(
+      new Set(
+        plan.placements
+          .filter((placement) => placement.metadata.propClusterKind === 'camp')
+          .map((placement) => placement.tileKey)
+      )
+    ).toEqual(new Set(['2,2']));
+  });
+
   it('uses seedrandom for deterministic scatter and recipes', () => {
     const build = (seed: string) =>
       createGameboardBuilder({ seed, shape: { kind: 'rectangle', width: 5, height: 4 } })
@@ -208,6 +264,7 @@ describe('gameboard plan builder', () => {
     expect(ids.has('building_shipyard_green')).toBe(true);
     expect(ids.has('building_townhall_green')).toBe(true);
     expect(ids.has('mountain_A_grass_trees')).toBe(true);
+    expect(plan.placements.some((placement) => placement.metadata.feature === 'prop-cluster')).toBe(true);
     expect(plan.placements.some((placement) => placement.kind === 'road')).toBe(true);
     expect(plan.placements.some((placement) => placement.kind === 'river')).toBe(true);
   });
@@ -221,6 +278,7 @@ describe('gameboard plan builder', () => {
     expect(ids.has('building_shipyard_yellow')).toBe(true);
     expect(ids.has('building_townhall_yellow')).toBe(true);
     expect(ids.has('mountain_A_grass_trees')).toBe(true);
+    expect(plan.placements.some((placement) => placement.metadata.feature === 'prop-cluster')).toBe(true);
     expect(plan.placements.some((placement) => placement.kind === 'road')).toBe(true);
     expect(plan.placements.some((placement) => placement.kind === 'river')).toBe(true);
   });

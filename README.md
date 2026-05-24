@@ -276,7 +276,7 @@ artifact checks. FREE guide coverage includes all 19 extracted source pages,
 FREE treatments grouped by guide page, and labeled sheets for roads, rivers,
 curvy/crossing rivers, coasts, and non-connectivity guide treatments instead of
 one ambiguous repeated-looking montage. EXTRA local coverage renders all 404
-source assets by category and the 788 mixed/EXTRA guide-page asset occurrences
+source assets by category and the 791 mixed/EXTRA guide-page asset occurrences
 from the decomposed README pages. To re-check existing screenshots without
 relaunching Chromium, run
 `pnpm test:screenshots:free`, `pnpm test:screenshots:extra`, or

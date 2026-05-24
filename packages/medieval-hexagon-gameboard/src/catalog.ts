@@ -932,6 +932,9 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
       'and `GameboardBuilder.addSiegeProjectile` cover the remaining FREE neutral',
       'wall, fence, construction, ruin, and projectile structures as authored',
       'gameplay intent instead of only raw neutral placements.',
+      '`GameboardBuilder.addPropCluster` maps non-flag props to camps, resource',
+      'caches, worksites, training yards, stable yards, and harbor support dressing',
+      'with density, single-tile stacking, adjacent spread, and local EXTRA opt-in.',
       '`GameboardBuilder.addUnitPreset` maps to pages 14 through 18 and is',
       'EXTRA-only because the unit assembly pieces are local-ingest assets.'
     );
@@ -1648,6 +1651,22 @@ function natureTreatment(assetId: NatureAssetId): KayKitAssetPublicTreatment {
 function propTreatment(assetId: PropAssetId, minimumEdition: PackEdition): KayKitAssetPublicTreatment {
   const isFlag = assetId.startsWith('flag_');
   const isHarborProp = ['anchor', 'boat', 'boatrack'].includes(assetId);
+  const isStableProp = assetId === 'haybale' || assetId.startsWith('trough');
+  const isTrainingProp = ['target', 'weaponrack', 'bucket_arrows', 'cannonball_pallet', 'icon_combat', 'icon_range'].includes(assetId);
+  const isWorksiteProp = [
+    'ladder',
+    'pallet',
+    'wheelbarrow',
+    'bucket_empty',
+    'bucket_water',
+    'crate_long_empty',
+  ].includes(assetId);
+  const isCampProp = assetId === 'tent';
+  const isResourceProp =
+    assetId.startsWith('resource_') ||
+    assetId.startsWith('crate_') ||
+    assetId === 'barrel' ||
+    assetId === 'sack';
   return treatment({
     assetId,
     minimumEdition,
@@ -1661,16 +1680,31 @@ function propTreatment(assetId: PropAssetId, minimumEdition: PackEdition): KayKi
       'GameboardBuilder.addProp',
       ...(isFlag ? ['GameboardBuilder.addFlag', 'flagAssetId'] : []),
       ...(isHarborProp ? ['GameboardBuilder.addHarbor'] : []),
+      ...(!isFlag ? ['GameboardBuilder.addPropCluster', 'listPropClusterAssets'] : []),
       'createGameboardLayoutFillRuleFromPiece',
     ],
     sourceImages: [
       GUIDE_IMAGE.buildings,
       GUIDE_IMAGE.natureContents,
       ...(isHarborProp ? [GUIDE_IMAGE.shipyard] : []),
-      ...(assetId === 'haybale' || assetId.startsWith('trough') ? [GUIDE_IMAGE.stables] : []),
-      ...(assetId.includes('combat') || assetId.includes('range') || assetId.includes('cannon') ? [GUIDE_IMAGE.workshop] : []),
+      ...(isStableProp ? [GUIDE_IMAGE.stables] : []),
+      ...(isTrainingProp ? [GUIDE_IMAGE.workshop] : []),
     ],
-    scenario: isHarborProp ? 'harbor support props' : isFlag ? 'faction markers' : 'props and resource dressing',
+    scenario: isHarborProp
+      ? 'harbor support prop clusters'
+      : isFlag
+        ? 'faction markers'
+        : isStableProp
+          ? 'stable yard prop clusters'
+          : isTrainingProp
+            ? 'training yard prop clusters'
+            : isWorksiteProp
+              ? 'worksite prop clusters'
+              : isCampProp
+                ? 'camp prop clusters'
+                : isResourceProp
+                  ? 'resource cache prop clusters'
+                  : 'props and resource dressing',
   });
 }
 

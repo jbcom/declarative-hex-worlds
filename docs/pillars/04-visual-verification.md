@@ -121,7 +121,7 @@ visual artifacts that should be reviewed.
 - EXTRA local sheets for every source asset by category: all 61 tiles, all 129
   buildings, all 77 decorations, all 137 units, seasonal textures, and the
   composed harbor board.
-- EXTRA guide-scenario treatment sheets covering the 788 mixed/EXTRA asset
+- EXTRA guide-scenario treatment sheets covering the 791 mixed/EXTRA asset
   occurrences from guide pages 02, 11, 12, 13, 14, 15, 16, 17, and 18, grouped
   by extracted page instead of only source folder.
 - EXTRA composed harbor board covering local-only shipyard/townhall/props in the
@@ -133,6 +133,14 @@ manifests, loader logic, or asset generation changes.
 
 ## Latest Manual Review
 
+2026-05-24 prop-cluster verification reran the FREE extracted guide page and
+composed gameboard browser slices plus the EXTRA pages 16-18 and harbor-board
+slices after adding `GameboardBuilder.addPropCluster` and
+`listPropClusterAssets`. The reviewed artifacts show resource-cache clusters in
+the harbor-town board, local EXTRA harbor board dressing, and the workshop
+training props on page 17, raising current guide treatment counts to 474 FREE
+guide-page asset occurrences and 462 mixed/EXTRA occurrences for pages 16-18.
+
 2026-05-24 semantic neutral-structure verification reran
 `pnpm --dir packages/medieval-hexagon-gameboard run test:screenshots:free`
 and `pnpm test:browser:extra` after adding
@@ -143,14 +151,14 @@ and `GameboardBuilder.addSiegeProjectile`. The reviewed
 `extra-guide-scenarios-pages-16-18.png` artifacts show the wall/fence/gate,
 construction/ruin/scaffold/grain/dirt, and catapult projectile assets as visual
 public API coverage instead of raw neutral-structure-only entries. The current
-counts are 471 FREE guide-page asset occurrences, 459 mixed/EXTRA occurrences
-for pages 16-18, and 788 mixed/EXTRA guide-page occurrences overall.
+counts are 474 FREE guide-page asset occurrences, 462 mixed/EXTRA occurrences
+for pages 16-18, and 791 mixed/EXTRA guide-page occurrences overall.
 
 2026-05-24 focused bridge/ramp verification ran
 `pnpm --dir packages/medieval-hexagon-gameboard exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t "extracted guide pages"`
 after adding `GameboardBuilder.addBridge` and `GameboardBuilder.addElevationRamp`; the regenerated
 `free-guide-scenarios-by-extracted-page.png` contact sheet was reviewed for the
-471 FREE guide-page asset occurrences and bridge coverage on pages 02, 07, and
+474 FREE guide-page asset occurrences and bridge coverage on pages 02, 07, and
 09 plus elevation-ramp coverage on pages 08 and 10.
 
 2026-05-24 local EXTRA and third-party E2E verification also reran
@@ -171,7 +179,7 @@ the browser captures. The reviewed screenshots included:
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-source-pages.png`
   covering all 19 extracted guide PNGs as source material.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png`
-  covering the 471 FREE asset occurrences referenced by the page-level guide
+  covering the 474 FREE asset occurrences referenced by the page-level guide
   scenario matrix.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
   covering all 78 road label/rotation permutations.
@@ -206,7 +214,7 @@ the browser captures. The reviewed screenshots included:
   covering 329 mixed/EXTRA guide-page asset occurrences across buildings,
   props, transitions, biomes, units, shipyard, harbors, and ports.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png`
-  covering 459 mixed/EXTRA guide-page asset occurrences across stables, horses,
+  covering 462 mixed/EXTRA guide-page asset occurrences across stables, horses,
   workshop, siege units, and unit combinations.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`

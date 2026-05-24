@@ -259,6 +259,11 @@ contract for CI and npm consumers.
   gates, construction stages, ruins, scaffolding, grain/dirt piles, and catapult
   projectiles. Keep `addNeutralStructure` available as an escape hatch, but do
   not use it for guide-described neutral pieces when a semantic helper exists.
+- Use `GameboardBuilder.addPropCluster` or recipe `addPropCluster` for authored
+  and generated camps, resource caches, worksites, training yards, stable yards,
+  and harbor support dressing. Prefer it over raw `addProp` when the placement
+  needs density, single-hex stacking, adjacent spread, local EXTRA opt-in, or
+  queryable cluster metadata.
 - Use `./pieces` for reusable non-tile asset declarations. Custom buildings,
   trees, loose props, units, harbors, landmarks, and scatter assets should carry
   role, footprint, scale, source, criteria, and metadata there before being
@@ -500,7 +505,7 @@ coverage or without `listKayKitGuideScenarios()` page coverage. FREE guide
 screenshots include the extracted source-page matrix, FREE treatments grouped by
 guide page, and selector sheets labeled by guide label, rotation, water mode,
 and role; EXTRA screenshots include category-wide sheets for all 404 local
-  source assets plus mixed/EXTRA guide-page sheets for all 788 page-level
+  source assets plus mixed/EXTRA guide-page sheets for all 791 page-level
 occurrences, not a sampled subset.
 Use `pnpm test:assets` when touching generated FREE assets, manifests, asset
 taxonomy, NOTICE attribution, or ingest output paths.

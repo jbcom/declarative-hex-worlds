@@ -333,11 +333,11 @@ try {
     `guide scenario EXTRA-only asset count changed to ${guideScenarios.assetCounts.extra}`
   );
   assert(
-    guideScenarios.assetCounts.occurrences === 1105,
+    guideScenarios.assetCounts.occurrences === 1108,
     `guide scenario asset occurrence count changed to ${guideScenarios.assetCounts.occurrences}`
   );
   assert(
-    guideScenarios.assetCounts.freeOccurrences === 471,
+    guideScenarios.assetCounts.freeOccurrences === 474,
     `guide scenario FREE asset occurrence count changed to ${guideScenarios.assetCounts.freeOccurrences}`
   );
   assert(
@@ -528,6 +528,22 @@ try {
       guideApiProjectile.coverage[0]?.assetCounts.free === 1 &&
       guideApiProjectile.coverage[0]?.assetCounts.extra === 0,
     'guide-apis siege projectile page/asset coverage changed'
+  );
+
+  const guideApiPropCluster = JSON.parse(
+    runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addPropCluster', '--json'])
+  ) as GuidePublicApiSmoke;
+  assert(
+    guideApiPropCluster.count === 1 &&
+      guideApiPropCluster.publicApis.join(',') === 'GameboardBuilder.addPropCluster',
+    'guide-apis did not isolate GameboardBuilder.addPropCluster'
+  );
+  assert(
+    guideApiPropCluster.coverage[0]?.pages.join(',') === '2,5,15,16,17' &&
+      guideApiPropCluster.coverage[0]?.assetCounts.unique === 31 &&
+      guideApiPropCluster.coverage[0]?.assetCounts.free === 22 &&
+      guideApiPropCluster.coverage[0]?.assetCounts.extra === 9,
+    'guide-apis prop cluster page/asset coverage changed'
   );
 
   const guideAssetRoadM = JSON.parse(runCli(['guide-assets', '--assetId', 'hex_road_M', '--json'])) as GuideAssetSmoke;

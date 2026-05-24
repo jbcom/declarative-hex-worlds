@@ -1004,6 +1004,22 @@ describe('CLI', () => {
       ],
     });
 
+    const propClusterPayload = JSON.parse(
+      runCli(['guide-apis', '--publicApi', 'GameboardBuilder.addPropCluster', '--json'])
+    ) as typeof apiPayload;
+    expect(propClusterPayload).toMatchObject({
+      count: 1,
+      publicApis: ['GameboardBuilder.addPropCluster'],
+      coverage: [
+        {
+          publicApi: 'GameboardBuilder.addPropCluster',
+          pages: [2, 5, 15, 16, 17],
+          treatmentRoles: ['prop'],
+          assetCounts: { unique: 31, free: 22, extra: 9 },
+        },
+      ],
+    });
+
     const scenarioOutput = runCli([
       'guide-scenarios',
       '--publicApi',
@@ -1012,7 +1028,7 @@ describe('CLI', () => {
     ]);
     const scenarioPayload = JSON.parse(scenarioOutput) as { count: number; pages: number[] };
     expect(scenarioPayload).toMatchObject({ count: 4, pages: [2, 5, 7, 15] });
-  });
+  }, 15_000);
 
   it('emits asset guide coverage and filters scenarios by asset id', () => {
     const assetOutputPath = resolve(createTempRoot(), 'guide-asset-road-m.json');

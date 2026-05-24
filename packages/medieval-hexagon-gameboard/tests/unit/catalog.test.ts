@@ -175,8 +175,8 @@ describe('asset catalog public treatments', () => {
         unique: 404,
         free: 221,
         extra: 183,
-        occurrences: 1105,
-        freeOccurrences: 471,
+        occurrences: 1108,
+        freeOccurrences: 474,
         extraOccurrences: 634,
       },
       scenariosByEdition: {
@@ -300,6 +300,21 @@ describe('asset catalog public treatments', () => {
       assetCounts: { unique: 1, free: 1, extra: 0, occurrences: 2 },
     });
 
+    const propClusterApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addPropCluster');
+    expect(propClusterApi).toMatchObject({
+      pages: [2, 5, 15, 16, 17],
+      scenarioIds: [
+        'page-02-buildings-props-and-factions',
+        'page-05-nature-contents',
+        'page-15-shipyard-harbors',
+        'page-16-stables-and-horses',
+        'page-17-workshop-and-siege',
+      ],
+      treatmentRoles: ['prop'],
+      assetCounts: { unique: 31, free: 22, extra: 9, occurrences: 74 },
+    });
+    expect(propClusterApi?.assetIds).toEqual(expect.arrayContaining(['target', 'haybale', 'anchor']));
+
     const unitPresetApi = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addUnitPreset');
     expect(unitPresetApi).toMatchObject({
       pages: [14, 15, 16, 17, 18],
@@ -397,6 +412,17 @@ describe('asset catalog public treatments', () => {
       occurrences: 2,
     });
 
+    const trainingTarget = describeKayKitGuideAssetCoverage('target');
+    expect(trainingTarget).toMatchObject({
+      assetId: 'target',
+      minimumEdition: 'free',
+      role: 'prop',
+      placementKind: 'prop',
+      pages: [2, 5, 17],
+      publicApi: expect.arrayContaining(['GameboardBuilder.addPropCluster', 'listPropClusterAssets']),
+      occurrences: 3,
+    });
+
     const slopeHigh = describeKayKitGuideAssetCoverage('hex_grass_sloped_high');
     expect(slopeHigh).toMatchObject({
       assetId: 'hex_grass_sloped_high',
@@ -431,7 +457,11 @@ describe('asset catalog public treatments', () => {
     const propRole = describeKayKitGuideRoleCoverage('prop');
     expect(propRole).toMatchObject({
       pages: [2, 5, 15, 16, 17],
-      publicApi: expect.arrayContaining(['GameboardBuilder.addHarbor', 'GameboardBuilder.addProp']),
+      publicApi: expect.arrayContaining([
+        'GameboardBuilder.addHarbor',
+        'GameboardBuilder.addProp',
+        'GameboardBuilder.addPropCluster',
+      ]),
     });
     expect(propRole?.assetCounts.free).toBeGreaterThan(0);
     expect(propRole?.assetCounts.extra).toBeGreaterThan(0);

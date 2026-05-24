@@ -139,11 +139,14 @@ The gameboard API adds a second, intent-level taxonomy on top of asset ids:
   stack index, EXTRA requirement, and metadata such as `feature: "harbor"` or
   `feature: "bridge"`, `feature: "elevation-ramp"`,
   `feature: "fortification"`, `feature: "construction-site"`, or
-  `feature: "siege-projectile"`.
+  `feature: "siege-projectile"`. Prop clusters add
+  `feature: "prop-cluster"` with `propClusterKind`, `clusterId`, density, and
+  placement-mode metadata so camps, caches, worksites, yards, and harbor
+  dressing are queryable without inspecting filenames.
 - Koota traits mirror those tile and placement records so consumers can query
   roads, rivers, coasts, structures, bridges, harbors, elevation ramps,
-  fortifications, construction sites, siege projectiles, stacked terrain, and
-  local-only EXTRA placements without reparsing filenames.
+  fortifications, construction sites, siege projectiles, prop clusters, stacked
+  terrain, and local-only EXTRA placements without reparsing filenames.
 - Public treatment records in `catalog.ts` bridge the file taxonomy to gameboard
   intent. They classify base/support/road/river/coast/transition tiles, faction
   buildings, neutral structures, nature, props, colored units, and neutral unit
@@ -152,6 +155,10 @@ The gameboard API adds a second, intent-level taxonomy on top of asset ids:
   `GameboardBuilder.addBridge` so games and docs can reach them semantically.
   Sloped grass tiles remain base tiles in the file taxonomy, but their treatment
   also names `GameboardBuilder.addElevationRamp` so vertical transitions are
+  explicit. Loose props remain props in the file taxonomy, but non-flag props
+  also name `GameboardBuilder.addPropCluster` and `listPropClusterAssets` so
+  resource caches, worksites, training yards, stable yards, camps, and harbor
+  support props have a semantic public route.
   authored and tested as ramp intent rather than anonymous tile overrides.
   Wall/fence, construction/ruin, and catapult projectile neutral structures also
   name `GameboardBuilder.addFortification`,

@@ -22,6 +22,7 @@ import type {
   MountainStackOptions,
   NaturePlacementOptions,
   NeutralStructureOptions,
+  PropClusterOptions,
   PropPlacementOptions,
   RiverCrossing,
   RoadSlope,
@@ -106,6 +107,7 @@ export type GameboardRecipeStep =
   | AddElevationRampRecipeStep
   | AddNatureRecipeStep
   | AddPropRecipeStep
+  | AddPropClusterRecipeStep
   | AddFlagRecipeStep
   | AddPlacementRecipeStep
   | AddTransitionRecipeStep
@@ -280,6 +282,12 @@ export interface AddNatureRecipeStep extends NaturePlacementOptions {
 export interface AddPropRecipeStep extends PropPlacementOptions {
   /** Discriminator for prop placement. */
   action: 'addProp';
+}
+
+/** Recipe step that places a semantic prop cluster. */
+export interface AddPropClusterRecipeStep extends PropClusterOptions {
+  /** Discriminator for prop-cluster placement. */
+  action: 'addPropCluster';
 }
 
 /** Recipe step that places a faction flag. */
@@ -604,6 +612,10 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
     case 'addProp': {
       const { action: _action, ...options } = step;
       return builder.addProp(options);
+    }
+    case 'addPropCluster': {
+      const { action: _action, ...options } = step;
+      return builder.addPropCluster(options);
     }
     case 'addFlag':
       return builder.addFlag(step.at, step.faction, {
