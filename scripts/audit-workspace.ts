@@ -41,6 +41,15 @@ interface TypeDocJson {
   };
 }
 
+interface TsConfigJson {
+  compilerOptions?: {
+    noEmit?: boolean;
+    types?: string[];
+  };
+  extends?: string;
+  include?: string[];
+}
+
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const failures: string[] = [];
 
@@ -50,6 +59,7 @@ const docsPackageJson = readJson<PackageJson>('apps/docs/package.json');
 const pnpmWorkspace = readJson<PnpmWorkspace>('pnpm-workspace.yaml');
 const nxJson = readJson<NxJson>('nx.json');
 const projectJson = readJson<ProjectJson>('packages/medieval-hexagon-gameboard/project.json');
+const scriptsTsconfig = readJson<TsConfigJson>('tsconfig.scripts.json');
 const typedocJson = readJson<TypeDocJson>('typedoc.json');
 const tsupConfig = readRequired('packages/medieval-hexagon-gameboard/tsup.config.ts');
 const agentsGuide = readRequired('AGENTS.md');
@@ -85,24 +95,19 @@ function requireWorkspaceScripts(): void {
   assert(workspacePackageJson.engines?.pnpm === '>=9 <10', 'workspace must require pnpm >=9 <10');
   assert(workspacePackageJson.scripts?.['test:workspace'] === 'tsx scripts/audit-workspace.ts', 'missing test:workspace audit script');
   assert(
-    workspacePackageJson.scripts?.['typecheck:workspace']?.includes('scripts/audit-workspace.ts'),
-    'typecheck:workspace must typecheck scripts/audit-workspace.ts'
+    workspacePackageJson.scripts?.['typecheck:workspace'] === 'tsc -p tsconfig.scripts.json',
+    'typecheck:workspace must use tsconfig.scripts.json'
   );
-  assert(
-    workspacePackageJson.scripts?.['typecheck:workspace']?.includes('scripts/audit-api-docs.ts'),
-    'typecheck:workspace must typecheck scripts/audit-api-docs.ts'
-  );
-  assert(
-    workspacePackageJson.scripts?.['typecheck:workspace']?.includes('scripts/audit-reference-assets.ts'),
-    'typecheck:workspace must typecheck scripts/audit-reference-assets.ts'
-  );
+  assert(scriptsTsconfig.extends === './tsconfig.base.json', 'script tsconfig must extend tsconfig.base.json');
+  assert(scriptsTsconfig.compilerOptions?.noEmit === true, 'script tsconfig must not emit files');
+  assertArrayIncludes(scriptsTsconfig.compilerOptions?.types, 'node', 'script tsconfig must include node types');
+  assertEqualList(scriptsTsconfig.include ?? [], ['scripts/*.ts'], 'script tsconfig include');
+  for (const scriptFile of readdirSync(join(workspaceRoot, 'scripts')).filter((file) => file.endsWith('.ts'))) {
+    assert(scriptTsconfigCovers(scriptFile), `tsconfig.scripts.json must cover scripts/${scriptFile}`);
+  }
   assert(
     workspacePackageJson.scripts?.['assets:guide'] === 'tsx scripts/extract-kaykit-guide.ts',
     'assets:guide must use the TypeScript guide extraction entrypoint'
-  );
-  assert(
-    workspacePackageJson.scripts?.['typecheck:workspace']?.includes('scripts/extract-kaykit-guide.ts'),
-    'typecheck:workspace must typecheck scripts/extract-kaykit-guide.ts'
   );
   assert(workspacePackageJson.scripts?.['test:api-docs'] === 'tsx scripts/audit-api-docs.ts', 'missing test:api-docs audit script');
   assert(
@@ -117,6 +122,10 @@ function requireWorkspaceScripts(): void {
     workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:workspace && pnpm test:workflows'),
     'test:ci must run workspace audit before workflow audit'
   );
+}
+
+function scriptTsconfigCovers(scriptFile: string): boolean {
+  return (scriptsTsconfig.include ?? []).some((pattern) => pattern === 'scripts/*.ts' && scriptFile.endsWith('.ts'));
 }
 
 function requireWorkspacePackages(): void {
