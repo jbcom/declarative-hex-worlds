@@ -327,7 +327,10 @@ Packaged JSON examples are exposed as `@jbcom/medieval-hexagon-gameboard/example
 so consumers can import scenarios and recipes. The npm package ships compiled
 example JS/DTS and JSON example data, not raw TypeScript example source.
 
-Useful package CLI checks after `pnpm build`:
+Useful package CLI checks after `pnpm build`. The workspace shortcut is
+`pnpm cli <command>`; the release-readiness ledger has the dedicated
+`pnpm coverage:ledger` shortcut so contributors do not need to remember the
+built `dist/cli.js` path.
 
 ```bash
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js doctor --edition free
@@ -344,7 +347,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-render-requests 
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md
+pnpm coverage:ledger
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js blueprint --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --outInterop /tmp/blueprint.interop.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js summarize-plan --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --out /tmp/blueprint.summary.json --outPlan /tmp/blueprint.summary.plan.json --allowUnknownAssets

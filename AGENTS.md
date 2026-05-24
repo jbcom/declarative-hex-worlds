@@ -13,8 +13,9 @@ contract for CI and npm consumers.
   and scenarios, guide scenario coverage, simulation, rendering, manifests, and
   external pack ingestion.
 - Use `docs/guides/release-readiness.md` and `docs/release-readiness.json` as
-  the generated release ledger. Regenerate them with the `coverage` CLI after
-  screenshot, docs, API, or package-gate changes.
+  the generated release ledger. Regenerate them with `pnpm coverage:ledger`
+  after screenshot, docs, API, or package-gate changes; use `pnpm cli <command>`
+  for ad hoc built-CLI checks.
 - The guide imagery lives in `docs/assets/kaykit-guide/` and is generated from
   `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/Medieval_Hexagon_UserGuide_v1.pdf`.
   Regenerate it with `pnpm assets:guide`; that command runs the TypeScript
@@ -538,7 +539,7 @@ pnpm docs:build
 pnpm test:package
 pnpm test:cli
 pnpm test:consumer
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md
+pnpm coverage:ledger
 pnpm pack:dry-run
 ```
 

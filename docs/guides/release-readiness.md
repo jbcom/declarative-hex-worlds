@@ -5,7 +5,7 @@ coverage, public API treatment, visual artifacts, local reference packs, and
 package verification gates. Regenerate it with:
 
 ```bash
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md
+pnpm coverage:ledger
 ```
 
 ## Summary

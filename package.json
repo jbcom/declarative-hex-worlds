@@ -35,6 +35,8 @@
     "test:workspace": "tsx scripts/audit-workspace.ts",
     "test:workflows": "tsx scripts/audit-workflows.ts",
     "test:reference-assets": "tsx scripts/audit-reference-assets.ts",
+    "cli": "node packages/medieval-hexagon-gameboard/dist/cli.js",
+    "coverage:ledger": "pnpm build && node packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md",
     "docs": "typedoc --options typedoc.json",
     "docs:build": "pnpm run docs && pnpm --dir apps/docs build",
     "pack:dry-run": "cd packages/medieval-hexagon-gameboard && npm pack --dry-run"
