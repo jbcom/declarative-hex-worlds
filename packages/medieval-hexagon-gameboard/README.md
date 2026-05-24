@@ -73,6 +73,7 @@ ship without npm-facing documentation.
 | --- | --- |
 | `@jbcom/medieval-hexagon-gameboard` | Root builders, manifests, seeded generation, Koota world helpers, selectors, rules, and common types. |
 | `@jbcom/medieval-hexagon-gameboard/actors` | Actor traits, actor actions, collision, interaction targets, selection, and path-aware targeting. |
+| `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board-intent compiler for biome fills, mountain ranges, towns, roads, rivers, harbors, ramps, bridges, and showcase recipes. |
 | `@jbcom/medieval-hexagon-gameboard/gameboard` | Serializable board plans, builder helpers, and plan utilities. |
 | `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, per-scenario coverage reports, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
@@ -1570,6 +1571,59 @@ medieval-hexagon-gameboard guide-apis \
 ```
 
 ## Authoring Boards
+
+For full board intent, use `./blueprint`. It is the high-level layer for games
+that need to say "make a 2.5D RTS/roguelike/4X board with a coast, vertical
+mountain range, town, road network, harbor, biome fills, and transition policy"
+without hand placing every supporting tile.
+
+```ts
+import {
+  createMedievalGameboardBlueprintPlan,
+  inspectMedievalGameboardBlueprint,
+} from '@jbcom/medieval-hexagon-gameboard/blueprint';
+
+const plan = createMedievalGameboardBlueprintPlan({
+  seed: 'campaign-01',
+  shape: { kind: 'rectangle', width: 12, height: 9 },
+  faction: 'blue',
+  waterFill: 0.18,
+  maxElevation: 4,
+  mountainRanges: [
+    {
+      path: [{ q: 1, r: 0 }, { q: 4, r: 1 }, { q: 8, r: 1 }],
+      width: 1,
+      height: 4,
+      variant: 'cycle',
+    },
+  ],
+  towns: [{ center: { q: 4, r: 4 }, includeWalls: true }],
+  harbors: [{ at: { q: 6, r: 7 }, facing: 1, kind: 'shipyard', roadTo: { q: 4, r: 4 } }],
+  biomeFills: [
+    { textureSet: 'fall', fill: 0.16, center: { q: 2, r: 4 }, radius: 3 },
+    { textureSet: 'winter', fill: 0.12, center: { q: 8, r: 2 }, radius: 3 },
+  ],
+  transitionPolicy: {
+    biomeTransitions: true,
+    elevationRamps: true,
+    roadSlopes: true,
+    bridges: true,
+  },
+});
+
+const inspection = inspectMedievalGameboardBlueprint({ seed: 'campaign-01' });
+console.table(inspection.counts);
+```
+
+Blueprints compile to regular recipe JSON and then to a regular `GameboardPlan`,
+so renderers, Koota, external ECS adapters, validators, and saved scenarios do
+not need a special runtime. `biomeFills` controls texture-set percentages;
+`maxElevation` and `mountainRanges` create stacked multi-tile ridges;
+`transitionPolicy` adds EXTRA biome transition overlays, sloped elevation ramp
+tiles, sloped road segments, and bridge structures where the requested board
+shape needs them. The browser suite captures this contract in
+`free-blueprint-builder-showcase.png` and
+`extra-blueprint-biome-transition-showcase.png`.
 
 For deterministic authored boards:
 

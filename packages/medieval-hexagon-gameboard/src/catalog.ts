@@ -1142,6 +1142,7 @@ function createKayKitGuideScenarios(): KayKitGuideScenario[] {
         'GameboardBuilder.addHill',
         'GameboardBuilder.addMountainStack',
         'GameboardBuilder.scatterDecorations',
+        'createMedievalGameboardBlueprintRecipe',
         'createGameboardLayoutFillRuleFromPiece',
       ],
       visualArtifacts: [
@@ -1162,6 +1163,8 @@ function createKayKitGuideScenarios(): KayKitGuideScenario[] {
         'GameboardBuilder.addHill',
         'GameboardBuilder.addMountainStack',
         'GameboardBuilder.scatterDecorations',
+        'createMedievalGameboardBlueprintPlan',
+        'inspectMedievalGameboardBlueprint',
         'createGameboardLayoutArchetypeRegistry',
       ],
       visualArtifacts: [
@@ -1199,10 +1202,16 @@ function createKayKitGuideScenarios(): KayKitGuideScenario[] {
       sourceImage: GUIDE_IMAGE.tallerTiles,
       edition: 'free',
       summary: 'Covers bottom, sloped, elevated, and stacked terrain compositions for mountains and cliff-like boards.',
-      publicApi: ['GameboardBuilder.addMountainStack', 'GameboardBuilder.setElevation', 'GameboardBuilder.setTileAsset'],
+      publicApi: [
+        'GameboardBuilder.addMountainStack',
+        'GameboardBuilder.setElevation',
+        'GameboardBuilder.setTileAsset',
+        'createMedievalGameboardBlueprintRecipe',
+      ],
       visualArtifacts: [
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png',
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png',
+        'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png',
       ],
       docs: ['docs/pillars/01-tiles-connectivity.md', 'docs/pillars/05-koota-runtime-rules.md'],
     }),
@@ -1217,13 +1226,16 @@ function createKayKitGuideScenarios(): KayKitGuideScenario[] {
         'createGameboardBuilder',
         'createGameboardPlanFromRecipe',
         'createSeededGameboardPlan',
+        'createMedievalShowcaseBlueprintRecipe',
         'createGameboardRuntimeFromScenario',
         'selectSpawnCoordinates',
       ],
       visualArtifacts: [
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png',
+        'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png',
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png',
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png',
+        'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png',
       ],
       docs: ['docs/guides/recipes-scenarios-and-simulation.md', 'docs/pillars/05-koota-runtime-rules.md'],
     }),
@@ -1239,6 +1251,7 @@ function createKayKitGuideScenarios(): KayKitGuideScenario[] {
         'GameboardBuilder.addMountainStack',
         'GameboardBuilder.setElevation',
         'GameboardBuilder.addForest',
+        'createMedievalGameboardBlueprintPlan',
       ],
       visualArtifacts: [
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png',
@@ -1256,12 +1269,15 @@ function createKayKitGuideScenarios(): KayKitGuideScenario[] {
       publicApi: [
         'textureFileName',
         'GameboardBuilder.addTransition',
+        'createMedievalGameboardBlueprintRecipe',
+        'inspectMedievalGameboardBlueprint',
         'createGameboardPlanFromRecipe',
         'validateGameboardRecipe',
       ],
       visualArtifacts: [
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png',
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png',
+        'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png',
       ],
       docs: ['docs/pillars/03-editions-and-ingest.md', 'docs/guides/rendering-assets-and-external-packs.md'],
     }),
@@ -1288,6 +1304,8 @@ function createKayKitGuideScenarios(): KayKitGuideScenario[] {
       summary: 'Covers EXTRA transition tile declarations, biome adjacency, and recipe/build-time validation for blends.',
       publicApi: [
         'GameboardBuilder.addTransition',
+        'createMedievalGameboardBlueprintRecipe',
+        'createMedievalShowcaseBlueprintRecipe',
         'declareHexTile',
         'analyzeHexTileRegistry',
         'createGameboardPlanFromRecipe',
@@ -1296,6 +1314,7 @@ function createKayKitGuideScenarios(): KayKitGuideScenario[] {
       visualArtifacts: [
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png',
         'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png',
+        'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png',
       ],
       docs: ['docs/pillars/01-tiles-connectivity.md', 'docs/pillars/03-editions-and-ingest.md'],
     }),

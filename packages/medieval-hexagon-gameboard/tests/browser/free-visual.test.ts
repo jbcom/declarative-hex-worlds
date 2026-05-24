@@ -6,6 +6,7 @@ import {
   listKayKitGuideRoleCoverages,
   listKayKitGuideScenarios,
 } from '../../src/catalog';
+import { createMedievalGameboardBlueprintPlan } from '../../src/blueprint';
 import { createMedievalHarborBoard } from '../../src/gameboard';
 import { freeManifest } from '../../src/manifest/free';
 import { createGameboardPlanFromRecipe, type GameboardRecipe } from '../../src/recipe';
@@ -285,6 +286,66 @@ describe('FREE visual coverage', () => {
       path: '__screenshots__/free-gameboard-recipe.png',
     });
     expect(screenshot).toContain('free-gameboard-recipe.png');
+  });
+
+  it('captures a blueprint builder board with vertical ranges, towns, roads, and a harbor', async () => {
+    await page.viewport(1700, 1050);
+    const plan = createMedievalGameboardBlueprintPlan({
+      seed: 'visual-free-blueprint-builder',
+      shape: { kind: 'rectangle', width: 10, height: 7 },
+      faction: 'blue',
+      waterFill: 0.14,
+      maxElevation: 3,
+      mountainRanges: [
+        {
+          id: 'free-ridge',
+          path: [
+            { q: 1, r: 0 },
+            { q: 3, r: 1 },
+            { q: 5, r: 1 },
+          ],
+          width: 1,
+          height: 3,
+          variant: 'cycle',
+        },
+      ],
+      towns: [
+        {
+          id: 'free-town',
+          center: { q: 4, r: 3 },
+          includeWalls: true,
+          buildings: ['market', 'home_A', 'home_B', 'well', 'blacksmith'],
+        },
+      ],
+      harbors: [{ id: 'free-harbor', at: { q: 5, r: 5 }, facing: 1, kind: 'watermill', roadTo: { q: 4, r: 3 } }],
+      roads: [
+        {
+          id: 'free-king-road',
+          path: [
+            { q: 2, r: 2 },
+            { q: 4, r: 3 },
+            { q: 7, r: 4 },
+          ],
+        },
+      ],
+      transitionPolicy: { biomeTransitions: false, elevationRamps: true, roadSlopes: true, bridges: true },
+    });
+
+    expect(plan.placements.some((placement) => placement.metadata.feature === 'mountain-stack')).toBe(true);
+    expect(plan.placements.some((placement) => placement.assetId === 'building_watermill_blue')).toBe(true);
+    expect(plan.placements.some((placement) => placement.kind === 'road')).toBe(true);
+
+    const canvas = await renderGameboardPlan(plan, {
+      title: 'free-blueprint-builder-showcase',
+      width: 1600,
+      height: 1000,
+    });
+    assertCanvasHasRenderableContent(canvas);
+    const screenshot = await page.screenshot({
+      element: canvas,
+      path: '__screenshots__/free-blueprint-builder-showcase.png',
+    });
+    expect(screenshot).toContain('free-blueprint-builder-showcase.png');
   });
 
   it('captures a seeded random gameboard projection', async () => {

@@ -120,6 +120,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `GameboardBuilder.addProp`,
   `GameboardBuilder.scatterDecorations`,
   `createGameboardLayoutFillRuleFromPiece`,
+  `createMedievalGameboardBlueprintRecipe`,
   `flagAssetId`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
@@ -138,7 +139,9 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `GameboardBuilder.addNature`,
   `GameboardBuilder.scatterDecorations`,
   `createGameboardLayoutArchetypeRegistry`,
-  `createGameboardLayoutFillRuleFromPiece`
+  `createGameboardLayoutFillRuleFromPiece`,
+  `createMedievalGameboardBlueprintPlan`,
+  `inspectMedievalGameboardBlueprint`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
@@ -179,9 +182,11 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Roles: `base-tile`, `support-tile`
 - Public API treatment: `GameboardBuilder.addMountainStack`,
   `GameboardBuilder.setElevation`,
-  `GameboardBuilder.setTileAsset`
+  `GameboardBuilder.setTileAsset`,
+  `createMedievalGameboardBlueprintRecipe`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`
+  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`,
+  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png`
 - Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 09 - World Design Example
@@ -204,14 +209,17 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `createGameboardPlanFromRecipe`,
   `createGameboardPlanFromTiles`,
   `createGameboardRuntimeFromScenario`,
+  `createMedievalShowcaseBlueprintRecipe`,
   `createSeededGameboardPlan`,
   `listRoadGuidePermutations`,
   `selectRoadVariant`,
   `selectRoadVariantByLabel`,
   `selectSpawnCoordinates`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`,
+  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png`,
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png`
+  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png`,
+  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
 - Docs: `docs/guides/recipes-scenarios-and-simulation.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 10 - Floating Islands
@@ -229,7 +237,8 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
   `GameboardBuilder.setElevation`,
   `GameboardBuilder.setTileAsset`,
   `createGameboardLayoutFillRuleFromPiece`,
-  `createHexagonGameboardGrid`
+  `createHexagonGameboardGrid`,
+  `createMedievalGameboardBlueprintPlan`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png`,
   `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
@@ -243,10 +252,13 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Roles: `transition-tile`
 - Public API treatment: `GameboardBuilder.addTransition`,
   `createGameboardPlanFromRecipe`,
+  `createMedievalGameboardBlueprintRecipe`,
+  `inspectMedievalGameboardBlueprint`,
   `textureFileName`,
   `validateGameboardRecipe`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`
+  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`,
+  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
 - Docs: `docs/pillars/03-editions-and-ingest.md`,
   `docs/guides/rendering-assets-and-external-packs.md`
 
@@ -279,11 +291,14 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi
 - Public API treatment: `GameboardBuilder.addTransition`,
   `analyzeHexTileRegistry`,
   `createGameboardPlanFromRecipe`,
+  `createMedievalGameboardBlueprintRecipe`,
+  `createMedievalShowcaseBlueprintRecipe`,
   `declareHexTile`,
   `validateGameboardRecipe`,
   `validateGameboardRecipeGeneration`
 - Visual artifacts: `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
-  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`
+  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`,
+  `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
 - Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/03-editions-and-ingest.md`
 
 ### Page 14 - Units

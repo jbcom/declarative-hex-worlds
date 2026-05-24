@@ -4,6 +4,7 @@
   "entryPoints": [
     "packages/medieval-hexagon-gameboard/src/index.ts",
     "packages/medieval-hexagon-gameboard/src/actors.ts",
+    "packages/medieval-hexagon-gameboard/src/blueprint.ts",
     "packages/medieval-hexagon-gameboard/src/gameboard.ts",
     "packages/medieval-hexagon-gameboard/src/catalog.ts",
     "packages/medieval-hexagon-gameboard/src/coordinates.ts",

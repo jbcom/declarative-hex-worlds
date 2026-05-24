@@ -14,6 +14,7 @@ source_images:
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
   - packages/medieval-hexagon-gameboard/src/actors.ts
+  - packages/medieval-hexagon-gameboard/src/blueprint.ts
   - packages/medieval-hexagon-gameboard/src/commands.ts
   - packages/medieval-hexagon-gameboard/src/catalog.ts
   - packages/medieval-hexagon-gameboard/src/cli.ts
@@ -46,6 +47,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/world-rules.ts
   - packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts
 test_links:
+  - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/actors.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/commands.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
@@ -647,6 +649,16 @@ tags roots with gameboard user data. Raycast handlers should use
 back to placement IDs, tile keys, and actor metadata from Koota projection.
 
 ## Seeded generation
+
+`createMedievalGameboardBlueprintRecipe`,
+`createMedievalGameboardBlueprintPlan`, and
+`inspectMedievalGameboardBlueprint` are the high-level public path for complete
+2.5D board intent. Use them when a board should be specified in terms of biome
+fill percentages, mountain range paths and maximum height, towns, road
+networks, rivers, harbors/ports, transition tiles, sloped elevation ramps,
+sloped roads, bridges, and density fills. They compile to ordinary recipes and
+plans, so Koota, renderers, external ECS adapters, and validation do not need a
+separate blueprint runtime.
 
 `createSeededGameboardPlan` and `createSeededGameboardWorld` use `seedrandom` to
 produce deterministic 2.5D rectangle or hexagon boards with coastlines, harbors,

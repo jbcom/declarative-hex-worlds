@@ -4,6 +4,7 @@ export default defineConfig({
   entry: {
     index: 'src/index.ts',
     actors: 'src/actors.ts',
+    blueprint: 'src/blueprint.ts',
     catalog: 'src/catalog.ts',
     compatibility: 'src/compatibility.ts',
     commands: 'src/commands.ts',

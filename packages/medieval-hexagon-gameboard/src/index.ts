@@ -424,8 +424,26 @@ export type {
   SetCoastEdgesRecipeStep,
   SetElevationRecipeStep,
   SetTerrainRecipeStep,
+  SetTextureSetRecipeStep,
   SetTileAssetRecipeStep,
 } from './recipe';
+export {
+  createMedievalGameboardBlueprintPlan,
+  createMedievalGameboardBlueprintRecipe,
+  createMedievalShowcaseBlueprintRecipe,
+  inspectMedievalGameboardBlueprint,
+} from './blueprint';
+export type {
+  MedievalBiomeFillSpec,
+  MedievalGameboardBlueprintInspection,
+  MedievalGameboardBlueprintOptions,
+  MedievalHarborSpec,
+  MedievalMountainRangeSpec,
+  MedievalRiverNetworkSpec,
+  MedievalRoadNetworkSpec,
+  MedievalTownSpec,
+  MedievalTransitionPolicy,
+} from './blueprint';
 export {
   createGameboardRuntime,
   createGameboardRuntimeFromRecipe,

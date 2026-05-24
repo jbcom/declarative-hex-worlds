@@ -6,8 +6,10 @@ import {
   listKayKitGuideAssetCoverages,
   listKayKitGuideScenarios,
 } from '../../src/catalog';
+import { createMedievalShowcaseBlueprintRecipe } from '../../src/blueprint';
 import { createMedievalHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard';
 import { freeManifest } from '../../src/manifest/free';
+import { createGameboardPlanFromRecipe } from '../../src/recipe';
 import type { AssetCategory, MedievalHexagonAsset } from '../../src/types';
 import { assertCanvasHasRenderableContent, referenceExtraUrl, renderContactSheet, renderGameboardPlan } from './rendering';
 
@@ -223,6 +225,31 @@ describe('EXTRA local visual coverage', () => {
       path: '__screenshots__/extra-harbor-gameboard.png',
     });
     expect(screenshot).toContain('extra-harbor-gameboard.png');
+  });
+
+  it('captures the full blueprint biome, transition, harbor, town, unit, and density showcase', async () => {
+    await page.viewport(1800, 1200);
+    const plan = createGameboardPlanFromRecipe(createMedievalShowcaseBlueprintRecipe());
+    expect(plan.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
+    expect(plan.placements.some((placement) => placement.assetId === 'building_shipyard_blue')).toBe(true);
+    expect(plan.placements.some((placement) => placement.metadata.densityPreset === 'units')).toBe(true);
+    expect(plan.tiles.some((tile) => tile.textureSet === 'fall')).toBe(true);
+    expect(plan.tiles.some((tile) => tile.textureSet === 'winter')).toBe(true);
+    expect(plan.tiles.some((tile) => tile.textureSet === 'summer')).toBe(true);
+
+    const canvas = await renderGameboardPlan(plan, {
+      title: 'extra-blueprint-biome-transition-showcase',
+      width: 1700,
+      height: 1120,
+      includeExtra: true,
+      resolvePlacementUrl: extraUrlForPlacement,
+    });
+    assertCanvasHasRenderableContent(canvas);
+    const screenshot = await page.screenshot({
+      element: canvas,
+      path: '__screenshots__/extra-blueprint-biome-transition-showcase.png',
+    });
+    expect(screenshot).toContain('extra-blueprint-biome-transition-showcase.png');
   });
 });
 

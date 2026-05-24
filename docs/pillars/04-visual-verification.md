@@ -26,6 +26,7 @@ source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
   - docs/guides/guide-scenario-coverage.md
   - package.json
+  - packages/medieval-hexagon-gameboard/src/blueprint.ts
   - packages/medieval-hexagon-gameboard/src/catalog.ts
   - packages/medieval-hexagon-gameboard/src/compatibility.ts
   - packages/medieval-hexagon-gameboard/src/three.ts
@@ -36,6 +37,7 @@ implementation_links:
   - packages/medieval-hexagon-gameboard/src/pieces.ts
   - packages/medieval-hexagon-gameboard/src/quests.ts
 test_links:
+  - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
   - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts
   - packages/medieval-hexagon-gameboard/tests/browser/simple-rpg-visual.test.ts
   - packages/medieval-hexagon-gameboard/tests/scripts/assert-screenshots.ts
@@ -149,6 +151,9 @@ the browser captures. The reviewed screenshots included:
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`
   covering the non-connectivity guide use cases through public builder helpers.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png`
+  covering the public blueprint API for stacked mountain ranges, a town,
+  multi-segment roads, coast/water, elevation ramps, and a harbor composition.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png`
@@ -172,3 +177,7 @@ the browser captures. The reviewed screenshots included:
   workshop, siege units, and unit combinations.
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`
+- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
+  covering the public blueprint API for local EXTRA biome transition tiles,
+  texture-set fills, shipyards, towns, density units, and board-scale
+  composition.

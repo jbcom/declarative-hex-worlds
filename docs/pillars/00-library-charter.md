@@ -8,6 +8,7 @@ source_images:
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
   - packages/medieval-hexagon-gameboard/src/index.ts
+  - packages/medieval-hexagon-gameboard/src/blueprint.ts
   - packages/medieval-hexagon-gameboard/src/types.ts
   - packages/medieval-hexagon-gameboard/src/gameboard.ts
   - packages/medieval-hexagon-gameboard/src/koota.ts
@@ -23,6 +24,7 @@ implementation_links:
   - scripts/smoke-built-cli.ts
   - scripts/smoke-packed-consumer.ts
 test_links:
+  - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/manifest.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/gameboard.test.ts
   - packages/medieval-hexagon-gameboard/tests/unit/koota.test.ts
@@ -59,6 +61,11 @@ open source package useful while preserving the local-only purchased workflow.
   `./three` placement/render helpers.
 - The main API must expose board intent: elevated terrain stacks, roads, rivers,
   coasts, settlements, harbors/ports, deterministic scatter, and Koota state.
+- Board-scale authoring must have a first-class public path through
+  `./blueprint`, where games or agents can specify biome fill percentages,
+  maximum elevation, mountain ranges, towns, roads, rivers, harbors, transition
+  policy, ramps, bridges, and density fills without dropping to per-tile
+  placement code.
 
 ## Implementation rules
 

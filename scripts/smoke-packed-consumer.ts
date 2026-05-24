@@ -264,6 +264,11 @@ import {
   type GameboardMovementStatus as GameboardMovementStatusFromMovement,
 } from '@jbcom/medieval-hexagon-gameboard/movement';
 import {
+  createMedievalGameboardBlueprintPlan,
+  inspectMedievalGameboardBlueprint,
+  type MedievalGameboardBlueprintInspection,
+} from '@jbcom/medieval-hexagon-gameboard/blueprint';
+import {
   gameboardPatrolActions as gameboardPatrolActionsFromPatrol,
   type GameboardPatrolStatus as GameboardPatrolStatusFromPatrol,
 } from '@jbcom/medieval-hexagon-gameboard/patrol';
@@ -398,6 +403,21 @@ const pieceFillInspection: SeededGameboardPieceFillInspection = inspectSeededGam
   [{ selection: { ids: ['packed-fixture-tree'] }, count: 1 }],
   { seed: 'packed-consumer-piece-fill-inspection' }
 );
+const blueprintInspection: MedievalGameboardBlueprintInspection = inspectMedievalGameboardBlueprint({
+  seed: 'packed-consumer-blueprint-types',
+  shape: { kind: 'rectangle', width: 5, height: 4 },
+  waterFill: 0.15,
+  maxElevation: 2,
+  towns: 1,
+  harbors: 1,
+  biomeFills: [{ textureSet: 'summer', fill: 0.15 }],
+  transitionPolicy: { biomeTransitions: true, elevationRamps: true, roadSlopes: true, bridges: true },
+});
+const blueprintPlan: GameboardPlan = createMedievalGameboardBlueprintPlan({
+  seed: 'packed-consumer-blueprint-plan-types',
+  shape: { kind: 'hexagon', radius: 2 },
+  towns: 1,
+});
 const packedRecipe = createGameboardRecipe(
   { seed: 'packed-consumer-recipe-runtime', shape: { kind: 'rectangle', width: 3, height: 2 } },
   [],
@@ -1042,6 +1062,10 @@ import {
   GAMEBOARD_MOVEMENT_PROFILES,
   gameboardMovementActions as gameboardMovementActionsFromMovement,
 } from '@jbcom/medieval-hexagon-gameboard/movement';
+import {
+  createMedievalGameboardBlueprintPlan,
+  inspectMedievalGameboardBlueprint,
+} from '@jbcom/medieval-hexagon-gameboard/blueprint';
 import { gameboardPatrolActions as gameboardPatrolActionsFromPatrol } from '@jbcom/medieval-hexagon-gameboard/patrol';
 import {
   GAMEBOARD_QUEST_SCHEMA_VERSION,
@@ -1112,6 +1136,20 @@ const plan = createSeededGameboardPlan({
   seed: 'packed-consumer-smoke',
   shape: { kind: 'rectangle', width: 4, height: 3 },
   layoutDensity: { harbors: { count: 1 }, trees: 0.1, props: 0.05 },
+});
+const blueprintInspection = inspectMedievalGameboardBlueprint({
+  seed: 'packed-consumer-blueprint-runtime',
+  shape: { kind: 'rectangle', width: 6, height: 4 },
+  waterFill: 0.16,
+  maxElevation: 2,
+  towns: 1,
+  harbors: 1,
+  biomeFills: [{ textureSet: 'fall', fill: 0.18, center: { q: 2, r: 2 }, radius: 2 }],
+});
+const blueprintPlan = createMedievalGameboardBlueprintPlan({
+  seed: 'packed-consumer-blueprint-plan-runtime',
+  shape: { kind: 'hexagon', radius: 2 },
+  towns: 1,
 });
 const densityHarbors = plan.placements.filter((placement) => placement.metadata.densityPreset === 'harbors');
 if (densityHarbors.length !== 1 || densityHarbors[0]?.metadata.layoutArchetype !== 'harbor') {
@@ -1191,6 +1229,10 @@ if (
     { seed: 'packed-consumer-recipe-subpath', shape: { kind: 'rectangle', width: 1, height: 1 } },
     []
   ).schemaVersion !== GAMEBOARD_RECIPE_SCHEMA_VERSION ||
+  blueprintInspection.plan.tiles.length === 0 ||
+  blueprintInspection.counts.townBuildings < 1 ||
+  blueprintInspection.counts.harbors < 1 ||
+  blueprintPlan.placements.length < 1 ||
   FACTION_BUILDING_KINDS.length < 1 ||
   factionBuildingAssetId(FACTION_BUILDING_KINDS[0], 'blue') !== 'building_archeryrange_blue' ||
   flagAssetId('green') !== 'flag_green' ||
@@ -1890,6 +1932,8 @@ console.log(JSON.stringify({
   defaultRpgHandlers: defaultRpgHandlers.length,
   harborArchetype: GAMEBOARD_LAYOUT_ARCHETYPES.harbor.id,
   customArchetype: packedCustomRecipeArchetypes?.['packed-camp-supply']?.id,
+  blueprintTiles: blueprintInspection.plan.tiles.length,
+  blueprintHarbors: blueprintInspection.counts.harbors,
   densityHarbors: densityHarbors.length,
   harborPlacements: harborPlacements.length,
   shipyardPieceCandidates: shipyardInspection.siteInspection.candidateCount,

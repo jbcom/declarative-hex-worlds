@@ -421,6 +421,8 @@ export interface TileAssetOptions {
   riverCrossing?: RiverCrossing;
   /** Whether the coast uses a waterless variant. */
   coastWaterless?: boolean;
+  /** Replacement texture set for this tile. */
+  textureSet?: TextureSet;
   /** Additional tile tags. */
   tags?: readonly string[];
 }
@@ -498,12 +500,13 @@ export class GameboardBuilder {
   setTerrain(
     coordinates: HexCoordinates,
     terrain: Extract<GameboardTerrain, 'grass' | 'water'>,
-    options: { elevation?: number; baseAssetId?: string } = {}
+    options: { elevation?: number; baseAssetId?: string; textureSet?: TextureSet } = {}
   ): this {
     const tile = this.requireTile(coordinates);
     tile.terrain = terrain;
     tile.baseAssetId = options.baseAssetId ?? TERRAIN_ASSETS[terrain];
     tile.elevation = normalizeElevation(options.elevation ?? tile.elevation);
+    tile.textureSet = options.textureSet ?? tile.textureSet;
     updateTags(tile);
     return this;
   }
@@ -525,7 +528,17 @@ export class GameboardBuilder {
     tile.riverCurvy = options.riverCurvy ?? tile.riverCurvy;
     tile.riverCrossing = options.riverCrossing ?? tile.riverCrossing;
     tile.coastWaterless = options.coastWaterless ?? tile.coastWaterless;
+    tile.textureSet = options.textureSet ?? tile.textureSet;
     updateTags(tile, options.tags);
+    return this;
+  }
+
+  /**
+   * Set the texture set for an existing tile without changing its terrain.
+   */
+  setTextureSet(coordinates: HexCoordinates, textureSet: TextureSet): this {
+    const tile = this.requireTile(coordinates);
+    tile.textureSet = textureSet;
     return this;
   }
 

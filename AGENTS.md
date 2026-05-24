@@ -234,6 +234,17 @@ contract for CI and npm consumers.
   `layoutPositionOffsetX/Y/Z` metadata so renderers can separate same-hex props;
   keep related generated scatter in a shared `slotGroup` when later fill rules
   should reserve earlier same-tile visual slots.
+- Use `./blueprint` when the goal is a complete 2.5D board rather than a
+  single placement or low-level seeded scatter pass. It compiles biome fill
+  percentages, stacked multi-tile mountain ranges, towns, road networks,
+  rivers, harbors/ports, elevation ramps, sloped roads, bridges, and density
+  fills into ordinary recipe JSON. Prefer
+  `createMedievalGameboardBlueprintRecipe` when the result should be saved or
+  inspected, `createMedievalGameboardBlueprintPlan` when a game needs the plan
+  directly, and `inspectMedievalGameboardBlueprint` when an agent/editor needs
+  counts and warnings before rendering. Keep new board-scale README examples and
+  screenshots anchored to the blueprint API unless the task is specifically
+  about low-level builder behavior.
 - Use `./pieces` for reusable non-tile asset declarations. Custom buildings,
   trees, loose props, units, harbors, landmarks, and scatter assets should carry
   role, footprint, scale, source, criteria, and metadata there before being
@@ -325,6 +336,9 @@ contract for CI and npm consumers.
 - `./actors`: Koota actor traits, actor action bundles, actor selection and
   path-aware targeting queries, collision reports, actor classification,
   interaction command planning, and actor-aware navigation profile helpers.
+- `./blueprint`: board-scale 2.5D intent compiler for biome percentages,
+  mountain ranges, towns, roads, rivers, harbors, elevation ramps, sloped roads,
+  bridges, density fills, and showcase recipes.
 - `./commands`: command action bundles plus preview/execution helpers that turn
   interaction targets into actor-aware movement requests or handler-required
   interact/attack/inspect commands, actor-target command planners for UI/AI

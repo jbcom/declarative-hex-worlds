@@ -46,7 +46,7 @@ import {
 } from './rules';
 import { projectWorldToGameboardPlan } from './projection';
 import type { GameboardRuleViolation } from './rule-types';
-import type { Faction, HexCoordinates, HexEdgeIndex } from './types';
+import type { Faction, HexCoordinates, HexEdgeIndex, TextureSet } from './types';
 import { validateGameboardPlan, type GameboardPlanValidationConfig } from './validation';
 
 /** Current schema version for serialized gameboard recipes. */
@@ -83,6 +83,7 @@ export type GameboardRecipeStep =
   | SetTerrainRecipeStep
   | SetTileAssetRecipeStep
   | SetElevationRecipeStep
+  | SetTextureSetRecipeStep
   | SetCoastEdgesRecipeStep
   | AddRoadPathRecipeStep
   | AddRiverPathRecipeStep
@@ -112,6 +113,8 @@ export interface SetTerrainRecipeStep {
   elevation?: number;
   /** Optional base tile asset override for the terrain. */
   baseAssetId?: string;
+  /** Optional texture set override for this tile. */
+  textureSet?: TextureSet;
 }
 
 /** Recipe step that applies a fully specified tile asset option object. */
@@ -128,6 +131,16 @@ export interface SetElevationRecipeStep {
   at: HexCoordinates;
   /** Elevation level to assign. */
   elevation: number;
+}
+
+/** Recipe step that changes one hex texture set without changing terrain. */
+export interface SetTextureSetRecipeStep {
+  /** Discriminator for texture-set assignment. */
+  action: 'setTextureSet';
+  /** Target hex coordinate. */
+  at: HexCoordinates;
+  /** KayKit texture set to apply to the tile. */
+  textureSet: TextureSet;
 }
 
 /** Recipe step that records coastal water edge connectivity for one hex. */
@@ -450,6 +463,7 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
       return builder.setTerrain(step.at, step.terrain, {
         elevation: step.elevation,
         baseAssetId: step.baseAssetId,
+        textureSet: step.textureSet,
       });
     case 'setTileAsset': {
       const { action: _action, ...options } = step;
@@ -457,6 +471,8 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
     }
     case 'setElevation':
       return builder.setElevation(step.at, step.elevation);
+    case 'setTextureSet':
+      return builder.setTextureSet(step.at, step.textureSet);
     case 'setCoastEdges':
       return builder.setCoastEdges(step.at, step.waterEdges, { waterless: step.waterless });
     case 'addRoadPath':

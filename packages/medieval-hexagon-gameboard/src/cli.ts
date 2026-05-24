@@ -1529,6 +1529,7 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
   if (parsed.flags.markdown === true || parsed.flags.format === 'markdown') {
     const markdown = renderKayKitGuideScenarioCoverageMarkdown({
       scenarios,
+      includeRoleCoverage: scenarios.length === listKayKitGuideScenarios().length,
       includePublicApiInversion: scenarios.length === listKayKitGuideScenarios().length,
     });
     if (typeof parsed.flags.out === 'string') {
