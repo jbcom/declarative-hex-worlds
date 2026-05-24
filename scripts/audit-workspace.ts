@@ -5,6 +5,8 @@ import { dirname, join, relative, resolve } from 'node:path';
 import ts from 'typescript';
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
+  GAMEBOARD_RELEASE_GATE_COMMANDS,
+  GAMEBOARD_RELEASE_GATE_SUMMARIES,
   GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
 } from '../packages/medieval-hexagon-gameboard/src/coverage';
 
@@ -590,19 +592,7 @@ function requireReleaseReadinessLedger(): void {
 
   assertEqualList(
     releaseReadinessJson.releaseGateCommands ?? [],
-    [
-      'pnpm lint',
-      'pnpm typecheck',
-      'pnpm build',
-      'pnpm test:ci',
-      'pnpm expectations',
-      'pnpm docs:build',
-      'pnpm test:consumer',
-      'pnpm test:visual',
-      'pnpm showcases:promote -- --check',
-      'pnpm test:workflows',
-      'pnpm pack:dry-run',
-    ],
+    [...GAMEBOARD_RELEASE_GATE_COMMANDS],
     'release-readiness JSON release gate commands'
   );
   assertEqualList(
@@ -618,6 +608,10 @@ function requireReleaseReadinessLedger(): void {
   }
   for (const check of releaseReadinessJson.packageChecks ?? []) {
     assert(check.summary, `release-readiness package check ${check.command ?? '<missing command>'} must include a summary`);
+    assert(
+      isReleaseGateCommand(check.command) && check.summary === GAMEBOARD_RELEASE_GATE_SUMMARIES[check.command],
+      `release-readiness package check ${check.command ?? '<missing command>'} must use the canonical coverage summary`
+    );
     assert(
       check.summary && releaseReadinessMarkdown.includes(check.summary),
       `release-readiness Markdown must include package check summary for ${check.command ?? '<missing command>'}`
@@ -866,6 +860,10 @@ function curatedShowcaseArtifactsFromCoverage(): string[] {
 
 function requiredBrowserScreenshotArtifactsFromCoverage(): string[] {
   return [...GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS].sort();
+}
+
+function isReleaseGateCommand(command: string | undefined): command is (typeof GAMEBOARD_RELEASE_GATE_COMMANDS)[number] {
+  return typeof command === 'string' && (GAMEBOARD_RELEASE_GATE_COMMANDS as readonly string[]).includes(command);
 }
 
 function requireBrowserScreenshotArtifactsTracked(): void {
