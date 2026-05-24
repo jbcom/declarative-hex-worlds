@@ -241,17 +241,11 @@ function requireWorkspaceScripts(): void {
       'pnpm build:package && node packages/medieval-hexagon-gameboard/dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md',
     'workspace coverage:ledger shortcut must regenerate release-readiness docs through the built CLI'
   );
+  const expectedTestCiScript =
+    'pnpm lint && pnpm typecheck && pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm expectations && pnpm test && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run';
   assert(
-    workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build'),
-    'test:ci must run docs contract, api docs audit, and docs build together'
-  );
-  assert(
-    workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:workspace && pnpm test:workflows'),
-    'test:ci must run workspace audit before workflow audit'
-  );
-  assert(
-    workspacePackageJson.scripts?.['test:ci']?.includes('pnpm test:cli && pnpm expectations && pnpm test'),
-    'test:ci must run explicit behavior-drift expectations before the full test suite'
+    workspacePackageJson.scripts?.['test:ci'] === expectedTestCiScript,
+    'test:ci must keep the full release gate chain in the audited order'
   );
 }
 
