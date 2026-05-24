@@ -9,13 +9,13 @@
     "pnpm": ">=9 <10"
   },
   "scripts": {
-    "assets:guide": "swift scripts/extract-kaykit-guide.swift",
+    "assets:guide": "tsx scripts/extract-kaykit-guide.ts",
     "assets:free": "tsx scripts/generate-package-assets.ts --edition free --source references/KayKit_Medieval_Hexagon_Pack_1.0_FREE --package packages/medieval-hexagon-gameboard",
     "build": "nx run-many -t build",
     "lint": "pnpm lint:workspace && nx run-many -t lint",
     "lint:workspace": "biome lint .github apps docs scripts *.json *.md",
     "typecheck": "pnpm typecheck:workspace && nx run-many -t typecheck",
-    "typecheck:workspace": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution bundler --strict --types node scripts/audit-api-docs.ts scripts/audit-docs-contract.ts scripts/audit-free-assets.ts scripts/audit-reference-assets.ts scripts/audit-package.ts scripts/audit-workflows.ts scripts/audit-workspace.ts scripts/generate-package-assets.ts scripts/smoke-built-cli.ts scripts/smoke-packed-consumer.ts",
+    "typecheck:workspace": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution bundler --strict --types node scripts/audit-api-docs.ts scripts/audit-docs-contract.ts scripts/audit-free-assets.ts scripts/audit-reference-assets.ts scripts/audit-package.ts scripts/audit-workflows.ts scripts/audit-workspace.ts scripts/extract-kaykit-guide.ts scripts/generate-package-assets.ts scripts/smoke-built-cli.ts scripts/smoke-packed-consumer.ts",
     "test": "nx run-many -t test",
     "test:browser:free": "nx run @jbcom/medieval-hexagon-gameboard:test:browser:free",
     "test:browser:extra": "nx run @jbcom/medieval-hexagon-gameboard:test:browser:extra",

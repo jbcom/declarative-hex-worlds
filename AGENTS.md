@@ -49,7 +49,10 @@ contract for CI and npm consumers.
 - EXTRA assets are never committed or published. APIs may model EXTRA concepts,
   but generated placements must set `requiresExtra: true` when the asset is not
   in the FREE manifest.
-- Check `/Volumes/home` is mounted before using the wider asset library:
+- Optional wider asset-library smoke tests should read
+  `MEDIEVAL_HEXAGON_ASSET_LIBRARY_ROOT` when a contributor provides it. On this
+  workstation the user-local value is `/Volumes/home/assets`; check that
+  `/Volumes/home` is mounted before using that local NAS path:
   `mount | grep -q /Volumes/home && echo MOUNTED || echo "NOT MOUNTED"`.
 
 ## Architecture Rules
