@@ -58,9 +58,9 @@ contract:
   connectivity, editions, visual verification, and Koota runtime rules.
 
 The generated TypeDoc API reference is rebuilt by `pnpm docs` and
-`pnpm docs:build`. Every TypeDoc entry point carries top-level `@module` JSDoc
-so the generated module pages explain what each public subpath owns; the
-workspace `pnpm test:api-docs` audit enforces that contract.
+`pnpm docs:build`. The `pnpm test:api-docs` audit derives TypeDoc entry points
+from the public object exports, requires each entry point to carry top-level
+`@module` JSDoc, and keeps TypeDoc warning output at zero.
 
 ## License And Attribution
 

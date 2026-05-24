@@ -120,6 +120,7 @@ const typedocJson = readJson<TypeDocJson>('typedoc.json');
 const tsupConfig = readRequired('packages/medieval-hexagon-gameboard/tsup.config.ts');
 const promoteShowcasesScript = readRequired('scripts/promote-showcases.ts');
 const packageAuditScript = readRequired('scripts/audit-package.ts');
+const apiDocsAuditScript = readRequired('scripts/audit-api-docs.ts');
 const agentsGuide = readRequired('AGENTS.md');
 const rootReadme = readRequired('README.md');
 const packageReadme = readRequired('packages/medieval-hexagon-gameboard/README.md');
@@ -853,6 +854,12 @@ function requireTypeDocConfiguration(): void {
   assert(typedocJson.validation?.notExported === true, 'typedoc must validate notExported links');
   assert(typedocJson.validation?.invalidLink === true, 'typedoc must validate invalid links');
   assert(typedocJson.validation?.notDocumented === false, 'typedoc config should leave notDocumented to test:api-docs');
+  requireIncludes(apiDocsAuditScript, 'api docs audit script', [
+    'assertTypeDocEntryPointsMatchPublicExports',
+    'expectedTypeDocEntryPoints',
+    'sourcePathForImportTarget',
+    'TypeDoc entry points must match public object exports',
+  ]);
   requireGeneratedAndLocalOnlyOutputsStayIgnored();
 }
 

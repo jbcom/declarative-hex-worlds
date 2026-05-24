@@ -243,8 +243,10 @@ usage guides:
 TypeDoc API output is generated during `pnpm docs` / `pnpm docs:build`; the
 generated `docs/api/` tree is not committed. Public exports are expected to have
 useful JSDoc, and every TypeDoc entry point must carry top-level `@module`
-JSDoc so the generated module pages explain each public subpath. Before claiming
-the API docs are complete, run the strict audit:
+JSDoc so the generated module pages explain each public subpath. The API-doc
+audit also derives its expected entry points from the package export map, so a
+new public object export cannot ship without matching generated documentation.
+Before claiming the API docs are complete, run the strict audit:
 
 ```bash
 pnpm test:api-docs

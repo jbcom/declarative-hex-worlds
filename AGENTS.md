@@ -46,9 +46,9 @@ contract for CI and npm consumers.
   untracked; `pnpm test:workspace` also enforces ignored/untracked boundaries
   for package `dist/`, VitePress `dist/`, browser screenshots, and local
   `references/` assets.
-- For JSDoc completion claims, also run `pnpm test:api-docs`; it enforces the
-  `@module` entry-point contract and keeps the strict TypeDoc warning count at
-  zero.
+- For JSDoc completion claims, also run `pnpm test:api-docs`; it verifies that
+  TypeDoc entry points match every public object export, enforces the `@module`
+  entry-point contract, and keeps the strict TypeDoc warning count at zero.
 
 ## Asset Rules
 

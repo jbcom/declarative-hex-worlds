@@ -110,8 +110,8 @@ open source package useful while preserving the local-only purchased workflow.
   files.
 - TypeDoc entry points are derived from every public TypeScript export surface;
   every entry point must carry top-level `@module` JSDoc, and
-  `pnpm test:api-docs` must pass with zero not-documented warnings before API
-  docs are considered complete.
+  `pnpm test:api-docs` must verify the public export map, top-level module docs,
+  and zero not-documented warnings before API docs are considered complete.
 - `pnpm test:workflows` validates the requested CI/CD, Release Please,
   Dependabot grouping, and automerge workflow contracts.
 - Visual tests must produce reviewable screenshots or contact sheets for guide

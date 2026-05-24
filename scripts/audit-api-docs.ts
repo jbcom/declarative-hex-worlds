@@ -7,8 +7,13 @@ interface TypeDocJson {
   entryPoints?: string[];
 }
 
+interface PackageJson {
+  exports?: Record<string, string | { import?: string; types?: string }>;
+}
+
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const typedocJson = readJson<TypeDocJson>('typedoc.json');
+const packageJson = readJson<PackageJson>('packages/medieval-hexagon-gameboard/package.json');
 const outDir = mkdtempSync(join(tmpdir(), 'medieval-hexagon-typedoc-audit-'));
 const typedocBin = resolve(
   workspaceRoot,
@@ -18,6 +23,8 @@ const typedocBin = resolve(
 );
 const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: '1' };
 delete env.FORCE_COLOR;
+
+assertTypeDocEntryPointsMatchPublicExports();
 
 const missingModuleDocs = (typedocJson.entryPoints ?? []).filter((entryPoint) => {
   const source = readRequired(entryPoint);
@@ -75,6 +82,44 @@ if (warnings.length > 0) {
 }
 
 console.log('api docs audit passed with 0 TypeDoc warnings');
+
+function assertTypeDocEntryPointsMatchPublicExports(): void {
+  assertEqualList(
+    typedocJson.entryPoints ?? [],
+    expectedTypeDocEntryPoints(),
+    'TypeDoc entry points must match public object exports'
+  );
+}
+
+function expectedTypeDocEntryPoints(): string[] {
+  return Object.values(packageJson.exports ?? {})
+    .filter((target): target is { import: string; types?: string } => typeof target !== 'string' && Boolean(target.import))
+    .map((target) => `packages/medieval-hexagon-gameboard/${sourcePathForImportTarget(target.import)}`);
+}
+
+function sourcePathForImportTarget(target: string): string {
+  const entryName = importTargetToEntryName(target);
+  if (entryName === 'index') {
+    return 'src/index.ts';
+  }
+  if (entryName.startsWith('examples/')) {
+    return `${entryName}.ts`;
+  }
+  return `src/${entryName}.ts`;
+}
+
+function importTargetToEntryName(target: string): string {
+  if (!target.startsWith('./dist/') || !target.endsWith('.js')) {
+    throw new Error(`unsupported public import target for TypeDoc audit: ${target}`);
+  }
+  return target.slice('./dist/'.length, -'.js'.length);
+}
+
+function assertEqualList(actual: readonly string[], expected: readonly string[], message: string): void {
+  if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) {
+    throw new Error(`${message}: expected ${expected.join(', ')}, got ${actual.join(', ')}`);
+  }
+}
 
 function hasTopLevelModuleDoc(source: string): boolean {
   const trimmed = source.trimStart();
