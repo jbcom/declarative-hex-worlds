@@ -574,8 +574,10 @@ occurrences, labels, captions, source paths, roles, public APIs, docs, and
 visual artifacts. Library users can feed the same filters into
 `listKayKitGuideScenarioAssetRenderRequests()` or
 `listKayKitGuideScenarioAssetRenderGroups()` to get URL-resolved contact-sheet
-queues. Use these for README screenshot work or agent audits that need every
-page occurrence rather than unique asset coverage.
+queues; the CLI `guide-render-requests` command exposes the same rows and can
+write grouped queues with `--includeGroups`. Use these for README screenshot
+work or agent audits that need every page occurrence rather than unique asset
+coverage.
 `guide-assets` emits the inverse `listKayKitGuideAssetCoverages()` map from an
 exact FREE or local EXTRA asset id to guide pages, role, APIs, docs, and
 screenshots.

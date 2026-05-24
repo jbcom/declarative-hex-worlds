@@ -326,6 +326,7 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --mani
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 14 --includeTreatments --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-usages --page 16,17,18 --json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-render-requests --page 16,17,18 --assetBaseUrl /assets/extra --includeGroups --out /tmp/kaykit-guide-render-requests.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json

@@ -45,7 +45,8 @@ from an exact asset id, `listKayKitGuideRoleCoverages()` when it needs to start
 from a gameplay role, `listKayKitGuidePublicApiCoverages()` when it needs to
 start from a public API surface, `listKayKitGuideScenarioAssetRenderRequests()`
 when it needs URL-resolved render queues, `listKayKitGuideScenarioAssetRenderGroups()`
-when it needs guide-page contact-sheet groups, and
+when it needs guide-page contact-sheet groups, `guide-render-requests` when it
+needs the same queue from the CLI, and
 `summarizeKayKitGuideCoverage()` when a build tool or editor needs stable counts
 for pages, editions, roles, unique assets, repeated page-level asset
 occurrences, docs, and visual artifacts.

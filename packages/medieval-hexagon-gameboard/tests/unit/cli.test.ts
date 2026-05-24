@@ -1172,6 +1172,138 @@ describe('CLI', () => {
     ]);
   });
 
+  it('emits URL-resolved guide render queues through the CLI', () => {
+    const outputPath = resolve(createTempRoot(), 'guide-render-pages-16-18.json');
+    const output = runCli([
+      'guide-render-requests',
+      '--source',
+      resolve(createTempRoot(), 'missing-guide-source'),
+      '--page',
+      '16,17,18',
+      '--assetBaseUrl',
+      '/@fs/references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA/Assets/gltf',
+      '--includeGroups',
+      '--out',
+      outputPath,
+    ]);
+    const payload = JSON.parse(readFileSync(outputPath, 'utf8')) as {
+      count: number;
+      groupCount: number;
+      render: { assetBaseUrl: string | null; urlResolvedCount: number };
+      occurrenceCounts: {
+        total: number;
+        free: number;
+        extra: number;
+        uniqueAssets: number;
+        scenarios: number;
+        pages: number;
+        missing: number;
+      };
+      selection: { pages: number[]; minimumEdition: string };
+      pages: number[];
+      scenarioIds: string[];
+      missingAssetIds: string[];
+      requests: Array<{
+        scenarioId: string;
+        page: number;
+        assetId: string;
+        sourcePath: string;
+        url: string;
+        role: string;
+        label: string;
+      }>;
+      groups: Array<{
+        scenarioId: string;
+        page: number;
+        count: number;
+        requests: Array<{ assetId: string; url: string }>;
+      }>;
+    };
+
+    expect(output).toContain(`Wrote 462 guide render requests to ${outputPath}`);
+    expect(payload).toMatchObject({
+      count: 462,
+      groupCount: 3,
+      render: {
+        assetBaseUrl: '/@fs/references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA/Assets/gltf',
+        urlResolvedCount: 462,
+      },
+      occurrenceCounts: {
+        total: 462,
+        free: 33,
+        extra: 429,
+        scenarios: 3,
+        pages: 3,
+        missing: 0,
+      },
+      selection: { pages: [16, 17, 18], minimumEdition: 'all' },
+      pages: [16, 17, 18],
+      scenarioIds: [
+        'page-16-stables-and-horses',
+        'page-17-workshop-and-siege',
+        'page-18-unit-combinations',
+      ],
+      missingAssetIds: [],
+    });
+    expect(payload.groups.map((group) => [group.page, group.scenarioId, group.count])).toEqual([
+      [16, 'page-16-stables-and-horses', 155],
+      [17, 'page-17-workshop-and-siege', 170],
+      [18, 'page-18-unit-combinations', 137],
+    ]);
+    expect(payload.groups.flatMap((group) => group.requests)).toHaveLength(462);
+    expect(payload.requests[0]).toMatchObject({
+      scenarioId: 'page-16-stables-and-horses',
+      page: 16,
+    });
+    expect(payload.requests).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          scenarioId: 'page-16-stables-and-horses',
+          page: 16,
+          assetId: 'building_stables_blue',
+          role: 'faction-building',
+        }),
+      ])
+    );
+    expect(payload.requests[0]?.url).toContain('/@fs/references/');
+
+    const freeOutputPath = resolve(createTempRoot(), 'guide-render-free.json');
+    const freeOutput = runCli([
+      'guide-render-requests',
+      '--manifest',
+      freeManifestPath,
+      '--minimumEdition',
+      'free',
+      '--assetBaseUrl',
+      '/assets/free',
+      '--out',
+      freeOutputPath,
+    ]);
+    const freePayload = JSON.parse(readFileSync(freeOutputPath, 'utf8')) as typeof payload;
+    expect(freeOutput).toContain(`Wrote 474 guide render requests to ${freeOutputPath}`);
+    expect(freePayload).toMatchObject({
+      count: 474,
+      groupCount: 12,
+      render: { assetBaseUrl: '/assets/free', urlResolvedCount: 474 },
+      occurrenceCounts: { total: 474, free: 474, extra: 0, missing: 0 },
+      selection: { minimumEdition: 'free' },
+    });
+    expect(freePayload.requests[0]?.url).toBe('/assets/free/decoration/props/barrel.gltf');
+
+    const propClusterOutput = runCli([
+      'guide-render-requests',
+      '--source',
+      resolve(createTempRoot(), 'missing-guide-source'),
+      '--publicApi',
+      'GameboardBuilder.addPropCluster',
+      '--assetBaseUrl',
+      '/custom',
+    ]);
+    expect(propClusterOutput).toContain('guide render requests: 74');
+    expect(propClusterOutput).toContain('groups: 5');
+    expect(propClusterOutput).toContain('asset base URL: /custom');
+  });
+
   it('emits public API guide coverage and filters scenarios by API surface', () => {
     const apiOutputPath = resolve(createTempRoot(), 'guide-api-harbor.json');
     const apiOutput = runCli([

@@ -300,6 +300,7 @@ queues and docs audits:
 medieval-hexagon-gameboard guide-usages --minimumEdition free --json
 medieval-hexagon-gameboard guide-usages --page 16,17,18 --json
 medieval-hexagon-gameboard guide-usages --publicApi GameboardBuilder.addPropCluster --json
+medieval-hexagon-gameboard guide-render-requests --page 16,17,18 --assetBaseUrl /assets/extra --includeGroups --out /tmp/kaykit-guide-render-requests.json
 ```
 
 Use `listKayKitGuideAssetCoverages()` when starting from a manifest asset id,

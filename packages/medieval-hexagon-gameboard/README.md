@@ -1546,7 +1546,11 @@ inverse builder/selector/runtime API index exposed by
 assets prove a public API surface. `guide-usages` emits the renderer-ready
 `listKayKitGuideScenarioAssetUsages()` rows with repeated page occurrences,
 labels, captions, source paths, roles, public APIs, docs, screenshots, and
-FREE/EXTRA requirements for contact sheets and docs audits. The workspace
+FREE/EXTRA requirements for contact sheets and docs audits.
+`guide-render-requests` emits the URL-resolved
+`listKayKitGuideScenarioAssetRenderRequests()` queue, and `--includeGroups`
+adds the guide-page groups from `listKayKitGuideScenarioAssetRenderGroups()` for
+contact-sheet, preload, and screenshot-review tooling. The workspace
 `docs/guides/guide-scenario-coverage.md` page mirrors all 19 extracted guide
 scenarios for human review.
 
@@ -1571,6 +1575,12 @@ medieval-hexagon-gameboard guide-scenarios \
 medieval-hexagon-gameboard guide-usages \
   --page 16,17,18 \
   --json
+
+medieval-hexagon-gameboard guide-render-requests \
+  --page 16,17,18 \
+  --assetBaseUrl /assets/extra \
+  --includeGroups \
+  --out /tmp/kaykit-guide-render-requests.json
 
 medieval-hexagon-gameboard guide-usages \
   --minimumEdition free \
