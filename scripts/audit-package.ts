@@ -2,6 +2,10 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import {
+  analyzeScreenshot,
+  validateScreenshot,
+} from '../packages/medieval-hexagon-gameboard/tests/scripts/screenshot-quality';
 
 interface PackageJson {
   bin?: Record<string, string>;
@@ -351,6 +355,7 @@ function assertPackFileList(): void {
   }
   assertPackedFileContents(files);
   assertPackedReadmeLocalLinks(files);
+  assertPackedShowcaseImageQuality(files);
 }
 
 function assertPackedFileContents(files: readonly PackFile[]): void {
@@ -376,8 +381,10 @@ function isTextPackFile(path: string): boolean {
 function assertPackedReadmeLocalLinks(files: readonly PackFile[]): void {
   const packedPaths = new Set(files.map((file) => file.path));
   const readme = readFileSync(join(packageRoot, 'README.md'), 'utf8');
-  for (const match of readme.matchAll(/!?\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
-    const href = match[1];
+  const imagePaths = new Set<string>();
+  for (const match of readme.matchAll(/(!?)\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
+    const isImage = match[1] === '!';
+    const href = match[2];
     if (!href || /^(?:[a-z][a-z0-9+.-]*:|#)/i.test(href)) {
       continue;
     }
@@ -390,5 +397,27 @@ function assertPackedReadmeLocalLinks(files: readonly PackFile[]): void {
     const packageRelative = resolved.slice(packageRoot.length + 1);
     assert(existsSync(resolved), `package README link ${href} points at missing ${packageRelative}`);
     assert(packedPaths.has(packageRelative), `package README link ${href} points at unpacked ${packageRelative}`);
+    if (isImage && packageRelative.endsWith('.png')) {
+      imagePaths.add(packageRelative);
+    }
   }
+  for (const path of imagePaths) {
+    assertPackedPngQuality(path, `package README image ${path}`);
+  }
+}
+
+function assertPackedShowcaseImageQuality(files: readonly PackFile[]): void {
+  const showcaseImages = files
+    .map((file) => file.path)
+    .filter((path) => path.startsWith('docs/showcases/') && path.endsWith('.png'))
+    .sort();
+  assert(showcaseImages.length > 0, 'package must include committed showcase PNGs');
+  for (const path of showcaseImages) {
+    assertPackedPngQuality(path, `packed showcase ${path}`);
+  }
+}
+
+function assertPackedPngQuality(packageRelativePath: string, label: string): void {
+  const failures = validateScreenshot(analyzeScreenshot(join(packageRoot, packageRelativePath)));
+  assert(failures.length === 0, `${label} failed PNG quality checks: ${failures.join('; ')}`);
 }

@@ -585,6 +585,9 @@ packed tarball into a fresh temporary app, compiles a TypeScript consumer, and
 imports from `node_modules`. It must keep proving that mixed root/subpath imports
 share live Koota trait identities; the tsup build should keep ESM code splitting
 enabled for that reason.
+Use `pnpm test:package` when README images or package file lists change; it
+validates local README links plus every packed `docs/showcases/*.png` through
+the shared PNG quality analyzer.
 Use `pnpm test:workflows` when touching GitHub Actions, Release Please,
 automerge, Dependabot, or the CI/CD release scripts.
 

@@ -119,6 +119,7 @@ const scriptsTsconfig = readJson<TsConfigJson>('tsconfig.scripts.json');
 const typedocJson = readJson<TypeDocJson>('typedoc.json');
 const tsupConfig = readRequired('packages/medieval-hexagon-gameboard/tsup.config.ts');
 const promoteShowcasesScript = readRequired('scripts/promote-showcases.ts');
+const packageAuditScript = readRequired('scripts/audit-package.ts');
 const agentsGuide = readRequired('AGENTS.md');
 const rootReadme = readRequired('README.md');
 const packageReadme = readRequired('packages/medieval-hexagon-gameboard/README.md');
@@ -567,6 +568,11 @@ function requireShowcaseCopiesMatch(): void {
     promoteShowcasesScript.includes('tests/scripts/screenshot-quality') &&
       promoteShowcasesScript.includes('validateShowcaseQuality'),
     'scripts/promote-showcases.ts must validate promoted showcase PNG quality'
+  );
+  assert(
+    packageAuditScript.includes('tests/scripts/screenshot-quality') &&
+      packageAuditScript.includes('assertPackedShowcaseImageQuality'),
+    'scripts/audit-package.ts must validate packed showcase PNG quality'
   );
   for (const filename of docsShowcases) {
     const docsHash = sha256(join(docsShowcaseDir, filename));

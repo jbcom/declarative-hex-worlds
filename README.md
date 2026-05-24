@@ -303,6 +303,10 @@ via `listKayKitGuideScenarios()` and
 `pnpm test:consumer` packs the npm tarball into a temporary app, installs it
 through npm, compiles public subpath imports with TypeScript, runs the shipped
 SimpleRPG usage example from `node_modules`, and invokes the installed CLI bin.
+`pnpm test:package` audits the publish file list, export map, README local
+links, and every packed `docs/showcases/*.png` image with the shared PNG quality
+analyzer so shipped README screenshots cannot be missing, blank, or visually
+flat.
 `pnpm test:workspace` audits Nx targets, pnpm workspace config, VitePress docs
 dependency alignment, and tsup entries against the package export map.
 `pnpm test:workflows` audits the CI/CD, Release Please, automerge, and Dependabot
