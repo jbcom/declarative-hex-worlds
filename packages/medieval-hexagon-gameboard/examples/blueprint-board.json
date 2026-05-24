@@ -80,6 +80,15 @@
     { "id": "winter-peaks", "textureSet": "winter", "fill": 0.12, "center": { "q": 8, "r": 2 }, "radius": 3 },
     { "id": "summer-coast", "textureSet": "summer", "fill": 0.1, "center": { "q": 7, "r": 6 }, "radius": 3 }
   ],
+  "propClusterDressing": {
+    "density": 0.85,
+    "includeExtra": true,
+    "clusters": [
+      { "id": "docs-training-yard", "at": { "q": 2, "r": 6 }, "kind": "training-yard", "facing": 0, "density": 1 },
+      { "id": "docs-stable-yard", "at": { "q": 9, "r": 4 }, "kind": "stable-yard", "facing": 1, "density": 1 },
+      { "id": "docs-harbor-support", "at": { "q": 8, "r": 7 }, "kind": "harbor-support", "facing": 1, "density": 1 }
+    ]
+  },
   "transitionPolicy": {
     "biomeTransitions": true,
     "elevationRamps": true,

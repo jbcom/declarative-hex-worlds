@@ -21,6 +21,9 @@ import type {
   HarborKind,
   HillVariant,
   MountainVariant,
+  PropClusterKind,
+  PropClusterPlacement,
+  PropClusterOptions,
   RoadSlope,
   SettlementBuilding,
 } from './gameboard';
@@ -124,6 +127,26 @@ export interface MedievalHarborSpec {
   roadTo?: HexCoordinates;
 }
 
+/** Authored or generated semantic prop-cluster dressing. */
+export interface MedievalPropClusterDressingSpec extends Omit<PropClusterOptions, 'clusterId'> {
+  /** Optional stable id used for generated metadata and diagnostics. */
+  id?: string;
+}
+
+/** Policy for contextual prop clusters generated around towns and harbors. */
+export interface MedievalPropClusterDressingOptions {
+  /** Generate context-aware town and harbor clusters. Defaults to true. */
+  auto?: boolean;
+  /** Default density for generated clusters. Defaults to `0.55`. */
+  density?: number;
+  /** Default cluster distribution for generated clusters. Defaults to `adjacent`. */
+  placement?: PropClusterPlacement;
+  /** Include local-only EXTRA prop assets in generated clusters. Defaults to false. */
+  includeExtra?: boolean;
+  /** Additional authored prop clusters compiled into the recipe. */
+  clusters?: readonly MedievalPropClusterDressingSpec[];
+}
+
 /** Policy for generated visual/access transitions between board regions. */
 export interface MedievalTransitionPolicy {
   /** Add EXTRA transition tiles where neighboring texture sets differ. */
@@ -158,6 +181,8 @@ export interface MedievalGameboardBlueprintOptions extends Partial<GameboardPlan
   rivers?: readonly MedievalRiverNetworkSpec[];
   /** Authored harbors, or a count for deterministic coast placement. */
   harbors?: readonly MedievalHarborSpec[] | number;
+  /** Generated and authored semantic prop-cluster dressing. Pass false to disable. */
+  propClusterDressing?: MedievalPropClusterDressingOptions | false;
   /** Visual and access transition policy. */
   transitionPolicy?: MedievalTransitionPolicy;
   /** Optional generated density fills attached to the resulting recipe. */
@@ -253,6 +278,15 @@ export function createMedievalShowcaseBlueprintRecipe(
       { id: 'frontier-village', center: { q: 8, r: 5 }, buildings: ['market', 'home_A', 'home_B', 'well'] },
     ],
     harbors: [{ id: 'south-port', at: { q: 6, r: 7 }, facing: 1, kind: 'shipyard', roadTo: { q: 4, r: 4 } }],
+    propClusterDressing: {
+      density: 0.85,
+      includeExtra: true,
+      clusters: [
+        { id: 'showcase-training-yard', at: { q: 2, r: 6 }, kind: 'training-yard', facing: 0, density: 1 },
+        { id: 'showcase-stable-yard', at: { q: 9, r: 4 }, kind: 'stable-yard', facing: 1, density: 1 },
+        { id: 'showcase-harbor-support', at: { q: 8, r: 7 }, kind: 'harbor-support', facing: 1, density: 1 },
+      ],
+    },
     roads: [
       {
         id: 'market-road',
@@ -321,6 +355,7 @@ function buildMedievalGameboardBlueprint(options: MedievalGameboardBlueprintOpti
 
   const harbors = normalizeHarbors(options.harbors, tiles, faction, towns, rng);
   applyHarbors(steps, tiles, harbors, counts, warnings);
+  applyPropClusterDressing(steps, tiles, towns, harbors, options.propClusterDressing, counts, warnings);
 
   const rivers = options.rivers ?? createDefaultRivers(tiles, shape);
   applyRivers(steps, tiles, rivers, shape, counts, warnings);
@@ -586,6 +621,163 @@ function applyHarbors(
     warnings.push('No harbor could be placed because the blueprint has no coast tiles');
   }
   counts.harbors = harbors.length;
+}
+
+function applyPropClusterDressing(
+  steps: GameboardRecipeStep[],
+  tiles: Map<string, MutableBlueprintTile>,
+  towns: readonly MedievalTownSpec[],
+  harbors: readonly MedievalHarborSpec[],
+  options: MedievalPropClusterDressingOptions | false | undefined,
+  counts: Record<string, number>,
+  warnings: string[]
+): void {
+  if (options === false) {
+    counts.propClusters = 0;
+    return;
+  }
+  const config = options ?? {};
+  const occupied = collectStructurePlacementKeys(steps);
+  let clusterCount = 0;
+
+  if (config.auto ?? true) {
+    for (const town of towns) {
+      clusterCount += applyTownPropClusterDressing(steps, tiles, occupied, town, config, warnings);
+    }
+    for (const harbor of harbors) {
+      clusterCount += applyHarborPropClusterDressing(steps, tiles, occupied, harbor, config, warnings);
+    }
+  }
+
+  for (const cluster of config.clusters ?? []) {
+    if (!tiles.has(hexKey(cluster.at))) {
+      warnings.push(`Prop cluster ${cluster.id ?? '<unnamed>'} anchor ${hexKey(cluster.at)} is outside the board`);
+      continue;
+    }
+    const placement = cluster.placement ?? config.placement ?? 'adjacent';
+    const facing = cluster.facing ?? 0;
+    steps.push({
+      action: 'addPropCluster',
+      ...cluster,
+      facing,
+      placement,
+      density: cluster.density ?? config.density,
+      includeExtra: cluster.includeExtra ?? config.includeExtra,
+      clusterId: cluster.id ?? `blueprint:prop-cluster:${cluster.kind}:${hexKey(cluster.at)}`,
+    });
+    reservePropClusterFootprint(occupied, cluster.at, facing, placement);
+    clusterCount += 1;
+  }
+
+  counts.propClusters = clusterCount;
+}
+
+function applyTownPropClusterDressing(
+  steps: GameboardRecipeStep[],
+  tiles: ReadonlyMap<string, MutableBlueprintTile>,
+  occupied: Set<string>,
+  town: MedievalTownSpec,
+  options: MedievalPropClusterDressingOptions,
+  warnings: string[]
+): number {
+  const buildings = new Set(town.buildings ?? DEFAULT_TOWN_BUILDINGS);
+  const clusters: { kind: PropClusterKind; preferredEdge: HexEdgeIndex; placement?: PropClusterPlacement; density?: number }[] = [
+    { kind: 'resource-cache', preferredEdge: 2 },
+  ];
+
+  if (town.includeWalls || buildings.has('tent')) {
+    clusters.push({ kind: 'camp', preferredEdge: 3, placement: 'single', density: 0.5 });
+  }
+  if (buildings.has('barracks') || buildings.has('archeryrange') || buildings.has('workshop')) {
+    clusters.push({ kind: 'training-yard', preferredEdge: 0 });
+  }
+  if (buildings.has('stables')) {
+    clusters.push({ kind: 'stable-yard', preferredEdge: 1 });
+  }
+  if (buildings.has('blacksmith') || buildings.has('lumbermill') || buildings.has('mine') || buildings.has('workshop')) {
+    clusters.push({ kind: 'worksite', preferredEdge: 5 });
+  }
+
+  let placed = 0;
+  for (const cluster of clusters) {
+    const placement = cluster.placement ?? options.placement ?? 'adjacent';
+    const candidates = [...ringCandidates(town.center, 3, cluster.preferredEdge), ...ringCandidates(town.center, 2, cluster.preferredEdge)];
+    const site = findPropClusterSite(tiles, occupied, candidates, cluster.preferredEdge, placement, false);
+    if (!site) {
+      warnings.push(`Town ${town.id ?? hexKey(town.center)} could not fit ${cluster.kind} prop-cluster dressing`);
+      continue;
+    }
+    steps.push({
+      action: 'addPropCluster',
+      at: site,
+      kind: cluster.kind,
+      facing: cluster.preferredEdge,
+      placement,
+      density: cluster.density ?? options.density ?? 0.55,
+      includeExtra: options.includeExtra,
+      clusterId: `blueprint:town:${town.id ?? hexKey(town.center)}:${cluster.kind}`,
+    });
+    reservePropClusterFootprint(occupied, site, cluster.preferredEdge, placement);
+    placed += 1;
+  }
+  return placed;
+}
+
+function applyHarborPropClusterDressing(
+  steps: GameboardRecipeStep[],
+  tiles: ReadonlyMap<string, MutableBlueprintTile>,
+  occupied: Set<string>,
+  harbor: MedievalHarborSpec,
+  options: MedievalPropClusterDressingOptions,
+  warnings: string[]
+): number {
+  const clusters: { kind: PropClusterKind; facing: HexEdgeIndex; allowWater: boolean; candidates: readonly HexCoordinates[] }[] = [
+    {
+      kind: 'harbor-support',
+      facing: harbor.facing,
+      allowWater: true,
+      candidates: [
+        neighbor(harbor.at, rotateEdge(harbor.facing, 3)),
+        neighbor(harbor.at, rotateEdge(harbor.facing, 2)),
+        neighbor(harbor.at, rotateEdge(harbor.facing, 4)),
+        ...ringCandidates(harbor.at, 2, rotateEdge(harbor.facing, 3)),
+        harbor.at,
+      ],
+    },
+    {
+      kind: 'worksite',
+      facing: rotateEdge(harbor.facing, 3),
+      allowWater: false,
+      candidates: [
+        neighbor(harbor.at, rotateEdge(harbor.facing, 4)),
+        neighbor(harbor.at, rotateEdge(harbor.facing, 3)),
+        ...ringCandidates(harbor.at, 2, rotateEdge(harbor.facing, 3)),
+      ],
+    },
+  ];
+
+  let placed = 0;
+  for (const cluster of clusters) {
+    const placement = options.placement ?? 'adjacent';
+    const site = findPropClusterSite(tiles, occupied, cluster.candidates, cluster.facing, placement, cluster.allowWater);
+    if (!site) {
+      warnings.push(`Harbor ${harbor.id ?? hexKey(harbor.at)} could not fit ${cluster.kind} prop-cluster dressing`);
+      continue;
+    }
+    steps.push({
+      action: 'addPropCluster',
+      at: site,
+      kind: cluster.kind,
+      facing: cluster.facing,
+      placement,
+      density: options.density ?? 0.55,
+      includeExtra: options.includeExtra,
+      clusterId: `blueprint:harbor:${harbor.id ?? hexKey(harbor.at)}:${cluster.kind}`,
+    });
+    reservePropClusterFootprint(occupied, site, cluster.facing, placement);
+    placed += 1;
+  }
+  return placed;
 }
 
 function applyRoads(
@@ -920,6 +1112,77 @@ function expandWaypointPath(path: readonly HexCoordinates[], shape: GameboardSha
     expanded.push(path[0]);
   }
   return expanded;
+}
+
+function ringCandidates(center: HexCoordinates, radius: number, preferredEdge: HexEdgeIndex): readonly HexCoordinates[] {
+  const ring = hexRange(center, radius).filter((coordinate) => hexDistance(coordinate, center) === radius);
+  return ring.sort(
+    (left, right) =>
+      hexDistance(left, neighbor(center, preferredEdge)) - hexDistance(right, neighbor(center, preferredEdge)) ||
+      hexKey(left).localeCompare(hexKey(right))
+  );
+}
+
+function findPropClusterSite(
+  tiles: ReadonlyMap<string, MutableBlueprintTile>,
+  occupied: ReadonlySet<string>,
+  candidates: readonly HexCoordinates[],
+  facing: HexEdgeIndex,
+  placement: PropClusterPlacement,
+  allowWater: boolean
+): HexCoordinates | undefined {
+  return candidates.find((candidate) => canHostPropCluster(tiles, occupied, candidate, facing, placement, allowWater));
+}
+
+function canHostPropCluster(
+  tiles: ReadonlyMap<string, MutableBlueprintTile>,
+  occupied: ReadonlySet<string>,
+  at: HexCoordinates,
+  facing: HexEdgeIndex,
+  placement: PropClusterPlacement,
+  allowWater: boolean
+): boolean {
+  const origin = tiles.get(hexKey(at));
+  if (!origin || origin.terrain === 'mountain' || (!allowWater && origin.terrain === 'water')) {
+    return false;
+  }
+  for (const coordinate of propClusterFootprint(at, facing, placement)) {
+    const tile = tiles.get(hexKey(coordinate));
+    if (!tile || tile.terrain === 'mountain' || (!allowWater && tile.terrain === 'water')) {
+      return false;
+    }
+    if (occupied.has(hexKey(coordinate))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function reservePropClusterFootprint(
+  occupied: Set<string>,
+  at: HexCoordinates,
+  facing: HexEdgeIndex,
+  placement: PropClusterPlacement
+): void {
+  for (const coordinate of propClusterFootprint(at, facing, placement)) {
+    occupied.add(hexKey(coordinate));
+  }
+}
+
+function propClusterFootprint(
+  at: HexCoordinates,
+  facing: HexEdgeIndex,
+  placement: PropClusterPlacement
+): readonly HexCoordinates[] {
+  if (placement === 'single') {
+    return [at];
+  }
+  const edgeOrder = [0, 1, 5, 2, 4, 3] as const;
+  return [at, ...edgeOrder.map((offset) => neighbor(at, rotateEdge(facing, offset)))];
+}
+
+function rotateEdge(edge: number, offset: number): HexEdgeIndex {
+  return ((((edge + offset) % 6) + 6) % 6) as HexEdgeIndex;
 }
 
 function canHostStructure(tile: MutableBlueprintTile | undefined): tile is MutableBlueprintTile {

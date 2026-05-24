@@ -237,8 +237,11 @@ contract for CI and npm consumers.
 - Use `./blueprint` when the goal is a complete 2.5D board rather than a
   single placement or low-level seeded scatter pass. It compiles biome fill
   percentages, stacked multi-tile mountain ranges, towns, road networks,
-  rivers, harbors/ports, elevation ramps, sloped roads, bridges, and density
-  fills into ordinary recipe JSON. Prefer
+  rivers, harbors/ports, generated prop-cluster dressing, elevation ramps,
+  sloped roads, bridges, and density fills into ordinary recipe JSON. Use
+  `propClusterDressing` when the board-level spec should auto-place or
+  explicitly place camps, resource caches, worksites, training yards, stable
+  yards, and harbor support clusters around authored towns and harbors. Prefer
   `createMedievalGameboardBlueprintRecipe` when the result should be saved or
   inspected, `createMedievalGameboardBlueprintPlan` when a game needs the plan
   directly, and `inspectMedievalGameboardBlueprint` when an agent/editor needs
@@ -357,7 +360,7 @@ contract for CI and npm consumers.
   interaction command planning, and actor-aware navigation profile helpers.
 - `./blueprint`: board-scale 2.5D intent compiler for biome percentages,
   mountain ranges, towns, roads, rivers, harbors, elevation ramps, sloped roads,
-  bridges, density fills, and showcase recipes.
+  bridges, semantic prop-cluster dressing, density fills, and showcase recipes.
 - `./commands`: command action bundles plus preview/execution helpers that turn
   interaction targets into actor-aware movement requests or handler-required
   interact/attack/inspect commands, actor-target command planners for UI/AI

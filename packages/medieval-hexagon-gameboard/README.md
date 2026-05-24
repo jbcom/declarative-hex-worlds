@@ -73,7 +73,7 @@ ship without npm-facing documentation.
 | --- | --- |
 | `@jbcom/medieval-hexagon-gameboard` | Root builders, manifests, seeded generation, Koota world helpers, selectors, rules, and common types. |
 | `@jbcom/medieval-hexagon-gameboard/actors` | Actor traits, actor actions, collision, interaction targets, selection, and path-aware targeting. |
-| `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board-intent compiler for biome fills, mountain ranges, towns, roads, rivers, harbors, ramps, bridges, and showcase recipes. |
+| `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board-intent compiler for biome fills, mountain ranges, towns, roads, rivers, harbors, prop-cluster dressing, ramps, bridges, and showcase recipes. |
 | `@jbcom/medieval-hexagon-gameboard/gameboard` | Serializable board plans, builder helpers, prop clusters, and plan utilities. |
 | `@jbcom/medieval-hexagon-gameboard/catalog` | Typed asset-family constants, ids, catalog builders, public treatment metadata, guide scenario metadata, scenario treatment joins, per-scenario coverage reports, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
@@ -1574,8 +1574,8 @@ medieval-hexagon-gameboard guide-apis \
 
 For full board intent, use `./blueprint`. It is the high-level layer for games
 that need to say "make a 2.5D RTS/roguelike/4X board with a coast, vertical
-mountain range, town, road network, harbor, biome fills, and transition policy"
-without hand placing every supporting tile.
+mountain range, town, road network, harbor, biome fills, prop-cluster dressing,
+and transition policy" without hand placing every supporting tile.
 
 ![FREE blueprint board with stacked mountain range, town, roads, coast, and harbor](docs/showcases/free-blueprint-builder-showcase.png)
 
@@ -1607,6 +1607,10 @@ const plan = createMedievalGameboardBlueprintPlan({
     { textureSet: 'fall', fill: 0.16, center: { q: 2, r: 4 }, radius: 3 },
     { textureSet: 'winter', fill: 0.12, center: { q: 8, r: 2 }, radius: 3 },
   ],
+  propClusterDressing: {
+    density: 0.75,
+    clusters: [{ id: 'campaign-training-yard', at: { q: 2, r: 6 }, kind: 'training-yard', density: 1 }],
+  },
   transitionPolicy: {
     biomeTransitions: true,
     elevationRamps: true,
@@ -1623,6 +1627,9 @@ Blueprints compile to regular recipe JSON and then to a regular `GameboardPlan`,
 so renderers, Koota, external ECS adapters, validators, and saved scenarios do
 not need a special runtime. `biomeFills` controls texture-set percentages;
 `maxElevation` and `mountainRanges` create stacked multi-tile ridges;
+`propClusterDressing` compiles generated or authored camps, resource caches,
+worksites, training yards, stable yards, and harbor support clusters into normal
+`addPropCluster` recipe steps;
 `transitionPolicy` adds EXTRA biome transition overlays, sloped elevation ramp
 tiles, sloped road segments, and bridge structures where the requested board
 shape needs them. Authored maps can use `GameboardBuilder.addElevationRamp` or
@@ -2236,8 +2243,8 @@ specific third-party assets that are registered through your own pipeline, or
 `MedievalGameboardBlueprintOptions` JSON file, and writes normal recipe, plan,
 and inspection JSON with counts and validation diagnostics. Use it when agents,
 map editors, or content pipelines need to generate stacked mountain ranges,
-towns, roads, harbors, biome percentages, ramps, bridges, and density fills
-without loading application code.
+towns, roads, harbors, biome percentages, prop-cluster dressing, ramps, bridges,
+and density fills without loading application code.
 `analyze-layout` checks saved fill rules against a saved plan, recipe, or
 scenario and reports candidate counts, selected tile keys, and warnings when
 requested counts or `minCount` values cannot be satisfied by the board. The same

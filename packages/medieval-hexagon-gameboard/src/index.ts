@@ -463,6 +463,8 @@ export type {
   MedievalGameboardBlueprintOptions,
   MedievalHarborSpec,
   MedievalMountainRangeSpec,
+  MedievalPropClusterDressingOptions,
+  MedievalPropClusterDressingSpec,
   MedievalRiverNetworkSpec,
   MedievalRoadNetworkSpec,
   MedievalTownSpec,

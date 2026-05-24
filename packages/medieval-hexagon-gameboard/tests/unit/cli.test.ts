@@ -286,6 +286,10 @@ describe('CLI', () => {
             },
           ],
           biomeFills: [{ id: 'fall-market', textureSet: 'fall', fill: 0.2, center: { q: 3, r: 2 }, radius: 2 }],
+          propClusterDressing: {
+            auto: false,
+            clusters: [{ id: 'cli-worksite', at: { q: 1, r: 3 }, kind: 'worksite', placement: 'single', density: 0.4 }],
+          },
           transitionPolicy: {
             biomeTransitions: true,
             elevationRamps: true,
@@ -333,11 +337,14 @@ describe('CLI', () => {
     expect(inspection.counts.rivers).toBe(1);
     expect(inspection.counts.bridges).toBeGreaterThan(0);
     expect(inspection.counts.biomeTiles).toBeGreaterThan(0);
+    expect(inspection.counts.propClusters).toBe(1);
     expect(recipe.steps.some((step) => step.action === 'setTextureSet')).toBe(true);
+    expect(recipe.steps.some((step) => step.action === 'addPropCluster')).toBe(true);
     expect(plan.tiles.some((tile) => tile.textureSet === 'fall')).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId === 'building_watermill_green')).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId.startsWith('hex_river_'))).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
+    expect(plan.placements.some((placement) => placement.metadata.clusterId === 'cli-worksite')).toBe(true);
 
     const jsonOutput = JSON.parse(
       runCli([

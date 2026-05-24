@@ -233,6 +233,10 @@ describe('EXTRA local visual coverage', () => {
     expect(plan.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId === 'building_shipyard_blue')).toBe(true);
     expect(plan.placements.some((placement) => placement.metadata.densityPreset === 'units')).toBe(true);
+    expect(plan.placements.some((placement) => placement.metadata.feature === 'prop-cluster')).toBe(true);
+    expect(plan.placements.some((placement) => placement.assetId === 'cannonball_pallet')).toBe(true);
+    expect(plan.placements.some((placement) => placement.assetId === 'haybale')).toBe(true);
+    expect(plan.placements.some((placement) => placement.assetId === 'anchor')).toBe(true);
     expect(plan.tiles.some((tile) => tile.textureSet === 'fall')).toBe(true);
     expect(plan.tiles.some((tile) => tile.textureSet === 'winter')).toBe(true);
     expect(plan.tiles.some((tile) => tile.textureSet === 'summer')).toBe(true);

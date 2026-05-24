@@ -657,9 +657,12 @@ back to placement IDs, tile keys, and actor metadata from Koota projection.
 2.5D board intent. Use them when a board should be specified in terms of biome
 fill percentages, mountain range paths and maximum height, towns, road
 networks, rivers, harbors/ports, transition tiles, sloped elevation ramps,
-sloped roads, bridges, and density fills. They compile to ordinary recipes and
-plans, so Koota, renderers, external ECS adapters, and validation do not need a
-separate blueprint runtime.
+sloped roads, bridges, semantic prop-cluster dressing, and density fills. They
+compile to ordinary recipes and plans, so Koota, renderers, external ECS
+adapters, and validation do not need a separate blueprint runtime. Use
+`propClusterDressing` when a generated board should attach camps, resource
+caches, worksites, training yards, stable yards, or harbor support clusters to
+town and harbor intent instead of relying on later loose scatter.
 
 `createSeededGameboardPlan` and `createSeededGameboardWorld` use `seedrandom` to
 produce deterministic 2.5D rectangle or hexagon boards with coastlines, harbors,
@@ -683,7 +686,8 @@ Use `GameboardBuilder.addPropCluster` or recipe `addPropCluster` for authored
 and generated camps, resource caches, worksites, training yards, stable yards,
 and harbor support dressing when a map needs single-hex stacking, adjacent
 spreads, density-controlled fill, FREE defaults, local EXTRA opt-in, and stable
-cluster metadata for ECS adapters.
+cluster metadata for ECS adapters. `propClusterDressing` on blueprint options is
+the board-scale wrapper for the same recipe action.
 `layoutDensity` on seeded generation provides ergonomic presets for trees,
 rocks, loose props, harbors, landmarks, and units; raw `layoutFills` remain the
 lower level hook for custom-pack placements and exact ordering. Prefer `./pieces`

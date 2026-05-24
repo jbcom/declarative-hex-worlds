@@ -103,6 +103,47 @@ describe('medieval gameboard blueprints', () => {
     expect(manifestViolations.filter((violation) => violation.code === 'coast.adjacent_land')).toEqual([]);
   });
 
+  it('compiles semantic prop-cluster dressing around towns, harbors, and authored anchors', () => {
+    const inspection = inspectMedievalGameboardBlueprint({
+      seed: 'blueprint-prop-cluster-dressing',
+      shape: { kind: 'rectangle', width: 18, height: 12 },
+      faction: 'red',
+      waterFill: 0.12,
+      maxElevation: 3,
+      towns: [
+        {
+          id: 'stable-fort',
+          center: { q: 8, r: 5 },
+          buildings: ['townhall', 'market', 'tent', 'stables', 'barracks', 'workshop', 'blacksmith'],
+        },
+      ],
+      harbors: [{ id: 'red-port', at: { q: 8, r: 10 }, facing: 1, kind: 'watermill', roadTo: { q: 8, r: 5 } }],
+      propClusterDressing: {
+        density: 1,
+        includeExtra: true,
+        clusters: [{ id: 'manual-cache', at: { q: 13, r: 5 }, kind: 'resource-cache', placement: 'single', density: 0.25 }],
+      },
+      transitionPolicy: { biomeTransitions: false, elevationRamps: false, roadSlopes: true, bridges: true },
+    });
+
+    const clusterSteps = inspection.recipe.steps.filter((step) => step.action === 'addPropCluster');
+    const clusterKinds = new Set(clusterSteps.map((step) => step.kind));
+    expect(inspection.counts.propClusters).toBe(clusterSteps.length);
+    expect(clusterKinds).toEqual(
+      new Set(['resource-cache', 'camp', 'training-yard', 'stable-yard', 'worksite', 'harbor-support'])
+    );
+    expect(clusterSteps.find((step) => step.clusterId === 'manual-cache')).toMatchObject({
+      kind: 'resource-cache',
+      placement: 'single',
+      includeExtra: true,
+    });
+    expect(inspection.plan.placements.some((placement) => placement.assetId === 'cannonball_pallet')).toBe(true);
+    expect(inspection.plan.placements.some((placement) => placement.assetId === 'haybale')).toBe(true);
+    expect(inspection.plan.placements.some((placement) => placement.assetId === 'anchor')).toBe(true);
+    expect(inspection.plan.placements.some((placement) => placement.metadata.clusterId === 'manual-cache')).toBe(true);
+    expect(validateGameboardPlan(inspection.plan).filter((violation) => violation.severity === 'error')).toEqual([]);
+  });
+
   it('keeps recipe texture-set steps serializable', () => {
     const recipe = createMedievalGameboardBlueprintRecipe({
       seed: 'blueprint-texture-steps',
@@ -128,6 +169,7 @@ describe('medieval gameboard blueprints', () => {
     );
     expect(first.placements.some((placement) => placement.assetId === 'building_shipyard_blue')).toBe(true);
     expect(first.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
+    expect(first.placements.some((placement) => placement.metadata.feature === 'prop-cluster')).toBe(true);
     expect(first.placements.filter((placement) => placement.metadata.densityPreset === 'units')).toHaveLength(3);
   });
 

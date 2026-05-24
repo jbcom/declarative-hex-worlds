@@ -98,7 +98,8 @@ The package is not just an asset bundle. It provides:
   tests or host-game scheduling.
 - Board builder helpers for roads, rivers, coasts, elevated terrain stacks,
   elevation ramps, bridges, harbors, faction buildings, fortifications,
-  construction sites, siege projectiles, neutral structures, props,
+  construction sites, siege projectiles, neutral structures, props, prop
+  clusters,
   transitions, and unit combinations.
 - Serializable board recipes for saved configs, AI-authored maps, and portable
   board intent, including recipe-level custom layout archetypes and generated

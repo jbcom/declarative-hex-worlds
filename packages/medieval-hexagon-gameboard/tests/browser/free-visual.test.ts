@@ -334,6 +334,7 @@ describe('FREE visual coverage', () => {
     expect(plan.placements.some((placement) => placement.metadata.feature === 'mountain-stack')).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId === 'building_watermill_blue')).toBe(true);
     expect(plan.placements.some((placement) => placement.kind === 'road')).toBe(true);
+    expect(plan.placements.some((placement) => placement.metadata.feature === 'prop-cluster')).toBe(true);
 
     const canvas = await renderGameboardPlan(plan, {
       title: 'free-blueprint-builder-showcase',

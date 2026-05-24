@@ -133,6 +133,15 @@ manifests, loader logic, or asset generation changes.
 
 ## Latest Manual Review
 
+2026-05-24 blueprint prop-cluster dressing verification reran the focused FREE
+blueprint browser slice and the EXTRA blueprint biome showcase after adding
+`propClusterDressing` to `./blueprint`. The reviewed
+`free-blueprint-builder-showcase.png` and
+`extra-blueprint-biome-transition-showcase.png` artifacts are nonblank,
+correctly framed, and show board-scale camps, training/stable/harbor support
+clusters, and denser town/port dressing compiled through public
+`addPropCluster` recipe steps.
+
 2026-05-24 prop-cluster verification reran the FREE extracted guide page and
 composed gameboard browser slices plus the EXTRA pages 16-18 and harbor-board
 slices after adding `GameboardBuilder.addPropCluster` and
@@ -220,8 +229,8 @@ the browser captures. The reviewed screenshots included:
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`
 - `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
   covering the public blueprint API for local EXTRA biome transition tiles,
-  texture-set fills, shipyards, towns, density units, and board-scale
-  composition.
+  texture-set fills, shipyards, towns, density units, board-scale prop-cluster
+  dressing, and board-scale composition.
 
 The two blueprint showcase captures are also promoted to committed docs assets
 at `docs/assets/showcases/` for VitePress and

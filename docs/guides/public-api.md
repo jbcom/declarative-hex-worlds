@@ -18,7 +18,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard` | Core manifests, seeded board creation, plan validation, selectors, and the runtime facade. |
 | `@jbcom/medieval-hexagon-gameboard/actors` | Player, NPC, enemy, prop, collision, interaction-target, and actor-selection helpers. |
 | `@jbcom/medieval-hexagon-gameboard/assets/free/*` | Published FREE GLTF, BIN, PNG, and manifest files for bundlers that need direct asset URLs. |
-| `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board blueprints for biome percentages, mountain ranges, towns, roads, rivers, harbors, ramps, bridges, and showcase recipes. |
+| `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board blueprints for biome percentages, mountain ranges, towns, roads, rivers, harbors, prop-cluster dressing, ramps, bridges, and showcase recipes. |
 | `@jbcom/medieval-hexagon-gameboard/catalog` | KayKit faction building ids, unit parts, prop ids, nature ids, texture names, typed asset-id constructors, public treatment metadata, extracted guide scenario metadata, scenario treatment joins, public API coverage joins, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit analysis, facing correction, placement recommendations, and spawn-option conversion. |
@@ -94,8 +94,9 @@ const nearbyThreats = runtime.selectActors({
 Use `./blueprint` when a game, editor, or agent should describe the whole board
 instead of every tile. `createMedievalGameboardBlueprintRecipe` compiles
 water/coast fill, stacked mountain ranges, towns, road networks, rivers,
-harbors, biome texture percentages, transition tiles, elevation ramps, sloped
-roads, bridges, and optional density fills into ordinary recipe JSON.
+harbors, semantic prop-cluster dressing, biome texture percentages, transition
+tiles, elevation ramps, sloped roads, bridges, and optional density fills into
+ordinary recipe JSON.
 `createMedievalGameboardBlueprintPlan` immediately compiles that recipe to a
 `GameboardPlan`; `inspectMedievalGameboardBlueprint` returns counts and
 warnings for authoring UIs and CI.
@@ -107,6 +108,12 @@ import { createGameboardPlanFromRecipe } from '@jbcom/medieval-hexagon-gameboard
 const recipe = createMedievalShowcaseBlueprintRecipe();
 const plan = createGameboardPlanFromRecipe(recipe);
 ```
+
+Blueprints accept `propClusterDressing` for board-scale camps, resource caches,
+worksites, training yards, stable yards, and harbor support clusters. Generated
+clusters follow authored towns and harbors; explicit `clusters` entries let
+editors or agents pin exact anchors while still compiling to ordinary
+`addPropCluster` recipe actions.
 
 ![FREE blueprint board with stacked mountain range, town, roads, coast, and harbor](../assets/showcases/free-blueprint-builder-showcase.png)
 
