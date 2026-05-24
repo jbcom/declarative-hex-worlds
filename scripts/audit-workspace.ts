@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 
 interface PackageJson {
   devDependencies?: Record<string, string>;
@@ -195,6 +195,19 @@ function requireDocsConfiguration(): void {
     'workspace and docs app must use the same vitepress version specifier'
   );
   requireDocsGuideNavigation();
+  requireMarkdownImageLinksResolve(docsIndex, 'docs/index.md', join(workspaceRoot, 'docs'), join(workspaceRoot, 'docs'));
+  requireMarkdownImageLinksResolve(
+    publicApiGuide,
+    'docs/guides/public-api.md',
+    join(workspaceRoot, 'docs/guides'),
+    join(workspaceRoot, 'docs')
+  );
+  requireMarkdownImageLinksResolve(
+    packageReadme,
+    'package README',
+    join(workspaceRoot, 'packages/medieval-hexagon-gameboard'),
+    join(workspaceRoot, 'packages/medieval-hexagon-gameboard')
+  );
   requireShowcaseCopiesMatch();
   requirePublicApiSubpathGuide();
   requirePackageReadmePublicImports();
@@ -302,6 +315,21 @@ function requireShowcaseCopiesMatch(): void {
     assert(
       packageHash === docsHash,
       `published README showcase ${filename} must match docs/assets/showcases/${filename}`
+    );
+  }
+}
+
+function requireMarkdownImageLinksResolve(source: string, label: string, baseDir: string, rootDir: string): void {
+  for (const match of source.matchAll(/!\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
+    const href = match[1];
+    if (!href || /^https?:\/\//.test(href) || href.startsWith('#')) {
+      continue;
+    }
+
+    const resolved = href.startsWith('/') ? join(rootDir, href.slice(1)) : join(baseDir, href);
+    assert(
+      existsSync(resolved),
+      `${label} image link ${href} points at missing ${relative(workspaceRoot, resolved)}`
     );
   }
 }
