@@ -47,6 +47,7 @@ requireIncludes(ci, 'ci.yml', [
   'pnpm test:workspace',
   'pnpm test:workflows',
   'pnpm test:cli',
+  'pnpm expectations',
   'pnpm test:package',
   'pnpm test:consumer',
   'pnpm pack:dry-run',

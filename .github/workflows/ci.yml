@@ -130,6 +130,9 @@ jobs:
       - name: Smoke built CLI
         run: pnpm test:cli
 
+      - name: Run behavior-drift expectations
+        run: pnpm expectations
+
       - name: Audit package boundary
         run: pnpm test:package
 
