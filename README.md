@@ -205,6 +205,19 @@ The package is not just an asset bundle. It provides:
 - Browser screenshot artifact checks that parse saved PNGs after capture and
   fail on undersized, low-variance, or visually flat output.
 
+## License And Attribution
+
+The workspace TypeScript source is MIT licensed. The FREE assets published in
+`packages/medieval-hexagon-gameboard/assets/free/` are from KayKit: Medieval Hexagon Pack
+1.0 by Kay Lousberg and are distributed under CC0-1.0. KayKit credit is optional
+under the source asset license, but this repo preserves attribution in
+[NOTICE.md](NOTICE.md). Purchased EXTRA and third-party reference assets stay local-only
+under ignored `references/` paths and are not published in the npm tarball.
+
+- Kay Lousberg: https://www.kaylousberg.com
+- KayKit: https://kaylousberg.itch.io
+- CC0-1.0: https://creativecommons.org/publicdomain/zero/1.0/
+
 ## Documentation
 
 The docs site is split between durable source-of-truth pillars and task-oriented
@@ -304,9 +317,10 @@ via `listKayKitGuideScenarios()` and
 through npm, compiles public subpath imports with TypeScript, runs the shipped
 SimpleRPG usage example from `node_modules`, and invokes the installed CLI bin.
 `pnpm test:package` audits the publish file list, export map, README local
-links, the complete curated README gallery, and every packed
-`docs/showcases/*.png` image with the shared PNG quality analyzer so shipped
-README screenshots cannot be missing, blank, visually flat, or undiscoverable.
+links, KayKit attribution text, the complete curated README gallery, and every
+packed `docs/showcases/*.png` image with the shared PNG quality analyzer so
+shipped README screenshots cannot be missing, blank, visually flat, or
+undiscoverable.
 `pnpm test:workspace` audits Nx targets, pnpm workspace config, VitePress docs
 dependency alignment, and tsup entries against the package export map.
 `pnpm test:workflows` audits the CI/CD, Release Please, automerge, and Dependabot

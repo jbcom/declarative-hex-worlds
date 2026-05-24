@@ -7,6 +7,7 @@ import {
   validateScreenshot,
 } from '../packages/medieval-hexagon-gameboard/tests/scripts/screenshot-quality';
 import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../packages/medieval-hexagon-gameboard/src/coverage';
+import { KAYKIT_ATTRIBUTION } from '../packages/medieval-hexagon-gameboard/src/manifest/schema';
 
 interface PackageJson {
   bin?: Record<string, string>;
@@ -36,6 +37,16 @@ interface PackResult {
   files?: PackFile[];
 }
 
+interface FreeManifestAttribution {
+  sourcePack?: {
+    creator?: string;
+    license?: string;
+    licenseUrl?: string;
+    name?: string;
+    version?: string;
+  };
+}
+
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const workspacePackageJsonPath = join(workspaceRoot, 'package.json');
 const workspacePackageJson = JSON.parse(readFileSync(workspacePackageJsonPath, 'utf8')) as PackageJson;
@@ -43,6 +54,7 @@ const packageRoot = join(workspaceRoot, 'packages/medieval-hexagon-gameboard');
 const packageSrcRoot = join(packageRoot, 'src');
 const packageJsonPath = join(packageRoot, 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as PackageJson;
+const freeManifest = JSON.parse(readFileSync(join(packageRoot, 'assets/free/manifest.json'), 'utf8')) as FreeManifestAttribution;
 const packedConsumerSmoke = readFileSync(join(workspaceRoot, 'scripts/smoke-packed-consumer.ts'), 'utf8');
 const forbiddenMetadataPattern = /references|\/Volumes\/home|kenney_castle|KayKit_Adventurers/;
 const expectedFiles = ['assets/free', 'docs/showcases', 'dist', 'examples/*.json', 'LICENSE', 'README.md', 'NOTICE.md'];
@@ -356,6 +368,7 @@ function assertPackFileList(): void {
     }
   }
   assertPackedFileContents(files);
+  assertPackedAttribution(files);
   assertPackedReadmeLocalLinks(files);
   assertPackedShowcaseImageQuality(files);
 }
@@ -378,6 +391,51 @@ function assertPackedFileContents(files: readonly PackFile[]): void {
 
 function isTextPackFile(path: string): boolean {
   return textPackFiles.has(path) || textPackFileSuffixes.some((suffix) => path.endsWith(suffix));
+}
+
+function assertPackedAttribution(files: readonly PackFile[]): void {
+  const packedPaths = new Set(files.map((file) => file.path));
+  for (const path of ['LICENSE', 'NOTICE.md', 'README.md', 'assets/free/manifest.json']) {
+    assert(packedPaths.has(path), `package attribution file must be packed: ${path}`);
+  }
+
+  assert(freeManifest.sourcePack?.creator === KAYKIT_ATTRIBUTION.creator, 'FREE manifest creator attribution changed');
+  assert(freeManifest.sourcePack?.license === KAYKIT_ATTRIBUTION.license, 'FREE manifest license attribution changed');
+  assert(freeManifest.sourcePack?.licenseUrl === KAYKIT_ATTRIBUTION.licenseUrl, 'FREE manifest license URL changed');
+  assert(freeManifest.sourcePack?.name === 'KayKit: Medieval Hexagon Pack', 'FREE manifest source pack name changed');
+  assert(freeManifest.sourcePack?.version === '1.0', 'FREE manifest source pack version changed');
+
+  const license = readFileSync(join(packageRoot, 'LICENSE'), 'utf8');
+  const notice = readFileSync(join(packageRoot, 'NOTICE.md'), 'utf8');
+  const readme = readFileSync(join(packageRoot, 'README.md'), 'utf8');
+  requireAttributionText(license, 'package LICENSE', ['MIT License']);
+  requireAttributionText(notice, 'package NOTICE.md', expectedAttributionSnippets());
+  requireAttributionText(readme, 'package README.md', [
+    '## License And Attribution',
+    'MIT licensed',
+    'assets/free/',
+    'Purchased EXTRA and third-party reference assets stay local-only',
+    '[NOTICE.md](NOTICE.md)',
+    ...expectedAttributionSnippets(),
+  ]);
+}
+
+function expectedAttributionSnippets(): string[] {
+  return [
+    'KayKit: Medieval Hexagon Pack',
+    KAYKIT_ATTRIBUTION.creator,
+    KAYKIT_ATTRIBUTION.website,
+    'KayKit',
+    'https://kaylousberg.itch.io',
+    KAYKIT_ATTRIBUTION.license,
+    KAYKIT_ATTRIBUTION.licenseUrl,
+  ];
+}
+
+function requireAttributionText(source: string, label: string, snippets: readonly string[]): void {
+  for (const snippet of snippets) {
+    assert(source.includes(snippet), `${label} must include attribution text: ${snippet}`);
+  }
 }
 
 function assertPackedReadmeLocalLinks(files: readonly PackFile[]): void {

@@ -56,7 +56,7 @@ pnpm coverage:ledger
 | passed | `pnpm test:visual` | FREE, EXTRA, SimpleRPG, Kenney Castle Kit, and KayKit Adventurers browser visual suites with screenshot quality checks. |
 | passed | `pnpm showcases:promote -- --check` | Curated browser screenshots match committed docs/package showcase copies and pass the shared PNG quality analyzer. |
 | passed | `pnpm test:workflows` | CI, Release Please, npm OIDC publish, automerge, and Dependabot workflow contract audit. |
-| passed | `pnpm pack:dry-run` | npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, NOTICE, and packaged showcase PNG quality. |
+| passed | `pnpm pack:dry-run` | npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, KayKit attribution/NOTICE, and packaged showcase PNG quality. |
 
 ## Visual Artifacts
 

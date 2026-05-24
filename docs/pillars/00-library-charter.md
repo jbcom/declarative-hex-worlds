@@ -104,8 +104,10 @@ open source package useful while preserving the local-only purchased workflow.
   compiling public TypeScript imports from `node_modules` and running the
   installed CLI.
 - `pnpm test:package` validates the package export map, publish whitelist,
-  packed example/data boundary, built CLI bin, and absence of machine-local paths
-  or embedded source-map source content in packed text files.
+  packed example/data boundary, built CLI bin, KayKit attribution/NOTICE text,
+  published README gallery links, packed showcase PNG quality, and absence of
+  machine-local paths or embedded source-map source content in packed text
+  files.
 - TypeDoc entry points are derived from every public TypeScript export surface;
   every entry point must carry top-level `@module` JSDoc, and
   `pnpm test:api-docs` must pass with zero not-documented warnings before API

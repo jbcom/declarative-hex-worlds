@@ -62,6 +62,19 @@ The generated TypeDoc API reference is rebuilt by `pnpm docs` and
 so the generated module pages explain what each public subpath owns; the
 workspace `pnpm test:api-docs` audit enforces that contract.
 
+## License And Attribution
+
+The TypeScript source for this package is MIT licensed. The packaged FREE
+assets under `assets/free/` are from KayKit: Medieval Hexagon Pack 1.0 by Kay
+Lousberg and are distributed under CC0-1.0. KayKit credit is optional under the
+source asset license, but this package preserves attribution in [NOTICE.md](NOTICE.md).
+Purchased EXTRA and third-party reference assets stay local-only and are not
+published in the npm tarball.
+
+- Kay Lousberg: https://www.kaylousberg.com
+- KayKit: https://kaylousberg.itch.io
+- CC0-1.0: https://creativecommons.org/publicdomain/zero/1.0/
+
 ## Install
 
 ```bash
@@ -1459,8 +1472,9 @@ The workspace `pnpm showcases:promote -- --check` command applies that same PNG
 quality analyzer to the committed README showcase copies, not just the ignored
 browser output.
 The package audit also rechecks the packed README image links, requires the
-README gallery to reference every curated package showcase image, and validates
-every shipped `docs/showcases/*.png` file before publish.
+README gallery to reference every curated package showcase image, validates
+KayKit attribution/NOTICE text, and checks every shipped `docs/showcases/*.png`
+file before publish.
 
 ## Third-Party Local Asset E2E
 

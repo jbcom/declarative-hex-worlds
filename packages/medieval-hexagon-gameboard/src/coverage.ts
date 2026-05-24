@@ -333,7 +333,7 @@ export const GAMEBOARD_RELEASE_GATE_SUMMARIES: Readonly<
     'Curated browser screenshots match committed docs/package showcase copies and pass the shared PNG quality analyzer.',
   'pnpm test:workflows': 'CI, Release Please, npm OIDC publish, automerge, and Dependabot workflow contract audit.',
   'pnpm pack:dry-run':
-    'npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, NOTICE, and packaged showcase PNG quality.',
+    'npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, KayKit attribution/NOTICE, and packaged showcase PNG quality.',
 };
 
 /**

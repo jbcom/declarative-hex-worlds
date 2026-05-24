@@ -35730,7 +35730,7 @@
       "label": "pnpm pack:dry-run",
       "command": "pnpm pack:dry-run",
       "status": "passed",
-      "summary": "npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, NOTICE, and packaged showcase PNG quality."
+      "summary": "npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, KayKit attribution/NOTICE, and packaged showcase PNG quality."
     }
   ],
   "gaps": [],

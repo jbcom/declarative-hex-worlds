@@ -587,8 +587,9 @@ share live Koota trait identities; the tsup build should keep ESM code splitting
 enabled for that reason.
 Use `pnpm test:package` when README images or package file lists change; it
 validates local README links, requires the published README gallery to reference
-every curated package showcase image, and checks every packed
-`docs/showcases/*.png` through the shared PNG quality analyzer.
+every curated package showcase image, validates packed KayKit attribution and
+NOTICE text, and checks every packed `docs/showcases/*.png` through the shared
+PNG quality analyzer.
 Use `pnpm test:workflows` when touching GitHub Actions, Release Please,
 automerge, Dependabot, or the CI/CD release scripts.
 

@@ -314,6 +314,7 @@ function requireDocsConfiguration(): void {
   );
   requireShowcaseCopiesMatch();
   requireReadmeGuideCoverage();
+  requireReadmeAttribution();
   requirePublicApiSubpathGuide();
   requirePackageReadmePublicImports();
   requireAgentsPublicApiSurfaces();
@@ -586,6 +587,11 @@ function requireShowcaseCopiesMatch(): void {
       packageAuditScript.includes('assertPackageReadmeShowcaseImages'),
     'scripts/audit-package.ts must require the package README gallery to match the curated package showcase artifacts'
   );
+  assert(
+    packageAuditScript.includes('KAYKIT_ATTRIBUTION') &&
+      packageAuditScript.includes('assertPackedAttribution'),
+    'scripts/audit-package.ts must validate packed KayKit attribution and NOTICE text'
+  );
   assertEqualList(
     packageReadmeShowcaseImages(),
     packageShowcases.map((filename) => `docs/showcases/${filename}`),
@@ -611,6 +617,23 @@ function requireShowcaseCopiesMatch(): void {
       promoteShowcasesScript.includes('dirname(showcase.target)'),
     'scripts/promote-showcases.ts must derive both docs and package showcase destinations from coverage source'
   );
+}
+
+function requireReadmeAttribution(): void {
+  const requiredSnippets = [
+    '## License And Attribution',
+    'MIT licensed',
+    'KayKit: Medieval Hexagon Pack',
+    'Kay Lousberg',
+    'https://www.kaylousberg.com',
+    'https://kaylousberg.itch.io',
+    'CC0-1.0',
+    'https://creativecommons.org/publicdomain/zero/1.0/',
+    'NOTICE.md',
+    'Purchased EXTRA and third-party reference assets stay local-only',
+  ];
+  requireIncludes(rootReadme, 'root README attribution', requiredSnippets);
+  requireIncludes(packageReadme, 'package README attribution', requiredSnippets);
 }
 
 function packageReadmeShowcaseImages(): string[] {
