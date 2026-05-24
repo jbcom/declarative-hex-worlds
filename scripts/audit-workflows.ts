@@ -71,6 +71,9 @@ requireIncludes(cd, 'cd.yml', [
 ]);
 requireIncludes(automerge, 'automerge.yml', [
   "github.actor == 'dependabot[bot]'",
+  "github.event.pull_request.user.login == 'dependabot[bot]'",
+  'github.event.pull_request.user.type == \'Bot\'',
+  'github.event.pull_request.head.repo.full_name == github.repository',
   "startsWith(github.head_ref, 'release-please--')",
   'gh pr review "$PR_URL" --approve',
   'gh pr merge "$PR_URL" --auto --squash',
