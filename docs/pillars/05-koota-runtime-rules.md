@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-24
+last_verified: 2026-05-25
 source_images:
   - docs/assets/kaykit-guide/pages/page-05.png
   - docs/assets/kaykit-guide/pages/page-06.png
@@ -861,7 +861,16 @@ browser screenshots of the completed scenes. The seeded scene also declares
 FREE trees, supply scatter, and quest-marker pieces through `./pieces`, feeds
 them into `createSeededGameboardPlan` with `pieceRegistry`/`pieceFills`, and
 asserts that all generated piece placements survive quest completion and plan
-projection.
+projection. The fixed scene is the direct guide-builder exercise board: it now
+places roads, rivers, coast/water, stacked mountains, hills, forests, harbors,
+settlements, neutral buildings, bridges, walls, construction, siege, elevation
+ramps, nature, flags, prop clusters, transitions, colored and neutral EXTRA unit
+parts, unit presets, scatter, custom tile declarations, and authored tile asset
+overrides while preserving the playable quest path.
+`examples/simple-rpg-usage.ts` exposes
+`summarizeSimpleRpgGuidePublicApiExercises()` so the packaged consumer smoke can
+assert that every current `listKayKitGuidePublicApiCoverages()` row has
+SimpleRPG evidence and no stale evidence rows.
 `./simulation` and `simple-rpg-simulation.script.json` are the package-facing
 version of that same principle: a saved scenario can be exercised headlessly
 through public command, system, spawn/update/remove mutation, and report APIs

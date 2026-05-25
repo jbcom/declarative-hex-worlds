@@ -93,7 +93,15 @@ try {
   );
   const installedGuideUsageOutput = execFileSync(
     process.execPath,
-    [installedCliPath, 'guide-usages', '--source', join(tempRoot, 'missing-guide-source'), '--page', '14', '--json'],
+    [
+      installedCliPath,
+      'guide-usages',
+      '--source',
+      join(tempRoot, 'missing-guide-source'),
+      '--page',
+      '14',
+      '--json',
+    ],
     {
       cwd: appRoot,
       encoding: 'utf8',
@@ -133,7 +141,11 @@ try {
   const installedSummary = JSON.parse(installedSummaryOutput) as {
     source: { kind: string };
     validation: { errorCount: number };
-    summary: { tileCount: number; placementCount: number; placementKindCounts: Record<string, number> };
+    summary: {
+      tileCount: number;
+      placementCount: number;
+      placementKindCounts: Record<string, number>;
+    };
   };
   assert(
     installedSummary.source.kind === 'scenario' &&
@@ -263,6 +275,8 @@ import {
 } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
 import {
   runSimpleRpgUsageExample,
+  summarizeSimpleRpgGuidePublicApiExercises,
+  type SimpleRpgGuidePublicApiExerciseCoverage,
   type SimpleRpgUsageSummary,
 } from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
 import {
@@ -477,6 +491,8 @@ const planSummary: GameboardPlanSummary = summarizeGameboardPlan(plan);
 const blueprintUsage: BlueprintBoardUsageSummary = runBlueprintBoardUsageExample();
 const blueprintScenarioId: string = blueprintBoardJson.scenarioId;
 const usage: SimpleRpgUsageSummary = runSimpleRpgUsageExample();
+const simpleRpgGuideExerciseCoverage: SimpleRpgGuidePublicApiExerciseCoverage =
+  summarizeSimpleRpgGuidePublicApiExercises();
 const scenarioSummary: GameboardScenarioSummary = summarizeGameboardScenario(
   simpleRpgScenario as GameboardScenario
 );
@@ -1132,6 +1148,7 @@ void totalAssets;
 void blueprintScenarioId;
 void blueprintUsage;
 void usage;
+void simpleRpgGuideExerciseCoverage;
 `,
     'utf8'
   );
@@ -1198,7 +1215,10 @@ import {
   summarizeGameboardScenario,
 } from '@jbcom/medieval-hexagon-gameboard';
 import { runBlueprintBoardUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
-import { runSimpleRpgUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
+import {
+  runSimpleRpgUsageExample,
+  summarizeSimpleRpgGuidePublicApiExercises,
+} from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
 import {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
   createGameboardInteractionHandlerPreset,
@@ -2153,6 +2173,23 @@ if (!footprintSnapshot || footprintSnapshot.footprintIndex !== 1) {
 const usage = runSimpleRpgUsageExample();
 if (!usage.simulationSucceeded || usage.validationErrorCount !== 0) {
   throw new Error(\`packed SimpleRPG usage failed: \${JSON.stringify(usage)}\`);
+}
+if (
+  usage.guidePublicApiCount !== 74 ||
+  usage.exercisedGuidePublicApiCount !== 74 ||
+  usage.missingGuidePublicApis.length !== 0 ||
+  usage.staleGuidePublicApis.length !== 0
+) {
+  throw new Error(\`packed SimpleRPG guide API coverage was incomplete: \${JSON.stringify(usage)}\`);
+}
+const simpleRpgGuideCoverage = summarizeSimpleRpgGuidePublicApiExercises();
+if (
+  simpleRpgGuideCoverage.guidePublicApiCount !== 74 ||
+  simpleRpgGuideCoverage.exercisedPublicApiCount !== 74 ||
+  simpleRpgGuideCoverage.missingPublicApis.length !== 0 ||
+  simpleRpgGuideCoverage.staleExercisePublicApis.length !== 0
+) {
+  throw new Error(\`packed SimpleRPG guide API exercise summary was incomplete: \${JSON.stringify(simpleRpgGuideCoverage)}\`);
 }
 if (
   usage.scenarioSpawnGroupIds.join('|') !== 'player-start|elder|enemy' ||

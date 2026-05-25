@@ -358,13 +358,20 @@ contract for CI and npm consumers.
   gameplay-facing APIs so fixed, seeded, and packaged scenes keep exercising
   public imports, command timelines, movement, enemy removal, NPC interaction,
   custom-piece generation, collisions, actor classification, and browser
-  screenshots.
+  screenshots. The fixed scene should keep every gameplay-facing guide builder
+  API represented on the board, including bridges, ramps, settlements,
+  fortifications, construction, siege, transitions, EXTRA unit parts, prop
+  clusters, scatter, coast/water, roads, rivers, hills, forests, and stacked
+  mountains.
 - Keep `packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts` as the
   repo source for the compiled public package subpath exported as
   `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage`. It should remain
   the human-facing example for scenario instantiation, board-aware spawn
   selection, ECS interop snapshots, simulation playback, and serializable
-  smoke-test summaries.
+  smoke-test summaries. It also owns `summarizeSimpleRpgGuidePublicApiExercises()`,
+  which joins `listKayKitGuidePublicApiCoverages()` to SimpleRPG exercise
+  evidence. Update that evidence map whenever a new guide-facing public API is
+  added.
 - Keep `packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts`
   as the repo source for the compiled public package subpath exported as
   `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage`. It should

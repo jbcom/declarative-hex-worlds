@@ -355,7 +355,10 @@ repo and the compiled
 exports for typed public-import walkthroughs. The SimpleRPG example instantiates
 the packaged scenario, resolves embedded actor spawn groups, selects additional
 spawn locations, emits an ECS interop snapshot, and runs the scripted quest
-flow. The blueprint example compiles `examples/blueprint-board.json` into a
+flow. It also reports SimpleRPG evidence for every guide-facing public API from
+`listKayKitGuidePublicApiCoverages()` so consumer smoke tests fail when guide
+coverage grows without an integration decision. The blueprint example compiles
+`examples/blueprint-board.json` into a
 scenario, resolves spawn groups and patrols, creates a runtime facade, and emits
 an ECS interop summary.
 Packaged JSON examples are exposed as `@jbcom/medieval-hexagon-gameboard/examples/*.json`

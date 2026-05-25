@@ -198,10 +198,71 @@ export function createFixedSimpleRpgGame(): SimpleRpgGame {
       { curvy: true, waterless: true }
     )
     .addMountainStack({ at: { q: 7, r: 0 }, height: 2, variant: 'B', withTrees: true })
+    .setTileAsset({
+      at: { q: 5, r: 0 },
+      assetId: 'hex_grass',
+      terrain: 'grass',
+      textureSet: 'fall',
+      tags: ['simple-rpg-overlook'],
+    })
+    .setElevation({ q: 7, r: 1 }, 1)
     .addHill({ q: 0, r: 3 }, { variant: 'C', withTrees: true })
     .addForest({ q: 1, r: 3 }, { species: 'A', size: 'large' })
-    .addHarbor({ at: { q: 6, r: 4 }, facing: 1, faction: 'blue', kind: 'watermill', includeProps: false })
+    .addHarbor({
+      at: { q: 6, r: 4 },
+      facing: 1,
+      faction: 'blue',
+      kind: 'watermill',
+      includeProps: false,
+    })
     .addFactionBuilding({ at: { q: 6, r: 3 }, faction: 'blue', building: 'market' })
+    .addSettlement({ at: { q: 4, r: 0 }, faction: 'blue', building: 'home_A', rotationSteps: 1 })
+    .addNeutralStructure({ at: { q: 7, r: 1 }, structure: 'building_grain' })
+    .addBridge({ at: { q: 7, r: 4 }, variant: 'A', facing: 1 })
+    .addFortification({
+      at: { q: 0, r: 0 },
+      material: 'wall',
+      segment: 'straight',
+      enclosureId: 'simple-rpg-town',
+    })
+    .addConstructionSite({
+      at: { q: 7, r: 2 },
+      kind: 'stage-B',
+      constructionId: 'simple-rpg-works',
+    })
+    .addSiegeProjectile({
+      at: { q: 0, r: 2 },
+      kind: 'catapult',
+      facing: 2,
+      sourceId: 'simple-rpg-town',
+    })
+    .addElevationRamp({
+      at: { q: 7, r: 1 },
+      direction: 'up',
+      facing: 1,
+      fromElevation: 0,
+      toElevation: 1,
+    })
+    .addNature({ at: { q: 7, r: 3 }, assetId: 'rock_single_A' })
+    .addFlag({ q: 4, r: 0 }, 'blue', { rotationSteps: 2 })
+    .addPropCluster({
+      at: { q: 6, r: 0 },
+      kind: 'resource-cache',
+      density: 0.4,
+      facing: 1,
+      placement: 'adjacent',
+      includeExtra: false,
+    })
+    .addTransition({ at: { q: 7, r: 3 }, from: 'default', to: 'winter', rotationSteps: 1 })
+    .addUnit({ at: { q: 6, r: 0 }, faction: 'blue', part: 'sword', style: 'full' })
+    .addUnit({ at: { q: 5, r: 1 }, part: 'hammer', neutral: true, rotationSteps: 3 })
+    .addUnitPreset({ at: { q: 6, r: 1 }, faction: 'blue', role: 'soldier', style: 'accent' })
+    .scatterDecorations({
+      count: 2,
+      assets: ['rock_single_B', 'tree_single_B'],
+      terrain: ['grass', 'hill', 'forest', 'coast'],
+      avoidOccupied: false,
+    })
     .addProp({ at: { q: 2, r: 2 }, assetId: 'crate_A_small' });
 
   applyTileDeclaration(builder, registry, {
@@ -442,18 +503,30 @@ export function runSimpleRpgQuestLine(game: SimpleRpgGame): SimpleRpgQuestResult
     reachable: enemyInteraction.targetCommand.target?.reachable,
     reason: enemyInteraction.reason,
   } satisfies SimpleRpgActorTargetCommandResult;
-  if (!enemyCommand || enemyCommand.status !== 'requires-game-handler' || enemyCommand.command.kind !== 'attack-actor') {
-    return questResultFromSnapshot(runtime, game, traversedKeys, questSnapshot, {
-      id: 'defeat-enemy',
-      status: 'blocked',
-      detail:
-        enemyCommand?.reason ??
-        enemyInteraction.reason ??
-        `Enemy ${enemy.id} did not produce an attack command`,
-    }, enemyTargetCommand);
+  if (
+    !enemyCommand ||
+    enemyCommand.status !== 'requires-game-handler' ||
+    enemyCommand.command.kind !== 'attack-actor'
+  ) {
+    return questResultFromSnapshot(
+      runtime,
+      game,
+      traversedKeys,
+      questSnapshot,
+      {
+        id: 'defeat-enemy',
+        status: 'blocked',
+        detail:
+          enemyCommand?.reason ??
+          enemyInteraction.reason ??
+          `Enemy ${enemy.id} did not produce an attack command`,
+      },
+      enemyTargetCommand
+    );
   }
 
-  const actorNavigation = () => createGameboardActorNavigationProfile(game.world, player.placementId);
+  const actorNavigation = () =>
+    createGameboardActorNavigationProfile(game.world, player.placementId);
   const enemyPath = runtime.movement.requestMove(player.placementId, enemy.tileKey, {
     navigation: actorNavigation(),
   });
@@ -478,20 +551,36 @@ export function runSimpleRpgQuestLine(game: SimpleRpgGame): SimpleRpgQuestResult
   drainMovement(runtime, traversedKeys);
   questSnapshot = runtime.advanceQuest(questEntity);
 
-  return questResultFromSnapshot(runtime, game, traversedKeys, questSnapshot, undefined, enemyTargetCommand);
+  return questResultFromSnapshot(
+    runtime,
+    game,
+    traversedKeys,
+    questSnapshot,
+    undefined,
+    enemyTargetCommand
+  );
 }
 
-export function classifySimpleRpgPlacement(game: SimpleRpgGame, placementId: string): SimpleRpgActorKind | undefined {
+export function classifySimpleRpgPlacement(
+  game: SimpleRpgGame,
+  placementId: string
+): SimpleRpgActorKind | undefined {
   const kind = classifyGameboardPlacement(game.world, placementId);
   return isSimpleRpgActorKind(kind) ? kind : undefined;
 }
 
 export function assertSimpleRpgGameValid(game: SimpleRpgGame): void {
-  const planViolations = validateGameboardPlan(projectWorldToGameboardPlan(game.world), { registry: game.registry });
+  const planViolations = validateGameboardPlan(projectWorldToGameboardPlan(game.world), {
+    registry: game.registry,
+  });
   const worldViolations = validateGameboardRules(game.world);
-  const errors = [...planViolations, ...worldViolations].filter((violation) => violation.severity === 'error');
+  const errors = [...planViolations, ...worldViolations].filter(
+    (violation) => violation.severity === 'error'
+  );
   if (errors.length > 0) {
-    throw new Error(errors.map((violation) => `${violation.code}: ${violation.message}`).join('\n'));
+    throw new Error(
+      errors.map((violation) => `${violation.code}: ${violation.message}`).join('\n')
+    );
   }
 }
 
@@ -548,7 +637,11 @@ function registerRuntimeActor(
 
 function drainMovement(runtime: GameboardRuntime, traversedKeys: string[]): void {
   for (let index = 0; index < 100; index += 1) {
-    const results = runtime.tick({ patrols: false, movement: { steps: 1 }, quests: false }).movement;
+    const results = runtime.tick({
+      patrols: false,
+      movement: { steps: 1 },
+      quests: false,
+    }).movement;
     if (results.length === 0) {
       return;
     }
@@ -557,7 +650,9 @@ function drainMovement(runtime: GameboardRuntime, traversedKeys: string[]): void
         traversedKeys.push(result.placement.tileKey);
       }
     }
-    if (results.every((result) => result.state.status !== 'ready' && result.state.status !== 'moving')) {
+    if (
+      results.every((result) => result.state.status !== 'ready' && result.state.status !== 'moving')
+    ) {
       return;
     }
   }
@@ -583,8 +678,16 @@ function questResultFromSnapshot(
   actorTargetCommand?: SimpleRpgActorTargetCommandResult
 ): SimpleRpgQuestResult {
   const finalTileKey = currentActorTile(runtime, game, game.quest.playerId);
-  const collisionChecks = questProgressItems(quest, ['registered-prop-passable', 'registered-enemy-blocks'], override);
-  const objectives = questProgressItems(quest, ['defeat-enemy', 'speak-first-npc', 'reach-final-npc'], override);
+  const collisionChecks = questProgressItems(
+    quest,
+    ['registered-prop-passable', 'registered-enemy-blocks'],
+    override
+  );
+  const objectives = questProgressItems(
+    quest,
+    ['defeat-enemy', 'speak-first-npc', 'reach-final-npc'],
+    override
+  );
   return {
     completed:
       finalTileKey === game.quest.finalTileKey &&
@@ -648,7 +751,9 @@ function questProgressItems(
   ids: readonly string[],
   override?: SimpleRpgQuestObjective
 ): SimpleRpgQuestObjective[] {
-  const progressById = new Map(quest.quest.progress.map((progress) => [progress.objectiveId, progress]));
+  const progressById = new Map(
+    quest.quest.progress.map((progress) => [progress.objectiveId, progress])
+  );
   return ids.map((id) => {
     if (override?.id === id) {
       return override;
@@ -671,7 +776,9 @@ function simpleRpgObjectiveFromProgress(
 
 function currentActorTile(runtime: GameboardRuntime, game: SimpleRpgGame, actorId: string): string {
   const actor = requireActor(game, actorId);
-  const placement = runtime.readPlacements().find((candidate) => candidate.id === actor.placementId);
+  const placement = runtime
+    .readPlacements()
+    .find((candidate) => candidate.id === actor.placementId);
   if (!placement) {
     throw new Error(`Actor ${actorId} placement ${actor.placementId} is missing`);
   }
@@ -687,8 +794,13 @@ function requireActor(game: SimpleRpgGame, actorId: string): SimpleRpgActor {
   return actor;
 }
 
-function farthestFrom(origin: HexCoordinates, candidates: readonly HexCoordinates[]): HexCoordinates {
-  return [...candidates].sort((left, right) => hexDistance(right, origin) - hexDistance(left, origin))[0];
+function farthestFrom(
+  origin: HexCoordinates,
+  candidates: readonly HexCoordinates[]
+): HexCoordinates {
+  return [...candidates].sort(
+    (left, right) => hexDistance(right, origin) - hexDistance(left, origin)
+  )[0];
 }
 
 function midpointCandidate(
@@ -697,7 +809,9 @@ function midpointCandidate(
   candidates: readonly HexCoordinates[]
 ): HexCoordinates {
   const midpoint = { q: Math.round((start.q + end.q) / 2), r: Math.round((start.r + end.r) / 2) };
-  return [...candidates].sort((left, right) => hexDistance(left, midpoint) - hexDistance(right, midpoint))[0];
+  return [...candidates].sort(
+    (left, right) => hexDistance(left, midpoint) - hexDistance(right, midpoint)
+  )[0];
 }
 
 function key(coordinates: HexCoordinates): string {

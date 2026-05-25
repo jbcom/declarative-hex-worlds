@@ -144,7 +144,10 @@ const result = runGameboardScenarioSimulationScript(scenarioJson, scriptJson);
 The `SimpleRPG` fixtures in the package are the canonical acceptance shape. They
 spawn a player, traverse a fixed board, classify props and enemies through
 public actor APIs, advance quests, and exercise seeded content through the same
-scenario and simulation layer.
+scenario and simulation layer. The packaged usage example also exposes
+`summarizeSimpleRpgGuidePublicApiExercises()`, which joins every current
+guide-facing public API to SimpleRPG evidence so app smoke tests can fail on
+missing or stale guide/API representation.
 
 ## CLI Flow
 

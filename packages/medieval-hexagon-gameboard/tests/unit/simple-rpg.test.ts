@@ -3,6 +3,7 @@ import {
   inspectGameboardInteractionTarget,
   planGameboardInteractionCommand,
   readGameboardPlacements,
+  summarizeGameboardPlan,
 } from '@jbcom/medieval-hexagon-gameboard';
 import {
   SIMPLE_RPG_RANDOM_SEED,
@@ -20,18 +21,60 @@ describe('SimpleRPG public API integration fixture', () => {
     const player = game.actors.get(game.quest.playerId);
     const prop = game.actors.get(game.quest.propId);
     const enemy = game.actors.get(game.quest.enemyId);
+    const planSummary = summarizeGameboardPlan(game.initialPlan, { topAssetLimit: 100 });
+
+    expect(planSummary.warningCount).toBe(0);
+    expect(planSummary.tileTextureSetCounts.fall).toBe(1);
+    expect(planSummary.tileElevationCounts['1']).toBeGreaterThan(0);
+    expect(planSummary.requiresExtraPlacementCount).toBeGreaterThanOrEqual(7);
+    expect(planSummary.extraAssetIds).toEqual(expect.arrayContaining(['hex_transition']));
+    expect(planSummary.placementFeatureCounts).toMatchObject({
+      bridge: 1,
+      'construction-site': 1,
+      'elevation-ramp': 1,
+      forest: 1,
+      fortification: 1,
+      harbor: 1,
+      hill: 1,
+      'mountain-stack': 1,
+      nature: 1,
+      'neutral-structure': 1,
+      prop: 2,
+      'prop-cluster': 5,
+      scatter: 2,
+      settlement: 2,
+      'siege-projectile': 1,
+      transition: 1,
+      unit: 6,
+    });
 
     expect(
-      inspectGameboardInteractionTarget(game.world, { placementId: prop?.placementId }, { sourceActor: player?.placementId })
+      inspectGameboardInteractionTarget(
+        game.world,
+        { placementId: prop?.placementId },
+        { sourceActor: player?.placementId }
+      )
     ).toMatchObject({ kind: 'actor', intent: 'interact', canEnter: true });
     expect(
-      inspectGameboardInteractionTarget(game.world, { placementId: enemy?.placementId }, { sourceActor: player?.placementId })
+      inspectGameboardInteractionTarget(
+        game.world,
+        { placementId: enemy?.placementId },
+        { sourceActor: player?.placementId }
+      )
     ).toMatchObject({ kind: 'actor', intent: 'attack', canEnter: false });
     expect(
-      planGameboardInteractionCommand(game.world, { placementId: prop?.placementId }, { sourceActor: player?.placementId })
+      planGameboardInteractionCommand(
+        game.world,
+        { placementId: prop?.placementId },
+        { sourceActor: player?.placementId }
+      )
     ).toMatchObject({ kind: 'interact-actor', actorId: game.quest.propId, canExecute: true });
     expect(
-      planGameboardInteractionCommand(game.world, { placementId: enemy?.placementId }, { sourceActor: player?.placementId })
+      planGameboardInteractionCommand(
+        game.world,
+        { placementId: enemy?.placementId },
+        { sourceActor: player?.placementId }
+      )
     ).toMatchObject({ kind: 'attack-actor', actorId: game.quest.enemyId, canExecute: true });
 
     const result = runSimpleRpgQuestLine(game);
@@ -53,8 +96,12 @@ describe('SimpleRPG public API integration fixture', () => {
       expect.objectContaining({ id: 'registered-prop-passable', status: 'completed' }),
       expect.objectContaining({ id: 'registered-enemy-blocks', status: 'completed' }),
     ]);
-    expect(classifySimpleRpgPlacement(game, game.actors.get(game.quest.propId)?.placementId ?? '')).toBe('prop');
-    expect(classifySimpleRpgPlacement(game, game.actors.get(game.quest.enemyId)?.placementId ?? '')).toBeUndefined();
+    expect(
+      classifySimpleRpgPlacement(game, game.actors.get(game.quest.propId)?.placementId ?? '')
+    ).toBe('prop');
+    expect(
+      classifySimpleRpgPlacement(game, game.actors.get(game.quest.enemyId)?.placementId ?? '')
+    ).toBeUndefined();
     expect(playerPlacement?.tileKey).toBe('5,3');
   });
 
@@ -83,9 +130,12 @@ describe('SimpleRPG public API integration fixture', () => {
       reachable: true,
     });
     expect(new Set(result.traversedKeys).size).toBeGreaterThan(4);
-    expect(result.projectedPlan.placements.some((placement) => placement.metadata.game === 'SimpleRPG')).toBe(true);
+    expect(
+      result.projectedPlan.placements.some((placement) => placement.metadata.game === 'SimpleRPG')
+    ).toBe(true);
     const seededPiecePlacements = result.projectedPlan.placements.filter(
-      (placement) => placement.metadata.game === 'SimpleRPG' && typeof placement.metadata.pieceId === 'string'
+      (placement) =>
+        placement.metadata.game === 'SimpleRPG' && typeof placement.metadata.pieceId === 'string'
     );
     expect(seededPiecePlacements).toHaveLength(8);
     expect(seededPiecePlacements.map((placement) => placement.metadata.pieceId)).toEqual(
@@ -95,6 +145,8 @@ describe('SimpleRPG public API integration fixture', () => {
         'simple_rpg_waystone',
       ])
     );
-    expect(seededPiecePlacements.every((placement) => placement.requiresExtra === false)).toBe(true);
+    expect(seededPiecePlacements.every((placement) => placement.requiresExtra === false)).toBe(
+      true
+    );
   });
 });

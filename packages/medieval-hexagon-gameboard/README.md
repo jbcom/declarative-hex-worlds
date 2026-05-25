@@ -1442,15 +1442,28 @@ scenario, resolve scenario-owned player/NPC/enemy spawn groups, select
 additional board-aware spawn locations, create an interop snapshot for external
 ECS consumers, run the scripted quest flow, and return a serializable summary
 suitable for app smoke tests.
+That summary includes the current guide-facing public API count, exercised API
+count, missing/stale API rows, and evidence modes from
+`summarizeSimpleRpgGuidePublicApiExercises()`. The packaged consumer smoke test
+asserts that all 74 guide-facing APIs are represented, so new guide/API coverage
+cannot drift away from SimpleRPG unnoticed.
 The JSON examples are exported as
 `@jbcom/medieval-hexagon-gameboard/examples/*.json`; raw TypeScript example
 source stays in the repo and is not included in the npm tarball.
 
 ```ts
-import { runSimpleRpgUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
+import {
+  runSimpleRpgUsageExample,
+  summarizeSimpleRpgGuidePublicApiExercises,
+} from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
 
 const smoke = runSimpleRpgUsageExample();
-if (!smoke.simulationSucceeded || smoke.validationErrorCount > 0) {
+const apiCoverage = summarizeSimpleRpgGuidePublicApiExercises();
+if (
+  !smoke.simulationSucceeded ||
+  smoke.validationErrorCount > 0 ||
+  apiCoverage.missingPublicApis.length > 0
+) {
   throw new Error(`SimpleRPG smoke failed for ${smoke.scenarioId}`);
 }
 console.log(smoke.nearestActorTargetId, smoke.actorTargetCommandKinds);

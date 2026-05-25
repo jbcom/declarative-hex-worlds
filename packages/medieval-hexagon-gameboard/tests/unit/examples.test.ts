@@ -11,7 +11,11 @@ import {
   type GameboardScenarioSimulationScript,
 } from '../../src/simulation';
 import { validateGameboardPlan } from '../../src/validation';
-import { runSimpleRpgUsageExample } from '../../examples/simple-rpg-usage';
+import {
+  listSimpleRpgGuidePublicApiExercises,
+  runSimpleRpgUsageExample,
+  summarizeSimpleRpgGuidePublicApiExercises,
+} from '../../examples/simple-rpg-usage';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = resolve(testDir, '../../../..');
@@ -59,7 +63,11 @@ describe('published recipe examples', () => {
     expect(generatedPlacements.map((placement) => placement.assetId)).toEqual(
       expect.arrayContaining(['tree_single_A', 'crate_A_small', 'flag_green'])
     );
-    expect(generatedPlacements.filter((placement) => placement.metadata.exampleArchetype === 'camp-supply')).toHaveLength(2);
+    expect(
+      generatedPlacements.filter(
+        (placement) => placement.metadata.exampleArchetype === 'camp-supply'
+      )
+    ).toHaveLength(2);
   });
 
   it('keeps docs and package SimpleRPG scenario examples identical and playable', () => {
@@ -275,9 +283,36 @@ describe('published recipe examples', () => {
     expect(summary.runtimeActorTargetEventTypes).toEqual(['command-handled']);
     expect(summary.runtimeActorTargetCommandKind).toBe('attack-actor');
     expect(summary.runtimeActorTargetHandled).toBe(true);
+    expect(summary.guidePublicApiCount).toBe(74);
+    expect(summary.exercisedGuidePublicApiCount).toBe(74);
+    expect(summary.missingGuidePublicApis).toEqual([]);
+    expect(summary.staleGuidePublicApis).toEqual([]);
+    expect(summary.guidePublicApiExerciseModes['fixed-gameplay']).toBeGreaterThan(20);
+    expect(summary.guidePublicApiExerciseModes['catalog-contract']).toBeGreaterThan(10);
     expect(summary.finalActorTiles.player).toBe('2,1');
     expect(summary.finalActorTiles.elder).toBe('2,1');
     expect(summary.completedQuestIds).toEqual(['docs-simple-rpg-scenario:intro']);
+  });
+
+  it('maps every guide-facing public API to SimpleRPG exercise evidence', () => {
+    const coverage = summarizeSimpleRpgGuidePublicApiExercises();
+    const exercises = listSimpleRpgGuidePublicApiExercises();
+
+    expect(coverage.guidePublicApiCount).toBe(74);
+    expect(coverage.exercisedPublicApiCount).toBe(74);
+    expect(coverage.missingPublicApis).toEqual([]);
+    expect(coverage.staleExercisePublicApis).toEqual([]);
+    expect(exercises).toHaveLength(74);
+    expect(exercises.every((exercise) => exercise.pages.length > 0)).toBe(true);
+    expect(exercises.every((exercise) => exercise.scenarioIds.length > 0)).toBe(true);
+    expect(exercises.map((exercise) => exercise.publicApi)).toEqual(
+      expect.arrayContaining([
+        'GameboardBuilder.addBridge',
+        'GameboardBuilder.addTransition',
+        'createSeededGameboardPlan',
+        'spawnGameboardActor',
+      ])
+    );
   });
 
   it('keeps the local-pack override example valid for batch piece scans', () => {
@@ -326,7 +361,12 @@ describe('published recipe examples', () => {
     const objectExportSubpaths = Object.entries(packageJson.exports ?? {})
       .filter((entry): entry is [string, { import: string; types: string }] => {
         const target = entry[1];
-        return typeof target === 'object' && target !== null && Boolean(target.import) && Boolean(target.types);
+        return (
+          typeof target === 'object' &&
+          target !== null &&
+          Boolean(target.import) &&
+          Boolean(target.types)
+        );
       })
       .map(([subpath]) => subpath)
       .sort();
@@ -353,7 +393,15 @@ describe('published recipe examples', () => {
     expect(packageJson.exports?.['./examples/*.json']).toBe('./examples/*.json');
     expect(packageJson.exports).not.toHaveProperty('./examples/*');
     expect(packageJson.exports?.['./assets/free/*']).toBe('./assets/free/*');
-    expect(objectExportSubpaths).toEqual(expect.arrayContaining(['.', './blueprint', './coverage', './examples/blueprint-board-usage', './examples/simple-rpg-usage']));
+    expect(objectExportSubpaths).toEqual(
+      expect.arrayContaining([
+        '.',
+        './blueprint',
+        './coverage',
+        './examples/blueprint-board-usage',
+        './examples/simple-rpg-usage',
+      ])
+    );
     for (const subpath of objectExportSubpaths) {
       const name = subpath === '.' ? 'index' : subpath.slice(2);
       expect(packageJson.exports?.[subpath]).toEqual({
