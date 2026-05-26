@@ -361,7 +361,9 @@ coverage grows without an integration decision. The same example exports
 `runSimpleRpgExecutableGuideApiSmoke()`, which directly invokes selector,
 manifest, registry, layout-piece, recipe, blueprint, seeded-board, spawn, and
 external-compatibility helpers that are useful to games but are too low-level to
-prove only through a quest script. The blueprint example compiles
+prove only through a quest script. That executable smoke currently covers 40
+guide-facing helper APIs and asserts the 404 KayKit public treatment records
+plus all 19 decomposed guide pages from the catalog. The blueprint example compiles
 `examples/blueprint-board.json` into a
 scenario, resolves spawn groups and patrols, creates a runtime facade, and emits
 an ECS interop summary.

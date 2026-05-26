@@ -147,7 +147,10 @@ public actor APIs, advance quests, and exercise seeded content through the same
 scenario and simulation layer. The packaged usage example also exposes
 `summarizeSimpleRpgGuidePublicApiExercises()`, which joins every current
 guide-facing public API to SimpleRPG evidence so app smoke tests can fail on
-missing or stale guide/API representation.
+missing or stale guide/API representation. Its executable helper smoke directly
+invokes 40 guide-facing helper APIs and checks the 404 KayKit public treatment
+records plus all 19 decomposed guide pages, so catalog coverage is exercised
+through package imports as well as the generated ledger.
 
 ## CLI Flow
 

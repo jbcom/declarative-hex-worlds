@@ -1473,9 +1473,11 @@ The same example also exports `runSimpleRpgExecutableGuideApiSmoke()`. That
 helper directly calls the guide-facing selector, manifest, registry,
 layout-piece, recipe, blueprint, seeded-board, spawn-selection, and external
 compatibility helpers that games usually compose around the scenario runtime.
-The packaged consumer smoke imports it from `node_modules`, so API treatment for
-those helpers has to stay executable rather than only documented in the coverage
-ledger.
+It currently invokes 40 guide-facing helper APIs and asserts the same catalog
+scale used by the coverage ledger: 404 KayKit public treatment records and all
+19 decomposed guide pages. The packaged consumer smoke imports it from
+`node_modules`, so API treatment for those helpers has to stay executable rather
+than only documented in the coverage ledger.
 
 The seeded fixture also declares FREE trees, supply scatter, and a quest marker
 as reusable pieces, feeds them into `createSeededGameboardPlan` through
