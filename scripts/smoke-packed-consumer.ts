@@ -13,6 +13,7 @@ const tempRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-consumer-'));
 const packRoot = join(tempRoot, 'pack');
 const appRoot = join(tempRoot, 'app');
 const keepTemp = process.env.MEDIEVAL_HEXAGON_KEEP_CONSUMER_SMOKE === '1';
+const COVERAGE_CLI_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
 
 try {
   for (const requiredFile of [
@@ -188,6 +189,51 @@ try {
       installedScenarioSummary.objectiveCount > 0 &&
       installedScenarioSummary.actorKindCounts.player > 0,
     'packed CLI summarize-scenario command did not emit playable scenario counts'
+  );
+  const installedCoverageOutput = execFileSync(
+    process.execPath,
+    [installedCliPath, 'coverage', '--checksPassed', '--json'],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      maxBuffer: COVERAGE_CLI_MAX_BUFFER_BYTES,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  const installedCoverage = JSON.parse(installedCoverageOutput) as {
+    simpleRpgEvidence?: {
+      publicApiExercises?: Array<{
+        assetCount: number;
+        modes: string[];
+        pages: number[];
+        publicApi: string;
+      }>;
+    };
+  };
+  const installedCoverageBridgeExercise =
+    installedCoverage.simpleRpgEvidence?.publicApiExercises?.find(
+      (exercise) => exercise.publicApi === 'GameboardBuilder.addBridge'
+    );
+  const installedCoverageMarkdown = execFileSync(
+    process.execPath,
+    [installedCliPath, 'coverage', '--checksPassed', '--markdown'],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      maxBuffer: COVERAGE_CLI_MAX_BUFFER_BYTES,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  assert(
+    installedCoverage.simpleRpgEvidence?.publicApiExercises?.length === 74 &&
+      installedCoverageBridgeExercise?.assetCount === 2 &&
+      installedCoverageBridgeExercise.pages.join(',') === '2,7,9' &&
+      installedCoverageBridgeExercise.modes.includes('visual-coverage') &&
+      installedCoverageMarkdown.includes('### SimpleRPG Exercise Matrix') &&
+      installedCoverageMarkdown.includes(
+        '| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 |'
+      ),
+    'packed CLI coverage command did not emit the SimpleRPG public API exercise matrix'
   );
 
   writeFileSync(
