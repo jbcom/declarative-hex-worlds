@@ -4,7 +4,17 @@
  *
  * @module
  */
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import {
   FACTIONS,
@@ -307,13 +317,46 @@ function allocateAssetId(
   return `${candidate}_${suffix}`;
 }
 
+/**
+ * Walks `root` recursively, returning every file (optionally filtered by
+ * extension) reachable without crossing a symlink.
+ *
+ * Phase 2 security review S-H2: `readdirSync(...).isDirectory()` follows
+ * directory symlinks, so a hostile source tree with a symlink pointing at
+ * `/etc` or back at its own ancestor would either exfiltrate files into
+ * the manifest or DoS the walker via a cycle. Defense:
+ *
+ * - Skip any entry whose `dirent.isSymbolicLink()` returns true. Files
+ *   reachable only through a symlink are not part of the asset pack by
+ *   construction.
+ * - Verify each descended directory's real path stays under the original
+ *   root's real path (defends against `name` that bypasses the symlink
+ *   check via path normalization).
+ */
 function listFiles(root: string, extension?: string): string[] {
-  const entries = readdirSync(root, { withFileTypes: true });
+  return listFilesInternal(root, realpathSync(root), extension);
+}
+
+function listFilesInternal(
+  dir: string,
+  rootRealPath: string,
+  extension: string | undefined,
+): string[] {
+  const entries = readdirSync(dir, { withFileTypes: true });
   const files: string[] = [];
   for (const entry of entries) {
-    const childPath = join(root, entry.name);
+    if (entry.isSymbolicLink()) {
+      continue;
+    }
+    const childPath = join(dir, entry.name);
     if (entry.isDirectory()) {
-      files.push(...listFiles(childPath, extension));
+      const childReal = realpathSync(childPath);
+      if (childReal !== rootRealPath && !childReal.startsWith(`${rootRealPath}${sep}`)) {
+        // A non-symlink that still resolves outside the root (e.g. via a
+        // bind mount). Skip it rather than crossing the boundary.
+        continue;
+      }
+      files.push(...listFilesInternal(childPath, rootRealPath, extension));
       continue;
     }
     if (!extension || childPath.endsWith(extension)) {
