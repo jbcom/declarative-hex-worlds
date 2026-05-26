@@ -11,6 +11,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   type ComponentType,
   type ReactNode,
 } from 'react';
@@ -475,6 +476,25 @@ export function useGameboardRuntime<TRuntime extends GameboardRuntime = Gameboar
 }
 
 /**
+ * Hash-stabilize a hook options object so reference-equality survives
+ * re-renders where the caller passes a fresh literal (PRD B7).
+ *
+ * Without this, every selector hook re-runs on every parent render because
+ * the caller's `{}` literal gets a new identity each render. This compares
+ * structural equality via JSON.stringify (which is fine because option
+ * objects are plain data — no functions, no refs). The returned reference
+ * stays stable as long as the JSON serialization matches.
+ */
+function useStableOptions<T>(options: T): T {
+  const ref = useRef<{ key: string; value: T } | undefined>(undefined);
+  const nextKey = JSON.stringify(options);
+  if (ref.current === undefined || ref.current.key !== nextKey) {
+    ref.current = { key: nextKey, value: options };
+  }
+  return ref.current.value;
+}
+
+/**
  * Read the current runtime snapshot and rerender when gameboard traits,
  * relations, actor state, movement state, patrol state, or quest state changes.
  *
@@ -487,10 +507,11 @@ export function useGameboardRuntimeSnapshot(
 ): GameboardRuntimeSnapshot {
   const runtime = useGameboardRuntime();
   const revision = useGameboardDerivedRevision();
+  const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
-    return runtime.snapshot(options);
-  }, [runtime, options, revision]);
+    return runtime.snapshot(stableOptions);
+  }, [runtime, stableOptions, revision]);
 }
 
 /**
@@ -576,12 +597,13 @@ export function useGameboardInteractionTarget(
   const tiles = useGameboardTileEntities();
   const placements = useGameboardPlacementEntities();
   const actors = useGameboardActorEntities();
+  const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void tiles.length;
     void placements.length;
     void actors.length;
-    return target ? inspectGameboardInteractionTarget(world, target, options) : undefined;
-  }, [world, target, options, tiles, placements, actors]);
+    return target ? inspectGameboardInteractionTarget(world, target, stableOptions) : undefined;
+  }, [world, target, stableOptions, tiles, placements, actors]);
 }
 
 /**
@@ -595,12 +617,13 @@ export function useGameboardInteractionCommand(
   const tiles = useGameboardTileEntities();
   const placements = useGameboardPlacementEntities();
   const actors = useGameboardActorEntities();
+  const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void tiles.length;
     void placements.length;
     void actors.length;
-    return target ? planGameboardInteractionCommand(world, target, options) : undefined;
-  }, [world, target, options, tiles, placements, actors]);
+    return target ? planGameboardInteractionCommand(world, target, stableOptions) : undefined;
+  }, [world, target, stableOptions, tiles, placements, actors]);
 }
 
 /**
@@ -614,14 +637,15 @@ export function useGameboardInteractionCommandPreview(
   const tiles = useGameboardTileEntities();
   const placements = useGameboardPlacementEntities();
   const actors = useGameboardActorEntities();
+  const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void tiles.length;
     void placements.length;
     void actors.length;
     return commandOrTarget
-      ? previewGameboardInteractionCommand(world, commandOrTarget, options)
+      ? previewGameboardInteractionCommand(world, commandOrTarget, stableOptions)
       : undefined;
-  }, [world, commandOrTarget, options, tiles, placements, actors]);
+  }, [world, commandOrTarget, stableOptions, tiles, placements, actors]);
 }
 
 /**
@@ -634,10 +658,11 @@ export function useGameboardTileInspection(
   const world = useWorld();
   const revision = useGameboardDerivedRevision();
   const tileKey = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
+  const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
-    return inspectGameboardTile(world, tileKey, options);
-  }, [world, tileKey, options, revision]);
+    return inspectGameboardTile(world, tileKey, stableOptions);
+  }, [world, tileKey, stableOptions, revision]);
 }
 
 /**
@@ -649,10 +674,11 @@ export function useGameboardNeighborhoodInspection(
 ): GameboardNeighborhoodInspection {
   const world = useWorld();
   const revision = useGameboardDerivedRevision();
+  const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
-    return inspectGameboardNeighborhood(world, center, options);
-  }, [world, center, options, revision]);
+    return inspectGameboardNeighborhood(world, center, stableOptions);
+  }, [world, center, stableOptions, revision]);
 }
 
 /**
@@ -663,10 +689,11 @@ export function useGameboardActorSelection(
 ): GameboardActorSelection {
   const world = useWorld();
   const revision = useGameboardDerivedRevision();
+  const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
-    return selectGameboardActors(world, options);
-  }, [world, options, revision]);
+    return selectGameboardActors(world, stableOptions);
+  }, [world, stableOptions, revision]);
 }
 
 /**
@@ -677,10 +704,11 @@ export function useGameboardActorTargets(
 ): GameboardActorTargetingReport | undefined {
   const world = useWorld();
   const revision = useGameboardDerivedRevision();
+  const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
-    return options ? inspectGameboardActorTargets(world, options) : undefined;
-  }, [world, options, revision]);
+    return stableOptions ? inspectGameboardActorTargets(world, stableOptions) : undefined;
+  }, [world, stableOptions, revision]);
 }
 
 /**
@@ -691,10 +719,11 @@ export function useGameboardActorTargetCommand(
 ): GameboardActorTargetCommandPlan | undefined {
   const world = useWorld();
   const revision = useGameboardDerivedRevision();
+  const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
-    return options ? planGameboardActorTargetCommand(world, options) : undefined;
-  }, [world, options, revision]);
+    return stableOptions ? planGameboardActorTargetCommand(world, stableOptions) : undefined;
+  }, [world, stableOptions, revision]);
 }
 
 /**
