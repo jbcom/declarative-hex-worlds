@@ -159,7 +159,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 - [x] ~~D7~~ — **STALE.** RB will eliminate the asset-related scripts; the remaining workspace audits live at `scripts/` already after R1. No move needed. **F9**: Move package-scoped scripts (`audit-package.ts`, `audit-free-assets.ts`, `audit-reference-assets.ts`, `smoke-built-cli.ts`, `smoke-packed-consumer.ts`, `generate-package-assets.ts`, `extract-kaykit-guide.ts`, `promote-showcases.ts`) into `packages/medieval-hexagon-gameboard/scripts/`. Keep only true workspace audits at root.
 - [x] **D8 (part 1)** ✅ commit c117c50 (2026-05-26) — **M-1**: Extract `scripts/_lib.ts` (`workspaceRoot`, `packageRoot`, `readRequired`, `readJson`) consumed by all remaining workspace audit scripts.
 - [x] ~~D9~~ — **STALE** (2026-05-26): the original D9 wanted to split a 1,293-LOC workspace audit. R1's de-monorepo rewrite collapsed `scripts/audit-workspace.ts` to 221 LOC of single-package invariants. No further split needed.
-- [ ] **D10** — **M-3**: Split `scripts/smoke-packed-consumer.ts` (2,489 LOC) into `pack-install.ts` (runtime smoke) + `types.ts` (compile-time API attestation only). Add labelled-phase harness.
+- [x] **D10** ✅ (2026-05-26) — **M-3**: Split `scripts/smoke-packed-consumer.ts` (2,500 LOC) into `scripts/smoke/pack-install.ts` (runtime smoke), `scripts/smoke/types.ts` (compile-time API attestation), `scripts/smoke/_shared.ts` (context + assert helper), and a thin `scripts/smoke-packed-consumer.ts` orchestrator (~80 LOC) with labelled-phase output. `pnpm test:consumer` clean; assertions preserved.
 
 ### Phase E — test debt (publish-blocking, raises floor to 100%)
 
