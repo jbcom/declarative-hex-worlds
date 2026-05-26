@@ -8,12 +8,12 @@ import {
   generateManifestFromSource,
   validateSourceRoot,
   writeManifestJson,
-} from './ingest';
+} from '../ingest';
 import {
   analyzeExternalAssetCompatibility,
   type ExternalAssetForwardAxis,
   type ExternalAssetIntendedRole,
-} from './interop';
+} from '../interop';
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
@@ -26,12 +26,12 @@ import {
   type GameboardCoverageSimpleRpgEvidence,
   type GameboardCoverageSimpleRpgEvidenceMode,
   type GameboardCoverageStatus,
-} from './interop';
+} from '../interop';
 import {
   listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,
   summarizeSimpleRpgGuidePublicApiExercises,
-} from '../examples/simple-rpg-usage';
+} from '../../examples/simple-rpg-usage';
 import {
   inspectMedievalGameboardBlueprint,
   inspectMedievalGameboardBlueprintScenario,
@@ -39,7 +39,7 @@ import {
   type MedievalGameboardBlueprintOptions,
   type MedievalGameboardBlueprintScenarioInspection,
   type MedievalGameboardBlueprintScenarioOptions,
-} from './scenario';
+} from '../scenario';
 import {
   describeKayKitGuideAssetCoverage,
   describeKayKitGuidePublicApiCoverage,
@@ -65,29 +65,29 @@ import {
   type KayKitGuideScenarioAssetRenderRequest,
   type KayKitGuideScenarioAssetUsage,
   type KayKitGuideScenarioCoverage,
-} from './scenario';
+} from '../scenario';
 import {
   analyzeHexTileRegistry,
   createHexTileRegistry,
   createHexTileRegistryFromManifest,
   type HexTileDeclarationInput,
   type HexTileRegistry,
-} from './scenario';
-import { validateGameboardPlan, type GameboardPlanValidationConfig } from './rules';
+} from '../scenario';
+import { validateGameboardPlan, type GameboardPlanValidationConfig } from '../rules';
 import {
   summarizeGameboardPlan,
   type GameboardPlan,
   type GameboardPlanSummary,
   type SummarizeGameboardPlanOptions,
-} from './gameboard';
-import { inspectGameboardRecipe, type GameboardRecipe } from './scenario';
+} from '../gameboard';
+import { inspectGameboardRecipe, type GameboardRecipe } from '../scenario';
 import {
   createGameboardWorldFromScenario,
   inspectGameboardScenario,
   summarizeGameboardScenario,
   type GameboardScenario,
   type GameboardScenarioSummary,
-} from './scenario';
+} from '../scenario';
 import {
   createGameboardPatrolSimulationScript,
   createGameboardScenarioSimulationReport,
@@ -97,14 +97,14 @@ import {
   type GameboardPatrolSimulationScriptPlan,
   type GameboardScenarioSimulationScript,
   type GameboardScenarioSimulationStep,
-} from './simulation';
+} from '../simulation';
 import {
   createGameboardInteropSnapshot,
   createGameboardScenarioInteropSnapshot,
   createGameboardSimulationInteropSnapshot,
   type GameboardInteropSnapshot,
   type GameboardScenarioInteropOptions,
-} from './interop';
+} from '../interop';
 import {
   analyzeGameboardPieceRegistry,
   createGameboardPieceRegistry,
@@ -122,21 +122,21 @@ import {
   type GameboardPieceRegistrySelection,
   type GameboardPieceRole,
   type GameboardPieceSourceUrlOptions,
-} from './pieces';
+} from '../pieces';
 import {
   createSeededGameboardPieceFillRules,
   inspectSeededGameboardPieceFills,
   type SeededGameboardPieceFillInspection,
   type SeededGameboardPieceFillMode,
   type SeededGameboardPieceFillOptions,
-} from './rules';
+} from '../rules';
 import {
   analyzeGameboardLayoutFill,
   appendGameboardLayoutPlacementsToPlan,
   type GameboardLayoutFillAnalysis,
   type GameboardLayoutFillOptions,
   type GameboardLayoutFillRule,
-} from './coordinates';
+} from '../coordinates';
 import {
   planGameboardPatrolRoutes,
   planGameboardSpawnGroups,
@@ -145,19 +145,19 @@ import {
   type GameboardPatrolRouteSetOptions,
   type GameboardSpawnGroupOptions,
   type GameboardSpawnGroupPlan,
-} from './gameboard';
-import { listGuideTilePermutations, type GuideTilePermutationKind } from './selectors';
+} from '../gameboard';
+import { listGuideTilePermutations, type GuideTilePermutationKind } from '../selectors';
 import type {
   AssetBounds,
   AssetCategory,
   HexEdgeIndex,
   MedievalHexagonManifest,
   PackEdition,
-} from './types';
+} from '../types';
 import {
   inspectMedievalHexagonManifest,
   type MedievalHexagonManifestInspection,
-} from './manifest';
+} from '../manifest';
 
 interface GltfAccessorMetadata {
   min?: number[];
