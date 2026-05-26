@@ -20,8 +20,8 @@ import {
   type GameboardInteractionCommandKind,
   type GameboardInteractionCommandOptions,
   type GameboardInteractionTargetInput,
-} from './actors';
-import { removeGameboardPlacement } from './koota';
+} from '../actors';
+import { removeGameboardPlacement } from '../koota';
 import {
   MovementAgent,
   findGameboardMovementPath,
@@ -29,8 +29,8 @@ import {
   resolveGameboardMovementProfile,
   type GameboardMovementPathRequestOptions,
   type GameboardMovementRequestResult,
-} from './movement';
-import type { GameboardNavigationPathResult } from './navigation';
+} from '../movement';
+import type { GameboardNavigationPathResult } from '../navigation';
 
 /**
  * Input accepted by command helpers: either an already planned command or a

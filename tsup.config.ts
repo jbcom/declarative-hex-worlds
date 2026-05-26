@@ -7,7 +7,7 @@ export default defineConfig({
     blueprint: 'src/blueprint.ts',
     catalog: 'src/catalog.ts',
     compatibility: 'src/compatibility.ts',
-    commands: 'src/commands.ts',
+    commands: 'src/commands/index.ts',
     coverage: 'src/coverage.ts',
     coordinates: 'src/coordinates/index.ts',
     gameboard: 'src/gameboard.ts',
