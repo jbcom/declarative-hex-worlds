@@ -77,7 +77,6 @@ export type SimpleRpgGuidePublicApiExerciseMode =
   | 'fixed-gameplay'
   | 'seeded-generation'
   | 'packaged-scenario'
-  | 'catalog-contract'
   | 'executable-smoke'
   | 'blueprint-recipe'
   | 'manifest-package'
@@ -938,7 +937,6 @@ function countExerciseModes(
     'fixed-gameplay': 0,
     'seeded-generation': 0,
     'packaged-scenario': 0,
-    'catalog-contract': 0,
     'executable-smoke': 0,
     'blueprint-recipe': 0,
     'manifest-package': 0,

@@ -322,7 +322,6 @@ describe('published recipe examples', () => {
     expect(summary.missingGuidePublicApis).toEqual([]);
     expect(summary.staleGuidePublicApis).toEqual([]);
     expect(summary.guidePublicApiExerciseModes['fixed-gameplay']).toBeGreaterThan(20);
-    expect(summary.guidePublicApiExerciseModes['catalog-contract']).toBe(0);
     expect(summary.guidePublicApiExerciseModes['executable-smoke']).toBe(40);
     expect(summary.finalActorTiles.player).toBe('2,1');
     expect(summary.finalActorTiles.elder).toBe('2,1');
