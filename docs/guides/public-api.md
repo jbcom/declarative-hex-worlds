@@ -1,366 +1,123 @@
-# Public API Guide
+---
+title: Public API tier table
+updated: 2026-05-26
+status: current
+domain: technical
+---
 
-The package is a board runtime, not a file listing for GLTF assets. Most games
-should flow through the same layers:
+# Public API tier table
 
-1. Load a manifest or app-local manifest bundle.
-2. Build a `GameboardPlan` from a recipe, scenario, or seeded board request.
-3. Validate assets, footprints, adjacency, spawn groups, patrol routes, and
-   scenario references before rendering.
-4. Instantiate a Koota runtime when live actors, quests, movement, systems, or
-   mutations are needed.
-5. Project the runtime into Three.js, React, a custom renderer, or another ECS.
+`@jbcom/medieval-hexagon-gameboard` publishes one umbrella entry plus a wide
+set of subpath exports. **Every subpath stays supported through 1.0** — this
+is an asset-bundled library where mod authors, custom-renderer builders, and
+data-inspection tooling all have legitimate reasons to reach internals.
 
-## Subpaths
+What changes between tiers is the **stability contract**, not the
+availability. Pick the tier that matches your tolerance for breakage; the
+tooling and TSDoc tags tell you which tier a symbol belongs to.
 
-| Subpath | Use it for |
-| --- | --- |
-| `@jbcom/medieval-hexagon-gameboard` | Core manifests, seeded board creation, plan validation, selectors, and the runtime facade. |
-| `@jbcom/medieval-hexagon-gameboard/actors` | Player, NPC, enemy, prop, collision, interaction-target, and actor-selection helpers. |
-| `@jbcom/medieval-hexagon-gameboard/assets/free/*` | Published FREE GLTF, BIN, PNG, and manifest files for bundlers that need direct asset URLs. |
-| `@jbcom/medieval-hexagon-gameboard/blueprint` | High-level 2.5D board blueprints for biome percentages, mountain ranges, towns, roads, rivers, harbors, prop-cluster dressing, ramps, bridges, and showcase recipes. |
-| `@jbcom/medieval-hexagon-gameboard/catalog` | KayKit faction building ids, unit parts, prop ids, nature ids, texture names, typed asset-id constructors, public treatment metadata, extracted guide scenario metadata, scenario treatment joins, page-level scenario asset usages, render request/group queues, public API coverage joins, and coverage summaries for every FREE/EXTRA asset id. |
-| `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
-| `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit analysis, facing correction, placement recommendations, and spawn-option conversion. |
-| `@jbcom/medieval-hexagon-gameboard/coverage` | Release-readiness reports that join guide-page coverage, manifest coverage, public API treatment, visual artifacts, local references, package gate status, and SimpleRPG evidence. |
-| `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, paths, rotations, and deterministic coordinate selection. |
-| `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` | Compiled blueprint-board usage example for board-scale authoring, runtime, and interop smoke tests. |
-| `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled SimpleRPG usage example for consumer smoke tests and app reference code. |
-| `@jbcom/medieval-hexagon-gameboard/examples/*.json` | Packaged recipe, scenario, and simulation JSON examples without exposing raw TypeScript example source. |
-| `@jbcom/medieval-hexagon-gameboard/gameboard` | Neutral board plan construction, terrain stacks, roads, rivers, coasts, buildings, fortifications, construction sites, siege projectiles, prop clusters, units, serialization, and aggregate plan summaries. |
-| `@jbcom/medieval-hexagon-gameboard/grid` | Honeycomb-compatible board grids, KayKit dimensions, world/axial conversion, pathfinding, and spawn locations. |
-| `@jbcom/medieval-hexagon-gameboard/ingest` | Node/build-time source validation, FREE/EXTRA manifest generation, GLTF copying, and manifest module writing. |
-| `@jbcom/medieval-hexagon-gameboard/interop` | Neutral ECS snapshots, relation indexes/selectors, and adapter mounting for non-Koota engines. |
-| `@jbcom/medieval-hexagon-gameboard/koota` | Koota traits, relations, projections, actions, occupancy guards, and runtime placement snapshots. |
-| `@jbcom/medieval-hexagon-gameboard/layout` | Archetypes, site inspection, percentage fills, scatter slots, footprints, and seeded placement generation. |
-| `@jbcom/medieval-hexagon-gameboard/manifest/free` | The packaged FREE KayKit asset manifest. |
-| `@jbcom/medieval-hexagon-gameboard/manifest/schema` | Manifest bundle validation, lookup, URL resolution, and app-local FREE/EXTRA manifests. |
-| `@jbcom/medieval-hexagon-gameboard/movement` | Movement profiles, path requests, movement budgets, range queries, budget resets, and frame-loop stepping. |
-| `@jbcom/medieval-hexagon-gameboard/navigation` | Terrain-aware pathfinding, movement ranges, spawn-group planning, and patrol-route planning. |
-| `@jbcom/medieval-hexagon-gameboard/occupancy` | Placement footprint keys, occupancy indexes, and movement-blocking footprint semantics. |
-| `@jbcom/medieval-hexagon-gameboard/patrol` | Patrol agents and route execution inside the same movement system. |
-| `@jbcom/medieval-hexagon-gameboard/pieces` | Reusable declarations for external buildings, props, units, landmarks, and scatter assets. |
-| `@jbcom/medieval-hexagon-gameboard/projection` | Lightweight Koota world projection back into serializable gameboard plans and validation plans. |
-| `@jbcom/medieval-hexagon-gameboard/quests` | Reach, interaction, collision, and defeat quest objectives. |
-| `@jbcom/medieval-hexagon-gameboard/react` | React provider, query hooks, actions, tile-scoped actor/occupancy reads, layout/piece previews, runtime snapshots, and runtime-aware UI helpers. |
-| `@jbcom/medieval-hexagon-gameboard/recipe` | Serializable board intent for saved maps, editors, and generated plans. |
-| `@jbcom/medieval-hexagon-gameboard/registry` | Custom hex tile declarations, adjacency/stack rules, KayKit geometry analysis, and declaration application. |
-| `@jbcom/medieval-hexagon-gameboard/rules` | Seeded generation helpers, density fills, piece-fill inspection, and compatibility re-exports for generation workflows. |
-| `@jbcom/medieval-hexagon-gameboard/rule-types` | Shared validation rule config and violation types without runtime code. |
-| `@jbcom/medieval-hexagon-gameboard/runtime` | One-object game-loop facade for Koota state, actors, quests, commands, systems, pieces, scenarios, and interop. |
-| `@jbcom/medieval-hexagon-gameboard/scenario` | Recipes plus actors, spawn groups, patrols, movement, and quests. |
-| `@jbcom/medieval-hexagon-gameboard/selectors` | Guide-defined road, river, coast, edge-mask, rotation, and permutation selectors. |
-| `@jbcom/medieval-hexagon-gameboard/simulation` | Headless scenario scripts and deterministic integration-test logs. |
-| `@jbcom/medieval-hexagon-gameboard/systems` | Game-loop helpers for commands, patrols, movement, quests, and target dispatch. |
-| `@jbcom/medieval-hexagon-gameboard/three` | Asset URL resolution, GLTF loading, transform sync, raycast lookup, and animation clip metadata. |
-| `@jbcom/medieval-hexagon-gameboard/types` | Shared manifest, edition, category, faction, texture, coordinate, and shape types plus runtime constants. |
-| `@jbcom/medieval-hexagon-gameboard/validation` | Koota-free plan, declaration, stack, adjacency, asset, recipe, and scenario validation boundaries. |
-| `@jbcom/medieval-hexagon-gameboard/world-rules` | Lightweight Koota runtime predicates and validation helpers without seeded generation imports. |
+## Tier 1 — Stable
 
-## Plan Versus Runtime
+Semver-strict. Breaking changes only on major versions, always with a
+migration guide.
 
-`GameboardPlan` is the portable format. It is the right object for:
+| Subpath | Purpose |
+|---|---|
+| `.` (umbrella) | Default entry. Re-exports the consumer-facing surface from every tier-1 sub-package. |
+| `./react` | React bindings. First-class (NOT peer-gated). Hooks, providers, components. |
+| `./three` | Three.js bindings. First-class (NOT peer-gated). Loaders, disposers, scene helpers. |
+| `./cli` | CLI entry (also installed as the `medieval-hexagon-gameboard` bin). |
+| `./manifest/schema` | `MedievalHexagonManifest` shape + validators. |
+| `./manifest/free` | Pre-baked FREE-edition manifest metadata. |
+| `./scenario` | `GameboardScenario`, blueprint/recipe/catalog/registry. |
+| `./blueprint` | `MedievalGameboardBlueprintOptions` and procedural board generation. |
+| `./gameboard` | Board lifecycle, occupancy, navigation. |
+| `./recipe` | Recipe DSL. |
+| `./coverage` | Release-readiness coverage ledger surface. |
+| `./compatibility` | Manifest/version compatibility helpers. |
+| `./errors` | `GameboardError` + typed subclasses (Epic D2). |
+| `./traits` | Single trait umbrella (all `trait()` declarations). |
+| `./types` | Shared primitive types + branded IDs (`HexKey`, `ActorId`, etc.). |
+| `./examples/*.json` | Bundled example scenario JSON. |
 
-- Saved maps.
-- AI-authored board JSON.
-- build-time validation.
-- renderer input.
-- interop with engines that do not use Koota.
+TSDoc tag: `@public`.
 
-The Koota runtime is the live simulation surface. Use it when a game needs:
+## Tier 2 — Supported-for-extension
 
-- actors and actor-aware movement.
-- runtime placement spawn, move, update, or removal.
-- footprint occupancy that changes during play.
-- patrols, quests, commands, or frame-loop systems.
-- live snapshots for another ECS.
+Semver-strict for what's documented, but the surface contract is smaller
+than tier 1. Mod authors and custom-renderer consumers can depend on these;
+breaking changes still require a major + migration guide but the "what's
+breaking" frame may be narrower (a specific function signature changing
+rather than the whole module shape).
 
-```ts
-import {
-  createGameboardRuntimeFromScenario,
-} from '@jbcom/medieval-hexagon-gameboard';
-import simpleRpgScenario from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json';
+| Subpath | Purpose |
+|---|---|
+| `./koota` | World bootstrap, trait sets, query patterns. |
+| `./runtime` | High-level runtime composition. |
+| `./actors` | Actor surface + queries. |
+| `./movement` | Movement-agent surface. |
+| `./patrol` | Patrol-route surface. |
+| `./quests` | Quest surface. |
+| `./pieces` | Piece declarations + placement helpers. |
+| `./projection` | World-space placement projection. |
+| `./layout` | Seeded board layout generation. |
+| `./grid` | Honeycomb-grid wrappers + hex algebra. |
+| `./coordinates` | Hex coordinate algebra (umbrella over grid/projection/layout). |
+| `./validation` | Plan-level validators. |
+| `./rules` | Rule definitions + evaluation. |
 
-const runtime = createGameboardRuntimeFromScenario(simpleRpgScenario);
+TSDoc tag: `@public` (no distinct tag — tier 2 is documented here in the
+table, not on every symbol).
 
-const startTile = runtime.inspectTile('0,0');
-const nearbyThreats = runtime.selectActors({
-  sourceActor: 'player',
-  hostileToSource: true,
-  radius: 4,
-});
-const planSummary = runtime.summarizePlan();
-```
+## Tier 3 — Internal-but-exposed
 
-Use `summarizeGameboardPlan(plan)` or `runtime.summarizePlan()` for editor and
-CI checks that need counts by terrain, texture set, elevation, tile tag,
-placement kind/layer, semantic feature, asset id, and local-only asset usage.
-That summary is the package-level way to verify a fixed or seeded board actually
-contains the roads, rivers, coasts, stacks, towns, harbors, props, units, and
-custom pieces a game or visual test expects.
+Semver-**permissive**: minor versions may change these surfaces in
+non-trivial ways. Consumers who pin tier-3 imports accept this tradeoff.
+Useful for very-deep modding, debugging, and tools that need to inspect
+or hook the implementation.
 
-Use `summarizeGameboardCoverage()` from `./coverage` when a release, docs pass,
-or external dashboard needs the complete evidence ledger: all 19 guide pages,
-FREE manifest coverage, local-only EXTRA separation, public API and role
-inverse indexes, browser screenshots, promoted showcase artifacts, local
-reference pack availability, package gate status, and optional SimpleRPG public
-API proof. The CLI exposes the same report through `coverage` and
-`doctor --coverage`, populating `simpleRpgEvidence` with the 74/74 guide-facing
-API representation, 40 directly executed helper APIs, 404 KayKit public
-treatment records, all 19 guide pages, active evidence-mode counts, and a
-per-public-API exercise matrix that maps each helper to SimpleRPG evidence,
-guide pages, asset counts, and visual artifacts.
+| Subpath | Purpose |
+|---|---|
+| `./commands` | Internal command-factory plumbing. |
+| `./selectors` | Per-render shape pickers used by React/Three bindings. |
+| `./systems` | Tickable system functions. |
+| `./world-rules` | Runtime rule-evaluation system. |
+| `./rule-types` | Rule typed shapes (re-exported from `./rules` — prefer that). |
+| `./interop` | Schema migrations + ECS adapter glue. |
+| `./ingest` | Source-tree walker + manifest emission (precursor to bootstrap). |
+| `./registry` | Tile/piece registries (re-exported from `./scenario`). |
+| `./catalog` | KayKit asset catalog (re-exported from `./scenario`). |
 
-## Board Blueprints
+TSDoc tag: `@internal` (still exported, still typed, still tested — just
+flagged so consumers see the support tier inline).
 
-Use `./blueprint` when a game, editor, or agent should describe the whole board
-instead of every tile. `createMedievalGameboardBlueprintRecipe` compiles
-water/coast fill, stacked mountain ranges, towns, road networks, rivers,
-harbors, semantic prop-cluster dressing, biome texture percentages, transition
-tiles, elevation ramps, sloped roads, bridges, and optional density fills into
-ordinary recipe JSON.
-`createMedievalGameboardBlueprintPlan` immediately compiles that recipe to a
-`GameboardPlan`; `createMedievalGameboardBlueprintScenario` wraps the generated
-recipe with spawn groups, patrol routes, actors, movement agents, and quests;
-`createMedievalGameboardWorldFromBlueprint` instantiates that scenario into a
-ready Koota runtime. The CLI can emit the generated scenario and its neutral
-ECS interop snapshot in the same compile step, so engines that do not use Koota
-can still mount the board, spawn groups, patrol routes, actors, and quests from
-one blueprint file. `inspectMedievalGameboardBlueprint` and
-`inspectMedievalGameboardBlueprintScenario` return counts, generated plans,
-spawn-group route diagnostics, patrol-route diagnostics, and validation results
-for authoring UIs and CI.
-The compiled
-`@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` export is the
-packaged consumer smoke for this flow.
+## Why the three tiers?
 
-```ts
-import {
-  createMedievalGameboardBlueprintScenario,
-  createMedievalGameboardWorldFromBlueprint,
-} from '@jbcom/medieval-hexagon-gameboard/blueprint';
+Phase 1's architecture review (F1) noted that the 37+ subpath exports
+permanently pin every internal module as a semver surface point. The
+original recommendation was to demote ~10 subpaths and force everything
+through the umbrella.
 
-const blueprint = {
-  scenarioId: 'campaign-01:intro',
-  seed: 'campaign-01',
-  shape: { kind: 'rectangle', width: 12, height: 9 },
-  towns: [{ center: { q: 4, r: 4 }, includeWalls: true }],
-  harbors: [{ at: { q: 6, r: 7 }, facing: 1, kind: 'shipyard', roadTo: { q: 4, r: 4 } }],
-  spawnGroups: {
-    groups: [
-      { id: 'party', count: 1, terrain: ['grass', 'road', 'coast'] },
-      { id: 'raiders', count: 2, terrain: ['forest', 'hill', 'grass'], minDistanceFromGroups: 4, pathToGroups: ['party'] },
-    ],
-  },
-  actors: [
-    { actorId: 'player', actorKind: 'player', spawnGroupId: 'party', assetId: 'flag_blue', kind: 'unit' },
-    { actorId: 'raider', actorKind: 'enemy', hostile: true, spawnGroupId: 'raiders', assetId: 'flag_red', kind: 'unit' },
-  ],
-};
+Per PRD §4 Epic D1 (re-scoped), that was rejected: this library bundles
+the FREE KayKit pack so consumers get a working game out-of-box, and the
+"out-of-box" promise extends to consumers who want to reach internals
+for legitimate reasons (custom renderers, modding, data inspection). The
+right tradeoff is **documented tiering**, not gated demotion.
 
-const scenario = createMedievalGameboardBlueprintScenario(blueprint);
-const runtime = createMedievalGameboardWorldFromBlueprint(blueprint);
-```
+If a tier-3 surface stabilizes (a custom-renderer mod has been depending
+on `./selectors` for two minor versions without breakage), it can be
+promoted to tier 2 via a CHANGELOG note. The reverse (demoting a tier-1
+surface) is a major-version event.
 
-Blueprints accept `propClusterDressing` for board-scale camps, resource caches,
-worksites, training yards, stable yards, and harbor support clusters. Generated
-clusters follow authored towns and harbors; explicit `clusters` entries let
-editors or agents pin exact anchors while still compiling to ordinary
-`addPropCluster` recipe actions.
+## Trait identity invariant
 
-![FREE blueprint board with stacked mountain range, town, roads, coast, and harbor](../assets/showcases/free-blueprint-builder-showcase.png)
+Regardless of tier, every `trait()` declaration is exported from **exactly
+one module**. `tsup`'s `splitting: true` keeps shared chunks stable so
+that two consumers importing `GameboardActor` from different subpaths
+(e.g. one via `./actors`, another via the umbrella) get the SAME trait
+identity — which is what koota's `useQuery` reference-equality lookups
+depend on.
 
-![EXTRA blueprint board with biome transitions, harbor, town, units, and density props](../assets/showcases/extra-blueprint-biome-transition-showcase.png)
-
-![All 19 guide pages expressed as public scenarios](../assets/showcases/free-guide-scenarios-by-extracted-page.png)
-
-![Guide roads, rivers, coasts, SimpleRPG, and local third-party compatibility are promoted to committed showcase assets](../assets/showcases/simple-rpg-local-third-party-assets.png)
-
-The browser suite renders `free-blueprint-builder-showcase.png` and
-`extra-blueprint-biome-transition-showcase.png` so the public API proves board
-composition visually, not just through unit assertions.
-
-For fixed maps, use `GameboardBuilder.addElevationRamp` or the serializable
-`addElevationRamp` recipe action when an elevation change needs an explicit
-sloped tile, and use `GameboardBuilder.addBridge` or recipe `addBridge` when a
-road crossing needs a specific bridge variant instead of relying on blueprint
-inference. Use `GameboardBuilder.addFortification`, `addConstructionSite`, and
-`addSiegeProjectile` or their recipe actions for authored walls, fences, gates,
-ruins, scaffolding, staged construction, and neutral catapult projectiles.
-Use `GameboardBuilder.addPropCluster` or recipe `addPropCluster` when authored
-or generated prop dressing needs single-hex stacks, adjacent spreads,
-density-controlled fill, FREE defaults, and local EXTRA opt-in.
-
-The CLI exposes the same compiler for agents, editors, and build pipelines:
-
-```bash
-medieval-hexagon-gameboard blueprint \
-  --blueprint examples/blueprint-board.json \
-  --outRecipe campaign.recipe.json \
-  --outPlan campaign.plan.json \
-  --outScenario campaign.scenario.json \
-  --outScenarioInspection campaign.scenario-inspection.json \
-  --outInterop campaign.interop.json \
-  --out campaign.inspection.json \
-  --allowUnknownAssets
-
-medieval-hexagon-gameboard summarize-plan \
-  --blueprint examples/blueprint-board.json \
-  --out campaign.summary.json \
-  --outPlan campaign.summary.plan.json \
-  --allowUnknownAssets
-
-medieval-hexagon-gameboard summarize-scenario \
-  --scenario examples/simple-rpg-scenario.json \
-  --out simple-rpg.scenario-summary.json \
-  --allowUnknownAssets
-```
-
-## Runtime Facade
-
-Use `./runtime` when application code wants one game-loop object instead of
-coordinating individual subpaths. The facade keeps the Koota world available
-while exposing safe helpers for the common loops:
-
-- inspect a tile or neighborhood.
-- select or target actors.
-- preview and execute commands.
-- preview navigation, occupancy, spawn groups, and patrol routes from live
-  runtime state.
-- inspect placement occupancy and spawn, update, move, or remove runtime
-  placements.
-- register, update, find, and read actor state attached to placements, including
-  tile-scoped actor reads for UI and collision probes.
-- spawn, find, read, and advance quests against live actor state.
-- inspect layout sites, preview generated placement/fill options, and spawn
-  declared pieces or generated layout fills.
-- advance patrol, movement, command, actor-target, and quest systems.
-- project the board to a `GameboardPlan`.
-- emit or mount interop snapshots.
-
-This is the recommended boundary for a game UI, editor preview, or integration
-test. Lower-level subpaths stay public for engines that want tighter control.
-See [Runtime Integration](./runtime-integration.md) for the scene ownership,
-tick-loop, React, external ECS, and integration-test patterns.
-
-## Custom Packs
-
-External assets should be modeled as declarations before they are placed. This
-keeps compatibility warnings, scale, footprint, source attribution, and default
-placement criteria reusable.
-
-```ts
-import { analyzeExternalAssetCompatibility } from '@jbcom/medieval-hexagon-gameboard/compatibility';
-import { createGameboardLayoutArchetypeRegistry } from '@jbcom/medieval-hexagon-gameboard/layout';
-import { declareGameboardPieceFromCompatibility } from '@jbcom/medieval-hexagon-gameboard/pieces';
-
-const report = analyzeExternalAssetCompatibility({
-  id: 'kenney-round-tower',
-  sourcePack: 'Kenney Castle Kit',
-  intendedRole: 'tile',
-  bounds: {
-    min: [-1.15, 0, -1.15],
-    max: [1.15, 4.8, 1.15],
-    size: [2.3, 4.8, 2.3],
-  },
-});
-
-const archetypes = createGameboardLayoutArchetypeRegistry({
-  'round-tower': {
-    id: 'round-tower',
-    label: 'Round Tower',
-    kind: 'structure',
-    criteria: {
-      terrain: ['grass', 'road'],
-      footprint: { kind: 'adjacent', edges: [0, 1], includeCenter: true },
-      allowOccupied: false,
-    },
-  },
-});
-
-const tower = declareGameboardPieceFromCompatibility(report, {
-  role: 'landmark',
-  archetype: 'round-tower',
-  metadata: { sourceUrl: '/assets/kenney/round-tower.glb' },
-});
-```
-
-If an external mesh looks unlike a KayKit hex tile, the compatibility report
-should not force it into tile rules. Prefer declaring it as a prop, landmark,
-building, tree, scatter asset, or unit with explicit placement criteria.
-
-## Guide Coverage Queries
-
-Use `./catalog` when a tool or test needs to prove a guide image has a public
-API route. `listKayKitGuideScenarioAssetUsages()` is the renderer-facing query:
-it returns repeated page-level asset occurrences with labels, captions,
-source paths, categories, roles, placement kinds, edition flags, docs, and
-visual artifacts. `listKayKitGuideScenarioAssetRenderRequests()` adds optional
-URL/base-path resolution for contact sheets and engine preload queues, while
-`listKayKitGuideScenarioAssetRenderGroups()` preserves the guide-page grouping
-for screenshot review and docs tooling.
-
-```ts
-import {
-  listKayKitGuideScenarioAssetRenderGroups,
-  listKayKitGuideScenarioAssetRenderRequests,
-  listKayKitGuideScenarioAssetUsages,
-  listKayKitGuideScenarioAssetUsagesForScenario,
-} from '@jbcom/medieval-hexagon-gameboard/catalog';
-
-const freeGuideContactSheet = listKayKitGuideScenarioAssetUsages({
-  minimumEdition: 'free',
-});
-
-const stableWorkshopAndUnitPages = listKayKitGuideScenarioAssetUsages({
-  pages: [16, 17, 18],
-});
-
-const extraRenderQueue = listKayKitGuideScenarioAssetRenderRequests({
-  pages: [16, 17, 18],
-  assetBaseUrl: '/local/kaykit-extra',
-});
-
-const pageGroups = listKayKitGuideScenarioAssetRenderGroups({
-  minimumEdition: 'free',
-  assetBaseUrl: '/assets/free',
-});
-
-const unitPage = listKayKitGuideScenarioAssetUsagesForScenario('page-14-units');
-```
-
-The same occurrence rows are available from the CLI for build-time renderer
-queues and docs audits:
-
-```bash
-medieval-hexagon-gameboard guide-usages --minimumEdition free --json
-medieval-hexagon-gameboard guide-usages --page 16,17,18 --json
-medieval-hexagon-gameboard guide-usages --publicApi GameboardBuilder.addPropCluster --json
-medieval-hexagon-gameboard guide-render-requests --page 16,17,18 --assetBaseUrl /assets/extra --includeGroups --out /tmp/kaykit-guide-render-requests.json
-```
-
-Use `listKayKitGuideAssetCoverages()` when starting from a manifest asset id,
-`listKayKitGuideRoleCoverages()` when starting from a gameplay role, and
-`listKayKitGuidePublicApiCoverages()` when starting from a builder, selector, or
-runtime API string.
-
-## Validation Boundaries
-
-| Boundary | Public helper |
-| --- | --- |
-| Manifest shape and stale indexes | `inspectMedievalHexagonManifest` |
-| Asset exists but lacks an intentional public API route | `listKayKitAssetPublicTreatments`, `describeKayKitAssetTreatment` |
-| Extracted guide page, asset id, or gameplay role lacks asset/API/docs/visual coverage | `listKayKitGuideScenarios`, `describeKayKitGuideScenario`, `listKayKitGuideScenarioTreatments`, `listKayKitGuideScenarioAssetUsages`, `listKayKitGuideScenarioAssetUsagesForScenario`, `listKayKitGuideScenarioAssetRenderRequests`, `listKayKitGuideScenarioAssetRenderGroups`, `describeKayKitGuideScenarioCoverage`, `listKayKitGuideAssetCoverages`, `describeKayKitGuideAssetCoverage`, `listKayKitGuideRoleCoverages`, `describeKayKitGuideRoleCoverage`, `listKayKitGuidePublicApiCoverages`, `describeKayKitGuidePublicApiCoverage`, `summarizeKayKitGuideCoverage`, `renderKayKitGuideScenarioCoverageMarkdown` |
-| Packaged or app-local manifest lookup | `createManifestBundle`, `getManifestAsset` |
-| Missing assets in plans, recipes, and scenarios | `validateGameboardPlan`, recipe/scenario validation helpers |
-| Tile declarations and neutral plan rules | `validateGameboardPlan` |
-| Koota world rules | `validateGameboardRules` |
-| Layout candidate analysis | `inspectGameboardLayoutSites`, `analyzeGameboardLayoutFill` |
-| Piece placement previews | `inspectGameboardPiecePlacement` |
-| Runtime footprint blockers | `inspectGameboardPlacementOccupancy` |
-| Actor collision and interactions | `inspectGameboardActorCollision`, `inspectGameboardInteractionTarget` |
-| Scenario scripts | `validateGameboardScenarioSimulationScript` |
-
-Use the earliest boundary that has enough information. For example, validate a
-scenario before rendering, then use runtime occupancy guards for mutations that
-depend on the current live board.
+Don't try to "optimize" by re-declaring a trait somewhere else. Don't
+fork the trait file into a "local" copy. The trait-identity test (Epic
+E4, pending) pins this.
