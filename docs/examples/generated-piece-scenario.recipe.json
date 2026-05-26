@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "1.0.0",
+  "options": {
+    "seed": "docs-generated-piece-scenario",
+    "shape": {
+      "kind": "rectangle",
+      "width": 6,
+      "height": 5
+    }
+  },
+  "steps": [
+    {
+      "action": "addFactionBuilding",
+      "at": { "q": 3, "r": 1 },
+      "faction": "green",
+      "building": "market"
+    },
+    {
+      "action": "addRoadPath",
+      "path": [
+        { "q": 1, "r": 2 },
+        { "q": 2, "r": 2 },
+        { "q": 3, "r": 1 },
+        { "q": 4, "r": 1 }
+      ]
+    },
+    {
+      "action": "addMountainStack",
+      "at": { "q": 0, "r": 0 },
+      "height": 2,
+      "variant": "B",
+      "withTrees": true
+    },
+    {
+      "action": "addHill",
+      "at": { "q": 5, "r": 3 },
+      "variant": "A",
+      "withTrees": true
+    }
+  ],
+  "generation": {
+    "layoutFillSeed": "docs-generated-piece-scenario:layout",
+    "layoutArchetypes": {
+      "camp-supply": {
+        "id": "camp-supply",
+        "label": "Camp Supply",
+        "kind": "decoration",
+        "layer": "feature",
+        "criteria": {
+          "terrain": ["grass", "road", "coast"],
+          "allowOccupied": true,
+          "maxPerTile": 2,
+          "slotGroup": "camp-supply",
+          "prefer": [
+            { "kind": "near-placement-kind", "placementKind": "structure", "radius": 4, "weight": 1 }
+          ]
+        },
+        "metadata": {
+          "exampleArchetype": "camp-supply"
+        }
+      }
+    },
+    "pieceDeclarations": [
+      {
+        "id": "docs-pine-scatter",
+        "assetId": "tree_single_A",
+        "source": "KayKit Medieval Hexagon FREE",
+        "role": "tree",
+        "requiresExtra": false,
+        "tags": ["docs", "scenery"],
+        "criteria": {
+          "terrain": ["grass", "hill", "forest"],
+          "allowOccupied": true,
+          "maxPerTile": 3,
+          "prefer": [
+            { "kind": "near-placement-kind", "placementKind": "structure", "radius": 4, "weight": 0.5 }
+          ]
+        },
+        "metadata": {
+          "example": "generated-piece-scenario"
+        }
+      },
+      {
+        "id": "docs-supply-scatter",
+        "assetId": "crate_A_small",
+        "source": "KayKit Medieval Hexagon FREE",
+        "role": "custom",
+        "archetype": "camp-supply",
+        "requiresExtra": false,
+        "tags": ["docs", "loot"],
+        "metadata": {
+          "example": "generated-piece-scenario"
+        }
+      }
+    ],
+    "pieceFills": [
+      {
+        "selection": { "tags": ["docs"] },
+        "count": 2,
+        "ruleIdPrefix": "docs",
+        "idPrefix": "docs:piece"
+      }
+    ],
+    "layoutFills": [
+      {
+        "id": "docs-banner",
+        "assetId": "flag_green",
+        "archetype": "prop",
+        "count": 1,
+        "idPrefix": "docs:banner",
+        "metadata": {
+          "example": "generated-piece-scenario",
+          "generatedBy": "layoutFill"
+        }
+      }
+    ]
+  }
+}

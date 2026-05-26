@@ -1,0 +1,99 @@
+import { describe, expect, it } from 'vitest';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { createGameboardInteropSnapshot } from '../../src/interop/index';
+import { freeManifest } from '../../src/manifest/free';
+import {
+  analyzeHexTileRegistry,
+  analyzeTileGeometry,
+  applyTileDeclaration,
+  createHexTileRegistry,
+  createHexTileRegistryFromManifest,
+} from '../../src/scenario/registry';
+
+describe('tile registry and ECS interop', () => {
+  it('builds declarations from the FREE manifest with inferred adjacency channels', () => {
+    const registry = createHexTileRegistryFromManifest(freeManifest);
+
+    expect(registry.byAssetId.hex_grass.role).toBe('base');
+    expect(registry.byAssetId.hex_road_A.edges).toMatchObject([{ channel: 'road', mask: 0b001001 }]);
+    expect(registry.byAssetId.hex_river_A_waterless.edges).toMatchObject([{ channel: 'river', mask: 0b001001 }]);
+    expect(registry.byAssetId.hex_coast_A.edges).toMatchObject([{ channel: 'coast', mask: 0b000001 }]);
+  });
+
+  it('analyzes tile bounds and warns on suspicious custom geometry', () => {
+    const registry = createHexTileRegistry([
+      {
+        id: 'custom_hex_lava',
+        assetId: 'custom_hex_lava',
+        role: 'base',
+        terrain: 'lava',
+        bounds: {
+          min: [-3, 0, -1],
+          max: [1, 0.5, 1],
+          size: [4, 0.5, 2],
+        },
+      },
+    ]);
+    const analysis = analyzeHexTileRegistry(registry);
+    const tile = analyzeTileGeometry(registry.byId.custom_hex_lava);
+
+    expect(analysis.analyzedCount).toBe(1);
+    expect(tile.recommendedScale).toBeGreaterThan(0);
+    expect(tile.warnings.some((warning) => warning.includes('ratio'))).toBe(true);
+    expect(tile.warnings.some((warning) => warning.includes('off-center'))).toBe(true);
+  });
+
+  it('applies registered custom base tiles and exposes neutral ECS records', () => {
+    const registry = createHexTileRegistry([
+      {
+        id: 'custom_hex_lava',
+        assetId: 'custom_hex_lava',
+        role: 'base',
+        terrain: 'lava',
+        tags: ['hot', 'blocks-water'],
+      },
+      {
+        id: 'custom_lava_bridge',
+        assetId: 'custom_lava_bridge',
+        role: 'road',
+        edges: { road: [0, 3] },
+      },
+    ]);
+    const builder = createGameboardBuilder({ seed: 'custom', shape: { kind: 'rectangle', width: 3, height: 2 } });
+    applyTileDeclaration(builder, registry, { at: { q: 1, r: 0 }, declaration: 'custom_hex_lava' });
+    applyTileDeclaration(builder, registry, { at: { q: 1, r: 0 }, declaration: 'custom_lava_bridge' });
+    const plan = builder.build();
+    const tile = plan.tiles.find((candidate) => candidate.key === '1,0');
+    const snapshot = createGameboardInteropSnapshot(plan, {
+      spawnLocations: { count: 2, seed: 'interop', minDistance: 1 },
+    });
+
+    expect(tile).toMatchObject({ terrain: 'lava', baseAssetId: 'custom_hex_lava' });
+    expect(tile?.tags).toContain('hot');
+    expect(plan.placements.some((placement) => placement.assetId === 'custom_lava_bridge')).toBe(true);
+    expect(snapshot.entities.some((entity) => entity.kind === 'tile' && entity.id === 'tile:1,0')).toBe(true);
+    expect(snapshot.adjacency.length).toBeGreaterThan(0);
+    expect(snapshot.spawnLocations).toHaveLength(2);
+  });
+
+  it('rotates built-in edge masks when applying registered base tile declarations', () => {
+    const registry = createHexTileRegistry([
+      {
+        id: 'custom_hex_road',
+        assetId: 'custom_hex_road',
+        role: 'base',
+        terrain: 'road',
+        edges: { road: [0] },
+      },
+    ]);
+    const builder = createGameboardBuilder({ seed: 'rotated-base-edge', shape: { kind: 'rectangle', width: 2, height: 1 } });
+    applyTileDeclaration(builder, registry, {
+      at: { q: 0, r: 0 },
+      declaration: 'custom_hex_road',
+      rotationSteps: 3,
+    });
+    const tile = builder.build().tiles.find((candidate) => candidate.key === '0,0');
+
+    expect(tile?.roadEdges).toBe(1 << 3);
+  });
+});

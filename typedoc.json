@@ -1,0 +1,49 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "tsconfig": "./tsconfig.json",
+  "entryPoints": [
+    "src/index.ts",
+    "src/actors/index.ts",
+    "src/coordinates/index.ts",
+    "src/commands/index.ts",
+    "src/errors/index.ts",
+    "src/gameboard/index.ts",
+    "src/ingest/index.ts",
+    "src/interop/index.ts",
+    "src/koota/index.ts",
+    "src/movement/index.ts",
+    "src/patrol/index.ts",
+    "src/pieces/index.ts",
+    "src/quests/index.ts",
+    "src/react/index.ts",
+    "src/rules/index.ts",
+    "src/runtime/index.ts",
+    "src/scenario/index.ts",
+    "src/selectors/index.ts",
+    "src/simulation/index.ts",
+    "src/systems/index.ts",
+    "src/three/index.ts",
+    "src/traits/index.ts",
+    "src/types/index.ts",
+    "src/manifest/free.ts",
+    "src/manifest/schema.ts",
+    "examples/blueprint-board-usage.ts"
+  ],
+  "entryPointStrategy": "expand",
+  "out": "docs/api",
+  "name": "Medieval Hexagon Gameboard",
+  "readme": "README.md",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "categorizeByGroup": true,
+  "navigationLinks": {
+    "GitHub": "https://github.com/jbcom/medieval-hexagon-gameboard"
+  },
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": false
+  }
+}

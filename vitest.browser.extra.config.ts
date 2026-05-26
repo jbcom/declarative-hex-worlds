@@ -1,0 +1,52 @@
+import { defineConfig } from 'vitest/config';
+import { playwright } from '@vitest/browser-playwright';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const packageRoot = dirname(fileURLToPath(import.meta.url));
+const extraSourceRoot = resolve(
+  packageRoot,
+  '../../references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA/Assets/gltf'
+);
+const extraTextureRoot = resolve(packageRoot, '../../references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA/Textures');
+
+export default defineConfig({
+  optimizeDeps: {
+    include: ['koota'],
+  },
+  resolve: {
+    alias: [
+      {
+        find: /^@jbcom\/medieval-hexagon-gameboard$/,
+        replacement: resolve(__dirname, 'src/index.ts'),
+      },
+      {
+        find: /^@jbcom\/medieval-hexagon-gameboard\/(.+)$/,
+        replacement: resolve(__dirname, 'src/$1.ts'),
+      },
+    ],
+  },
+  define: {
+    __EXTRA_SOURCE_ROOT__: JSON.stringify(extraSourceRoot),
+    __EXTRA_TEXTURE_ROOT__: JSON.stringify(extraTextureRoot),
+  },
+  server: {
+    fs: {
+      allow: ['../..'],
+    },
+  },
+  test: {
+    browser: {
+      enabled: true,
+      provider: playwright(),
+      instances: [
+        {
+          browser: 'chromium',
+        },
+      ],
+      screenshotFailures: false,
+    },
+    include: ['tests/browser/extra-visual.test.ts'],
+    testTimeout: 120_000,
+  },
+});

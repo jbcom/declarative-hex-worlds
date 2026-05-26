@@ -1,0 +1,263 @@
+{
+  "schemaVersion": "1.0.0",
+  "defaultSourceActor": "player",
+  "defaultCommandHandlerOptions": {
+    "removeTargetActor": {
+      "handlerId": "simple-rpg:defeat-target",
+      "requireHostile": true
+    },
+    "markTargetActorInteracted": {
+      "handlerId": "simple-rpg:greet-actor",
+      "interactedField": "greeted",
+      "sourceActorField": "greetedBy",
+      "metadata": { "questSignal": "elder-greeted" }
+    }
+  },
+  "steps": [
+    {
+      "action": "spawn-placement",
+      "id": "spawn-quest-marker",
+      "placement": {
+        "id": "quest-marker",
+        "at": "2,1",
+        "assetId": "flag_yellow",
+        "kind": "prop",
+        "metadata": { "role": "quest-marker" }
+      },
+      "systems": false
+    },
+    {
+      "action": "update-placement",
+      "id": "arm-quest-marker",
+      "placementId": "quest-marker",
+      "placement": {
+        "assetId": "flag_green",
+        "metadata": { "role": "quest-marker", "state": "armed" }
+      },
+      "systems": false
+    },
+    {
+      "action": "run-systems",
+      "id": "run-bandit-patrol",
+      "systems": {
+        "patrols": {
+          "movement": { "profile": "ground" }
+        },
+        "movement": { "steps": 10 },
+        "quests": false
+      }
+    },
+    {
+      "action": "run-systems",
+      "id": "evaluate-starting-quest-state",
+      "systems": {
+        "patrols": false,
+        "movement": false,
+        "quests": { "step": 1 }
+      }
+    },
+    {
+      "action": "update-actor",
+      "id": "flag-bandit-alert",
+      "actorId": "bandit",
+      "actor": {
+        "actorMetadata": { "state": "alert" },
+        "tags": ["quest-target"]
+      },
+      "placement": {
+        "metadata": { "encounter": "intro-bandit" }
+      },
+      "systems": false
+    },
+    {
+      "action": "inspect-actor-targets",
+      "id": "scan-hostiles",
+      "sourceActor": "player",
+      "targeting": {
+        "hostileToSource": true,
+        "approach": "nearest",
+        "includeUnreachable": true
+      }
+    },
+    {
+      "action": "actor-target-command",
+      "id": "target-bandit",
+      "targetActorId": "bandit",
+      "requireReachable": true,
+      "targeting": {
+        "hostileToSource": true,
+        "approach": "nearest",
+        "maxPathCost": 4
+      },
+      "handler": "remove-target-actor",
+      "systems": {
+        "patrols": false,
+        "movement": false,
+        "quests": { "step": 2 }
+      }
+    },
+    {
+      "action": "command",
+      "id": "walk-to-elder",
+      "target": "2,1",
+      "systems": {
+        "patrols": false,
+        "movement": { "steps": 10 },
+        "quests": { "step": 3, "advanceThroughCompleted": false }
+      }
+    },
+    {
+      "action": "command",
+      "id": "greet-elder",
+      "target": { "actorId": "elder" },
+      "handler": "mark-target-interacted",
+      "systems": {
+        "patrols": false,
+        "movement": false,
+        "quests": { "step": 4 }
+      }
+    }
+  ],
+  "expectations": {
+    "eventTypes": [
+      "patrol-move-requested",
+      "movement-stepped",
+      "movement-completed",
+      "quest-advanced",
+      "command-handled",
+      "quest-advanced",
+      "movement-requested",
+      "movement-stepped",
+      "movement-completed",
+      "quest-advanced",
+      "command-handled",
+      "quest-advanced",
+      "quest-completed"
+    ],
+    "commands": [
+      {
+        "stepId": "target-bandit",
+        "kind": "attack-actor",
+        "intent": "attack",
+        "status": "handled",
+        "handlerId": "simple-rpg:defeat-target",
+        "handlerStatus": "handled",
+        "effectTypes": ["actor-removed"],
+        "canExecute": true,
+        "actorId": "bandit",
+        "sourceActorId": "player",
+        "targetKind": "actor",
+        "targetActorId": "bandit"
+      },
+      {
+        "stepId": "walk-to-elder",
+        "kind": "move",
+        "intent": "move",
+        "status": "requested-move",
+        "canExecute": true,
+        "tileKey": "2,1",
+        "sourceActorId": "player",
+        "targetKind": "tile",
+        "targetTileKey": "2,1"
+      },
+      {
+        "stepId": "greet-elder",
+        "kind": "interact-actor",
+        "intent": "interact",
+        "status": "handled",
+        "handlerId": "simple-rpg:greet-actor",
+        "handlerStatus": "handled",
+        "effectTypes": ["actor-updated"],
+        "canExecute": true,
+        "actorId": "elder",
+        "sourceActorId": "player",
+        "targetKind": "actor",
+        "targetActorId": "elder"
+      }
+    ],
+    "actorTargets": [
+      {
+        "stepId": "scan-hostiles",
+        "sourceActorId": "player",
+        "targetActorIds": ["bandit"],
+        "nearestActorId": "bandit",
+        "targetActorId": "bandit",
+        "targetCommandKind": "attack-actor",
+        "targetCommandIntent": "attack",
+        "targetCommandCanExecute": true
+      },
+      {
+        "stepId": "target-bandit",
+        "sourceActorId": "player",
+        "targetActorIds": ["bandit"],
+        "reachableActorIds": ["bandit"],
+        "nearestActorId": "bandit",
+        "targetActorId": "bandit",
+        "targetCommandKind": "attack-actor",
+        "targetCommandIntent": "attack",
+        "targetCommandCanExecute": true
+      }
+    ],
+    "patrols": [
+      {
+        "stepId": "run-bandit-patrol",
+        "eventType": "patrol-move-requested",
+        "actorId": "bandit",
+        "routeId": "bandit-watch",
+        "status": "requested",
+        "targetKey": "4,1",
+        "requested": true
+      }
+    ],
+    "movements": [
+      {
+        "stepId": "walk-to-elder",
+        "eventType": "movement-completed",
+        "actorId": "player",
+        "tileKey": "2,1",
+        "profileId": "worker",
+        "moved": true,
+        "status": "completed",
+        "destinationKey": "2,1",
+        "pathIncludes": ["1,1", "2,1"]
+      }
+    ],
+    "mutations": [
+      { "type": "placement-spawned", "placementId": "quest-marker", "spawned": true },
+      { "type": "placement-updated", "placementId": "quest-marker", "updated": true },
+      { "type": "actor-updated", "actorId": "bandit", "updated": true },
+      { "type": "actor-removed", "actorId": "bandit", "removed": true },
+      { "type": "actor-updated", "actorId": "elder", "updated": true }
+    ],
+    "actors": [
+      { "actorId": "player", "tileKey": "2,1" },
+      {
+        "actorId": "elder",
+        "interactive": true,
+        "tileKey": "2,1",
+        "metadata": {
+          "greeted": true,
+          "greetedBy": "player",
+          "questSignal": "elder-greeted"
+        }
+      },
+      { "actorId": "bandit", "exists": false }
+    ],
+    "placements": [
+      {
+        "placementId": "quest-marker",
+        "tileKey": "2,1",
+        "assetId": "flag_green",
+        "kind": "prop",
+        "metadata": { "role": "quest-marker", "state": "armed" }
+      }
+    ],
+    "quests": [
+      {
+        "questId": "docs-simple-rpg-scenario:intro",
+        "status": "completed",
+        "completedObjectives": ["elder-is-reachable", "bandit-blocks", "defeat-bandit", "walk-to-elder", "greet-elder"]
+      }
+    ]
+  }
+}

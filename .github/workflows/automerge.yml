@@ -1,0 +1,49 @@
+name: Automerge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  dependabot:
+    name: Dependabot Auto-merge
+    if: >-
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      PR_URL: ${{ github.event.pull_request.html_url }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Approve PR
+        run: gh pr review "$PR_URL" --approve
+
+      - name: Enable auto-merge
+        run: gh pr merge "$PR_URL" --auto --squash
+
+  release-please:
+    name: Release Please Auto-merge
+    if: >-
+      startsWith(github.head_ref, 'release-please--') &&
+      github.event.pull_request.user.type == 'Bot' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      PR_URL: ${{ github.event.pull_request.html_url }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Approve PR
+        run: gh pr review "$PR_URL" --approve
+
+      - name: Enable auto-merge
+        run: gh pr merge "$PR_URL" --auto --squash
