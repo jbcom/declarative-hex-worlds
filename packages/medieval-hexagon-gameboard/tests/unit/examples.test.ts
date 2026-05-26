@@ -285,7 +285,9 @@ describe('published recipe examples', () => {
     expect(summary.runtimeActorTargetCommandKind).toBe('attack-actor');
     expect(summary.runtimeActorTargetHandled).toBe(true);
     expect(summary.executableGuideApiSmoke).toMatchObject({
-      directPublicApiCount: 38,
+      directPublicApiCount: 40,
+      publicTreatmentCount: 404,
+      guideScenarioCount: 19,
       rawSpawnCoordinateCount: 2,
       recipeValidationErrorCount: 0,
       recipeGenerationErrorCount: 0,
@@ -298,6 +300,9 @@ describe('published recipe examples', () => {
       externalFacingRotationSteps: 1,
     });
     expect(summary.executableGuideApiSmoke.manifestBundleAssetCount).toBeGreaterThan(200);
+    expect(summary.executableGuideApiSmoke.guideScenarioPages).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+    ]);
     expect(summary.executableGuideApiSmoke.selectedManifestAssetIds.length).toBeGreaterThan(0);
     expect(summary.executableGuideApiSmoke.selectorAssetIds).toEqual(
       expect.arrayContaining(['hex_road_A', 'hex_road_B', 'hex_coast_E'])
@@ -317,8 +322,8 @@ describe('published recipe examples', () => {
     expect(summary.missingGuidePublicApis).toEqual([]);
     expect(summary.staleGuidePublicApis).toEqual([]);
     expect(summary.guidePublicApiExerciseModes['fixed-gameplay']).toBeGreaterThan(20);
-    expect(summary.guidePublicApiExerciseModes['catalog-contract']).toBe(2);
-    expect(summary.guidePublicApiExerciseModes['executable-smoke']).toBe(38);
+    expect(summary.guidePublicApiExerciseModes['catalog-contract']).toBe(0);
+    expect(summary.guidePublicApiExerciseModes['executable-smoke']).toBe(40);
     expect(summary.finalActorTiles.player).toBe('2,1');
     expect(summary.finalActorTiles.elder).toBe('2,1');
     expect(summary.completedQuestIds).toEqual(['docs-simple-rpg-scenario:intro']);
@@ -327,16 +332,23 @@ describe('published recipe examples', () => {
   it('executes guide-facing helper APIs through the SimpleRPG public example', () => {
     const smoke = runSimpleRpgExecutableGuideApiSmoke();
 
-    expect(smoke.directPublicApiCount).toBe(38);
+    expect(smoke.directPublicApiCount).toBe(40);
     expect(smoke.directPublicApis).toEqual(
       expect.arrayContaining([
         'createManifestBundle',
         'createGameboardPlanFromRecipe',
         'createSeededGameboardPlan',
         'createMedievalGameboardBlueprintPlan',
+        'listKayKitAssetPublicTreatments',
+        'listKayKitGuideScenarios',
         'externalAssetSpawnOptions',
       ])
     );
+    expect(smoke.publicTreatmentCount).toBe(404);
+    expect(smoke.guideScenarioCount).toBe(19);
+    expect(smoke.guideScenarioPages).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+    ]);
     expect(smoke.assetHelperIds).toEqual({
       coloredUnit: 'sword_blue_full',
       neutralUnit: 'hammer',

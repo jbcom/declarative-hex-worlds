@@ -51,6 +51,8 @@ import {
   type GameboardPlan,
 } from '@jbcom/medieval-hexagon-gameboard';
 import {
+  listKayKitAssetPublicTreatments,
+  listKayKitGuideScenarios,
   listKayKitGuidePublicApiCoverages,
   type KayKitGuidePublicApiCoverage,
 } from '@jbcom/medieval-hexagon-gameboard/catalog';
@@ -142,6 +144,8 @@ const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = [
   'freeManifest',
   'inspectMedievalGameboardBlueprint',
   'listCoastGuidePermutations',
+  'listKayKitAssetPublicTreatments',
+  'listKayKitGuideScenarios',
   'listPropClusterAssets',
   'listRiverCrossingGuidePermutations',
   'listRiverCurvyGuidePermutations',
@@ -361,12 +365,12 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
     evidence: 'Packaged SimpleRPG usage lists coast guide permutations in executable smoke.',
   },
   listKayKitAssetPublicTreatments: {
-    mode: 'catalog-contract',
-    evidence: 'Coverage ledger joins every guide asset to its public treatment before package smoke.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage lists every KayKit asset public treatment in executable smoke.',
   },
   listKayKitGuideScenarios: {
-    mode: 'catalog-contract',
-    evidence: 'Coverage ledger enumerates all guide scenarios and links SimpleRPG artifacts.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage lists every decomposed KayKit guide scenario in executable smoke.',
   },
   listPropClusterAssets: {
     mode: 'executable-smoke',
@@ -468,6 +472,12 @@ export interface SimpleRpgExecutableGuideApiSmokeSummary {
   readonly directPublicApis: readonly string[];
   /** Number of guide-facing public APIs directly invoked by this smoke helper. */
   readonly directPublicApiCount: number;
+  /** Number of KayKit asset public treatment records listed from the catalog. */
+  readonly publicTreatmentCount: number;
+  /** Number of decomposed KayKit guide scenarios listed from the catalog. */
+  readonly guideScenarioCount: number;
+  /** One-based guide pages represented by the decomposed guide scenario catalog. */
+  readonly guideScenarioPages: readonly number[];
   /** Number of assets in the FREE manifest bundle. */
   readonly manifestBundleAssetCount: number;
   /** Manifest asset ids selected by taxonomy/faction filters. */
@@ -666,6 +676,8 @@ export function runSimpleRpgExecutableGuideApiSmoke(): SimpleRpgExecutableGuideA
   const curvyRivers = listRiverCurvyGuidePermutations();
   const riverCrossings = listRiverCrossingGuidePermutations();
   const coasts = listCoastGuidePermutations();
+  const publicTreatments = listKayKitAssetPublicTreatments();
+  const guideScenarios = listKayKitGuideScenarios();
   const propClusterAssetIds = listPropClusterAssets('resource-cache', { includeExtra: true });
   const selectorAssetIds = [
     selectRoadVariant([0, 3]).assetId,
@@ -770,6 +782,9 @@ export function runSimpleRpgExecutableGuideApiSmoke(): SimpleRpgExecutableGuideA
   return {
     directPublicApis: [...SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS],
     directPublicApiCount: SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS.length,
+    publicTreatmentCount: publicTreatments.length,
+    guideScenarioCount: guideScenarios.length,
+    guideScenarioPages: guideScenarios.map((scenario) => scenario.page),
     manifestBundleAssetCount: manifestBundle.assets.length,
     selectedManifestAssetIds: selectedManifestAssets.map((asset) => asset.id),
     assetHelperIds: {

@@ -2181,7 +2181,9 @@ if (!usage.simulationSucceeded || usage.validationErrorCount !== 0) {
 }
 const executableGuideApiSmoke = usage.executableGuideApiSmoke;
 if (
-  executableGuideApiSmoke.directPublicApiCount !== 38 ||
+  executableGuideApiSmoke.directPublicApiCount !== 40 ||
+  executableGuideApiSmoke.publicTreatmentCount !== 404 ||
+  executableGuideApiSmoke.guideScenarioCount !== 19 ||
   executableGuideApiSmoke.recipeValidationErrorCount !== 0 ||
   executableGuideApiSmoke.recipeGenerationErrorCount !== 0 ||
   executableGuideApiSmoke.externalSuggestedRole !== 'prop' ||
@@ -2333,7 +2335,7 @@ console.log(JSON.stringify({
     'consumer smoke did not run usage example'
   );
   assert(
-    smokeOutput.includes('"executableGuideApiCount": 38'),
+    smokeOutput.includes('"executableGuideApiCount": 40'),
     'consumer smoke did not run executable SimpleRPG guide API smoke'
   );
   assert(
