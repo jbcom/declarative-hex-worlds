@@ -57,7 +57,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - [x] **R2k** — ✅ commit (2026-05-26): `scenario.ts`+`recipe.ts`+`blueprint.ts`+`catalog.ts`+`registry.ts` → `src/scenario/{scenario,recipe,blueprint,catalog,registry,index}.ts`. Sibling sub-packages (coordinates/, gameboard/, rules/) updated.
   - [x] **R2l** — ✅ commit (2026-05-26): `src/simulation.ts` → `src/simulation/{simulation,index}.ts`. Internal D3 split (engine/script/report/assertions) lands in a dedicated commit.
   - [x] **R2m** — ✅ commit (2026-05-26): `interop.ts`+`compatibility.ts`+`coverage.ts` → `src/interop/{interop,compatibility,coverage,index}.ts`. Workspace scripts also updated for catalog/coverage path shifts.
-  - **R2n** — `systems/` (per-system file each — `movement-system.ts`, `patrol-system.ts`, `quests-system.ts`, `rules-system.ts`, `world-rules-system.ts`)
+  - [x] **R2n** — ✅ commit (2026-05-26): `systems.ts`+`world-rules.ts` → `src/systems/{systems,world-rules-system,index}.ts`. Internal per-system file split (movement/patrol/quests/rules separate) deferred — current `systems.ts` already has cohesive function-per-system shape.
   - **R2o** — `errors/` (Epic D2 lands here)
   - **R2p** — `cli/` (Epic B3 also lands here)
   - **R2q** — `react/` + `three/` decomposition. **Move react, react-dom, three from `peerDependencies` to `dependencies`** in `package.json` (these are first-class — the library is unusable without them, same as koota). Re-export both sub-packages from the umbrella `src/index.ts`. Delete the planned `peer-guard.ts` files; not needed.

@@ -33,6 +33,7 @@
     "src/world-rules.ts",
     "src/types/index.ts",
     "src/traits/index.ts",
+    "src/errors/index.ts",
     "src/react.ts",
     "src/three.ts",
     "src/manifest/free.ts",

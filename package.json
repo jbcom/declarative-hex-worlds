@@ -149,6 +149,10 @@
       "types": "./dist/traits.d.ts",
       "import": "./dist/traits.js"
     },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "import": "./dist/errors.js"
+    },
     "./react": {
       "types": "./dist/react.d.ts",
       "import": "./dist/react.js"

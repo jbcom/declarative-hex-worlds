@@ -34,6 +34,7 @@ export default defineConfig({
     systems: 'src/systems/index.ts',
     three: 'src/three.ts',
     traits: 'src/traits/index.ts',
+    errors: 'src/errors/index.ts',
     types: 'src/types/index.ts',
     validation: 'src/rules/validation.ts',
     'world-rules': 'src/systems/world-rules-system.ts',
