@@ -79,12 +79,28 @@ published in the npm tarball.
 
 ```bash
 pnpm add @jbcom/medieval-hexagon-gameboard
+pnpm exec medieval-hexagon-gameboard bootstrap
 ```
 
-Install `react` for `@jbcom/medieval-hexagon-gameboard/react` and `three` for
-`@jbcom/medieval-hexagon-gameboard/three`. Those peers are intentionally
-optional so core Koota, manifest, recipe, CLI, and interop users do not need a
-renderer stack.
+The published tarball ships the typed runtime + the FREE manifest metadata.
+The KayKit GLTF asset binaries themselves are fetched at install time by the
+`bootstrap` subcommand from the upstream
+[KayKit-Medieval-Hexagon-Pack-1.0](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0)
+GitHub repo (CC0). EXTRA-edition consumers pass a purchased zip via
+`bootstrap --source zip --zip <path> --edition extra`. See
+the [asset-bootstrap guide](https://jbcom.github.io/medieval-hexagon-gameboard/guides/asset-bootstrap/)
+on the docs site for the full bootstrap workflow.
+
+After `bootstrap`, the GLTF tree lives at
+`public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/`
+(default — override with `--out`). Configure the runtime to load from that
+root via `setGameboardAssetRoot('/path/to/public/assets/models')` or the
+`MEDIEVAL_HEXAGON_ASSET_ROOT` environment variable; loaders rewrite the
+bundled manifest's legacy `assets/free/...` paths automatically.
+
+React + Three.js bindings are first-class runtime dependencies (no opt-in
+peer install required) — `@jbcom/medieval-hexagon-gameboard/react` and
+`@jbcom/medieval-hexagon-gameboard/three` work out of the box.
 
 ## Public Imports
 

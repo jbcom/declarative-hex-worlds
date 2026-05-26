@@ -6,9 +6,8 @@
  * KayKit GLTF asset tree is not bundled. Consumers run this bootstrap step
  * after install to materialize the asset tree into their app's asset root.
  *
- * See `docs-site/src/content/docs/guides/asset-bootstrap.md` for the
- * end-user workflow and `docs-site/src/content/docs/guides/kaykit-upstream-layout.md`
- * for the on-disk layout this module produces.
+ * The end-user workflow + on-disk layout reference live in the docs-site
+ * guides directory under the consumer-facing documentation site.
  *
  * @module
  */
