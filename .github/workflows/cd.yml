@@ -24,9 +24,23 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      # PRD A5 — prefer a GitHub App token over a long-lived user PAT for the
+      # release-please bot. App tokens are scoped + short-lived (1h max), and
+      # PRs they open trigger downstream CI (PATs from a Bot user don't).
+      # The App ID + private key need to be installed on the repo as secrets
+      # named RELEASE_PLEASE_APP_ID + RELEASE_PLEASE_APP_PRIVATE_KEY.
+      # If they aren't set, fall back to the legacy PAT so CD doesn't break
+      # while the App is being provisioned.
+      - id: app-token
+        if: ${{ vars.RELEASE_PLEASE_APP_ID != '' }}
+        uses: actions/create-github-app-token@40c1c25e8d80c1c0bb9e9e54bf2af2dcf95eb1c2 # v2.1.1
+        with:
+          app-id: ${{ vars.RELEASE_PLEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+
       - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4.4.0
         with:
-          token: ${{ secrets.CI_GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token || secrets.CI_GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
