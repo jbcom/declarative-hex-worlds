@@ -128,9 +128,9 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 - [ ] **B3** — **P-C2**: Refactor `cli.ts` (4,297 LOC) to `src/cli/index.ts` + `src/cli/commands/*.ts` with dynamic per-subcommand imports. Use `node:util.parseArgs`. Move `examples/simple-rpg-usage` import out of CLI eager path. **Note:** CLI lazy-loading does NOT remove the manifest from anyone's umbrella — it just keeps the CLI cold-start fast for headless validation/coverage use cases.
 - [ ] **B4** — **P-H3**: Materialize `tilesByKey` (+ `placementsByTile`) indexes once at projection time on `ProjectedGameboardPlan`. Replace 4 in-call rebuilds.
 - [ ] **B5** — **P-H1**: Single-pass `readGameboardActorTargets` reducer (`actors.ts:940-953` + `:1085-1093`).
-- [ ] **B6** — **P-H2**: Add `tryParseHexKey(key): HexCoordinates | undefined` in `coordinates.ts`; migrate `interop.ts`/`scenario.ts` `try { parseHexKey } catch { undefined }` sites.
+- [x] **B6** ✅ commit (2026-05-26) — **P-H2**: Add `tryParseHexKey(key): HexCoordinates | undefined` in `coordinates.ts`; migrate `interop.ts`/`scenario.ts` `try { parseHexKey } catch { undefined }` sites.
 - [ ] **B7** — **P-H4**: Hash-stabilize `options` in selector hooks in `react.ts` (or document loudly + sample memo helpers in examples).
-- [ ] **B8** — **P-H5**: Replace `JSON.parse(JSON.stringify(...))` in `simulation.ts:5212` with `structuredClone`.
+- [x] **B8** ✅ commit (2026-05-26) — **P-H5**: Replace `JSON.parse(JSON.stringify(...))` in `simulation.ts:5212` with `structuredClone`.
 
 ### Phase C — security criticals (publish-blocking)
 

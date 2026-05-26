@@ -64,11 +64,36 @@ export function hexKey(coordinates: HexCoordinates): string {
   return `${coordinates.q},${coordinates.r}`;
 }
 
-/** Parses a string key produced by {@link hexKey}. */
+/**
+ * Parses a string key produced by {@link hexKey}.
+ *
+ * Throws on invalid input. Prefer {@link tryParseHexKey} on lookup paths
+ * where a miss is an expected outcome (returning `undefined` is ~100×
+ * faster than throwing + catching in V8).
+ */
 export function parseHexKey(key: string): HexCoordinates {
-  const [q, r] = key.split(',').map(Number);
-  if (!Number.isFinite(q) || !Number.isFinite(r)) {
+  const parsed = tryParseHexKey(key);
+  if (parsed === undefined) {
     throw new Error(`Invalid hex key: ${key}`);
+  }
+  return parsed;
+}
+
+/**
+ * Non-throwing variant of {@link parseHexKey}. Returns `undefined` when the
+ * key is malformed. Use this on lookup paths where a miss is expected; use
+ * {@link parseHexKey} on assertion paths where a miss is a programming
+ * error.
+ */
+export function tryParseHexKey(key: string): HexCoordinates | undefined {
+  const parts = key.split(',');
+  if (parts.length !== 2) {
+    return undefined;
+  }
+  const q = Number(parts[0]);
+  const r = Number(parts[1]);
+  if (!Number.isFinite(q) || !Number.isFinite(r)) {
+    return undefined;
   }
   return { q, r };
 }
