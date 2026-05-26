@@ -317,6 +317,9 @@ function advancePatrolEntity(
   }
 
   const targetKey = nextAgent.waypointKeys[targetIndex];
+  if (targetKey === undefined) {
+    throw new Error(`Patrol waypoint index ${targetIndex} out of range`);
+  }
   const movementOptions = movementOptionsForPatrol(nextAgent, targetIndex, options);
   if (options.resetMovementBudget ?? true) {
     setGameboardMovementAgent(world, entity, movementOptions);
@@ -379,7 +382,7 @@ function segmentCostFor(agent: GameboardPatrolAgentValue, targetIndex: number): 
     targetIndex === 0 && agent.currentWaypointIndex === agent.waypointKeys.length - 1
       ? agent.segmentCosts[agent.currentWaypointIndex]
       : agent.segmentCosts[Math.min(agent.currentWaypointIndex, targetIndex)];
-  return Number.isFinite(cost) ? Math.max(1, Math.ceil(cost)) : undefined;
+  return cost !== undefined && Number.isFinite(cost) ? Math.max(1, Math.ceil(cost)) : undefined;
 }
 
 function nextPatrolWaypointIndex(agent: GameboardPatrolAgentValue): number | undefined {

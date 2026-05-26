@@ -263,7 +263,11 @@ export function resolveGameboardMovementProfile(
   profiles: GameboardMovementProfileRegistry = GAMEBOARD_MOVEMENT_PROFILES
 ): GameboardMovementProfile {
   if (!profile) {
-    return profiles.ground;
+    const ground = profiles.ground;
+    if (!ground) {
+      throw new Error('Movement profile registry missing required default "ground"');
+    }
+    return ground;
   }
   if (typeof profile !== 'string') {
     return profile;
@@ -470,6 +474,11 @@ function advanceOneGameboardMovement(
 
   const placement = requirePlacementState(entity);
   const nextKey = currentPath.pathKeys[currentPath.nextIndex];
+  if (nextKey === undefined) {
+    throw new Error(
+      `Movement path index ${currentPath.nextIndex} out of range (length ${currentPath.pathKeys.length})`
+    );
+  }
   const navigation = createGameboardMovementNavigation(world, entity, options);
   if (!navigation.canEnter(nextKey, placement.tileKey)) {
     const blocked = movementPathState({

@@ -396,11 +396,17 @@ export function createSeededSimpleRpgGame(seed = SIMPLE_RPG_RANDOM_SEED): Simple
 
   const ordered = [...spawns].sort((left, right) => left.r - right.r || left.q - right.q);
   const playerSpawn = ordered[0];
+  if (playerSpawn === undefined) {
+    throw new Error(`SimpleRPG seeded map ${seed} produced empty ordered spawn list`);
+  }
   const finalNpcSpawn = farthestFrom(playerSpawn, ordered.slice(1));
   const remaining = ordered.filter((coordinates) => key(coordinates) !== key(finalNpcSpawn));
   const firstNpcSpawn = remaining[1] ?? ordered[1];
   const propSpawn = remaining[2] ?? ordered[2];
   const enemySpawn = remaining[3] ?? midpointCandidate(playerSpawn, finalNpcSpawn, ordered);
+  if (firstNpcSpawn === undefined || propSpawn === undefined || enemySpawn === undefined) {
+    throw new Error(`SimpleRPG seeded map ${seed} produced fewer spawn tiles than required`);
+  }
   const actors = new Map<string, SimpleRpgActor>();
   const player = registerRuntimeActor(world, actors, {
     id: 'player',
@@ -798,9 +804,13 @@ function farthestFrom(
   origin: HexCoordinates,
   candidates: readonly HexCoordinates[]
 ): HexCoordinates {
-  return [...candidates].sort(
+  const result = [...candidates].sort(
     (left, right) => hexDistance(right, origin) - hexDistance(left, origin)
   )[0];
+  if (result === undefined) {
+    throw new Error('farthestFrom requires at least one candidate');
+  }
+  return result;
 }
 
 function midpointCandidate(
@@ -809,9 +819,13 @@ function midpointCandidate(
   candidates: readonly HexCoordinates[]
 ): HexCoordinates {
   const midpoint = { q: Math.round((start.q + end.q) / 2), r: Math.round((start.r + end.r) / 2) };
-  return [...candidates].sort(
+  const result = [...candidates].sort(
     (left, right) => hexDistance(left, midpoint) - hexDistance(right, midpoint)
   )[0];
+  if (result === undefined) {
+    throw new Error('midpointCandidate requires at least one candidate');
+  }
+  return result;
 }
 
 function key(coordinates: HexCoordinates): string {

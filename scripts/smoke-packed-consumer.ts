@@ -38,6 +38,9 @@ try {
       stdio: ['ignore', 'pipe', 'pipe'],
     })
   ) as PackResult[];
+  if (pack === undefined) {
+    throw new Error('npm pack did not return any tarball metadata');
+  }
   const tarballPath = join(packRoot, pack.filename);
   assert(existsSync(tarballPath), `npm pack did not create ${tarballPath}`);
 
@@ -153,7 +156,7 @@ try {
       installedSummary.validation.errorCount === 0 &&
       installedSummary.summary.tileCount > 0 &&
       installedSummary.summary.placementCount > 0 &&
-      installedSummary.summary.placementKindCounts.terrain > 0,
+      (installedSummary.summary.placementKindCounts.terrain ?? 0) > 0,
     'packed CLI summarize-plan command did not emit scenario board counts'
   );
   const installedScenarioSummaryOutput = execFileSync(
@@ -187,7 +190,7 @@ try {
       installedScenarioSummary.actorCount > 0 &&
       installedScenarioSummary.questCount > 0 &&
       installedScenarioSummary.objectiveCount > 0 &&
-      installedScenarioSummary.actorKindCounts.player > 0,
+      (installedScenarioSummary.actorKindCounts.player ?? 0) > 0,
     'packed CLI summarize-scenario command did not emit playable scenario counts'
   );
   const installedCoverageOutput = execFileSync(

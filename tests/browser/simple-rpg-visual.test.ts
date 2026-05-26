@@ -81,10 +81,11 @@ describe('SimpleRPG browser integration', () => {
   it('captures the packaged JSON scenario after public API instantiation', async () => {
     await page.viewport(1400, 900);
     const runtime = createGameboardWorldFromScenario(simpleRpgScenario as GameboardScenario);
-    const quest = advanceGameboardQuest(
-      runtime.world,
-      runtime.questEntities['docs-simple-rpg-scenario:intro']
-    );
+    const questEntity = runtime.questEntities['docs-simple-rpg-scenario:intro'];
+    if (questEntity === undefined) {
+      throw new Error('packaged scenario missing intro quest entity');
+    }
+    const quest = advanceGameboardQuest(runtime.world, questEntity);
 
     expect(quest.quest.status).toBe('active');
     expect(quest.quest.objectives[quest.quest.activeObjectiveIndex]?.id).toBe('defeat-bandit');

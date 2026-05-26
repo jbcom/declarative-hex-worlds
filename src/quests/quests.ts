@@ -276,6 +276,9 @@ export function advanceGameboardQuest(
 
   while (activeObjectiveIndex < current.objectives.length) {
     const objective = current.objectives[activeObjectiveIndex];
+    if (objective === undefined) {
+      throw new Error(`Quest objective index ${activeObjectiveIndex} out of range`);
+    }
     const evaluation = evaluateGameboardQuestObjective(world, objective, options.step ?? 0);
     progressById.set(objective.id, evaluation.progress);
 

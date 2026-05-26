@@ -603,7 +603,15 @@ function median(values: readonly number[]): number {
     return 1;
   }
   const middle = Math.floor(finite.length / 2);
-  return finite.length % 2 === 0 ? (finite[middle - 1] + finite[middle]) / 2 : finite[middle];
+  const mid = finite[middle];
+  if (mid === undefined) {
+    return 1;
+  }
+  if (finite.length % 2 === 0) {
+    const prev = finite[middle - 1];
+    return prev === undefined ? mid : (prev + mid) / 2;
+  }
+  return mid;
 }
 
 function varianceRatio(values: readonly number[]): number {

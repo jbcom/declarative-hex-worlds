@@ -2019,6 +2019,9 @@ function pathMasks(path: readonly HexCoordinates[]): Map<string, number> {
   for (let index = 0; index < path.length - 1; index += 1) {
     const current = path[index];
     const next = path[index + 1];
+    if (current === undefined || next === undefined) {
+      throw new Error(`pathMasks index ${index} out of range`);
+    }
     const edge = edgeBetween(current, next);
     if (edge === undefined) {
       throw new Error(`Path step ${hexKey(current)} -> ${hexKey(next)} is not adjacent`);

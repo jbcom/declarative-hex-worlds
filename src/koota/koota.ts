@@ -1162,6 +1162,9 @@ function uniqueStrings(values: readonly (string | undefined)[]): string[] {
 
 function parseTileKey(key: string): HexCoordinates {
   const [q, r] = key.split(',').map(Number);
+  if (q === undefined || r === undefined) {
+    throw new Error(`Invalid tile key: ${key}`);
+  }
   return { q, r };
 }
 

@@ -578,10 +578,14 @@ describe('gameboard piece declarations', () => {
       },
     ]);
 
-    expect(resolveGameboardPieceSourceUrl(registry.byId['kenney-round-tower'], {
+    const roundTower = registry.byId['kenney-round-tower'];
+    if (roundTower === undefined) {
+      throw new Error('kenney-round-tower piece missing from registry');
+    }
+    expect(resolveGameboardPieceSourceUrl(roundTower, {
       sourceRoots: { 'Kenney Castle Kit': '/@fs/references/Kenney Castle Kit' },
     })).toBe('/@fs/references/Kenney Castle Kit/towers/tower%20round.glb');
-    expect(resolveGameboardPieceSourceUrl(registry.byId['kenney-round-tower'], {
+    expect(resolveGameboardPieceSourceUrl(roundTower, {
       sourceRoot: '/assets/local',
       encode: false,
     })).toBe('/assets/local/towers/tower round.glb');

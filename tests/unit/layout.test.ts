@@ -73,7 +73,7 @@ describe('gameboard layout placement criteria', () => {
     expect(placements).toHaveLength(2);
     expect(placements.map((placement) => placement.id)).toEqual(['layout:rock:0', 'layout:rock:1']);
     expect(placements.every((placement) => typeof placement.rotationSteps === 'number')).toBe(true);
-    expect(placements[0].metadata).toMatchObject({
+    expect(placements[0]?.metadata).toMatchObject({
       placementPurpose: 'scatter-test',
       layoutSeed: 'rocks',
       layoutOccupied: false,

@@ -8,7 +8,14 @@ import seedrandom from 'seedrandom';
 import type { GameboardShape, HexCoordinates, HexEdgeIndex } from '../types';
 
 /** Axial neighbor offsets ordered clockwise for the library edge convention. */
-export const HEX_DIRECTIONS: readonly HexCoordinates[] = [
+export const HEX_DIRECTIONS: readonly [
+  HexCoordinates,
+  HexCoordinates,
+  HexCoordinates,
+  HexCoordinates,
+  HexCoordinates,
+  HexCoordinates,
+] = [
   { q: 1, r: 0 },
   { q: 0, r: 1 },
   { q: -1, r: 1 },
@@ -285,8 +292,8 @@ export function selectSpawnCoordinates(options: SpawnCoordinateOptions): HexCoor
 }
 
 /** Normalizes any integer-ish rotation step value into the range 0 through 5. */
-export function normalizeHexRotationSteps(steps: number): number {
-  return ((Math.floor(steps) % 6) + 6) % 6;
+export function normalizeHexRotationSteps(steps: number): HexEdgeIndex {
+  return (((Math.floor(steps) % 6) + 6) % 6) as HexEdgeIndex;
 }
 
 function lowestScoreKey(
@@ -377,7 +384,11 @@ function shuffle<T>(items: readonly T[], rng: seedrandom.PRNG): T[] {
   const result = [...items];
   for (let index = result.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(rng() * (index + 1));
-    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+    // Both indices are in range: index ∈ [1, length-1], swapIndex ∈ [0, index].
+    const a = result[index] as T;
+    const b = result[swapIndex] as T;
+    result[index] = b;
+    result[swapIndex] = a;
   }
   return result;
 }

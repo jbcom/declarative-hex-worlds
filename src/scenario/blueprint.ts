@@ -884,10 +884,15 @@ function applyRoads(
     }
     if (transitionPolicy.roadSlopes) {
       for (let index = 0; index < path.length - 1; index += 1) {
-        const current = tiles.get(hexKey(path[index]));
-        const next = tiles.get(hexKey(path[index + 1]));
+        const segmentStart = path[index];
+        const segmentEnd = path[index + 1];
+        if (segmentStart === undefined || segmentEnd === undefined) {
+          throw new Error(`Road path index ${index} out of range`);
+        }
+        const current = tiles.get(hexKey(segmentStart));
+        const next = tiles.get(hexKey(segmentEnd));
         const slope = current && next && current.elevation !== next.elevation ? (current.elevation < next.elevation ? 'high' : 'low') : road.slope;
-        steps.push({ action: 'addRoadPath', path: [path[index], path[index + 1]], slope });
+        steps.push({ action: 'addRoadPath', path: [segmentStart, segmentEnd], slope });
       }
     } else {
       steps.push({ action: 'addRoadPath', path, slope: road.slope });
@@ -1097,6 +1102,9 @@ function normalizeMountainRanges(
   const top = coordinates.filter((coordinate) => coordinate.r === minR).sort((left, right) => left.q - right.q);
   const start = top[Math.floor(top.length * 0.2)] ?? coordinates[0];
   const end = top[Math.floor(top.length * 0.8)] ?? coordinates[coordinates.length - 1];
+  if (start === undefined || end === undefined) {
+    throw new Error('default ridge requires at least one tile in shape');
+  }
   return [{ id: 'default-ridge', path: hexLine(start, end), width: 1, height: maxElevation, variant: 'cycle' }];
 }
 
@@ -1153,9 +1161,14 @@ function createAutoRoads(
 ): MedievalRoadNetworkSpec[] {
   const roads: MedievalRoadNetworkSpec[] = [];
   for (let index = 0; index < towns.length - 1; index += 1) {
+    const current = towns[index];
+    const next = towns[index + 1];
+    if (current === undefined || next === undefined) {
+      throw new Error(`Town link index ${index} out of range`);
+    }
     roads.push({
       id: `town-link-${index + 1}`,
-      path: hexLine(towns[index].center, towns[index + 1].center).filter((coordinate) => containsHex(shape, coordinate)),
+      path: hexLine(current.center, next.center).filter((coordinate) => containsHex(shape, coordinate)),
     });
   }
   for (const harbor of harbors) {
@@ -1186,7 +1199,12 @@ function createDefaultRivers(
 function expandWaypointPath(path: readonly HexCoordinates[], shape: GameboardShape): HexCoordinates[] {
   const expanded: HexCoordinates[] = [];
   for (let index = 0; index < path.length - 1; index += 1) {
-    const segment = hexLine(path[index], path[index + 1]).filter((coordinate) => containsHex(shape, coordinate));
+    const segmentStart = path[index];
+    const segmentEnd = path[index + 1];
+    if (segmentStart === undefined || segmentEnd === undefined) {
+      throw new Error(`Waypoint path index ${index} out of range`);
+    }
+    const segment = hexLine(segmentStart, segmentEnd).filter((coordinate) => containsHex(shape, coordinate));
     if (index > 0) {
       segment.shift();
     }
@@ -1283,7 +1301,7 @@ function takeRandom<T>(items: readonly T[], count: number, rng: seedrandom.PRNG)
   while (selected.length < count && pool.length > 0) {
     const index = Math.floor(rng() * pool.length);
     const [item] = pool.splice(index, 1);
-    selected.push(item);
+    selected.push(item as T);
   }
   return selected;
 }

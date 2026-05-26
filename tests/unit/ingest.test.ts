@@ -38,7 +38,7 @@ describe('source ingestion', () => {
       assetBasePath: 'assets/free',
     });
     expect(manifest.counts.total).toBe(221);
-    expect(manifest.assetsById.hex_water.category).toBe('tiles');
+    expect(manifest.assetsById.hex_water?.category).toBe('tiles');
   });
 
   it('writes manifest modules with edition-specific export names', () => {
@@ -88,10 +88,10 @@ describe('source ingestion', () => {
     expect(manifest.textureSets).toEqual(['default', 'fall', 'summer', 'winter']);
     expect(manifest.assets).toHaveLength(404);
     expect(Object.keys(manifest.assetsById)).toHaveLength(404);
-    expect(manifest.assetsById.hex_transition.category).toBe('tiles');
-    expect(manifest.assetsById.unit_blue_full.unitStyle).toBe('full');
-    expect(manifest.assetsById.unit_blue_accent.unitStyle).toBe('accent');
-    expect(manifest.assetsById.projectile_catapult.sourcePath).toBe('buildings/neutral/projectile_catapult.gltf');
+    expect(manifest.assetsById.hex_transition?.category).toBe('tiles');
+    expect(manifest.assetsById.unit_blue_full?.unitStyle).toBe('full');
+    expect(manifest.assetsById.unit_blue_accent?.unitStyle).toBe('accent');
+    expect(manifest.assetsById.projectile_catapult?.sourcePath).toBe('buildings/neutral/projectile_catapult.gltf');
     expect(manifest.assetsById.units_neutral_projectile_catapult).toMatchObject({
       family: 'projectile_catapult',
       sourcePath: 'units/neutral/projectile_catapult.gltf',

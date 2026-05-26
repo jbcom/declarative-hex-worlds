@@ -1702,7 +1702,11 @@ function firstAssetForRule(rule: GameboardLayoutFillRule, seed: string): string 
 function assetForRule(rule: GameboardLayoutFillRule, index: number, seed: string): string {
   if (rule.assets?.length) {
     const rng = seedrandom(`${seed}:${index}`);
-    return rule.assets[Math.floor(rng() * rule.assets.length)];
+    const picked = rule.assets[Math.floor(rng() * rule.assets.length)];
+    if (picked === undefined) {
+      throw new Error(`Layout fill rule ${rule.id ?? '<unnamed>'} produced empty asset pick`);
+    }
+    return picked;
   }
   if (!rule.assetId) {
     throw new Error(`Layout fill rule ${rule.id ?? '<unnamed>'} requires assetId or assets`);
@@ -1781,6 +1785,9 @@ function layoutSlotPositionOffset(
     ? [Math.PI * 1.15, Math.PI * 0.15]
     : [Math.PI * 1.5, Math.PI / 6, Math.PI * 5 / 6, Math.PI * 0.5, Math.PI * 7 / 6, Math.PI * 11 / 6];
   const angle = angles[slotIndex % angles.length];
+  if (angle === undefined) {
+    throw new Error(`stack angle lookup failed for slot ${slotIndex}`);
+  }
   const ring = Math.floor(slotIndex / angles.length);
   const distance = radius + ring * radius * 0.45;
   return {

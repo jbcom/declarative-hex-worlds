@@ -2613,7 +2613,11 @@ function formatGuideScenarioPages(pages: readonly number[]): string {
     return 'none';
   }
   const sortedPages = [...pages].sort((a, b) => a - b);
-  const isContiguous = sortedPages.every((page, index) => index === 0 || page === sortedPages[index - 1] + 1);
+  const isContiguous = sortedPages.every((page, index) => {
+    if (index === 0) return true;
+    const previous = sortedPages[index - 1];
+    return previous !== undefined && page === previous + 1;
+  });
   if (isContiguous && sortedPages.length > 1) {
     return `${sortedPages[0]}-${sortedPages[sortedPages.length - 1]}`;
   }
@@ -3591,8 +3595,16 @@ function readGlbJson(path: string): GltfDocumentMetadata {
 }
 
 function extractMetadataBounds(document: GltfDocumentMetadata): AssetBounds {
-  const min = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
-  const max = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
+  const min: [number, number, number] = [
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+  ];
+  const max: [number, number, number] = [
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+  ];
   for (const mesh of document.meshes ?? []) {
     for (const primitive of mesh.primitives ?? []) {
       const accessorIndex = primitive.attributes?.POSITION;
@@ -3601,7 +3613,7 @@ function extractMetadataBounds(document: GltfDocumentMetadata): AssetBounds {
       if (!accessor?.min || !accessor.max) {
         continue;
       }
-      for (let index = 0; index < 3; index += 1) {
+      for (const index of [0, 1, 2] as const) {
         min[index] = Math.min(min[index], accessor.min[index] ?? min[index]);
         max[index] = Math.max(max[index], accessor.max[index] ?? max[index]);
       }
@@ -3617,7 +3629,7 @@ function extractMetadataBounds(document: GltfDocumentMetadata): AssetBounds {
   };
 }
 
-function tuple(values: readonly number[]): [number, number, number] {
+function tuple(values: readonly [number, number, number]): [number, number, number] {
   return [round(values[0]), round(values[1]), round(values[2])];
 }
 

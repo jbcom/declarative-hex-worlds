@@ -74,6 +74,12 @@ describe('gameboard scenarios', () => {
     const runtime = createGameboardWorldFromScenario(scenario);
     const player = runtime.actorEntities.player;
     const quest = runtime.questEntities['scenario:test:quest'];
+    if (player === undefined) {
+      throw new Error('scenario test expected player actor entity');
+    }
+    if (quest === undefined) {
+      throw new Error('scenario test expected quest entity');
+    }
 
     expect(scenario.schemaVersion).toBe(GAMEBOARD_SCENARIO_SCHEMA_VERSION);
     expect(runtime.plan.placements.some((placement) => placement.kind === 'road')).toBe(true);
@@ -378,6 +384,9 @@ describe('gameboard scenarios', () => {
 
     const runtime = createGameboardWorldFromScenario(scenario);
     const guard = runtime.actorEntities.guard;
+    if (guard === undefined) {
+      throw new Error('scenario test expected guard actor entity');
+    }
 
     expect(validateGameboardScenario(scenario)).toEqual([]);
     expect(guard.get(GameboardPatrolAgent)).toMatchObject({

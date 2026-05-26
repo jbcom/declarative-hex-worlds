@@ -21,10 +21,10 @@ describe('free manifest', () => {
   });
 
   it('indexes assets by id', () => {
-    expect(freeManifest.assetsById.hex_grass.category).toBe('tiles');
-    expect(freeManifest.assetsById.hex_road_A.subcategory).toBe('roads');
-    expect(freeManifest.assetsById.building_home_A_blue.faction).toBe('blue');
-    expect(freeManifest.assetsById.crate_A_big.category).toBe('decoration');
+    expect(freeManifest.assetsById.hex_grass?.category).toBe('tiles');
+    expect(freeManifest.assetsById.hex_road_A?.subcategory).toBe('roads');
+    expect(freeManifest.assetsById.building_home_A_blue?.faction).toBe('blue');
+    expect(freeManifest.assetsById.crate_A_big?.category).toBe('decoration');
   });
 
   it('records browser-loadable paths and bounds for every asset', () => {
@@ -66,7 +66,7 @@ describe('free manifest', () => {
     expect(normalized.counts.total).toBe(2);
     expect(normalized.counts.byCategory).toEqual({ tiles: 1, buildings: 1 });
     expect(normalized.counts.bySubcategory).toEqual({ 'tiles/base': 1, 'buildings/blue': 1 });
-    expect(normalized.assetsById.hex_grass.id).toBe('hex_grass');
+    expect(normalized.assetsById.hex_grass?.id).toBe('hex_grass');
   });
 
   it('combines FREE and local EXTRA manifests for app-side asset lookup', () => {

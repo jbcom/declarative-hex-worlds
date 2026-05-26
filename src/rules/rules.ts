@@ -247,7 +247,11 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
         .filter((coordinates) => !waterKeys.has(hexKey(coordinates)))
         .map((coordinates) => ({ coordinates, waterEdges: [1 as const] }));
   const harborCandidate = harborCandidates[Math.floor(harborCandidates.length * between(0.35, 0.7, rng))] ?? harborCandidates[0];
-  const harbor = harborCandidate?.coordinates ?? shapeCoordinates[0];
+  const fallbackTile = shapeCoordinates[0];
+  if (fallbackTile === undefined) {
+    throw new Error('canonical scenario requires non-empty shapeCoordinates');
+  }
+  const harbor: HexCoordinates = harborCandidate?.coordinates ?? fallbackTile;
   const harborFacing = harborCandidate?.waterEdges[0] ?? 1;
   builder.addHarbor({
     at: harbor,
@@ -311,10 +315,14 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
   );
   settlementTiles.forEach((coordinates, index) => {
     reserved.add(hexKey(coordinates));
+    const building = SETTLEMENT_SEQUENCE[index % SETTLEMENT_SEQUENCE.length];
+    if (building === undefined) {
+      throw new Error('SETTLEMENT_SEQUENCE must be non-empty');
+    }
     builder.addSettlement({
       at: coordinates,
       faction,
-      building: SETTLEMENT_SEQUENCE[index % SETTLEMENT_SEQUENCE.length],
+      building,
       rotationSteps: Math.floor(rng() * 6),
     });
   });
@@ -651,13 +659,17 @@ function takeRandom<T>(items: readonly T[], count: number, rng: seedrandom.PRNG)
   for (let index = 0; index < count && pool.length > 0; index += 1) {
     const itemIndex = Math.floor(rng() * pool.length);
     const [item] = pool.splice(itemIndex, 1);
-    selected.push(item);
+    // splice with deleteCount=1 returns an array with one element when pool.length > 0
+    selected.push(item as T);
   }
   return selected;
 }
 
 function pick<T>(items: readonly T[], rng: seedrandom.PRNG): T {
-  return items[Math.floor(rng() * items.length)];
+  if (items.length === 0) {
+    throw new Error('pick requires non-empty input');
+  }
+  return items[Math.floor(rng() * items.length)] as T;
 }
 
 function between(min: number, max: number, rng: seedrandom.PRNG): number {
@@ -672,7 +684,11 @@ function axialLine(start: HexCoordinates, end: HexCoordinates): HexCoordinates[]
     const candidates = [0, 1, 2, 3, 4, 5]
       .map((edge) => neighbor(current, edge))
       .sort((left, right) => hexDistance(left, end) - hexDistance(right, end));
-    current = candidates[0];
+    const nextCurrent = candidates[0];
+    if (nextCurrent === undefined) {
+      break;
+    }
+    current = nextCurrent;
     path.push(current);
     guard += 1;
   }
@@ -698,6 +714,9 @@ function meanderPath(
       break;
     }
     const choice = candidates[Math.min(candidates.length - 1, Math.floor(rng() * Math.min(2, candidates.length)))];
+    if (choice === undefined) {
+      break;
+    }
     const step = edgeBetween(current, choice);
     if (step === undefined) {
       break;

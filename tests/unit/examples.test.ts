@@ -79,6 +79,9 @@ describe('published recipe examples', () => {
     const scenario = JSON.parse(packageScenario) as GameboardScenario;
     const runtime = createGameboardWorldFromScenario(scenario);
     const quest = runtime.questEntities['docs-simple-rpg-scenario:intro'];
+    if (quest === undefined) {
+      throw new Error('docs scenario missing intro quest entity');
+    }
     const snapshot = advanceGameboardQuest(runtime.world, quest);
 
     expect(

@@ -14,10 +14,10 @@ describe('tile registry and ECS interop', () => {
   it('builds declarations from the FREE manifest with inferred adjacency channels', () => {
     const registry = createHexTileRegistryFromManifest(freeManifest);
 
-    expect(registry.byAssetId.hex_grass.role).toBe('base');
-    expect(registry.byAssetId.hex_road_A.edges).toMatchObject([{ channel: 'road', mask: 0b001001 }]);
-    expect(registry.byAssetId.hex_river_A_waterless.edges).toMatchObject([{ channel: 'river', mask: 0b001001 }]);
-    expect(registry.byAssetId.hex_coast_A.edges).toMatchObject([{ channel: 'coast', mask: 0b000001 }]);
+    expect(registry.byAssetId.hex_grass?.role).toBe('base');
+    expect(registry.byAssetId.hex_road_A?.edges).toMatchObject([{ channel: 'road', mask: 0b001001 }]);
+    expect(registry.byAssetId.hex_river_A_waterless?.edges).toMatchObject([{ channel: 'river', mask: 0b001001 }]);
+    expect(registry.byAssetId.hex_coast_A?.edges).toMatchObject([{ channel: 'coast', mask: 0b000001 }]);
   });
 
   it('analyzes tile bounds and warns on suspicious custom geometry', () => {
@@ -35,7 +35,11 @@ describe('tile registry and ECS interop', () => {
       },
     ]);
     const analysis = analyzeHexTileRegistry(registry);
-    const tile = analyzeTileGeometry(registry.byId.custom_hex_lava);
+    const customTile = registry.byId.custom_hex_lava;
+    if (customTile === undefined) {
+      throw new Error('custom_hex_lava tile missing from registry');
+    }
+    const tile = analyzeTileGeometry(customTile);
 
     expect(analysis.analyzedCount).toBe(1);
     expect(tile.recommendedScale).toBeGreaterThan(0);

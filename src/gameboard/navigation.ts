@@ -1107,9 +1107,22 @@ function routePatrolWaypoints(
   if (waypoints.length < 2) {
     return [];
   }
-  const pairs = waypoints.slice(0, -1).map((waypoint, index) => [waypoint, waypoints[index + 1]] as const);
+  const pairs: Array<readonly [GameboardPatrolWaypoint, GameboardPatrolWaypoint]> = [];
+  for (let index = 0; index < waypoints.length - 1; index += 1) {
+    const current = waypoints[index];
+    const next = waypoints[index + 1];
+    if (current === undefined || next === undefined) {
+      throw new Error(`patrol waypoint pair index ${index} out of range`);
+    }
+    pairs.push([current, next]);
+  }
   if (loop) {
-    pairs.push([waypoints[waypoints.length - 1], waypoints[0]]);
+    const last = waypoints[waypoints.length - 1];
+    const first = waypoints[0];
+    if (last === undefined || first === undefined) {
+      throw new Error('patrol loop requires at least two waypoints');
+    }
+    pairs.push([last, first]);
   }
   return pairs.map(([from, to]) => {
     const path = navigation.findPath(from.key, to.key);
@@ -1158,6 +1171,9 @@ function coordinatesFor(coordinates: HexCoordinates | string): HexCoordinates {
     return coordinates;
   }
   const [q, r] = coordinates.split(',').map(Number);
+  if (q === undefined || r === undefined) {
+    throw new Error(`Invalid hex key string: ${coordinates}`);
+  }
   return { q, r };
 }
 

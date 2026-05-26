@@ -367,8 +367,16 @@ function listFilesInternal(
 }
 
 function extractBounds(document: GltfDocument): AssetBounds {
-  const min = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
-  const max = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
+  const min: [number, number, number] = [
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+  ];
+  const max: [number, number, number] = [
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+  ];
 
   for (const mesh of document.meshes ?? []) {
     for (const primitive of mesh.primitives ?? []) {
@@ -380,7 +388,7 @@ function extractBounds(document: GltfDocument): AssetBounds {
       if (!accessor?.min || !accessor.max) {
         continue;
       }
-      for (let index = 0; index < 3; index += 1) {
+      for (const index of [0, 1, 2] as const) {
         min[index] = Math.min(min[index], accessor.min[index] ?? min[index]);
         max[index] = Math.max(max[index], accessor.max[index] ?? max[index]);
       }
