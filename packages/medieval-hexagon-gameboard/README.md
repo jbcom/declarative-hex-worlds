@@ -1446,7 +1446,10 @@ That summary includes the current guide-facing public API count, exercised API
 count, missing/stale API rows, and evidence modes from
 `summarizeSimpleRpgGuidePublicApiExercises()`. The packaged consumer smoke test
 asserts that all 74 guide-facing APIs are represented, so new guide/API coverage
-cannot drift away from SimpleRPG unnoticed.
+cannot drift away from SimpleRPG unnoticed. Evidence-mode counts are
+memberships rather than exclusive buckets: an API can be direct executable smoke
+and also seeded-generation, blueprint, manifest, compatibility, or visual proof.
+The unit suite requires every declared mode to stay active.
 The JSON examples are exported as
 `@jbcom/medieval-hexagon-gameboard/examples/*.json`; raw TypeScript example
 source stays in the repo and is not included in the npm tarball.

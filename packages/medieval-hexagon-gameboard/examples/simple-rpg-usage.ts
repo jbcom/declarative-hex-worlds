@@ -88,8 +88,10 @@ export type SimpleRpgGuidePublicApiExerciseMode =
 export interface SimpleRpgGuidePublicApiExercise {
   /** Public API surface from `listKayKitGuidePublicApiCoverages()`. */
   readonly publicApi: string;
-  /** Integration mode that covers the API. */
+  /** Primary integration mode that covers the API. */
   readonly mode: SimpleRpgGuidePublicApiExerciseMode;
+  /** All integration modes that cover the API, including the primary mode. */
+  readonly modes: readonly SimpleRpgGuidePublicApiExerciseMode[];
   /** Human-readable fixture, docs, or package evidence. */
   readonly evidence: string;
   /** One-based guide pages represented by the API coverage row. */
@@ -112,7 +114,7 @@ export interface SimpleRpgGuidePublicApiExerciseCoverage {
   readonly missingPublicApis: readonly string[];
   /** Evidence rows that no longer correspond to a current guide API. */
   readonly staleExercisePublicApis: readonly string[];
-  /** Exercise counts by evidence mode. */
+  /** Exercise counts by evidence mode; one API may contribute to multiple modes. */
   readonly exerciseModeCounts: Readonly<Record<SimpleRpgGuidePublicApiExerciseMode, number>>;
   /** Joined exercise rows with guide page and artifact metadata. */
   readonly exercises: readonly SimpleRpgGuidePublicApiExercise[];
@@ -120,6 +122,7 @@ export interface SimpleRpgGuidePublicApiExerciseCoverage {
 
 interface SimpleRpgGuidePublicApiExerciseEvidence {
   readonly mode: SimpleRpgGuidePublicApiExerciseMode;
+  readonly modes?: readonly SimpleRpgGuidePublicApiExerciseMode[];
   readonly evidence: string;
 }
 
@@ -169,110 +172,137 @@ const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = [
 const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   'GameboardBuilder.addBridge': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a bridge beside the harbor approach.',
   },
   'GameboardBuilder.addConstructionSite': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a staged worksite off the golden path.',
   },
   'GameboardBuilder.addElevationRamp': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a ramp against an elevated tile.',
   },
   'GameboardBuilder.addFactionBuilding': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed and packaged SimpleRPG boards place faction buildings.',
   },
   'GameboardBuilder.addFlag': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a faction flag and runtime actors use flag assets.',
   },
   'GameboardBuilder.addForest': {
     mode: 'fixed-gameplay',
+    modes: ['seeded-generation', 'visual-coverage'],
     evidence: 'Fixed and seeded SimpleRPG boards include forests and tree scatter.',
   },
   'GameboardBuilder.addFortification': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a town wall segment with enclosure metadata.',
   },
   'GameboardBuilder.addHarbor': {
     mode: 'fixed-gameplay',
+    modes: ['seeded-generation', 'visual-coverage'],
     evidence: 'Fixed and seeded SimpleRPG boards include a playable harbor/coast relationship.',
   },
   'GameboardBuilder.addHill': {
     mode: 'fixed-gameplay',
+    modes: ['seeded-generation', 'visual-coverage'],
     evidence: 'Fixed and seeded SimpleRPG boards include hill terrain and decorations.',
   },
   'GameboardBuilder.addMountainStack': {
     mode: 'fixed-gameplay',
+    modes: ['seeded-generation', 'visual-coverage'],
     evidence: 'Fixed, seeded, and packaged SimpleRPG boards place stacked mountains.',
   },
   'GameboardBuilder.addNature': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places standalone nature assets.',
   },
   'GameboardBuilder.addNeutralStructure': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a neutral grain building.',
   },
   'GameboardBuilder.addProp': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG quest uses a registered crate prop as a passable actor target.',
   },
   'GameboardBuilder.addPropCluster': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a resource-cache cluster.',
   },
   'GameboardBuilder.addRiverPath': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board routes a curvy waterless river through the quest road.',
   },
   'GameboardBuilder.addRoadPath': {
     mode: 'fixed-gameplay',
+    modes: ['seeded-generation', 'visual-coverage'],
     evidence: 'Fixed, seeded, and packaged SimpleRPG boards use roads for movement routes.',
   },
   'GameboardBuilder.addSettlement': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a settlement home through the settlement alias.',
   },
   'GameboardBuilder.addSiegeProjectile': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a catapult projectile beside the town wall.',
   },
   'GameboardBuilder.addTransition': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a local-only texture transition and marks it EXTRA.',
   },
   'GameboardBuilder.addUnit': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places colored and neutral EXTRA unit parts.',
   },
   'GameboardBuilder.addUnitPreset': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board places a composed soldier preset.',
   },
   'GameboardBuilder.scatterDecorations': {
     mode: 'fixed-gameplay',
+    modes: ['seeded-generation', 'visual-coverage'],
     evidence: 'Fixed and seeded SimpleRPG boards scatter decorations deterministically.',
   },
   'GameboardBuilder.setCoastEdges': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board marks the water edge as coast before adding a harbor.',
   },
   'GameboardBuilder.setElevation': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed SimpleRPG board raises a tile and then adds an elevation ramp.',
   },
   'GameboardBuilder.setTerrain': {
     mode: 'fixed-gameplay',
+    modes: ['seeded-generation', 'visual-coverage'],
     evidence: 'Fixed SimpleRPG board authors a full water row and seeded generation fills terrain.',
   },
   'GameboardBuilder.setTileAsset': {
     mode: 'fixed-gameplay',
+    modes: ['visual-coverage'],
     evidence: 'Fixed and packaged SimpleRPG boards override authored tile assets and tags.',
   },
   'NOTICE.md': {
     mode: 'package-boundary',
+    modes: ['manifest-package'],
     evidence: 'Release/package audits keep KayKit attribution with the SimpleRPG packaged smoke.',
   },
   analyzeHexTileRegistry: {
@@ -289,10 +319,12 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   createGameboardLayoutArchetypeRegistry: {
     mode: 'executable-smoke',
+    modes: ['seeded-generation'],
     evidence: 'Packaged SimpleRPG usage creates a layout archetype registry in executable smoke.',
   },
   createGameboardLayoutFillRuleFromPiece: {
     mode: 'executable-smoke',
+    modes: ['seeded-generation'],
     evidence: 'Packaged SimpleRPG usage creates a piece-backed layout fill rule in executable smoke.',
   },
   createGameboardPlanFromRecipe: {
@@ -313,22 +345,27 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   createManifestBundle: {
     mode: 'executable-smoke',
+    modes: ['manifest-package'],
     evidence: 'Packaged SimpleRPG usage bundles the FREE manifest in executable smoke.',
   },
   createMedievalGameboardBlueprintPlan: {
     mode: 'executable-smoke',
+    modes: ['blueprint-recipe'],
     evidence: 'Packaged SimpleRPG usage compiles a blueprint plan in executable smoke.',
   },
   createMedievalGameboardBlueprintRecipe: {
     mode: 'executable-smoke',
+    modes: ['blueprint-recipe'],
     evidence: 'Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke.',
   },
   createMedievalShowcaseBlueprintRecipe: {
     mode: 'executable-smoke',
+    modes: ['blueprint-recipe'],
     evidence: 'Packaged SimpleRPG usage compiles the showcase blueprint recipe in executable smoke.',
   },
   createSeededGameboardPlan: {
     mode: 'executable-smoke',
+    modes: ['seeded-generation'],
     evidence: 'Packaged SimpleRPG usage builds a seeded board in executable smoke.',
   },
   declareHexTile: {
@@ -341,6 +378,7 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   externalAssetSpawnOptions: {
     mode: 'executable-smoke',
+    modes: ['compatibility-adapter'],
     evidence: 'Packaged SimpleRPG usage converts compatibility analysis into spawn options in executable smoke.',
   },
   factionBuildingAssetId: {
@@ -353,10 +391,12 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   freeManifest: {
     mode: 'executable-smoke',
+    modes: ['manifest-package'],
     evidence: 'Packaged SimpleRPG usage reads the FREE manifest in executable smoke.',
   },
   inspectMedievalGameboardBlueprint: {
     mode: 'executable-smoke',
+    modes: ['blueprint-recipe'],
     evidence: 'Packaged SimpleRPG usage inspects a blueprint in executable smoke.',
   },
   listCoastGuidePermutations: {
@@ -393,6 +433,7 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   'medieval-hexagon-gameboard manifest': {
     mode: 'package-boundary',
+    modes: ['manifest-package'],
     evidence: 'Package smoke validates the CLI manifest and packaged SimpleRPG imports together.',
   },
   neutralUnitAssetId: {
@@ -401,6 +442,7 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   'package.json files': {
     mode: 'package-boundary',
+    modes: ['manifest-package'],
     evidence: 'Package audit verifies exports, files, examples, and SimpleRPG package imports.',
   },
   planGameboardInteractionCommand: {
@@ -409,6 +451,7 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   recommendExternalAssetFacing: {
     mode: 'executable-smoke',
+    modes: ['compatibility-adapter'],
     evidence: 'Packaged SimpleRPG usage recommends external asset facing in executable smoke.',
   },
   selectCoastVariant: {
@@ -421,6 +464,7 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   selectManifestAssets: {
     mode: 'executable-smoke',
+    modes: ['manifest-package'],
     evidence: 'Packaged SimpleRPG usage selects manifest assets in executable smoke.',
   },
   selectRiverCrossingVariant: {
@@ -610,7 +654,7 @@ export interface SimpleRpgUsageSummary {
   readonly missingGuidePublicApis: readonly string[];
   /** Evidence rows that no longer correspond to a current guide API. */
   readonly staleGuidePublicApis: readonly string[];
-  /** Exercise counts by SimpleRPG evidence mode. */
+  /** Exercise counts by SimpleRPG evidence mode; one API may contribute to multiple modes. */
   readonly guidePublicApiExerciseModes: Readonly<Record<SimpleRpgGuidePublicApiExerciseMode, number>>;
   /** Final tile key for each actor id after simulation. */
   readonly finalActorTiles: Readonly<Record<string, string>>;
@@ -919,9 +963,11 @@ function exerciseFromCoverage(
   evidence: SimpleRpgGuidePublicApiExerciseEvidence,
   coverage: KayKitGuidePublicApiCoverage | undefined
 ): SimpleRpgGuidePublicApiExercise {
+  const modes = Array.from(new Set([evidence.mode, ...(evidence.modes ?? [])]));
   return {
     publicApi,
     mode: evidence.mode,
+    modes,
     evidence: evidence.evidence,
     pages: coverage?.pages ?? [],
     scenarioIds: coverage?.scenarioIds ?? [],
@@ -945,7 +991,9 @@ function countExerciseModes(
     'visual-coverage': 0,
   };
   for (const exercise of exercises) {
-    counts[exercise.mode] += 1;
+    for (const mode of exercise.modes) {
+      counts[mode] += 1;
+    }
   }
   return counts;
 }

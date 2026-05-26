@@ -384,6 +384,8 @@ describe('published recipe examples', () => {
     expect(coverage.exerciseModeCounts['executable-smoke']).toBe(
       executableSmoke.directPublicApiCount
     );
+    expect(Object.values(coverage.exerciseModeCounts).every((count) => count > 0)).toBe(true);
+    expect(exercises.every((exercise) => exercise.modes.includes(exercise.mode))).toBe(true);
     expect(
       executableSmoke.directPublicApis.every((publicApi) =>
         exercises.some((exercise) => exercise.publicApi === publicApi)
