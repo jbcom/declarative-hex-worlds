@@ -1,11 +1,58 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
 
 // GitHub Pages deploys under the repo path. CI sets ASTRO_BASE based on the
 // repo's pages config; locally + on PR builds, base is `/`.
 const base = process.env.ASTRO_BASE ?? '/';
 const site = process.env.ASTRO_SITE ?? 'https://jbcom.github.io/medieval-hexagon-gameboard';
+
+// Mirrors tsup.config.ts `entry` — every entry corresponds to a public subpath
+// in the library's `package.json#exports`. Each generates a Markdown reference
+// page under `src/content/docs/reference/` at build time.
+const entryPoints = [
+	'../src/index.ts',
+	'../src/actors/index.ts',
+	'../src/scenario/blueprint.ts',
+	'../src/scenario/catalog.ts',
+	'../src/interop/compatibility.ts',
+	'../src/commands/index.ts',
+	'../src/interop/coverage.ts',
+	'../src/coordinates/index.ts',
+	'../src/gameboard/index.ts',
+	'../src/coordinates/grid.ts',
+	'../src/interop/index.ts',
+	'../src/koota/index.ts',
+	'../src/coordinates/layout.ts',
+	'../src/movement/index.ts',
+	'../src/gameboard/navigation.ts',
+	'../src/gameboard/occupancy.ts',
+	'../src/patrol/index.ts',
+	'../src/pieces/index.ts',
+	'../src/coordinates/projection.ts',
+	'../src/quests/index.ts',
+	'../src/scenario/recipe.ts',
+	'../src/scenario/registry.ts',
+	'../src/react/index.ts',
+	'../src/rules/rule-types.ts',
+	'../src/rules/index.ts',
+	'../src/runtime/index.ts',
+	'../src/scenario/index.ts',
+	'../src/selectors/index.ts',
+	'../src/simulation/index.ts',
+	'../src/systems/index.ts',
+	'../src/three/index.ts',
+	'../src/traits/index.ts',
+	'../src/errors/index.ts',
+	'../src/types/index.ts',
+	'../src/rules/validation.ts',
+	'../src/systems/world-rules-system.ts',
+	'../src/cli/cli.ts',
+	'../src/ingest/index.ts',
+	'../src/manifest/free.ts',
+	'../src/manifest/schema.ts',
+];
 
 export default defineConfig({
 	site,
@@ -35,6 +82,21 @@ export default defineConfig({
 			lastUpdated: true,
 			pagination: true,
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
+			plugins: [
+				starlightTypeDoc({
+					entryPoints,
+					tsconfig: './tsconfig.typedoc.json',
+					output: 'reference',
+					sidebar: { label: 'Reference', collapsed: false },
+					typeDoc: {
+						plugin: ['typedoc-plugin-markdown'],
+						entryPointStrategy: 'expand',
+						excludeInternal: true,
+						excludePrivate: true,
+						hideGenerator: true,
+					},
+				}),
+			],
 			sidebar: [
 				{
 					label: 'Get started',
@@ -48,10 +110,7 @@ export default defineConfig({
 					label: 'Features',
 					items: [{ autogenerate: { directory: 'features' } }],
 				},
-				{
-					label: 'Reference',
-					items: [{ autogenerate: { directory: 'reference' } }],
-				},
+				typeDocSidebarGroup,
 				{
 					label: 'About',
 					items: [{ autogenerate: { directory: 'about' } }],

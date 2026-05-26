@@ -2,6 +2,8 @@
 dist/
 # generated types
 .astro/
+# starlight-typedoc generated reference pages (rebuilt every build)
+src/content/docs/reference/
 
 # dependencies
 node_modules/

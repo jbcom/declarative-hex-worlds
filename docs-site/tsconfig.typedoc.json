@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "ignoreDeprecations": "6.0",
+    "types": ["node"]
+  },
+  "include": ["../src/**/*.ts"],
+  "exclude": ["../dist", "../coverage", "../node_modules", "../assets/free"]
+}
