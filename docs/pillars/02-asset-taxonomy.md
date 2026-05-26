@@ -16,23 +16,23 @@ implementation_links:
   - docs/release-readiness.json
   - docs/guides/guide-scenario-coverage.md
   - docs/guides/release-readiness.md
-  - packages/medieval-hexagon-gameboard/src/catalog.ts
-  - packages/medieval-hexagon-gameboard/src/coverage.ts
-  - packages/medieval-hexagon-gameboard/src/manifest/free.ts
-  - packages/medieval-hexagon-gameboard/src/types.ts
-  - packages/medieval-hexagon-gameboard/src/gameboard.ts
-  - packages/medieval-hexagon-gameboard/src/recipe.ts
-  - packages/medieval-hexagon-gameboard/src/ingest.ts
-  - packages/medieval-hexagon-gameboard/src/koota.ts
+  - src/scenario/catalog.ts
+  - src/interop/coverage.ts
+  - src/manifest/free.ts
+  - src/types/index.ts
+  - src/gameboard/gameboard.ts
+  - src/scenario/recipe.ts
+  - src/ingest/ingest.ts
+  - src/koota/koota.ts
   - scripts/audit-free-assets.ts
   - scripts/audit-reference-assets.ts
 test_links:
-  - packages/medieval-hexagon-gameboard/tests/unit/catalog.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/manifest.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/gameboard.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/koota.test.ts
-  - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts
+  - tests/unit/catalog.test.ts
+  - tests/unit/coverage.test.ts
+  - tests/unit/manifest.test.ts
+  - tests/unit/gameboard.test.ts
+  - tests/unit/koota.test.ts
+  - tests/browser/free-visual.test.ts
   - scripts/audit-free-assets.ts
   - scripts/audit-reference-assets.ts
 ---

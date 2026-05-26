@@ -37,40 +37,59 @@ export interface GameboardQuestObjectiveBase {
 
 /** Objective completed when an actor reaches a tile. */
 export interface ReachTileQuestObjective extends GameboardQuestObjectiveBase {
+  /** Objective discriminator. */
   kind: 'reach-tile';
+  /** Source actor id. */
   actor: string;
+  /** Target tile coordinates or tile key. */
   tile: HexCoordinates | string;
+  /** Maximum accepted distance from the target tile. */
   maxDistance?: number;
 }
 
 /** Objective completed when an actor reaches another actor. */
 export interface ReachActorQuestObjective extends GameboardQuestObjectiveBase {
+  /** Objective discriminator. */
   kind: 'reach-actor';
+  /** Source actor id. */
   actor: string;
+  /** Target actor id. */
   targetActor: string;
+  /** Maximum accepted distance from the target actor. */
   maxDistance?: number;
 }
 
 /** Objective completed when an actor interacts with another actor. */
 export interface InteractActorQuestObjective extends GameboardQuestObjectiveBase {
+  /** Objective discriminator. */
   kind: 'interact-actor';
+  /** Source actor id. */
   actor: string;
+  /** Target actor id. */
   targetActor: string;
+  /** Maximum accepted interaction distance. */
   maxDistance?: number;
 }
 
 /** Objective completed when a target actor no longer exists. */
 export interface DefeatActorQuestObjective extends GameboardQuestObjectiveBase {
+  /** Objective discriminator. */
   kind: 'defeat-actor';
+  /** Target actor id. */
   targetActor: string;
 }
 
 /** Objective completed when a collision report matches an expected state. */
 export interface CollisionQuestObjective extends GameboardQuestObjectiveBase {
+  /** Objective discriminator. */
   kind: 'collision';
+  /** Optional source actor id. */
   actor?: string;
+  /** Optional target actor id. */
   targetActor?: string;
+  /** Optional target tile coordinates or tile key. */
   targetTile?: HexCoordinates | string;
+  /** Expected collision state. */
   expect: GameboardQuestCollisionExpectation;
 }
 

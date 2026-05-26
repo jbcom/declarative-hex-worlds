@@ -16,74 +16,74 @@ implementation_links:
   - docs/release-readiness.json
   - docs/guides/release-readiness.md
   - docs/examples/blueprint-board.json
-  - packages/medieval-hexagon-gameboard/src/actors.ts
-  - packages/medieval-hexagon-gameboard/src/blueprint.ts
-  - packages/medieval-hexagon-gameboard/src/commands.ts
-  - packages/medieval-hexagon-gameboard/src/coverage.ts
-  - packages/medieval-hexagon-gameboard/src/catalog.ts
-  - packages/medieval-hexagon-gameboard/src/cli.ts
-  - packages/medieval-hexagon-gameboard/src/compatibility.ts
-  - packages/medieval-hexagon-gameboard/src/coordinates.ts
-  - packages/medieval-hexagon-gameboard/src/gameboard.ts
-  - packages/medieval-hexagon-gameboard/src/grid.ts
-  - packages/medieval-hexagon-gameboard/src/index.ts
-  - packages/medieval-hexagon-gameboard/src/interop.ts
-  - packages/medieval-hexagon-gameboard/src/koota.ts
-  - packages/medieval-hexagon-gameboard/src/layout.ts
-  - packages/medieval-hexagon-gameboard/src/movement.ts
-  - packages/medieval-hexagon-gameboard/src/navigation.ts
-  - packages/medieval-hexagon-gameboard/src/occupancy.ts
-  - packages/medieval-hexagon-gameboard/src/patrol.ts
-  - packages/medieval-hexagon-gameboard/src/pieces.ts
-  - packages/medieval-hexagon-gameboard/src/projection.ts
-  - packages/medieval-hexagon-gameboard/src/quests.ts
-  - packages/medieval-hexagon-gameboard/src/recipe.ts
-  - packages/medieval-hexagon-gameboard/src/registry.ts
-  - packages/medieval-hexagon-gameboard/src/rule-types.ts
-  - packages/medieval-hexagon-gameboard/src/rules.ts
-  - packages/medieval-hexagon-gameboard/src/runtime.ts
-  - packages/medieval-hexagon-gameboard/src/scenario.ts
-  - packages/medieval-hexagon-gameboard/src/simulation.ts
-  - packages/medieval-hexagon-gameboard/src/react.ts
-  - packages/medieval-hexagon-gameboard/src/systems.ts
-  - packages/medieval-hexagon-gameboard/src/three.ts
-  - packages/medieval-hexagon-gameboard/src/validation.ts
-  - packages/medieval-hexagon-gameboard/src/world-rules.ts
-  - packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts
-  - packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts
+  - src/actors/actors.ts
+  - src/scenario/blueprint.ts
+  - src/commands/commands.ts
+  - src/interop/coverage.ts
+  - src/scenario/catalog.ts
+  - src/cli/cli.ts
+  - src/interop/compatibility.ts
+  - src/coordinates/coordinates.ts
+  - src/gameboard/gameboard.ts
+  - src/coordinates/grid.ts
+  - src/index.ts
+  - src/interop/interop.ts
+  - src/koota/koota.ts
+  - src/coordinates/layout.ts
+  - src/movement/movement.ts
+  - src/gameboard/navigation.ts
+  - src/gameboard/occupancy.ts
+  - src/patrol/patrol.ts
+  - src/pieces/pieces.ts
+  - src/coordinates/projection.ts
+  - src/quests/quests.ts
+  - src/scenario/recipe.ts
+  - src/scenario/registry.ts
+  - src/rules/rule-types.ts
+  - src/rules/rules.ts
+  - src/runtime/runtime.ts
+  - src/scenario/scenario.ts
+  - src/simulation/simulation.ts
+  - src/react/react.ts
+  - src/systems/systems.ts
+  - src/three/three.ts
+  - src/rules/validation.ts
+  - src/systems/world-rules-system.ts
+  - examples/blueprint-board-usage.ts
+  - examples/simple-rpg-usage.ts
 test_links:
-  - packages/medieval-hexagon-gameboard/tests/unit/catalog.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/actors.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/commands.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/grid.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/compatibility.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/gameboard.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/interop.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/koota.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/layout.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/movement.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/navigation.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/pieces.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/quests.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/recipe.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/registry.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/rules.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/runtime.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/scenario.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/simulation.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/systems.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/three.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/validation.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/simple-rpg.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/examples.test.ts
-  - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts
-  - packages/medieval-hexagon-gameboard/tests/browser/react-bindings.test.ts
-  - packages/medieval-hexagon-gameboard/tests/browser/simple-rpg-visual.test.ts
-  - packages/medieval-hexagon-gameboard/tests/e2e/local-assets/third-party-assets.test.ts
-  - packages/medieval-hexagon-gameboard/tests/browser/extra-visual.test.ts
+  - tests/unit/catalog.test.ts
+  - tests/unit/coverage.test.ts
+  - tests/unit/blueprint.test.ts
+  - tests/unit/actors.test.ts
+  - tests/unit/commands.test.ts
+  - tests/unit/cli.test.ts
+  - tests/unit/grid.test.ts
+  - tests/unit/compatibility.test.ts
+  - tests/unit/gameboard.test.ts
+  - tests/unit/interop.test.ts
+  - tests/unit/koota.test.ts
+  - tests/unit/layout.test.ts
+  - tests/unit/movement.test.ts
+  - tests/unit/navigation.test.ts
+  - tests/unit/pieces.test.ts
+  - tests/unit/quests.test.ts
+  - tests/unit/recipe.test.ts
+  - tests/unit/registry.test.ts
+  - tests/unit/rules.test.ts
+  - tests/unit/runtime.test.ts
+  - tests/unit/scenario.test.ts
+  - tests/unit/simulation.test.ts
+  - tests/unit/systems.test.ts
+  - tests/unit/three.test.ts
+  - tests/unit/validation.test.ts
+  - tests/unit/simple-rpg.test.ts
+  - tests/unit/examples.test.ts
+  - tests/browser/free-visual.test.ts
+  - tests/browser/react-bindings.test.ts
+  - tests/browser/simple-rpg-visual.test.ts
+  - tests/e2e/local-assets/third-party-assets.test.ts
+  - tests/browser/extra-visual.test.ts
   - scripts/smoke-built-cli.ts
   - scripts/smoke-packed-consumer.ts
 ---
@@ -760,7 +760,7 @@ cannot infer placement `kind`; the `validate-recipe` CLI reports those as
 specific recipe violations so build pipelines fail with actionable messages
 before layout generation mutates a board.
 `docs/examples/generated-piece-scenario.recipe.json` and the packaged
-`packages/medieval-hexagon-gameboard/examples/generated-piece-scenario.recipe.json`
+`examples/generated-piece-scenario.recipe.json`
 are the canonical small JSON examples for generated piece declarations and fill
 rules. The package export map exposes JSON examples as
 `@jbcom/medieval-hexagon-gameboard/examples/*.json`; raw TypeScript examples

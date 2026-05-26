@@ -18,4 +18,8 @@
  * @module
  */
 
+// `export *` without a value import lets tsup tree-shake the side-effect runner
+// out of dist/cli.js. Force-execute the CLI by also doing a value import so
+// the module body actually runs.
+import './cli';
 export * from './cli';

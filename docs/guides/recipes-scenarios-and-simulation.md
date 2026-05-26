@@ -165,19 +165,19 @@ medieval-hexagon-gameboard validate-recipe \
   --outPlan /tmp/generated-piece-scenario.plan.json
 
 medieval-hexagon-gameboard validate-scenario \
-  --scenario packages/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json \
-  --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json \
+  --scenario examples/simple-rpg-scenario.json \
+  --manifest assets/free/manifest.json \
   --outPlan /tmp/simple-rpg-plan.json
 
 medieval-hexagon-gameboard validate-simulation \
-  --scenario packages/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json \
-  --script packages/medieval-hexagon-gameboard/examples/simple-rpg-simulation.script.json \
-  --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json
+  --scenario examples/simple-rpg-scenario.json \
+  --script examples/simple-rpg-simulation.script.json \
+  --manifest assets/free/manifest.json
 
 medieval-hexagon-gameboard simulate-scenario \
-  --scenario packages/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json \
-  --script packages/medieval-hexagon-gameboard/examples/simple-rpg-simulation.script.json \
-  --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json \
+  --scenario examples/simple-rpg-scenario.json \
+  --script examples/simple-rpg-simulation.script.json \
+  --manifest assets/free/manifest.json \
   --out /tmp/simple-rpg-simulation.json \
   --outInterop /tmp/simple-rpg-interop.json
 ```

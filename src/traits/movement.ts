@@ -6,10 +6,13 @@
 
 import { trait } from 'koota';
 
+/** Built-in movement profile ids for common medieval board actors. */
 export type BuiltInGameboardMovementProfileId = 'ground' | 'worker' | 'cavalry' | 'ship' | 'flying';
 
+/** Movement profile id accepted by movement helpers (built-in or custom string). */
 export type GameboardMovementProfileId = BuiltInGameboardMovementProfileId | (string & {});
 
+/** Runtime movement path status for a movement agent. */
 export type GameboardMovementStatus =
   | 'idle'
   | 'ready'

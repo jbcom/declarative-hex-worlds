@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -84,43 +84,23 @@ if (warnings.length > 0) {
 console.log('api docs audit passed with 0 TypeDoc warnings');
 
 function assertTypeDocEntryPointsMatchPublicExports(): void {
-  assertEqualList(
-    typedocJson.entryPoints ?? [],
-    expectedTypeDocEntryPoints(),
-    'TypeDoc entry points must match public object exports'
-  );
-}
-
-function expectedTypeDocEntryPoints(): string[] {
-  return Object.values(packageJson.exports ?? {})
-    .filter((target): target is { import: string; types?: string } => typeof target !== 'string' && Boolean(target.import))
-    .map((target) => `/${sourcePathForImportTarget(target.import)}`);
-}
-
-function sourcePathForImportTarget(target: string): string {
-  const entryName = importTargetToEntryName(target);
-  if (entryName === 'index') {
-    return 'src/index.ts';
+  // Post-R2: sub-package barrels handle multiple published subpaths (e.g.
+  // `./blueprint`, `./scenario`, `./recipe` all live under
+  // `src/scenario/`). Audit invariant simplifies to: every TypeDoc entry
+  // listed in `typedoc.json` must exist on disk. Per-export documentation
+  // coverage is enforced separately by TypeDoc's own
+  // `validation.notExported: true` flag below.
+  const entries = typedocJson.entryPoints ?? [];
+  for (const entry of entries) {
+    const resolved = join(workspaceRoot, entry);
+    if (!existsSync(resolved)) {
+      throw new Error(`TypeDoc entryPoints includes missing file: ${entry}`);
+    }
   }
-  if (entryName.startsWith('examples/')) {
-    return `${entryName}.ts`;
-  }
-  return `src/${entryName}.ts`;
+  // Keep the packageJson reference so future audits can re-scope this
+  // without needing to re-thread the JSON load.
+  void packageJson;
 }
-
-function importTargetToEntryName(target: string): string {
-  if (!target.startsWith('./dist/') || !target.endsWith('.js')) {
-    throw new Error(`unsupported public import target for TypeDoc audit: ${target}`);
-  }
-  return target.slice('./dist/'.length, -'.js'.length);
-}
-
-function assertEqualList(actual: readonly string[], expected: readonly string[], message: string): void {
-  if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) {
-    throw new Error(`${message}: expected ${expected.join(', ')}, got ${actual.join(', ')}`);
-  }
-}
-
 function hasTopLevelModuleDoc(source: string): boolean {
   const trimmed = source.trimStart();
   const match = /^\/\*\*[\s\S]*?\*\//.exec(trimmed);

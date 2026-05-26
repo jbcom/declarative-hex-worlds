@@ -195,45 +195,45 @@ pnpm coverage:ledger
 | available | showcase | `docs/assets/showcases/simple-rpg-local-third-party-assets.png` | - |
 | available | showcase | `docs/assets/showcases/simple-rpg-seeded-completed.png` | - |
 | available | guide | `NOTICE.md` | 19 |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/extra-blueprint-biome-transition-showcase.png` | - |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/extra-harbor-gameboard.png` | - |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/free-blueprint-builder-showcase.png` | - |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/free-guide-coasts-all-labels-rotations-water-waterless.png` | - |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png` | - |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/free-guide-roads-all-labels-rotations.png` | - |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/free-guide-scenarios-by-extracted-page.png` | - |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-fixed-completed.png` | - |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-local-third-party-assets.png` | - |
-| available | showcase | `packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-seeded-completed.png` | - |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png` | 9, 11, 13 |
-| available | screenshot | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-assets-by-public-role.png` | - |
-| available | screenshot | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png` | - |
-| available | screenshot | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png` | - |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png` | 7, 15 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png` | 2, 15, 17 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png` | 5, 16 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png` | 11, 12, 13 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png` | 14, 16, 17, 18 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png` | 11, 12, 13 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png` | 8, 9 |
-| available | screenshot | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-catalog.png` | - |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png` | 8, 9 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png` | 6 |
-| available | screenshot | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-assets-by-public-role.png` | - |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png` | 7 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png` | 2, 5, 6, 8, 10 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png` | 4 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png` | 4, 7 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png` | 3 |
-| available | screenshot | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png` | - |
-| available | screenshot | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-source-pages.png` | - |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png` | 9 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png` | 10 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png` | 9 |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png` | 14 |
-| available | screenshot | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-packaged-scenario.png` | - |
-| available | guide | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png` | 18 |
-| available | screenshot | `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-simulation-report.png` | - |
+| available | showcase | `docs/showcases/extra-blueprint-biome-transition-showcase.png` | - |
+| available | showcase | `docs/showcases/extra-harbor-gameboard.png` | - |
+| available | showcase | `docs/showcases/free-blueprint-builder-showcase.png` | - |
+| available | showcase | `docs/showcases/free-guide-coasts-all-labels-rotations-water-waterless.png` | - |
+| available | showcase | `docs/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png` | - |
+| available | showcase | `docs/showcases/free-guide-roads-all-labels-rotations.png` | - |
+| available | showcase | `docs/showcases/free-guide-scenarios-by-extracted-page.png` | - |
+| available | showcase | `docs/showcases/simple-rpg-fixed-completed.png` | - |
+| available | showcase | `docs/showcases/simple-rpg-local-third-party-assets.png` | - |
+| available | showcase | `docs/showcases/simple-rpg-seeded-completed.png` | - |
+| available | guide | `tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png` | 9, 11, 13 |
+| available | screenshot | `tests/browser/__screenshots__/extra-guide-assets-by-public-role.png` | - |
+| available | screenshot | `tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png` | - |
+| available | screenshot | `tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png` | - |
+| available | guide | `tests/browser/__screenshots__/extra-harbor-gameboard.png` | 7, 15 |
+| available | guide | `tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png` | 2, 15, 17 |
+| available | guide | `tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png` | 5, 16 |
+| available | guide | `tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png` | 11, 12, 13 |
+| available | guide | `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png` | 14, 16, 17, 18 |
+| available | guide | `tests/browser/__screenshots__/extra-seasonal-textures.png` | 11, 12, 13 |
+| available | guide | `tests/browser/__screenshots__/free-blueprint-builder-showcase.png` | 8, 9 |
+| available | screenshot | `tests/browser/__screenshots__/free-catalog.png` | - |
+| available | guide | `tests/browser/__screenshots__/free-gameboard-recipe.png` | 8, 9 |
+| available | guide | `tests/browser/__screenshots__/free-generated-piece-recipe.png` | 6 |
+| available | screenshot | `tests/browser/__screenshots__/free-guide-assets-by-public-role.png` | - |
+| available | guide | `tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png` | 7 |
+| available | guide | `tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png` | 2, 5, 6, 8, 10 |
+| available | guide | `tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png` | 4 |
+| available | guide | `tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png` | 4, 7 |
+| available | guide | `tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png` | 3 |
+| available | screenshot | `tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png` | - |
+| available | screenshot | `tests/browser/__screenshots__/free-guide-source-pages.png` | - |
+| available | guide | `tests/browser/__screenshots__/free-seeded-gameboard.png` | 9 |
+| available | guide | `tests/browser/__screenshots__/free-seeded-hex-gameboard.png` | 10 |
+| available | guide | `tests/browser/__screenshots__/simple-rpg-fixed-completed.png` | 9 |
+| available | guide | `tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png` | 14 |
+| available | screenshot | `tests/browser/__screenshots__/simple-rpg-packaged-scenario.png` | - |
+| available | guide | `tests/browser/__screenshots__/simple-rpg-seeded-completed.png` | 18 |
+| available | screenshot | `tests/browser/__screenshots__/simple-rpg-simulation-report.png` | - |
 
 ## Guide Pages
 

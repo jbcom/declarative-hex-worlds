@@ -29,9 +29,11 @@ const simpleRpgExecutableApiCount = extractStringArrayConst(
 ).length;
 const kayKitPublicTreatmentCount = listKayKitAssetPublicTreatments().length;
 const kayKitGuideScenarioCount = listKayKitGuideScenarios().length;
+// Post-R1: workspace and package README collapsed to one canonical file at
+// the repo root. The pre-R1 dual entries (`README.md` + the in-package
+// `packages/medieval-hexagon-gameboard/README.md`) are now the same path.
 const simpleRpgCoverageDocPaths = [
   'README.md',
-  '/README.md',
   'docs/pillars/05-koota-runtime-rules.md',
   'docs/guides/recipes-scenarios-and-simulation.md',
 ] as const;

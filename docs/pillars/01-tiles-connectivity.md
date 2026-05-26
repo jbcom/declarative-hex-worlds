@@ -12,17 +12,17 @@ source_images:
 source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
 implementation_links:
   - docs/guides/release-readiness.md
-  - packages/medieval-hexagon-gameboard/src/selectors.ts
-  - packages/medieval-hexagon-gameboard/src/coverage.ts
-  - packages/medieval-hexagon-gameboard/src/grid.ts
-  - packages/medieval-hexagon-gameboard/src/gameboard.ts
-  - packages/medieval-hexagon-gameboard/src/blueprint.ts
-  - packages/medieval-hexagon-gameboard/src/recipe.ts
+  - src/selectors/selectors.ts
+  - src/interop/coverage.ts
+  - src/coordinates/grid.ts
+  - src/gameboard/gameboard.ts
+  - src/scenario/blueprint.ts
+  - src/scenario/recipe.ts
 test_links:
-  - packages/medieval-hexagon-gameboard/tests/unit/selectors.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/gameboard.test.ts
-  - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts
+  - tests/unit/selectors.test.ts
+  - tests/unit/coverage.test.ts
+  - tests/unit/gameboard.test.ts
+  - tests/browser/free-visual.test.ts
 ---
 
 # Tiles And Connectivity

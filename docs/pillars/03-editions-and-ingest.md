@@ -14,18 +14,18 @@ source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA
 implementation_links:
   - docs/release-readiness.json
   - docs/guides/release-readiness.md
-  - packages/medieval-hexagon-gameboard/src/cli.ts
-  - packages/medieval-hexagon-gameboard/src/coverage.ts
-  - packages/medieval-hexagon-gameboard/src/ingest.ts
-  - packages/medieval-hexagon-gameboard/src/manifest/schema.ts
-  - packages/medieval-hexagon-gameboard/package.json
+  - src/cli/cli.ts
+  - src/interop/coverage.ts
+  - src/ingest/ingest.ts
+  - src/manifest/schema.ts
+  - package.json
   - scripts/audit-reference-assets.ts
 test_links:
-  - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/ingest.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/manifest.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/examples.test.ts
+  - tests/unit/cli.test.ts
+  - tests/unit/coverage.test.ts
+  - tests/unit/ingest.test.ts
+  - tests/unit/manifest.test.ts
+  - tests/unit/examples.test.ts
   - scripts/audit-reference-assets.ts
 ---
 

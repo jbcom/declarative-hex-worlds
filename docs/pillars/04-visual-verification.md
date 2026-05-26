@@ -44,47 +44,47 @@ implementation_links:
   - scripts/extract-kaykit-guide.ts
   - scripts/extract-kaykit-guide.swift
   - scripts/promote-showcases.ts
-  - packages/medieval-hexagon-gameboard/docs/showcases/free-blueprint-builder-showcase.png
-  - packages/medieval-hexagon-gameboard/docs/showcases/extra-blueprint-biome-transition-showcase.png
-  - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-scenarios-by-extracted-page.png
-  - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-roads-all-labels-rotations.png
-  - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png
-  - packages/medieval-hexagon-gameboard/docs/showcases/free-guide-coasts-all-labels-rotations-water-waterless.png
-  - packages/medieval-hexagon-gameboard/docs/showcases/extra-harbor-gameboard.png
-  - packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-fixed-completed.png
-  - packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-seeded-completed.png
-  - packages/medieval-hexagon-gameboard/docs/showcases/simple-rpg-local-third-party-assets.png
-  - packages/medieval-hexagon-gameboard/src/blueprint.ts
-  - packages/medieval-hexagon-gameboard/src/cli.ts
-  - packages/medieval-hexagon-gameboard/src/catalog.ts
-  - packages/medieval-hexagon-gameboard/src/coverage.ts
-  - packages/medieval-hexagon-gameboard/src/compatibility.ts
-  - packages/medieval-hexagon-gameboard/src/three.ts
-  - packages/medieval-hexagon-gameboard/src/gameboard.ts
-  - packages/medieval-hexagon-gameboard/src/koota.ts
-  - packages/medieval-hexagon-gameboard/src/layout.ts
-  - packages/medieval-hexagon-gameboard/src/movement.ts
-  - packages/medieval-hexagon-gameboard/src/pieces.ts
-  - packages/medieval-hexagon-gameboard/src/quests.ts
+  - docs/showcases/free-blueprint-builder-showcase.png
+  - docs/showcases/extra-blueprint-biome-transition-showcase.png
+  - docs/showcases/free-guide-scenarios-by-extracted-page.png
+  - docs/showcases/free-guide-roads-all-labels-rotations.png
+  - docs/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png
+  - docs/showcases/free-guide-coasts-all-labels-rotations-water-waterless.png
+  - docs/showcases/extra-harbor-gameboard.png
+  - docs/showcases/simple-rpg-fixed-completed.png
+  - docs/showcases/simple-rpg-seeded-completed.png
+  - docs/showcases/simple-rpg-local-third-party-assets.png
+  - src/scenario/blueprint.ts
+  - src/cli/cli.ts
+  - src/scenario/catalog.ts
+  - src/interop/coverage.ts
+  - src/interop/compatibility.ts
+  - src/three/three.ts
+  - src/gameboard/gameboard.ts
+  - src/koota/koota.ts
+  - src/coordinates/layout.ts
+  - src/movement/movement.ts
+  - src/pieces/pieces.ts
+  - src/quests/quests.ts
 test_links:
-  - packages/medieval-hexagon-gameboard/tests/unit/catalog.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
-  - packages/medieval-hexagon-gameboard/tests/browser/free-visual.test.ts
-  - packages/medieval-hexagon-gameboard/tests/browser/simple-rpg-visual.test.ts
-  - packages/medieval-hexagon-gameboard/tests/scripts/assert-screenshots.ts
-  - packages/medieval-hexagon-gameboard/tests/scripts/screenshot-quality.ts
-  - packages/medieval-hexagon-gameboard/tests/e2e/local-assets/third-party-assets.test.ts
-  - packages/medieval-hexagon-gameboard/tests/browser/extra-visual.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/compatibility.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/gameboard.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/koota.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/layout.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/movement.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/pieces.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/quests.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/simple-rpg.test.ts
+  - tests/unit/catalog.test.ts
+  - tests/unit/coverage.test.ts
+  - tests/unit/blueprint.test.ts
+  - tests/unit/cli.test.ts
+  - tests/browser/free-visual.test.ts
+  - tests/browser/simple-rpg-visual.test.ts
+  - tests/scripts/assert-screenshots.ts
+  - tests/scripts/screenshot-quality.ts
+  - tests/e2e/local-assets/third-party-assets.test.ts
+  - tests/browser/extra-visual.test.ts
+  - tests/unit/compatibility.test.ts
+  - tests/unit/gameboard.test.ts
+  - tests/unit/koota.test.ts
+  - tests/unit/layout.test.ts
+  - tests/unit/movement.test.ts
+  - tests/unit/pieces.test.ts
+  - tests/unit/quests.test.ts
+  - tests/unit/simple-rpg.test.ts
   - scripts/smoke-packed-consumer.ts
 ---
 
@@ -221,60 +221,60 @@ Kenney Castle Kit plus KayKit Adventurers SimpleRPG scene.
 `pnpm test:e2e:local-assets`. Those commands include PNG artifact analysis after
 the browser captures. The reviewed screenshots included:
 
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-catalog.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-assets-by-public-role.png`
+- `tests/browser/__screenshots__/free-catalog.png`
+- `tests/browser/__screenshots__/free-guide-assets-by-public-role.png`
   covering every FREE asset through `listKayKitGuideAssetCoverages()` grouped by
   public treatment role.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-source-pages.png`
+- `tests/browser/__screenshots__/free-guide-source-pages.png`
   covering all 19 extracted guide PNGs as source material.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png`
+- `tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png`
   covering the 474 FREE asset occurrences referenced by the page-level guide
   scenario matrix.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
+- `tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
   covering all 78 road label/rotation permutations.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`
+- `tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`
   covering all 144 river label/rotation/water-mode permutations.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png`
+- `tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png`
   covering curvy river and crossing variants in water and waterless modes.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png`
+- `tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png`
   covering all 60 coast label/rotation/water-mode permutations.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`
+- `tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`
   covering the non-connectivity guide use cases through public builder helpers.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png`
+- `tests/browser/__screenshots__/free-gameboard-recipe.png`
+- `tests/browser/__screenshots__/free-blueprint-builder-showcase.png`
   covering the public blueprint API for stacked mountain ranges, a town,
   multi-segment roads, coast/water, elevation ramps, and a harbor composition.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-packaged-scenario.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-simulation-report.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-assets-by-public-role.png`
+- `tests/browser/__screenshots__/free-generated-piece-recipe.png`
+- `tests/browser/__screenshots__/free-seeded-gameboard.png`
+- `tests/browser/__screenshots__/free-seeded-hex-gameboard.png`
+- `tests/browser/__screenshots__/simple-rpg-fixed-completed.png`
+- `tests/browser/__screenshots__/simple-rpg-seeded-completed.png`
+- `tests/browser/__screenshots__/simple-rpg-packaged-scenario.png`
+- `tests/browser/__screenshots__/simple-rpg-simulation-report.png`
+- `tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png`
+- `tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`
+- `tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
+- `tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
+- `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
+- `tests/browser/__screenshots__/extra-guide-assets-by-public-role.png`
   covering every FREE and local EXTRA asset through
   `listKayKitGuideAssetCoverages()` grouped by public treatment role.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png`
+- `tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png`
   covering 329 mixed/EXTRA guide-page asset occurrences across buildings,
   props, transitions, biomes, units, shipyard, harbors, and ports.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png`
+- `tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png`
   covering 462 mixed/EXTRA guide-page asset occurrences across stables, horses,
   workshop, siege units, and unit combinations.
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png`
-- `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
+- `tests/browser/__screenshots__/extra-seasonal-textures.png`
+- `tests/browser/__screenshots__/extra-harbor-gameboard.png`
+- `tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
   covering the public blueprint API for local EXTRA biome transition tiles,
   texture-set fills, shipyards, towns, density units, board-scale prop-cluster
   dressing, and board-scale composition.
 
 The two blueprint showcase captures are also promoted to committed docs assets
 at `docs/assets/showcases/` for VitePress and
-`packages/medieval-hexagon-gameboard/docs/showcases/` for the published README.
+`docs/showcases/` for the published README.
 `pnpm showcases:promote -- --check` verifies those promoted files match the
 ignored browser screenshots and parses both sides with the shared PNG quality
 analyzer, so committed README images cannot be blank, undersized, or visually

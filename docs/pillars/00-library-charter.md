@@ -10,15 +10,15 @@ implementation_links:
   - docs/release-readiness.json
   - docs/guides/release-readiness.md
   - docs/examples/blueprint-board.json
-  - packages/medieval-hexagon-gameboard/src/index.ts
-  - packages/medieval-hexagon-gameboard/src/blueprint.ts
-  - packages/medieval-hexagon-gameboard/src/cli.ts
-  - packages/medieval-hexagon-gameboard/src/coverage.ts
-  - packages/medieval-hexagon-gameboard/src/types.ts
-  - packages/medieval-hexagon-gameboard/src/gameboard.ts
-  - packages/medieval-hexagon-gameboard/src/koota.ts
-  - packages/medieval-hexagon-gameboard/src/rules.ts
-  - packages/medieval-hexagon-gameboard/src/react.ts
+  - src/index.ts
+  - src/scenario/blueprint.ts
+  - src/cli/cli.ts
+  - src/interop/coverage.ts
+  - src/types/index.ts
+  - src/gameboard/gameboard.ts
+  - src/koota/koota.ts
+  - src/rules/rules.ts
+  - src/react/react.ts
   - typedoc.json
   - scripts/audit-docs-contract.ts
   - scripts/audit-free-assets.ts
@@ -28,15 +28,15 @@ implementation_links:
   - scripts/audit-workflows.ts
   - scripts/smoke-built-cli.ts
   - scripts/smoke-packed-consumer.ts
-  - packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts
+  - examples/blueprint-board-usage.ts
 test_links:
-  - packages/medieval-hexagon-gameboard/tests/unit/coverage.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/blueprint.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/cli.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/manifest.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/gameboard.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/koota.test.ts
-  - packages/medieval-hexagon-gameboard/tests/unit/rules.test.ts
+  - tests/unit/coverage.test.ts
+  - tests/unit/blueprint.test.ts
+  - tests/unit/cli.test.ts
+  - tests/unit/manifest.test.ts
+  - tests/unit/gameboard.test.ts
+  - tests/unit/koota.test.ts
+  - tests/unit/rules.test.ts
   - scripts/audit-docs-contract.ts
   - scripts/audit-free-assets.ts
   - scripts/audit-reference-assets.ts
@@ -78,7 +78,7 @@ open source package useful while preserving the local-only purchased workflow.
 ## Implementation rules
 
 - `references/` is the local source input and remains ignored.
-- `packages/medieval-hexagon-gameboard/assets/free/` is generated from FREE and is
+- `assets/free/` is generated from FREE and is
   committed for npm publishing.
 - Generated manifests are the runtime catalog; source images and pillar docs are
   the human contract for future changes.
