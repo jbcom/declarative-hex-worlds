@@ -244,6 +244,56 @@ export interface GameboardPlan {
 }
 
 /**
+ * Memoized indexes derived from a {@link GameboardPlan} (PRD B4).
+ *
+ * Previously, hot-path callers in `coordinates/layout.ts` + `interop/interop.ts`
+ * rebuilt these maps on every invocation — 4+ calls per render frame. The
+ * indexes are now built once via {@link gameboardPlanIndex} and cached
+ * per-plan in a module-local WeakMap, so the second-and-later callers pay
+ * O(1) lookup instead of O(N) rebuild.
+ */
+export interface GameboardPlanIndex {
+  /** Tile keyed by `q,r` hexKey. */
+  readonly tilesByKey: ReadonlyMap<string, GameboardTileSpec>;
+  /** Placement specs grouped by their tile's `q,r` hexKey. */
+  readonly placementsByTile: ReadonlyMap<string, readonly GameboardPlacementSpec[]>;
+}
+
+const PLAN_INDEX_CACHE = new WeakMap<GameboardPlan, GameboardPlanIndex>();
+
+/**
+ * Return memoized indexes for a {@link GameboardPlan}, building them lazily
+ * the first time and caching per-plan thereafter (PRD B4).
+ *
+ * Hot-path callers should prefer this over inlining
+ * `new Map(plan.tiles.map(...))` — that rebuild cost shows up under
+ * profiling on every render of large boards.
+ */
+export function gameboardPlanIndex(plan: GameboardPlan): GameboardPlanIndex {
+  const cached = PLAN_INDEX_CACHE.get(plan);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const tilesByKey = new Map<string, GameboardTileSpec>();
+  for (const tile of plan.tiles) {
+    tilesByKey.set(tile.key, tile);
+  }
+  const placementsByTile = new Map<string, GameboardPlacementSpec[]>();
+  for (const placement of plan.placements) {
+    const key = placement.tileKey;
+    let bucket = placementsByTile.get(key);
+    if (bucket === undefined) {
+      bucket = [];
+      placementsByTile.set(key, bucket);
+    }
+    bucket.push(placement);
+  }
+  const index: GameboardPlanIndex = { tilesByKey, placementsByTile };
+  PLAN_INDEX_CACHE.set(plan, index);
+  return index;
+}
+
+/**
  * Options for summarizing a generated or projected gameboard plan.
  */
 export interface SummarizeGameboardPlanOptions {

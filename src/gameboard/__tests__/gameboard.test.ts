@@ -4,6 +4,7 @@ import {
   createGameboardBuilder,
   createMedievalHarborBoard,
   edgeBetween,
+  gameboardPlanIndex,
   hexKey,
   listPropClusterAssets,
   neighbor,
@@ -11,6 +12,35 @@ import {
   requiresExtraAsset,
   summarizeGameboardPlan,
 } from '../../gameboard/index';
+
+describe('gameboardPlanIndex memoization (PRD B4)', () => {
+  it('returns the same index reference for the same plan instance', () => {
+    const plan = createGameboardBuilder({
+      seed: 'index-test',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    }).build();
+    const first = gameboardPlanIndex(plan);
+    const second = gameboardPlanIndex(plan);
+    expect(second).toBe(first);
+    expect(second.tilesByKey).toBe(first.tilesByKey);
+    expect(second.placementsByTile).toBe(first.placementsByTile);
+  });
+
+  it('builds correctly: tilesByKey covers every tile, placementsByTile groups by tile', () => {
+    const plan = createGameboardBuilder({
+      seed: 'index-test-2',
+      shape: { kind: 'rectangle', width: 2, height: 2 },
+    }).build();
+    const { tilesByKey, placementsByTile } = gameboardPlanIndex(plan);
+    expect(tilesByKey.size).toBe(plan.tiles.length);
+    for (const tile of plan.tiles) {
+      expect(tilesByKey.get(tile.key)).toBe(tile);
+    }
+    for (const placement of plan.placements) {
+      expect(placementsByTile.get(placement.tileKey)).toContain(placement);
+    }
+  });
+});
 
 describe('gameboard plan builder', () => {
   it('creates elevated mountain stacks as terrain supports plus a top feature', () => {

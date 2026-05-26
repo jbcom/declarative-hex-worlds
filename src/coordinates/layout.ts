@@ -7,13 +7,14 @@
 import seedrandom from 'seedrandom';
 import { containsHex, hexDistance, hexKey, hexRange, neighbor, parseHexKey } from './coordinates';
 import { KAYKIT_HEX_DEPTH, KAYKIT_HEX_WIDTH, axialToWorld } from './grid';
-import type {
-  GameboardPlacementKind,
-  GameboardPlacementLayer,
-  GameboardPlacementSpec,
-  GameboardPlan,
-  GameboardTerrain,
-  GameboardTileSpec,
+import {
+  gameboardPlanIndex,
+  type GameboardPlacementKind,
+  type GameboardPlacementLayer,
+  type GameboardPlacementSpec,
+  type GameboardPlan,
+  type GameboardTerrain,
+  type GameboardTileSpec,
 } from '../gameboard';
 import {
   GameboardState,
@@ -1273,7 +1274,7 @@ function resolveFootprintTiles(
 ): GameboardTileSpec[] | undefined {
   const footprint = resolveLayoutFootprint(criteria.footprint);
   const requireInBounds = criteria.requireFootprintInBounds ?? criteria.footprint !== undefined;
-  const tilesByKey = new Map(plan.tiles.map((tile) => [tile.key, tile]));
+  const { tilesByKey } = gameboardPlanIndex(plan);
   const keys = new Set(footprintCoordinates(center, footprint).map(hexKey));
   const tiles: GameboardTileSpec[] = [];
   for (const key of keys) {
@@ -1431,7 +1432,7 @@ function hasAdjacentTerrain(
     return false;
   }
   const allowed = terrainList(terrain);
-  const tilesByKey = new Map(plan.tiles.map((tile) => [tile.key, tile]));
+  const { tilesByKey } = gameboardPlanIndex(plan);
   for (let edge = 0; edge < 6; edge += 1) {
     const adjacent = tilesByKey.get(hexKey(neighbor(coordinates, edge)));
     if (adjacent && allowed.includes(adjacent.terrain)) {
@@ -1606,7 +1607,7 @@ function firstAdjacentTerrainEdge(
   coordinates: HexCoordinates,
   terrain: GameboardTerrain
 ): HexEdgeIndex | undefined {
-  const tilesByKey = new Map(plan.tiles.map((tile) => [tile.key, tile]));
+  const { tilesByKey } = gameboardPlanIndex(plan);
   for (let edge = 0; edge < 6; edge += 1) {
     const adjacent = tilesByKey.get(hexKey(neighbor(coordinates, edge)));
     if (adjacent?.terrain === terrain) {
@@ -1729,7 +1730,7 @@ export function appendGameboardLayoutPlacementsToPlan(
   plan: GameboardPlan,
   placements: readonly SpawnGameboardPlacementOptions[]
 ): GameboardPlan {
-  const tilesByKey = new Map(plan.tiles.map((tile) => [tile.key, tile]));
+  const { tilesByKey } = gameboardPlanIndex(plan);
   const startOrder = plan.placements.reduce((max, placement) => Math.max(max, placement.order), 299_999);
   const nextPlacements = placements.map((placement, index) => placementOptionToSpec(tilesByKey, placement, startOrder + index + 1));
   return {

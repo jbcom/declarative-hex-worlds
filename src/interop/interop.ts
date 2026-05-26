@@ -12,7 +12,12 @@ import {
   type SpawnLocation,
   type SpawnLocationOptions,
 } from '../coordinates';
-import type { GameboardPlan, GameboardPlacementSpec, GameboardTileSpec } from '../gameboard';
+import {
+  gameboardPlanIndex,
+  type GameboardPlan,
+  type GameboardPlacementSpec,
+  type GameboardTileSpec,
+} from '../gameboard';
 import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
@@ -617,7 +622,7 @@ export function createGameboardInteropSnapshot(
   plan: GameboardPlan,
   options: GameboardInteropOptions = {}
 ): GameboardInteropSnapshot {
-  const tilesByKey = new Map(plan.tiles.map((tile) => [tile.key, tile]));
+  const { tilesByKey } = gameboardPlanIndex(plan);
   const placements = (options.includePlacements ?? true) ? plan.placements : [];
   const spawnLocations = options.spawnLocations
     ? createSpawnLocations({
@@ -689,7 +694,7 @@ export function createGameboardScenarioInteropSnapshot(
   const scenarioSpawnLocations = includeSpawnGroups
     ? (spawnGroups?.groups.flatMap((group) => [...group.locations]) ?? [])
     : [];
-  const tilesByKey = new Map(plan.tiles.map((tile) => [tile.key, tile]));
+  const { tilesByKey } = gameboardPlanIndex(plan);
 
   return {
     ...snapshot,
