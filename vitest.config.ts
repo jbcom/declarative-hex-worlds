@@ -6,7 +6,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/unit/**/*.test.ts', 'src/**/__tests__/**/*.test.ts'],
+    include: [
+      'tests/unit/**/*.test.ts',
+      'tests/integration/**/*.test.ts',
+      'src/**/__tests__/**/*.test.ts',
+    ],
     testTimeout: 15_000,
     coverage: harnessCoverage('unit'),
   },
