@@ -5,13 +5,13 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/unit/**/*.test.ts'],
+    include: ['tests/unit/**/*.test.ts', 'src/**/__tests__/**/*.test.ts'],
     testTimeout: 15_000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
       reportsDirectory: './coverage',
-      exclude: ['node_modules', 'dist', 'tests', '**/*.config.ts', '**/index.ts'],
+      exclude: ['node_modules', 'dist', 'tests', '**/__tests__/**', '**/*.config.ts', '**/index.ts'],
     },
   },
   resolve: {
