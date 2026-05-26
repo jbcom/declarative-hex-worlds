@@ -12,17 +12,17 @@ import {
   type Object3D,
   Vector3,
 } from 'three';
-import type { GameboardInteractionTargetInput } from './actors';
-import type { GameboardPlacementSpec } from './gameboard';
-import { axialToWorld } from './coordinates';
-import type { GameboardPlacementPositionOffset } from './koota';
+import type { GameboardInteractionTargetInput } from '../actors';
+import type { GameboardPlacementSpec } from '../gameboard';
+import { axialToWorld } from '../coordinates';
+import type { GameboardPlacementPositionOffset } from '../koota';
 import {
   getManifestAsset,
   resolveManifestAssetUrl,
   type ManifestAssetCatalog,
   type ManifestAssetUrlOptions,
-} from './manifest';
-import type { HexCoordinates, MedievalHexagonAsset, VariantSelection, WorldPosition } from './types';
+} from '../manifest';
+import type { HexCoordinates, MedievalHexagonAsset, VariantSelection, WorldPosition } from '../types';
 
 /**
  * Render transform for a placement or tile in Three.js coordinates.

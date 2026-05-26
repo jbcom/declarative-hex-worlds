@@ -21,8 +21,8 @@ import {
   useWorld,
   WorldProvider as MedievalGameboardProvider,
 } from 'koota/react';
-import { hexKey } from './coordinates';
-import type { GameboardPlan } from './gameboard';
+import { hexKey } from '../coordinates';
+import type { GameboardPlan } from '../gameboard';
 import {
   AdjacentTo,
   GameboardState,
@@ -60,10 +60,10 @@ import {
   type TileRenderStateValue,
   type TileTagListValue,
   type TileTerrainValue,
-} from './koota';
-import { projectWorldToGameboardPlan } from './coordinates';
-import type { GameboardRuleConfig, GameboardRuleViolation } from './rules';
-import { validateGameboardRules } from './systems';
+} from '../koota';
+import { projectWorldToGameboardPlan } from '../coordinates';
+import type { GameboardRuleConfig, GameboardRuleViolation } from '../rules';
+import { validateGameboardRules } from '../systems';
 import {
   IsMoving,
   MovementAgent,
@@ -71,7 +71,7 @@ import {
   gameboardMovementActions,
   type MovementAgentValue,
   type MovementPathStateValue,
-} from './movement';
+} from '../movement';
 import {
   GameboardActor,
   IsGameboardActor,
@@ -100,7 +100,7 @@ import {
   type GameboardNeighborhoodInspectionOptions,
   type GameboardTileInspection,
   type GameboardTileInspectionOptions,
-} from './actors';
+} from '../actors';
 import {
   gameboardCommandActions,
   planGameboardActorTargetCommand,
@@ -110,7 +110,7 @@ import {
   type GameboardInteractionCommandInput,
   type GameboardInteractionCommandPreview,
   type GameboardInteractionCommandPreviewOptions,
-} from './commands';
+} from '../commands';
 import {
   GameboardQuest,
   IsGameboardQuest,
@@ -118,7 +118,7 @@ import {
   readGameboardQuests,
   type GameboardQuestSnapshot,
   type GameboardQuestValue,
-} from './quests';
+} from '../quests';
 import {
   GameboardPatrolAgent,
   GameboardPatrolState,
@@ -126,7 +126,7 @@ import {
   gameboardPatrolActions,
   type GameboardPatrolAgentValue,
   type GameboardPatrolStateValue,
-} from './patrol';
+} from '../patrol';
 import {
   createGameboardRuntime,
   createGameboardRuntimeFromRecipe,
@@ -136,8 +136,8 @@ import {
   type GameboardRuntimeSnapshot,
   type GameboardRuntimeSnapshotOptions,
   type GameboardScenarioGameRuntime,
-} from './runtime';
-import { gameboardSystemActions } from './systems';
+} from '../runtime';
+import { gameboardSystemActions } from '../systems';
 import {
   createGameboardNavigation,
   createGameboardOccupancyIndex,
@@ -152,7 +152,7 @@ import {
   type GameboardPatrolRouteSet,
   type GameboardPatrolRouteSetOptions,
   type GameboardSpawnLocationOptions,
-} from './gameboard';
+} from '../gameboard';
 import {
   analyzeGameboardLayoutFill,
   createGameboardLayoutPlacements,
@@ -162,7 +162,7 @@ import {
   type GameboardLayoutPlacementOptions,
   type GameboardLayoutSiteInspection,
   type InspectGameboardLayoutSitesOptions,
-} from './coordinates';
+} from '../coordinates';
 import {
   analyzeGameboardPieceRegistry,
   createGameboardPieceSourceUrlMap,
@@ -176,18 +176,18 @@ import {
   type GameboardPieceRegistryAnalysis,
   type GameboardPieceRegistrySelection,
   type GameboardPieceSourceUrlOptions,
-} from './pieces';
+} from '../pieces';
 import {
   inspectSeededGameboardPieceFills,
   type InspectSeededGameboardPieceFillsOptions,
   type SeededGameboardPieceFillInspection,
   type SeededGameboardPieceFillOptions,
-} from './rules';
+} from '../rules';
 import type { Entity, World } from 'koota';
-import type { SpawnLocation } from './coordinates';
-import type { HexCoordinates } from './types';
-import type { GameboardRecipe, GameboardRecipePlanOptionsOverride } from './scenario';
-import type { GameboardScenario } from './scenario';
+import type { SpawnLocation } from '../coordinates';
+import type { HexCoordinates } from '../types';
+import type { GameboardRecipe, GameboardRecipePlanOptionsOverride } from '../scenario';
+import type { GameboardScenario } from '../scenario';
 
 export { MedievalGameboardProvider, useWorld as useGameboardWorld };
 

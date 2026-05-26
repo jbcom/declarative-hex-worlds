@@ -21,3 +21,4 @@
 {"ts":"2026-05-26T18:13:10.695Z","sha":"037c48cae443f22bc1fadb8a461a64346ccc4011","subject":"refactor(interop): promote interop+compatibility+coverage to interop/ (PRD R2m)","decision":null,"why":null,"resolves":["PRD R2m."],"overrides":[]}
 {"ts":"2026-05-26T18:14:22.741Z","sha":"1d788d63d6f984a0d5f1e21504464e0e7c2e2c06","subject":"refactor(systems): promote systems+world-rules into systems/ (PRD R2n)","decision":null,"why":null,"resolves":["PRD R2n."],"overrides":[]}
 {"ts":"2026-05-26T18:15:55.202Z","sha":"5c91d67ef31e7c590f5cb91c75314729c50ddf9d","subject":"refactor(errors): add errors/ placeholder + GameboardError base (PRD R2o)","decision":null,"why":null,"resolves":["PRD R2o."],"overrides":[]}
+{"ts":"2026-05-26T18:17:06.423Z","sha":"1a4c3d11a1de088069f7b94a8adb04422f140faa","subject":"refactor(cli): promote cli.ts to cli/ sub-package (PRD R2p)","decision":null,"why":null,"resolves":["PRD R2p (move only; B3 internal refactor pending)."],"overrides":[]}

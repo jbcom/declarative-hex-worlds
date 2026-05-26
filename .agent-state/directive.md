@@ -59,7 +59,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - [x] **R2m** — ✅ commit (2026-05-26): `interop.ts`+`compatibility.ts`+`coverage.ts` → `src/interop/{interop,compatibility,coverage,index}.ts`. Workspace scripts also updated for catalog/coverage path shifts.
   - [x] **R2n** — ✅ commit (2026-05-26): `systems.ts`+`world-rules.ts` → `src/systems/{systems,world-rules-system,index}.ts`. Internal per-system file split (movement/patrol/quests/rules separate) deferred — current `systems.ts` already has cohesive function-per-system shape.
   - [x] **R2o** — ✅ commit (2026-05-26): `src/errors/index.ts` placeholder with `GameboardError` base. Full hierarchy + ~130 throw-site migration lands in dedicated D2 commit.
-  - **R2p** — `cli/` (Epic B3 also lands here)
+  - [x] **R2p** — ✅ commit (2026-05-26): `src/cli.ts` → `src/cli/{cli,index}.ts`. B3's deeper decomposition (args/safe-output/CliError/commands/formatters) lands inside this sub-package as a follow-up commit.
   - **R2q** — `react/` + `three/` decomposition. **Move react, react-dom, three from `peerDependencies` to `dependencies`** in `package.json` (these are first-class — the library is unusable without them, same as koota). Re-export both sub-packages from the umbrella `src/index.ts`. Delete the planned `peer-guard.ts` files; not needed.
   - **R2r** — Compose: `src/world.ts`, `src/actions.ts`, `src/frameloop.ts`, `src/startup.ts`, `src/index.ts`
   - After each commit: lint + typecheck + tests green; cross-domain imports traverse barrels only.
