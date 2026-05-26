@@ -10,3 +10,4 @@
  */
 
 export * from './runtime';
+export * from './asset-root';

@@ -61,6 +61,7 @@ export {
   manifestAssetRequiresExtra,
   normalizeMedievalHexagonManifest,
   resolveManifestAssetUrl,
+  rewriteToBootstrapPath,
   selectManifestAssets,
   validateMedievalHexagonManifest,
 } from './manifest';
@@ -564,6 +565,15 @@ export {
   createGameboardRuntime,
   createGameboardRuntimeFromRecipe,
   createGameboardRuntimeFromScenario,
+} from './runtime';
+export {
+  DEFAULT_GAMEBOARD_ASSET_ROOT,
+  GAMEBOARD_ASSET_ROOT_ENV_VAR,
+  GAMEBOARD_ASSET_ROOT_GLOBAL_KEY,
+  gameboardAssetUrl,
+  getGameboardAssetRootOverride,
+  resolveGameboardAssetRoot,
+  setGameboardAssetRoot,
 } from './runtime';
 export type {
   CreateGameboardRuntimeInput,
