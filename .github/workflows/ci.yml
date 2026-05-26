@@ -41,6 +41,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run ${{ matrix.task }}
+        # Bump the worker heap for tsup's DTS bundler: the freeManifest literal
+        # (16k LOC of JSON-as-TS) blows the default ~1.7GB worker heap on
+        # ubuntu-latest GitHub runners. 4GB is comfortably under the runner's
+        # 7GB limit while leaving headroom for the main process.
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
         run: pnpm ${{ matrix.task }}
 
   browser-free:
