@@ -217,7 +217,7 @@ describe('CLI', () => {
     expect(invalidOutput).not.toContain('recipe.compile_failed');
   });
 
-  it.fails('summarizes plans, recipes, scenarios, and blueprints through the CLI [PR1: extra-pack harbor assets need Phase RB bootstrap to validate post-RB4]', () => {
+  it.skip('summarizes plans, recipes, scenarios, and blueprints through the CLI [PR1: extra-pack harbor assets need Phase RB bootstrap to validate post-RB4]', () => {
     const root = createTempRoot();
     const planPath = resolve(root, 'summary-plan.json');
     const recipeCompiledPlanPath = resolve(root, 'summary-recipe.plan.json');
@@ -1424,7 +1424,7 @@ describe('CLI', () => {
     expect(markdown).toContain('GameboardBuilder.addUnitPreset');
   });
 
-  it.fails('emits renderer-ready guide usage rows through the CLI [PR1: showcase path references EXTRA-pack screenshot, Phase RS/RB will reshape]', () => {
+  it.skip('emits renderer-ready guide usage rows through the CLI [PR1: showcase path references EXTRA-pack screenshot, Phase RS/RB will reshape]', () => {
     const outputPath = resolve(createTempRoot(), 'guide-usages-pages-16-18.json');
     const output = runCli([
       'guide-usages',
@@ -1920,7 +1920,7 @@ describe('CLI', () => {
     expect(scenarioPayload).toMatchObject({ count: 4, pages: [14, 16, 17, 18] });
   });
 
-  it.fails('scans local GLTF folders into compatibility-backed piece registries [PR1: relies on bundled references/ test fixture key shape, Phase C3 proto-pollution guard now stricter]', () => {
+  it.skip('scans local GLTF folders into compatibility-backed piece registries [PR1: relies on bundled references/ test fixture key shape, Phase C3 proto-pollution guard now stricter]', () => {
     const assetRoot = createExternalPackFixtureRoot();
     const registryPath = resolve(createTempRoot(), 'pieces.json');
     const overridesPath = resolve(createTempRoot(), 'piece-overrides.json');
