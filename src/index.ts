@@ -737,7 +737,7 @@ export {
   planGameboardSpawnGroups,
   reachableGameboardTiles,
   selectGameboardSpawnLocations,
-} from './navigation';
+} from './gameboard';
 export type {
   GameboardNavigation,
   GameboardNavigationContext,
@@ -760,17 +760,17 @@ export type {
   GameboardSpawnGroupRule,
   GameboardSpawnLocationOptions,
   RequiredGameboardNavigationProfile,
-} from './navigation';
+} from './gameboard';
 export {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
   gameboardPlacementOccupancyGroup,
   gameboardPlacementOccupiesTile,
-} from './occupancy';
+} from './gameboard';
 export type {
   GameboardPlacementOccupancyLike,
   GameboardPlacementOccupancyOptions,
-} from './occupancy';
+} from './gameboard';
 export {
   GameboardPatrolAgent,
   GameboardPatrolAgentQuery,

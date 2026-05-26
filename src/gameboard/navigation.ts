@@ -4,7 +4,7 @@
  *
  * @module
  */
-import { containsHex, findHexPath, hexDistance, hexKey, neighbors } from './coordinates';
+import { containsHex, findHexPath, hexDistance, hexKey, neighbors } from '../coordinates';
 import type {
   GameboardPlacementKind,
   GameboardPlacementLayer,
@@ -18,12 +18,12 @@ import {
   createSpawnLocations,
   type SpawnLocation,
   type SpawnLocationOptions,
-} from './coordinates';
+} from '../coordinates';
 import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
 } from './occupancy';
-import type { HexCoordinates } from './types';
+import type { HexCoordinates } from '../types';
 
 /**
  * Pathfinding profile for terrain, elevation, occupancy, and custom movement rules.

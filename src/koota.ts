@@ -34,7 +34,7 @@ import {
   type GameboardPlacementOccupancyLike,
   gameboardPlacementOccupancyGroup,
   gameboardPlacementOccupiesTile,
-} from './occupancy';
+} from './gameboard';
 import type { HexCoordinates, TextureSet, WorldPosition } from './types';
 
 /**

@@ -17,7 +17,7 @@ import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
   gameboardPlacementOccupancyGroup,
-} from './occupancy';
+} from './gameboard';
 import type { GameboardQuestObjective, GameboardQuestSnapshot } from './quests';
 import { createGameboardPlanFromRecipe } from './recipe';
 import {
@@ -36,7 +36,7 @@ import {
   type GameboardPatrolRouteSet,
   type GameboardSpawnGroupPlan,
   type GameboardSpawnGroupRoute,
-} from './navigation';
+} from './gameboard';
 import type {
   GameboardScenarioSimulationActorTargetsRecord,
   GameboardScenarioSimulationCommandRecord,

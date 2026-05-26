@@ -11,7 +11,7 @@ import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
   gameboardPlacementOccupancyGroup,
-} from './occupancy';
+} from './gameboard';
 import type { HexTileDeclaration, HexTileRegistry } from './registry';
 import { rotateMask } from './selectors';
 import type { HexCoordinates } from './types';

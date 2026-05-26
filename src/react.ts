@@ -152,7 +152,7 @@ import {
   type GameboardPatrolRouteSet,
   type GameboardPatrolRouteSetOptions,
   type GameboardSpawnLocationOptions,
-} from './navigation';
+} from './gameboard';
 import {
   analyzeGameboardLayoutFill,
   createGameboardLayoutPlacements,

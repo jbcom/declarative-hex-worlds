@@ -145,7 +145,7 @@ import {
   type GameboardPatrolRouteSetOptions,
   type GameboardSpawnGroupOptions,
   type GameboardSpawnGroupPlan,
-} from './navigation';
+} from './gameboard';
 import { listGuideTilePermutations, type GuideTilePermutationKind } from './selectors';
 import type {
   AssetBounds,

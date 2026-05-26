@@ -42,8 +42,8 @@ import {
   type GameboardNavigationContext,
   type GameboardNavigationPathResult,
   type GameboardNavigationProfile,
-} from './navigation';
-import { gameboardPlacementBlocksOccupancy } from './occupancy';
+} from './gameboard';
+import { gameboardPlacementBlocksOccupancy } from './gameboard';
 import { projectWorldToGameboardPlan } from './coordinates';
 import type { HexCoordinates } from './types';
 

@@ -83,7 +83,7 @@ import type {
   GameboardPatrolRoutePlan,
   GameboardPatrolRouteSegment,
   GameboardPatrolRouteSet,
-} from './navigation';
+} from './gameboard';
 
 /**
  * Current JSON schema version for scenario simulation scripts and reports.

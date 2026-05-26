@@ -33,7 +33,7 @@ import {
   type GameboardPatrolRouteSet,
   type GameboardSpawnGroupOptions,
   type GameboardSpawnGroupPlan,
-} from './navigation';
+} from './gameboard';
 import {
   readGameboardQuests,
   spawnGameboardQuest,

@@ -31,7 +31,7 @@ import {
   type GameboardNavigationPathResult,
   type GameboardNavigationProfile,
   type GameboardReachableTile,
-} from './navigation';
+} from './gameboard';
 import type { HexCoordinates } from './types';
 
 /**

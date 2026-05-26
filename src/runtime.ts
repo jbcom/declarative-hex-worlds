@@ -125,7 +125,7 @@ import {
   type GameboardSpawnGroupOptions,
   type GameboardSpawnGroupPlan,
   type GameboardSpawnLocationOptions,
-} from './navigation';
+} from './gameboard';
 import { gameboardPatrolActions } from './patrol';
 import {
   analyzeGameboardPieceRegistry,

@@ -30,7 +30,7 @@ import {
   type GameboardMovementRequestResult,
   type MovementPathStateValue,
 } from './movement';
-import type { GameboardPatrolRoutePlan } from './navigation';
+import type { GameboardPatrolRoutePlan } from './gameboard';
 
 /**
  * Runtime patrol status for a patrol agent.

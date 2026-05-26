@@ -17,7 +17,7 @@ import {
   type NeutralStructureKind,
   type NeutralUnitPart,
   type PropAssetId,
-} from './catalog';
+} from '../catalog';
 import {
   HEX_DIRECTIONS,
   coordinatesForShape,
@@ -27,16 +27,16 @@ import {
   neighbor,
   oppositeEdge,
   parseHexKey,
-} from './coordinates';
-import { axialToWorld } from './coordinates';
-import { freeManifest } from './manifest';
+} from '../coordinates';
+import { axialToWorld } from '../coordinates';
+import { freeManifest } from '../manifest';
 import {
   edgeMask,
   selectCoastVariant,
   selectRiverCrossingVariant,
   selectRiverVariant,
   selectRoadVariant,
-} from './selectors';
+} from '../selectors';
 import type {
   Faction,
   GameboardShape,
@@ -46,7 +46,7 @@ import type {
   MedievalHexagonAsset,
   TextureSet,
   WorldPosition,
-} from './types';
+} from '../types';
 
 /**
  * Schema version written to generated gameboard plans.
@@ -1742,7 +1742,7 @@ export { HEX_DIRECTIONS, coordinatesForShape, edgeBetween, hexKey, neighbor, opp
 /**
  * Board shape descriptor accepted by generated gameboard plans.
  */
-export type { GameboardShape, HexagonGameboardShape, RectangleGameboardShape } from './types';
+export type { GameboardShape, HexagonGameboardShape, RectangleGameboardShape } from '../types';
 
 /**
  * Resolve a placement's asset from a manifest.

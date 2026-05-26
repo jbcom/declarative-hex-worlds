@@ -30,7 +30,7 @@ import {
   type GameboardMovementPathRequestOptions,
   type GameboardMovementRequestResult,
 } from '../movement';
-import type { GameboardNavigationPathResult } from '../navigation';
+import type { GameboardNavigationPathResult } from '../gameboard';
 
 /**
  * Input accepted by command helpers: either an already planned command or a
