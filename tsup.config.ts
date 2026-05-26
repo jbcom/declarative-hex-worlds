@@ -29,7 +29,7 @@ export default defineConfig({
     rules: 'src/rules.ts',
     runtime: 'src/runtime.ts',
     scenario: 'src/scenario.ts',
-    selectors: 'src/selectors.ts',
+    selectors: 'src/selectors/index.ts',
     simulation: 'src/simulation.ts',
     systems: 'src/systems.ts',
     three: 'src/three.ts',

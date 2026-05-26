@@ -4,7 +4,7 @@
  *
  * @module
  */
-import type { HexEdgeIndex, HexEdgeInput, VariantSelection } from './types';
+import type { HexEdgeIndex, HexEdgeInput, VariantSelection } from '../types';
 
 /** Canonical guide asset variant before rotation and waterless/curvy modifiers. */
 export interface CanonicalVariant {
