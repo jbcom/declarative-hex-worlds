@@ -113,6 +113,18 @@ interface ReleaseReadinessLedger {
   releaseGateCommands?: string[];
   roles?: unknown[];
   schemaVersion?: string;
+  simpleRpgEvidence?: {
+    activeEvidenceModes?: string[];
+    evidenceModeCounts?: Record<string, number>;
+    executablePublicApiCount?: number;
+    exercisedPublicApiCount?: number;
+    guidePublicApiCount?: number;
+    guideScenarioCount?: number;
+    inactiveEvidenceModes?: string[];
+    missingPublicApis?: unknown[];
+    publicTreatmentCount?: number;
+    stalePublicApis?: unknown[];
+  };
   status?: string;
   visualArtifacts?: { pages?: number[]; path?: string; source?: string; status?: string }[];
 }
@@ -585,6 +597,8 @@ function requireReleaseReadinessLedger(): void {
     );
   }
 
+  requireReleaseReadinessSimpleRpgEvidence();
+
   assertEqualList(
     releaseReadinessJson.releaseGateCommands ?? [],
     [...GAMEBOARD_RELEASE_GATE_COMMANDS],
@@ -612,6 +626,54 @@ function requireReleaseReadinessLedger(): void {
       `release-readiness Markdown must include package check summary for ${check.command ?? '<missing command>'}`
     );
   }
+}
+
+function requireReleaseReadinessSimpleRpgEvidence(): void {
+  const evidence = releaseReadinessJson.simpleRpgEvidence;
+  const modeCounts = evidence?.evidenceModeCounts ?? {};
+  const expectedModeCounts = {
+    'fixed-gameplay': 30,
+    'seeded-generation': 10,
+    'packaged-scenario': 1,
+    'executable-smoke': 40,
+    'blueprint-recipe': 4,
+    'manifest-package': 6,
+    'compatibility-adapter': 2,
+    'package-boundary': 3,
+    'visual-coverage': 26,
+  };
+
+  assert(evidence, 'release-readiness JSON must include SimpleRPG public API evidence');
+  assert(evidence?.guidePublicApiCount === 74, 'release-readiness JSON must report 74 SimpleRPG guide public APIs');
+  assert(evidence?.exercisedPublicApiCount === 74, 'release-readiness JSON must report 74 exercised SimpleRPG guide public APIs');
+  assert(evidence?.executablePublicApiCount === 40, 'release-readiness JSON must report 40 direct SimpleRPG executable helper APIs');
+  assert(evidence?.publicTreatmentCount === 404, 'release-readiness JSON must report 404 SimpleRPG KayKit treatment rows');
+  assert(evidence?.guideScenarioCount === 19, 'release-readiness JSON must report 19 SimpleRPG guide scenarios');
+  assert((evidence?.missingPublicApis ?? []).length === 0, 'release-readiness JSON must report no missing SimpleRPG public APIs');
+  assert((evidence?.stalePublicApis ?? []).length === 0, 'release-readiness JSON must report no stale SimpleRPG public APIs');
+  assert((evidence?.inactiveEvidenceModes ?? []).length === 0, 'release-readiness JSON must report no inactive SimpleRPG evidence modes');
+  assertEqualList(
+    evidence?.activeEvidenceModes ?? [],
+    Object.keys(expectedModeCounts),
+    'release-readiness SimpleRPG active evidence modes'
+  );
+  for (const [mode, count] of Object.entries(expectedModeCounts)) {
+    assert(modeCounts[mode] === count, `release-readiness JSON must report SimpleRPG ${mode} count ${count}`);
+    assert(
+      releaseReadinessMarkdown.includes(`| ${mode} | ${count} |`),
+      `release-readiness Markdown must include SimpleRPG ${mode} count ${count}`
+    );
+  }
+  requireIncludes(releaseReadinessMarkdown, 'release-readiness SimpleRPG evidence', [
+    '- SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)',
+    '## SimpleRPG Public API Evidence',
+    '- Guide-facing public APIs represented: 74/74',
+    '- Direct executable helper APIs: 40',
+    '- KayKit public treatment records asserted: 404',
+    '- Decomposed guide pages asserted: 19',
+    '- Missing public APIs: 0',
+    '- Stale evidence rows: 0',
+  ]);
 }
 
 function requireShowcaseCopiesMatch(): void {
