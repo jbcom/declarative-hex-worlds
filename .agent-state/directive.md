@@ -107,7 +107,11 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 - [ ] **RB7** — `bootstrap` e2e (scheduled CI only — rate-limited): `--source github` against the live upstream repo. Run nightly, not per-PR.
 - [ ] **RB8** — Docs: rewrite the README "Install" section to be `npm install @jbcom/medieval-hexagon-gameboard && npx medieval-hexagon-gameboard bootstrap`. New guide `docs/guides/asset-bootstrap.md`. Update `docs/api/asset-bootstrap.md` from RB0 as the authoritative reference.
 
-### Phase A — foundation gates (un-block everything else)
+### Phase A — foundation gates
+
+**Determinism additions to CI (user direction 2026-05-26):**
+- A9: Install once + persist as artifact. Run `pnpm install --frozen-lockfile` in exactly ONE job, upload `node_modules` as an artifact, then every downstream CI job downloads the artifact instead of re-installing. Eliminates per-job install drift, cuts ~30-60s × N jobs.
+ (un-block everything else)
 
 - [x] **A0** — Bootstrap `CLAUDE.md`, `.agent-state/`, `.claude/gates.json`, `docs/PRD/1.0.md`. (this commit)
 - [x] **A1** ✅ commit 17e4092 (2026-05-26) — Clear `pnpm audit` moderates via `pnpm.overrides` (`yaml >=2.8.3`, `brace-expansion >=5.0.6`). (S-M3)
