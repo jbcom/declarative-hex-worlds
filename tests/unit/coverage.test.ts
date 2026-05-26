@@ -161,10 +161,8 @@ describe('release-readiness coverage', () => {
 
     expect(byFilename.size).toBe(10);
     for (const [filename, paths] of byFilename) {
-      expect(paths.sort()).toEqual([
-        `docs/assets/showcases/${filename}`,
-        `packages/medieval-hexagon-gameboard/docs/showcases/${filename}`,
-      ]);
+      // Post-R1: each showcase lives at exactly one canonical path.
+      expect(paths.sort()).toEqual([`docs/showcases/${filename}`]);
     }
   });
 
@@ -177,7 +175,7 @@ describe('release-readiness coverage', () => {
         'docs/guides/public-api.md': 'missing',
       },
       visualArtifacts: {
-        'docs/assets/showcases/free-blueprint-builder-showcase.png': 'missing',
+        'docs/showcases/free-blueprint-builder-showcase.png': 'missing',
       },
     };
     const report = summarizeGameboardCoverage({
@@ -202,7 +200,7 @@ describe('release-readiness coverage', () => {
         expect.objectContaining({
           code: 'visual.artifact_missing',
           severity: 'error',
-          subject: 'docs/assets/showcases/free-blueprint-builder-showcase.png',
+          subject: 'docs/showcases/free-blueprint-builder-showcase.png',
         }),
         expect.objectContaining({
           code: 'reference.missing',
