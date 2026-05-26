@@ -187,19 +187,69 @@ Floor is **100 / 100 / 100 / 100** across statements / branches / functions / li
 
 ### Phase F — documentation (publish-blocking)
 
-- [ ] **F1d** — Rewrite top of `README.md`: install + quickstart (≤30 lines of code, including a render). Add Module Map table (umbrella vs subpath tiers).
-- [ ] **F2d** — Write `docs/guides/cli-reference.md` — generated from the new command registry (D1+B3). Replace `cli.ts` template-literal `usage()`.
-- [ ] **F3d** — Write `docs/guides/determinism-contract.md` — seed model, replay guarantees, where Date/Math.random are/aren't permitted.
-- [ ] **F4d** — Write `docs/guides/bindings-and-bundling.md` — subpath imports, trait identity hazard, the first-class react/three binding model (NOT peer-dep gated).
-- [ ] **F5d** — Write `docs/api/errors.md` — full error taxonomy with `instanceof` examples (lands with D2).
-- [ ] **F6d** — Write `CHANGELOG.md` (Keep a Changelog 1.1.0). release-please populates from here forward.
-- [ ] **F7d** — Write `STANDARDS.md` (style + brand + non-negotiables).
-- [ ] **F8d** — Write `docs/ARCHITECTURE.md` (module graph, ECS layering, build pipeline).
-- [ ] **F9d** — Write `docs/DESIGN.md` (vision, identity, UX principles).
-- [ ] **F10d** — Write `docs/TESTING.md` (strategy, coverage, smoke, perf gates).
-- [ ] **F11d** — Write `docs/DEPLOYMENT.md` (release flow, OIDC, GitHub App token, SBOM).
-- [ ] **F12d** — Write `docs/STATE.md` (current state, in-flight initiatives, links to PRD + directive).
-- [ ] **F13d** — Add frontmatter (title/updated/status/domain) to every `.md` in root + `docs/`.
+Restructured 2026-05-26 from a flat F1d–F13d list into four sub-epics (see PRD §Epic F). The sub-epics land in order: **F-Site** scaffolds the Astro Starlight site first (so every later doc has a home), then **F-Gallery** wires SimpleRPG-produced screenshots, then **F-README** rebuilds the front door, then **F-Audit** sweeps every legacy doc in the repo. Items are one-commit atomic.
+
+#### Sub-epic F-Site — Astro Starlight docs site at `docs-site/`
+
+- [ ] **F-Site-1** — Scaffold `docs-site/` as an Astro Starlight project. `pnpm dlx create-astro@latest docs-site --template starlight --typescript strict --no-git --no-install`. Then manually add to root `pnpm-workspace.yaml`? **NO** — we removed workspaces. Instead: `docs-site/` runs its own `package.json` but uses pnpm with `--filter` workarounds gone; install runs as a sibling `pnpm install` inside `docs-site/` driven by a root `docs-site:install` script. Wire root scripts: `docs-site:dev`, `docs-site:build`, `docs-site:preview`. Don't kill the existing `docs/` vitepress site yet — it stays until F-Site-9.
+- [ ] **F-Site-2** — Configure Starlight: site title `@jbcom/medieval-hexagon-gameboard`, social links (GitHub repo + npm), edit-on-GitHub link, dark-mode default, repo favicon. Set `outDir: dist`, configure for GitHub Pages base path.
+- [ ] **F-Site-3** — Add `starlight-typedoc` plugin. Configure to read `src/index.ts` + every subpath entry from `package.json#exports`, generate `docs-site/src/content/docs/reference/` from JSDoc. One reference page per subpath barrel. Sidebar autoindex.
+- [ ] **F-Site-4** — Add CI job `docs-site` to `.github/workflows/ci.yml`: build via the install-once artifact pattern (A9), publish `docs-site/dist/` as a build artifact for PR previews.
+- [ ] **F-Site-5** — Add `.github/workflows/docs-site-deploy.yml`: on push to `main`, deploy `docs-site/dist/` to GitHub Pages via `actions/deploy-pages`. Uses the build artifact from F-Site-4. SHA-pinned actions throughout.
+- [ ] **F-Site-6** — Migrate `docs/guides/cli-reference.md` content to `docs-site/src/content/docs/guides/cli-reference.md` — generated from the new command registry (D1 + B3). Replace `cli.ts` template-literal `usage()`.
+- [ ] **F-Site-7** — Migrate `docs/guides/determinism-contract.md` to `docs-site/src/content/docs/guides/determinism.md` — seed model, replay guarantees, where Date/Math.random are/aren't permitted. Embeds the determinism-replay scenario screenshot from F-Gallery.
+- [ ] **F-Site-8** — Migrate `docs/guides/bindings-and-bundling.md` to `docs-site/src/content/docs/guides/bindings.md` — subpath imports, trait identity hazard, first-class react/three binding model (NOT peer-dep gated).
+- [ ] **F-Site-9** — Migrate `docs/api/errors.md` to `docs-site/src/content/docs/reference/errors.md` — full error taxonomy with `instanceof` examples (lands with D2).
+- [ ] **F-Site-10** — Write `docs-site/src/content/docs/guides/bootstrap.md` — the CLI `bootstrap` subcommand walkthrough: default behavior, `--source github` vs `--source <zip>`, the integrity sidecar, `--verify` mode. Lands once Phase RB is done.
+- [ ] **F-Site-11** — Write `docs-site/src/content/docs/guides/getting-started.md` — full 5-minute tutorial: install → bootstrap → minimal `<Gameboard>` → add a tile → place a piece → run the simulation tick. Each step has the SimpleRPG-equivalent code linked.
+- [ ] **F-Site-12** — Delete `docs/` vitepress site, `apps/docs` traces, `docs:dev`/`docs:build`/`docs:preview` scripts from `package.json`. Update every reference (CI, README, AGENTS-style files) to point at `docs-site/`.
+
+#### Sub-epic F-Gallery — SimpleRPG-driven feature pages with embedded screenshots
+
+Each item builds the SimpleRPG scenario, the vitest-browser screenshot test that captures it, and the Astro feature page that consumes the screenshot. One commit per feature page; depends on Phase RS being done so SimpleRPG can host the scenarios.
+
+- [ ] **F-Gallery-1** — Build infrastructure: `tests/browser/feature-gallery.spec.ts` test harness that loads a SimpleRPG scenario, screenshots a fixed viewport, and writes to `tests/browser/__screenshots__/feature-gallery/<scenario>.png`. Astro content loader at `docs-site/src/content.config.ts` reads the same directory.
+- [ ] **F-Gallery-2** — Page: `features/harbors.md`. SimpleRPG scenario: fixed-harbor (water tiles + piers + boats). Screenshot embedded; 30-line snippet showing `GameboardBuilder.addHarbor` (or equivalent composition with addBridge + addWaterTile). API cross-links.
+- [ ] **F-Gallery-3** — Page: `features/bridges-and-connectors.md`. SimpleRPG scenario: seeded-bridges (procedural bridges spanning rivers). Snippet using `GameboardBuilder.addBridge` + connector rules.
+- [ ] **F-Gallery-4** — Page: `features/multi-depth-stacks.md`. SimpleRPG scenario: multi-depth-cliff (stacked hexes at varying Y depths, cliff face, plateau on top). Snippet using `HexTileState.depth` + stack rules.
+- [ ] **F-Gallery-5** — Page: `features/tile-injection.md`. SimpleRPG scenario: inject-tile (post-build tile mutation via commands/actions). Snippet using the commands API.
+- [ ] **F-Gallery-6** — Page: `features/prop-injection.md`. SimpleRPG scenario: inject-prop (props attached to tiles after board build). Snippet using the props API.
+- [ ] **F-Gallery-7** — Page: `features/pieces-and-actors.md`. SimpleRPG scenario: place-piece (NPC + player + neutral actors). Snippet using `GameboardActor` traits.
+- [ ] **F-Gallery-8** — Page: `features/movement-and-patrols.md`. SimpleRPG scenario: patrol-route (animated patrol agent over a hex path). Snippet using `MovementAgent` + `GameboardPatrolAgent`.
+- [ ] **F-Gallery-9** — Page: `features/quests.md`. SimpleRPG scenario: quest-chain (multi-objective quest with progress). Snippet using `GameboardQuest` + objective interfaces.
+- [ ] **F-Gallery-10** — Page: `features/cross-kit-composition.md`. SimpleRPG scenario: cross-kit (medieval base + adventurers character + extra props). Snippet showing manifest composition across kits.
+- [ ] **F-Gallery-11** — Page: `features/determinism-replay.md`. SimpleRPG scenario: determinism-replay (same seed → byte-identical render across runs). Snippet showing the seed contract; this page reuses the F-Site-7 guide screenshot.
+- [ ] **F-Gallery-12** — Gallery index page `features/index.md` — visual grid of every feature page with its hero screenshot.
+
+#### Sub-epic F-README — README as marketing front door
+
+- [ ] **F-README-1** — Demolish current `README.md` and rebuild from a structural template: hook → screenshot strip → quickstart → why → module map → docs site links → status badges + license + contributing. Strip every feature enumeration that belongs on a docs-site feature page.
+- [ ] **F-README-2** — Wire 3 hero screenshots from `tests/browser/__screenshots__/feature-gallery/` directly into the README (relative paths so npm renders them). Hero set: harbors, multi-depth, cross-kit. Update on every CI re-screenshot.
+- [ ] **F-README-3** — Write the 30-line quickstart block. `pnpm add @jbcom/medieval-hexagon-gameboard` → `pnpm exec medieval-hexagon-gameboard bootstrap` → minimal `<Gameboard scenario={harbor} />` React component → working render. Test that the snippet actually compiles via a new `pnpm test:readme-snippet` gate.
+- [ ] **F-README-4** — Write the "Why this exists" 3-bullet section. Concrete, terse, no marketing fluff: declarative API for hex worlds, deterministic seed-driven generation, first-class React + Three bindings (not optional peers).
+- [ ] **F-README-5** — Add the Module Map table (umbrella vs `/coordinates`, `/manifest`, `/scenario`, `/react`, `/three`, etc.) with one-line purpose for each.
+- [ ] **F-README-6** — Add the docs-site link grid: 3-column markdown table grouping "Get started", "Features", "Reference". Pulled from the docs-site sidebar config so they don't drift.
+- [ ] **F-README-7** — Add status badges row: CI status, npm version, license, types-included, FREE asset count, EXTRA asset count, coverage percent. Each badge points at its source of truth (Actions, npm, etc.).
+
+#### Sub-epic F-Audit — thorough audit of every doc in the repo
+
+Each item is one commit. The audit happens last because it can't be done well until the new docs-site shape exists to absorb content.
+
+- [ ] **F-Audit-1** — Audit `CONTRIBUTING.md`: align with current `pnpm verify` posture, the single-package layout, the install-once CI pattern (A9), the test trinity (unit + browser + e2e). Add "Working with the agentic state" section pointing at `.agent-state/`.
+- [ ] **F-Audit-2** — Write `CHANGELOG.md` (Keep a Changelog 1.1.0). Backfill from `git log --oneline` for releases prior to release-please ownership; release-please populates from here forward.
+- [ ] **F-Audit-3** — Write `STANDARDS.md`: style + brand + non-negotiables. Pulls from PRD §6. Authoritative source for "what we don't do".
+- [ ] **F-Audit-4** — Audit `CODE_OF_CONDUCT.md` + `SECURITY.md`: ensure they exist with current contact info. SECURITY.md links to GitHub's private vulnerability reporting.
+- [ ] **F-Audit-5** — Audit `CLAUDE.md` (root): align with current single-package layout, drop any pre-R1 references to `packages/medieval-hexagon-gameboard/`. Move agentic-only content out of `CLAUDE.md` into `AGENTS.md` if any cross-agent collaboration is wanted.
+- [ ] **F-Audit-6** — Audit `.agent-state/directive.md` (this file): once 1.0 ships, archive the 1.0 stabilization section into `docs-site/src/content/docs/about/history/1.0-stabilization.md`; reset to a slim post-1.0 maintenance directive.
+- [ ] **F-Audit-7** — Audit `docs/` legacy content: every file gets a "keep + revise to docs-site" or "delete" verdict. Migrate kept content into `docs-site/`; delete the `docs/` directory once empty.
+- [ ] **F-Audit-8** — Audit `examples/` content: every kept example gets a `README.md` linking back to the corresponding `docs-site/features/<page>` page. The published `examples/` ships the runnable snippets only.
+- [ ] **F-Audit-9** — Write `docs-site/src/content/docs/about/architecture.md` (replacing `docs/ARCHITECTURE.md`): module graph diagram (mermaid), ECS layering, build pipeline, the 20-sub-package decomposition.
+- [ ] **F-Audit-10** — Write `docs-site/src/content/docs/about/design.md` (replacing `docs/DESIGN.md`): vision, identity, UX principles. What the library aspires to be that no other does.
+- [ ] **F-Audit-11** — Write `docs-site/src/content/docs/guides/testing.md` (replacing `docs/TESTING.md`): the unit + browser + e2e trinity, coverage gates, the SimpleRPG-as-coverage-driver model, perf gates.
+- [ ] **F-Audit-12** — Write `docs-site/src/content/docs/about/deployment.md` (replacing `docs/DEPLOYMENT.md`): release flow, OIDC publish, GitHub App token, SBOM, SLSA attestation.
+- [ ] **F-Audit-13** — Write `docs-site/src/content/docs/about/state.md` (replacing `docs/STATE.md`): current published version, in-flight major initiatives, links to PRD + directive on GitHub. Auto-generated where possible (read `package.json#version`).
+- [ ] **F-Audit-14** — Add frontmatter (`title`, `description`, `updated`, `status`) to every `.md` in root + `docs-site/`. Lint with a custom check in `scripts/audit-docs-frontmatter.ts`; wire to `pnpm test:docs-contract`.
+- [ ] **F-Audit-15** — Run a single end-to-end "fresh consumer" pass: clone repo on a new machine, follow only the README + docs-site. Every step that requires me to read source code or commit history is a doc bug. Patch.
 
 ### Phase G — release readiness (final gate)
 
