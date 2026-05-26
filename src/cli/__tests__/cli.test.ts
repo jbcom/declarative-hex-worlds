@@ -2975,6 +2975,31 @@ describe('CLI', () => {
     expect(existsSync(resolve(assetRoot, 'pre-existing.txt'))).toBe(false);
     expect(existsSync(resolve(assetRoot, 'tiles/base/hex_grass.gltf'))).toBe(true);
   });
+
+  it('documents the bootstrap subcommand in --help output (PRD RB2)', () => {
+    const helpOutput = runCli(['--help']);
+    expect(helpOutput).toContain('bootstrap');
+    expect(helpOutput).toContain('--source github|zip');
+    expect(helpOutput).toContain('--include-source-formats');
+    expect(helpOutput).toContain('--verify');
+  });
+
+  it('bootstrap --verify against an absent target prints drift and exits 1 (PRD RB2)', () => {
+    const missingOut = resolve(createTempRoot(), 'never-bootstrapped');
+    const output = runCliExpectFailure(['bootstrap', '--verify', '--out', missingOut]);
+    expect(output).toContain('bootstrap verify FAILED');
+    expect(output).toContain('integrity sidecar missing');
+  });
+
+  it('bootstrap --source zip without --zip fails with a clear message (PRD RB2)', () => {
+    const output = runCliExpectFailure(['bootstrap', '--source', 'zip']);
+    expect(output).toContain("bootstrap --source zip requires --zip <path>");
+  });
+
+  it('bootstrap rejects an unknown --source value (PRD RB2)', () => {
+    const output = runCliExpectFailure(['bootstrap', '--source', 'cdn']);
+    expect(output).toContain("bootstrap --source must be 'github' or 'zip'");
+  });
 });
 
 function runCli(args: readonly string[]): string {

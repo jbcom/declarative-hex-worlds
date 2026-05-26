@@ -3,6 +3,13 @@ import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from '
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { GameboardCliError } from '../errors';
 import {
+  bootstrapKayKitAssets,
+  verifyBootstrap,
+  type BootstrapKayKitAssetsSource,
+  type BootstrapResult,
+  type BootstrapVerificationReport,
+} from '../bootstrap';
+import {
   copyGltfTree,
   defaultSourceRoot,
   expectedModelCount,
@@ -777,7 +784,114 @@ function main(argv: string[]): void {
     return;
   }
 
+  if (parsed.command === 'bootstrap') {
+    void runBootstrap(parsed, edition).catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(message);
+      process.exit(1);
+    });
+    return;
+  }
+
   usage(1);
+}
+
+async function runBootstrap(parsed: ParsedArgs, edition: PackEdition): Promise<void> {
+  const verifyOnly = parsed.flags.verify === true;
+  const outFlag = typeof parsed.flags.out === 'string' ? parsed.flags.out : detectDefaultBootstrapOut();
+  const outAbsolute = safeResolveOutput(outFlag);
+  const jsonMode = parsed.flags.json === true;
+
+  if (verifyOnly) {
+    const report = await verifyBootstrap(outAbsolute);
+    if (jsonMode) {
+      console.log(JSON.stringify(report, null, 2));
+    } else {
+      printBootstrapVerifyReport(report);
+    }
+    if (!report.ok) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  const sourceFlag = typeof parsed.flags.source === 'string' ? parsed.flags.source : 'github';
+  if (sourceFlag !== 'github' && sourceFlag !== 'zip') {
+    throw new GameboardCliError(`bootstrap --source must be 'github' or 'zip' (got: ${sourceFlag})`);
+  }
+  const source: BootstrapKayKitAssetsSource =
+    sourceFlag === 'github'
+      ? {
+          kind: 'github',
+          ...(typeof parsed.flags.commit === 'string' ? { commit: parsed.flags.commit } : {}),
+        }
+      : (() => {
+          if (typeof parsed.flags.zip !== 'string') {
+            throw new GameboardCliError("bootstrap --source zip requires --zip <path>");
+          }
+          return { kind: 'zip', path: parsed.flags.zip } as const;
+        })();
+
+  const result = await bootstrapKayKitAssets({
+    source,
+    out: outAbsolute,
+    edition,
+    force: parsed.flags.force === true,
+    includeSourceFormats: parsed.flags['include-source-formats'] === true,
+  });
+
+  if (jsonMode) {
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    printBootstrapResult(result);
+  }
+}
+
+/**
+ * Default `--out` heuristic. Prefers existing `public/assets/models` (Vite /
+ * Next.js convention), then `assets/models`, then cwd. Cosmetic only: every
+ * call still routes through {@link safeResolveOutput}.
+ */
+function detectDefaultBootstrapOut(): string {
+  const cwd = process.cwd();
+  const candidates = ['public/assets/models', 'assets/models'];
+  for (const candidate of candidates) {
+    if (existsSync(join(cwd, candidate))) {
+      return candidate;
+    }
+  }
+  if (existsSync(join(cwd, 'public'))) {
+    return 'public/assets/models';
+  }
+  return 'assets/models';
+}
+
+function printBootstrapResult(result: BootstrapResult): void {
+  console.log(`bootstrapped ${result.edition.toUpperCase()} edition`);
+  console.log(`  ${result.fileCount} file(s), ${formatBytes(result.totalBytes)}`);
+  console.log(`  root: ${relativizePath(result.outRoot)}`);
+  console.log(`  sidecar: ${relativizePath(result.integritySidecar)}`);
+}
+
+function printBootstrapVerifyReport(report: BootstrapVerificationReport): void {
+  if (report.ok) {
+    console.log(`bootstrap verify OK (${relativizePath(report.sidecarPath)})`);
+    return;
+  }
+  console.error(`bootstrap verify FAILED for ${relativizePath(report.sidecarPath)}`);
+  for (const drift of report.drift) {
+    console.error(`  ${drift}`);
+  }
+}
+
+function formatBytes(value: number): string {
+  if (value < 1024) {
+    return `${value} B`;
+  }
+  if (value < 1024 * 1024) {
+    return `${(value / 1024).toFixed(1)} KiB`;
+  }
+  return `${(value / 1024 / 1024).toFixed(2)} MiB`;
 }
 
 function readManifest(path: string): MedievalHexagonManifest {
@@ -4288,6 +4402,7 @@ Commands:
   piece      Emit a custom piece declaration from an external GLB/GLTF compatibility scan
   pieces-from-assets Scan GLB/GLTF files and emit custom piece declarations plus compatibility summaries
   extract    Copy GLTF assets and write a manifest to an output folder
+  bootstrap  Materialize KayKit GLTF assets under a consumer asset root (PRD RB)
 
 Options:
   --edition free|extra
@@ -4403,7 +4518,18 @@ Options:
   --markdown
   --assetBasePath <path>
   --force
-  --json`);
+  --json
+
+Bootstrap subcommand:
+  --source github|zip          Source mode (default: github; zip requires --zip)
+  --zip <path>                 Path to a user-supplied KayKit zip (FREE or EXTRA)
+  --commit <sha>               Pin the GitHub source to a specific commit/ref (default: main)
+  --out <path>                 Consumer asset root (default: ./public/assets/models)
+  --edition free|extra         Pack edition (default: free; extra requires --source zip)
+  --force                      Wipe existing target before mirroring
+  --verify                     Re-hash an existing bootstrap target and report drift
+  --include-source-formats     Mirror .fbx/.obj/.mtl alongside the gltf tree
+  --json                       Emit machine-readable BootstrapResult / verify report`);
   process.exit(exitCode);
 }
 
