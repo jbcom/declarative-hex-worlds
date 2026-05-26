@@ -6,7 +6,7 @@
  */
 import type {
   ExternalAssetCompatibilityReport,
-} from '../compatibility';
+} from '../interop';
 import type {
   GameboardPlan,
   GameboardPlacementKind,

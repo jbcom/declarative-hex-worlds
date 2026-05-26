@@ -55,7 +55,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - [x] **R2i** — ✅ commit (2026-05-26): `src/pieces.ts` → `src/pieces/{pieces,index}.ts`.
   - [x] **R2j** — ✅ commit (2026-05-26): `rules.ts`+`rule-types.ts`+`validation.ts` → `src/rules/{rules,rule-types,validation,index}.ts`. `world-rules.ts` deferred to R2n (becomes `systems/world-rules-system.ts`).
   - [x] **R2k** — ✅ commit (2026-05-26): `scenario.ts`+`recipe.ts`+`blueprint.ts`+`catalog.ts`+`registry.ts` → `src/scenario/{scenario,recipe,blueprint,catalog,registry,index}.ts`. Sibling sub-packages (coordinates/, gameboard/, rules/) updated.
-  - **R2l** — `simulation/` (engine + script + report + assertions — Epic D3 decomposition)
+  - [x] **R2l** — ✅ commit (2026-05-26): `src/simulation.ts` → `src/simulation/{simulation,index}.ts`. Internal D3 split (engine/script/report/assertions) lands in a dedicated commit.
   - **R2m** — `interop/` (interop + compatibility + coverage)
   - **R2n** — `systems/` (per-system file each — `movement-system.ts`, `patrol-system.ts`, `quests-system.ts`, `rules-system.ts`, `world-rules-system.ts`)
   - **R2o** — `errors/` (Epic D2 lands here)

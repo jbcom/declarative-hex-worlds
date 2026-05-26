@@ -3,7 +3,7 @@ import { basename, resolve } from 'node:path';
 import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
-} from '../src/catalog';
+} from '../src/scenario';
 
 type PillarStatus = 'draft' | 'implemented' | 'verified';
 

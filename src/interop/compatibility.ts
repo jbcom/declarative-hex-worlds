@@ -4,9 +4,9 @@
  *
  * @module
  */
-import { KAYKIT_HEX_DEPTH, KAYKIT_HEX_GEOMETRY, KAYKIT_HEX_WIDTH } from './coordinates';
-import type { SpawnGameboardPlacementOptions } from './koota';
-import type { AssetBounds, HexCoordinates, HexEdgeIndex } from './types';
+import { KAYKIT_HEX_DEPTH, KAYKIT_HEX_GEOMETRY, KAYKIT_HEX_WIDTH } from '../coordinates';
+import type { SpawnGameboardPlacementOptions } from '../koota';
+import type { AssetBounds, HexCoordinates, HexEdgeIndex } from '../types';
 
 /**
  * Intended use for an external GLB/GLTF before the compatibility pass evaluates

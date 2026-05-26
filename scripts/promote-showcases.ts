@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../src/coverage';
+import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../src/interop';
 import {
   analyzeScreenshot,
   formatScreenshotStats,

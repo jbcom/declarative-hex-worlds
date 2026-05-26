@@ -7,7 +7,7 @@ import {
   analyzeScreenshot,
   validateScreenshot,
 } from '../tests/scripts/screenshot-quality';
-import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../src/coverage';
+import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../src/interop';
 import { KAYKIT_ATTRIBUTION } from '../src/manifest/schema';
 
 interface PackageJson {

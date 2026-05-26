@@ -13,7 +13,7 @@ import {
   analyzeExternalAssetCompatibility,
   type ExternalAssetForwardAxis,
   type ExternalAssetIntendedRole,
-} from './compatibility';
+} from './interop';
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
@@ -26,7 +26,7 @@ import {
   type GameboardCoverageSimpleRpgEvidence,
   type GameboardCoverageSimpleRpgEvidenceMode,
   type GameboardCoverageStatus,
-} from './coverage';
+} from './interop';
 import {
   listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,

@@ -5,7 +5,7 @@ import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
   renderKayKitGuideScenarioCoverageMarkdown,
-} from '../src/catalog';
+} from '../src/scenario';
 import { generateManifestFromSource, validateSourceRoot } from '../src/ingest';
 import { freeManifest } from '../src/manifest/free';
 import { validateMedievalHexagonManifest } from '../src/manifest/schema';

@@ -4,28 +4,28 @@
  *
  * @module
  */
-import { edgeBetween, hexKey, neighbor, parseHexKey } from './coordinates';
-import type { GameboardActorSnapshot } from './actors';
+import { edgeBetween, hexKey, neighbor, parseHexKey } from '../coordinates';
+import type { GameboardActorSnapshot } from '../actors';
 import {
   axialToWorld,
   createSpawnLocations,
   type SpawnLocation,
   type SpawnLocationOptions,
-} from './coordinates';
-import type { GameboardPlan, GameboardPlacementSpec, GameboardTileSpec } from './gameboard';
+} from '../coordinates';
+import type { GameboardPlan, GameboardPlacementSpec, GameboardTileSpec } from '../gameboard';
 import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
   gameboardPlacementOccupancyGroup,
-} from './gameboard';
-import type { GameboardQuestObjective, GameboardQuestSnapshot } from './quests';
-import { createGameboardPlanFromRecipe } from './scenario';
+} from '../gameboard';
+import type { GameboardQuestObjective, GameboardQuestSnapshot } from '../quests';
+import { createGameboardPlanFromRecipe } from '../scenario';
 import {
   resolveGameboardScenarioActors,
   type GameboardScenario,
   type GameboardScenarioActor,
   type ResolvedGameboardScenarioActor,
-} from './scenario';
+} from '../scenario';
 import {
   planGameboardPatrolRoutes,
   planGameboardSpawnGroups,
@@ -36,7 +36,7 @@ import {
   type GameboardPatrolRouteSet,
   type GameboardSpawnGroupPlan,
   type GameboardSpawnGroupRoute,
-} from './gameboard';
+} from '../gameboard';
 import type {
   GameboardScenarioSimulationActorTargetsRecord,
   GameboardScenarioSimulationCommandRecord,
@@ -45,8 +45,8 @@ import type {
   GameboardScenarioSimulationPatrolRecord,
   GameboardScenarioSimulationReport,
   GameboardScenarioSimulationStepReport,
-} from './simulation';
-import type { HexCoordinates, HexEdgeIndex, WorldPosition } from './types';
+} from '../simulation';
+import type { HexCoordinates, HexEdgeIndex, WorldPosition } from '../types';
 
 /**
  * Entity kind emitted by interop snapshots for external ECS adapters.

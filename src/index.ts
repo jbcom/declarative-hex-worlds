@@ -54,7 +54,7 @@ export {
   analyzeExternalAssetCompatibility,
   externalAssetSpawnOptions,
   recommendExternalAssetFacing,
-} from './compatibility';
+} from './interop';
 export type {
   ExternalAssetAnchor,
   ExternalAssetCompatibilityInput,
@@ -68,7 +68,7 @@ export type {
   ExternalAssetSpawnOptionsInput,
   ExternalAssetSuggestedRole,
   ExternalAssetTileCompatibility,
-} from './compatibility';
+} from './interop';
 export {
   GAMEBOARD_COVERAGE_SCHEMA_VERSION,
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
@@ -77,7 +77,7 @@ export {
   createDefaultGameboardCoverageReferences,
   renderGameboardCoverageMarkdown,
   summarizeGameboardCoverage,
-} from './coverage';
+} from './interop';
 export type {
   CoverageGap,
   CoverageGapSeverity,
@@ -98,7 +98,7 @@ export type {
   SummarizeGameboardCoverageOptions,
   VisualArtifactCoverage,
   VisualArtifactCoverageSource,
-} from './coverage';
+} from './interop';
 export {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
   createGameboardInteractionHandlerPreset,

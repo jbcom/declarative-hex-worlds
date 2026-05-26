@@ -15,13 +15,13 @@ import {
   type KayKitGuidePublicApiCoverage,
   type KayKitGuideRoleCoverage,
   type KayKitGuideScenario,
-} from './scenario';
-import { freeManifest } from './manifest';
+} from '../scenario';
+import { freeManifest } from '../manifest';
 import {
   inspectMedievalHexagonManifest,
   type MedievalHexagonManifestIssue,
-} from './manifest';
-import type { MedievalHexagonManifest, PackEdition } from './types';
+} from '../manifest';
+import type { MedievalHexagonManifest, PackEdition } from '../types';
 
 /** Schema version for generated release-readiness reports. */
 export const GAMEBOARD_COVERAGE_SCHEMA_VERSION = '1.0.0';
