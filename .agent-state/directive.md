@@ -143,7 +143,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 - [x] **C2** ✅ commit (2026-05-26) — **S-H2**: Harden `listFiles` in `ingest.ts:310` — skip `entry.isSymbolicLink()`, verify `realpathSync(child).startsWith(realRoot)` before descending. Cycle-safe.
 - [x] **C3** ✅ commit (2026-05-26) — **S-M1**: Prototype-pollution guard in `readPieceSourceRoots`; return `Object.create(null)`-backed map; use `JSON.parse` reviver to strip `__proto__`.
 - [x] **C4** ✅ commit b3837f0 (2026-05-26) — **S-M2**: Fix `extract-kaykit-guide.ts:129` `sh -c` quoting via positional args.
-- [ ] **C5** — **S-M4**: Normalize CLI error messages to relative paths via `relative(cwd, resolve(value))`.
+- [x] **C5** — ✅ commit (2026-05-26): `relativizePath()` helper added to `src/cli/cli.ts`. Applied to 19 path-bearing error messages (`Recipe ${path}...`, `Scenario ${scenarioPath}...`, `Simulation script ${path}...`, etc.). Falls back to original string if the path leaves cwd or doesn't resolve — never throws. Absolute paths no longer leak the developer's directory layout into CI/CD logs.
 - [x] **C6** ✅ commit 07d4b72 (2026-05-26) — **S-M5**: Gate full stack traces behind `MEDIEVAL_HEXAGON_DEBUG=1`; keep terse default.
 - [x] **C7** ✅ commit (2026-05-26) — **S-M6**: Block source-map publish via `"!dist/**/*.map"` in `files` or `sourcemap: false` for publish build.
 

@@ -227,6 +227,30 @@ interface GameboardPlanSummaryPayload {
   summary: GameboardPlanSummary;
 }
 
+/**
+ * Render an absolute or unknown-shape path as a cwd-relative one for user-facing
+ * error messages (PRD C5). Absolute paths in errors leak the developer's
+ * directory layout and are noisy for CI/CD log readers; relative paths are
+ * stable across machines.
+ *
+ * Falls through to the original string if relativization fails or if the
+ * input doesn't look like a path (e.g. asset ids, descriptions).
+ */
+function relativizePath(value: string): string {
+  if (typeof value !== 'string' || value.length === 0) {
+    return String(value);
+  }
+  try {
+    const resolved = resolve(value);
+    const rel = relative(process.cwd(), resolved);
+    // Fall back to absolute if the relative path leaves the cwd subtree
+    // entirely (it's clearer to show the absolute path than `../../../...`).
+    return rel.startsWith('..') ? value : rel || '.';
+  } catch {
+    return value;
+  }
+}
+
 function main(argv: string[]): void {
   const parsed = parseArgs(argv);
   const edition = readEdition(parsed.flags.edition);
@@ -697,7 +721,7 @@ function readManifest(path: string): MedievalHexagonManifest {
   if (!inspection.manifest || inspection.errorCount > 0) {
     throw new Error(
       [
-        `Invalid manifest ${path}`,
+        `Invalid manifest ${relativizePath(path)}`,
         ...inspection.issues
           .filter((issue) => issue.severity === 'error')
           .map((issue) => `- ${formatManifestIssue(issue)}`),
@@ -817,7 +841,7 @@ function readRegistry(path: string): HexTileRegistry {
   const declarations = Array.isArray(payload) ? payload : payload.declarations;
   if (!Array.isArray(declarations)) {
     throw new Error(
-      `Registry file ${path} must be a declaration array or { "declarations": [...] }`
+      `Registry file ${relativizePath(path)} must be a declaration array or { "declarations": [...] }`
     );
   }
   return createHexTileRegistry(declarations);
@@ -842,7 +866,7 @@ function readPieceRegistry(path: string): GameboardPieceRegistry {
         : (payload.pieces ?? payload.declarations);
   if (!Array.isArray(declarations)) {
     throw new Error(
-      `Piece registry file ${path} must be a declaration, an array, { "declaration": ... }, { "pieces": [...] }, or { "declarations": [...] }`
+      `Piece registry file ${relativizePath(path)} must be a declaration, an array, { "declaration": ... }, { "pieces": [...] }, or { "declarations": [...] }`
     );
   }
   return createGameboardPieceRegistry(declarations);
@@ -1457,7 +1481,7 @@ function layoutAnalysisPlanFromArgs(
         printViolations(inspection.violations);
         process.exit(1);
       }
-      throw new Error(`Recipe ${parsed.flags.recipe} did not compile to a GameboardPlan`);
+      throw new Error(`Recipe ${relativizePath(String(parsed.flags.recipe))} did not compile to a GameboardPlan`);
     }
     return {
       plan: inspection.plan,
@@ -1472,7 +1496,7 @@ function layoutAnalysisPlanFromArgs(
       printViolations(inspection.violations);
       process.exit(1);
     }
-    throw new Error(`Scenario ${scenarioPath} did not compile to a GameboardPlan`);
+    throw new Error(`Scenario ${relativizePath(scenarioPath)} did not compile to a GameboardPlan`);
   }
   return {
     plan: inspection.plan,
@@ -1521,7 +1545,7 @@ function summaryPlanFromArgs(
         printViolations(inspection.violations);
         process.exit(1);
       }
-      throw new Error(`Recipe ${path} did not compile to a GameboardPlan`);
+      throw new Error(`Recipe ${relativizePath(path)} did not compile to a GameboardPlan`);
     }
     return {
       source: { kind: 'recipe', path },
@@ -1540,7 +1564,7 @@ function summaryPlanFromArgs(
         printViolations(inspection.violations);
         process.exit(1);
       }
-      throw new Error(`Scenario ${path} did not compile to a GameboardPlan`);
+      throw new Error(`Scenario ${relativizePath(path)} did not compile to a GameboardPlan`);
     }
     return {
       source: { kind: 'scenario', path },
@@ -1586,7 +1610,7 @@ function routePlanningPlanFromArgs(
       ? readJson<GameboardRecipe>(resolve(parsed.flags.recipe))
       : undefined);
   if (!recipe) {
-    throw new Error(`Scenario ${String(parsed.flags.scenario)} did not include a board recipe`);
+    throw new Error(`Scenario ${relativizePath(String(parsed.flags.scenario))} did not include a board recipe`);
   }
   const inspection = inspectGameboardRecipe(recipe, { plan: validationConfig });
   if (!inspection.plan) {
@@ -1689,7 +1713,7 @@ function readPatrolSimulationAssignments(
         ? (payload.assignments as readonly GameboardPatrolSimulationActorAssignment[])
         : undefined;
     if (!Array.isArray(assignments)) {
-      throw new Error(`Patrol assignment file ${parsed.flags.assignments} must be an array or { "assignments": [...] }`);
+      throw new Error(`Patrol assignment file ${relativizePath(String(parsed.flags.assignments))} must be an array or { "assignments": [...] }`);
     }
     return assignments.map((assignment) => ({
       ...assignment,
@@ -2795,7 +2819,7 @@ function readBlueprintOptionsFile(path: string): MedievalGameboardBlueprintScena
         : payload;
   if (!isRecord(options)) {
     throw new Error(
-      `Blueprint file ${path} must be an options object, { "blueprint": ... }, or { "options": ... }`
+      `Blueprint file ${relativizePath(path)} must be an options object, { "blueprint": ... }, or { "options": ... }`
     );
   }
   return options as unknown as MedievalGameboardBlueprintScenarioOptions;
@@ -2919,7 +2943,7 @@ function readSimulationScript(path: string): GameboardScenarioSimulationScript {
     };
   }
   if (!isRecord(payload) || !Array.isArray(payload.steps)) {
-    throw new Error(`Simulation script ${path} must be a step array or { "steps": [...] }`);
+    throw new Error(`Simulation script ${relativizePath(path)} must be a step array or { "steps": [...] }`);
   }
   return payload as unknown as GameboardScenarioSimulationScript;
 }
@@ -2935,7 +2959,7 @@ function readLayoutFillOptions(
       ? (payload.rules as readonly GameboardLayoutFillRule[])
       : undefined;
   if (!Array.isArray(rules)) {
-    throw new Error(`Layout rules file ${path} must be a rule array or { "rules": [...] }`);
+    throw new Error(`Layout rules file ${relativizePath(path)} must be a rule array or { "rules": [...] }`);
   }
   const fileSeed = isRecord(payload) && typeof payload.seed === 'string' ? payload.seed : undefined;
   return {
@@ -2955,7 +2979,7 @@ function readSpawnGroupOptions(
       ? (payload.groups as GameboardSpawnGroupOptions['groups'])
       : undefined;
   if (!Array.isArray(groups)) {
-    throw new Error(`Spawn group file ${path} must be a group array or { "groups": [...] }`);
+    throw new Error(`Spawn group file ${relativizePath(path)} must be a group array or { "groups": [...] }`);
   }
   const fileSeed = isRecord(payload) && typeof payload.seed === 'string' ? payload.seed : undefined;
   const profile =
@@ -2980,7 +3004,7 @@ function readPatrolRouteOptions(
       ? (payload.routes as readonly GameboardPatrolRouteRule[])
       : undefined;
   if (!Array.isArray(routes)) {
-    throw new Error(`Patrol route file ${path} must be a route array or { "routes": [...] }`);
+    throw new Error(`Patrol route file ${relativizePath(path)} must be a route array or { "routes": [...] }`);
   }
   const fileSeed = isRecord(payload) && typeof payload.seed === 'string' ? payload.seed : undefined;
   const profile =
@@ -3101,7 +3125,7 @@ function snapshotFromRecipe(
   const inspection = inspectGameboardRecipe(recipe, { plan: validationConfig });
   failOnSnapshotViolations(inspection.violations, allowInvalid);
   if (!inspection.plan) {
-    throw new Error(`Recipe ${path} did not compile to a GameboardPlan`);
+    throw new Error(`Recipe ${relativizePath(path)} did not compile to a GameboardPlan`);
   }
   return createGameboardInteropSnapshot(inspection.plan, options);
 }
@@ -3501,7 +3525,7 @@ function printManifestInspection(
   path: string,
   inspection: MedievalHexagonManifestInspection
 ): void {
-  console.log(`manifest: ${path}`);
+  console.log(`manifest: ${relativizePath(path)}`);
   if (inspection.manifest) {
     console.log(`edition: ${inspection.manifest.edition}`);
     console.log(`assets: ${inspection.manifest.counts.total}`);
@@ -3576,7 +3600,7 @@ function readGltfMetadata(path: string): {
 function readGlbJson(path: string): GltfDocumentMetadata {
   const buffer = readFileSync(path);
   if (buffer.toString('utf8', 0, 4) !== 'glTF') {
-    throw new Error(`Invalid GLB header: ${path}`);
+    throw new Error(`Invalid GLB header: ${relativizePath(path)}`);
   }
   const length = buffer.readUInt32LE(8);
   let offset = 12;
@@ -3591,7 +3615,7 @@ function readGlbJson(path: string): GltfDocumentMetadata {
     }
     offset += chunkLength;
   }
-  throw new Error(`GLB file has no JSON chunk: ${path}`);
+  throw new Error(`GLB file has no JSON chunk: ${relativizePath(path)}`);
 }
 
 function extractMetadataBounds(document: GltfDocumentMetadata): AssetBounds {
