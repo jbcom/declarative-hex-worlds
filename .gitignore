@@ -189,3 +189,10 @@ tests/browser/**/__screenshots__
 
 # brainstorming companion
 .superpowers
+
+# docs-site (Astro Starlight sibling project; PRD F-Site-1)
+# Belt-and-braces — docs-site/.gitignore also covers these. The sibling
+# install model means docs-site keeps its own node_modules + lockfile.
+docs-site/node_modules
+docs-site/dist
+docs-site/.astro
