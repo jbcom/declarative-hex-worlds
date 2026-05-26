@@ -8,14 +8,13 @@
   "files": {
     "ignoreUnknown": true,
     "includes": [
-      "packages/*/src/**",
-      "packages/*/tests/**",
-      "packages/*/*.json",
-      "packages/*/*.ts",
-      "apps/**",
-      "docs/**/*.md",
+      "src/**",
+      "tests/**",
+      "examples/**",
       "scripts/**/*.ts",
+      "docs/**/*.md",
       "*.json",
+      "*.ts",
       "*.yaml",
       "*.yml",
       "*.md"

@@ -34,7 +34,7 @@
     "src/systems.ts",
     "src/validation.ts",
     "src/world-rules.ts",
-    "src/types.ts",
+    "src/types/index.ts",
     "src/react.ts",
     "src/three.ts",
     "src/manifest/free.ts",

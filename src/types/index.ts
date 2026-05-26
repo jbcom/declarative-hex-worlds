@@ -1,9 +1,44 @@
 /**
- * Shared manifest, edition, category, faction, texture, coordinate, edge, and
- * world-position types used across every public package surface.
+ * `src/types/` — typed primitives shared across every sub-package.
+ *
+ * Two flavours live here:
+ *
+ * - **Unbranded enumerations + interfaces** (this file): edition taxonomies,
+ *   category lists, asset bounds, coordinate shapes. Cross-domain vocabulary
+ *   that doesn't need nominal typing.
+ * - **Branded primitives** (`./brands`): opaque string IDs (`HexKey`,
+ *   `ActorId`, `TileId`, etc.) re-exported below. Branding is being introduced
+ *   progressively per PRD Epic R; the brand surface lives here so the
+ *   migration touches one file per brand.
  *
  * @module
  */
+
+export type {
+  ActorId,
+  AssetId,
+  Branded,
+  HexKey,
+  ObjectiveId,
+  PatrolRouteId,
+  PieceId,
+  PlacementId,
+  QuestId,
+  ScenarioId,
+  TileId,
+} from './brands';
+export {
+  brandActorId,
+  brandAssetId,
+  brandHexKey,
+  brandObjectiveId,
+  brandPatrolRouteId,
+  brandPieceId,
+  brandPlacementId,
+  brandQuestId,
+  brandScenarioId,
+  brandTileId,
+} from './brands';
 /**
  * Current manifest schema emitted by the ingest CLI and bundled FREE manifest.
  */
