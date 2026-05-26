@@ -257,7 +257,7 @@ Each item is one commit. The audit happens last because it can't be done well un
 
 - [ ] **G1** — Add `actions/attest-build-provenance@v2` for SLSA L3 attestation.
 - [ ] **G2** — Add `@cyclonedx/cyclonedx-npm` SBOM as release artifact (`anchore/sbom-action` alt).
-- [ ] **G3** — Dependabot: add `security-updates` daily group with `open-pull-requests-limit: 10`.
+- [x] **G3** — ✅ commit (2026-05-26): `.github/dependabot.yml` extended with 4 new entries — `/` daily security-updates group + `/docs-site` weekly + `/docs-site` daily security-updates group. Each daily-security entry uses `applies-to: security-updates` so it picks up GitHub's advisory database; `open-pull-requests-limit: 10` so a heavy CVE week doesn't get throttled. PRs from these channels carry the `security` label for filtering.
 - [ ] **G4** — `pnpm verify` parity audit: every CI gate runs locally via `pnpm verify`. Add missing entries.
 - [ ] **G5** — Run `pnpm verify` end-to-end clean on this branch.
 - [ ] **G6** — Bump `packages/medieval-hexagon-gameboard/package.json` version → `1.0.0` and `release-please-manifest.json` accordingly.
