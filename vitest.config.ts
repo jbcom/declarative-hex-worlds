@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
+import { harnessCoverage } from './vitest.coverage.shared';
 
 export default defineConfig({
   test: {
@@ -7,12 +8,7 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/unit/**/*.test.ts', 'src/**/__tests__/**/*.test.ts'],
     testTimeout: 15_000,
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      reportsDirectory: './coverage',
-      exclude: ['node_modules', 'dist', 'tests', '**/__tests__/**', '**/*.config.ts', '**/index.ts'],
-    },
+    coverage: harnessCoverage('unit'),
   },
   resolve: {
     // Mirror tsconfig.json `paths` so vitest resolves
