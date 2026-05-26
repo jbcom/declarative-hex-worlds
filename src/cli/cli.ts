@@ -3774,14 +3774,31 @@ function pieceSourceUrlOptionsFromFlags(
   return options;
 }
 
+// Keys that can poison a prototype chain if accepted as plain object members.
+// `Object.entries` already skips the inherited `__proto__` accessor, but
+// `JSON.parse('{"__proto__":{"x":1}}')` produces an *own* property with that
+// name; merging that into a plain `{}` via `roots[key] = root` would create a
+// __proto__-own that downstream merge-utilities could surface. Reject up
+// front. Phase 2 security review S-M1.
+const RESERVED_OBJECT_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+const SAFE_PIECE_SOURCE_ROOT_KEY = /^[a-zA-Z0-9_:-]+$/u;
+
 function readPieceSourceRoots(value: string): Readonly<Record<string, string>> {
   const source = existsSync(resolve(value)) ? readJson<unknown>(resolve(value)) : JSON.parse(value);
   const payload = isRecord(source) && isRecord(source.sourceRoots) ? source.sourceRoots : source;
   if (!isRecord(payload)) {
     throw new Error('--pieceSourceRoots must be a JSON object or { "sourceRoots": { ... } }');
   }
-  const roots: Record<string, string> = {};
+  // Null-prototype output so downstream Object.assign/spread can't reach
+  // through Object.prototype even if an attacker bypassed the key filter.
+  const roots: Record<string, string> = Object.create(null) as Record<string, string>;
   for (const [key, root] of Object.entries(payload)) {
+    if (RESERVED_OBJECT_KEYS.has(key)) {
+      throw new Error(`--pieceSourceRoots key not allowed (prototype pollution risk): ${key}`);
+    }
+    if (!SAFE_PIECE_SOURCE_ROOT_KEY.test(key)) {
+      throw new Error(`--pieceSourceRoots key must match [A-Za-z0-9_:-]+: ${key}`);
+    }
     if (typeof root !== 'string') {
       throw new Error(`--pieceSourceRoots entry ${key} must be a string`);
     }
