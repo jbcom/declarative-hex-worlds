@@ -15,13 +15,13 @@ import {
 import {
   findGameboardActor,
   type GameboardActorSnapshot,
-} from './actors';
+} from '../actors';
 import {
   findPlacementEntity,
   IsGameboardPlacement,
   PlacementState,
   type PlacementStateValue,
-} from './koota';
+} from '../koota';
 import {
   MovementPathState,
   requestGameboardMovement,
@@ -29,8 +29,8 @@ import {
   type GameboardMovementPathRequestOptions,
   type GameboardMovementRequestResult,
   type MovementPathStateValue,
-} from './movement';
-import type { GameboardPatrolRoutePlan } from './gameboard';
+} from '../movement';
+import type { GameboardPatrolRoutePlan } from '../gameboard';
 
 /**
  * Runtime patrol status for a patrol agent.

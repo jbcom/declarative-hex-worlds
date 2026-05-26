@@ -14,7 +14,7 @@ import {
   type TraitRecord,
   type World,
 } from 'koota';
-import { isKnownExtraAssetId } from './scenario';
+import { isKnownExtraAssetId } from '../scenario';
 import {
   GAMEBOARD_SCHEMA_VERSION,
   hexKey,
@@ -26,16 +26,16 @@ import {
   type GameboardShape,
   type GameboardTerrain,
   type GameboardTileSpec,
-} from './gameboard';
-import { axialToWorld } from './coordinates';
+} from '../gameboard';
+import { axialToWorld } from '../coordinates';
 import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
   type GameboardPlacementOccupancyLike,
   gameboardPlacementOccupancyGroup,
   gameboardPlacementOccupiesTile,
-} from './gameboard';
-import type { HexCoordinates, TextureSet, WorldPosition } from './types';
+} from '../gameboard';
+import type { HexCoordinates, TextureSet, WorldPosition } from '../types';
 
 /**
  * Board-level Koota trait with the deterministic plan metadata currently

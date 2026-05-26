@@ -12,8 +12,8 @@ import {
   type TraitRecord,
   type World,
 } from 'koota';
-import { hexKey } from './coordinates';
-import type { GameboardPlacementSpec, GameboardPlan } from './gameboard';
+import { hexKey } from '../coordinates';
+import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
 import {
   GameboardState,
   IsGameboardPlacement,
@@ -24,15 +24,15 @@ import {
   readGameboardPlacements,
   readGameboardTiles,
   type PlacementStateValue,
-} from './koota';
+} from '../koota';
 import {
   createGameboardNavigation,
   type GameboardNavigation,
   type GameboardNavigationPathResult,
   type GameboardNavigationProfile,
   type GameboardReachableTile,
-} from './gameboard';
-import type { HexCoordinates } from './types';
+} from '../gameboard';
+import type { HexCoordinates } from '../types';
 
 /**
  * Built-in movement profile ids for common medieval board actors.

@@ -60,7 +60,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - [x] **R2n** — ✅ commit (2026-05-26): `systems.ts`+`world-rules.ts` → `src/systems/{systems,world-rules-system,index}.ts`. Internal per-system file split (movement/patrol/quests/rules separate) deferred — current `systems.ts` already has cohesive function-per-system shape.
   - [x] **R2o** — ✅ commit (2026-05-26): `src/errors/index.ts` placeholder with `GameboardError` base. Full hierarchy + ~130 throw-site migration lands in dedicated D2 commit.
   - [x] **R2p** — ✅ commit (2026-05-26): `src/cli.ts` → `src/cli/{cli,index}.ts`. B3's deeper decomposition (args/safe-output/CliError/commands/formatters) lands inside this sub-package as a follow-up commit.
-  - **R2q** — `react/` + `three/` decomposition. **Move react, react-dom, three from `peerDependencies` to `dependencies`** in `package.json` (these are first-class — the library is unusable without them, same as koota). Re-export both sub-packages from the umbrella `src/index.ts`. Delete the planned `peer-guard.ts` files; not needed.
+  - [x] **R2q** — ✅ commit (2026-05-26): `react.ts`+`three.ts` → `src/react/{react,index}.ts` + `src/three/{three,index}.ts`. react/react-dom/three already moved to `dependencies` in R1 commit. No peer guards (rejected per D6).
   - **R2r** — Compose: `src/world.ts`, `src/actions.ts`, `src/frameloop.ts`, `src/startup.ts`, `src/index.ts`
   - After each commit: lint + typecheck + tests green; cross-domain imports traverse barrels only.
 - [ ] **R3** — **Enforce barrel-only cross-domain imports.** Add Biome `noRestrictedImports` rule: within `src/<X>/`, importing from `'../<Y>/<anything-but-index>'` is an error. Tests get an allowlist via `tests/internal/` re-export.

@@ -17,9 +17,9 @@ import {
   inspectGameboardActorCollision,
   type GameboardActorCollisionReport,
   type GameboardActorSnapshot,
-} from './actors';
-import { hexDistance, hexKey, parseHexKey } from './coordinates';
-import type { HexCoordinates } from './types';
+} from '../actors';
+import { hexDistance, hexKey, parseHexKey } from '../coordinates';
+import type { HexCoordinates } from '../types';
 
 /**
  * Schema version written to quest trait state.

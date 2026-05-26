@@ -12,14 +12,14 @@ import {
   type TraitRecord,
   type World,
 } from 'koota';
-import { hexDistance, hexKey, hexRange, neighbors, parseHexKey } from './coordinates';
+import { hexDistance, hexKey, hexRange, neighbors, parseHexKey } from '../coordinates';
 import type {
   GameboardPlacementKind,
   GameboardPlacementLayer,
   GameboardPlacementSpec,
   GameboardPlan,
   GameboardTileSpec,
-} from './gameboard';
+} from '../gameboard';
 import {
   HexTileState,
   IsGameboardPlacement,
@@ -36,16 +36,16 @@ import {
   type PlacementStateValue,
   type SpawnGameboardPlacementOptions,
   type UpdateGameboardPlacementOptions,
-} from './koota';
+} from '../koota';
 import {
   createGameboardNavigation,
   type GameboardNavigationContext,
   type GameboardNavigationPathResult,
   type GameboardNavigationProfile,
-} from './gameboard';
-import { gameboardPlacementBlocksOccupancy } from './gameboard';
-import { projectWorldToGameboardPlan } from './coordinates';
-import type { HexCoordinates } from './types';
+} from '../gameboard';
+import { gameboardPlacementBlocksOccupancy } from '../gameboard';
+import { projectWorldToGameboardPlan } from '../coordinates';
+import type { HexCoordinates } from '../types';
 
 /**
  * Actor role used by collision, targeting, commands, and SimpleRPG fixtures.

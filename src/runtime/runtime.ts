@@ -36,7 +36,7 @@ import {
   type MoveGameboardActorOptions,
   type SpawnGameboardActorOptions,
   type UpdateGameboardActorOptions,
-} from './actors';
+} from '../actors';
 import {
   executeGameboardInteractionCommand,
   gameboardCommandActions,
@@ -49,13 +49,13 @@ import {
   type GameboardInteractionCommandInput,
   type GameboardInteractionCommandPreview,
   type GameboardInteractionCommandPreviewOptions,
-} from './commands';
+} from '../commands';
 import {
   summarizeGameboardPlan,
   type GameboardPlan,
   type GameboardPlanSummary,
   type SummarizeGameboardPlanOptions,
-} from './gameboard';
+} from '../gameboard';
 import {
   createGameboardRuntimeInteropSnapshot,
   createGameboardScenarioInteropSnapshot,
@@ -67,7 +67,7 @@ import {
   type GameboardEcsMountResult,
   type GameboardRuntimeInteropOptions,
   type GameboardScenarioInteropOptions,
-} from './interop';
+} from '../interop';
 import {
   canOccupyGameboardPlacement,
   createGameboardWorld,
@@ -90,8 +90,8 @@ import {
   type PlacementStateValue,
   type SpawnGameboardPlacementOptions,
   type UpdateGameboardPlacementOptions,
-} from './koota';
-import type { SpawnLocation } from './coordinates';
+} from '../koota';
+import type { SpawnLocation } from '../coordinates';
 import {
   type GameboardLayoutArchetypeRegistry,
   analyzeGameboardLayoutFill,
@@ -106,8 +106,8 @@ import {
   type GameboardLayoutPlacementOptions,
   type GameboardLayoutSiteInspection,
   type InspectGameboardLayoutSitesOptions,
-} from './coordinates';
-import { gameboardMovementActions } from './movement';
+} from '../coordinates';
+import { gameboardMovementActions } from '../movement';
 import {
   createGameboardNavigation,
   createGameboardOccupancyIndex,
@@ -125,8 +125,8 @@ import {
   type GameboardSpawnGroupOptions,
   type GameboardSpawnGroupPlan,
   type GameboardSpawnLocationOptions,
-} from './gameboard';
-import { gameboardPatrolActions } from './patrol';
+} from '../gameboard';
+import { gameboardPatrolActions } from '../patrol';
 import {
   analyzeGameboardPieceRegistry,
   createGameboardLayoutFillRuleFromPieces,
@@ -146,11 +146,11 @@ import {
   type GameboardPieceRegistryFillRulesOptions,
   type GameboardPieceRegistrySelection,
   type GameboardPieceSourceUrlOptions,
-} from './pieces';
+} from '../pieces';
 import {
   projectWorldToGameboardPlan,
   readValidationGameboardPlanFromWorld,
-} from './coordinates';
+} from '../coordinates';
 import {
   advanceAllGameboardQuests,
   advanceGameboardQuest,
@@ -162,21 +162,21 @@ import {
   type GameboardQuestDefinition,
   type GameboardQuestSnapshot,
   type SpawnGameboardQuestOptions,
-} from './quests';
+} from '../quests';
 import {
   createGameboardLayoutArchetypeRegistryFromRecipe,
   createGameboardPieceRegistryFromRecipe,
   createGameboardPlanFromRecipe,
   type GameboardRecipe,
   type GameboardRecipePlanOptionsOverride,
-} from './scenario';
+} from '../scenario';
 import {
   createSeededGameboardPieceFillRules,
   inspectSeededGameboardPieceFills,
   type InspectSeededGameboardPieceFillsOptions,
   type SeededGameboardPieceFillInspection,
   type SeededGameboardPieceFillOptions,
-} from './rules';
+} from '../rules';
 import {
   createGameboardWorldFromScenario,
   summarizeGameboardScenario,
@@ -184,7 +184,7 @@ import {
   type GameboardScenarioRuntime,
   type GameboardScenarioSummary,
   type SummarizeGameboardScenarioOptions,
-} from './scenario';
+} from '../scenario';
 import {
   dispatchGameboardActorTargetCommand,
   dispatchGameboardInteractionCommand,
@@ -200,8 +200,8 @@ import {
   type RunGameboardInteractionResult,
   type RunGameboardSystemsOptions,
   type RunGameboardSystemsResult,
-} from './systems';
-import type { HexCoordinates } from './types';
+} from '../systems';
+import type { HexCoordinates } from '../types';
 
 /**
  * Koota action bundle for raw board placement operations.
