@@ -939,18 +939,46 @@ export function selectGameboardActors(
   const actors = readGameboardActors(world)
     .filter((snapshot) => matchesActorSelection(snapshot, options, source, center, radius))
     .sort((left, right) => compareActorSelection(left, right, options.sort ?? 'actorId', center));
-  const records = actors.map((snapshot) => actorSelectionRecord(snapshot, source, center));
-  const hostileActors = actors.filter((snapshot) => actorHostileForSelection(snapshot, source));
-  const interactiveActors = actors.filter((snapshot) => snapshot.actor.interactive);
-  const propActors = actors.filter((snapshot) => snapshot.actor.kind === 'prop');
+
+  // Single-pass derive-everything (PRD B5 / Phase 2 P-H1). Six separate
+  // filter+map passes over `actors` were measurable on react-driven target-
+  // picker hooks; one pass writes every derived collection while preserving
+  // the same sorted order.
+  const records: ReturnType<typeof actorSelectionRecord>[] = [];
+  const hostileActors: typeof actors = [];
+  const interactiveActors: typeof actors = [];
+  const propActors: typeof actors = [];
+  const actorIds: string[] = [];
+  const placementIds: string[] = [];
+  const seenTileKeys = new Set<string>();
+  const tileKeys: string[] = [];
+  for (const snapshot of actors) {
+    records.push(actorSelectionRecord(snapshot, source, center));
+    if (actorHostileForSelection(snapshot, source)) {
+      hostileActors.push(snapshot);
+    }
+    if (snapshot.actor.interactive) {
+      interactiveActors.push(snapshot);
+    }
+    if (snapshot.actor.kind === 'prop') {
+      propActors.push(snapshot);
+    }
+    actorIds.push(snapshot.actor.actorId);
+    placementIds.push(snapshot.placement.id);
+    const tileKey = snapshot.placement.tileKey;
+    if (!seenTileKeys.has(tileKey)) {
+      seenTileKeys.add(tileKey);
+      tileKeys.push(tileKey);
+    }
+  }
 
   return {
     actors,
     records,
     count: actors.length,
-    actorIds: actors.map((snapshot) => snapshot.actor.actorId),
-    placementIds: actors.map((snapshot) => snapshot.placement.id),
-    tileKeys: uniqueStrings(actors.map((snapshot) => snapshot.placement.tileKey)),
+    actorIds,
+    placementIds,
+    tileKeys,
     byTileKey: groupActorsByTileKey(actors),
     recordsByTileKey: groupActorRecordsByTileKey(records),
     hostileActors,
