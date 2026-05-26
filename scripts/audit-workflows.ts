@@ -52,8 +52,11 @@ requireIncludes(ci, 'ci.yml', [
   'fail-on-severity: high',
 ]);
 requireExcludes(ci, 'ci.yml', ['continue-on-error: true']);
+// Post-PRD-A9: `install` runs once and uploads node_modules as an artifact;
+// every downstream job restores via tar. The `package` job's first `run:`
+// is the restore step, not `pnpm install`.
 requireWorkflowJobRunCommands(ci, files.ci, 'package', [
-  'pnpm install --frozen-lockfile',
+  'tar --use-compress-program=unzstd -xf node_modules.tar.zst',
   'pnpm audit --prod --audit-level=high',
   'pnpm test:assets',
   'pnpm test:workspace',

@@ -17,17 +17,21 @@ env:
   NODE_VERSION: '22'
 
 jobs:
-  check:
-    name: ${{ matrix.task }}
+  # PRD A9 — install once, share the result. Per-job `pnpm install` was both
+  # slow (~45s × N jobs) and non-deterministic (pnpm's content-addressable
+  # store guarantees identical *content* but not identical *resolution
+  # timing*; a CDN flip can swap a transitive between two jobs in the same
+  # workflow). One install + one artifact + tarball-restore in every
+  # downstream job makes every downstream step run against the identical
+  # frozen bytes.
+  install:
+    name: Install dependencies (shared artifact)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        task: [lint, typecheck, build, test]
+    outputs:
+      cache-key: ${{ steps.fingerprint.outputs.cache-key }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
@@ -40,6 +44,52 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - id: fingerprint
+        # Cache key folds the lockfile hash + node version so a lockfile bump
+        # invalidates the artifact even within the same PR.
+        run: |
+          echo "cache-key=node-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('pnpm-lock.yaml') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Pack node_modules
+        # Tarball + zstd compression. uploading raw `node_modules/` straight
+        # up via `actions/upload-artifact` is unworkable: GitHub's uploader
+        # walks every file individually, so a typical 600k-file tree takes
+        # 8-15 minutes. A single zstd tarball uploads in ~30s.
+        run: |
+          tar --use-compress-program=zstd -cf node_modules.tar.zst node_modules
+
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: node-modules-${{ steps.fingerprint.outputs.cache-key }}
+          path: node_modules.tar.zst
+          if-no-files-found: error
+          retention-days: 1
+
+  check:
+    name: ${{ matrix.task }}
+    needs: install
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [lint, typecheck, build, test]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: node-modules-${{ needs.install.outputs.cache-key }}
+
+      - name: Restore node_modules
+        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
+
       - name: Run ${{ matrix.task }}
         # Bump the worker heap for tsup's DTS bundler: the freeManifest literal
         # (16k LOC of JSON-as-TS) blows the default ~1.7GB worker heap on
@@ -51,7 +101,7 @@ jobs:
 
   browser-free:
     name: FREE Browser Visuals
-    needs: check
+    needs: [install, check]
     runs-on: ubuntu-latest
     # PRD RB4: the FREE GLTF tree is no longer bundled in the tarball; it's
     # bootstrapped at install time by the upcoming CLI `bootstrap` command
@@ -65,15 +115,16 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
-
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: node-modules-${{ needs.install.outputs.cache-key }}
+
+      - name: Restore node_modules
+        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
@@ -95,44 +146,46 @@ jobs:
 
   docs:
     name: Docs Build
-    needs: check
+    needs: [install, check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
-
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: node-modules-${{ needs.install.outputs.cache-key }}
+
+      - name: Restore node_modules
+        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
 
       - name: Build docs
         run: pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build
 
   package:
     name: npm Pack
-    needs: check
+    needs: [install, check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
-
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: node-modules-${{ needs.install.outputs.cache-key }}
+
+      - name: Restore node_modules
+        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
 
       - name: Production audit (high+)
         run: pnpm audit --prod --audit-level=high
@@ -199,6 +252,6 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           semgrep --config p/owasp-top-ten --config p/nodejs \
             --error --metrics=off \
-            --exclude='packages/medieval-hexagon-gameboard/src/manifest/free.ts' \
-            --exclude='packages/medieval-hexagon-gameboard/dist' \
+            --exclude='src/manifest/free.ts' \
+            --exclude='dist' \
             --exclude='node_modules' .
