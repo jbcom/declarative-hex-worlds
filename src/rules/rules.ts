@@ -54,7 +54,7 @@ export {
   setTileElevation,
   setTileTerrain,
   validateGameboardRules,
-} from '../world-rules';
+} from '../systems';
 
 /** Built-in seeded fill presets for common board decoration and encounter roles. */
 export type SeededGameboardDensityPresetId = 'trees' | 'rocks' | 'props' | 'harbors' | 'landmarks' | 'units';

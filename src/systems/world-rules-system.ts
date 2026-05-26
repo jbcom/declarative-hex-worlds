@@ -4,13 +4,13 @@
  *
  * @module
  */
-import { hexKey, neighbor } from './coordinates';
-import type { GameboardTerrain, GameboardTileSpec } from './gameboard';
-import { HexTileState, TileElevation, TileTerrain, findTileEntity } from './koota';
-import { readDecomposedTileSpecs, readValidationGameboardPlanFromWorld } from './coordinates';
-import type { GameboardRuleConfig, GameboardRuleViolation } from './rules';
-import type { HexCoordinates } from './types';
-import { canStackInPlan, validateGameboardPlan } from './rules';
+import { hexKey, neighbor } from '../coordinates';
+import type { GameboardTerrain, GameboardTileSpec } from '../gameboard';
+import { HexTileState, TileElevation, TileTerrain, findTileEntity } from '../koota';
+import { readDecomposedTileSpecs, readValidationGameboardPlanFromWorld } from '../coordinates';
+import type { GameboardRuleConfig, GameboardRuleViolation } from '../rules';
+import type { HexCoordinates } from '../types';
+import { canStackInPlan, validateGameboardPlan } from '../rules';
 import type { World } from 'koota';
 
 /** Validates the current Koota world by projecting it into a validation plan. */

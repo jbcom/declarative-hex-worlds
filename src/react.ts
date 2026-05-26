@@ -63,7 +63,7 @@ import {
 } from './koota';
 import { projectWorldToGameboardPlan } from './coordinates';
 import type { GameboardRuleConfig, GameboardRuleViolation } from './rules';
-import { validateGameboardRules } from './world-rules';
+import { validateGameboardRules } from './systems';
 import {
   IsMoving,
   MovementAgent,

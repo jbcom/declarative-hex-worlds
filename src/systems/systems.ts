@@ -15,21 +15,21 @@ import {
   type GameboardInteractionCommandInput,
   type GameboardInteractionHandlerEffect,
   type GameboardInteractionHandlerResult,
-} from './commands';
-import type { GameboardInteractionCommand } from './actors';
+} from '../commands';
+import type { GameboardInteractionCommand } from '../actors';
 import {
   runGameboardMovementSystem,
   type AdvanceGameboardMovementOptions,
   type GameboardMovementAdvanceResult,
   type GameboardMovementProfile,
   type MovementPathStateValue,
-} from './movement';
+} from '../movement';
 import {
   runGameboardPatrolSystem,
   type AdvanceGameboardPatrolOptions,
   type GameboardPatrolAdvanceResult,
   type GameboardPatrolStatus,
-} from './patrol';
+} from '../patrol';
 import {
   advanceAllGameboardQuests,
   readGameboardQuests,
@@ -37,7 +37,7 @@ import {
   type GameboardQuestObjective,
   type GameboardQuestObjectiveProgress,
   type GameboardQuestSnapshot,
-} from './quests';
+} from '../quests';
 
 /**
  * Event emitted by one high-level gameboard system pass.
