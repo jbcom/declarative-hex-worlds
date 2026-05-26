@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../src/gameboard';
+import { createGameboardBuilder } from '../../src/gameboard/index';
 import {
   createInMemoryGameboardEcs,
   selectGameboardInteropRelations,
-} from '../../src/interop';
-import { createGameboardPieceRegistry, declareGameboardPiece } from '../../src/pieces';
-import { createGameboardRecipe } from '../../src/recipe';
-import { createGameboardScenario } from '../../src/scenario';
+} from '../../src/interop/index';
+import { createGameboardPieceRegistry, declareGameboardPiece } from '../../src/pieces/index';
+import { createGameboardRecipe } from '../../src/scenario/recipe';
+import { createGameboardScenario } from '../../src/scenario/index';
 import {
   createGameboardRuntime,
   createGameboardRuntimeFromRecipe,
   createGameboardRuntimeFromScenario,
   type GameboardRuntimeSnapshot,
-} from '../../src/runtime';
+} from '../../src/runtime/index';
 
 describe('gameboard runtime facade', () => {
   it('wraps actors, commands, systems, projection, and interop snapshots', () => {

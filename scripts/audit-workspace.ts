@@ -125,7 +125,7 @@ assert(
 );
 
 const expectedFiles = [
-  'assets/free',
+  'assets/free/manifest.json',
   'docs/showcases',
   'dist',
   '!dist/**/*.map',

@@ -13,9 +13,9 @@ import {
   validateGameboardScenario,
 } from '../../src';
 import { freeManifest } from '../../src/manifest/free';
-import { MovementAgent } from '../../src/movement';
-import { GameboardPatrolAgent } from '../../src/patrol';
-import { validateGameboardRules } from '../../src/rules';
+import { MovementAgent } from '../../src/movement/index';
+import { GameboardPatrolAgent } from '../../src/patrol/index';
+import { validateGameboardRules } from '../../src/rules/index';
 
 describe('gameboard scenarios', () => {
   it('instantiates a recipe, actors, movement agents, and quests into a playable Koota world', () => {

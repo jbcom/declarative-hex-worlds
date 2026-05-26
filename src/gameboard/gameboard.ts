@@ -48,10 +48,11 @@ import type {
   WorldPosition,
 } from '../types';
 
-/**
- * Schema version written to generated gameboard plans.
- */
-export const GAMEBOARD_SCHEMA_VERSION = '1.0.0';
+// `GAMEBOARD_SCHEMA_VERSION` lives in `../types` so trait declarations can
+// reference it without triggering the koota↔gameboard runtime cycle. The
+// re-export keeps the original consumer surface.
+export { GAMEBOARD_SCHEMA_VERSION } from '../types';
+import { GAMEBOARD_SCHEMA_VERSION } from '../types';
 
 /**
  * Built-in terrain categories understood by the guide-derived helpers.

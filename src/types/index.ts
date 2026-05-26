@@ -45,6 +45,17 @@ export {
 export const MEDIEVAL_HEXAGON_SCHEMA_VERSION = '1.0.0';
 
 /**
+ * Schema version written to generated gameboard plans.
+ *
+ * Lives here (and not in `src/gameboard/`) so trait declarations under
+ * `src/traits/` can reference it without importing the gameboard module
+ * at runtime — which would re-enter the same dependency cycle that R2's
+ * decomposition is meant to keep linear (`traits → types`, never
+ * `traits → gameboard`).
+ */
+export const GAMEBOARD_SCHEMA_VERSION = '1.0.0';
+
+/**
  * KayKit Medieval Hexagon pack version represented by this package.
  */
 export const KAYKIT_PACK_VERSION = '1.0';

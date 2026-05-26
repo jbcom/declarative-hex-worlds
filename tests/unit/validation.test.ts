@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../src/gameboard';
+import { createGameboardBuilder } from '../../src/gameboard/index';
 import { createManifestBundle } from '../../src/manifest/schema';
-import { applyTileDeclaration, createHexTileRegistry } from '../../src/registry';
-import type { MedievalHexagonAsset, MedievalHexagonManifest, PackEdition } from '../../src/types';
-import { canStackInPlan, validateGameboardPlan } from '../../src/validation';
+import { applyTileDeclaration, createHexTileRegistry } from '../../src/scenario/registry';
+import type { MedievalHexagonAsset, MedievalHexagonManifest, PackEdition } from '../../src/types/index';
+import { canStackInPlan, validateGameboardPlan } from '../../src/rules/validation';
 
 describe('engine-neutral plan validation', () => {
   it('validates declaration stack rules without creating a Koota world', () => {

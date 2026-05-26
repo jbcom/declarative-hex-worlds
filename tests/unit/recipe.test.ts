@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../src/gameboard';
+import { createGameboardBuilder } from '../../src/gameboard/index';
 import {
   appendGameboardRecipeSteps,
   applyGameboardRecipe,
@@ -16,9 +16,9 @@ import {
   type GameboardRecipeStep,
   validateGameboardRecipe,
   validateGameboardRecipeGeneration,
-} from '../../src/recipe';
+} from '../../src/scenario/recipe';
 import { freeManifest } from '../../src/manifest/free';
-import { validateGameboardPlan } from '../../src/validation';
+import { validateGameboardPlan } from '../../src/rules/validation';
 
 describe('serializable gameboard recipes', () => {
   it('rebuilds board intent without requiring Koota or imperative caller code', () => {

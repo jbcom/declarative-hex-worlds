@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../src/gameboard';
-import { createGameboardWorld, moveGameboardPlacement, removeGameboardPlacement } from '../../src/koota';
-import { spawnGameboardActor } from '../../src/actors';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { createGameboardWorld, moveGameboardPlacement, removeGameboardPlacement } from '../../src/koota/index';
+import { spawnGameboardActor } from '../../src/actors/index';
 import {
   ActiveGameboardQuestQuery,
   BlockedGameboardQuestQuery,
@@ -11,7 +11,7 @@ import {
   gameboardQuestActions,
   spawnGameboardQuest,
   type GameboardQuestDefinition,
-} from '../../src/quests';
+} from '../../src/quests/index';
 
 describe('gameboard quests', () => {
   it('advances collision, defeat, and reach objectives against public actor state', () => {

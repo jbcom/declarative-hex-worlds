@@ -6,7 +6,8 @@
  */
 import { hexKey, neighbor } from '../coordinates';
 import type { GameboardTerrain, GameboardTileSpec } from '../gameboard';
-import { HexTileState, TileElevation, TileTerrain, findTileEntity } from '../koota';
+import { HexTileState, TileElevation, TileTerrain } from '../traits';
+import { findTileEntity } from '../koota';
 import { readDecomposedTileSpecs, readValidationGameboardPlanFromWorld } from '../coordinates';
 import type { GameboardRuleConfig, GameboardRuleViolation } from '../rules';
 import type { HexCoordinates } from '../types';

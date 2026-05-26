@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../src/gameboard';
-import { createGameboardInteropSnapshot } from '../../src/interop';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { createGameboardInteropSnapshot } from '../../src/interop/index';
 import { freeManifest } from '../../src/manifest/free';
 import {
   analyzeHexTileRegistry,
@@ -8,7 +8,7 @@ import {
   applyTileDeclaration,
   createHexTileRegistry,
   createHexTileRegistryFromManifest,
-} from '../../src/registry';
+} from '../../src/scenario/registry';
 
 describe('tile registry and ECS interop', () => {
   it('builds declarations from the FREE manifest with inferred adjacency channels', () => {

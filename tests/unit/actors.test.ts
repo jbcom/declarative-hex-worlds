@@ -20,11 +20,11 @@ import {
   selectGameboardActors,
   spawnGameboardActor,
   updateGameboardActor,
-} from '../../src/actors';
-import { createGameboardBuilder } from '../../src/gameboard';
-import { axialToWorld } from '../../src/grid';
-import { PlacementState, createGameboardWorld, findPlacementEntity } from '../../src/koota';
-import { requestGameboardMovement } from '../../src/movement';
+} from '../../src/actors/index';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { axialToWorld } from '../../src/coordinates/grid';
+import { PlacementState, createGameboardWorld, findPlacementEntity } from '../../src/koota/index';
+import { requestGameboardMovement } from '../../src/movement/index';
 
 describe('gameboard actor semantics', () => {
   it('registers actors on placements and classifies players, props, NPCs, and enemies', () => {

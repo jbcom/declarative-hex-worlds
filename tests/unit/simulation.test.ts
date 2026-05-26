@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardRecipe } from '../../src/recipe';
-import { createGameboardScenario, inspectGameboardScenario } from '../../src/scenario';
+import { createGameboardRecipe } from '../../src/scenario/recipe';
+import { createGameboardScenario, inspectGameboardScenario } from '../../src/scenario/index';
 import {
   GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS,
   assertGameboardScenarioSimulationExpectations,
@@ -11,7 +11,7 @@ import {
   runGameboardScenarioSimulationScript,
   validateGameboardScenarioSimulationScript,
   type GameboardScenarioSimulationScript,
-} from '../../src/simulation';
+} from '../../src/simulation/index';
 
 describe('gameboard scenario simulation', () => {
   it('runs scripted command, handler, mutation, movement, and quest steps as serializable records', () => {

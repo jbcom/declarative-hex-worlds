@@ -312,6 +312,14 @@ import {
   type PlacementStateValue,
   type AddPlacementRecipeStep,
 } from '@jbcom/medieval-hexagon-gameboard';
+// PRD R2e/R2o smoke coverage: every consumer-visible subpath must be
+// importable. The new traits and errors subpaths landed during R2 and need
+// to exist on the packed tarball's surface; consumers reach them as runtime
+// values (not just types) so a value-import is the right smoke shape.
+import { IsGameboardPlacement as IsGameboardPlacementFromTraits } from '@jbcom/medieval-hexagon-gameboard/traits';
+import { GameboardError as GameboardErrorFromErrors } from '@jbcom/medieval-hexagon-gameboard/errors';
+void IsGameboardPlacementFromTraits;
+void GameboardErrorFromErrors;
 import assetManifest from '@jbcom/medieval-hexagon-gameboard/assets/free/manifest.json' with { type: 'json' };
 import blueprintBoardJson from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board.json' with { type: 'json' };
 import simpleRpgScenario from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json' with { type: 'json' };

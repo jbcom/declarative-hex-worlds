@@ -91,7 +91,7 @@ import {
   useProjectedGameboardPlan,
   useTileCoordinates,
   useTileEntity,
-} from '../../src/react';
+} from '../../src/react/index';
 
 interface ReactBindingReport {
   actor?: GameboardActorValue;

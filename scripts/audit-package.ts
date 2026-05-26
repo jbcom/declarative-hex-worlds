@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
 import {
@@ -57,9 +57,16 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as Package
 const workspacePackageJson = packageJson;
 const freeManifest = JSON.parse(readFileSync(join(packageRoot, 'assets/free/manifest.json'), 'utf8')) as FreeManifestAttribution;
 const packedConsumerSmoke = readFileSync(join(workspaceRoot, 'scripts/smoke-packed-consumer.ts'), 'utf8');
-const forbiddenMetadataPattern = /references|\/Volumes\/home|kenney_castle|KayKit_Adventurers/;
+// Local-only path patterns that must NEVER appear in published package metadata
+// (`./Volumes/home` is the maintainer's NAS mount; kenney_castle + KayKit_Adventurers
+// are local-only reference packs from `references/`, which is gitignored). The
+// older check also rejected the literal string `references` in dev scripts,
+// but `pnpm assets:free` legitimately reads from `references/KayKit_Medieval_
+// Hexagon_Pack_1.0_FREE` at dev time to regenerate the bundled manifest —
+// allow that one specific dev script path while still rejecting EXTRA paths.
+const forbiddenMetadataPattern = /\/Volumes\/home|kenney_castle|KayKit_Adventurers|references\/KayKit_Medieval_Hexagon_Pack_1\.0_EXTRA/;
 const expectedFiles = [
-  'assets/free',
+  'assets/free/manifest.json',
   'docs/showcases',
   'dist',
   '!dist/**/*.map',
@@ -69,15 +76,22 @@ const expectedFiles = [
   'README.md',
   'NOTICE.md',
 ];
-const allowedPackRoots = ['assets/free/', 'docs/showcases/', 'dist/', 'examples/'];
+// `assets/free/` is intentionally limited to the single `manifest.json` metadata
+// file; the GLTF/BIN/PNG asset tree is bootstrapped at install time via the CLI
+// `bootstrap` subcommand (per PRD Epic RB), not bundled in the npm tarball.
+const allowedPackRoots = ['docs/showcases/', 'dist/', 'examples/'];
+const allowedExactPackPaths = new Set(['assets/free/manifest.json']);
 const allowedPackFiles = new Set(['package.json', 'LICENSE', 'README.md', 'NOTICE.md']);
-const packageShowcaseArtifactPrefix = '/';
-const privateEntryModules = new Set(['cli', 'index']);
-const optionalPeerImports = new Set(['react', 'three', 'koota/react']);
-const optionalPeerImportAllowlist = new Map<string, ReadonlySet<string>>([
-  ['./react', new Set(['react', 'koota/react'])],
-  ['./three', new Set(['three'])],
-]);
+// Post-R1: showcase artifacts live at the single canonical path
+// `docs/showcases/`. The pre-R1 prefix distinguishing in-package vs root
+// copies has collapsed to empty.
+const packageShowcaseArtifactPrefix = '';
+// Modules that are part of `src/` but aren't published as their own subpath.
+// `cli` is the bin entry, `index` is the umbrella, `manifest` is exposed as
+// the dual subpaths `./manifest/schema` + `./manifest/free` instead of one
+// umbrella, and `traits` ships under `./traits` already (just listed for
+// completeness — the audit's directory-with-index check covers traits).
+const privateEntryModules = new Set(['cli', 'index', 'manifest']);
 const textPackFiles = new Set(['LICENSE']);
 const textPackFileSuffixes = ['.d.ts', '.js', '.json', '.map', '.md'];
 const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp }[] = [
@@ -95,26 +109,25 @@ assert(packageJson.license === 'MIT', 'package code license must stay MIT');
 assert(packageJson.publishConfig?.access === 'public', 'package publishConfig.access must be public');
 assert(workspacePackageJson.packageManager === 'pnpm@9.15.9', 'workspace packageManager must pin pnpm@9.15.9');
 assert(workspacePackageJson.engines?.node === '>=22', 'workspace engines.node must be >=22');
-assert(workspacePackageJson.engines?.pnpm === '>=9 <10', 'workspace engines.pnpm must be >=9 <10');
+assert(workspacePackageJson.engines?.pnpm === '>=9', 'package engines.pnpm must be >=9');
 assert(packageJson.engines?.node === '>=22', 'package engines.node must be >=22');
 assert(packageJson.dependencies?.['honeycomb-grid'], 'honeycomb-grid must remain a runtime dependency');
 assert(packageJson.dependencies?.koota, 'koota must remain a runtime dependency');
 assert(packageJson.dependencies?.seedrandom, 'seedrandom must remain a runtime dependency');
 assert(!forbiddenMetadataPattern.test(JSON.stringify(packageJson.scripts ?? {})), 'package scripts contain local-only paths');
-assert(packageJson.scripts?.prepublishOnly === 'pnpm -w test:ci', 'prepublishOnly must run the workspace CI gate');
-assert(
-  workspacePackageJson.scripts?.['test:visual'] ===
-    'pnpm test:browser:free && pnpm test:browser:extra && pnpm test:e2e:local-assets',
-  'workspace test:visual must serialize the local browser review suites'
-);
-assert(
-  workspacePackageJson.scripts?.['test:assets'] === 'pnpm test:assets:free && pnpm test:reference-assets',
-  'workspace test:assets must run the FREE asset audit and local reference asset audit'
-);
+assert(packageJson.scripts?.prepublishOnly === 'pnpm verify', 'prepublishOnly must run the verify gate');
+// Post-R1: workspace and package are the same package.json. Only one
+// `test:visual` script exists, and it uses `pnpm run X && pnpm run Y && ...`
+// shape so script-runner ergonomics stay consistent with the package-relative
+// `pnpm exec` calls inside test:browser:free.
 assert(
   packageJson.scripts?.['test:visual'] ===
     'pnpm run test:browser:free && pnpm run test:browser:extra && pnpm run test:e2e:local-assets',
-  'package test:visual must serialize the local browser review suites'
+  'test:visual must serialize the local browser review suites',
+);
+assert(
+  packageJson.scripts?.['test:assets'] === 'pnpm test:assets:free && pnpm test:reference-assets',
+  'test:assets must run the FREE asset audit and local reference asset audit',
 );
 assert(
   workspacePackageJson.scripts?.['test:consumer'] === 'tsx scripts/smoke-packed-consumer.ts',
@@ -139,17 +152,18 @@ assert(
   !Object.hasOwn(packageJson.exports ?? {}, './examples/*'),
   'package must not expose the broad ./examples/* wildcard'
 );
-assertPeerDependencyMetadataTargetsRealPeers();
-assertOptionalPeer('react');
-assertOptionalPeer('@types/react');
-assertOptionalPeer('three');
+// Post-R1: react/react-dom/three moved from peerDependencies to dependencies
+// (they're first-class bindings, NOT optional peers — same shape as koota
+// itself per PRD bundled-bindings correction). Audit now asserts there is
+// NO peerDependencies block and that the bindings live in dependencies.
+assertBindingsAreDependencies();
+assertNoPeerDependencies();
 assertRootEntrypointMetadata();
 assertBin();
 assertExports();
 assertSourceModulesExported();
 assertPackedConsumerSmokeCoversExports();
 await assertExportImports();
-assertOptionalPeerImportIsolation();
 assertPackFileList();
 
 console.log('package audit passed');
@@ -169,7 +183,9 @@ function assertEqualSet(actual: readonly string[], expected: readonly string[], 
   );
 }
 
-function assertWorkspaceTestCiOrder(script: string): void {
+function assertWorkspaceTestCiOrder(_testCiScript: string): void {
+  // Post-R1: `test:ci` delegates to `pnpm verify` (single source of truth);
+  // `verify` itself is the canonical chain. Audit the chain against `verify`.
   const expectedSteps = [
     'pnpm lint',
     'pnpm typecheck',
@@ -187,25 +203,34 @@ function assertWorkspaceTestCiOrder(script: string): void {
     'pnpm test:consumer',
     'pnpm pack:dry-run',
   ];
-  const actualSteps = script.split(' && ');
+  const verifyScript = packageJson.scripts?.verify ?? '';
+  const actualSteps = verifyScript.split(' && ');
   assert(
     actualSteps.length === expectedSteps.length && actualSteps.every((step, index) => step === expectedSteps[index]),
-    `workspace test:ci expected ${expectedSteps.join(' && ')}, got ${script}`
+    `verify expected ${expectedSteps.join(' && ')}, got ${verifyScript}`,
   );
 }
 
-function assertOptionalPeer(name: string): void {
-  assert(packageJson.peerDependenciesMeta?.[name]?.optional === true, `${name} must be an optional peer dependency`);
-}
-
-function assertPeerDependencyMetadataTargetsRealPeers(): void {
-  for (const peerName of Object.keys(packageJson.peerDependenciesMeta ?? {})) {
+function assertBindingsAreDependencies(): void {
+  for (const required of ['react', 'react-dom', 'three', '@types/react']) {
     assert(
-      packageJson.peerDependencies?.[peerName],
-      `peerDependenciesMeta entry ${peerName} must also be declared in peerDependencies`
+      typeof packageJson.dependencies?.[required] === 'string',
+      `${required} must be a runtime dependency (R1 promoted react/three from peers)`,
     );
   }
 }
+
+function assertNoPeerDependencies(): void {
+  assert(
+    !Object.hasOwn(packageJson, 'peerDependencies'),
+    'peerDependencies must not be present (react/three are runtime dependencies post-R1)',
+  );
+  assert(
+    !Object.hasOwn(packageJson, 'peerDependenciesMeta'),
+    'peerDependenciesMeta must not be present (no optional peers post-R1)',
+  );
+}
+
 
 function assertRootEntrypointMetadata(): void {
   const rootExport = packageJson.exports?.['.'];
@@ -381,57 +406,21 @@ async function assertExportImports(): Promise<void> {
   }
 }
 
-function assertOptionalPeerImportIsolation(): void {
-  for (const [subpath, target] of Object.entries(packageJson.exports ?? {})) {
-    if (typeof target === 'string' || !target.import) {
-      continue;
-    }
-    const entryPath = join(packageRoot, target.import.replace(/^\.\//, ''));
-    const allowedImports = optionalPeerImportAllowlist.get(subpath) ?? new Set<string>();
-    for (const importRecord of collectTransitiveImports(entryPath)) {
-      if (!optionalPeerImports.has(importRecord.specifier)) {
-        continue;
-      }
-      assert(
-        allowedImports.has(importRecord.specifier),
-        `export ${subpath} transitively imports optional peer ${importRecord.specifier} through ${relativePackagePath(importRecord.filePath)}`
-      );
-    }
-  }
-}
 
-function collectTransitiveImports(entryPath: string): { specifier: string; filePath: string }[] {
-  const imports: { specifier: string; filePath: string }[] = [];
-  const visited = new Set<string>();
-  const stack = [entryPath];
-
-  while (stack.length > 0) {
-    const filePath = stack.pop();
-    if (!filePath || visited.has(filePath)) {
-      continue;
-    }
-    visited.add(filePath);
-    const source = readFileSync(filePath, 'utf8');
-    const importPattern = /\b(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]/g;
-
-    for (const match of source.matchAll(importPattern)) {
-      const specifier = match[1] ?? '';
-      imports.push({ specifier, filePath });
-      if (specifier.startsWith('./') || specifier.startsWith('../')) {
-        const resolved = resolve(dirname(filePath), specifier);
-        if (resolved.startsWith(join(packageRoot, 'dist')) && resolved.endsWith('.js')) {
-          stack.push(resolved);
-        }
-      }
-    }
-  }
-
-  return imports;
-}
 
 function collectSourceModules(root: string, prefix = ''): string[] {
+  // Post-R2 sub-packages have an `index.ts` barrel that IS the public surface;
+  // any other `.ts` siblings are internal-but-allowed. Treat a directory with
+  // an `index.ts` as one module identified by the directory name. Loose `.ts`
+  // files at the root (e.g. `src/index.ts`) keep their per-file identity.
   const modules: string[] = [];
-  for (const entry of readdirSync(root, { withFileTypes: true })) {
+  const entries = readdirSync(root, { withFileTypes: true });
+  const hasIndex = entries.some((e) => e.isFile() && e.name === 'index.ts');
+  if (hasIndex && prefix) {
+    modules.push(prefix);
+    return modules;
+  }
+  for (const entry of entries) {
     const childPrefix = prefix ? `${prefix}/${entry.name}` : entry.name;
     const childPath = join(root, entry.name);
     if (entry.isDirectory()) {
@@ -443,10 +432,6 @@ function collectSourceModules(root: string, prefix = ''): string[] {
     }
   }
   return modules.sort();
-}
-
-function relativePackagePath(path: string): string {
-  return path.slice(packageRoot.length + 1);
 }
 
 function assertPackFileList(): void {
@@ -470,11 +455,22 @@ function assertPackFileList(): void {
     assert(!path.startsWith('src/'), `tarball includes source files: ${path}`);
     assert(!path.startsWith('dist/src/'), `tarball includes nested src build output: ${path}`);
     assert(
-      allowedPackFiles.has(path) || allowedPackRoots.some((root) => path.startsWith(root)),
+      allowedPackFiles.has(path) ||
+        allowedExactPackPaths.has(path) ||
+        allowedPackRoots.some((root) => path.startsWith(root)),
       `unexpected tarball file: ${path}`
     );
     if (path.startsWith('examples/')) {
       assert(path.endsWith('.json'), `tarball includes non-JSON example source: ${path}`);
+    }
+    // Bundled binary assets must NOT ship: the runtime bootstrap (Epic RB) fetches
+    // them at install time. Only `assets/free/manifest.json` is permitted under
+    // `assets/free/` in the tarball.
+    if (path.startsWith('assets/')) {
+      assert(
+        path === 'assets/free/manifest.json',
+        `tarball includes a bundled asset (use CLI bootstrap instead): ${path}`
+      );
     }
   }
   assertPackedFileContents(files);

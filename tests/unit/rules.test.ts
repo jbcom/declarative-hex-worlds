@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { factionBuildingAssetId, isKnownExtraAssetId, textureFileName } from '../../src/catalog';
-import { containsHex, coordinatesForShape } from '../../src/coordinates';
-import { createGameboardBuilder } from '../../src/gameboard';
-import { AdjacentTo, HexTileState, createGameboardWorld, findTileEntity } from '../../src/koota';
-import { createGameboardPieceRegistry } from '../../src/pieces';
+import { factionBuildingAssetId, isKnownExtraAssetId, textureFileName } from '../../src/scenario/catalog';
+import { containsHex, coordinatesForShape } from '../../src/coordinates/index';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { AdjacentTo, HexTileState, createGameboardWorld, findTileEntity } from '../../src/koota/index';
+import { createGameboardPieceRegistry } from '../../src/pieces/index';
 import {
   canPlaceHarborAt,
   canStackAt,
@@ -17,8 +17,8 @@ import {
   setTileElevation,
   setTileTerrain,
   validateGameboardRules,
-} from '../../src/rules';
-import { validateGameboardPlan } from '../../src/validation';
+} from '../../src/rules/index';
+import { validateGameboardPlan } from '../../src/rules/validation';
 
 describe('Koota rules and seeded generation', () => {
   it('exposes catalog ids for guide families instead of string guessing', () => {

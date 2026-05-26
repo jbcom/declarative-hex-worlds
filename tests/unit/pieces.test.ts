@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeExternalAssetCompatibility } from '../../src/compatibility';
-import { createGameboardBuilder } from '../../src/gameboard';
-import { createGameboardLayoutArchetypeRegistry, createGameboardLayoutFillPlacements } from '../../src/layout';
+import { analyzeExternalAssetCompatibility } from '../../src/interop/compatibility';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { createGameboardLayoutArchetypeRegistry, createGameboardLayoutFillPlacements } from '../../src/coordinates/layout';
 import {
   analyzeGameboardPieceRegistry,
   createGameboardLayoutFillRuleFromPieces,
@@ -18,7 +18,7 @@ import {
   inspectGameboardPiecePlacement,
   resolveGameboardPieceSourceUrl,
   selectGameboardPieces,
-} from '../../src/pieces';
+} from '../../src/pieces/index';
 
 describe('gameboard piece declarations', () => {
   it('normalizes custom pieces and reports duplicate registry entries', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AnimationClip, Group } from 'three';
-import type { GameboardPlacementSpec } from '../../src/gameboard';
+import type { GameboardPlacementSpec } from '../../src/gameboard/index';
 import { freeManifest } from '../../src/manifest/free';
 import {
   createGameboardPlacementAssetUrlResolver,
@@ -14,7 +14,7 @@ import {
   syncGameboardPlacementObjects,
   transformForPlacement,
   updateGameboardPlacementAnimation,
-} from '../../src/three';
+} from '../../src/three/index';
 
 describe('three placement asset URL helpers', () => {
   it('resolves placement model URLs from explicit maps, metadata, manifests, and fallback handlers', () => {

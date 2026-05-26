@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../src/gameboard';
-import { createGameboardWorld, findPlacementEntity, removeGameboardPlacement } from '../../src/koota';
-import { MovementPathState, setGameboardMovementAgent } from '../../src/movement';
-import { spawnGameboardActor } from '../../src/actors';
-import { createRemoveTargetActorHandler } from '../../src/commands';
-import { spawnGameboardQuest } from '../../src/quests';
-import { GameboardPatrolState, readGameboardPatrolAgents, setGameboardPatrolAgent } from '../../src/patrol';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { createGameboardWorld, findPlacementEntity, removeGameboardPlacement } from '../../src/koota/index';
+import { MovementPathState, setGameboardMovementAgent } from '../../src/movement/index';
+import { spawnGameboardActor } from '../../src/actors/index';
+import { createRemoveTargetActorHandler } from '../../src/commands/index';
+import { spawnGameboardQuest } from '../../src/quests/index';
+import { GameboardPatrolState, readGameboardPatrolAgents, setGameboardPatrolAgent } from '../../src/patrol/index';
 import {
   dispatchGameboardActorTargetCommand,
   dispatchGameboardInteractionCommand,
@@ -14,7 +14,7 @@ import {
   runGameboardInteraction,
   runGameboardSystems,
   snapshotGameboardSystemEvents,
-} from '../../src/systems';
+} from '../../src/systems/index';
 
 describe('gameboard systems', () => {
   it('dispatches movement commands, runs movement, and advances quests as neutral events', () => {

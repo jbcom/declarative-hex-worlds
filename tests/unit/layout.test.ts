@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../src/gameboard';
-import { createGameboardWorld, readGameboardPlacements } from '../../src/koota';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { createGameboardWorld, readGameboardPlacements } from '../../src/koota/index';
 import {
   analyzeGameboardLayoutFill,
   appendGameboardLayoutPlacementsToPlan,
@@ -10,7 +10,7 @@ import {
   inspectGameboardLayoutSites,
   selectGameboardLayoutSites,
   spawnGameboardLayoutPlacements,
-} from '../../src/layout';
+} from '../../src/coordinates/layout';
 
 describe('gameboard layout placement criteria', () => {
   it('selects deterministic open sites from terrain and occupancy rules', () => {

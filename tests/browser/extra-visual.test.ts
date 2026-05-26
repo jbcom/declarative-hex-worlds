@@ -5,12 +5,12 @@ import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideAssetCoverages,
   listKayKitGuideScenarioAssetRenderRequests,
-} from '../../src/catalog';
-import { createMedievalShowcaseBlueprintRecipe } from '../../src/blueprint';
-import { createMedievalHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard';
+} from '../../src/scenario/catalog';
+import { createMedievalShowcaseBlueprintRecipe } from '../../src/scenario/blueprint';
+import { createMedievalHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard/index';
 import { freeManifest } from '../../src/manifest/free';
-import { createGameboardPlanFromRecipe } from '../../src/recipe';
-import type { AssetCategory, MedievalHexagonAsset } from '../../src/types';
+import { createGameboardPlanFromRecipe } from '../../src/scenario/recipe';
+import type { AssetCategory, MedievalHexagonAsset } from '../../src/types/index';
 import { assertCanvasHasRenderableContent, referenceExtraUrl, renderContactSheet, renderGameboardPlan } from './rendering';
 
 declare const __EXTRA_TEXTURE_ROOT__: string;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder, createMedievalHarborBoard } from '../../src/gameboard';
-import { axialToWorld } from '../../src/grid';
+import { createGameboardBuilder, createMedievalHarborBoard } from '../../src/gameboard/index';
+import { axialToWorld } from '../../src/coordinates/grid';
 import {
   ExtraPlacementQuery,
   HarborPlacementQuery,
@@ -28,7 +28,7 @@ import {
   spawnGameboardPlacement,
   spawnGameboardPlan,
   updateGameboardPlacement,
-} from '../../src/koota';
+} from '../../src/koota/index';
 
 describe('Koota gameboard runtime', () => {
   it('loads a plan into tile and placement traits', () => {

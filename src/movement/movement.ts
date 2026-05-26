@@ -7,18 +7,14 @@
 import {
   createActions,
   createQuery,
-  trait,
   type Entity,
   type TraitRecord,
   type World,
 } from 'koota';
 import { hexKey } from '../coordinates';
 import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
+import { GameboardState, IsGameboardPlacement, IsUnitPlacement, PlacementState } from '../traits';
 import {
-  GameboardState,
-  IsGameboardPlacement,
-  IsUnitPlacement,
-  PlacementState,
   findPlacementEntity,
   moveGameboardPlacement,
   readGameboardPlacements,
@@ -34,18 +30,18 @@ import {
 } from '../gameboard';
 import type { HexCoordinates } from '../types';
 
-/**
- * Built-in movement profile ids for common medieval board actors.
- */
-export type BuiltInGameboardMovementProfileId = 'ground' | 'worker' | 'cavalry' | 'ship' | 'flying';
-/**
- * Movement profile id accepted by movement helpers.
- */
-export type GameboardMovementProfileId = BuiltInGameboardMovementProfileId | (string & {});
-/**
- * Runtime movement path status.
- */
-export type GameboardMovementStatus = 'idle' | 'ready' | 'moving' | 'completed' | 'blocked' | 'out-of-range';
+// Movement profile types live in `../traits/movement` so the trait
+// declarations they support evaluate without sibling-package runtime
+// dependencies. Re-exported here for backward compatibility.
+export type {
+  BuiltInGameboardMovementProfileId,
+  GameboardMovementProfileId,
+  GameboardMovementStatus,
+} from '../traits/movement';
+import type {
+  GameboardMovementProfileId,
+  GameboardMovementStatus,
+} from '../traits/movement';
 
 /**
  * Movement profile combining a movement budget with a navigation profile.
@@ -206,42 +202,11 @@ export const GAMEBOARD_MOVEMENT_PROFILES: GameboardMovementProfileRegistry = {
   },
 } as const;
 
-/**
- * Movement agent trait attached to placement entities that can move.
- */
-export const MovementAgent = trait({
-  /** Movement profile id used by this agent. */
-  profileId: 'ground' as GameboardMovementProfileId,
-  /** Maximum movement budget. */
-  movementBudget: 6,
-  /** Remaining movement budget in the current cycle. */
-  remainingMovement: 6,
-});
-
-/**
- * Runtime path state for a movement agent.
- */
-export const MovementPathState = trait({
-  /** Current movement status. */
-  status: 'idle' as GameboardMovementStatus,
-  /** Destination tile key for the current request. */
-  destinationKey: '',
-  /** Planned path tile keys. */
-  pathKeys: () => [] as string[],
-  /** Next path index to advance to. */
-  nextIndex: 0,
-  /** Total planned path cost. */
-  cost: 0,
-  /** Cost spent so far. */
-  spentCost: 0,
-  /** Number of pathfinder nodes visited for the request. */
-  visited: 0,
-  /** Blocked or out-of-range reason. */
-  reason: undefined as string | undefined,
-});
-
-/** Marker trait for placements with active movement. */
-export const IsMoving = trait();
+// Trait declarations + supporting types live in `../traits/movement` for
+// runtime-cycle safety. Re-export here so callers that historically reached
+// for `MovementAgent` etc. via `'../movement'` keep working.
+export { IsMoving, MovementAgent, MovementPathState } from '../traits/movement';
+import { IsMoving, MovementAgent, MovementPathState } from '../traits/movement';
 
 /** Query for placements with movement agents. */
 export const MovementAgentQuery = createQuery(IsGameboardPlacement, PlacementState, MovementAgent);

@@ -7,11 +7,11 @@ import {
   createMedievalShowcaseBlueprintRecipe,
   inspectMedievalGameboardBlueprint,
   inspectMedievalGameboardBlueprintScenario,
-} from '../../src/blueprint';
+} from '../../src/scenario/blueprint';
 import { freeManifest } from '../../src/manifest/free';
-import { createGameboardPlanFromRecipe } from '../../src/recipe';
-import { createHexTileRegistryFromManifest } from '../../src/registry';
-import { validateGameboardPlan } from '../../src/validation';
+import { createGameboardPlanFromRecipe } from '../../src/scenario/recipe';
+import { createHexTileRegistryFromManifest } from '../../src/scenario/registry';
+import { validateGameboardPlan } from '../../src/rules/validation';
 
 describe('medieval gameboard blueprints', () => {
   it('compiles board intent into mountains, towns, roads, harbors, biomes, and transitions', () => {

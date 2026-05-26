@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../src/gameboard';
-import { PlacementState, createGameboardWorld, findPlacementEntity } from '../../src/koota';
-import { setGameboardMovementAgent } from '../../src/movement';
-import { findGameboardActor, spawnGameboardActor } from '../../src/actors';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { PlacementState, createGameboardWorld, findPlacementEntity } from '../../src/koota/index';
+import { setGameboardMovementAgent } from '../../src/movement/index';
+import { findGameboardActor, spawnGameboardActor } from '../../src/actors/index';
 import {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
   createGameboardInteractionHandlerPreset,
@@ -13,7 +13,7 @@ import {
   isGameboardInteractionHandlerPreset,
   planGameboardActorTargetCommand,
   previewGameboardInteractionCommand,
-} from '../../src/commands';
+} from '../../src/commands/index';
 
 describe('gameboard interaction commands', () => {
   it('previews and requests actor-aware movement commands', () => {

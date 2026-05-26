@@ -6,20 +6,20 @@ import {
   listKayKitGuideRoleCoverages,
   listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarios,
-} from '../../src/catalog';
-import { createMedievalGameboardBlueprintPlan } from '../../src/blueprint';
-import { createMedievalHarborBoard } from '../../src/gameboard';
+} from '../../src/scenario/catalog';
+import { createMedievalGameboardBlueprintPlan } from '../../src/scenario/blueprint';
+import { createMedievalHarborBoard } from '../../src/gameboard/index';
 import { freeManifest } from '../../src/manifest/free';
-import { createGameboardPlanFromRecipe, type GameboardRecipe } from '../../src/recipe';
-import { createSeededGameboardPlan } from '../../src/rules';
+import { createGameboardPlanFromRecipe, type GameboardRecipe } from '../../src/scenario/recipe';
+import { createSeededGameboardPlan } from '../../src/rules/index';
 import {
   listCoastGuidePermutations,
   listRiverCrossingGuidePermutations,
   listRiverCurvyGuidePermutations,
   listRiverGuidePermutations,
   listRoadGuidePermutations,
-} from '../../src/selectors';
-import type { GuideTilePermutation } from '../../src/selectors';
+} from '../../src/selectors/index';
+import type { GuideTilePermutation } from '../../src/selectors/index';
 import { assertCanvasHasRenderableContent, assetUrl, renderContactSheet, renderGameboardPlan } from './rendering';
 
 declare const __WORKSPACE_ROOT__: string;

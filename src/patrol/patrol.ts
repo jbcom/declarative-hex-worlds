@@ -7,7 +7,6 @@
 import {
   createActions,
   createQuery,
-  trait,
   type Entity,
   type TraitRecord,
   type World,
@@ -16,12 +15,8 @@ import {
   findGameboardActor,
   type GameboardActorSnapshot,
 } from '../actors';
-import {
-  findPlacementEntity,
-  IsGameboardPlacement,
-  PlacementState,
-  type PlacementStateValue,
-} from '../koota';
+import { IsGameboardPlacement, PlacementState } from '../traits';
+import { findPlacementEntity, type PlacementStateValue } from '../koota';
 import {
   MovementPathState,
   requestGameboardMovement,
@@ -34,15 +29,10 @@ import type { GameboardPatrolRoutePlan } from '../gameboard';
 
 /**
  * Runtime patrol status for a patrol agent.
+ *
+ * Lives in `../traits/patrol`; re-exported here for backward compatibility.
  */
-export type GameboardPatrolStatus =
-  | 'idle'
-  | 'waiting'
-  | 'requested'
-  | 'moving'
-  | 'completed'
-  | 'blocked'
-  | 'paused';
+export type { GameboardPatrolStatus } from '../traits/patrol';
 
 /**
  * Lightweight patrol route input accepted by patrol agents.
@@ -118,48 +108,9 @@ export interface GameboardPatrolAdvanceResult extends GameboardPatrolSnapshot {
   advanced: boolean;
 }
 
-/**
- * Patrol agent trait storing route progress and wait state.
- */
-export const GameboardPatrolAgent = trait({
-  /** Route id followed by this patrol. */
-  routeId: '',
-  /** Ordered route waypoint tile keys. */
-  waypointKeys: () => [] as string[],
-  /** Optional movement budget per route segment. */
-  segmentCosts: () => [] as number[],
-  /** Whether the route loops back to the first waypoint. */
-  loop: true,
-  /** Whether the patrol agent is active. */
-  active: true,
-  /** Current waypoint index. */
-  currentWaypointIndex: 0,
-  /** Target waypoint index for an in-flight segment. */
-  targetWaypointIndex: -1,
-  /** Number of completed route rounds. */
-  roundsCompleted: 0,
-  /** Ticks to wait after reaching each waypoint. */
-  pauseTicks: 0,
-  /** Remaining wait ticks before the next segment. */
-  waitTicksRemaining: 0,
-});
-
-/**
- * Patrol state trait exposed for systems and UIs.
- */
-export const GameboardPatrolState = trait({
-  /** Current patrol status. */
-  status: 'idle' as GameboardPatrolStatus,
-  /** Current target waypoint tile key. */
-  targetKey: '',
-  /** Blocked or paused reason. */
-  reason: undefined as string | undefined,
-  /** Last requested movement path tile keys. */
-  lastPathKeys: () => [] as string[],
-});
-
-/** Marker trait for patrol agents. */
-export const IsGameboardPatrolAgent = trait();
+// Trait declarations live in `../traits/patrol`; re-export here.
+export { GameboardPatrolAgent, GameboardPatrolState, IsGameboardPatrolAgent } from '../traits/patrol';
+import { GameboardPatrolAgent, GameboardPatrolState, IsGameboardPatrolAgent } from '../traits/patrol';
 
 /** Query for every patrol agent placement. */
 export const GameboardPatrolAgentQuery = createQuery(

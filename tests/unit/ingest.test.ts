@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
-import { generateManifestFromSource, validateSourceRoot, writeManifestModule } from '../../src/ingest';
+import { generateManifestFromSource, validateSourceRoot, writeManifestModule } from '../../src/ingest/index';
 import { freeManifest } from '../../src/manifest/free';
 import { validateMedievalHexagonManifest } from '../../src/manifest/schema';
 

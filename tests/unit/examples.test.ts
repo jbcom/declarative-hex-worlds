@@ -2,15 +2,15 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { advanceGameboardQuest } from '../../src/quests';
-import { createGameboardPlanFromRecipe, type GameboardRecipe } from '../../src/recipe';
-import { createGameboardWorldFromScenario, type GameboardScenario } from '../../src/scenario';
+import { advanceGameboardQuest } from '../../src/quests/index';
+import { createGameboardPlanFromRecipe, type GameboardRecipe } from '../../src/scenario/recipe';
+import { createGameboardWorldFromScenario, type GameboardScenario } from '../../src/scenario/index';
 import {
   createGameboardScenarioSimulationReport,
   runGameboardScenarioSimulationScript,
   type GameboardScenarioSimulationScript,
-} from '../../src/simulation';
-import { validateGameboardPlan } from '../../src/validation';
+} from '../../src/simulation/index';
+import { validateGameboardPlan } from '../../src/rules/validation';
 import {
   listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,

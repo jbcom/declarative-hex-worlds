@@ -20,7 +20,7 @@ import {
   type GameboardCoveragePathStatusInput,
   type GameboardCoverageSimpleRpgEvidence,
   type GameboardCoverageSimpleRpgEvidenceMode,
-} from '../../src/coverage';
+} from '../../src/interop/coverage';
 
 describe('release-readiness coverage', () => {
   it('summarizes every guide page, public API, visual artifact, and manifest boundary', () => {

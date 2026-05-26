@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../src/gameboard';
-import { PlacementState, createGameboardWorld, findPlacementEntity } from '../../src/koota';
+import { createGameboardBuilder } from '../../src/gameboard/index';
+import { PlacementState, createGameboardWorld, findPlacementEntity } from '../../src/koota/index';
 import {
   IsMoving,
   MovementAgent,
@@ -12,7 +12,7 @@ import {
   resetGameboardMovementBudget,
   runGameboardMovementSystem,
   setGameboardMovementAgent,
-} from '../../src/movement';
+} from '../../src/movement/index';
 
 describe('Koota movement profiles and systems', () => {
   it('plans and steps a unit around blockers while spending movement budget', () => {

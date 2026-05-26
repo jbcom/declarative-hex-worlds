@@ -7,7 +7,6 @@
 import {
   createActions,
   createQuery,
-  trait,
   type Entity,
   type TraitRecord,
   type World,
@@ -20,10 +19,8 @@ import type {
   GameboardPlan,
   GameboardTileSpec,
 } from '../gameboard';
+import { HexTileState, IsGameboardPlacement, PlacementState } from '../traits';
 import {
-  HexTileState,
-  IsGameboardPlacement,
-  PlacementState,
   findPlacementEntity,
   findTileEntity,
   moveGameboardPlacement,
@@ -47,22 +44,12 @@ import { gameboardPlacementBlocksOccupancy } from '../gameboard';
 import { projectWorldToGameboardPlan } from '../coordinates';
 import type { HexCoordinates } from '../types';
 
-/**
- * Actor role used by collision, targeting, commands, and SimpleRPG fixtures.
- */
-export type GameboardActorKind =
-  | 'player'
-  | 'npc'
-  | 'enemy'
-  | 'prop'
-  | 'unit'
-  | 'neutral'
-  | (string & {});
-
-/**
- * Serializable actor metadata value mirrored into Koota state.
- */
-export type GameboardActorMetadataValue = string | number | boolean | null;
+// `GameboardActorKind`, `GameboardActorMetadataValue`, the `GameboardActor`
+// trait, and the IsX actor markers all live in `../traits/actors` so trait
+// declarations stay free of sibling-sub-package runtime dependencies. The
+// re-exports below preserve the historical public surface.
+export type { GameboardActorKind, GameboardActorMetadataValue } from '../traits/actors';
+import type { GameboardActorKind, GameboardActorMetadataValue } from '../traits/actors';
 
 /**
  * Options for attaching gameplay actor state to an existing placement.
@@ -617,46 +604,29 @@ export interface GameboardInteractionCommand {
   reason?: string;
 }
 
-/**
- * Actor trait attached to placement entities that participate in gameplay.
- */
-export const GameboardActor = trait({
-  /** Stable gameplay actor id. */
-  actorId: '',
-  /** Actor role used by collision, targeting, commands, and fixtures. */
-  kind: 'neutral' as GameboardActorKind,
-  /** Optional faction identifier. */
-  faction: undefined as string | undefined,
-  /** Optional team identifier. */
-  team: undefined as string | undefined,
-  /** Whether this actor is generally hostile. */
-  hostile: false,
-  /** Whether this actor blocks movement. */
-  blocksMovement: false,
-  /** Whether this actor should be treated as an interaction target. */
-  interactive: false,
-  /** Free-form actor tags. */
-  tags: () => [] as string[],
-  /** Serializable actor metadata. */
-  metadata: () => ({}) as Record<string, GameboardActorMetadataValue>,
-});
-
-/** Marker trait for all gameplay actors. */
-export const IsGameboardActor = trait();
-/** Marker trait for player actors. */
-export const IsPlayerActor = trait();
-/** Marker trait for NPC actors. */
-export const IsNpcActor = trait();
-/** Marker trait for enemy actors. */
-export const IsEnemyActor = trait();
-/** Marker trait for prop actors. */
-export const IsPropActor = trait();
-/** Marker trait for hostile actors. */
-export const IsHostileActor = trait();
-/** Marker trait for interactive actors. */
-export const IsInteractiveActor = trait();
-/** Marker trait for movement-blocking actors. */
-export const IsBlockingActor = trait();
+// Trait declarations live in `../traits/actors`; re-export verbatim.
+export {
+  GameboardActor,
+  IsBlockingActor,
+  IsEnemyActor,
+  IsGameboardActor,
+  IsHostileActor,
+  IsInteractiveActor,
+  IsNpcActor,
+  IsPlayerActor,
+  IsPropActor,
+} from '../traits/actors';
+import {
+  GameboardActor,
+  IsBlockingActor,
+  IsEnemyActor,
+  IsGameboardActor,
+  IsHostileActor,
+  IsInteractiveActor,
+  IsNpcActor,
+  IsPlayerActor,
+  IsPropActor,
+} from '../traits/actors';
 
 /** Query for every gameplay actor placement. */
 export const GameboardActorQuery = createQuery(

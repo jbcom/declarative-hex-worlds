@@ -45,8 +45,8 @@ import {
   neutralUnitAssetId,
   renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
-} from '../../src/catalog';
-import { generateManifestFromSource } from '../../src/ingest';
+} from '../../src/scenario/catalog';
+import { generateManifestFromSource } from '../../src/ingest/index';
 import { freeManifest } from '../../src/manifest/free';
 
 const extraSourceRoot = resolve('../../references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA');

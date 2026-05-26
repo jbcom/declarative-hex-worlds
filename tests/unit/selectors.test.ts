@@ -21,7 +21,7 @@ import {
   selectRiverVariantByLabel,
   selectRoadVariant,
   selectRoadVariantByLabel,
-} from '../../src/selectors';
+} from '../../src/selectors/index';
 
 describe('tile selectors', () => {
   it('points every road guide label at a published FREE asset', () => {

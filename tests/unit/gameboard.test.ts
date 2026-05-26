@@ -10,7 +10,7 @@ import {
   oppositeEdge,
   requiresExtraAsset,
   summarizeGameboardPlan,
-} from '../../src/gameboard';
+} from '../../src/gameboard/index';
 
 describe('gameboard plan builder', () => {
   it('creates elevated mountain stacks as terrain supports plus a top feature', () => {

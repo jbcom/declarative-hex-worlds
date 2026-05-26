@@ -1,5 +1,26 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { extname, join, relative, resolve } from 'node:path';
+// FREE manifest audit (post PRD-RB: assets are bootstrapped, not bundled).
+//
+// Before Epic RB the on-disk GLTF tree under `assets/free/` was the source of
+// truth and this script walked it to validate bidirectional coverage between
+// manifest entries and shipped files. After Epic RB the only file shipped
+// under `assets/free/` is `manifest.json` itself — the GLTF/BIN/PNG tree is
+// fetched at install time by the CLI `bootstrap` subcommand (Epic RB1/RB2).
+//
+// What this audit now asserts:
+//   - Manifest shape: schemaVersion / edition / sourcePack metadata
+//   - Category and subcategory counts match the canonical KayKit FREE pack
+//   - Internal manifest consistency: no duplicate ids, assetsById in sync
+//   - Per-asset shape: relative paths, expected suffixes, bounds, faction
+//   - Notices credit KayKit + CC0-1.0
+//
+// What this audit no longer does (because the files no longer ship):
+//   - Walk the filesystem under `assets/free/buildings|decoration|tiles`
+//   - Verify `fileSizeBytes` against on-disk size (the bootstrap step
+//     verifies that against fetched bytes via the integrity sidecar)
+//   - Cross-check a per-asset LICENSE copy (LICENSE-dedup gone post-R1)
+
+import { readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
 interface AssetBounds {
   min: [number, number, number];
@@ -50,8 +71,7 @@ interface FreeManifest {
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const packageRoot = workspaceRoot;
-const assetRoot = join(packageRoot, 'assets/free');
-const manifestPath = join(assetRoot, 'manifest.json');
+const manifestPath = join(packageRoot, 'assets/free/manifest.json');
 const failures: string[] = [];
 const expectedCategoryCounts = { buildings: 93, decoration: 68, tiles: 60 };
 const expectedSubcategoryCounts = {
@@ -69,17 +89,10 @@ const expectedSubcategoryCounts = {
 };
 
 const manifest = readJson<FreeManifest>(manifestPath);
-const filesystemPaths = collectFiles(assetRoot)
-  .map((path) => `assets/free/${relative(assetRoot, path).replaceAll('\\', '')}`)
-  .sort();
-const filesystemPathSet = new Set(filesystemPaths);
-const referencedPaths = new Set<string>(['assets/free/manifest.json']);
-const modelPaths = new Set<string>();
 const boundsTolerance = 0.0001;
 
 auditManifestMetadata();
 auditManifestAssets();
-auditFilesystemCoverage();
 auditNotices();
 
 if (failures.length > 0) {
@@ -89,7 +102,7 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('free asset audit passed');
+console.log('free asset audit passed (manifest-only, post-RB)');
 
 function auditManifestMetadata(): void {
   assert(manifest.schemaVersion === '1.0.0', 'manifest schemaVersion must be 1.0.0');
@@ -101,16 +114,19 @@ function auditManifestMetadata(): void {
   assert(manifest.sourcePack.license === 'CC0-1.0', 'manifest asset license must be CC0-1.0');
   assert(
     manifest.sourcePack.licenseUrl === 'https://creativecommons.org/publicdomain/zero/1.0/',
-    'manifest licenseUrl must point at CC0-1.0'
+    'manifest licenseUrl must point at CC0-1.0',
   );
   assertEqualRecord(manifest.counts.byCategory, expectedCategoryCounts, 'category counts changed');
   assertEqualRecord(manifest.counts.bySubcategory, expectedSubcategoryCounts, 'subcategory counts changed');
-  assert(manifest.textureSets.length === 1 && manifest.textureSets[0] === 'default', 'FREE manifest must only expose default textures');
+  assert(
+    manifest.textureSets.length === 1 && manifest.textureSets[0] === 'default',
+    'FREE manifest must only expose default textures',
+  );
   assert(manifest.counts.total === 221, `manifest total changed to ${manifest.counts.total}`);
   assert(manifest.assets.length === manifest.counts.total, 'manifest assets length does not match counts.total');
   assert(
     !/references|\/Volumes\/home|KayKit_Medieval_Hexagon_Pack_1\.0_EXTRA/.test(JSON.stringify(manifest)),
-    'manifest must not contain local references, network storage paths, or EXTRA source names'
+    'manifest must not contain local references, network storage paths, or EXTRA source names',
   );
 }
 
@@ -120,14 +136,6 @@ function auditManifestAssets(): void {
   for (const asset of manifest.assets) {
     assert(!ids.has(asset.id), `duplicate asset id ${asset.id}`);
     ids.add(asset.id);
-    modelPaths.add(asset.modelPath);
-    referencedPaths.add(asset.modelPath);
-    for (const bufferPath of asset.bufferPaths) {
-      referencedPaths.add(bufferPath);
-    }
-    for (const texturePath of asset.texturePaths) {
-      referencedPaths.add(texturePath);
-    }
 
     assert(manifest.assetsById[asset.id]?.modelPath === asset.modelPath, `assetsById is out of sync for ${asset.id}`);
     assert(asset.edition === 'free', `${asset.id} edition must be free`);
@@ -143,11 +151,9 @@ function auditManifestAssets(): void {
     for (const path of [asset.modelPath, ...asset.bufferPaths, ...asset.texturePaths]) {
       assert(path.startsWith('assets/free/'), `${asset.id} referenced path must stay under assets/free: ${path}`);
       assert(!path.includes('..'), `${asset.id} referenced path must not traverse: ${path}`);
-      assert(filesystemPathSet.has(path), `${asset.id} references missing file ${path}`);
     }
 
-    const modelAbsolutePath = join(packageRoot, asset.modelPath);
-    assert(statSync(modelAbsolutePath).size === asset.fileSizeBytes, `${asset.id} fileSizeBytes does not match model file size`);
+    assert(asset.fileSizeBytes > 0, `${asset.id} fileSizeBytes must be positive (bootstrap verifies the actual bytes)`);
     assertBounds(asset);
     assertFaction(asset);
   }
@@ -156,34 +162,16 @@ function auditManifestAssets(): void {
   assertEqualList(Object.keys(manifest.assetsById).sort(), [...ids].sort(), 'assetsById keys');
 }
 
-function auditFilesystemCoverage(): void {
-  for (const path of filesystemPaths) {
-    const extension = extname(path);
-    assert(['.bin', '.gltf', '.json', '.png'].includes(extension), `unexpected packaged asset extension: ${path}`);
-    if (extension === '.gltf') {
-      assert(modelPaths.has(path), `orphan GLTF not listed in manifest: ${path}`);
-    } else if (extension !== '.json') {
-      assert(referencedPaths.has(path), `orphan asset sidecar not referenced in manifest: ${path}`);
-    }
-  }
-}
-
 function auditNotices(): void {
-  const rootNotice = readFileSync(join(workspaceRoot, 'NOTICE.md'), 'utf8');
-  const packageNotice = readFileSync(join(packageRoot, 'NOTICE.md'), 'utf8');
-  const rootLicense = readFileSync(join(workspaceRoot, 'LICENSE'), 'utf8');
-  const packageLicense = readFileSync(join(packageRoot, 'LICENSE'), 'utf8');
-  assert(packageLicense === rootLicense, 'package LICENSE must match root LICENSE');
-  for (const [label, source] of [
-    ['root NOTICE.md', rootNotice],
-    ['package NOTICE.md', packageNotice],
-  ] as const) {
-    assert(source.includes('MIT'), `${label} must mention MIT code licensing`);
-    assert(source.includes('Kay Lousberg'), `${label} must credit Kay Lousberg`);
-    assert(source.includes('KayKit'), `${label} must credit KayKit`);
-    assert(source.includes('CC0-1.0'), `${label} must mention CC0-1.0`);
-    assert(source.includes('https://creativecommons.org/publicdomain/zero/1.0/'), `${label} must link CC0-1.0`);
-  }
+  const notice = readFileSync(join(workspaceRoot, 'NOTICE.md'), 'utf8');
+  assert(notice.includes('MIT'), 'NOTICE.md must mention MIT code licensing');
+  assert(notice.includes('Kay Lousberg'), 'NOTICE.md must credit Kay Lousberg');
+  assert(notice.includes('KayKit'), 'NOTICE.md must credit KayKit');
+  assert(notice.includes('CC0-1.0'), 'NOTICE.md must mention CC0-1.0');
+  assert(
+    notice.includes('https://creativecommons.org/publicdomain/zero/1.0/'),
+    'NOTICE.md must link CC0-1.0',
+  );
 }
 
 function assertBounds(asset: ManifestAsset): void {
@@ -195,7 +183,7 @@ function assertBounds(asset: ManifestAsset): void {
     const expectedSize = asset.bounds.max[index] - asset.bounds.min[index];
     assert(
       Math.abs(asset.bounds.size[index] - expectedSize) <= boundsTolerance,
-      `${asset.id} bounds.size[${index}] does not match min/max`
+      `${asset.id} bounds.size[${index}] does not match min/max`,
     );
     assert(asset.bounds.size[index] >= 0, `${asset.id} bounds.size[${index}] must be non-negative`);
   }
@@ -218,19 +206,6 @@ function assertFaction(asset: ManifestAsset): void {
   }
 }
 
-function collectFiles(root: string): string[] {
-  const files: string[] = [];
-  for (const entry of readdirSync(root, { withFileTypes: true })) {
-    const path = join(root, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...collectFiles(path));
-    } else if (entry.isFile()) {
-      files.push(path);
-    }
-  }
-  return files;
-}
-
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, 'utf8')) as T;
 }
@@ -251,6 +226,6 @@ function assertEqualRecord(actual: Record<string, number>, expected: Record<stri
 function assertEqualList(actual: readonly string[], expected: readonly string[], label: string): void {
   assert(
     actual.length === expected.length && actual.every((value, index) => value === expected[index]),
-    `${label} expected ${expected.join(', ')}, got ${actual.join(', ')}`
+    `${label} expected ${expected.join(', ')}, got ${actual.join(', ')}`,
   );
 }

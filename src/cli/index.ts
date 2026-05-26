@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * `src/cli/` — CLI entry point.
  *

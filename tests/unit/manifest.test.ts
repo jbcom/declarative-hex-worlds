@@ -10,7 +10,7 @@ import {
   selectManifestAssets,
   validateMedievalHexagonManifest,
 } from '../../src/manifest/schema';
-import type { MedievalHexagonAsset, MedievalHexagonManifest, PackEdition } from '../../src/types';
+import type { MedievalHexagonAsset, MedievalHexagonManifest, PackEdition } from '../../src/types/index';
 
 describe('free manifest', () => {
   it('contains the full FREE GLTF catalog', () => {

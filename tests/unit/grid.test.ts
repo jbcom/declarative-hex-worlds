@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findHexPath, hexDistance, hexLine } from '../../src/coordinates';
+import { findHexPath, hexDistance, hexLine } from '../../src/coordinates/index';
 import {
   axialToWorld,
   createGameboardCoordinateSystem,
@@ -8,7 +8,7 @@ import {
   createRectangleGameboardGrid,
   createSpawnLocations,
   worldToAxial,
-} from '../../src/grid';
+} from '../../src/coordinates/grid';
 
 describe('grid helpers', () => {
   it('creates a Honeycomb rectangle grid', () => {

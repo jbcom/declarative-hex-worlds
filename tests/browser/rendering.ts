@@ -13,13 +13,13 @@ import {
   type Object3D,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { GameboardPlacementSpec, GameboardPlan } from '../../src/gameboard';
+import type { GameboardPlacementSpec, GameboardPlan } from '../../src/gameboard/index';
 import { freeManifest } from '../../src/manifest/free';
 import {
   resolveGameboardPlacementAssetUrl,
   syncGameboardPlacementObjects,
-} from '../../src/three';
-import type { MedievalHexagonAsset } from '../../src/types';
+} from '../../src/three/index';
+import type { MedievalHexagonAsset } from '../../src/types/index';
 
 declare const __EXTRA_SOURCE_ROOT__: string | undefined;
 

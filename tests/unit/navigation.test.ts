@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { hexDistance } from '../../src/coordinates';
-import { createGameboardBuilder } from '../../src/gameboard';
+import { hexDistance } from '../../src/coordinates/index';
+import { createGameboardBuilder } from '../../src/gameboard/index';
 import {
   createGameboardNavigation,
   createGameboardOccupancyIndex,
@@ -10,7 +10,7 @@ import {
   planGameboardSpawnGroups,
   reachableGameboardTiles,
   selectGameboardSpawnLocations,
-} from '../../src/navigation';
+} from '../../src/gameboard/navigation';
 
 describe('board-aware navigation and occupancy', () => {
   it('indexes blockers and finds paths around terrain and runtime placement obstacles', () => {
