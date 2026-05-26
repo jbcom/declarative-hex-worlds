@@ -56,7 +56,9 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as Package
 // Post-restructure: workspace and package are the same single manifest.
 const workspacePackageJson = packageJson;
 const freeManifest = JSON.parse(readFileSync(join(packageRoot, 'assets/free/manifest.json'), 'utf8')) as FreeManifestAttribution;
-const packedConsumerSmoke = readFileSync(join(workspaceRoot, 'scripts/smoke-packed-consumer.ts'), 'utf8');
+const packedConsumerSmoke = readSmokeOrchestratorSource(
+  join(workspaceRoot, 'scripts/smoke-packed-consumer.ts')
+);
 // Local-only path patterns that must NEVER appear in published package metadata
 // (`./Volumes/home` is the maintainer's NAS mount; kenney_castle + KayKit_Adventurers
 // are local-only reference packs from `references/`, which is gitignored). The
@@ -126,8 +128,9 @@ assert(
   'test:visual must serialize the local browser review suites',
 );
 assert(
-  packageJson.scripts?.['test:assets'] === 'pnpm test:assets:free && pnpm test:reference-assets',
-  'test:assets must run the FREE asset audit and local reference asset audit',
+  packageJson.scripts?.['test:assets'] ===
+    'pnpm test:assets:free && pnpm test:reference-assets && pnpm test:manifest-drift',
+  'test:assets must run the FREE asset audit, local reference asset audit, and manifest drift check',
 );
 assert(
   workspacePackageJson.scripts?.['test:consumer'] === 'tsx scripts/smoke-packed-consumer.ts',
@@ -408,6 +411,43 @@ async function assertExportImports(): Promise<void> {
 
 
 
+/**
+ * Read the smoke-packed-consumer orchestrator source plus every local module
+ * it imports, concatenated into a single virtual source. Needed because the
+ * D10 refactor split the orchestrator into `pack-install.ts` + `types.ts` +
+ * `_shared.ts` — the audit must continue to see the
+ * `@jbcom/medieval-hexagon-gameboard/...` import specifiers that moved to
+ * those sub-modules.
+ */
+function readSmokeOrchestratorSource(entryPath: string): string {
+  const visited = new Set<string>();
+  const parts: string[] = [];
+  const walk = (filePath: string): void => {
+    const absolute = resolve(filePath);
+    if (visited.has(absolute)) {
+      return;
+    }
+    visited.add(absolute);
+    if (!existsSync(absolute)) {
+      return;
+    }
+    const source = readFileSync(absolute, 'utf8');
+    parts.push(`// === ${absolute} ===\n${source}`);
+    const importPattern = /from\s+['"](\.[^'"]+)['"]|import\s*\(\s*['"](\.[^'"]+)['"]\s*\)/g;
+    const importDir = resolve(absolute, '..');
+    for (const match of source.matchAll(importPattern)) {
+      const rawSpecifier = match[1] ?? match[2];
+      if (!rawSpecifier) {
+        continue;
+      }
+      const candidate = rawSpecifier.replace(/\.js$/, '.ts');
+      walk(resolve(importDir, candidate));
+    }
+  };
+  walk(entryPath);
+  return parts.join('\n');
+}
+
 function collectSourceModules(root: string, prefix = ''): string[] {
   // Post-R2 sub-packages have an `index.ts` barrel that IS the public surface;
   // any other `.ts` siblings are internal-but-allowed. Treat a directory with
@@ -470,6 +510,27 @@ function assertPackFileList(): void {
       assert(
         path === 'assets/free/manifest.json',
         `tarball includes a bundled asset (use CLI bootstrap instead): ${path}`
+      );
+    }
+    // Anywhere in the tarball — no GLTF, BIN, FBX, OBJ. The CLI bootstrap
+    // subcommand is the only supported channel for those binaries.
+    const lowerPath = path.toLowerCase();
+    if (
+      lowerPath.endsWith('.gltf') ||
+      lowerPath.endsWith('.bin') ||
+      lowerPath.endsWith('.fbx') ||
+      lowerPath.endsWith('.obj') ||
+      lowerPath.endsWith('.mtl')
+    ) {
+      throw new Error(
+        `tarball must not bundle asset binaries (use CLI bootstrap instead): ${path}`
+      );
+    }
+    // PNGs are only allowed under docs/showcases/ (curated marketing screens).
+    if (lowerPath.endsWith('.png')) {
+      assert(
+        path.startsWith('docs/showcases/'),
+        `tarball PNGs are restricted to docs/showcases/; got ${path}`
       );
     }
   }

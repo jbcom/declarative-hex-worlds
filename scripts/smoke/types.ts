@@ -142,6 +142,23 @@ import {
 } from '@jbcom/medieval-hexagon-gameboard/manifest/schema';
 import { freeManifest as typedFreeManifest } from '@jbcom/medieval-hexagon-gameboard/manifest/free';
 import {
+  KAYKIT_MEDIEVAL_FREE_LAYOUT,
+  KAYKIT_MEDIEVAL_EXTRA_LAYOUT,
+  detectKayKitLayout,
+  type KayKitUpstreamLayout,
+} from '@jbcom/medieval-hexagon-gameboard/manifest/upstream-layout';
+import {
+  KAYKIT_BOOTSTRAP_ROOT,
+  KAYKIT_FREE_GITHUB_OWNER,
+  bootstrapKayKitAssets,
+  kayKitFreeGithubTarballUrl,
+  resolveBootstrapTargetRoot,
+  verifyBootstrap,
+  type BootstrapKayKitAssetsOptions,
+  type BootstrapResult,
+  type BootstrapVerificationReport,
+} from '@jbcom/medieval-hexagon-gameboard/bootstrap';
+import {
   GAMEBOARD_LAYOUT_ARCHETYPES,
   analyzeGameboardLayoutFill,
   appendGameboardLayoutPlacementsToPlan,
