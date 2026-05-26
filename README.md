@@ -357,10 +357,12 @@ the packaged scenario, resolves embedded actor spawn groups, selects additional
 spawn locations, emits an ECS interop snapshot, and runs the scripted quest
 flow. It also reports SimpleRPG evidence for every guide-facing public API from
 `listKayKitGuidePublicApiCoverages()` so consumer smoke tests fail when guide
-coverage grows without an integration decision. Evidence modes are memberships,
-so one API can count as executable smoke plus a seeded, blueprint, manifest,
-compatibility, or visual proof; tests require every declared mode to remain
-active. The same example exports
+coverage grows without an integration decision. The generated coverage ledger
+now carries those per-public-API exercise rows with guide pages, scenario ids,
+asset counts, evidence modes, and evidence text. Evidence modes are
+memberships, so one API can count as executable smoke plus a seeded, blueprint,
+manifest, compatibility, or visual proof; tests require every declared mode to
+remain active. The same example exports
 `runSimpleRpgExecutableGuideApiSmoke()`, which directly invokes selector,
 manifest, registry, layout-piece, recipe, blueprint, seeded-board, spawn, and
 external-compatibility helpers that are useful to games but are too low-level to

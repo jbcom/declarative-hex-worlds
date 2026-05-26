@@ -51,6 +51,85 @@ pnpm coverage:ledger
 | package-boundary | 3 |
 | visual-coverage | 26 |
 
+### SimpleRPG Exercise Matrix
+
+| Public API | Modes | Pages | Assets | Evidence |
+| --- | --- | --- | ---: | --- |
+| `analyzeHexTileRegistry` | executable-smoke | 13 | 0 | Packaged SimpleRPG usage analyzes a runtime tile registry in its executable guide API smoke. |
+| `coloredUnitAssetId` | executable-smoke | 14, 16, 17, 18 | 112 | Packaged SimpleRPG usage resolves a colored unit asset id in executable smoke. |
+| `createGameboardBuilder` | fixed-gameplay | 9 | 0 | Fixed SimpleRPG board starts from the public fluent builder. |
+| `createGameboardLayoutArchetypeRegistry` | executable-smoke, seeded-generation | 6 | 0 | Packaged SimpleRPG usage creates a layout archetype registry in executable smoke. |
+| `createGameboardLayoutFillRuleFromPiece` | executable-smoke, seeded-generation | 2, 5, 6, 9, 10, 15, 16, 17 | 77 | Packaged SimpleRPG usage creates a piece-backed layout fill rule in executable smoke. |
+| `createGameboardPlanFromRecipe` | executable-smoke | 2, 7, 8, 9, 10, 11, 12, 13, 16, 17 | 25 | Packaged SimpleRPG usage compiles a recipe into a concrete plan in executable smoke. |
+| `createGameboardPlanFromTiles` | executable-smoke | 7, 9 | 2 | Packaged SimpleRPG usage rebuilds a plan from explicit tiles in executable smoke. |
+| `createGameboardRuntimeFromScenario` | packaged-scenario | 9, 18 | 0 | Packaged SimpleRPG usage creates a runtime facade directly from the scenario JSON. |
+| `createHexagonGameboardGrid` | executable-smoke | 10 | 0 | Packaged SimpleRPG usage creates a Honeycomb hexagon grid in executable smoke. |
+| `createManifestBundle` | executable-smoke, manifest-package | 12 | 0 | Packaged SimpleRPG usage bundles the FREE manifest in executable smoke. |
+| `createMedievalGameboardBlueprintPlan` | executable-smoke, blueprint-recipe | 6, 10 | 0 | Packaged SimpleRPG usage compiles a blueprint plan in executable smoke. |
+| `createMedievalGameboardBlueprintRecipe` | executable-smoke, blueprint-recipe | 5, 8, 11, 13 | 0 | Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke. |
+| `createMedievalShowcaseBlueprintRecipe` | executable-smoke, blueprint-recipe | 9, 13 | 0 | Packaged SimpleRPG usage compiles the showcase blueprint recipe in executable smoke. |
+| `createSeededGameboardPlan` | executable-smoke, seeded-generation | 9 | 0 | Packaged SimpleRPG usage builds a seeded board in executable smoke. |
+| `declareHexTile` | executable-smoke | 13 | 0 | Packaged SimpleRPG usage declares a tile for registry analysis in executable smoke. |
+| `executeGameboardInteractionCommand` | fixed-gameplay | 17 | 0 | SimpleRPG quest execution moves, interacts, attacks, and removes enemies through commands. |
+| `externalAssetSpawnOptions` | executable-smoke, compatibility-adapter | 15 | 0 | Packaged SimpleRPG usage converts compatibility analysis into spawn options in executable smoke. |
+| `factionBuildingAssetId` | executable-smoke | 2, 15, 16, 17 | 108 | Packaged SimpleRPG usage resolves a faction building asset id in executable smoke. |
+| `flagAssetId` | executable-smoke | 2, 5 | 4 | Packaged SimpleRPG usage resolves a faction flag asset id in executable smoke. |
+| `freeManifest` | executable-smoke, manifest-package | 1 | 0 | Packaged SimpleRPG usage reads the FREE manifest in executable smoke. |
+| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 | Fixed SimpleRPG board places a bridge beside the harbor approach. |
+| `GameboardBuilder.addConstructionSite` | fixed-gameplay, visual-coverage | 2, 17 | 7 | Fixed SimpleRPG board places a staged worksite off the golden path. |
+| `GameboardBuilder.addElevationRamp` | fixed-gameplay, visual-coverage | 8, 10 | 2 | Fixed SimpleRPG board places a ramp against an elevated tile. |
+| `GameboardBuilder.addFactionBuilding` | fixed-gameplay, visual-coverage | 2, 15, 16, 17 | 108 | Fixed and packaged SimpleRPG boards place faction buildings. |
+| `GameboardBuilder.addFlag` | fixed-gameplay, visual-coverage | 2, 5 | 4 | Fixed SimpleRPG board places a faction flag and runtime actors use flag assets. |
+| `GameboardBuilder.addForest` | fixed-gameplay, seeded-generation, visual-coverage | 5, 6, 9, 10 | 12 | Fixed and seeded SimpleRPG boards include forests and tree scatter. |
+| `GameboardBuilder.addFortification` | fixed-gameplay, visual-coverage | 2, 16, 17 | 11 | Fixed SimpleRPG board places a town wall segment with enclosure metadata. |
+| `GameboardBuilder.addHarbor` | fixed-gameplay, seeded-generation, visual-coverage | 2, 5, 7, 15 | 25 | Fixed and seeded SimpleRPG boards include a playable harbor/coast relationship. |
+| `GameboardBuilder.addHill` | fixed-gameplay, seeded-generation, visual-coverage | 5, 6, 9, 10 | 9 | Fixed and seeded SimpleRPG boards include hill terrain and decorations. |
+| `GameboardBuilder.addMountainStack` | fixed-gameplay, seeded-generation, visual-coverage | 5, 6, 8, 9, 10 | 12 | Fixed, seeded, and packaged SimpleRPG boards place stacked mountains. |
+| `GameboardBuilder.addNature` | fixed-gameplay, visual-coverage | 5, 6, 9, 10 | 42 | Fixed SimpleRPG board places standalone nature assets. |
+| `GameboardBuilder.addNeutralStructure` | fixed-gameplay, visual-coverage | 2, 7, 9, 16, 17 | 21 | Fixed SimpleRPG board places a neutral grain building. |
+| `GameboardBuilder.addProp` | fixed-gameplay, visual-coverage | 2, 5, 15, 16, 17 | 35 | Fixed SimpleRPG quest uses a registered crate prop as a passable actor target. |
+| `GameboardBuilder.addPropCluster` | fixed-gameplay, visual-coverage | 2, 5, 15, 16, 17 | 31 | Fixed SimpleRPG board places a resource-cache cluster. |
+| `GameboardBuilder.addRiverPath` | fixed-gameplay, visual-coverage | 4, 7 | 30 | Fixed SimpleRPG board routes a curvy waterless river through the quest road. |
+| `GameboardBuilder.addRoadPath` | fixed-gameplay, seeded-generation, visual-coverage | 3, 9 | 15 | Fixed, seeded, and packaged SimpleRPG boards use roads for movement routes. |
+| `GameboardBuilder.addSettlement` | fixed-gameplay, visual-coverage | 2, 16, 17 | 96 | Fixed SimpleRPG board places a settlement home through the settlement alias. |
+| `GameboardBuilder.addSiegeProjectile` | fixed-gameplay, visual-coverage | 2, 17 | 1 | Fixed SimpleRPG board places a catapult projectile beside the town wall. |
+| `GameboardBuilder.addTransition` | fixed-gameplay, visual-coverage | 11, 12, 13 | 1 | Fixed SimpleRPG board places a local-only texture transition and marks it EXTRA. |
+| `GameboardBuilder.addUnit` | fixed-gameplay, visual-coverage | 14, 16, 17, 18 | 137 | Fixed SimpleRPG board places colored and neutral EXTRA unit parts. |
+| `GameboardBuilder.addUnitPreset` | fixed-gameplay, visual-coverage | 14, 15, 16, 17, 18 | 137 | Fixed SimpleRPG board places a composed soldier preset. |
+| `GameboardBuilder.scatterDecorations` | fixed-gameplay, seeded-generation, visual-coverage | 5, 6, 9, 10 | 42 | Fixed and seeded SimpleRPG boards scatter decorations deterministically. |
+| `GameboardBuilder.setCoastEdges` | fixed-gameplay, visual-coverage | 7, 15 | 10 | Fixed SimpleRPG board marks the water edge as coast before adding a harbor. |
+| `GameboardBuilder.setElevation` | fixed-gameplay, visual-coverage | 8, 10 | 0 | Fixed SimpleRPG board raises a tile and then adds an elevation ramp. |
+| `GameboardBuilder.setTerrain` | fixed-gameplay, seeded-generation, visual-coverage | 7, 9 | 2 | Fixed SimpleRPG board authors a full water row and seeded generation fills terrain. |
+| `GameboardBuilder.setTileAsset` | fixed-gameplay, visual-coverage | 7, 8, 9, 10 | 5 | Fixed and packaged SimpleRPG boards override authored tile assets and tags. |
+| `inspectMedievalGameboardBlueprint` | executable-smoke, blueprint-recipe | 6, 11 | 0 | Packaged SimpleRPG usage inspects a blueprint in executable smoke. |
+| `listCoastGuidePermutations` | executable-smoke | 7, 15 | 10 | Packaged SimpleRPG usage lists coast guide permutations in executable smoke. |
+| `listKayKitAssetPublicTreatments` | executable-smoke | 1 | 0 | Packaged SimpleRPG usage lists every KayKit asset public treatment in executable smoke. |
+| `listKayKitGuideScenarios` | executable-smoke | 1, 19 | 0 | Packaged SimpleRPG usage lists every decomposed KayKit guide scenario in executable smoke. |
+| `listPropClusterAssets` | executable-smoke | 2, 5, 15, 16, 17 | 31 | Packaged SimpleRPG usage resolves prop-cluster assets in executable smoke. |
+| `listRiverCrossingGuidePermutations` | executable-smoke | 4, 7 | 4 | Packaged SimpleRPG usage lists river crossing permutations in executable smoke. |
+| `listRiverCurvyGuidePermutations` | executable-smoke | 4, 7 | 2 | Packaged SimpleRPG usage lists curvy river permutations in executable smoke. |
+| `listRiverGuidePermutations` | executable-smoke | 4, 7 | 24 | Packaged SimpleRPG usage lists river permutations in executable smoke. |
+| `listRoadGuidePermutations` | executable-smoke | 3, 9 | 15 | Packaged SimpleRPG usage lists road permutations in executable smoke. |
+| `medieval-hexagon-gameboard manifest` | package-boundary, manifest-package | 12 | 0 | Package smoke validates the CLI manifest and packaged SimpleRPG imports together. |
+| `neutralUnitAssetId` | executable-smoke | 14, 16, 17, 18 | 25 | Packaged SimpleRPG usage resolves a neutral unit asset id in executable smoke. |
+| `NOTICE.md` | package-boundary, manifest-package | 19 | 0 | Release/package audits keep KayKit attribution with the SimpleRPG packaged smoke. |
+| `package.json files` | package-boundary, manifest-package | 19 | 0 | Package audit verifies exports, files, examples, and SimpleRPG package imports. |
+| `planGameboardInteractionCommand` | fixed-gameplay | 17 | 0 | Fixed SimpleRPG tests plan prop interaction and enemy attack commands. |
+| `recommendExternalAssetFacing` | executable-smoke, compatibility-adapter | 16 | 0 | Packaged SimpleRPG usage recommends external asset facing in executable smoke. |
+| `selectCoastVariant` | executable-smoke | 7, 15 | 10 | Packaged SimpleRPG usage selects a coast variant in executable smoke. |
+| `selectCoastVariantByLabel` | executable-smoke | 7, 15 | 10 | Packaged SimpleRPG usage selects a labeled coast variant in executable smoke. |
+| `selectManifestAssets` | executable-smoke, manifest-package | 12 | 0 | Packaged SimpleRPG usage selects manifest assets in executable smoke. |
+| `selectRiverCrossingVariant` | executable-smoke | 4, 7 | 4 | Packaged SimpleRPG usage selects a river crossing variant in executable smoke. |
+| `selectRiverVariant` | executable-smoke | 4, 7 | 26 | Packaged SimpleRPG usage selects a river variant in executable smoke. |
+| `selectRiverVariantByLabel` | executable-smoke | 4, 7 | 24 | Packaged SimpleRPG usage selects a labeled river variant in executable smoke. |
+| `selectRoadVariant` | executable-smoke | 3, 9 | 15 | Packaged SimpleRPG usage selects a road variant in executable smoke. |
+| `selectRoadVariantByLabel` | executable-smoke | 3, 9 | 15 | Packaged SimpleRPG usage selects a labeled road variant in executable smoke. |
+| `selectSpawnCoordinates` | executable-smoke | 9 | 0 | Packaged SimpleRPG usage selects raw deterministic spawn coordinates in executable smoke. |
+| `spawnGameboardActor` | fixed-gameplay | 14, 16, 17, 18 | 137 | Fixed and seeded SimpleRPG fixtures spawn player, NPC, prop, and enemy actors. |
+| `textureFileName` | executable-smoke | 11, 12 | 0 | Packaged SimpleRPG usage resolves a texture filename in executable smoke. |
+| `validateGameboardRecipe` | executable-smoke | 11, 12, 13 | 1 | Packaged SimpleRPG usage validates a compiled recipe in executable smoke. |
+| `validateGameboardRecipeGeneration` | executable-smoke | 13 | 0 | Packaged SimpleRPG usage validates recipe generation config in executable smoke. |
+
 ## Gaps
 
 - None

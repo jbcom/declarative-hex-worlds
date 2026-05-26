@@ -53,6 +53,26 @@ export type GameboardCoverageSimpleRpgEvidenceMode =
   | 'package-boundary'
   | 'visual-coverage';
 
+/** One SimpleRPG proof row for a guide-facing public API surface. */
+export interface GameboardCoverageSimpleRpgEvidenceRow {
+  /** Public API surface from the guide/public-treatment catalog. */
+  publicApi: string;
+  /** Primary evidence mode for the API. */
+  mode: GameboardCoverageSimpleRpgEvidenceMode;
+  /** All evidence modes that exercise this API, including the primary mode. */
+  modes: readonly GameboardCoverageSimpleRpgEvidenceMode[];
+  /** Human-readable fixture, docs, or package proof. */
+  evidence: string;
+  /** One-based guide pages represented by this API row. */
+  pages: readonly number[];
+  /** Guide scenario ids represented by this API row. */
+  scenarioIds: readonly string[];
+  /** Unique asset count represented by this API row. */
+  assetCount: number;
+  /** Visual artifacts attached to the guide scenarios behind this API row. */
+  visualArtifacts: readonly string[];
+}
+
 /** Stable machine-readable release-readiness gap. */
 export interface CoverageGap {
   /** Stable code for docs, tests, and CI parsing. */
@@ -219,6 +239,12 @@ export interface GameboardCoverageSimpleRpgEvidence {
   activeEvidenceModes: readonly GameboardCoverageSimpleRpgEvidenceMode[];
   /** Evidence modes with zero represented public APIs. */
   inactiveEvidenceModes: readonly GameboardCoverageSimpleRpgEvidenceMode[];
+  /**
+   * Optional per-public-API proof rows. The CLI-generated release ledger
+   * includes this matrix so agents and downstream tools can trace aggregate
+   * counts back to the exact SimpleRPG exercise, guide pages, and screenshots.
+   */
+  publicApiExercises?: readonly GameboardCoverageSimpleRpgEvidenceRow[];
 }
 
 /** Optional path status maps supplied by the CLI or another build tool. */
@@ -579,6 +605,27 @@ export function renderGameboardCoverageMarkdown(
       lines.push(`| ${mode} | ${count} |`);
     }
     lines.push('');
+
+    if ((report.simpleRpgEvidence.publicApiExercises?.length ?? 0) > 0) {
+      lines.push(
+        '### SimpleRPG Exercise Matrix',
+        '',
+        '| Public API | Modes | Pages | Assets | Evidence |',
+        '| --- | --- | --- | ---: | --- |'
+      );
+      for (const exercise of report.simpleRpgEvidence.publicApiExercises ?? []) {
+        lines.push(
+          [
+            `| \`${exercise.publicApi}\``,
+            markdownCell(exercise.modes.join(', ')),
+            exercise.pages.join(', ') || '-',
+            String(exercise.assetCount),
+            `${markdownCell(exercise.evidence)} |`,
+          ].join(' | ')
+        );
+      }
+      lines.push('');
+    }
   }
 
   lines.push('## Gaps', '');
@@ -883,6 +930,7 @@ function collectCoverageGaps(context: CoverageGapContext): CoverageGap[] {
   }
 
   if (context.simpleRpgEvidence) {
+    const publicApiExercises = context.simpleRpgEvidence.publicApiExercises;
     if (
       context.simpleRpgEvidence.exercisedPublicApiCount !==
         context.simpleRpgEvidence.guidePublicApiCount ||
@@ -910,6 +958,42 @@ function collectCoverageGaps(context: CoverageGapContext): CoverageGap[] {
         subject: mode,
         message: `SimpleRPG evidence mode ${mode} has no represented public APIs.`,
       });
+    }
+    if (publicApiExercises) {
+      const uniquePublicApis = new Set(publicApiExercises.map((exercise) => exercise.publicApi));
+      if (uniquePublicApis.size !== publicApiExercises.length) {
+        gaps.push({
+          code: 'simple_rpg.public_api_duplicate',
+          severity: 'error',
+          subject: 'SimpleRPG public API evidence',
+          message: 'SimpleRPG per-API evidence contains duplicate public API rows.',
+        });
+      }
+      if (publicApiExercises.length !== context.simpleRpgEvidence.exercisedPublicApiCount) {
+        gaps.push({
+          code: 'simple_rpg.public_api_row_count',
+          severity: 'error',
+          subject: 'SimpleRPG public API evidence',
+          message: `SimpleRPG evidence includes ${publicApiExercises.length} per-API row(s) for ${context.simpleRpgEvidence.exercisedPublicApiCount} exercised public APIs.`,
+        });
+      }
+      for (const exercise of publicApiExercises) {
+        if (
+          exercise.evidence.length === 0 ||
+          exercise.pages.length === 0 ||
+          exercise.scenarioIds.length === 0 ||
+          exercise.assetCount < 0 ||
+          !exercise.modes.includes(exercise.mode)
+        ) {
+          gaps.push({
+            code: 'simple_rpg.public_api_row_incomplete',
+            severity: 'error',
+            subject: exercise.publicApi,
+            message:
+              'SimpleRPG per-API evidence must include evidence text, pages, scenarios, a nonnegative asset count, and the primary mode.',
+          });
+        }
+      }
     }
   }
 

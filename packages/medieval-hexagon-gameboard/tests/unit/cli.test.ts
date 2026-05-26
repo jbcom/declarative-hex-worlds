@@ -552,6 +552,13 @@ describe('CLI', () => {
         executablePublicApiCount: number;
         inactiveEvidenceModes: string[];
         evidenceModeCounts: Record<string, number>;
+        publicApiExercises?: Array<{
+          publicApi: string;
+          modes: string[];
+          pages: number[];
+          assetCount: number;
+          evidence: string;
+        }>;
       };
     };
     const markdown = readFileSync(markdownPath, 'utf8');
@@ -589,6 +596,12 @@ describe('CLI', () => {
         'visual-coverage': 26,
       }) as Record<string, number>,
     });
+    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(74);
+    expect(report.simpleRpgEvidence?.publicApiExercises?.map((exercise) => exercise.publicApi)).toContain(
+      'GameboardBuilder.addBridge'
+    );
+    expect(markdown).toContain('### SimpleRPG Exercise Matrix');
+    expect(markdown).toContain('| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 |');
     expect(markdown).toContain('# Release Readiness Coverage');
     expect(markdown).toContain('## SimpleRPG Public API Evidence');
     expect(markdown).toContain('| Status | Command | Summary |');

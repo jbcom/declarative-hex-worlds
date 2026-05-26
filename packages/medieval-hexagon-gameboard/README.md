@@ -1446,10 +1446,13 @@ That summary includes the current guide-facing public API count, exercised API
 count, missing/stale API rows, and evidence modes from
 `summarizeSimpleRpgGuidePublicApiExercises()`. The packaged consumer smoke test
 asserts that all 74 guide-facing APIs are represented, so new guide/API coverage
-cannot drift away from SimpleRPG unnoticed. Evidence-mode counts are
-memberships rather than exclusive buckets: an API can be direct executable smoke
-and also seeded-generation, blueprint, manifest, compatibility, or visual proof.
-The unit suite requires every declared mode to stay active.
+cannot drift away from SimpleRPG unnoticed. The release-readiness coverage
+ledger also includes the per-public-API exercise matrix with guide pages,
+scenario ids, asset counts, evidence modes, and evidence text. Evidence-mode
+counts are memberships rather than exclusive buckets: an API can be direct
+executable smoke and also seeded-generation, blueprint, manifest,
+compatibility, or visual proof. The unit suite requires every declared mode to
+stay active.
 The JSON examples are exported as
 `@jbcom/medieval-hexagon-gameboard/examples/*.json`; raw TypeScript example
 source stays in the repo and is not included in the npm tarball.
@@ -1619,10 +1622,12 @@ final package gate commands into JSON or Markdown. The CLI also includes
 directly executed helper APIs, 404 KayKit public treatment records, all 19 guide
 pages, and active evidence-mode counts for fixed gameplay, seeded generation,
 packaged scenarios, executable smoke, blueprint recipes, manifest packaging,
-compatibility adapters, package boundaries, and visual coverage. The pure
-`summarizeGameboardCoverage()` helper exposes the same data shape to docs
-tooling, editors, and external release dashboards without requiring local EXTRA
-binaries; callers can pass their own SimpleRPG evidence block when they have one.
+compatibility adapters, package boundaries, and visual coverage. CLI-generated
+reports also include `publicApiExercises`, a row-level proof matrix for every
+guide-facing API. The pure `summarizeGameboardCoverage()` helper exposes the
+same data shape to docs tooling, editors, and external release dashboards
+without requiring local EXTRA binaries; callers can pass their own SimpleRPG
+evidence block when they have one.
 
 ```bash
 medieval-hexagon-gameboard coverage \

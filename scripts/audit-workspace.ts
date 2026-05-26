@@ -122,6 +122,16 @@ interface ReleaseReadinessLedger {
     guideScenarioCount?: number;
     inactiveEvidenceModes?: string[];
     missingPublicApis?: unknown[];
+    publicApiExercises?: Array<{
+      assetCount?: number;
+      evidence?: string;
+      mode?: string;
+      modes?: string[];
+      pages?: number[];
+      publicApi?: string;
+      scenarioIds?: string[];
+      visualArtifacts?: string[];
+    }>;
     publicTreatmentCount?: number;
     stalePublicApis?: unknown[];
   };
@@ -631,6 +641,7 @@ function requireReleaseReadinessLedger(): void {
 function requireReleaseReadinessSimpleRpgEvidence(): void {
   const evidence = releaseReadinessJson.simpleRpgEvidence;
   const modeCounts = evidence?.evidenceModeCounts ?? {};
+  const exercises = evidence?.publicApiExercises ?? [];
   const expectedModeCounts = {
     'fixed-gameplay': 30,
     'seeded-generation': 10,
@@ -652,6 +663,11 @@ function requireReleaseReadinessSimpleRpgEvidence(): void {
   assert((evidence?.missingPublicApis ?? []).length === 0, 'release-readiness JSON must report no missing SimpleRPG public APIs');
   assert((evidence?.stalePublicApis ?? []).length === 0, 'release-readiness JSON must report no stale SimpleRPG public APIs');
   assert((evidence?.inactiveEvidenceModes ?? []).length === 0, 'release-readiness JSON must report no inactive SimpleRPG evidence modes');
+  assert(exercises.length === 74, 'release-readiness JSON must include 74 SimpleRPG per-API evidence rows');
+  assert(
+    new Set(exercises.map((exercise) => exercise.publicApi)).size === 74,
+    'release-readiness JSON SimpleRPG evidence rows must have unique public APIs'
+  );
   assertEqualList(
     evidence?.activeEvidenceModes ?? [],
     Object.keys(expectedModeCounts),
@@ -664,15 +680,31 @@ function requireReleaseReadinessSimpleRpgEvidence(): void {
       `release-readiness Markdown must include SimpleRPG ${mode} count ${count}`
     );
   }
+  for (const exercise of exercises) {
+    assert(
+      typeof exercise.publicApi === 'string' &&
+        exercise.publicApi.length > 0 &&
+        typeof exercise.evidence === 'string' &&
+        exercise.evidence.length > 0 &&
+        typeof exercise.mode === 'string' &&
+        (exercise.modes ?? []).includes(exercise.mode) &&
+        (exercise.pages ?? []).length > 0 &&
+        (exercise.scenarioIds ?? []).length > 0 &&
+        (exercise.assetCount ?? -1) >= 0,
+      `release-readiness JSON SimpleRPG evidence row is incomplete for ${exercise.publicApi ?? '<missing>'}`
+    );
+  }
   requireIncludes(releaseReadinessMarkdown, 'release-readiness SimpleRPG evidence', [
     '- SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)',
     '## SimpleRPG Public API Evidence',
+    '### SimpleRPG Exercise Matrix',
     '- Guide-facing public APIs represented: 74/74',
     '- Direct executable helper APIs: 40',
     '- KayKit public treatment records asserted: 404',
     '- Decomposed guide pages asserted: 19',
     '- Missing public APIs: 0',
     '- Stale evidence rows: 0',
+    '| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 | Fixed SimpleRPG board places a bridge beside the harbor approach. |',
   ]);
 }
 

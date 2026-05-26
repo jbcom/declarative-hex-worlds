@@ -28,6 +28,7 @@ import {
   type GameboardCoverageStatus,
 } from './coverage';
 import {
+  listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,
   summarizeSimpleRpgGuidePublicApiExercises,
 } from '../examples/simple-rpg-usage';
@@ -2363,6 +2364,7 @@ function createCliSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence {
     inactiveEvidenceModes: evidenceModeEntries
       .filter(([, count]) => count <= 0)
       .map(([mode]) => mode),
+    publicApiExercises: listSimpleRpgGuidePublicApiExercises(),
   };
 }
 

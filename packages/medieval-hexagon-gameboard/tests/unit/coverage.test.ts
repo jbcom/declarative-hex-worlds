@@ -122,6 +122,22 @@ describe('release-readiness coverage', () => {
       'package-boundary': 3,
       'visual-coverage': 26,
     });
+    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(74);
+    expect(report.simpleRpgEvidence?.publicApiExercises?.[0]).toMatchObject({
+      publicApi: 'analyzeHexTileRegistry',
+      mode: 'executable-smoke',
+      pages: expect.arrayContaining([13]),
+      assetCount: expect.any(Number) as number,
+    });
+    expect(
+      report.simpleRpgEvidence?.publicApiExercises?.find(
+        (exercise) => exercise.publicApi === 'GameboardBuilder.addBridge'
+      )
+    ).toMatchObject({
+      modes: expect.arrayContaining(['fixed-gameplay', 'visual-coverage']) as string[],
+      pages: [2, 7, 9],
+      assetCount: 2,
+    });
 
     const simpleRpgSmoke = runSimpleRpgExecutableGuideApiSmoke();
     const docsContractSummary = GAMEBOARD_RELEASE_GATE_SUMMARIES['pnpm test:docs-contract'];
@@ -215,6 +231,10 @@ describe('release-readiness coverage', () => {
     expect(markdown).toContain('- SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)');
     expect(markdown).toContain('## SimpleRPG Public API Evidence');
     expect(markdown).toContain('| visual-coverage | 26 |');
+    expect(markdown).toContain('### SimpleRPG Exercise Matrix');
+    expect(markdown).toContain(
+      '| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 | Fixed SimpleRPG board places a bridge beside the harbor approach. |'
+    );
     expect(markdown).toContain(
       '- Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences'
     );
@@ -250,5 +270,6 @@ function createSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence {
     inactiveEvidenceModes: evidenceModeEntries
       .filter(([, count]) => count <= 0)
       .map(([mode]) => mode),
+    publicApiExercises: exerciseCoverage.exercises,
   };
 }

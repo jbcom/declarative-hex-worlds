@@ -107,7 +107,9 @@ reference pack availability, package gate status, and optional SimpleRPG public
 API proof. The CLI exposes the same report through `coverage` and
 `doctor --coverage`, populating `simpleRpgEvidence` with the 74/74 guide-facing
 API representation, 40 directly executed helper APIs, 404 KayKit public
-treatment records, all 19 guide pages, and active evidence-mode counts.
+treatment records, all 19 guide pages, active evidence-mode counts, and a
+per-public-API exercise matrix that maps each helper to SimpleRPG evidence,
+guide pages, asset counts, and visual artifacts.
 
 ## Board Blueprints
 

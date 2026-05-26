@@ -35770,7 +35770,1916 @@
       "package-boundary",
       "visual-coverage"
     ],
-    "inactiveEvidenceModes": []
+    "inactiveEvidenceModes": [],
+    "publicApiExercises": [
+      {
+        "publicApi": "analyzeHexTileRegistry",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage analyzes a runtime tile registry in its executable guide API smoke.",
+        "pages": [
+          13
+        ],
+        "scenarioIds": [
+          "page-13-transition-tiles"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "coloredUnitAssetId",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage resolves a colored unit asset id in executable smoke.",
+        "pages": [
+          14,
+          16,
+          17,
+          18
+        ],
+        "scenarioIds": [
+          "page-14-units",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege",
+          "page-18-unit-combinations"
+        ],
+        "assetCount": 112,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png"
+        ]
+      },
+      {
+        "publicApi": "createGameboardBuilder",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay"
+        ],
+        "evidence": "Fixed SimpleRPG board starts from the public fluent builder.",
+        "pages": [
+          9
+        ],
+        "scenarioIds": [
+          "page-09-world-design-example"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "createGameboardLayoutArchetypeRegistry",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "seeded-generation"
+        ],
+        "evidence": "Packaged SimpleRPG usage creates a layout archetype registry in executable smoke.",
+        "pages": [
+          6
+        ],
+        "scenarioIds": [
+          "page-06-nature-usage"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "createGameboardLayoutFillRuleFromPiece",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "seeded-generation"
+        ],
+        "evidence": "Packaged SimpleRPG usage creates a piece-backed layout fill rule in executable smoke.",
+        "pages": [
+          2,
+          5,
+          6,
+          9,
+          10,
+          15,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-05-nature-contents",
+          "page-06-nature-usage",
+          "page-09-world-design-example",
+          "page-10-floating-islands",
+          "page-15-shipyard-harbors",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 77,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "createGameboardPlanFromRecipe",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage compiles a recipe into a concrete plan in executable smoke.",
+        "pages": [
+          2,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-07-water-usage",
+          "page-08-taller-hex-tiles",
+          "page-09-world-design-example",
+          "page-10-floating-islands",
+          "page-11-biomes",
+          "page-12-alternate-textures",
+          "page-13-transition-tiles",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 25,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "createGameboardPlanFromTiles",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage rebuilds a plan from explicit tiles in executable smoke.",
+        "pages": [
+          7,
+          9
+        ],
+        "scenarioIds": [
+          "page-07-water-usage",
+          "page-09-world-design-example"
+        ],
+        "assetCount": 2,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "createGameboardRuntimeFromScenario",
+        "mode": "packaged-scenario",
+        "modes": [
+          "packaged-scenario"
+        ],
+        "evidence": "Packaged SimpleRPG usage creates a runtime facade directly from the scenario JSON.",
+        "pages": [
+          9,
+          18
+        ],
+        "scenarioIds": [
+          "page-09-world-design-example",
+          "page-18-unit-combinations"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png"
+        ]
+      },
+      {
+        "publicApi": "createHexagonGameboardGrid",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage creates a Honeycomb hexagon grid in executable smoke.",
+        "pages": [
+          10
+        ],
+        "scenarioIds": [
+          "page-10-floating-islands"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png"
+        ]
+      },
+      {
+        "publicApi": "createManifestBundle",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "manifest-package"
+        ],
+        "evidence": "Packaged SimpleRPG usage bundles the FREE manifest in executable smoke.",
+        "pages": [
+          12
+        ],
+        "scenarioIds": [
+          "page-12-alternate-textures"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "createMedievalGameboardBlueprintPlan",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "blueprint-recipe"
+        ],
+        "evidence": "Packaged SimpleRPG usage compiles a blueprint plan in executable smoke.",
+        "pages": [
+          6,
+          10
+        ],
+        "scenarioIds": [
+          "page-06-nature-usage",
+          "page-10-floating-islands"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png"
+        ]
+      },
+      {
+        "publicApi": "createMedievalGameboardBlueprintRecipe",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "blueprint-recipe"
+        ],
+        "evidence": "Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke.",
+        "pages": [
+          5,
+          8,
+          11,
+          13
+        ],
+        "scenarioIds": [
+          "page-05-nature-contents",
+          "page-08-taller-hex-tiles",
+          "page-11-biomes",
+          "page-13-transition-tiles"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "createMedievalShowcaseBlueprintRecipe",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "blueprint-recipe"
+        ],
+        "evidence": "Packaged SimpleRPG usage compiles the showcase blueprint recipe in executable smoke.",
+        "pages": [
+          9,
+          13
+        ],
+        "scenarioIds": [
+          "page-09-world-design-example",
+          "page-13-transition-tiles"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "createSeededGameboardPlan",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "seeded-generation"
+        ],
+        "evidence": "Packaged SimpleRPG usage builds a seeded board in executable smoke.",
+        "pages": [
+          9
+        ],
+        "scenarioIds": [
+          "page-09-world-design-example"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "declareHexTile",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage declares a tile for registry analysis in executable smoke.",
+        "pages": [
+          13
+        ],
+        "scenarioIds": [
+          "page-13-transition-tiles"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "executeGameboardInteractionCommand",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay"
+        ],
+        "evidence": "SimpleRPG quest execution moves, interacts, attacks, and removes enemies through commands.",
+        "pages": [
+          17
+        ],
+        "scenarioIds": [
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png"
+        ]
+      },
+      {
+        "publicApi": "externalAssetSpawnOptions",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "compatibility-adapter"
+        ],
+        "evidence": "Packaged SimpleRPG usage converts compatibility analysis into spawn options in executable smoke.",
+        "pages": [
+          15
+        ],
+        "scenarioIds": [
+          "page-15-shipyard-harbors"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png"
+        ]
+      },
+      {
+        "publicApi": "factionBuildingAssetId",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage resolves a faction building asset id in executable smoke.",
+        "pages": [
+          2,
+          15,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-15-shipyard-harbors",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 108,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "flagAssetId",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage resolves a faction flag asset id in executable smoke.",
+        "pages": [
+          2,
+          5
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-05-nature-contents"
+        ],
+        "assetCount": 4,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "freeManifest",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "manifest-package"
+        ],
+        "evidence": "Packaged SimpleRPG usage reads the FREE manifest in executable smoke.",
+        "pages": [
+          1
+        ],
+        "scenarioIds": [
+          "page-01-overview-and-license"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "docs/assets/kaykit-guide/montage.png",
+          "docs/assets/kaykit-guide/pages/page-01.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addBridge",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a bridge beside the harbor approach.",
+        "pages": [
+          2,
+          7,
+          9
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-07-water-usage",
+          "page-09-world-design-example"
+        ],
+        "assetCount": 2,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addConstructionSite",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a staged worksite off the golden path.",
+        "pages": [
+          2,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 7,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addElevationRamp",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a ramp against an elevated tile.",
+        "pages": [
+          8,
+          10
+        ],
+        "scenarioIds": [
+          "page-08-taller-hex-tiles",
+          "page-10-floating-islands"
+        ],
+        "assetCount": 2,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addFactionBuilding",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed and packaged SimpleRPG boards place faction buildings.",
+        "pages": [
+          2,
+          15,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-15-shipyard-harbors",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 108,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addFlag",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a faction flag and runtime actors use flag assets.",
+        "pages": [
+          2,
+          5
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-05-nature-contents"
+        ],
+        "assetCount": 4,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addForest",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "seeded-generation",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed and seeded SimpleRPG boards include forests and tree scatter.",
+        "pages": [
+          5,
+          6,
+          9,
+          10
+        ],
+        "scenarioIds": [
+          "page-05-nature-contents",
+          "page-06-nature-usage",
+          "page-09-world-design-example",
+          "page-10-floating-islands"
+        ],
+        "assetCount": 12,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addFortification",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a town wall segment with enclosure metadata.",
+        "pages": [
+          2,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 11,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addHarbor",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "seeded-generation",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed and seeded SimpleRPG boards include a playable harbor/coast relationship.",
+        "pages": [
+          2,
+          5,
+          7,
+          15
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-05-nature-contents",
+          "page-07-water-usage",
+          "page-15-shipyard-harbors"
+        ],
+        "assetCount": 25,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addHill",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "seeded-generation",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed and seeded SimpleRPG boards include hill terrain and decorations.",
+        "pages": [
+          5,
+          6,
+          9,
+          10
+        ],
+        "scenarioIds": [
+          "page-05-nature-contents",
+          "page-06-nature-usage",
+          "page-09-world-design-example",
+          "page-10-floating-islands"
+        ],
+        "assetCount": 9,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addMountainStack",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "seeded-generation",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed, seeded, and packaged SimpleRPG boards place stacked mountains.",
+        "pages": [
+          5,
+          6,
+          8,
+          9,
+          10
+        ],
+        "scenarioIds": [
+          "page-05-nature-contents",
+          "page-06-nature-usage",
+          "page-08-taller-hex-tiles",
+          "page-09-world-design-example",
+          "page-10-floating-islands"
+        ],
+        "assetCount": 12,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addNature",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places standalone nature assets.",
+        "pages": [
+          5,
+          6,
+          9,
+          10
+        ],
+        "scenarioIds": [
+          "page-05-nature-contents",
+          "page-06-nature-usage",
+          "page-09-world-design-example",
+          "page-10-floating-islands"
+        ],
+        "assetCount": 42,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addNeutralStructure",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a neutral grain building.",
+        "pages": [
+          2,
+          7,
+          9,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-07-water-usage",
+          "page-09-world-design-example",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 21,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addProp",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG quest uses a registered crate prop as a passable actor target.",
+        "pages": [
+          2,
+          5,
+          15,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-05-nature-contents",
+          "page-15-shipyard-harbors",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 35,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addPropCluster",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a resource-cache cluster.",
+        "pages": [
+          2,
+          5,
+          15,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-05-nature-contents",
+          "page-15-shipyard-harbors",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 31,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addRiverPath",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board routes a curvy waterless river through the quest road.",
+        "pages": [
+          4,
+          7
+        ],
+        "scenarioIds": [
+          "page-04-river-variations",
+          "page-07-water-usage"
+        ],
+        "assetCount": 30,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addRoadPath",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "seeded-generation",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed, seeded, and packaged SimpleRPG boards use roads for movement routes.",
+        "pages": [
+          3,
+          9
+        ],
+        "scenarioIds": [
+          "page-03-road-variations",
+          "page-09-world-design-example"
+        ],
+        "assetCount": 15,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addSettlement",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a settlement home through the settlement alias.",
+        "pages": [
+          2,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 96,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addSiegeProjectile",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a catapult projectile beside the town wall.",
+        "pages": [
+          2,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 1,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addTransition",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a local-only texture transition and marks it EXTRA.",
+        "pages": [
+          11,
+          12,
+          13
+        ],
+        "scenarioIds": [
+          "page-11-biomes",
+          "page-12-alternate-textures",
+          "page-13-transition-tiles"
+        ],
+        "assetCount": 1,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addUnit",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places colored and neutral EXTRA unit parts.",
+        "pages": [
+          14,
+          16,
+          17,
+          18
+        ],
+        "scenarioIds": [
+          "page-14-units",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege",
+          "page-18-unit-combinations"
+        ],
+        "assetCount": 137,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.addUnitPreset",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board places a composed soldier preset.",
+        "pages": [
+          14,
+          15,
+          16,
+          17,
+          18
+        ],
+        "scenarioIds": [
+          "page-14-units",
+          "page-15-shipyard-harbors",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege",
+          "page-18-unit-combinations"
+        ],
+        "assetCount": 137,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.scatterDecorations",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "seeded-generation",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed and seeded SimpleRPG boards scatter decorations deterministically.",
+        "pages": [
+          5,
+          6,
+          9,
+          10
+        ],
+        "scenarioIds": [
+          "page-05-nature-contents",
+          "page-06-nature-usage",
+          "page-09-world-design-example",
+          "page-10-floating-islands"
+        ],
+        "assetCount": 42,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.setCoastEdges",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board marks the water edge as coast before adding a harbor.",
+        "pages": [
+          7,
+          15
+        ],
+        "scenarioIds": [
+          "page-07-water-usage",
+          "page-15-shipyard-harbors"
+        ],
+        "assetCount": 10,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.setElevation",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board raises a tile and then adds an elevation ramp.",
+        "pages": [
+          8,
+          10
+        ],
+        "scenarioIds": [
+          "page-08-taller-hex-tiles",
+          "page-10-floating-islands"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.setTerrain",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "seeded-generation",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed SimpleRPG board authors a full water row and seeded generation fills terrain.",
+        "pages": [
+          7,
+          9
+        ],
+        "scenarioIds": [
+          "page-07-water-usage",
+          "page-09-world-design-example"
+        ],
+        "assetCount": 2,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "GameboardBuilder.setTileAsset",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay",
+          "visual-coverage"
+        ],
+        "evidence": "Fixed and packaged SimpleRPG boards override authored tile assets and tags.",
+        "pages": [
+          7,
+          8,
+          9,
+          10
+        ],
+        "scenarioIds": [
+          "page-07-water-usage",
+          "page-08-taller-hex-tiles",
+          "page-09-world-design-example",
+          "page-10-floating-islands"
+        ],
+        "assetCount": 5,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-hex-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "inspectMedievalGameboardBlueprint",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "blueprint-recipe"
+        ],
+        "evidence": "Packaged SimpleRPG usage inspects a blueprint in executable smoke.",
+        "pages": [
+          6,
+          11
+        ],
+        "scenarioIds": [
+          "page-06-nature-usage",
+          "page-11-biomes"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-generated-piece-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "listCoastGuidePermutations",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage lists coast guide permutations in executable smoke.",
+        "pages": [
+          7,
+          15
+        ],
+        "scenarioIds": [
+          "page-07-water-usage",
+          "page-15-shipyard-harbors"
+        ],
+        "assetCount": 10,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "listKayKitAssetPublicTreatments",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage lists every KayKit asset public treatment in executable smoke.",
+        "pages": [
+          1
+        ],
+        "scenarioIds": [
+          "page-01-overview-and-license"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "docs/assets/kaykit-guide/montage.png",
+          "docs/assets/kaykit-guide/pages/page-01.png"
+        ]
+      },
+      {
+        "publicApi": "listKayKitGuideScenarios",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage lists every decomposed KayKit guide scenario in executable smoke.",
+        "pages": [
+          1,
+          19
+        ],
+        "scenarioIds": [
+          "page-01-overview-and-license",
+          "page-19-supporters-and-attribution"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "NOTICE.md",
+          "docs/assets/kaykit-guide/montage.png",
+          "docs/assets/kaykit-guide/pages/page-01.png",
+          "docs/assets/kaykit-guide/pages/page-19.png"
+        ]
+      },
+      {
+        "publicApi": "listPropClusterAssets",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage resolves prop-cluster assets in executable smoke.",
+        "pages": [
+          2,
+          5,
+          15,
+          16,
+          17
+        ],
+        "scenarioIds": [
+          "page-02-buildings-props-and-factions",
+          "page-05-nature-contents",
+          "page-15-shipyard-harbors",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 31,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png"
+        ]
+      },
+      {
+        "publicApi": "listRiverCrossingGuidePermutations",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage lists river crossing permutations in executable smoke.",
+        "pages": [
+          4,
+          7
+        ],
+        "scenarioIds": [
+          "page-04-river-variations",
+          "page-07-water-usage"
+        ],
+        "assetCount": 4,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "listRiverCurvyGuidePermutations",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage lists curvy river permutations in executable smoke.",
+        "pages": [
+          4,
+          7
+        ],
+        "scenarioIds": [
+          "page-04-river-variations",
+          "page-07-water-usage"
+        ],
+        "assetCount": 2,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "listRiverGuidePermutations",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage lists river permutations in executable smoke.",
+        "pages": [
+          4,
+          7
+        ],
+        "scenarioIds": [
+          "page-04-river-variations",
+          "page-07-water-usage"
+        ],
+        "assetCount": 24,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "listRoadGuidePermutations",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage lists road permutations in executable smoke.",
+        "pages": [
+          3,
+          9
+        ],
+        "scenarioIds": [
+          "page-03-road-variations",
+          "page-09-world-design-example"
+        ],
+        "assetCount": 15,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "medieval-hexagon-gameboard manifest",
+        "mode": "package-boundary",
+        "modes": [
+          "package-boundary",
+          "manifest-package"
+        ],
+        "evidence": "Package smoke validates the CLI manifest and packaged SimpleRPG imports together.",
+        "pages": [
+          12
+        ],
+        "scenarioIds": [
+          "page-12-alternate-textures"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "neutralUnitAssetId",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage resolves a neutral unit asset id in executable smoke.",
+        "pages": [
+          14,
+          16,
+          17,
+          18
+        ],
+        "scenarioIds": [
+          "page-14-units",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege",
+          "page-18-unit-combinations"
+        ],
+        "assetCount": 25,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png"
+        ]
+      },
+      {
+        "publicApi": "NOTICE.md",
+        "mode": "package-boundary",
+        "modes": [
+          "package-boundary",
+          "manifest-package"
+        ],
+        "evidence": "Release/package audits keep KayKit attribution with the SimpleRPG packaged smoke.",
+        "pages": [
+          19
+        ],
+        "scenarioIds": [
+          "page-19-supporters-and-attribution"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "NOTICE.md",
+          "docs/assets/kaykit-guide/pages/page-19.png"
+        ]
+      },
+      {
+        "publicApi": "package.json files",
+        "mode": "package-boundary",
+        "modes": [
+          "package-boundary",
+          "manifest-package"
+        ],
+        "evidence": "Package audit verifies exports, files, examples, and SimpleRPG package imports.",
+        "pages": [
+          19
+        ],
+        "scenarioIds": [
+          "page-19-supporters-and-attribution"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "NOTICE.md",
+          "docs/assets/kaykit-guide/pages/page-19.png"
+        ]
+      },
+      {
+        "publicApi": "planGameboardInteractionCommand",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay"
+        ],
+        "evidence": "Fixed SimpleRPG tests plan prop interaction and enemy attack commands.",
+        "pages": [
+          17
+        ],
+        "scenarioIds": [
+          "page-17-workshop-and-siege"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png"
+        ]
+      },
+      {
+        "publicApi": "recommendExternalAssetFacing",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "compatibility-adapter"
+        ],
+        "evidence": "Packaged SimpleRPG usage recommends external asset facing in executable smoke.",
+        "pages": [
+          16
+        ],
+        "scenarioIds": [
+          "page-16-stables-and-horses"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png"
+        ]
+      },
+      {
+        "publicApi": "selectCoastVariant",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage selects a coast variant in executable smoke.",
+        "pages": [
+          7,
+          15
+        ],
+        "scenarioIds": [
+          "page-07-water-usage",
+          "page-15-shipyard-harbors"
+        ],
+        "assetCount": 10,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "selectCoastVariantByLabel",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage selects a labeled coast variant in executable smoke.",
+        "pages": [
+          7,
+          15
+        ],
+        "scenarioIds": [
+          "page-07-water-usage",
+          "page-15-shipyard-harbors"
+        ],
+        "assetCount": 10,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "selectManifestAssets",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "manifest-package"
+        ],
+        "evidence": "Packaged SimpleRPG usage selects manifest assets in executable smoke.",
+        "pages": [
+          12
+        ],
+        "scenarioIds": [
+          "page-12-alternate-textures"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "selectRiverCrossingVariant",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage selects a river crossing variant in executable smoke.",
+        "pages": [
+          4,
+          7
+        ],
+        "scenarioIds": [
+          "page-04-river-variations",
+          "page-07-water-usage"
+        ],
+        "assetCount": 4,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "selectRiverVariant",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage selects a river variant in executable smoke.",
+        "pages": [
+          4,
+          7
+        ],
+        "scenarioIds": [
+          "page-04-river-variations",
+          "page-07-water-usage"
+        ],
+        "assetCount": 26,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "selectRiverVariantByLabel",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage selects a labeled river variant in executable smoke.",
+        "pages": [
+          4,
+          7
+        ],
+        "scenarioIds": [
+          "page-04-river-variations",
+          "page-07-water-usage"
+        ],
+        "assetCount": 24,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-harbor-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png"
+        ]
+      },
+      {
+        "publicApi": "selectRoadVariant",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage selects a road variant in executable smoke.",
+        "pages": [
+          3,
+          9
+        ],
+        "scenarioIds": [
+          "page-03-road-variations",
+          "page-09-world-design-example"
+        ],
+        "assetCount": 15,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "selectRoadVariantByLabel",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage selects a labeled road variant in executable smoke.",
+        "pages": [
+          3,
+          9
+        ],
+        "scenarioIds": [
+          "page-03-road-variations",
+          "page-09-world-design-example"
+        ],
+        "assetCount": 15,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "selectSpawnCoordinates",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage selects raw deterministic spawn coordinates in executable smoke.",
+        "pages": [
+          9
+        ],
+        "scenarioIds": [
+          "page-09-world-design-example"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-blueprint-builder-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-gameboard-recipe.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/free-seeded-gameboard.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-fixed-completed.png"
+        ]
+      },
+      {
+        "publicApi": "spawnGameboardActor",
+        "mode": "fixed-gameplay",
+        "modes": [
+          "fixed-gameplay"
+        ],
+        "evidence": "Fixed and seeded SimpleRPG fixtures spawn player, NPC, prop, and enemy actors.",
+        "pages": [
+          14,
+          16,
+          17,
+          18
+        ],
+        "scenarioIds": [
+          "page-14-units",
+          "page-16-stables-and-horses",
+          "page-17-workshop-and-siege",
+          "page-18-unit-combinations"
+        ],
+        "assetCount": 137,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/simple-rpg-seeded-completed.png"
+        ]
+      },
+      {
+        "publicApi": "textureFileName",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage resolves a texture filename in executable smoke.",
+        "pages": [
+          11,
+          12
+        ],
+        "scenarioIds": [
+          "page-11-biomes",
+          "page-12-alternate-textures"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "validateGameboardRecipe",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage validates a compiled recipe in executable smoke.",
+        "pages": [
+          11,
+          12,
+          13
+        ],
+        "scenarioIds": [
+          "page-11-biomes",
+          "page-12-alternate-textures",
+          "page-13-transition-tiles"
+        ],
+        "assetCount": 1,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "validateGameboardRecipeGeneration",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "Packaged SimpleRPG usage validates recipe generation config in executable smoke.",
+        "pages": [
+          13
+        ],
+        "scenarioIds": [
+          "page-13-transition-tiles"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      }
+    ]
   },
   "gaps": [],
   "releaseGateCommands": [
