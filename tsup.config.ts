@@ -30,7 +30,7 @@ export default defineConfig({
     runtime: 'src/runtime.ts',
     scenario: 'src/scenario/index.ts',
     selectors: 'src/selectors/index.ts',
-    simulation: 'src/simulation.ts',
+    simulation: 'src/simulation/index.ts',
     systems: 'src/systems.ts',
     three: 'src/three.ts',
     traits: 'src/traits/index.ts',

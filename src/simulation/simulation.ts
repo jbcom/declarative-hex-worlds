@@ -18,14 +18,14 @@ import {
   type GameboardInteractionCommandKind,
   type SpawnGameboardActorOptions,
   type UpdateGameboardActorOptions,
-} from './actors';
-import { hexKey, parseHexKey } from './coordinates';
+} from '../actors';
+import { hexKey, parseHexKey } from '../coordinates';
 import type {
   GameboardPlacementLayer,
   GameboardPlacementSpec,
   GameboardPlan,
   GameboardPlacementKind,
-} from './gameboard';
+} from '../gameboard';
 import {
   findPlacementEntity,
   PlacementState,
@@ -35,8 +35,8 @@ import {
   type PlacementStateValue,
   type SpawnGameboardPlacementOptions,
   type UpdateGameboardPlacementOptions,
-} from './koota';
-import { projectWorldToGameboardPlan } from './coordinates';
+} from '../koota';
+import { projectWorldToGameboardPlan } from '../coordinates';
 import {
   readGameboardQuests,
   type GameboardQuestMetadataValue,
@@ -44,16 +44,16 @@ import {
   type GameboardQuestObjectiveProgress,
   type GameboardQuestSnapshot,
   type GameboardQuestStatus,
-} from './quests';
-import { createGameboardPlanFromRecipe, type GameboardRecipePlanOptionsOverride } from './scenario';
-import type { GameboardRuleViolation } from './rules';
+} from '../quests';
+import { createGameboardPlanFromRecipe, type GameboardRecipePlanOptionsOverride } from '../scenario';
+import type { GameboardRuleViolation } from '../rules';
 import {
   createGameboardWorldFromScenario,
   resolveGameboardScenarioActors,
   type GameboardScenario,
   type GameboardScenarioActor,
   type GameboardScenarioRuntime,
-} from './scenario';
+} from '../scenario';
 import {
   runGameboardActorTargetInteraction,
   runGameboardInteraction,
@@ -67,7 +67,7 @@ import {
   type RunGameboardInteractionOptions,
   type RunGameboardSystemsOptions,
   type RunGameboardSystemsResult,
-} from './systems';
+} from '../systems';
 import {
   createGameboardInteractionHandlerPreset,
   isGameboardInteractionHandlerPreset,
@@ -77,13 +77,13 @@ import {
   type GameboardInteractionHandler,
   type GameboardInteractionHandlerEffect,
   type GameboardInteractionHandlerPreset,
-} from './commands';
-import type { GameboardMovementPathRequestOptions } from './movement';
+} from '../commands';
+import type { GameboardMovementPathRequestOptions } from '../movement';
 import type {
   GameboardPatrolRoutePlan,
   GameboardPatrolRouteSegment,
   GameboardPatrolRouteSet,
-} from './gameboard';
+} from '../gameboard';
 
 /**
  * Current JSON schema version for scenario simulation scripts and reports.
