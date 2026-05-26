@@ -59,7 +59,7 @@ describe('source ingestion', () => {
 
       expect(readFileSync(freeModulePath, 'utf8')).toContain('export const freeManifest: MedievalHexagonManifest');
       expect(readFileSync(extraModulePath, 'utf8')).toContain('export const extraManifest: MedievalHexagonManifest');
-      expect(readFileSync(extraModulePath, 'utf8')).toContain("from \"@jbcom/medieval-hexagon-gameboard\"");
+      expect(readFileSync(extraModulePath, 'utf8')).toContain("from '@jbcom/medieval-hexagon-gameboard'");
     } finally {
       rmSync(tempRoot, { recursive: true, force: true });
     }

@@ -61,12 +61,9 @@ function parseArgs(argv: string[]): ParsedArgs {
   if (!flags.source) {
     throw new Error('--source is required');
   }
-  if (!flags.package) {
-    throw new Error('--package is required');
-  }
   return {
     edition,
     source: flags.source,
-    packageRoot: flags.package,
+    packageRoot: flags.package ?? resolve(import.meta.dirname, '..'),
   };
 }

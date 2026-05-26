@@ -156,9 +156,13 @@ vite.config.ts.timestamp-*
 android
 ios
 
-# packages/medieval-hexagon-gameboard/assets/free/ is COMMITTED — it is the
-# curated FREE bundle the package publishes. The ignored references/ source
-# bundle is used only for local regeneration and EXTRA ingest.
+# assets/free/ GLTFs+bins+textures are NOT tracked. Per PRD §Phase RB
+# (bootstrap-not-bundle), the published tarball ships only the manifest.json
+# metadata; the actual GLTF tree is fetched at install time by the CLI
+# `bootstrap` subcommand. Local regeneration via `pnpm assets:free`
+# materializes them for testing but they stay out of git.
+assets/free/**
+!assets/free/manifest.json
 
 # Playwright
 playwright-report
