@@ -17,7 +17,7 @@ import {
   type NeutralStructureKind,
   type NeutralUnitPart,
   type PropAssetId,
-} from '../catalog';
+} from '../scenario';
 import {
   HEX_DIRECTIONS,
   coordinatesForShape,

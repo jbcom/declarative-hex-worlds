@@ -4,8 +4,8 @@
  *
  * @module
  */
-import { FACTIONS, TEXTURE_SETS, UNIT_STYLES } from './types';
-import type { AssetCategory, Faction, PackEdition, TextureSet, UnitStyle } from './types';
+import { FACTIONS, TEXTURE_SETS, UNIT_STYLES } from '../types';
+import type { AssetCategory, Faction, PackEdition, TextureSet, UnitStyle } from '../types';
 
 /** Base and support tile asset ids used by terrain helpers. */
 export const BASE_TILE_ASSET_IDS = [

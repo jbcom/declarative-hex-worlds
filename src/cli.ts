@@ -39,7 +39,7 @@ import {
   type MedievalGameboardBlueprintOptions,
   type MedievalGameboardBlueprintScenarioInspection,
   type MedievalGameboardBlueprintScenarioOptions,
-} from './blueprint';
+} from './scenario';
 import {
   describeKayKitGuideAssetCoverage,
   describeKayKitGuidePublicApiCoverage,
@@ -65,14 +65,14 @@ import {
   type KayKitGuideScenarioAssetRenderRequest,
   type KayKitGuideScenarioAssetUsage,
   type KayKitGuideScenarioCoverage,
-} from './catalog';
+} from './scenario';
 import {
   analyzeHexTileRegistry,
   createHexTileRegistry,
   createHexTileRegistryFromManifest,
   type HexTileDeclarationInput,
   type HexTileRegistry,
-} from './registry';
+} from './scenario';
 import { validateGameboardPlan, type GameboardPlanValidationConfig } from './rules';
 import {
   summarizeGameboardPlan,
@@ -80,7 +80,7 @@ import {
   type GameboardPlanSummary,
   type SummarizeGameboardPlanOptions,
 } from './gameboard';
-import { inspectGameboardRecipe, type GameboardRecipe } from './recipe';
+import { inspectGameboardRecipe, type GameboardRecipe } from './scenario';
 import {
   createGameboardWorldFromScenario,
   inspectGameboardScenario,

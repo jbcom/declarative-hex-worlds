@@ -15,7 +15,7 @@ import {
   type KayKitGuidePublicApiCoverage,
   type KayKitGuideRoleCoverage,
   type KayKitGuideScenario,
-} from './catalog';
+} from './scenario';
 import { freeManifest } from './manifest';
 import {
   inspectMedievalHexagonManifest,

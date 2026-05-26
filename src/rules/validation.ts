@@ -12,7 +12,7 @@ import {
   gameboardPlacementFootprintKeys,
   gameboardPlacementOccupancyGroup,
 } from '../gameboard';
-import type { HexTileDeclaration, HexTileRegistry } from '../registry';
+import type { HexTileDeclaration, HexTileRegistry } from '../scenario';
 import { rotateMask } from '../selectors';
 import type { HexCoordinates } from '../types';
 import type { GameboardRuleConfig, GameboardRuleViolation } from './rule-types';

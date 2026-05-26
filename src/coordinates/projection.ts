@@ -4,7 +4,7 @@
  *
  * @module
  */
-import { isKnownExtraAssetId } from '../catalog';
+import { isKnownExtraAssetId } from '../scenario';
 import { axialToWorld } from './grid';
 import type {
   GameboardPlacementKind,

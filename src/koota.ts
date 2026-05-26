@@ -14,7 +14,7 @@ import {
   type TraitRecord,
   type World,
 } from 'koota';
-import { isKnownExtraAssetId } from './catalog';
+import { isKnownExtraAssetId } from './scenario';
 import {
   GAMEBOARD_SCHEMA_VERSION,
   hexKey,

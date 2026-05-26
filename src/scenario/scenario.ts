@@ -10,21 +10,21 @@ import {
   spawnGameboardActor,
   type GameboardActorSnapshot,
   type SpawnGameboardActorOptions,
-} from './actors';
-import { hexKey, parseHexKey } from './coordinates';
+} from '../actors';
+import { hexKey, parseHexKey } from '../coordinates';
 import {
   summarizeGameboardPlan,
   type GameboardPlan,
   type GameboardPlanSummary,
   type SummarizeGameboardPlanOptions,
-} from './gameboard';
-import { createGameboardWorld } from './koota';
-import { getManifestAsset } from './manifest';
-import { setGameboardMovementAgent, type SetGameboardMovementAgentOptions } from './movement';
+} from '../gameboard';
+import { createGameboardWorld } from '../koota';
+import { getManifestAsset } from '../manifest';
+import { setGameboardMovementAgent, type SetGameboardMovementAgentOptions } from '../movement';
 import {
   setGameboardPatrolAgent,
   type SetGameboardPatrolAgentOptions,
-} from './patrol';
+} from '../patrol';
 import {
   planGameboardPatrolRoutes,
   planGameboardSpawnGroups,
@@ -33,20 +33,20 @@ import {
   type GameboardPatrolRouteSet,
   type GameboardSpawnGroupOptions,
   type GameboardSpawnGroupPlan,
-} from './gameboard';
+} from '../gameboard';
 import {
   readGameboardQuests,
   spawnGameboardQuest,
   type GameboardQuestDefinition,
   type GameboardQuestSnapshot,
-} from './quests';
+} from '../quests';
 import {
   createGameboardPlanFromRecipe,
   type GameboardRecipe,
   type GameboardRecipePlanOptionsOverride,
 } from './recipe';
-import type { GameboardRuleViolation } from './rules';
-import { validateGameboardPlan, type GameboardPlanValidationConfig } from './rules';
+import type { GameboardRuleViolation } from '../rules';
+import { validateGameboardPlan, type GameboardPlanValidationConfig } from '../rules';
 
 /** Current schema version for serialized scenario files. */
 export const GAMEBOARD_SCENARIO_SCHEMA_VERSION = '1.0.0';

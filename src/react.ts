@@ -186,7 +186,7 @@ import {
 import type { Entity, World } from 'koota';
 import type { SpawnLocation } from './coordinates';
 import type { HexCoordinates } from './types';
-import type { GameboardRecipe, GameboardRecipePlanOptionsOverride } from './recipe';
+import type { GameboardRecipe, GameboardRecipePlanOptionsOverride } from './scenario';
 import type { GameboardScenario } from './scenario';
 
 export { MedievalGameboardProvider, useWorld as useGameboardWorld };

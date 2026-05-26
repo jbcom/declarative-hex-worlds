@@ -13,7 +13,7 @@ import {
   hexLine,
   hexRange,
   neighbor,
-} from './coordinates';
+} from '../coordinates';
 import type {
   GameboardPlan,
   GameboardPlanOptions,
@@ -26,7 +26,7 @@ import type {
   PropClusterOptions,
   RoadSlope,
   SettlementBuilding,
-} from './gameboard';
+} from '../gameboard';
 import {
   createGameboardPlanFromRecipe,
   createGameboardRecipe,
@@ -36,7 +36,7 @@ import {
 import {
   createSeededGameboardDensityFillRules,
   type SeededGameboardLayoutDensityOptions,
-} from './rules';
+} from '../rules';
 import {
   createGameboardScenario,
   createGameboardWorldFromScenario,
@@ -47,7 +47,7 @@ import {
   type GameboardScenarioValidationConfig,
   type GameboardScenarioValidationResult,
 } from './scenario';
-import type { Faction, GameboardShape, HexCoordinates, HexEdgeIndex, TextureSet } from './types';
+import type { Faction, GameboardShape, HexCoordinates, HexEdgeIndex, TextureSet } from '../types';
 
 /** Texture-set fill target for authored or generated biome regions. */
 export interface MedievalBiomeFillSpec {

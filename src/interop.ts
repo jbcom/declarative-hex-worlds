@@ -19,7 +19,7 @@ import {
   gameboardPlacementOccupancyGroup,
 } from './gameboard';
 import type { GameboardQuestObjective, GameboardQuestSnapshot } from './quests';
-import { createGameboardPlanFromRecipe } from './recipe';
+import { createGameboardPlanFromRecipe } from './scenario';
 import {
   resolveGameboardScenarioActors,
   type GameboardScenario,

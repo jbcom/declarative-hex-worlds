@@ -45,7 +45,7 @@ import {
   type GameboardQuestSnapshot,
   type GameboardQuestStatus,
 } from './quests';
-import { createGameboardPlanFromRecipe, type GameboardRecipePlanOptionsOverride } from './recipe';
+import { createGameboardPlanFromRecipe, type GameboardRecipePlanOptionsOverride } from './scenario';
 import type { GameboardRuleViolation } from './rules';
 import {
   createGameboardWorldFromScenario,

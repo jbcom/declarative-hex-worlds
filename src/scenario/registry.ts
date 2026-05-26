@@ -10,13 +10,13 @@ import type {
   GameboardPlacementLayer,
   GameboardTerrain,
   HexRotationSteps,
-} from './gameboard';
+} from '../gameboard';
 import {
   KAYKIT_HEX_GEOMETRY,
   type HexGeometry,
   rowSpacingForGeometry,
-} from './coordinates';
-import { COAST_VARIANTS, RIVER_VARIANTS, ROAD_VARIANTS, edgeMask, rotateMask } from './selectors';
+} from '../coordinates';
+import { COAST_VARIANTS, RIVER_VARIANTS, ROAD_VARIANTS, edgeMask, rotateMask } from '../selectors';
 import type {
   AssetBounds,
   HexCoordinates,
@@ -24,7 +24,7 @@ import type {
   MedievalHexagonAsset,
   MedievalHexagonManifest,
   TextureSet,
-} from './types';
+} from '../types';
 
 /** Describes how a registered tile-like declaration participates in board construction. */
 export type TileDeclarationRole =

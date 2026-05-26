@@ -340,7 +340,7 @@ export {
   renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
   textureFileName,
-} from './catalog';
+} from './scenario';
 export type {
   BaseTileAssetId,
   CoastTileAssetId,
@@ -376,7 +376,7 @@ export type {
   RiverTileAssetId,
   RoadTileAssetId,
   UnitPart,
-} from './catalog';
+} from './scenario';
 export {
   GAMEBOARD_SCHEMA_VERSION,
   GameboardBuilder,
@@ -459,7 +459,7 @@ export {
   mergeGameboardRecipes,
   validateGameboardRecipeGeneration,
   validateGameboardRecipe,
-} from './recipe';
+} from './scenario';
 export type {
   AddConstructionSiteRecipeStep,
   AddFactionBuildingRecipeStep,
@@ -494,7 +494,7 @@ export type {
   SetTerrainRecipeStep,
   SetTextureSetRecipeStep,
   SetTileAssetRecipeStep,
-} from './recipe';
+} from './scenario';
 export {
   createMedievalGameboardBlueprintScenario,
   createMedievalGameboardWorldFromBlueprint,
@@ -503,7 +503,7 @@ export {
   createMedievalShowcaseBlueprintRecipe,
   inspectMedievalGameboardBlueprint,
   inspectMedievalGameboardBlueprintScenario,
-} from './blueprint';
+} from './scenario';
 export type {
   MedievalBiomeFillSpec,
   MedievalGameboardBlueprintInspection,
@@ -518,7 +518,7 @@ export type {
   MedievalRoadNetworkSpec,
   MedievalTownSpec,
   MedievalTransitionPolicy,
-} from './blueprint';
+} from './scenario';
 export {
   createGameboardRuntime,
   createGameboardRuntimeFromRecipe,
@@ -547,7 +547,7 @@ export {
   createHexTileRegistry,
   createHexTileRegistryFromManifest,
   declareHexTile,
-} from './registry';
+} from './scenario';
 export type {
   ApplyTileDeclarationOptions,
   HexTileDeclaration,
@@ -559,7 +559,7 @@ export type {
   TileGeometryAnalysis,
   TileRegistryAnalysis,
   TileStackRule,
-} from './registry';
+} from './scenario';
 export {
   createGameboardInteropSnapshotIndex,
   createGameboardInteropSnapshot,

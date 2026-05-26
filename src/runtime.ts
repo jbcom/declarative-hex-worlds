@@ -169,7 +169,7 @@ import {
   createGameboardPlanFromRecipe,
   type GameboardRecipe,
   type GameboardRecipePlanOptionsOverride,
-} from './recipe';
+} from './scenario';
 import {
   createSeededGameboardPieceFillRules,
   inspectSeededGameboardPieceFills,

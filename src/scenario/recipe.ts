@@ -4,7 +4,7 @@
  *
  * @module
  */
-import { createGameboardBuilder, type GameboardBuilder } from './gameboard';
+import { createGameboardBuilder, type GameboardBuilder } from '../gameboard';
 import type {
   BridgeOptions,
   ConstructionSiteOptions,
@@ -32,8 +32,8 @@ import type {
   TransitionPlacementOptions,
   UnitPlacementOptions,
   UnitPresetOptions,
-} from './gameboard';
-import { createGameboardWorld } from './koota';
+} from '../gameboard';
+import { createGameboardWorld } from '../koota';
 import {
   createGameboardLayoutArchetypeRegistry,
   spawnGameboardLayoutFill,
@@ -42,20 +42,20 @@ import {
   type GameboardLayoutArchetypeRegistry,
   type GameboardLayoutFillRule,
   type GameboardLayoutPreference,
-} from './coordinates';
+} from '../coordinates';
 import {
   createGameboardPieceRegistry,
   type GameboardPieceDeclarationInput,
   type GameboardPieceRegistry,
-} from './pieces';
+} from '../pieces';
 import {
   createSeededGameboardPieceFillRules,
   type SeededGameboardPieceFillOptions,
-} from './rules';
-import { projectWorldToGameboardPlan } from './coordinates';
-import type { GameboardRuleViolation } from './rules';
-import type { Faction, HexCoordinates, HexEdgeIndex, TextureSet } from './types';
-import { validateGameboardPlan, type GameboardPlanValidationConfig } from './rules';
+} from '../rules';
+import { projectWorldToGameboardPlan } from '../coordinates';
+import type { GameboardRuleViolation } from '../rules';
+import type { Faction, HexCoordinates, HexEdgeIndex, TextureSet } from '../types';
+import { validateGameboardPlan, type GameboardPlanValidationConfig } from '../rules';
 
 /** Current schema version for serialized gameboard recipes. */
 export const GAMEBOARD_RECIPE_SCHEMA_VERSION = '1.0.0';

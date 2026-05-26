@@ -5,7 +5,7 @@
  * @module
  */
 import seedrandom from 'seedrandom';
-import { coloredUnitAssetId, factionBuildingAssetId } from '../catalog';
+import { coloredUnitAssetId, factionBuildingAssetId } from '../scenario';
 import {
   containsHex,
   coordinatesForShape,
