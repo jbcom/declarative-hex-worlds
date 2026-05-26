@@ -183,6 +183,8 @@
     "assets/free",
     "docs/showcases",
     "dist",
+    "!dist/**/*.map",
+    "!dist/**/*.d.ts.map",
     "examples/*.json",
     "LICENSE",
     "README.md",

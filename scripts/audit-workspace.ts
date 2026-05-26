@@ -124,7 +124,17 @@ assert(
   'test:ci must delegate to pnpm verify (single source of truth)'
 );
 
-const expectedFiles = ['assets/free', 'docs/showcases', 'dist', 'examples/*.json', 'LICENSE', 'README.md', 'NOTICE.md'];
+const expectedFiles = [
+  'assets/free',
+  'docs/showcases',
+  'dist',
+  '!dist/**/*.map',
+  '!dist/**/*.d.ts.map',
+  'examples/*.json',
+  'LICENSE',
+  'README.md',
+  'NOTICE.md',
+];
 assertEqualList(packageJson.files ?? [], expectedFiles, 'files allowlist');
 
 assert(tsconfig.extends === './tsconfig.base.json', 'tsconfig must extend ./tsconfig.base.json');

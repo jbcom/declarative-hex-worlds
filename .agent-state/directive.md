@@ -137,9 +137,9 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 - [ ] **C1** — **S-H1**: Add `safeResolveOutput(value, outRoot=cwd())` helper; refactor all 40+ CLI `--out*` write sites in `cli.ts` to use it. Require explicit `--force` for `extract`'s `rmSync` destination; refuse to wipe non-empty dirs without `--force`.
 - [ ] **C2** — **S-H2**: Harden `listFiles` in `ingest.ts:310` — skip `entry.isSymbolicLink()`, verify `realpathSync(child).startsWith(realRoot)` before descending. Cycle-safe.
 - [ ] **C3** — **S-M1**: Prototype-pollution guard in `readPieceSourceRoots`; return `Object.create(null)`-backed map; use `JSON.parse` reviver to strip `__proto__`.
-- [ ] **C4** — **S-M2**: Fix `extract-kaykit-guide.ts:129` `sh -c` quoting via positional args.
+- [x] **C4** ✅ commit b3837f0 (2026-05-26) — **S-M2**: Fix `extract-kaykit-guide.ts:129` `sh -c` quoting via positional args.
 - [ ] **C5** — **S-M4**: Normalize CLI error messages to relative paths via `relative(cwd, resolve(value))`.
-- [ ] **C6** — **S-M5**: Gate full stack traces behind `MEDIEVAL_HEXAGON_DEBUG=1`; keep terse default.
+- [x] **C6** ✅ commit 07d4b72 (2026-05-26) — **S-M5**: Gate full stack traces behind `MEDIEVAL_HEXAGON_DEBUG=1`; keep terse default.
 - [ ] **C7** — **S-M6**: Block source-map publish via `"!dist/**/*.map"` in `files` or `sourcemap: false` for publish build.
 
 ### Phase D — architectural debt (publish-blocking)

@@ -58,7 +58,17 @@ const workspacePackageJson = packageJson;
 const freeManifest = JSON.parse(readFileSync(join(packageRoot, 'assets/free/manifest.json'), 'utf8')) as FreeManifestAttribution;
 const packedConsumerSmoke = readFileSync(join(workspaceRoot, 'scripts/smoke-packed-consumer.ts'), 'utf8');
 const forbiddenMetadataPattern = /references|\/Volumes\/home|kenney_castle|KayKit_Adventurers/;
-const expectedFiles = ['assets/free', 'docs/showcases', 'dist', 'examples/*.json', 'LICENSE', 'README.md', 'NOTICE.md'];
+const expectedFiles = [
+  'assets/free',
+  'docs/showcases',
+  'dist',
+  '!dist/**/*.map',
+  '!dist/**/*.d.ts.map',
+  'examples/*.json',
+  'LICENSE',
+  'README.md',
+  'NOTICE.md',
+];
 const allowedPackRoots = ['assets/free/', 'docs/showcases/', 'dist/', 'examples/'];
 const allowedPackFiles = new Set(['package.json', 'LICENSE', 'README.md', 'NOTICE.md']);
 const packageShowcaseArtifactPrefix = '/';
