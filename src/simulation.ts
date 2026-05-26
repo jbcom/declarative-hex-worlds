@@ -46,7 +46,7 @@ import {
   type GameboardQuestStatus,
 } from './quests';
 import { createGameboardPlanFromRecipe, type GameboardRecipePlanOptionsOverride } from './recipe';
-import type { GameboardRuleViolation } from './rule-types';
+import type { GameboardRuleViolation } from './rules';
 import {
   createGameboardWorldFromScenario,
   resolveGameboardScenarioActors,

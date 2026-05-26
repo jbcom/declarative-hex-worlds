@@ -45,8 +45,8 @@ import {
   type GameboardRecipe,
   type GameboardRecipePlanOptionsOverride,
 } from './recipe';
-import type { GameboardRuleViolation } from './rule-types';
-import { validateGameboardPlan, type GameboardPlanValidationConfig } from './validation';
+import type { GameboardRuleViolation } from './rules';
+import { validateGameboardPlan, type GameboardPlanValidationConfig } from './rules';
 
 /** Current schema version for serialized scenario files. */
 export const GAMEBOARD_SCENARIO_SCHEMA_VERSION = '1.0.0';

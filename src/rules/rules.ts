@@ -5,7 +5,7 @@
  * @module
  */
 import seedrandom from 'seedrandom';
-import { coloredUnitAssetId, factionBuildingAssetId } from './catalog';
+import { coloredUnitAssetId, factionBuildingAssetId } from '../catalog';
 import {
   containsHex,
   coordinatesForShape,
@@ -13,7 +13,7 @@ import {
   hexDistance,
   hexKey,
   neighbor,
-} from './coordinates';
+} from '../coordinates';
 import {
   createGameboardBuilder,
   type GameboardPlan,
@@ -21,8 +21,8 @@ import {
   type GameboardShape,
   type HarborKind,
   type SettlementBuilding,
-} from './gameboard';
-import { createGameboardWorld } from './koota';
+} from '../gameboard';
+import { createGameboardWorld } from '../koota';
 import {
   analyzeGameboardLayoutFill,
   createGameboardLayoutArchetypeRegistry,
@@ -31,7 +31,7 @@ import {
   type GameboardLayoutArchetypeRegistry,
   type GameboardLayoutFillAnalysis,
   type GameboardLayoutFillRule,
-} from './coordinates';
+} from '../coordinates';
 import {
   createGameboardLayoutFillRuleFromPieces,
   createGameboardLayoutFillRulesFromRegistry,
@@ -40,13 +40,13 @@ import {
   type GameboardPieceDeclaration,
   type GameboardPieceRegistry,
   type GameboardPieceRegistrySelection,
-} from './pieces';
-import type { SpawnGameboardPlacementOptions } from './koota';
-import { projectWorldToGameboardPlan } from './coordinates';
-import type { Faction, HexCoordinates, HexEdgeIndex } from './types';
+} from '../pieces';
+import type { SpawnGameboardPlacementOptions } from '../koota';
+import { projectWorldToGameboardPlan } from '../coordinates';
+import type { Faction, HexCoordinates, HexEdgeIndex } from '../types';
 import type { World } from 'koota';
 
-export { projectWorldToGameboardPlan, readDecomposedTileSpecs } from './coordinates';
+export { projectWorldToGameboardPlan, readDecomposedTileSpecs } from '../coordinates';
 export type { GameboardRuleConfig, GameboardRuleViolation, RuleSeverity } from './rule-types';
 export {
   canPlaceHarborAt,
@@ -54,7 +54,7 @@ export {
   setTileElevation,
   setTileTerrain,
   validateGameboardRules,
-} from './world-rules';
+} from '../world-rules';
 
 /** Built-in seeded fill presets for common board decoration and encounter roles. */
 export type SeededGameboardDensityPresetId = 'trees' | 'rocks' | 'props' | 'harbors' | 'landmarks' | 'units';

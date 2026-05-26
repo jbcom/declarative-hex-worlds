@@ -53,9 +53,9 @@ import {
   type SeededGameboardPieceFillOptions,
 } from './rules';
 import { projectWorldToGameboardPlan } from './coordinates';
-import type { GameboardRuleViolation } from './rule-types';
+import type { GameboardRuleViolation } from './rules';
 import type { Faction, HexCoordinates, HexEdgeIndex, TextureSet } from './types';
-import { validateGameboardPlan, type GameboardPlanValidationConfig } from './validation';
+import { validateGameboardPlan, type GameboardPlanValidationConfig } from './rules';
 
 /** Current schema version for serialized gameboard recipes. */
 export const GAMEBOARD_RECIPE_SCHEMA_VERSION = '1.0.0';

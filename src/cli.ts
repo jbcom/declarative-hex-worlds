@@ -73,7 +73,7 @@ import {
   type HexTileDeclarationInput,
   type HexTileRegistry,
 } from './registry';
-import { validateGameboardPlan, type GameboardPlanValidationConfig } from './validation';
+import { validateGameboardPlan, type GameboardPlanValidationConfig } from './rules';
 import {
   summarizeGameboardPlan,
   type GameboardPlan,

@@ -1024,8 +1024,8 @@ export type {
   GameboardPatrolSimulationStepsPlan,
   RunGameboardScenarioSimulationOptions,
 } from './simulation';
-export { canStackInPlan, validateGameboardPlan } from './validation';
-export type { GameboardPlanValidationConfig } from './validation';
+export { canStackInPlan, validateGameboardPlan } from './rules';
+export type { GameboardPlanValidationConfig } from './rules';
 export {
   COAST_VARIANTS,
   HEX_EDGE_COUNT,

@@ -4,17 +4,17 @@
  *
  * @module
  */
-import { hexKey, neighbor, oppositeEdge } from './coordinates';
-import type { GameboardPlan, GameboardPlacementSpec, GameboardTileSpec } from './gameboard';
-import { getManifestAsset, type ManifestAssetCatalog } from './manifest';
+import { hexKey, neighbor, oppositeEdge } from '../coordinates';
+import type { GameboardPlan, GameboardPlacementSpec, GameboardTileSpec } from '../gameboard';
+import { getManifestAsset, type ManifestAssetCatalog } from '../manifest';
 import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
   gameboardPlacementOccupancyGroup,
-} from './gameboard';
-import type { HexTileDeclaration, HexTileRegistry } from './registry';
-import { rotateMask } from './selectors';
-import type { HexCoordinates } from './types';
+} from '../gameboard';
+import type { HexTileDeclaration, HexTileRegistry } from '../registry';
+import { rotateMask } from '../selectors';
+import type { HexCoordinates } from '../types';
 import type { GameboardRuleConfig, GameboardRuleViolation } from './rule-types';
 
 /** Validation config for complete gameboard plans. */

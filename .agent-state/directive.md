@@ -52,7 +52,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - [x] **R2f** — ✅ commit (2026-05-26): `src/selectors.ts` → `src/selectors/{selectors,index}.ts`. Tagged `@internal`.
   - [x] **R2g** — ✅ commit (2026-05-26): `src/commands.ts` → `src/commands/{commands,index}.ts`. Tagged `@internal`.
   - [x] **R2h** — ✅ commit (2026-05-26): `gameboard.ts`+`occupancy.ts`+`navigation.ts` → `src/gameboard/{gameboard,occupancy,navigation,index}.ts`. External callers and commands/commands.ts rewritten to the barrel.
-  - **R2i** — `pieces/`
+  - [x] **R2i** — ✅ commit (2026-05-26): `src/pieces.ts` → `src/pieces/{pieces,index}.ts`.
   - **R2j** — `rules/` (rules.ts + rule-types.ts + validation.ts; world-rules logic moves into `systems/`)
   - **R2k** — `scenario/` (scenario + recipe + blueprint + catalog + registry)
   - **R2l** — `simulation/` (engine + script + report + assertions — Epic D3 decomposition)

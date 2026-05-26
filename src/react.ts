@@ -62,7 +62,7 @@ import {
   type TileTerrainValue,
 } from './koota';
 import { projectWorldToGameboardPlan } from './coordinates';
-import type { GameboardRuleConfig, GameboardRuleViolation } from './rule-types';
+import type { GameboardRuleConfig, GameboardRuleViolation } from './rules';
 import { validateGameboardRules } from './world-rules';
 import {
   IsMoving,
