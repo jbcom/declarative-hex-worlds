@@ -39,6 +39,7 @@ export default defineConfig({
     validation: 'src/rules/validation.ts',
     'world-rules': 'src/systems/world-rules-system.ts',
     cli: 'src/cli/cli.ts',
+    bootstrap: 'src/bootstrap/index.ts',
     ingest: 'src/ingest/index.ts',
     'manifest/free': 'src/manifest/free.ts',
     'manifest/schema': 'src/manifest/schema.ts',

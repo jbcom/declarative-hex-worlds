@@ -15,6 +15,38 @@ export {
 } from './errors';
 export { freeManifest, loadFreeManifest } from './manifest';
 export {
+  KAYKIT_MEDIEVAL_EXTRA_LAYOUT,
+  KAYKIT_MEDIEVAL_FREE_LAYOUT,
+  KAYKIT_UPSTREAM_LAYOUTS,
+  detectKayKitLayout,
+  expectedTexturePaths,
+  kayKitLayoutForEdition,
+} from './manifest';
+export type { KayKitUpstreamLayout } from './manifest';
+export {
+  KAYKIT_BOOTSTRAP_GLTF_RELATIVE,
+  KAYKIT_BOOTSTRAP_ROOT,
+  KAYKIT_BOOTSTRAP_SIDECAR,
+  KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE,
+  KAYKIT_FREE_GITHUB_DEFAULT_REF,
+  KAYKIT_FREE_GITHUB_OWNER,
+  KAYKIT_FREE_GITHUB_REPO,
+  bootstrapKayKitAssets,
+  kayKitFreeGithubTarballUrl,
+  resolveBootstrapGltfRoot,
+  resolveBootstrapSidecarPath,
+  resolveBootstrapTargetRoot,
+  verifyBootstrap,
+} from './bootstrap';
+export type {
+  BootstrapFileEntry,
+  BootstrapKayKitAssetsOptions,
+  BootstrapKayKitAssetsSource,
+  BootstrapResult,
+  BootstrapSidecar,
+  BootstrapVerificationReport,
+} from './bootstrap';
+export {
   ASSET_CATEGORIES,
   FACTIONS,
   KAYKIT_PACK_VERSION,
