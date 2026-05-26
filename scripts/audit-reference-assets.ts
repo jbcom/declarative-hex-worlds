@@ -5,11 +5,11 @@ import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
   renderKayKitGuideScenarioCoverageMarkdown,
-} from '../packages/medieval-hexagon-gameboard/src/catalog';
-import { generateManifestFromSource, validateSourceRoot } from '../packages/medieval-hexagon-gameboard/src/ingest';
-import { freeManifest } from '../packages/medieval-hexagon-gameboard/src/manifest/free';
-import { validateMedievalHexagonManifest } from '../packages/medieval-hexagon-gameboard/src/manifest/schema';
-import type { MedievalHexagonManifest, PackEdition } from '../packages/medieval-hexagon-gameboard/src/types';
+} from '../src/catalog';
+import { generateManifestFromSource, validateSourceRoot } from '../src/ingest';
+import { freeManifest } from '../src/manifest/free';
+import { validateMedievalHexagonManifest } from '../src/manifest/schema';
+import type { MedievalHexagonManifest, PackEdition } from '../src/types';
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const failures: string[] = [];

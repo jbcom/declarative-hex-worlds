@@ -29,12 +29,9 @@ const releasePleaseConfig = readJson(files.releasePleaseConfig) as {
   packages?: Record<string, { component?: string }>;
 };
 const releasePleaseManifest = readJson(files.releasePleaseManifest) as Record<string, string>;
-const workspacePackageJson = readJson('package.json') as {
+const packageJson = readJson('package.json') as {
   engines?: Record<string, string>;
   packageManager?: string;
-};
-const packageJson = readJson('packages/medieval-hexagon-gameboard/package.json') as {
-  engines?: Record<string, string>;
 };
 
 requireIncludes(ci, 'ci.yml', [
@@ -108,24 +105,21 @@ requirePinnedActions(release, files.release);
 requirePinnedActions(cd, files.cd);
 requirePinnedActions(automerge, files.automerge);
 
-const releasePackage = releasePleaseConfig.packages?.['packages/medieval-hexagon-gameboard'];
+const releasePackage = releasePleaseConfig.packages?.['.'];
 if (releasePackage?.component !== '@jbcom/medieval-hexagon-gameboard') {
-  failures.push('release-please config must target @jbcom/medieval-hexagon-gameboard');
+  failures.push('release-please config must target @jbcom/medieval-hexagon-gameboard at the root');
 }
-if (releasePleaseManifest['packages/medieval-hexagon-gameboard'] !== '0.1.0') {
-  failures.push('release-please manifest must start packages/medieval-hexagon-gameboard at 0.1.0');
+if (releasePleaseManifest['.'] !== '0.1.0') {
+  failures.push('release-please manifest must start "." at 0.1.0');
 }
-if (workspacePackageJson.packageManager !== 'pnpm@9.15.9') {
-  failures.push('workspace packageManager must pin pnpm@9.15.9');
-}
-if (workspacePackageJson.engines?.node !== '>=22') {
-  failures.push('workspace package engines.node must be >=22');
-}
-if (workspacePackageJson.engines?.pnpm !== '>=9 <10') {
-  failures.push('workspace package engines.pnpm must be >=9 <10');
+if (packageJson.packageManager !== 'pnpm@9.15.9') {
+  failures.push('packageManager must pin pnpm@9.15.9');
 }
 if (packageJson.engines?.node !== '>=22') {
-  failures.push('package engines.node must be >=22');
+  failures.push('engines.node must be >=22');
+}
+if (packageJson.engines?.pnpm !== '>=9') {
+  failures.push('engines.pnpm must be >=9');
 }
 
 if (failures.length > 0) {

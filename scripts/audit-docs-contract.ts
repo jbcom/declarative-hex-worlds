@@ -3,7 +3,7 @@ import { basename, resolve } from 'node:path';
 import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
-} from '../packages/medieval-hexagon-gameboard/src/catalog';
+} from '../src/catalog';
 
 type PillarStatus = 'draft' | 'implemented' | 'verified';
 
@@ -20,7 +20,7 @@ const workspaceRoot = resolve(import.meta.dirname, '..');
 const pillarsDir = resolve(workspaceRoot, 'docs/pillars');
 const simpleRpgExamplePath = resolve(
   workspaceRoot,
-  'packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts'
+  'examples/simple-rpg-usage.ts'
 );
 const simpleRpgExecutableApiCount = extractStringArrayConst(
   readFileSync(simpleRpgExamplePath, 'utf8'),
@@ -31,7 +31,7 @@ const kayKitPublicTreatmentCount = listKayKitAssetPublicTreatments().length;
 const kayKitGuideScenarioCount = listKayKitGuideScenarios().length;
 const simpleRpgCoverageDocPaths = [
   'README.md',
-  'packages/medieval-hexagon-gameboard/README.md',
+  '/README.md',
   'docs/pillars/05-koota-runtime-rules.md',
   'docs/guides/recipes-scenarios-and-simulation.md',
 ] as const;
@@ -134,7 +134,7 @@ function auditImplementedPillarLinks(label: string, frontmatter: PillarFrontmatt
     'implementation_links',
     frontmatter.implementation_links,
     (path) =>
-      path.startsWith('packages/medieval-hexagon-gameboard/src/') ||
+      path.startsWith('src/') ||
       path.startsWith('docs/') ||
       path.startsWith('scripts/'),
     'a package source, docs, or script implementation path'
@@ -144,7 +144,7 @@ function auditImplementedPillarLinks(label: string, frontmatter: PillarFrontmatt
     'test_links',
     frontmatter.test_links,
     (path) =>
-      path.startsWith('packages/medieval-hexagon-gameboard/tests/') || path.startsWith('scripts/'),
+      path.startsWith('tests/') || path.startsWith('scripts/'),
     'a package test or script audit path'
   );
 }

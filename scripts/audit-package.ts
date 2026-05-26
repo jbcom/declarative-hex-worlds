@@ -6,9 +6,9 @@ import ts from 'typescript';
 import {
   analyzeScreenshot,
   validateScreenshot,
-} from '../packages/medieval-hexagon-gameboard/tests/scripts/screenshot-quality';
-import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../packages/medieval-hexagon-gameboard/src/coverage';
-import { KAYKIT_ATTRIBUTION } from '../packages/medieval-hexagon-gameboard/src/manifest/schema';
+} from '../tests/scripts/screenshot-quality';
+import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../src/coverage';
+import { KAYKIT_ATTRIBUTION } from '../src/manifest/schema';
 
 interface PackageJson {
   bin?: Record<string, string>;
@@ -49,19 +49,19 @@ interface FreeManifestAttribution {
 }
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
-const workspacePackageJsonPath = join(workspaceRoot, 'package.json');
-const workspacePackageJson = JSON.parse(readFileSync(workspacePackageJsonPath, 'utf8')) as PackageJson;
-const packageRoot = join(workspaceRoot, 'packages/medieval-hexagon-gameboard');
+const packageRoot = workspaceRoot;
 const packageSrcRoot = join(packageRoot, 'src');
 const packageJsonPath = join(packageRoot, 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as PackageJson;
+// Post-restructure: workspace and package are the same single manifest.
+const workspacePackageJson = packageJson;
 const freeManifest = JSON.parse(readFileSync(join(packageRoot, 'assets/free/manifest.json'), 'utf8')) as FreeManifestAttribution;
 const packedConsumerSmoke = readFileSync(join(workspaceRoot, 'scripts/smoke-packed-consumer.ts'), 'utf8');
 const forbiddenMetadataPattern = /references|\/Volumes\/home|kenney_castle|KayKit_Adventurers/;
 const expectedFiles = ['assets/free', 'docs/showcases', 'dist', 'examples/*.json', 'LICENSE', 'README.md', 'NOTICE.md'];
 const allowedPackRoots = ['assets/free/', 'docs/showcases/', 'dist/', 'examples/'];
 const allowedPackFiles = new Set(['package.json', 'LICENSE', 'README.md', 'NOTICE.md']);
-const packageShowcaseArtifactPrefix = 'packages/medieval-hexagon-gameboard/';
+const packageShowcaseArtifactPrefix = '/';
 const privateEntryModules = new Set(['cli', 'index']);
 const optionalPeerImports = new Set(['react', 'three', 'koota/react']);
 const optionalPeerImportAllowlist = new Map<string, ReadonlySet<string>>([

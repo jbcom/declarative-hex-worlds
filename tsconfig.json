@@ -1,4 +1,16 @@
 {
   "extends": "./tsconfig.base.json",
-  "files": []
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    "baseUrl": ".",
+    "paths": {
+      "@jbcom/medieval-hexagon-gameboard": ["src/index.ts"],
+      "@jbcom/medieval-hexagon-gameboard/*": ["src/*"]
+    },
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts", "examples/**/*.ts", "scripts/**/*.ts", "*.ts"],
+  "exclude": ["dist", "coverage", "assets/free", "node_modules"]
 }

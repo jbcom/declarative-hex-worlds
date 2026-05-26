@@ -5,8 +5,8 @@ import {
   validateSourceRoot,
   writeManifestJson,
   writeManifestModule,
-} from '../packages/medieval-hexagon-gameboard/src/ingest';
-import type { PackEdition } from '../packages/medieval-hexagon-gameboard/src/types';
+} from '../src/ingest';
+import type { PackEdition } from '../src/types';
 
 interface ParsedArgs {
   edition: PackEdition;

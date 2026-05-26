@@ -1,15 +1,15 @@
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../packages/medieval-hexagon-gameboard/src/coverage';
+import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../src/coverage';
 import {
   analyzeScreenshot,
   formatScreenshotStats,
   validateScreenshot,
-} from '../packages/medieval-hexagon-gameboard/tests/scripts/screenshot-quality';
+} from '../tests/scripts/screenshot-quality';
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
-const screenshotDir = join(workspaceRoot, 'packages/medieval-hexagon-gameboard/tests/browser/__screenshots__');
+const screenshotDir = join(workspaceRoot, 'tests/browser/__screenshots__');
 const showcaseTargets = GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS.map((path) => ({
   path,
   source: join(screenshotDir, basename(path)),

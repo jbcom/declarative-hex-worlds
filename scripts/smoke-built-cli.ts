@@ -230,7 +230,7 @@ interface InteropSnapshotSmoke {
 }
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
-const packageRoot = join(workspaceRoot, 'packages/medieval-hexagon-gameboard');
+const packageRoot = workspaceRoot;
 const cliPath = join(packageRoot, 'dist/cli.js');
 const freeManifestPath = join(packageRoot, 'assets/free/manifest.json');
 const blueprintPath = join(packageRoot, 'examples/blueprint-board.json');

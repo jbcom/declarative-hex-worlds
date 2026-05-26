@@ -27,6 +27,21 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 
 ### Phase R — restructure (PRECEDES Phases A-G; remaining Phase A items are unblocked once R is done)
 
+**Product correction (2026-05-26): assets bootstrap, not bundle.**
+- `bootstrap` becomes a first-class CLI subcommand + programmatic API. Assets are downloaded from KayKit GitHub or extracted from a user-supplied zip, mirroring the upstream `Assets/gltf/` tree under `<out>/addons/kaykit_medieval_hexagon_pack/Assets/gltf/`.
+- gltf-only filter; ignore fbx/obj/mtl. Optional `--include-source-formats`.
+- Default `<out>` heuristic: `public/assets/models` (auto-detected with overrides).
+- Integrity sidecar `.bootstrap.json` (per-file SHA256, edition, library version, source url/zip).
+- Idempotent + verifiable via `bootstrap --verify`.
+- The tarball NO LONGER ships `assets/free/` GLTFs. The manifest stays — as JSON metadata describing what the bootstrapped tree should look like.
+- Pre-R cleanup will include reviewing `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/` AND any EXTRA zip variants under `references/` to understand the exact upstream layout, then mirror it precisely.
+
+**Dependency policy that governs Phase R commits:**
+- `peerDependencies` are dropped. React/Three/react-dom/koota/honeycomb-grid/seedrandom move (or stay) in `dependencies`. The library is unusable without them.
+- `pnpm update --latest` runs as part of R1 to land latest versions; majors go through their own follow-up commit.
+- Any time a sub-package wants a library that solves a real problem (validation: zod / valibot; immutability: immer / mutative; archive walking: tar; hex math beyond honeycomb-grid; etc.), add it. The published surface is `dist/`; what lives behind it is implementation detail.
+
+
 - [ ] **R1** — **De-monorepo.** Plan in one commit; execute in subsequent atomic commits. Delete `pnpm-workspace.yaml`, the `packages/` dir, the `apps/` workspace registration, and Nx (`nx.json`, `nx/`, `@nx/*` deps). Merge `packages/medieval-hexagon-gameboard/package.json` into root `package.json` keeping the published name `@jbcom/medieval-hexagon-gameboard`. Move `packages/medieval-hexagon-gameboard/{src,tests,tsup.config.ts,vitest.config.ts,vitest.browser.*.config.ts,tsconfig.json}` to root paths. Update every script + audit script + workflow + tsconfig path. Verify `pnpm verify` end-to-end clean.
 - [ ] **R2** — **Decompose `src/` per koota-idiomatic layout** (see `~/src/reference-codebases/koota/examples/cards/src` and `examples/n-body-react/src`). The shape is **not** "one ECS subpackage" — koota apps split into `traits/` (declarations), `systems/` (per-tick functions), `actions.ts` (createActions bundles), `world.ts` (createWorld bootstrap), and `frameloop.ts`/`startup.ts` (lifecycle). Per PRD Appendix C, one sub-package per commit. Suggested order:
   - **R2a** — `types/` (branded primitives — least coupled)
@@ -45,14 +60,51 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - **R2n** — `systems/` (per-system file each — `movement-system.ts`, `patrol-system.ts`, `quests-system.ts`, `rules-system.ts`, `world-rules-system.ts`)
   - **R2o** — `errors/` (Epic D2 lands here)
   - **R2p** — `cli/` (Epic B3 also lands here)
-  - **R2q** — `react/` + `three/` (peer-dep gated; Epic D6 peer guards land here)
+  - **R2q** — `react/` + `three/` decomposition. **Move react, react-dom, three from `peerDependencies` to `dependencies`** in `package.json` (these are first-class — the library is unusable without them, same as koota). Re-export both sub-packages from the umbrella `src/index.ts`. Delete the planned `peer-guard.ts` files; not needed.
   - **R2r** — Compose: `src/world.ts`, `src/actions.ts`, `src/frameloop.ts`, `src/startup.ts`, `src/index.ts`
   - After each commit: lint + typecheck + tests green; cross-domain imports traverse barrels only.
 - [ ] **R3** — **Enforce barrel-only cross-domain imports.** Add Biome `noRestrictedImports` rule: within `src/<X>/`, importing from `'../<Y>/<anything-but-index>'` is an error. Tests get an allowlist via `tests/internal/` re-export.
+- [ ] **R3b** — **Co-locate unit tests** under `src/<domain>/__tests__/`. Move all `tests/unit/<X>.test.ts` to `src/<domain>/__tests__/<X>.test.ts` (matching the decomposition from R2). Rationale: path-bridge brittleness — relative paths from `tests/unit/` to `src/` shift every time the layout moves. Co-location means the test imports `../` (its own module) and shares the same `__dirname` as the source. Integration tests stay at `tests/integration/`, e2e at `tests/e2e/`, browser visuals at `tests/browser/`.
 - [ ] **R4** — **Relocate SimpleRPG to tests.** Move `examples/simple-rpg-usage.ts` and SimpleRPG JSON fixtures into `tests/integration/simple-rpg/` (unit-level) + `tests/e2e/simple-rpg/` (playwright). Drop SimpleRPG from `package.json#exports` and from the published `examples/` directory. Update scripts that reference the old paths.
 - [ ] **R5** — **Drop `apps/docs` workspace package.** Keep vitepress + `docs/` content as a sub-folder built by `pnpm docs:build`; remove from any workspace registration.
 - [ ] **R6** — **Coverage instrumentation across unit + browser + e2e.** All three harnesses feed the same `coverage/` report so `react.ts`/`three.ts` (browser-only) count too. Use `@vitest/coverage-v8` + `--coverage` on the browser configs; merge with `vitest run --coverage --merge-coverage` or `nyc merge`. This is the precondition for the 100% gate (A8 / E0-E10).
 - [ ] **R7** — **`pnpm verify` green end-to-end** on the restructured layout. This commit closes Phase R.
+
+### Phase RS — SimpleRPG as fully-functional test-driver game (lands during/after Phase R, before Phase RB)
+
+**SimpleRPG scope (clarified 2026-05-26):** A fully-functional, very-precisely-scoped game whose *only* purpose is to exercise EVERY library capability end-to-end. No "real" gameplay purpose beyond coverage. Layout under `tests/`:
+
+- [ ] **RS1** — `tests/simple-rpg/` holds the SimpleRPG game implementation:
+  - `tests/simple-rpg/assets-embedded/` — **gitignored except `.gitkeep`** — contains the EXTRA-pack pieces (props, character models from KayKit Adventurers, etc.) that this game needs for exercising add-piece / inject-tile / inject-prop / cross-kit composition flows. Local-only; ignore-everything in git.
+  - `tests/simple-rpg/assets-bootstrap-target/` — **gitignored except `.gitkeep` + `.gitignore` with `*` and `!.gitignore` + `!.gitkeep`** — the directory the `bootstrap` CLI writes into during test runs. Cleared between runs.
+  - `tests/simple-rpg/game/` — TypeScript SimpleRPG implementation (uses the library's full public API).
+- [ ] **RS2** — Vitest browser plugin config for SimpleRPG e2e:
+  - `tests/e2e/simple-rpg-ci.test.ts` — uses `bootstrap --source github` against the live KayKit FREE repo. CI-only, scheduled (not per-PR for rate-limit reasons).
+  - `tests/e2e/simple-rpg-local-extra.test.ts` — uses `bootstrap --source zip --zip references/...EXTRA.zip` for the EXTRA-pack tests. Gated by `MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1` env var.
+  - `tests/integration/simple-rpg.test.ts` — unit-level fixture, no bootstrap, asserts the SimpleRPG scenario shape against the library API.
+- [ ] **RS3** — `tests/simple-rpg/game/` exercises:
+  - gameboard construction (fixed + procedural)
+  - blueprint compilation, scenario validation, recipe expansion
+  - actors + pieces (props, characters from EXTRA pack)
+  - movement, patrol, quests, rules
+  - simulation engine with deterministic replay
+  - React bindings (full rendered React tree)
+  - Three bindings (gltf loading from bootstrap-target)
+  - CLI roundtrips (`validate`, `coverage`, `analyze`, `bootstrap --verify`)
+  - Manifest schema validation against bootstrap output
+  - Cross-kit composition: KayKit Medieval Hexagon FREE tiles + KayKit Adventurers (EXTRA) characters layered on top.
+
+### Phase RB — asset bootstrap (replaces bundled assets; lands after Phase R)
+
+- [ ] **RB0** — Review every zip in `references/` (FREE + any EXTRA archives present). Document upstream layout in `docs/api/asset-bootstrap.md`: which directories exist, which file types, manifest/marker files used to detect edition, exact `Assets/gltf/` path. Output: a typed `KayKitUpstreamLayout` interface in `src/manifest/upstream-layout.ts`.
+- [ ] **RB1** — Implement `bootstrapKayKitAssets({source, out, edition?, force?, includeSourceFormats?})` in `src/bootstrap/index.ts`. Two source modes: `{kind: 'github', commit?: string}` (uses git or tarball download — likely `tar` package since cloning is heavyweight) and `{kind: 'zip', path: string}`. gltf-only filter; mirror upstream tree; write `.bootstrap.json` integrity sidecar.
+- [ ] **RB2** — Implement `bootstrap` CLI subcommand with `--out`, `--source github|zip`, `--zip <path>`, `--commit <sha>`, `--edition free|extra`, `--force`, `--verify`, `--include-source-formats`. Default `--out` resolution heuristic (`public/assets/models` etc.). Help text + JSON output for scripting.
+- [ ] **RB3** — Adjust runtime asset URL resolution: every loader (`src/manifest/load.ts`, `src/three/loaders.ts`) reads from `<consumer-out>/addons/kaykit_medieval_hexagon_pack/Assets/gltf/...`. Consumer-out is configured via `createWorld({assetRoot})` or env var; defaults to `public/assets/models`.
+- [ ] **RB4** — Drop `assets/` from the published `files` allowlist. Drop `./assets/free/*` from `package.json#exports`. Update `audit-package.ts` to assert NO asset trees ship in `npm pack --dry-run`.
+- [ ] **RB5** — `bootstrap` unit tests: zip parsing (against `references/...FREE.zip` if present), edition detection, gltf-only filter, layout mirroring, integrity sidecar shape, idempotent re-run, `--verify` drift detection.
+- [ ] **RB6** — `bootstrap` integration test: extract the local FREE zip into a tmp dir, then load the bootstrapped tree end-to-end through the runtime and assert rendered output via vitest-browser screenshot.
+- [ ] **RB7** — `bootstrap` e2e (scheduled CI only — rate-limited): `--source github` against the live upstream repo. Run nightly, not per-PR.
+- [ ] **RB8** — Docs: rewrite the README "Install" section to be `npm install @jbcom/medieval-hexagon-gameboard && npx medieval-hexagon-gameboard bootstrap`. New guide `docs/guides/asset-bootstrap.md`. Update `docs/api/asset-bootstrap.md` from RB0 as the authoritative reference.
 
 ### Phase A — foundation gates (un-block everything else)
 
@@ -69,9 +121,9 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 
 ### Phase B — performance criticals (publish-blocking)
 
-- [ ] **B1** — **P-C1 (re-scoped)**: Make the bundled `src/manifest/free.ts` **autogenerated** from `assets/free/manifest.json` (the source-of-truth that `pnpm assets:free` already produces). Add `AUTOGENERATED — DO NOT EDIT` banner, real `generatedAt` from build time. CI drift check (A3b) enforces.
+- [ ] **B1 (re-scoped 2026-05-26)** — Manifest metadata stays autogenerated, but its SOURCE-OF-TRUTH is no longer a bundled asset tree (that ships with the package). It's regenerated by running `bootstrap` (from RB1/RB2) against the canonical upstream zip + comparing the resulting tree against the prior manifest. CI drift check: `node scripts/regenerate-manifest.ts && git diff --exit-code src/manifest/free.ts`. Manifest contains: per-asset id, path-relative-to-`addons/kaykit_medieval_hexagon_pack/Assets/gltf/`, expected SHA256, geometry hints, scenario role tags.
 - [ ] **B2** — **REJECTED.** `freeManifest` stays on the umbrella; bundled-out-of-box is the product. Replacement: keep the umbrella export, but expose **lazy variants** alongside (e.g. `loadFreeManifest()`) for consumers that explicitly want async/lazy. Both shapes ship.
-- [ ] **B2b** — Add `export async function loadFreeManifest(): Promise<MedievalHexagonManifest>` to `src/manifest/free.ts`. Document both eager and lazy paths in the new peer-deps guide.
+- [ ] **B2b** — Add `export async function loadFreeManifest(): Promise<MedievalHexagonManifest>` to `src/manifest/free.ts`. Document both eager and lazy paths in the new bindings/bundling guide.
 - [ ] **B3** — **P-C2**: Refactor `cli.ts` (4,297 LOC) to `src/cli/index.ts` + `src/cli/commands/*.ts` with dynamic per-subcommand imports. Use `node:util.parseArgs`. Move `examples/simple-rpg-usage` import out of CLI eager path. **Note:** CLI lazy-loading does NOT remove the manifest from anyone's umbrella — it just keeps the CLI cold-start fast for headless validation/coverage use cases.
 - [ ] **B4** — **P-H3**: Materialize `tilesByKey` (+ `placementsByTile`) indexes once at projection time on `ProjectedGameboardPlan`. Replace 4 in-call rebuilds.
 - [ ] **B5** — **P-H1**: Single-pass `readGameboardActorTargets` reducer (`actors.ts:940-953` + `:1085-1093`).
@@ -96,7 +148,8 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 - [ ] **D3** — **H-3 (re-scoped)**: Decompose `simulation.ts` (5,213 LOC) into `simulation/{engine,script,report,assertions,index}.ts`. Add `assertNever` exhaustiveness on the action switch. Keep public surface stable.
 - [ ] **D4** — **M-4**: Invert `catalog.ts:1337 createKayKitGuideScenarios` (377-line function) into top-level data table + 5-line iteration.
 - [ ] **D5** — **F5/F13**: Add `src/traits.ts` umbrella that re-exports every trait with a table-of-contents docblock. Add `src/actions.ts` umbrella for `*Actions` symbols.
-- [ ] **D6** — **F4**: Add peer-dep runtime guards in `react.ts`/`three.ts` (throw clear error at import if peer missing).
+- [ ] ~~D6~~ — **REJECTED.** Peer-dep guards. Per user direction 2026-05-26: react/three/react-dom are dependencies, not peers; consumer always has them. Replaced by D6b.
+- [ ] **D6b** — React/Three bindings move from `peerDependencies` to `dependencies`; umbrella `src/index.ts` re-exports `react/` and `three/` sub-packages alongside every other domain. Update `docs/guides/peer-deps-and-bundling.md` accordingly (becomes `docs/guides/bindings-and-bundling.md`).
 - [ ] **D7** — **F9**: Move package-scoped scripts (`audit-package.ts`, `audit-free-assets.ts`, `audit-reference-assets.ts`, `smoke-built-cli.ts`, `smoke-packed-consumer.ts`, `generate-package-assets.ts`, `extract-kaykit-guide.ts`, `promote-showcases.ts`) into `packages/medieval-hexagon-gameboard/scripts/`. Keep only true workspace audits at root.
 - [ ] **D8** — **M-1**: Extract `scripts/_lib.ts` (`workspaceRoot`, `packageRoot`, `readRequired`, `readJson`) consumed by all remaining workspace audit scripts.
 - [ ] **D9** — **M-2**: Split `scripts/audit-workspace.ts` (1,293 LOC, 89 functions) into `scripts/audits/{packagejson,pnpm,nx,tsconfig,typedoc,tsup,markdown,release}.ts` with thin top-level dispatcher.
@@ -132,7 +185,7 @@ Floor is **100 / 100 / 100 / 100** across statements / branches / functions / li
 - [ ] **F1d** — Rewrite top of `README.md`: install + quickstart (≤30 lines of code, including a render). Add Module Map table (umbrella vs subpath tiers).
 - [ ] **F2d** — Write `docs/guides/cli-reference.md` — generated from the new command registry (D1+B3). Replace `cli.ts` template-literal `usage()`.
 - [ ] **F3d** — Write `docs/guides/determinism-contract.md` — seed model, replay guarantees, where Date/Math.random are/aren't permitted.
-- [ ] **F4d** — Write `docs/guides/peer-deps-and-bundling.md` — subpath imports, trait identity hazard, react/three peer-dep contract.
+- [ ] **F4d** — Write `docs/guides/bindings-and-bundling.md` — subpath imports, trait identity hazard, the first-class react/three binding model (NOT peer-dep gated).
 - [ ] **F5d** — Write `docs/api/errors.md` — full error taxonomy with `instanceof` examples (lands with D2).
 - [ ] **F6d** — Write `CHANGELOG.md` (Keep a Changelog 1.1.0). release-please populates from here forward.
 - [ ] **F7d** — Write `STANDARDS.md` (style + brand + non-negotiables).

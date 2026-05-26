@@ -13,7 +13,7 @@ interface PackageJson {
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const typedocJson = readJson<TypeDocJson>('typedoc.json');
-const packageJson = readJson<PackageJson>('packages/medieval-hexagon-gameboard/package.json');
+const packageJson = readJson<PackageJson>('package.json');
 const outDir = mkdtempSync(join(tmpdir(), 'medieval-hexagon-typedoc-audit-'));
 const typedocBin = resolve(
   workspaceRoot,
@@ -94,7 +94,7 @@ function assertTypeDocEntryPointsMatchPublicExports(): void {
 function expectedTypeDocEntryPoints(): string[] {
   return Object.values(packageJson.exports ?? {})
     .filter((target): target is { import: string; types?: string } => typeof target !== 'string' && Boolean(target.import))
-    .map((target) => `packages/medieval-hexagon-gameboard/${sourcePathForImportTarget(target.import)}`);
+    .map((target) => `/${sourcePathForImportTarget(target.import)}`);
 }
 
 function sourcePathForImportTarget(target: string): string {

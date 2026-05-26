@@ -3,7 +3,14 @@
 
 Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS state and FREE GLTF assets. Published-to-npm TypeScript library exposing Koota traits, scenario engine, simulation, CLI, and optional React + Three.js bindings.
 
-**Product shape:** this is an *asset-bundled* library — the entire FREE KayKit Medieval Hexagon pack ships *with* the package and must be usable end-to-end the moment a consumer adds it to a project. Cross-kit composition (small parts of other free kits used in CI) is exercised by the SimpleRPG e2e scenario. Optimization decisions that punish "ready out-of-box" — e.g. removing the manifest from the umbrella, lazy-loading assets across the public API — are off the table. Optimization that doesn't punish that — e.g. building the bundled manifest from a single source-of-truth, lazy CLI subcommand loads, hot-path micro-optimizations inside the runtime — stays on.
+**Product shape:** this is an **asset-bootstrapping** library, not an asset-bundled one. The published npm tarball does NOT ship the KayKit GLTF asset trees. Instead, the CLI offers a `bootstrap` (and equivalent programmatic API) that:
+- Detects (or accepts `--out`) the consumer's assets directory (default: `public/assets/models`).
+- Downloads from the KayKit GitHub source (FREE) — or accepts a `--zip` path (for FREE / EXTRA bought from itch.io).
+- Auto-detects edition from zip structure.
+- Mirrors the upstream tree under `<out>/addons/kaykit_medieval_hexagon_pack/Assets/gltf` (or equivalent path the upstream provides), **gltf only** — fbx/obj are ignored.
+- The manifest (`@jbcom/medieval-hexagon-gameboard/manifest/free` etc.) ships as JSON metadata describing what should exist after a successful bootstrap. The runtime resolves asset URLs against the consumer's bootstrapped tree at game-init time.
+
+The library is the API surface; the asset tree is consumer-owned. SimpleRPG (test-only, per earlier directive) exercises both the bootstrap path AND the post-bootstrap render in e2e/integration tests.
 
 ## Profiles loaded
 
@@ -33,7 +40,11 @@ Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS state and
   - `src/react/` — optional React bindings (peer-dep gated)
   - `src/three/` — optional Three.js bindings (peer-dep gated + disposal helpers)
   - **Cross-domain imports MUST traverse barrels** — `import {…} from '../scenario'`, never `import {…} from '../scenario/recipe'`. Biome `noRestrictedImports` enforces. See PRD Appendix C for full layout.
-- **SimpleRPG lives in tests, not src/.** `tests/integration/simple-rpg/` for fixture + behavior tests; `tests/e2e/simple-rpg/` for end-to-end playwright runs. NOT a public consumer-facing example, NOT published.
+- **SimpleRPG is a fully-functional, precisely-scoped library coverage driver.** Lives at `tests/simple-rpg/`. Its only purpose: exercise every library capability — gameboard + blueprint + actors + pieces + movement + patrol + quests + rules + simulation + React + Three + CLI + bootstrap + manifest + cross-kit composition. Two embedded asset dirs:
+  - `tests/simple-rpg/assets-embedded/` (gitignored, holds EXTRA-pack pieces for inject-tile/inject-prop tests).
+  - `tests/simple-rpg/assets-bootstrap-target/` (gitignored, the CLI `bootstrap` target during tests; cleared between runs).
+  E2E modes: `--source github` (CI scheduled) + `--source zip` (local-only, against `references/`).
+- **Co-locate unit tests under `src/<domain>/__tests__/`.** Avoids the test-vs-source path-bridge brittleness that R1 surfaced. Integration tests live at `tests/integration/`, e2e at `tests/e2e/`, browser visuals at `tests/browser/`. (Per Epic R item R3b.)
 - **Node ≥22, pnpm ≥9 (script-runner only)**, ESM-only, sideEffects:false.
 - **Build:** `pnpm build` (tsup, multi-entry from the sub-package barrels).
 - **Lint:** `pnpm lint` (biome on src/ + tests/ + scripts/).
@@ -51,9 +62,15 @@ Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS state and
 2. **No `any`, no `@ts-ignore`, no non-null assertions.** Biome enforces. Phase 1 verified zero hits; keep it so.
 3. **No `TODO`/`FIXME`/`it.todo`/`describe.skip`/stubs.** Either fix or delete.
 4. **Public API surface is tiered** (see PRD §F1) — internal modules MUST NOT be added to `package.json#exports` without explicit promotion.
-5. **`react.ts` / `three.ts` are peer-dep gated** — never re-export from `src/index.ts`.
-6. **The bundled FREE manifest is the product.** `freeManifest` MUST be reachable from the umbrella `index.ts` for ergonomic out-of-box use. The literal lives at `src/manifest/free.ts` (regenerated from `assets/free/manifest.json` via `pnpm assets:free`). Storage format (TS literal vs JSON import-attribute) is an implementation detail; the **export** stays umbrella-visible. Removing it from the umbrella is OFF the table.
+5. **React + Three bindings are FIRST-CLASS, not optional.** Like koota itself, react + react-dom + three are **runtime dependencies** (`dependencies`, not `peerDependencies`), because the library's job is API-driven declaration of either a fixed gameboard or a procedurally generated seed map — and the bindings are how consumers actually wire it into their app. The umbrella re-exports `react/` and `three/` like every other sub-package. No "peer guard"; no consumer permitted to lack the dep.
+6. **The FREE manifest is shipped as metadata; assets are bootstrapped, not bundled.** `freeManifest` (JSON describing the expected asset tree) MUST be reachable from the umbrella so consumers can plan/validate against it before running `bootstrap`. The CLI `bootstrap` command (and its programmatic equivalent) downloads from KayKit's GitHub source or extracts from a user-supplied zip, mirrors the upstream gltf-only tree under `<out>/addons/kaykit_medieval_hexagon_pack/`, and emits a checksum-verified install report. fbx/obj are ignored. **Never publish raw asset trees in the tarball.**
 7. **`splitting: true`** in tsup is intentional (Koota trait identity). Don't disable without writing the cross-subpath identity test first.
+
+## Dependency policy
+
+- **Add any library that solves a problem.** Runtime dep if it ships with the package; dev dep if it only runs in the toolchain. Reluctance to add a dep is the wrong default — duplicating well-trodden ground (regex helpers, hex algebra, immutability, schema validation, retry, etc.) just to "stay lean" is rejected. The published surface stays focused; the *implementation* takes whatever leverage it needs.
+- **Always-latest.** `pnpm update --latest` is run as part of every Epic R / Epic G boundary commit and any time a directive item touches dependency manifests. Major bumps go through their own commit with a behavior-drift expectation test attached. Use `pnpm outdated` to inspect before bumping.
+- **No optional bindings.** react / react-dom / three / koota / honeycomb-grid / seedrandom are all **runtime `dependencies`**. The library is unusable without them — guard rails for "missing peer" don't apply.
 
 ## In-flight work
 

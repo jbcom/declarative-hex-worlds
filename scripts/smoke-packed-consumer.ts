@@ -8,7 +8,7 @@ interface PackResult {
 }
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
-const packageRoot = join(workspaceRoot, 'packages/medieval-hexagon-gameboard');
+const packageRoot = workspaceRoot;
 const tempRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-consumer-'));
 const packRoot = join(tempRoot, 'pack');
 const appRoot = join(tempRoot, 'app');
@@ -562,7 +562,7 @@ const coverageReportFromCoverage: GameboardCoverageReportFromCoverage =
   summarizeGameboardCoverageFromCoverage();
 const coverageMarkdown: string = renderGameboardCoverageMarkdownFromCoverage(coverageReportFromCoverage);
 const manifestInspection: MedievalHexagonManifestInspection = inspectMedievalHexagonManifest(assetManifest);
-const ingestSourceRoot: string = defaultSourceRoot('free', '/packed-consumer');
+const ingestSourceRoot: string = defaultSourceRoot('free', 'packed-consumer');
 const ingestExpectedCount: number = expectedModelCount('free');
 const ingestValidation: ValidateSourceResult = validateSourceRoot('/packed-consumer/missing-source', 'extra');
 const ingestManifestOptions: GenerateManifestOptions = {

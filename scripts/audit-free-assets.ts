@@ -49,7 +49,7 @@ interface FreeManifest {
 }
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
-const packageRoot = join(workspaceRoot, 'packages/medieval-hexagon-gameboard');
+const packageRoot = workspaceRoot;
 const assetRoot = join(packageRoot, 'assets/free');
 const manifestPath = join(assetRoot, 'manifest.json');
 const failures: string[] = [];
@@ -70,7 +70,7 @@ const expectedSubcategoryCounts = {
 
 const manifest = readJson<FreeManifest>(manifestPath);
 const filesystemPaths = collectFiles(assetRoot)
-  .map((path) => `assets/free/${relative(assetRoot, path).replaceAll('\\', '/')}`)
+  .map((path) => `assets/free/${relative(assetRoot, path).replaceAll('\\', '')}`)
   .sort();
 const filesystemPathSet = new Set(filesystemPaths);
 const referencedPaths = new Set<string>(['assets/free/manifest.json']);

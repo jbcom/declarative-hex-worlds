@@ -44,7 +44,7 @@
     }
   ],
   "packages": {
-    "packages/medieval-hexagon-gameboard": {
+    ".": {
       "component": "@jbcom/medieval-hexagon-gameboard"
     }
   }
