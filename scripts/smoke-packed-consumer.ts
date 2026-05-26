@@ -274,8 +274,10 @@ import {
   type BlueprintBoardUsageSummary,
 } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
 import {
+  runSimpleRpgExecutableGuideApiSmoke,
   runSimpleRpgUsageExample,
   summarizeSimpleRpgGuidePublicApiExercises,
+  type SimpleRpgExecutableGuideApiSmokeSummary,
   type SimpleRpgGuidePublicApiExerciseCoverage,
   type SimpleRpgUsageSummary,
 } from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
@@ -491,6 +493,8 @@ const planSummary: GameboardPlanSummary = summarizeGameboardPlan(plan);
 const blueprintUsage: BlueprintBoardUsageSummary = runBlueprintBoardUsageExample();
 const blueprintScenarioId: string = blueprintBoardJson.scenarioId;
 const usage: SimpleRpgUsageSummary = runSimpleRpgUsageExample();
+const simpleRpgExecutableGuideApiSmoke: SimpleRpgExecutableGuideApiSmokeSummary =
+  runSimpleRpgExecutableGuideApiSmoke();
 const simpleRpgGuideExerciseCoverage: SimpleRpgGuidePublicApiExerciseCoverage =
   summarizeSimpleRpgGuidePublicApiExercises();
 const scenarioSummary: GameboardScenarioSummary = summarizeGameboardScenario(
@@ -1148,6 +1152,7 @@ void totalAssets;
 void blueprintScenarioId;
 void blueprintUsage;
 void usage;
+void simpleRpgExecutableGuideApiSmoke;
 void simpleRpgGuideExerciseCoverage;
 `,
     'utf8'
@@ -2174,6 +2179,17 @@ const usage = runSimpleRpgUsageExample();
 if (!usage.simulationSucceeded || usage.validationErrorCount !== 0) {
   throw new Error(\`packed SimpleRPG usage failed: \${JSON.stringify(usage)}\`);
 }
+const executableGuideApiSmoke = usage.executableGuideApiSmoke;
+if (
+  executableGuideApiSmoke.directPublicApiCount !== 38 ||
+  executableGuideApiSmoke.recipeValidationErrorCount !== 0 ||
+  executableGuideApiSmoke.recipeGenerationErrorCount !== 0 ||
+  executableGuideApiSmoke.externalSuggestedRole !== 'prop' ||
+  executableGuideApiSmoke.externalSpawnKind !== 'prop' ||
+  usage.executableGuideApiSmoke.directPublicApiCount !== executableGuideApiSmoke.directPublicApiCount
+) {
+  throw new Error(\`packed SimpleRPG executable guide API smoke failed: \${JSON.stringify(executableGuideApiSmoke)}\`);
+}
 if (
   usage.guidePublicApiCount !== 74 ||
   usage.exercisedGuidePublicApiCount !== 74 ||
@@ -2281,6 +2297,7 @@ console.log(JSON.stringify({
   planTiles: plan.tiles.length,
   scenarioExampleId: scenarioModule.default.id,
   usageScenarioId: usage.scenarioId,
+  executableGuideApiCount: executableGuideApiSmoke.directPublicApiCount,
   blueprintUsageScenarioId: blueprintUsage.scenarioId,
   blueprintUsageActors: blueprintUsage.actorIds.length,
   blueprintUsageInteropActors: blueprintUsage.interopActorCount,
@@ -2314,6 +2331,10 @@ console.log(JSON.stringify({
   assert(
     smokeOutput.includes('"usageScenarioId": "docs-simple-rpg-scenario"'),
     'consumer smoke did not run usage example'
+  );
+  assert(
+    smokeOutput.includes('"executableGuideApiCount": 38'),
+    'consumer smoke did not run executable SimpleRPG guide API smoke'
   );
   assert(
     smokeOutput.includes('"blueprintUsageScenarioId": "docs-blueprint-board:intro"'),

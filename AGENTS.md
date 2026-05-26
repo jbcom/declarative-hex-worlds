@@ -371,7 +371,11 @@ contract for CI and npm consumers.
   smoke-test summaries. It also owns `summarizeSimpleRpgGuidePublicApiExercises()`,
   which joins `listKayKitGuidePublicApiCoverages()` to SimpleRPG exercise
   evidence. Update that evidence map whenever a new guide-facing public API is
-  added.
+  added. Keep `runSimpleRpgExecutableGuideApiSmoke()` in the same file aligned
+  with the evidence map for low-level helper APIs such as selectors, manifests,
+  registries, layout pieces, recipes, blueprints, seeded generation, spawn
+  selection, and external compatibility; package smoke tests import that helper
+  from `node_modules`.
 - Keep `packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts`
   as the repo source for the compiled public package subpath exported as
   `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage`. It should

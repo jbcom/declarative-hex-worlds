@@ -13,6 +13,7 @@ import {
 import { validateGameboardPlan } from '../../src/validation';
 import {
   listSimpleRpgGuidePublicApiExercises,
+  runSimpleRpgExecutableGuideApiSmoke,
   runSimpleRpgUsageExample,
   summarizeSimpleRpgGuidePublicApiExercises,
 } from '../../examples/simple-rpg-usage';
@@ -283,26 +284,100 @@ describe('published recipe examples', () => {
     expect(summary.runtimeActorTargetEventTypes).toEqual(['command-handled']);
     expect(summary.runtimeActorTargetCommandKind).toBe('attack-actor');
     expect(summary.runtimeActorTargetHandled).toBe(true);
+    expect(summary.executableGuideApiSmoke).toMatchObject({
+      directPublicApiCount: 38,
+      rawSpawnCoordinateCount: 2,
+      recipeValidationErrorCount: 0,
+      recipeGenerationErrorCount: 0,
+      registryTileCount: 1,
+      declaredTileAssetId: 'hex_grass',
+      registryWarningCount: 0,
+      layoutFillRuleId: 'simple-rpg-executable-crate',
+      externalSuggestedRole: 'prop',
+      externalSpawnKind: 'prop',
+      externalFacingRotationSteps: 1,
+    });
+    expect(summary.executableGuideApiSmoke.manifestBundleAssetCount).toBeGreaterThan(200);
+    expect(summary.executableGuideApiSmoke.selectedManifestAssetIds.length).toBeGreaterThan(0);
+    expect(summary.executableGuideApiSmoke.selectorAssetIds).toEqual(
+      expect.arrayContaining(['hex_road_A', 'hex_road_B', 'hex_coast_E'])
+    );
+    expect(summary.executableGuideApiSmoke.propClusterAssetIds).toEqual(
+      expect.arrayContaining(['resource_lumber', 'crate_A_big'])
+    );
+    expect(summary.executableGuideApiSmoke.layoutArchetypeIds).toContain(
+      'simple-rpg-executable-cache'
+    );
+    expect(summary.executableGuideApiSmoke.seededPlanTileCount).toBe(12);
+    expect(summary.executableGuideApiSmoke.blueprintPlanTileCount).toBe(20);
+    expect(summary.executableGuideApiSmoke.blueprintRecipeStepCount).toBeGreaterThan(0);
+    expect(summary.executableGuideApiSmoke.showcaseRecipeStepCount).toBeGreaterThan(0);
     expect(summary.guidePublicApiCount).toBe(74);
     expect(summary.exercisedGuidePublicApiCount).toBe(74);
     expect(summary.missingGuidePublicApis).toEqual([]);
     expect(summary.staleGuidePublicApis).toEqual([]);
     expect(summary.guidePublicApiExerciseModes['fixed-gameplay']).toBeGreaterThan(20);
-    expect(summary.guidePublicApiExerciseModes['catalog-contract']).toBeGreaterThan(10);
+    expect(summary.guidePublicApiExerciseModes['catalog-contract']).toBe(2);
+    expect(summary.guidePublicApiExerciseModes['executable-smoke']).toBe(38);
     expect(summary.finalActorTiles.player).toBe('2,1');
     expect(summary.finalActorTiles.elder).toBe('2,1');
     expect(summary.completedQuestIds).toEqual(['docs-simple-rpg-scenario:intro']);
   });
 
+  it('executes guide-facing helper APIs through the SimpleRPG public example', () => {
+    const smoke = runSimpleRpgExecutableGuideApiSmoke();
+
+    expect(smoke.directPublicApiCount).toBe(38);
+    expect(smoke.directPublicApis).toEqual(
+      expect.arrayContaining([
+        'createManifestBundle',
+        'createGameboardPlanFromRecipe',
+        'createSeededGameboardPlan',
+        'createMedievalGameboardBlueprintPlan',
+        'externalAssetSpawnOptions',
+      ])
+    );
+    expect(smoke.assetHelperIds).toEqual({
+      coloredUnit: 'sword_blue_full',
+      neutralUnit: 'hammer',
+      factionBuilding: 'building_market_blue',
+      flag: 'flag_blue',
+      textureFile: 'hexagons_medieval_Winter.png',
+    });
+    expect(smoke.propClusterAssetIds.length).toBeGreaterThan(0);
+    expect(smoke.guidePermutationCounts).toMatchObject({
+      roads: 78,
+      rivers: 144,
+      riverCrossings: 4,
+      coasts: 60,
+    });
+    expect(smoke.guidePermutationCounts.curvyRivers).toBeGreaterThan(0);
+    expect(smoke.planFromTilesPlacementCount).toBeGreaterThan(0);
+    expect(smoke.recipePlanPlacementCount).toBeGreaterThan(0);
+    expect(smoke.hexagonGridCellCount).toBeGreaterThan(0);
+    expect(smoke.blueprintInspectionFeatures).toEqual(
+      expect.arrayContaining(['roads', 'waterTiles'])
+    );
+  });
+
   it('maps every guide-facing public API to SimpleRPG exercise evidence', () => {
     const coverage = summarizeSimpleRpgGuidePublicApiExercises();
     const exercises = listSimpleRpgGuidePublicApiExercises();
+    const executableSmoke = runSimpleRpgExecutableGuideApiSmoke();
 
     expect(coverage.guidePublicApiCount).toBe(74);
     expect(coverage.exercisedPublicApiCount).toBe(74);
     expect(coverage.missingPublicApis).toEqual([]);
     expect(coverage.staleExercisePublicApis).toEqual([]);
     expect(exercises).toHaveLength(74);
+    expect(coverage.exerciseModeCounts['executable-smoke']).toBe(
+      executableSmoke.directPublicApiCount
+    );
+    expect(
+      executableSmoke.directPublicApis.every((publicApi) =>
+        exercises.some((exercise) => exercise.publicApi === publicApi)
+      )
+    ).toBe(true);
     expect(exercises.every((exercise) => exercise.pages.length > 0)).toBe(true);
     expect(exercises.every((exercise) => exercise.scenarioIds.length > 0)).toBe(true);
     expect(exercises.map((exercise) => exercise.publicApi)).toEqual(

@@ -357,7 +357,11 @@ the packaged scenario, resolves embedded actor spawn groups, selects additional
 spawn locations, emits an ECS interop snapshot, and runs the scripted quest
 flow. It also reports SimpleRPG evidence for every guide-facing public API from
 `listKayKitGuidePublicApiCoverages()` so consumer smoke tests fail when guide
-coverage grows without an integration decision. The blueprint example compiles
+coverage grows without an integration decision. The same example exports
+`runSimpleRpgExecutableGuideApiSmoke()`, which directly invokes selector,
+manifest, registry, layout-piece, recipe, blueprint, seeded-board, spawn, and
+external-compatibility helpers that are useful to games but are too low-level to
+prove only through a quest script. The blueprint example compiles
 `examples/blueprint-board.json` into a
 scenario, resolves spawn groups and patrols, creates a runtime facade, and emits
 an ECS interop summary.

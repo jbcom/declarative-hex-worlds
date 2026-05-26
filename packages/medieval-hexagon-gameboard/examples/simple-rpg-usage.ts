@@ -6,6 +6,51 @@
  */
 import { createGameboardInteractionHandlerPreset } from '@jbcom/medieval-hexagon-gameboard/commands';
 import {
+  analyzeExternalAssetCompatibility,
+  analyzeHexTileRegistry,
+  coloredUnitAssetId,
+  createGameboardLayoutArchetypeRegistry,
+  createGameboardLayoutFillRuleFromPiece,
+  createGameboardPlanFromRecipe,
+  createGameboardPlanFromTiles,
+  createGameboardRecipe,
+  createHexagonGameboardGrid,
+  createHexTileRegistry,
+  createManifestBundle,
+  createMedievalGameboardBlueprintPlan,
+  createMedievalGameboardBlueprintRecipe,
+  createMedievalShowcaseBlueprintRecipe,
+  createSeededGameboardPlan,
+  declareGameboardPiece,
+  declareHexTile,
+  externalAssetSpawnOptions,
+  factionBuildingAssetId,
+  flagAssetId,
+  freeManifest,
+  inspectMedievalGameboardBlueprint,
+  listCoastGuidePermutations,
+  listPropClusterAssets,
+  listRiverCrossingGuidePermutations,
+  listRiverCurvyGuidePermutations,
+  listRiverGuidePermutations,
+  listRoadGuidePermutations,
+  neutralUnitAssetId,
+  recommendExternalAssetFacing,
+  selectCoastVariant,
+  selectCoastVariantByLabel,
+  selectManifestAssets,
+  selectRiverCrossingVariant,
+  selectRiverVariant,
+  selectRiverVariantByLabel,
+  selectRoadVariant,
+  selectRoadVariantByLabel,
+  selectSpawnCoordinates,
+  textureFileName,
+  validateGameboardRecipe,
+  validateGameboardRecipeGeneration,
+  type GameboardPlan,
+} from '@jbcom/medieval-hexagon-gameboard';
+import {
   listKayKitGuidePublicApiCoverages,
   type KayKitGuidePublicApiCoverage,
 } from '@jbcom/medieval-hexagon-gameboard/catalog';
@@ -31,6 +76,7 @@ export type SimpleRpgGuidePublicApiExerciseMode =
   | 'seeded-generation'
   | 'packaged-scenario'
   | 'catalog-contract'
+  | 'executable-smoke'
   | 'blueprint-recipe'
   | 'manifest-package'
   | 'compatibility-adapter'
@@ -75,6 +121,47 @@ interface SimpleRpgGuidePublicApiExerciseEvidence {
   readonly mode: SimpleRpgGuidePublicApiExerciseMode;
   readonly evidence: string;
 }
+
+const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = [
+  'analyzeHexTileRegistry',
+  'coloredUnitAssetId',
+  'createGameboardLayoutArchetypeRegistry',
+  'createGameboardLayoutFillRuleFromPiece',
+  'createGameboardPlanFromRecipe',
+  'createGameboardPlanFromTiles',
+  'createHexagonGameboardGrid',
+  'createManifestBundle',
+  'createMedievalGameboardBlueprintPlan',
+  'createMedievalGameboardBlueprintRecipe',
+  'createMedievalShowcaseBlueprintRecipe',
+  'createSeededGameboardPlan',
+  'declareHexTile',
+  'externalAssetSpawnOptions',
+  'factionBuildingAssetId',
+  'flagAssetId',
+  'freeManifest',
+  'inspectMedievalGameboardBlueprint',
+  'listCoastGuidePermutations',
+  'listPropClusterAssets',
+  'listRiverCrossingGuidePermutations',
+  'listRiverCurvyGuidePermutations',
+  'listRiverGuidePermutations',
+  'listRoadGuidePermutations',
+  'neutralUnitAssetId',
+  'recommendExternalAssetFacing',
+  'selectCoastVariant',
+  'selectCoastVariantByLabel',
+  'selectManifestAssets',
+  'selectRiverCrossingVariant',
+  'selectRiverVariant',
+  'selectRiverVariantByLabel',
+  'selectRoadVariant',
+  'selectRoadVariantByLabel',
+  'selectSpawnCoordinates',
+  'textureFileName',
+  'validateGameboardRecipe',
+  'validateGameboardRecipeGeneration',
+] as const;
 
 const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   'GameboardBuilder.addBridge': {
@@ -186,92 +273,92 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
     evidence: 'Release/package audits keep KayKit attribution with the SimpleRPG packaged smoke.',
   },
   analyzeHexTileRegistry: {
-    mode: 'seeded-generation',
-    evidence: 'SimpleRPG registers custom tile declarations and validates them during game setup.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage analyzes a runtime tile registry in its executable guide API smoke.',
   },
   coloredUnitAssetId: {
-    mode: 'fixed-gameplay',
-    evidence: 'Fixed SimpleRPG EXTRA colored unit placement resolves colored unit asset ids.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage resolves a colored unit asset id in executable smoke.',
   },
   createGameboardBuilder: {
     mode: 'fixed-gameplay',
     evidence: 'Fixed SimpleRPG board starts from the public fluent builder.',
   },
   createGameboardLayoutArchetypeRegistry: {
-    mode: 'seeded-generation',
-    evidence: 'Seeded SimpleRPG custom-piece generation is tested with the layout registry pipeline.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage creates a layout archetype registry in executable smoke.',
   },
   createGameboardLayoutFillRuleFromPiece: {
-    mode: 'seeded-generation',
-    evidence: 'Seeded SimpleRPG piece fills exercise piece-to-layout fill generation.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage creates a piece-backed layout fill rule in executable smoke.',
   },
   createGameboardPlanFromRecipe: {
-    mode: 'packaged-scenario',
-    evidence: 'Packaged SimpleRPG JSON scenario compiles its board recipe into a plan.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage compiles a recipe into a concrete plan in executable smoke.',
   },
   createGameboardPlanFromTiles: {
-    mode: 'catalog-contract',
-    evidence: 'Guide catalog and package consumer smoke keep tile-list plan creation covered.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage rebuilds a plan from explicit tiles in executable smoke.',
   },
   createGameboardRuntimeFromScenario: {
     mode: 'packaged-scenario',
     evidence: 'Packaged SimpleRPG usage creates a runtime facade directly from the scenario JSON.',
   },
   createHexagonGameboardGrid: {
-    mode: 'visual-coverage',
-    evidence: 'SimpleRPG browser scenes render the fixed and seeded plans through the grid renderer.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage creates a Honeycomb hexagon grid in executable smoke.',
   },
   createManifestBundle: {
-    mode: 'manifest-package',
-    evidence: 'Package and coverage audits compare the FREE manifest bundle used by SimpleRPG scenes.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage bundles the FREE manifest in executable smoke.',
   },
   createMedievalGameboardBlueprintPlan: {
-    mode: 'blueprint-recipe',
-    evidence: 'Blueprint-board companion example covers board-scale generation next to SimpleRPG.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage compiles a blueprint plan in executable smoke.',
   },
   createMedievalGameboardBlueprintRecipe: {
-    mode: 'blueprint-recipe',
-    evidence: 'Blueprint-board companion example covers serialized recipe generation.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke.',
   },
   createMedievalShowcaseBlueprintRecipe: {
-    mode: 'blueprint-recipe',
-    evidence: 'Showcase visual coverage exercises the curated blueprint recipe path.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage compiles the showcase blueprint recipe in executable smoke.',
   },
   createSeededGameboardPlan: {
-    mode: 'seeded-generation',
-    evidence: 'Seeded SimpleRPG fixture builds the locked random board with seeded generation.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage builds a seeded board in executable smoke.',
   },
   declareHexTile: {
-    mode: 'fixed-gameplay',
-    evidence: 'Fixed SimpleRPG declares quest road and safe grass tiles for registry application.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage declares a tile for registry analysis in executable smoke.',
   },
   executeGameboardInteractionCommand: {
     mode: 'fixed-gameplay',
     evidence: 'SimpleRPG quest execution moves, interacts, attacks, and removes enemies through commands.',
   },
   externalAssetSpawnOptions: {
-    mode: 'compatibility-adapter',
-    evidence: 'Local SimpleRPG third-party visual scene applies compatibility spawn options.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage converts compatibility analysis into spawn options in executable smoke.',
   },
   factionBuildingAssetId: {
-    mode: 'fixed-gameplay',
-    evidence: 'SimpleRPG settlement and harbor structures resolve faction building assets.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage resolves a faction building asset id in executable smoke.',
   },
   flagAssetId: {
-    mode: 'fixed-gameplay',
-    evidence: 'SimpleRPG fixed board, actors, and spawn markers use faction flag helpers.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage resolves a faction flag asset id in executable smoke.',
   },
   freeManifest: {
-    mode: 'manifest-package',
-    evidence: 'SimpleRPG package and browser smoke load the published FREE manifest.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage reads the FREE manifest in executable smoke.',
   },
   inspectMedievalGameboardBlueprint: {
-    mode: 'blueprint-recipe',
-    evidence: 'Blueprint-board companion example inspects generated board coverage beside SimpleRPG.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage inspects a blueprint in executable smoke.',
   },
   listCoastGuidePermutations: {
-    mode: 'catalog-contract',
-    evidence: 'Guide coverage and visual catalog prove coast permutations used by SimpleRPG harbors.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage lists coast guide permutations in executable smoke.',
   },
   listKayKitAssetPublicTreatments: {
     mode: 'catalog-contract',
@@ -282,32 +369,32 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
     evidence: 'Coverage ledger enumerates all guide scenarios and links SimpleRPG artifacts.',
   },
   listPropClusterAssets: {
-    mode: 'fixed-gameplay',
-    evidence: 'Fixed SimpleRPG resource-cache cluster resolves its authored asset list.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage resolves prop-cluster assets in executable smoke.',
   },
   listRiverCrossingGuidePermutations: {
-    mode: 'catalog-contract',
-    evidence: 'Guide coverage proves river crossing selectors and visual artifacts.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage lists river crossing permutations in executable smoke.',
   },
   listRiverCurvyGuidePermutations: {
-    mode: 'catalog-contract',
-    evidence: 'Fixed SimpleRPG uses a curvy river and catalog coverage proves all curvy variants.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage lists curvy river permutations in executable smoke.',
   },
   listRiverGuidePermutations: {
-    mode: 'catalog-contract',
-    evidence: 'Fixed SimpleRPG uses a river path and catalog coverage proves all river variants.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage lists river permutations in executable smoke.',
   },
   listRoadGuidePermutations: {
-    mode: 'catalog-contract',
-    evidence: 'Fixed and packaged SimpleRPG roads sit on top of full road permutation coverage.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage lists road permutations in executable smoke.',
   },
   'medieval-hexagon-gameboard manifest': {
     mode: 'package-boundary',
     evidence: 'Package smoke validates the CLI manifest and packaged SimpleRPG imports together.',
   },
   neutralUnitAssetId: {
-    mode: 'fixed-gameplay',
-    evidence: 'Fixed SimpleRPG EXTRA neutral unit placement resolves neutral unit asset ids.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage resolves a neutral unit asset id in executable smoke.',
   },
   'package.json files': {
     mode: 'package-boundary',
@@ -318,62 +405,142 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
     evidence: 'Fixed SimpleRPG tests plan prop interaction and enemy attack commands.',
   },
   recommendExternalAssetFacing: {
-    mode: 'compatibility-adapter',
-    evidence: 'Local SimpleRPG third-party scene verifies external actor facing recommendations.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage recommends external asset facing in executable smoke.',
   },
   selectCoastVariant: {
-    mode: 'catalog-contract',
-    evidence: 'Coast selector coverage backs the harbor/coast SimpleRPG scenes.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage selects a coast variant in executable smoke.',
   },
   selectCoastVariantByLabel: {
-    mode: 'catalog-contract',
-    evidence: 'Guide coverage keeps labeled coast variants available to docs and tests.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage selects a labeled coast variant in executable smoke.',
   },
   selectManifestAssets: {
-    mode: 'manifest-package',
-    evidence: 'Coverage and package audits select manifest assets for SimpleRPG visual scenes.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage selects manifest assets in executable smoke.',
   },
   selectRiverCrossingVariant: {
-    mode: 'catalog-contract',
-    evidence: 'Guide selector coverage proves crossing variants for river-heavy boards.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage selects a river crossing variant in executable smoke.',
   },
   selectRiverVariant: {
-    mode: 'catalog-contract',
-    evidence: 'Fixed SimpleRPG river usage is backed by selector coverage for all variants.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage selects a river variant in executable smoke.',
   },
   selectRiverVariantByLabel: {
-    mode: 'catalog-contract',
-    evidence: 'Guide coverage keeps labeled river variants available to docs and tests.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage selects a labeled river variant in executable smoke.',
   },
   selectRoadVariant: {
-    mode: 'catalog-contract',
-    evidence: 'SimpleRPG road authoring is backed by road selector coverage.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage selects a road variant in executable smoke.',
   },
   selectRoadVariantByLabel: {
-    mode: 'catalog-contract',
-    evidence: 'Guide coverage keeps labeled road variants available to docs and tests.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage selects a labeled road variant in executable smoke.',
   },
   selectSpawnCoordinates: {
-    mode: 'packaged-scenario',
-    evidence: 'SimpleRPG packaged usage resolves board-aware scenario and ad hoc spawn locations.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage selects raw deterministic spawn coordinates in executable smoke.',
   },
   spawnGameboardActor: {
     mode: 'fixed-gameplay',
     evidence: 'Fixed and seeded SimpleRPG fixtures spawn player, NPC, prop, and enemy actors.',
   },
   textureFileName: {
-    mode: 'manifest-package',
-    evidence: 'Manifest/package audits validate texture files used by SimpleRPG render scenes.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage resolves a texture filename in executable smoke.',
   },
   validateGameboardRecipe: {
-    mode: 'packaged-scenario',
-    evidence: 'Packaged SimpleRPG scenario validation exercises recipe validation through public imports.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage validates a compiled recipe in executable smoke.',
   },
   validateGameboardRecipeGeneration: {
-    mode: 'seeded-generation',
-    evidence: 'Seeded SimpleRPG custom-piece generation is checked by recipe generation validation.',
+    mode: 'executable-smoke',
+    evidence: 'Packaged SimpleRPG usage validates recipe generation config in executable smoke.',
   },
 } satisfies Readonly<Record<string, SimpleRpgGuidePublicApiExerciseEvidence>>;
+
+/** Executable public helper smoke returned by the packaged SimpleRPG example. */
+export interface SimpleRpgExecutableGuideApiSmokeSummary {
+  /** Guide-facing public APIs directly invoked by this smoke helper. */
+  readonly directPublicApis: readonly string[];
+  /** Number of guide-facing public APIs directly invoked by this smoke helper. */
+  readonly directPublicApiCount: number;
+  /** Number of assets in the FREE manifest bundle. */
+  readonly manifestBundleAssetCount: number;
+  /** Manifest asset ids selected by taxonomy/faction filters. */
+  readonly selectedManifestAssetIds: readonly string[];
+  /** Asset helper outputs used by SimpleRPG and downstream games. */
+  readonly assetHelperIds: Readonly<{
+    /** Faction-colored unit part id resolved from a unit part/faction/style tuple. */
+    coloredUnit: string;
+    /** Neutral unit or equipment asset id resolved from a neutral part. */
+    neutralUnit: string;
+    /** Faction-colored building id resolved from a building/faction tuple. */
+    factionBuilding: string;
+    /** Faction flag prop id resolved from a faction. */
+    flag: string;
+    /** Texture atlas filename resolved from a texture-set id. */
+    textureFile: string;
+  }>;
+  /** Counts for guide permutation families exercised through selector helpers. */
+  readonly guidePermutationCounts: Readonly<{
+    /** Full road selector permutation count, including rotated masks. */
+    roads: number;
+    /** Full straight river selector permutation count, including waterless variants. */
+    rivers: number;
+    /** Full curvy river selector permutation count, including waterless variants. */
+    curvyRivers: number;
+    /** River crossing permutation count. */
+    riverCrossings: number;
+    /** Full coast selector permutation count, including waterless variants. */
+    coasts: number;
+  }>;
+  /** Concrete selector asset ids returned by direct and label-based selectors. */
+  readonly selectorAssetIds: readonly string[];
+  /** Prop-cluster assets returned for a semantic resource cache. */
+  readonly propClusterAssetIds: readonly string[];
+  /** Number of raw deterministic spawn coordinates selected. */
+  readonly rawSpawnCoordinateCount: number;
+  /** Honeycomb hexagon-grid cell count. */
+  readonly hexagonGridCellCount: number;
+  /** Placement count for a plan rebuilt from explicit tiles. */
+  readonly planFromTilesPlacementCount: number;
+  /** Placement count for a plan compiled from a recipe. */
+  readonly recipePlanPlacementCount: number;
+  /** Recipe validation error count. */
+  readonly recipeValidationErrorCount: number;
+  /** Recipe generation validation error count. */
+  readonly recipeGenerationErrorCount: number;
+  /** Tile declaration count in the smoke registry. */
+  readonly registryTileCount: number;
+  /** Asset id normalized by the explicit tile declaration helper. */
+  readonly declaredTileAssetId: string;
+  /** Registry analysis warning count. */
+  readonly registryWarningCount: number;
+  /** Layout archetype ids created for custom placement recipes. */
+  readonly layoutArchetypeIds: readonly string[];
+  /** Fill rule id derived from a declared custom piece. */
+  readonly layoutFillRuleId: string;
+  /** Tile count in a generated seeded board. */
+  readonly seededPlanTileCount: number;
+  /** Tile count in a generated blueprint plan. */
+  readonly blueprintPlanTileCount: number;
+  /** Step count in a generated blueprint recipe. */
+  readonly blueprintRecipeStepCount: number;
+  /** Step count in the curated showcase blueprint recipe. */
+  readonly showcaseRecipeStepCount: number;
+  /** Feature count keys from blueprint inspection. */
+  readonly blueprintInspectionFeatures: readonly string[];
+  /** Suggested role for a non-hex external asset. */
+  readonly externalSuggestedRole: string;
+  /** Spawn kind for the external compatibility placement. */
+  readonly externalSpawnKind: string;
+  /** Rotation steps recommended for external actor facing. */
+  readonly externalFacingRotationSteps: number;
+}
 
 /**
  * Compact verification summary returned by the packaged SimpleRPG example.
@@ -424,6 +591,8 @@ export interface SimpleRpgUsageSummary {
   readonly runtimeActorTargetCommandKind?: string;
   /** Whether the runtime facade interaction was handled by a preset handler. */
   readonly runtimeActorTargetHandled: boolean;
+  /** Executable smoke coverage for guide-facing helper APIs used by games. */
+  readonly executableGuideApiSmoke: SimpleRpgExecutableGuideApiSmokeSummary;
   /** Number of guide-facing public APIs currently reported by the catalog. */
   readonly guidePublicApiCount: number;
   /** Number of guide-facing APIs represented by SimpleRPG evidence. */
@@ -481,12 +650,178 @@ export function summarizeSimpleRpgGuidePublicApiExercises(): SimpleRpgGuidePubli
 }
 
 /**
+ * Runs direct public helper calls that are useful to games but too low-level to
+ * prove only through the playable scenario path.
+ */
+export function runSimpleRpgExecutableGuideApiSmoke(): SimpleRpgExecutableGuideApiSmokeSummary {
+  const scenario = scenarioJson as GameboardScenario;
+  const runtime = createGameboardWorldFromScenario(scenario);
+  const manifestBundle = createManifestBundle([freeManifest]);
+  const selectedManifestAssets = selectManifestAssets(manifestBundle, {
+    categories: ['buildings'],
+    factions: ['blue'],
+  }).slice(0, 3);
+  const roads = listRoadGuidePermutations();
+  const rivers = listRiverGuidePermutations();
+  const curvyRivers = listRiverCurvyGuidePermutations();
+  const riverCrossings = listRiverCrossingGuidePermutations();
+  const coasts = listCoastGuidePermutations();
+  const propClusterAssetIds = listPropClusterAssets('resource-cache', { includeExtra: true });
+  const selectorAssetIds = [
+    selectRoadVariant([0, 3]).assetId,
+    selectRoadVariantByLabel('B').assetId,
+    selectRiverVariant([0, 3], { waterless: true }).assetId,
+    selectRiverVariantByLabel('A', { curvy: true }).assetId,
+    selectRiverCrossingVariant('A', { waterless: true }).assetId,
+    selectCoastVariant([0, 1], { waterless: true }).assetId,
+    selectCoastVariantByLabel('E').assetId,
+  ];
+  const rawSpawns = selectSpawnCoordinates({
+    shape: { kind: 'rectangle', width: 4, height: 3 },
+    count: 2,
+    seed: 'simple-rpg-executable-spawns',
+    minDistance: 2,
+  });
+  const hexagonGridCellCount = [...createHexagonGameboardGrid({ radius: 2 })].length;
+  const firstTile = runtime.plan.tiles.find((tile) => tile.key === '0,0') ?? runtime.plan.tiles[0];
+  if (!firstTile) {
+    throw new Error('SimpleRPG executable smoke requires at least one plan tile');
+  }
+  const planFromTiles: GameboardPlan = createGameboardPlanFromTiles({
+    seed: 'simple-rpg-plan-from-tiles-smoke',
+    shape: { kind: 'rectangle', width: 1, height: 1 },
+    textureSet: runtime.plan.textureSet,
+    tiles: [firstTile],
+  });
+  const recipe = createGameboardRecipe(
+    { seed: 'simple-rpg-recipe-smoke', shape: { kind: 'rectangle', width: 2, height: 1 } },
+    [{ action: 'addRoadPath', path: [{ q: 0, r: 0 }, { q: 1, r: 0 }] }]
+  );
+  const recipePlan = createGameboardPlanFromRecipe(recipe);
+  const grassTileDeclaration = {
+    id: 'simple-rpg-executable-grass',
+    assetId: 'hex_grass',
+    role: 'base',
+    terrain: 'grass',
+    bounds: freeManifest.assetsById['hex_grass']?.bounds,
+  } as const;
+  const declaredGrassTile = declareHexTile(grassTileDeclaration);
+  const registry = createHexTileRegistry([grassTileDeclaration]);
+  const registryAnalysis = analyzeHexTileRegistry(registry);
+  const archetypes = createGameboardLayoutArchetypeRegistry([
+    {
+      id: 'simple-rpg-executable-cache',
+      label: 'SimpleRPG Executable Cache',
+      kind: 'prop',
+      layer: 'feature',
+      criteria: { terrain: 'grass', allowOccupied: true },
+    },
+  ]);
+  const piece = declareGameboardPiece({
+    id: 'simple-rpg-executable-crate',
+    assetId: 'crate_A_small',
+    source: 'SimpleRPG executable smoke',
+    role: 'prop',
+    kind: 'prop',
+    layer: 'feature',
+    archetype: 'simple-rpg-executable-cache',
+  });
+  const layoutFillRule = createGameboardLayoutFillRuleFromPiece(piece, {
+    count: 1,
+    archetypes,
+  });
+  const seededPlan = createSeededGameboardPlan({
+    seed: 'simple-rpg-executable-seeded',
+    shape: { kind: 'rectangle', width: 4, height: 3 },
+    mountainStacks: 1,
+    forestTiles: 1,
+    hillTiles: 1,
+    settlements: 1,
+    scatterProps: 1,
+    layoutDensity: { harbors: { count: 0 } },
+  });
+  const blueprintOptions = {
+    seed: 'simple-rpg-executable-blueprint',
+    shape: { kind: 'rectangle', width: 5, height: 4 },
+    towns: 1,
+    harbors: 0,
+    waterFill: 0.15,
+  } as const;
+  const blueprintPlan = createMedievalGameboardBlueprintPlan(blueprintOptions);
+  const blueprintRecipe = createMedievalGameboardBlueprintRecipe(blueprintOptions);
+  const showcaseRecipe = createMedievalShowcaseBlueprintRecipe();
+  const blueprintInspection = inspectMedievalGameboardBlueprint(blueprintOptions);
+  const compatibilityReport = analyzeExternalAssetCompatibility({
+    id: 'simple-rpg-external-tower',
+    sourcePack: 'SimpleRPG executable smoke',
+    bounds: { min: [-0.4, 0, -0.4], max: [0.4, 1, 0.4], size: [0.8, 1, 0.8] },
+    intendedRole: 'tile',
+    modelForward: '+z',
+    boardForwardEdge: 1,
+  });
+  const externalSpawn = externalAssetSpawnOptions({
+    id: 'simple-rpg-external-tower',
+    at: '0,0',
+    assetId: 'simple-rpg-external-tower',
+    report: compatibilityReport,
+  });
+  const externalFacing = recommendExternalAssetFacing({ modelForward: '+z', boardForwardEdge: 1 });
+
+  return {
+    directPublicApis: [...SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS],
+    directPublicApiCount: SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS.length,
+    manifestBundleAssetCount: manifestBundle.assets.length,
+    selectedManifestAssetIds: selectedManifestAssets.map((asset) => asset.id),
+    assetHelperIds: {
+      coloredUnit: coloredUnitAssetId('sword', 'blue', 'full'),
+      neutralUnit: neutralUnitAssetId('hammer'),
+      factionBuilding: factionBuildingAssetId('market', 'blue'),
+      flag: flagAssetId('blue'),
+      textureFile: textureFileName('winter'),
+    },
+    guidePermutationCounts: {
+      roads: roads.length,
+      rivers: rivers.length,
+      curvyRivers: curvyRivers.length,
+      riverCrossings: riverCrossings.length,
+      coasts: coasts.length,
+    },
+    selectorAssetIds,
+    propClusterAssetIds,
+    rawSpawnCoordinateCount: rawSpawns.length,
+    hexagonGridCellCount,
+    planFromTilesPlacementCount: planFromTiles.placements.length,
+    recipePlanPlacementCount: recipePlan.placements.length,
+    recipeValidationErrorCount: validateGameboardRecipe(recipe).filter(
+      (violation) => violation.severity === 'error'
+    ).length,
+    recipeGenerationErrorCount: validateGameboardRecipeGeneration(recipe).filter(
+      (violation) => violation.severity === 'error'
+    ).length,
+    registryTileCount: registryAnalysis.tileCount,
+    declaredTileAssetId: declaredGrassTile.assetId,
+    registryWarningCount: registryAnalysis.warnings.length,
+    layoutArchetypeIds: Object.keys(archetypes).sort(),
+    layoutFillRuleId: layoutFillRule.id ?? piece.id,
+    seededPlanTileCount: seededPlan.tiles.length,
+    blueprintPlanTileCount: blueprintPlan.tiles.length,
+    blueprintRecipeStepCount: blueprintRecipe.steps.length,
+    showcaseRecipeStepCount: showcaseRecipe.steps.length,
+    blueprintInspectionFeatures: Object.keys(blueprintInspection.counts).sort(),
+    externalSuggestedRole: compatibilityReport.suggestedRole,
+    externalSpawnKind: externalSpawn.kind,
+    externalFacingRotationSteps: externalFacing.rotationSteps,
+  };
+}
+
+/**
  * Runs the packaged SimpleRPG scenario and simulation through public APIs.
  */
 export function runSimpleRpgUsageExample(): SimpleRpgUsageSummary {
   const scenario = scenarioJson as GameboardScenario;
   const script = simulationScriptJson as GameboardScenarioSimulationScript;
   const guideApiCoverage = summarizeSimpleRpgGuidePublicApiExercises();
+  const executableGuideApiSmoke = runSimpleRpgExecutableGuideApiSmoke();
   const scenarioValidation = validateGameboardScenario(scenario);
   const runtime = createGameboardWorldFromScenario(scenario);
   const spawnLocations = selectGameboardSpawnLocations(runtime.plan, {
@@ -552,6 +887,7 @@ export function runSimpleRpgUsageExample(): SimpleRpgUsageSummary {
     runtimeActorTargetEventTypes: actorTargetInteraction.eventRecords.map((event) => event.type),
     runtimeActorTargetCommandKind: actorTargetInteraction.targetCommand.command?.kind,
     runtimeActorTargetHandled: actorTargetInteraction.dispatch?.execution.status === 'handled',
+    executableGuideApiSmoke,
     guidePublicApiCount: guideApiCoverage.guidePublicApiCount,
     exercisedGuidePublicApiCount: guideApiCoverage.exercisedPublicApiCount,
     missingGuidePublicApis: guideApiCoverage.missingPublicApis,
@@ -588,6 +924,7 @@ function countExerciseModes(
     'seeded-generation': 0,
     'packaged-scenario': 0,
     'catalog-contract': 0,
+    'executable-smoke': 0,
     'blueprint-recipe': 0,
     'manifest-package': 0,
     'compatibility-adapter': 0,

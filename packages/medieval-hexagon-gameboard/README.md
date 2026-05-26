@@ -1469,6 +1469,14 @@ if (
 console.log(smoke.nearestActorTargetId, smoke.actorTargetCommandKinds);
 ```
 
+The same example also exports `runSimpleRpgExecutableGuideApiSmoke()`. That
+helper directly calls the guide-facing selector, manifest, registry,
+layout-piece, recipe, blueprint, seeded-board, spawn-selection, and external
+compatibility helpers that games usually compose around the scenario runtime.
+The packaged consumer smoke imports it from `node_modules`, so API treatment for
+those helpers has to stay executable rather than only documented in the coverage
+ledger.
+
 The seeded fixture also declares FREE trees, supply scatter, and a quest marker
 as reusable pieces, feeds them into `createSeededGameboardPlan` through
 `pieceRegistry` and `pieceFills`, and asserts that those generated placements
