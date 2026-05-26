@@ -126,7 +126,13 @@ function run(command: string, commandArgs: string[]): void {
 }
 
 function commandExists(command: string): boolean {
-  const result = spawnSync('sh', ['-c', `command -v ${command}`], { stdio: 'ignore' });
+  // Pass `command` as a positional shell argument so its value can never
+  // inject shell metacharacters into the snippet. Current call sites pass
+  // literal strings (`'swift'`, `'pdftoppm'`, `'magick'`), so there's no
+  // injection today, but the template form would have silently become
+  // injectable the moment any user-controlled value flowed in.
+  // Phase 2 security review S-M2.
+  const result = spawnSync('sh', ['-c', 'command -v "$1"', '--', command], { stdio: 'ignore' });
   return result.status === 0;
 }
 
