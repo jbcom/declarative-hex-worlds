@@ -274,10 +274,12 @@ import {
   type BlueprintBoardUsageSummary,
 } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
 import {
+  listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,
   runSimpleRpgUsageExample,
   summarizeSimpleRpgGuidePublicApiExercises,
   type SimpleRpgExecutableGuideApiSmokeSummary,
+  type SimpleRpgGuidePublicApiExercise,
   type SimpleRpgGuidePublicApiExerciseCoverage,
   type SimpleRpgUsageSummary,
 } from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
@@ -402,6 +404,7 @@ import {
   renderGameboardCoverageMarkdown as renderGameboardCoverageMarkdownFromCoverage,
   summarizeGameboardCoverage as summarizeGameboardCoverageFromCoverage,
   type GameboardCoverageReport as GameboardCoverageReportFromCoverage,
+  type GameboardCoverageSimpleRpgEvidenceRow,
 } from '@jbcom/medieval-hexagon-gameboard/coverage';
 import {
   readGameboardPlacements as readGameboardPlacementsFromKoota,
@@ -497,6 +500,12 @@ const simpleRpgExecutableGuideApiSmoke: SimpleRpgExecutableGuideApiSmokeSummary 
   runSimpleRpgExecutableGuideApiSmoke();
 const simpleRpgGuideExerciseCoverage: SimpleRpgGuidePublicApiExerciseCoverage =
   summarizeSimpleRpgGuidePublicApiExercises();
+const simpleRpgGuideExercises: readonly SimpleRpgGuidePublicApiExercise[] =
+  listSimpleRpgGuidePublicApiExercises();
+const simpleRpgEvidenceRows: readonly GameboardCoverageSimpleRpgEvidenceRow[] =
+  simpleRpgGuideExercises;
+const simpleRpgBridgeExercise: SimpleRpgGuidePublicApiExercise | undefined =
+  simpleRpgGuideExercises.find((exercise) => exercise.publicApi === 'GameboardBuilder.addBridge');
 const scenarioSummary: GameboardScenarioSummary = summarizeGameboardScenario(
   simpleRpgScenario as GameboardScenario
 );
@@ -1154,6 +1163,9 @@ void blueprintUsage;
 void usage;
 void simpleRpgExecutableGuideApiSmoke;
 void simpleRpgGuideExerciseCoverage;
+void simpleRpgGuideExercises;
+void simpleRpgEvidenceRows;
+void simpleRpgBridgeExercise;
 `,
     'utf8'
   );
@@ -1221,6 +1233,7 @@ import {
 } from '@jbcom/medieval-hexagon-gameboard';
 import { runBlueprintBoardUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
 import {
+  listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgUsageExample,
   summarizeSimpleRpgGuidePublicApiExercises,
 } from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
@@ -1426,6 +1439,22 @@ if (
   !packagedCoverageMarkdown.includes('Release Readiness Coverage')
 ) {
   throw new Error('packed coverage report did not expose guide, manifest, public API, and markdown data');
+}
+const packagedSimpleRpgGuideExercises = listSimpleRpgGuidePublicApiExercises();
+const packagedSimpleRpgBridgeExercise = packagedSimpleRpgGuideExercises.find(
+  (exercise) => exercise.publicApi === 'GameboardBuilder.addBridge'
+);
+if (
+  packagedSimpleRpgGuideExercises.length !== 74 ||
+  new Set(packagedSimpleRpgGuideExercises.map((exercise) => exercise.publicApi)).size !== 74 ||
+  !packagedSimpleRpgBridgeExercise ||
+  packagedSimpleRpgBridgeExercise.assetCount !== 2 ||
+  packagedSimpleRpgBridgeExercise.pages.join(',') !== '2,7,9' ||
+  !packagedSimpleRpgBridgeExercise.modes.includes('visual-coverage')
+) {
+  throw new Error(
+    \`packed SimpleRPG guide API exercise matrix was incomplete: \${JSON.stringify(packagedSimpleRpgBridgeExercise)}\`
+  );
 }
 const subpathValidationPlan = readValidationGameboardPlanFromWorld(subpathWorld);
 const subpathInteropSnapshot = createGameboardInteropSnapshotFromInterop(plan);
@@ -2208,6 +2237,35 @@ if (
   simpleRpgGuideCoverage.staleExercisePublicApis.length !== 0
 ) {
   throw new Error(\`packed SimpleRPG guide API exercise summary was incomplete: \${JSON.stringify(simpleRpgGuideCoverage)}\`);
+}
+const simpleRpgCoverageEvidenceModeEntries = Object.entries(simpleRpgGuideCoverage.exerciseModeCounts);
+const simpleRpgCoverageWithExercises = summarizeGameboardCoverage({
+  simpleRpgEvidence: {
+    guidePublicApiCount: simpleRpgGuideCoverage.guidePublicApiCount,
+    exercisedPublicApiCount: simpleRpgGuideCoverage.exercisedPublicApiCount,
+    missingPublicApis: simpleRpgGuideCoverage.missingPublicApis,
+    stalePublicApis: simpleRpgGuideCoverage.staleExercisePublicApis,
+    executablePublicApiCount: executableGuideApiSmoke.directPublicApiCount,
+    publicTreatmentCount: executableGuideApiSmoke.publicTreatmentCount,
+    guideScenarioCount: executableGuideApiSmoke.guideScenarioCount,
+    evidenceModeCounts: simpleRpgGuideCoverage.exerciseModeCounts,
+    activeEvidenceModes: simpleRpgCoverageEvidenceModeEntries
+      .filter(([, count]) => count > 0)
+      .map(([mode]) => mode),
+    inactiveEvidenceModes: simpleRpgCoverageEvidenceModeEntries
+      .filter(([, count]) => count <= 0)
+      .map(([mode]) => mode),
+    publicApiExercises: simpleRpgGuideCoverage.exercises,
+  },
+});
+const simpleRpgCoverageWithExercisesMarkdown =
+  renderGameboardCoverageMarkdownFromCoverage(simpleRpgCoverageWithExercises);
+if (
+  simpleRpgCoverageWithExercises.simpleRpgEvidence?.publicApiExercises?.length !== 74 ||
+  !simpleRpgCoverageWithExercisesMarkdown.includes('### SimpleRPG Exercise Matrix') ||
+  !simpleRpgCoverageWithExercisesMarkdown.includes('| \`GameboardBuilder.addBridge\` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 |')
+) {
+  throw new Error('packed coverage report did not expose the SimpleRPG public API exercise matrix');
 }
 if (
   usage.scenarioSpawnGroupIds.join('|') !== 'player-start|elder|enemy' ||
