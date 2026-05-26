@@ -19,7 +19,7 @@ export default defineConfig({
     navigation: 'src/gameboard/navigation.ts',
     occupancy: 'src/gameboard/occupancy.ts',
     patrol: 'src/patrol.ts',
-    pieces: 'src/pieces.ts',
+    pieces: 'src/pieces/index.ts',
     projection: 'src/coordinates/projection.ts',
     quests: 'src/quests.ts',
     recipe: 'src/recipe.ts',

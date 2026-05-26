@@ -6,12 +6,12 @@
  */
 import type {
   ExternalAssetCompatibilityReport,
-} from './compatibility';
+} from '../compatibility';
 import type {
   GameboardPlan,
   GameboardPlacementKind,
   GameboardPlacementLayer,
-} from './gameboard';
+} from '../gameboard';
 import {
   type BuiltInGameboardLayoutArchetypeId,
   createGameboardLayoutPlacements,
@@ -24,8 +24,8 @@ import {
   type GameboardLayoutSiteInspection,
   inspectGameboardLayoutSites,
   resolveGameboardLayoutCriteria,
-} from './coordinates';
-import type { GameboardPlacementOccupancyGuard, SpawnGameboardPlacementOptions } from './koota';
+} from '../coordinates';
+import type { GameboardPlacementOccupancyGuard, SpawnGameboardPlacementOptions } from '../koota';
 
 /**
  * Role used to map registered pieces onto layout archetypes.

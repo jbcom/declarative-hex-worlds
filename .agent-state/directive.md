@@ -51,7 +51,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - [x] **R2e** — ✅ commit (2026-05-26): `src/traits/index.ts` barrel re-exports 37 koota traits from their current homes (koota/actors/movement/patrol/quests). Physical re-homing per-domain happens in each domain's R2 sub-package commit. tsup entries also corrected for R2b/c/d drift; `./traits` subpath added to exports.
   - [x] **R2f** — ✅ commit (2026-05-26): `src/selectors.ts` → `src/selectors/{selectors,index}.ts`. Tagged `@internal`.
   - [x] **R2g** — ✅ commit (2026-05-26): `src/commands.ts` → `src/commands/{commands,index}.ts`. Tagged `@internal`.
-  - **R2h** — `gameboard/` (gameboard.ts + occupancy.ts + navigation.ts)
+  - [x] **R2h** — ✅ commit (2026-05-26): `gameboard.ts`+`occupancy.ts`+`navigation.ts` → `src/gameboard/{gameboard,occupancy,navigation,index}.ts`. External callers and commands/commands.ts rewritten to the barrel.
   - **R2i** — `pieces/`
   - **R2j** — `rules/` (rules.ts + rule-types.ts + validation.ts; world-rules logic moves into `systems/`)
   - **R2k** — `scenario/` (scenario + recipe + blueprint + catalog + registry)
