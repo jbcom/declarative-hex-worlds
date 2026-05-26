@@ -4292,6 +4292,15 @@ Options:
 try {
   main(process.argv.slice(2));
 } catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
+  // Terse default: only the message. Full stack is gated behind
+  // MEDIEVAL_HEXAGON_DEBUG=1 so failure output in CI / user terminals
+  // stays quiet, but interactive debugging is one env-var away.
+  // Phase 2 security review S-M5.
+  const debugEnabled = process.env.MEDIEVAL_HEXAGON_DEBUG === '1';
+  if (debugEnabled && error instanceof Error) {
+    console.error(error.stack ?? error.message);
+  } else {
+    console.error(error instanceof Error ? error.message : String(error));
+  }
   process.exit(1);
 }
