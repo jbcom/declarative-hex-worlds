@@ -11,6 +11,10 @@ import type { MedievalHexagonManifest } from '../types';
 
 /**
  * Normalized manifest for the FREE KayKit Medieval Hexagon assets bundled in the npm package.
+ *
+ * @remarks
+ * Eager export. Consumers that want lazy / async loading should prefer
+ * {@link loadFreeManifest} instead — same data, Promise-wrapped, identity-stable.
  */
 export const freeManifest: MedievalHexagonManifest = {
   "schemaVersion": "1.0.0",
@@ -16560,5 +16564,17 @@ export const freeManifest: MedievalHexagonManifest = {
     }
   }
 };
+
+/**
+ * Promise-wrapped accessor for the FREE manifest (PRD B2b).
+ *
+ * The manifest is already in-memory (it's a static literal); this loader exists
+ * to give async-first consumers a contract that doesn't change shape once we
+ * eventually move the manifest to a JSON-on-disk loader. Identity-stable: every
+ * call resolves to the same object reference as the eager {@link freeManifest}.
+ */
+export async function loadFreeManifest(): Promise<MedievalHexagonManifest> {
+  return freeManifest;
+}
 
 export default freeManifest;

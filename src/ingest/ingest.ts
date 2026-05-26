@@ -227,14 +227,30 @@ export function writeManifestModule(
     ` *\n` +
     ` * @module\n` +
     ` */\n`;
+  const loaderName = `load${exportName.charAt(0).toUpperCase()}${exportName.slice(1)}`;
   writeFileSync(
     outputPath,
     `${banner}` +
       `import type { MedievalHexagonManifest } from '${typeImport}';\n\n` +
       `/**\n` +
       ` * Normalized manifest for the ${editionLabel} KayKit Medieval Hexagon assets bundled in the npm package.\n` +
+      ` *\n` +
+      ` * @remarks\n` +
+      ` * Eager export. Consumers that want lazy / async loading should prefer\n` +
+      ` * {@link ${loaderName}} instead — same data, Promise-wrapped, identity-stable.\n` +
       ` */\n` +
       `export const ${exportName}: MedievalHexagonManifest = ${body};\n\n` +
+      `/**\n` +
+      ` * Promise-wrapped accessor for the ${editionLabel} manifest (PRD B2b).\n` +
+      ` *\n` +
+      ` * The manifest is already in-memory (it's a static literal); this loader exists\n` +
+      ` * to give async-first consumers a contract that doesn't change shape once we\n` +
+      ` * eventually move the manifest to a JSON-on-disk loader. Identity-stable: every\n` +
+      ` * call resolves to the same object reference as the eager {@link ${exportName}}.\n` +
+      ` */\n` +
+      `export async function ${loaderName}(): Promise<MedievalHexagonManifest> {\n` +
+      `  return ${exportName};\n` +
+      `}\n\n` +
       `export default ${exportName};\n`,
     'utf8'
   );

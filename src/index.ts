@@ -4,7 +4,7 @@
  *
  * @module
  */
-export { freeManifest } from './manifest';
+export { freeManifest, loadFreeManifest } from './manifest';
 export {
   ASSET_CATEGORIES,
   FACTIONS,

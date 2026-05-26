@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { freeManifest } from '../../manifest/free';
+import { freeManifest, loadFreeManifest } from '../../manifest/free';
 import {
   createManifestBundle,
   getManifestAsset,
@@ -18,6 +18,14 @@ describe('free manifest', () => {
     expect(freeManifest.counts.total).toBe(221);
     expect(freeManifest.assets).toHaveLength(221);
     expect(freeManifest.textureSets).toEqual(['default']);
+  });
+
+  it('loadFreeManifest resolves to the identity-stable eager export (PRD B2b)', async () => {
+    const loaded = await loadFreeManifest();
+    expect(loaded).toBe(freeManifest);
+    // Stable across calls — same reference every time.
+    const second = await loadFreeManifest();
+    expect(second).toBe(loaded);
   });
 
   it('indexes assets by id', () => {
