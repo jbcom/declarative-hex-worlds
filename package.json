@@ -227,6 +227,7 @@
     "bench": "vitest bench --run",
     "bench:warm-start": "vitest bench tests/perf/warm-start.bench.ts --run",
     "test:coverage": "MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --coverage",
+    "test:coverage:enforce": "MEDIEVAL_HEXAGON_COVERAGE=1 MEDIEVAL_HEXAGON_COVERAGE_ENFORCE=1 vitest run --coverage",
     "test:coverage:browser:free": "MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.free.config.ts --coverage",
     "test:coverage:browser:extra": "MEDIEVAL_HEXAGON_ENABLE_EXTRA=1 MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.extra.config.ts --coverage",
     "test:coverage:e2e": "MEDIEVAL_HEXAGON_ENABLE_LOCAL_ASSETS=1 MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.local-assets.config.ts --coverage",

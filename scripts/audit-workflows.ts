@@ -37,7 +37,7 @@ const packageJson = readJson('package.json') as {
 requireIncludes(ci, 'ci.yml', [
   "NODE_VERSION: '22'",
   'pnpm/action-setup',
-  'task: [lint, typecheck, build, test]',
+  "task: [lint, typecheck, build, test, 'test:coverage:enforce']",
   'pnpm test:browser:free',
   'pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build',
   'pnpm test:assets',

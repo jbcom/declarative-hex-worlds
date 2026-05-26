@@ -72,7 +72,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        task: [lint, typecheck, build, test]
+        # `test:coverage:enforce` enforces the ratchet thresholds defined in
+        # vitest.coverage.shared.ts (PRD A8). Floor = current measured baseline
+        # minus a small slack; E0-E10 raises it progressively toward 100/100/100/100.
+        task: [lint, typecheck, build, test, 'test:coverage:enforce']
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:

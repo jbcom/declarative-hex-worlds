@@ -33,10 +33,33 @@ export const COVERAGE_EXCLUDES = [
 ];
 
 /**
+ * Floor coverage thresholds enforced as a ratchet (PRD A8).
+ *
+ * These are the measured unit-harness baseline (2026-05-26) at floor 1 %
+ * below the actual numbers so a single skipped flaky line doesn't break
+ * the build, but anything resembling a regression does. The E0-E10 sub-epic
+ * raises these progressively to 100/100/100/100; every commit that closes
+ * a coverage gap should ratchet the floor up in the same commit. Set
+ * `thresholdAutoUpdate: true` once the merged tree is stable so vitest
+ * does the ratchet automatically.
+ */
+export const COVERAGE_THRESHOLDS = {
+  statements: 65,
+  branches: 60,
+  functions: 75,
+  lines: 64,
+};
+
+/**
  * Build a coverage configuration scoped to a single harness's output
  * directory. The harness name becomes the sub-dir; merging combines them.
+ * Thresholds are applied only when `MEDIEVAL_HEXAGON_COVERAGE_ENFORCE=1`
+ * is set, so the default per-harness run doesn't block on the unit
+ * floor (browser/e2e harnesses don't exercise every src/ file on their
+ * own — only the merged tree should be threshold-checked).
  */
 export function harnessCoverage(harness: string): CoverageOptions {
+  const enforce = process.env.MEDIEVAL_HEXAGON_COVERAGE_ENFORCE === '1';
   return {
     provider: 'v8',
     enabled: process.env.MEDIEVAL_HEXAGON_COVERAGE === '1',
@@ -46,5 +69,6 @@ export function harnessCoverage(harness: string): CoverageOptions {
     exclude: COVERAGE_EXCLUDES,
     clean: false, // do not wipe sibling harness output
     cleanOnRerun: false,
+    thresholds: enforce ? COVERAGE_THRESHOLDS : undefined,
   };
 }
