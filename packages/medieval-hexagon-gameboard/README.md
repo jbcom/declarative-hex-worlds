@@ -44,7 +44,7 @@ contract:
   and visual artifacts.
 - [`docs/guides/release-readiness.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/release-readiness.md) is the generated release ledger that joins
   guide coverage, manifest coverage, public API treatment, screenshots, local
-  reference availability, and package gate evidence.
+  reference availability, package gate evidence, and SimpleRPG public API proof.
 - [`docs/guides/runtime-integration.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/runtime-integration.md) explains how a game should own a runtime,
   dispatch commands, tick systems, mirror another ECS, and test fixed/seeded
   scenes through the public API.
@@ -102,7 +102,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, lines, pathfinding, and spawn coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit checks, facing recommendations, scale hints, and starter piece metadata. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer/input command preview, command execution, actor-target command planning, and opt-in RPG handlers. |
-| `@jbcom/medieval-hexagon-gameboard/coverage` | Release-readiness reports that join guide pages, manifests, public APIs, screenshots, local references, and package gates. |
+| `@jbcom/medieval-hexagon-gameboard/coverage` | Release-readiness reports that join guide pages, manifests, public APIs, screenshots, local references, package gates, and SimpleRPG evidence. |
 | `@jbcom/medieval-hexagon-gameboard/koota` | Low-level Koota traits, relations, queries, placement actions, and occupancy guards. |
 | `@jbcom/medieval-hexagon-gameboard/layout` | Seeded layout archetypes, criteria, density fills, scatter slots, and plan/runtime placement helpers. |
 | `@jbcom/medieval-hexagon-gameboard/navigation` | Board-aware paths, movement ranges, spawn groups, patrol routes, blockers, and movement profiles. |
@@ -1614,9 +1614,15 @@ scenarios for human review.
 Use `coverage` or `doctor --coverage` as the release-readiness ledger. It joins
 the 19 guide pages, FREE manifest coverage, public API/role inverse indexes,
 browser screenshots, promoted showcase images, local reference pack status, and
-final package gate commands into JSON or Markdown. The pure
-`summarizeGameboardCoverage()` helper exposes the same data to docs tooling,
-editors, and external release dashboards without requiring local EXTRA binaries.
+final package gate commands into JSON or Markdown. The CLI also includes
+`simpleRpgEvidence`, which records 74/74 guide-facing APIs represented, 40
+directly executed helper APIs, 404 KayKit public treatment records, all 19 guide
+pages, and active evidence-mode counts for fixed gameplay, seeded generation,
+packaged scenarios, executable smoke, blueprint recipes, manifest packaging,
+compatibility adapters, package boundaries, and visual coverage. The pure
+`summarizeGameboardCoverage()` helper exposes the same data shape to docs
+tooling, editors, and external release dashboards without requiring local EXTRA
+binaries; callers can pass their own SimpleRPG evidence block when they have one.
 
 ```bash
 medieval-hexagon-gameboard coverage \

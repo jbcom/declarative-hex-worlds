@@ -35740,6 +35740,38 @@
       "summary": "npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, KayKit attribution/NOTICE, and packaged showcase PNG quality."
     }
   ],
+  "simpleRpgEvidence": {
+    "guidePublicApiCount": 74,
+    "exercisedPublicApiCount": 74,
+    "missingPublicApis": [],
+    "stalePublicApis": [],
+    "executablePublicApiCount": 40,
+    "publicTreatmentCount": 404,
+    "guideScenarioCount": 19,
+    "evidenceModeCounts": {
+      "fixed-gameplay": 30,
+      "seeded-generation": 10,
+      "packaged-scenario": 1,
+      "executable-smoke": 40,
+      "blueprint-recipe": 4,
+      "manifest-package": 6,
+      "compatibility-adapter": 2,
+      "package-boundary": 3,
+      "visual-coverage": 26
+    },
+    "activeEvidenceModes": [
+      "fixed-gameplay",
+      "seeded-generation",
+      "packaged-scenario",
+      "executable-smoke",
+      "blueprint-recipe",
+      "manifest-package",
+      "compatibility-adapter",
+      "package-boundary",
+      "visual-coverage"
+    ],
+    "inactiveEvidenceModes": []
+  },
   "gaps": [],
   "releaseGateCommands": [
     "pnpm lint",

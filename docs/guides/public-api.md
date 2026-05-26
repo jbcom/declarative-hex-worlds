@@ -22,7 +22,7 @@ should flow through the same layers:
 | `@jbcom/medieval-hexagon-gameboard/catalog` | KayKit faction building ids, unit parts, prop ids, nature ids, texture names, typed asset-id constructors, public treatment metadata, extracted guide scenario metadata, scenario treatment joins, page-level scenario asset usages, render request/group queues, public API coverage joins, and coverage summaries for every FREE/EXTRA asset id. |
 | `@jbcom/medieval-hexagon-gameboard/commands` | Renderer-click command planning, previews, and opt-in handler execution. |
 | `@jbcom/medieval-hexagon-gameboard/compatibility` | External GLB/GLTF fit analysis, facing correction, placement recommendations, and spawn-option conversion. |
-| `@jbcom/medieval-hexagon-gameboard/coverage` | Release-readiness reports that join guide-page coverage, manifest coverage, public API treatment, visual artifacts, local references, and package gate status. |
+| `@jbcom/medieval-hexagon-gameboard/coverage` | Release-readiness reports that join guide-page coverage, manifest coverage, public API treatment, visual artifacts, local references, package gate status, and SimpleRPG evidence. |
 | `@jbcom/medieval-hexagon-gameboard/coordinates` | Axial coordinate keys, neighbors, ranges, paths, rotations, and deterministic coordinate selection. |
 | `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` | Compiled blueprint-board usage example for board-scale authoring, runtime, and interop smoke tests. |
 | `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled SimpleRPG usage example for consumer smoke tests and app reference code. |
@@ -103,8 +103,11 @@ Use `summarizeGameboardCoverage()` from `./coverage` when a release, docs pass,
 or external dashboard needs the complete evidence ledger: all 19 guide pages,
 FREE manifest coverage, local-only EXTRA separation, public API and role
 inverse indexes, browser screenshots, promoted showcase artifacts, local
-reference pack availability, and package gate status. The CLI exposes the same
-report through `coverage` and `doctor --coverage`.
+reference pack availability, package gate status, and optional SimpleRPG public
+API proof. The CLI exposes the same report through `coverage` and
+`doctor --coverage`, populating `simpleRpgEvidence` with the 74/74 guide-facing
+API representation, 40 directly executed helper APIs, 404 KayKit public
+treatment records, all 19 guide pages, and active evidence-mode counts.
 
 ## Board Blueprints
 

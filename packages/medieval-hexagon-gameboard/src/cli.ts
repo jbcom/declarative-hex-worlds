@@ -23,8 +23,14 @@ import {
   summarizeGameboardCoverage,
   type GameboardCoveragePathStatusInput,
   type GameboardCoverageReport,
+  type GameboardCoverageSimpleRpgEvidence,
+  type GameboardCoverageSimpleRpgEvidenceMode,
   type GameboardCoverageStatus,
 } from './coverage';
+import {
+  runSimpleRpgExecutableGuideApiSmoke,
+  summarizeSimpleRpgGuidePublicApiExercises,
+} from '../examples/simple-rpg-usage';
 import {
   inspectMedievalGameboardBlueprint,
   inspectMedievalGameboardBlueprintScenario,
@@ -2295,6 +2301,7 @@ function runCoverage(parsed: ParsedArgs): void {
     packageChecks: createDefaultGameboardCoveragePackageChecks(
       checksPassed ? 'passed' : 'not-run'
     ),
+    simpleRpgEvidence: createCliSimpleRpgEvidence(),
   });
   const markdown =
     parsed.flags.markdown === true ? renderGameboardCoverageMarkdown(report) : undefined;
@@ -2332,6 +2339,31 @@ function runCoverage(parsed: ParsedArgs): void {
   }
 
   printCoverageSummary(report);
+}
+
+function createCliSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence {
+  const exerciseCoverage = summarizeSimpleRpgGuidePublicApiExercises();
+  const executableSmoke = runSimpleRpgExecutableGuideApiSmoke();
+  const evidenceModeCounts = exerciseCoverage.exerciseModeCounts;
+  const evidenceModeEntries = Object.entries(evidenceModeCounts) as Array<
+    [GameboardCoverageSimpleRpgEvidenceMode, number]
+  >;
+  return {
+    guidePublicApiCount: exerciseCoverage.guidePublicApiCount,
+    exercisedPublicApiCount: exerciseCoverage.exercisedPublicApiCount,
+    missingPublicApis: exerciseCoverage.missingPublicApis,
+    stalePublicApis: exerciseCoverage.staleExercisePublicApis,
+    executablePublicApiCount: executableSmoke.directPublicApiCount,
+    publicTreatmentCount: executableSmoke.publicTreatmentCount,
+    guideScenarioCount: executableSmoke.guideScenarioCount,
+    evidenceModeCounts,
+    activeEvidenceModes: evidenceModeEntries
+      .filter(([, count]) => count > 0)
+      .map(([mode]) => mode),
+    inactiveEvidenceModes: evidenceModeEntries
+      .filter(([, count]) => count <= 0)
+      .map(([mode]) => mode),
+  };
 }
 
 function coveragePathStatuses(): GameboardCoveragePathStatusInput {
@@ -2374,6 +2406,11 @@ function printCoverageSummary(report: GameboardCoverageReport): void {
   console.log(
     `local references: ${countCoverageStatus(report.references, 'available')} available, ${countCoverageStatus(report.references, 'missing')} missing, ${countCoverageStatus(report.references, 'skipped')} skipped`
   );
+  if (report.simpleRpgEvidence) {
+    console.log(
+      `SimpleRPG API evidence: ${report.simpleRpgEvidence.exercisedPublicApiCount}/${report.simpleRpgEvidence.guidePublicApiCount} represented, ${report.simpleRpgEvidence.executablePublicApiCount} directly executed, ${report.simpleRpgEvidence.activeEvidenceModes.length} active mode(s)`
+    );
+  }
   console.log(`gaps: ${report.gaps.length}`);
   for (const gap of report.gaps.slice(0, 20)) {
     console.log(`- ${gap.severity} ${gap.code}: ${gap.subject ? `${gap.subject}: ` : ''}${gap.message}`);

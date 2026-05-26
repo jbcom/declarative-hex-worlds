@@ -418,9 +418,10 @@ contract for CI and npm consumers.
   interact/attack/inspect commands, actor-target command planners for UI/AI
   queues, and explicit opt-in handler helpers for common RPG effects.
 - `./coverage`: release-readiness reports that join guide pages, public API
-  treatment, manifest coverage, screenshots, local references, and package gate
-  status. Use the `coverage` CLI command or `doctor --coverage` before release
-  closeout so README/docs claims, screenshots, and package checks share one
+  treatment, manifest coverage, screenshots, local references, package gate
+  status, and optional SimpleRPG public API evidence. Use the `coverage` CLI
+  command or `doctor --coverage` before release closeout so README/docs claims,
+  screenshots, SimpleRPG evidence modes, and package checks share one
   machine-readable ledger.
 - `./systems`: game-loop action bundles and neutral event records for command
   dispatch, actor-target dispatch, patrol route advancement, movement ticks,

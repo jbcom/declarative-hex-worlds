@@ -41,6 +41,18 @@ export type CoverageGapSeverity = 'info' | 'warning' | 'error';
 /** Review artifact source class for screenshots, guide images, or required supporting files. */
 export type VisualArtifactCoverageSource = 'guide' | 'showcase' | 'screenshot';
 
+/** Evidence mode names used by the SimpleRPG public API integration fixture. */
+export type GameboardCoverageSimpleRpgEvidenceMode =
+  | 'fixed-gameplay'
+  | 'seeded-generation'
+  | 'packaged-scenario'
+  | 'executable-smoke'
+  | 'blueprint-recipe'
+  | 'manifest-package'
+  | 'compatibility-adapter'
+  | 'package-boundary'
+  | 'visual-coverage';
+
 /** Stable machine-readable release-readiness gap. */
 export interface CoverageGap {
   /** Stable code for docs, tests, and CI parsing. */
@@ -185,6 +197,30 @@ export interface GameboardCoveragePackageCheckInput
   status?: GameboardCoverageCheckStatus;
 }
 
+/** SimpleRPG public API proof joined into the release-readiness ledger. */
+export interface GameboardCoverageSimpleRpgEvidence {
+  /** Number of guide-facing public API rows from the catalog. */
+  guidePublicApiCount: number;
+  /** Number of current guide-facing public API rows represented by SimpleRPG evidence. */
+  exercisedPublicApiCount: number;
+  /** Current guide-facing public APIs with no SimpleRPG evidence. */
+  missingPublicApis: readonly string[];
+  /** SimpleRPG evidence rows that no longer map to current guide-facing public APIs. */
+  stalePublicApis: readonly string[];
+  /** Number of guide-facing helper APIs directly invoked by executable smoke. */
+  executablePublicApiCount: number;
+  /** Number of KayKit public treatment records asserted by executable smoke. */
+  publicTreatmentCount: number;
+  /** Number of decomposed guide pages asserted by executable smoke. */
+  guideScenarioCount: number;
+  /** Evidence-mode counts; one public API may contribute to multiple modes. */
+  evidenceModeCounts: Readonly<Record<GameboardCoverageSimpleRpgEvidenceMode, number>>;
+  /** Evidence modes with at least one represented public API. */
+  activeEvidenceModes: readonly GameboardCoverageSimpleRpgEvidenceMode[];
+  /** Evidence modes with zero represented public APIs. */
+  inactiveEvidenceModes: readonly GameboardCoverageSimpleRpgEvidenceMode[];
+}
+
 /** Optional path status maps supplied by the CLI or another build tool. */
 export interface GameboardCoveragePathStatusInput {
   /** Availability status by repo-relative source image path. */
@@ -207,6 +243,8 @@ export interface SummarizeGameboardCoverageOptions {
   references?: readonly GameboardCoverageReferenceInput[];
   /** Package, docs, visual, or release gate check status overrides. */
   packageChecks?: readonly GameboardCoveragePackageCheckInput[];
+  /** Optional SimpleRPG public API proof from the packaged example fixture. */
+  simpleRpgEvidence?: GameboardCoverageSimpleRpgEvidence;
 }
 
 /** Full release-readiness report for the package and local visual evidence. */
@@ -235,6 +273,8 @@ export interface GameboardCoverageReport {
   references: readonly GameboardCoverageReference[];
   /** Package, docs, visual, and release verification command status. */
   packageChecks: readonly GameboardCoveragePackageCheck[];
+  /** Optional SimpleRPG public API proof from the packaged example fixture. */
+  simpleRpgEvidence?: GameboardCoverageSimpleRpgEvidence;
   /** Machine-readable gaps that should guide release closeout. */
   gaps: readonly CoverageGap[];
   /** Canonical command sequence for final acceptance. */
@@ -447,6 +487,7 @@ export function summarizeGameboardCoverage(
   });
   const references = normalizeReferences(options.references);
   const packageChecks = normalizePackageChecks(options.packageChecks);
+  const simpleRpgEvidence = options.simpleRpgEvidence;
   const gaps = collectCoverageGaps({
     guide,
     pages,
@@ -454,6 +495,7 @@ export function summarizeGameboardCoverage(
     visualArtifacts,
     references,
     packageChecks,
+    simpleRpgEvidence,
   });
   const status = reportStatusFromGaps(gaps);
 
@@ -470,6 +512,7 @@ export function summarizeGameboardCoverage(
     visualArtifacts,
     references,
     packageChecks,
+    ...(simpleRpgEvidence ? { simpleRpgEvidence } : {}),
     gaps,
     releaseGateCommands: GAMEBOARD_RELEASE_GATE_COMMANDS,
   };
@@ -501,6 +544,11 @@ export function renderGameboardCoverageMarkdown(
     `- Visual artifacts: ${countStatus(report.visualArtifacts, 'available')} available, ${countStatus(report.visualArtifacts, 'missing')} missing, ${countStatus(report.visualArtifacts, 'skipped')} skipped`,
     `- Local references: ${countStatus(report.references, 'available')} available, ${countStatus(report.references, 'missing')} missing, ${countStatus(report.references, 'skipped')} skipped`,
     `- Release checks: ${countCheckStatus(report.packageChecks, 'passed')} passed, ${countCheckStatus(report.packageChecks, 'failed')} failed, ${countCheckStatus(report.packageChecks, 'not-run')} not run, ${countCheckStatus(report.packageChecks, 'skipped')} skipped`,
+    ...(report.simpleRpgEvidence
+      ? [
+          `- SimpleRPG API evidence: ${report.simpleRpgEvidence.exercisedPublicApiCount}/${report.simpleRpgEvidence.guidePublicApiCount} represented, ${report.simpleRpgEvidence.executablePublicApiCount} directly executed, ${report.simpleRpgEvidence.activeEvidenceModes.length} active mode(s)`,
+        ]
+      : []),
     '',
     '## Manifest Coverage',
     '',
@@ -511,9 +559,29 @@ export function renderGameboardCoverageMarkdown(
     `- EXTRA guide assets kept local-only: ${report.manifest.extraGuideAssetsLocalOnly.length}/${report.manifest.guideExtraAssetCount}`,
     `- Manifest validation: ${report.manifest.errorCount} error(s), ${report.manifest.warningCount} warning(s)`,
     '',
-    '## Gaps',
-    '',
   ];
+
+  if (report.simpleRpgEvidence) {
+    lines.push(
+      '## SimpleRPG Public API Evidence',
+      '',
+      `- Guide-facing public APIs represented: ${report.simpleRpgEvidence.exercisedPublicApiCount}/${report.simpleRpgEvidence.guidePublicApiCount}`,
+      `- Direct executable helper APIs: ${report.simpleRpgEvidence.executablePublicApiCount}`,
+      `- KayKit public treatment records asserted: ${report.simpleRpgEvidence.publicTreatmentCount}`,
+      `- Decomposed guide pages asserted: ${report.simpleRpgEvidence.guideScenarioCount}`,
+      `- Missing public APIs: ${report.simpleRpgEvidence.missingPublicApis.length}`,
+      `- Stale evidence rows: ${report.simpleRpgEvidence.stalePublicApis.length}`,
+      '',
+      '| Mode | API Count |',
+      '| --- | ---: |'
+    );
+    for (const [mode, count] of Object.entries(report.simpleRpgEvidence.evidenceModeCounts)) {
+      lines.push(`| ${mode} | ${count} |`);
+    }
+    lines.push('');
+  }
+
+  lines.push('## Gaps', '');
 
   if (report.gaps.length === 0) {
     lines.push('- None', '');
@@ -594,6 +662,7 @@ interface CoverageGapContext {
   visualArtifacts: readonly VisualArtifactCoverage[];
   references: readonly GameboardCoverageReference[];
   packageChecks: readonly GameboardCoveragePackageCheck[];
+  simpleRpgEvidence?: GameboardCoverageSimpleRpgEvidence;
 }
 
 function summarizeManifestCoverage(
@@ -809,6 +878,37 @@ function collectCoverageGaps(context: CoverageGapContext): CoverageGap[] {
         severity: 'warning',
         subject: check.command,
         message: `${check.label} has not been recorded in this coverage report.`,
+      });
+    }
+  }
+
+  if (context.simpleRpgEvidence) {
+    if (
+      context.simpleRpgEvidence.exercisedPublicApiCount !==
+        context.simpleRpgEvidence.guidePublicApiCount ||
+      context.simpleRpgEvidence.missingPublicApis.length > 0
+    ) {
+      gaps.push({
+        code: 'simple_rpg.public_api_missing',
+        severity: 'error',
+        subject: 'SimpleRPG public API evidence',
+        message: `SimpleRPG represents ${context.simpleRpgEvidence.exercisedPublicApiCount}/${context.simpleRpgEvidence.guidePublicApiCount} guide-facing public APIs.`,
+      });
+    }
+    if (context.simpleRpgEvidence.stalePublicApis.length > 0) {
+      gaps.push({
+        code: 'simple_rpg.public_api_stale',
+        severity: 'error',
+        subject: 'SimpleRPG public API evidence',
+        message: `${context.simpleRpgEvidence.stalePublicApis.length} SimpleRPG evidence row(s) no longer map to current guide-facing public APIs.`,
+      });
+    }
+    for (const mode of context.simpleRpgEvidence.inactiveEvidenceModes) {
+      gaps.push({
+        code: 'simple_rpg.evidence_mode_inactive',
+        severity: 'warning',
+        subject: mode,
+        message: `SimpleRPG evidence mode ${mode} has no represented public APIs.`,
       });
     }
   }

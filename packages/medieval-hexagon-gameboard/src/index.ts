@@ -91,6 +91,8 @@ export type {
   GameboardCoverageReferenceInput,
   GameboardCoverageReport,
   GameboardCoverageReportStatus,
+  GameboardCoverageSimpleRpgEvidence,
+  GameboardCoverageSimpleRpgEvidenceMode,
   GameboardCoverageStatus,
   GuidePageCoverage,
   SummarizeGameboardCoverageOptions,

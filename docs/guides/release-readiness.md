@@ -19,6 +19,7 @@ pnpm coverage:ledger
 - Visual artifacts: 70 available, 0 missing, 0 skipped
 - Local references: 4 available, 0 missing, 0 skipped
 - Release checks: 12 passed, 0 failed, 0 not run, 0 skipped
+- SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)
 
 ## Manifest Coverage
 
@@ -28,6 +29,27 @@ pnpm coverage:ledger
 - FREE guide assets missing from manifest: 0
 - EXTRA guide assets kept local-only: 183/183
 - Manifest validation: 0 error(s), 0 warning(s)
+
+## SimpleRPG Public API Evidence
+
+- Guide-facing public APIs represented: 74/74
+- Direct executable helper APIs: 40
+- KayKit public treatment records asserted: 404
+- Decomposed guide pages asserted: 19
+- Missing public APIs: 0
+- Stale evidence rows: 0
+
+| Mode | API Count |
+| --- | ---: |
+| fixed-gameplay | 30 |
+| seeded-generation | 10 |
+| packaged-scenario | 1 |
+| executable-smoke | 40 |
+| blueprint-recipe | 4 |
+| manifest-package | 6 |
+| compatibility-adapter | 2 |
+| package-boundary | 3 |
+| visual-coverage | 26 |
 
 ## Gaps
 

@@ -4,7 +4,10 @@ import {
   renderGameboardCoverageMarkdown as renderGameboardCoverageMarkdownFromRoot,
   summarizeGameboardCoverage as summarizeGameboardCoverageFromRoot,
 } from '../../src';
-import { runSimpleRpgExecutableGuideApiSmoke } from '../../examples/simple-rpg-usage';
+import {
+  runSimpleRpgExecutableGuideApiSmoke,
+  summarizeSimpleRpgGuidePublicApiExercises,
+} from '../../examples/simple-rpg-usage';
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   GAMEBOARD_RELEASE_GATE_COMMANDS,
@@ -15,12 +18,15 @@ import {
   renderGameboardCoverageMarkdown,
   summarizeGameboardCoverage,
   type GameboardCoveragePathStatusInput,
+  type GameboardCoverageSimpleRpgEvidence,
+  type GameboardCoverageSimpleRpgEvidenceMode,
 } from '../../src/coverage';
 
 describe('release-readiness coverage', () => {
   it('summarizes every guide page, public API, visual artifact, and manifest boundary', () => {
     const report = summarizeGameboardCoverage({
       packageChecks: createDefaultGameboardCoveragePackageChecks('passed'),
+      simpleRpgEvidence: createSimpleRpgEvidence(),
     });
 
     expect(
@@ -84,6 +90,38 @@ describe('release-readiness coverage', () => {
     expect(report.packageChecks.map((check) => check.summary)).toEqual(
       GAMEBOARD_RELEASE_GATE_COMMANDS.map((command) => GAMEBOARD_RELEASE_GATE_SUMMARIES[command])
     );
+    expect(report.simpleRpgEvidence).toMatchObject({
+      guidePublicApiCount: 74,
+      exercisedPublicApiCount: 74,
+      missingPublicApis: [],
+      stalePublicApis: [],
+      executablePublicApiCount: 40,
+      publicTreatmentCount: 404,
+      guideScenarioCount: 19,
+      inactiveEvidenceModes: [],
+    });
+    expect(report.simpleRpgEvidence?.activeEvidenceModes).toEqual([
+      'fixed-gameplay',
+      'seeded-generation',
+      'packaged-scenario',
+      'executable-smoke',
+      'blueprint-recipe',
+      'manifest-package',
+      'compatibility-adapter',
+      'package-boundary',
+      'visual-coverage',
+    ]);
+    expect(report.simpleRpgEvidence?.evidenceModeCounts).toMatchObject({
+      'fixed-gameplay': 30,
+      'seeded-generation': 10,
+      'packaged-scenario': 1,
+      'executable-smoke': 40,
+      'blueprint-recipe': 4,
+      'manifest-package': 6,
+      'compatibility-adapter': 2,
+      'package-boundary': 3,
+      'visual-coverage': 26,
+    });
 
     const simpleRpgSmoke = runSimpleRpgExecutableGuideApiSmoke();
     const docsContractSummary = GAMEBOARD_RELEASE_GATE_SUMMARIES['pnpm test:docs-contract'];
@@ -167,12 +205,16 @@ describe('release-readiness coverage', () => {
   it('renders a Markdown ledger that names counts, gaps, references, and commands', () => {
     const report = summarizeGameboardCoverage({
       packageChecks: createDefaultGameboardCoveragePackageChecks('passed'),
+      simpleRpgEvidence: createSimpleRpgEvidence(),
     });
     const markdown = renderGameboardCoverageMarkdown(report);
 
     expect(renderGameboardCoverageMarkdownFromRoot(report)).toBe(markdown);
     expect(markdown).toContain('# Release Readiness Coverage');
     expect(markdown).toContain('- Guide pages: 19/19');
+    expect(markdown).toContain('- SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)');
+    expect(markdown).toContain('## SimpleRPG Public API Evidence');
+    expect(markdown).toContain('| visual-coverage | 26 |');
     expect(markdown).toContain(
       '- Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences'
     );
@@ -185,3 +227,28 @@ describe('release-readiness coverage', () => {
     expect(markdown).toContain('`page-15-shipyard-harbors`');
   });
 });
+
+function createSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence {
+  const exerciseCoverage = summarizeSimpleRpgGuidePublicApiExercises();
+  const executableSmoke = runSimpleRpgExecutableGuideApiSmoke();
+  const evidenceModeCounts = exerciseCoverage.exerciseModeCounts;
+  const evidenceModeEntries = Object.entries(evidenceModeCounts) as Array<
+    [GameboardCoverageSimpleRpgEvidenceMode, number]
+  >;
+  return {
+    guidePublicApiCount: exerciseCoverage.guidePublicApiCount,
+    exercisedPublicApiCount: exerciseCoverage.exercisedPublicApiCount,
+    missingPublicApis: exerciseCoverage.missingPublicApis,
+    stalePublicApis: exerciseCoverage.staleExercisePublicApis,
+    executablePublicApiCount: executableSmoke.directPublicApiCount,
+    publicTreatmentCount: executableSmoke.publicTreatmentCount,
+    guideScenarioCount: executableSmoke.guideScenarioCount,
+    evidenceModeCounts,
+    activeEvidenceModes: evidenceModeEntries
+      .filter(([, count]) => count > 0)
+      .map(([mode]) => mode),
+    inactiveEvidenceModes: evidenceModeEntries
+      .filter(([, count]) => count <= 0)
+      .map(([mode]) => mode),
+  };
+}

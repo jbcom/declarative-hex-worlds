@@ -546,6 +546,13 @@ describe('CLI', () => {
       visualArtifacts: Array<{ path: string; status: string }>;
       references: unknown[];
       packageChecks: Array<{ status: string; summary?: string }>;
+      simpleRpgEvidence?: {
+        guidePublicApiCount: number;
+        exercisedPublicApiCount: number;
+        executablePublicApiCount: number;
+        inactiveEvidenceModes: string[];
+        evidenceModeCounts: Record<string, number>;
+      };
     };
     const markdown = readFileSync(markdownPath, 'utf8');
 
@@ -572,11 +579,23 @@ describe('CLI', () => {
     expect(report.packageChecks.every((check) => typeof check.summary === 'string' && check.summary.length > 0)).toBe(
       true
     );
+    expect(report.simpleRpgEvidence).toMatchObject({
+      guidePublicApiCount: 74,
+      exercisedPublicApiCount: 74,
+      executablePublicApiCount: 40,
+      inactiveEvidenceModes: [],
+      evidenceModeCounts: expect.objectContaining({
+        'seeded-generation': 10,
+        'visual-coverage': 26,
+      }) as Record<string, number>,
+    });
     expect(markdown).toContain('# Release Readiness Coverage');
+    expect(markdown).toContain('## SimpleRPG Public API Evidence');
     expect(markdown).toContain('| Status | Command | Summary |');
     expect(markdown).toContain('README gallery links');
     expect(doctorOutput).toContain('guide pages: 19/19');
     expect(doctorOutput).toContain('manifest: 221 asset(s), 221/221 FREE guide asset(s)');
+    expect(doctorOutput).toContain('SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)');
   });
 
   it('compiles high-level blueprint board specs through the CLI', () => {

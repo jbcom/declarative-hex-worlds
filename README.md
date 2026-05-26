@@ -231,7 +231,7 @@ usage guides:
   roles, asset counts, public API surfaces, docs, and visual artifacts.
 - [`docs/guides/release-readiness.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/release-readiness.md) is the generated release ledger that joins
   guide coverage, manifests, public API treatment, visual artifacts, local
-  references, and package gate evidence.
+  references, package gate evidence, and SimpleRPG public API proof.
 - [`docs/guides/runtime-integration.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/runtime-integration.md) covers runtime ownership, mutations,
   React hook families, external ECS snapshots, and integration-test patterns.
 - [`docs/guides/recipes-scenarios-and-simulation.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/guides/recipes-scenarios-and-simulation.md) covers recipes, scenarios,
