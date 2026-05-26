@@ -45,7 +45,6 @@ export default defineConfig({
     'manifest/schema': 'src/manifest/schema.ts',
     'manifest/upstream-layout': 'src/manifest/upstream-layout.ts',
     'examples/blueprint-board-usage': 'examples/blueprint-board-usage.ts',
-    'examples/simple-rpg-usage': 'examples/simple-rpg-usage.ts',
   },
   format: ['esm'],
   dts: true,

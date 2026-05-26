@@ -149,8 +149,7 @@ ship without npm-facing documentation.
 | `@jbcom/medieval-hexagon-gameboard/manifest/schema` | Manifest schema, attribution constants, validation, bundle creation, filtering, and URL resolution. |
 | `@jbcom/medieval-hexagon-gameboard/assets/free/*` | Direct packaged FREE GLTF, BIN, PNG, and manifest files for bundlers and renderers. |
 | `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` | Compiled public-import blueprint-board walkthrough used by consumer smoke tests and board-scale app reference code. |
-| `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` | Compiled public-import SimpleRPG usage walkthrough used by consumer smoke tests. |
-| `@jbcom/medieval-hexagon-gameboard/examples/*.json` | Packaged recipe, scenario, and simulation fixtures. |
+| `@jbcom/medieval-hexagon-gameboard/examples/*.json` | Packaged recipe and blueprint-board fixtures. |
 
 ## Quick Start
 
@@ -1092,8 +1091,11 @@ missing actor patrol routes, manifest-missing actor assets, incorrect EXTRA
 flags, and optional plan rule violations before a runtime actor index can be
 overwritten.
 
-See `examples/simple-rpg-scenario.json` for a packaged JSON scenario with actors,
-patrol agents, movement, and quest objectives.
+A canonical playable JSON scenario with actors, patrol agents, movement, and
+quest objectives lives in the repo at
+`tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json` (SimpleRPG is
+a test driver post-PRD R4 and is intentionally not shipped in the npm
+tarball — copy/adapt it locally if you want a realistic starting point).
 
 ## Scenario Simulation
 
@@ -1314,13 +1316,13 @@ summary, including actor-target record counts and nearest target details; use
 
 ```bash
 medieval-hexagon-gameboard validate-simulation \
-  --scenario examples/simple-rpg-scenario.json \
-  --script examples/simple-rpg-simulation.script.json \
+  --scenario <your-scenario.json> \
+  --script <your-simulation-script.json> \
   --manifest assets/free/manifest.json
 
 medieval-hexagon-gameboard simulate-scenario \
-  --scenario examples/simple-rpg-scenario.json \
-  --script examples/simple-rpg-simulation.script.json \
+  --scenario <your-scenario.json> \
+  --script <your-simulation-script.json> \
   --manifest assets/free/manifest.json \
   --out simple-rpg-simulation.json \
   --outPlan simple-rpg-final-plan.json \
@@ -1449,57 +1451,29 @@ through movement actions and systems. The tests verify that props are passable,
 enemies block movement, enemy removal changes pathability, and the final Koota
 world projects back into a renderable `GameboardPlan`.
 
-The repository includes `examples/simple-rpg-usage.ts`, and the package ships
-the compiled `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage`
-export. It is a typed public-import walkthrough over
-`examples/simple-rpg-scenario.json` and
-`examples/simple-rpg-simulation.script.json`: validate and instantiate the
-scenario, resolve scenario-owned player/NPC/enemy spawn groups, select
-additional board-aware spawn locations, create an interop snapshot for external
-ECS consumers, run the scripted quest flow, and return a serializable summary
-suitable for app smoke tests.
-That summary includes the current guide-facing public API count, exercised API
-count, missing/stale API rows, and evidence modes from
-`summarizeSimpleRpgGuidePublicApiExercises()`. The packaged consumer smoke test
-asserts that all 74 guide-facing APIs are represented, so new guide/API coverage
-cannot drift away from SimpleRPG unnoticed. The release-readiness coverage
-ledger also includes the per-public-API exercise matrix with guide pages,
+The repository also includes a longer SimpleRPG public-API walkthrough at
+`tests/integration/simple-rpg/simple-rpg.ts` (with JSON fixtures under
+`tests/integration/simple-rpg/fixtures/`). It validates and instantiates a
+scenario, resolves player/NPC/enemy spawn groups, selects additional
+board-aware spawn locations, creates an interop snapshot for external ECS
+consumers, runs the scripted quest flow, and returns a serializable summary.
+That summary feeds the release-readiness coverage gate emitted by the CLI's
+`coverage` / `doctor --coverage` commands — every guide-facing public API
+must be represented, and the per-API exercise matrix tracks guide pages,
 scenario ids, asset counts, evidence modes, and evidence text. Evidence-mode
 counts are memberships rather than exclusive buckets: an API can be direct
 executable smoke and also seeded-generation, blueprint, manifest,
-compatibility, or visual proof. The unit suite requires every declared mode to
-stay active.
-The JSON examples are exported as
-`@jbcom/medieval-hexagon-gameboard/examples/*.json`; raw TypeScript example
-source stays in the repo and is not included in the npm tarball.
+compatibility, or visual proof.
 
-```ts
-import {
-  runSimpleRpgUsageExample,
-  summarizeSimpleRpgGuidePublicApiExercises,
-} from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
-
-const smoke = runSimpleRpgUsageExample();
-const apiCoverage = summarizeSimpleRpgGuidePublicApiExercises();
-if (
-  !smoke.simulationSucceeded ||
-  smoke.validationErrorCount > 0 ||
-  apiCoverage.missingPublicApis.length > 0
-) {
-  throw new Error(`SimpleRPG smoke failed for ${smoke.scenarioId}`);
-}
-console.log(smoke.nearestActorTargetId, smoke.actorTargetCommandKinds);
-```
-
-The same example also exports `runSimpleRpgExecutableGuideApiSmoke()`. That
-helper directly calls the guide-facing selector, manifest, registry,
-layout-piece, recipe, blueprint, seeded-board, spawn-selection, and external
-compatibility helpers that games usually compose around the scenario runtime.
-It currently invokes 40 guide-facing helper APIs and asserts the same catalog
+The driver invokes 40 guide-facing helper APIs and asserts the same catalog
 scale used by the coverage ledger: 404 KayKit public treatment records and all
-19 decomposed guide pages. The packaged consumer smoke imports it from
-`node_modules`, so API treatment for those helpers has to stay executable rather
-than only documented in the coverage ledger.
+19 decomposed guide pages.
+
+SimpleRPG is **a test driver, not a published example**. The npm tarball
+intentionally does NOT ship the SimpleRPG TypeScript source, JSON fixtures, or
+compiled module — consumers reach the SimpleRPG evidence through the bundled
+CLI (`medieval-hexagon-gameboard coverage --json` / `doctor --coverage`), and
+the integration fixture stays local to the repo as a coverage harness.
 
 The seeded fixture also declares FREE trees, supply scatter, and a quest marker
 as reusable pieces, feeds them into `createSeededGameboardPlan` through
@@ -2126,15 +2100,15 @@ timeline:
 
 ```bash
 medieval-hexagon-gameboard snapshot \
-  --scenario examples/simple-rpg-scenario.json \
+  --scenario <your-scenario.json> \
   --manifest assets/free/manifest.json \
   --spawnCount 2 \
   --spawnSeed simple-rpg \
   --out /tmp/simple-rpg-interop.json
 
 medieval-hexagon-gameboard simulate-scenario \
-  --scenario examples/simple-rpg-scenario.json \
-  --script examples/simple-rpg-simulation.script.json \
+  --scenario <your-scenario.json> \
+  --script <your-simulation-script.json> \
   --manifest assets/free/manifest.json \
   --out /tmp/simple-rpg-simulation.json \
   --outInterop /tmp/simple-rpg-simulation-interop.json
@@ -2396,7 +2370,7 @@ medieval-hexagon-gameboard declarations --manifest assets/free/manifest.json --o
 medieval-hexagon-gameboard analyze --registry kaykit-declarations.json
 medieval-hexagon-gameboard blueprint --blueprint examples/blueprint-board.json --outRecipe campaign.recipe.json --outPlan campaign.plan.json --outScenario campaign.scenario.json --outScenarioInspection campaign.scenario-inspection.json --outInterop campaign.interop.json --out campaign.inspection.json --allowUnknownAssets
 medieval-hexagon-gameboard summarize-plan --blueprint examples/blueprint-board.json --out campaign.summary.json --outPlan campaign.summary.plan.json --allowUnknownAssets
-medieval-hexagon-gameboard summarize-scenario --scenario examples/simple-rpg-scenario.json --out simple-rpg.scenario-summary.json --allowUnknownAssets
+medieval-hexagon-gameboard summarize-scenario --scenario <your-scenario.json> --out simple-rpg.scenario-summary.json --allowUnknownAssets
 medieval-hexagon-gameboard validate-plan --plan board.json --manifest assets/free/manifest.json
 medieval-hexagon-gameboard validate-recipe --recipe scenario.json --manifest assets/free/manifest.json --outPlan board.json
 medieval-hexagon-gameboard analyze-layout --recipe scenario.recipe.json --rules layout-rules.json --out layout-analysis.json --outPlan board.json
@@ -2404,8 +2378,8 @@ medieval-hexagon-gameboard spawn-groups --recipe scenario.recipe.json --groups s
 medieval-hexagon-gameboard patrol-routes --scenario simple-rpg-scenario.json --out patrol-routes.plan.json
 medieval-hexagon-gameboard patrol-script --routes patrol-routes.plan.json --routeId bandit-watch --actorId bandit --out patrol.script.json
 medieval-hexagon-gameboard validate-scenario --scenario simple-rpg-scenario.json --manifest assets/free/manifest.json --outPlan board.json
-medieval-hexagon-gameboard validate-simulation --scenario examples/simple-rpg-scenario.json --script examples/simple-rpg-simulation.script.json --manifest assets/free/manifest.json
-medieval-hexagon-gameboard simulate-scenario --scenario examples/simple-rpg-scenario.json --script examples/simple-rpg-simulation.script.json --manifest assets/free/manifest.json --out simple-rpg-simulation.json --outPlan simple-rpg-final-plan.json --outInterop simple-rpg-simulation-interop.json
+medieval-hexagon-gameboard validate-simulation --scenario <your-scenario.json> --script <your-simulation-script.json> --manifest assets/free/manifest.json
+medieval-hexagon-gameboard simulate-scenario --scenario <your-scenario.json> --script <your-simulation-script.json> --manifest assets/free/manifest.json --out simple-rpg-simulation.json --outPlan simple-rpg-final-plan.json --outInterop simple-rpg-simulation-interop.json
 medieval-hexagon-gameboard compatibility --asset third-party.glb --intendedRole tile --failOnWarning
 ```
 

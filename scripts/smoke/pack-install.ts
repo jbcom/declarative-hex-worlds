@@ -17,7 +17,7 @@
  * indistinguishable from a `tsc` failure in the orchestrator's log.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { assert, COVERAGE_CLI_MAX_BUFFER_BYTES, type SmokeContext } from './_shared.js';
@@ -38,7 +38,6 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
   for (const requiredFile of [
     'dist/index.js',
     'dist/examples/blueprint-board-usage.js',
-    'dist/examples/simple-rpg-usage.js',
     'dist/cli.js',
   ]) {
     assert(
@@ -92,24 +91,45 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
     'compiled blueprint usage example is missing'
   );
   assert(
-    existsSync(join(installedPackageRoot, 'dist/examples/simple-rpg-usage.js')),
-    'compiled usage example is missing'
-  );
-  assert(
     existsSync(join(installedPackageRoot, 'examples/blueprint-board.json')),
     'blueprint JSON example is missing'
-  );
-  assert(
-    existsSync(join(installedPackageRoot, 'examples/simple-rpg-scenario.json')),
-    'scenario JSON example is missing'
   );
   assert(
     !existsSync(join(installedPackageRoot, 'examples/blueprint-board-usage.ts')),
     'raw TypeScript blueprint usage example must not be published'
   );
+  // PRD R4: SimpleRPG is a test driver, not a published example. The
+  // tarball must NOT ship its compiled module, the JSON fixtures, or the
+  // raw TypeScript source.
+  assert(
+    !existsSync(join(installedPackageRoot, 'dist/examples/simple-rpg-usage.js')),
+    'SimpleRPG usage module must not ship in the published tarball'
+  );
   assert(
     !existsSync(join(installedPackageRoot, 'examples/simple-rpg-usage.ts')),
-    'raw TypeScript usage example must not be published'
+    'raw TypeScript SimpleRPG usage example must not be published'
+  );
+  assert(
+    !existsSync(join(installedPackageRoot, 'examples/simple-rpg-scenario.json')),
+    'SimpleRPG scenario JSON must not ship in the published tarball'
+  );
+  assert(
+    !existsSync(join(installedPackageRoot, 'examples/simple-rpg-simulation.script.json')),
+    'SimpleRPG simulation script JSON must not ship in the published tarball'
+  );
+  // PRD R4: SimpleRPG fixtures live under tests/ and are NOT shipped. To
+  // exercise the packed CLI against a real scenario the workspace fixture
+  // is staged into the consumer tempdir as if the consumer had supplied
+  // their own scenario file.
+  const stagedScenarioPath = join(appRoot, 'simple-rpg-scenario.json');
+  const stagedSimulationScriptPath = join(appRoot, 'simple-rpg-simulation.script.json');
+  copyFileSync(
+    join(packageRoot, 'tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json'),
+    stagedScenarioPath
+  );
+  copyFileSync(
+    join(packageRoot, 'tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json'),
+    stagedSimulationScriptPath
   );
   const installedGuideUsageOutput = execFileSync(
     process.execPath,
@@ -147,7 +167,7 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
       installedCliPath,
       'summarize-plan',
       '--scenario',
-      join(installedPackageRoot, 'examples/simple-rpg-scenario.json'),
+      stagedScenarioPath,
       '--manifest',
       join(installedPackageRoot, 'assets/free/manifest.json'),
       '--json',
@@ -181,7 +201,7 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
       installedCliPath,
       'summarize-scenario',
       '--scenario',
-      join(installedPackageRoot, 'examples/simple-rpg-scenario.json'),
+      stagedScenarioPath,
       '--manifest',
       join(installedPackageRoot, 'assets/free/manifest.json'),
       '--json',
@@ -294,11 +314,11 @@ import {
   summarizeGameboardScenario,
 } from '@jbcom/medieval-hexagon-gameboard';
 import { runBlueprintBoardUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
-import {
-  listSimpleRpgGuidePublicApiExercises,
-  runSimpleRpgUsageExample,
-  summarizeSimpleRpgGuidePublicApiExercises,
-} from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
+// PRD R4: SimpleRPG no longer exports through the package; the smoke
+// consumer only verifies the published surface. SimpleRPG evidence is
+// asserted via the installed CLI \`coverage\` and \`doctor --coverage\`
+// commands above (which still bundle the SimpleRPG evidence inside
+// \`dist/cli.js\`).
 import {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
   createGameboardInteractionHandlerPreset,
@@ -428,7 +448,7 @@ import {
 const assetManifestModule = await import('@jbcom/medieval-hexagon-gameboard/assets/free/manifest.json', {
   with: { type: 'json' },
 });
-const scenarioModule = await import('@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json', {
+const scenarioModule = await import('./simple-rpg-scenario.json', {
   with: { type: 'json' },
 });
 const blueprintBoardModule = await import('@jbcom/medieval-hexagon-gameboard/examples/blueprint-board.json', {
@@ -502,22 +522,9 @@ if (
 ) {
   throw new Error('packed coverage report did not expose guide, manifest, public API, and markdown data');
 }
-const packagedSimpleRpgGuideExercises = listSimpleRpgGuidePublicApiExercises();
-const packagedSimpleRpgBridgeExercise = packagedSimpleRpgGuideExercises.find(
-  (exercise) => exercise.publicApi === 'GameboardBuilder.addBridge'
-);
-if (
-  packagedSimpleRpgGuideExercises.length !== 74 ||
-  new Set(packagedSimpleRpgGuideExercises.map((exercise) => exercise.publicApi)).size !== 74 ||
-  !packagedSimpleRpgBridgeExercise ||
-  packagedSimpleRpgBridgeExercise.assetCount !== 2 ||
-  packagedSimpleRpgBridgeExercise.pages.join(',') !== '2,7,9' ||
-  !packagedSimpleRpgBridgeExercise.modes.includes('visual-coverage')
-) {
-  throw new Error(
-    \`packed SimpleRPG guide API exercise matrix was incomplete: \${JSON.stringify(packagedSimpleRpgBridgeExercise)}\`
-  );
-}
+// PRD R4: SimpleRPG guide-public-api exercise matrix is no longer
+// reachable from the published surface. The installed CLI \`coverage\`
+// command above already asserts the matrix via the bundled cli.js.
 const subpathValidationPlan = readValidationGameboardPlanFromWorld(subpathWorld);
 const subpathInteropSnapshot = createGameboardInteropSnapshotFromInterop(plan);
 const subpathCoordinateSystem = createGameboardCoordinateSystem();
@@ -1266,84 +1273,13 @@ const footprintSnapshot = occupancySnapshots.find((snapshot) => snapshot.placeme
 if (!footprintSnapshot || footprintSnapshot.footprintIndex !== 1) {
   throw new Error('packed Koota placement occupancy snapshot did not include the covered footprint tile');
 }
-const usage = runSimpleRpgUsageExample();
-if (!usage.simulationSucceeded || usage.validationErrorCount !== 0) {
-  throw new Error(\`packed SimpleRPG usage failed: \${JSON.stringify(usage)}\`);
-}
-const executableGuideApiSmoke = usage.executableGuideApiSmoke;
-if (
-  executableGuideApiSmoke.directPublicApiCount !== 40 ||
-  executableGuideApiSmoke.publicTreatmentCount !== 404 ||
-  executableGuideApiSmoke.guideScenarioCount !== 19 ||
-  executableGuideApiSmoke.recipeValidationErrorCount !== 0 ||
-  executableGuideApiSmoke.recipeGenerationErrorCount !== 0 ||
-  executableGuideApiSmoke.externalSuggestedRole !== 'prop' ||
-  executableGuideApiSmoke.externalSpawnKind !== 'prop' ||
-  usage.executableGuideApiSmoke.directPublicApiCount !== executableGuideApiSmoke.directPublicApiCount
-) {
-  throw new Error(\`packed SimpleRPG executable guide API smoke failed: \${JSON.stringify(executableGuideApiSmoke)}\`);
-}
-if (
-  usage.guidePublicApiCount !== 74 ||
-  usage.exercisedGuidePublicApiCount !== 74 ||
-  usage.missingGuidePublicApis.length !== 0 ||
-  usage.staleGuidePublicApis.length !== 0
-) {
-  throw new Error(\`packed SimpleRPG guide API coverage was incomplete: \${JSON.stringify(usage)}\`);
-}
-const simpleRpgGuideCoverage = summarizeSimpleRpgGuidePublicApiExercises();
-if (
-  simpleRpgGuideCoverage.guidePublicApiCount !== 74 ||
-  simpleRpgGuideCoverage.exercisedPublicApiCount !== 74 ||
-  simpleRpgGuideCoverage.missingPublicApis.length !== 0 ||
-  simpleRpgGuideCoverage.staleExercisePublicApis.length !== 0
-) {
-  throw new Error(\`packed SimpleRPG guide API exercise summary was incomplete: \${JSON.stringify(simpleRpgGuideCoverage)}\`);
-}
-const simpleRpgCoverageEvidenceModeEntries = Object.entries(simpleRpgGuideCoverage.exerciseModeCounts);
-const simpleRpgCoverageWithExercises = summarizeGameboardCoverage({
-  simpleRpgEvidence: {
-    guidePublicApiCount: simpleRpgGuideCoverage.guidePublicApiCount,
-    exercisedPublicApiCount: simpleRpgGuideCoverage.exercisedPublicApiCount,
-    missingPublicApis: simpleRpgGuideCoverage.missingPublicApis,
-    stalePublicApis: simpleRpgGuideCoverage.staleExercisePublicApis,
-    executablePublicApiCount: executableGuideApiSmoke.directPublicApiCount,
-    publicTreatmentCount: executableGuideApiSmoke.publicTreatmentCount,
-    guideScenarioCount: executableGuideApiSmoke.guideScenarioCount,
-    evidenceModeCounts: simpleRpgGuideCoverage.exerciseModeCounts,
-    activeEvidenceModes: simpleRpgCoverageEvidenceModeEntries
-      .filter(([, count]) => count > 0)
-      .map(([mode]) => mode),
-    inactiveEvidenceModes: simpleRpgCoverageEvidenceModeEntries
-      .filter(([, count]) => count <= 0)
-      .map(([mode]) => mode),
-    publicApiExercises: simpleRpgGuideCoverage.exercises,
-  },
-});
-const simpleRpgCoverageWithExercisesMarkdown =
-  renderGameboardCoverageMarkdownFromCoverage(simpleRpgCoverageWithExercises);
-if (
-  simpleRpgCoverageWithExercises.simpleRpgEvidence?.publicApiExercises?.length !== 74 ||
-  !simpleRpgCoverageWithExercisesMarkdown.includes('### SimpleRPG Exercise Matrix') ||
-  !simpleRpgCoverageWithExercisesMarkdown.includes('| \`GameboardBuilder.addBridge\` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 |')
-) {
-  throw new Error('packed coverage report did not expose the SimpleRPG public API exercise matrix');
-}
-if (
-  usage.scenarioSpawnGroupIds.join('|') !== 'player-start|elder|enemy' ||
-  usage.scenarioSpawnLocationIds.length !== 3 ||
-  usage.scenarioSpawnRouteCount !== 2
-) {
-  throw new Error(\`packed SimpleRPG scenario spawn groups were not resolved: \${JSON.stringify(usage)}\`);
-}
-if (
-  usage.actorTargetRecordCount !== 2 ||
-  usage.actorTargetScanCount !== 2 ||
-  usage.nearestActorTargetId !== 'bandit' ||
-  usage.actorTargetCommandKinds.join('|') !== 'attack-actor'
-) {
-  throw new Error(\`packed SimpleRPG actor-target usage was not resolved: \${JSON.stringify(usage)}\`);
-}
+// PRD R4: SimpleRPG usage example (\`runSimpleRpgUsageExample\`,
+// \`summarizeSimpleRpgGuidePublicApiExercises\`,
+// \`listSimpleRpgGuidePublicApiExercises\`) is a test driver, not a
+// published surface. The installed CLI \`coverage\` / \`doctor --coverage\`
+// commands above already assert SimpleRPG evidence end-to-end via the
+// bundled \`dist/cli.js\`. The packed-consumer smoke only verifies the
+// remaining (published) blueprint-board usage example.
 const blueprintUsage = runBlueprintBoardUsageExample();
 if (
   blueprintUsage.scenarioId !== 'docs-blueprint-board:intro' ||
@@ -1418,18 +1354,12 @@ console.log(JSON.stringify({
   manifestWarnings: manifestInspection.warningCount,
   planTiles: plan.tiles.length,
   scenarioExampleId: scenarioModule.default.id,
-  usageScenarioId: usage.scenarioId,
-  executableGuideApiCount: executableGuideApiSmoke.directPublicApiCount,
   blueprintUsageScenarioId: blueprintUsage.scenarioId,
   blueprintUsageActors: blueprintUsage.actorIds.length,
   blueprintUsageInteropActors: blueprintUsage.interopActorCount,
-  actorTargetScanCount: usage.actorTargetScanCount,
-  actorTargetRecordCount: usage.actorTargetRecordCount,
-  nearestActorTargetId: usage.nearestActorTargetId,
   simulationActionCount: simulationActions.length,
   simulationSubpathActionCount: simulationSubpathActions.length,
   simulationActorTargetCommandStepAction: simulationActorTargetCommandStep.action,
-  completedQuestIds: usage.completedQuestIds,
 }, null, 2));
 `,
     'utf8'
@@ -1459,14 +1389,6 @@ console.log(JSON.stringify({
     }
   );
 
-  assert(
-    smokeOutput.includes('"usageScenarioId": "docs-simple-rpg-scenario"'),
-    'consumer smoke did not run usage example'
-  );
-  assert(
-    smokeOutput.includes('"executableGuideApiCount": 40'),
-    'consumer smoke did not run executable SimpleRPG guide API smoke'
-  );
   assert(
     smokeOutput.includes('"blueprintUsageScenarioId": "docs-blueprint-board:intro"'),
     'consumer smoke did not run blueprint usage example'

@@ -235,8 +235,14 @@ const cliPath = join(packageRoot, 'dist/cli.js');
 const freeManifestPath = join(packageRoot, 'assets/free/manifest.json');
 const blueprintPath = join(packageRoot, 'examples/blueprint-board.json');
 const recipePath = join(packageRoot, 'examples/generated-piece-scenario.recipe.json');
-const scenarioPath = join(packageRoot, 'examples/simple-rpg-scenario.json');
-const simulationScriptPath = join(packageRoot, 'examples/simple-rpg-simulation.script.json');
+const scenarioPath = join(
+  packageRoot,
+  'tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json'
+);
+const simulationScriptPath = join(
+  packageRoot,
+  'tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json'
+);
 const tempRoot = mkdtempSync(join(tmpdir(), 'medieval-built-cli-'));
 const keepTemp = process.env.MEDIEVAL_HEXAGON_KEEP_CLI_SMOKE === '1';
 

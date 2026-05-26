@@ -1,7 +1,7 @@
 import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
-import simpleRpgScenario from '../../examples/simple-rpg-scenario.json';
-import simpleRpgSimulationScript from '../../examples/simple-rpg-simulation.script.json';
+import simpleRpgScenario from '../integration/simple-rpg/fixtures/simple-rpg-scenario.json';
+import simpleRpgSimulationScript from '../integration/simple-rpg/fixtures/simple-rpg-simulation.script.json';
 import {
   advanceGameboardQuest,
   createGameboardWorldFromScenario,

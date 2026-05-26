@@ -50,7 +50,7 @@ implementation_links:
   - src/rules/validation.ts
   - src/systems/world-rules-system.ts
   - examples/blueprint-board-usage.ts
-  - examples/simple-rpg-usage.ts
+  - tests/integration/simple-rpg/simple-rpg.ts
 test_links:
   - tests/unit/catalog.test.ts
   - tests/unit/coverage.test.ts
@@ -765,7 +765,7 @@ are the canonical small JSON examples for generated piece declarations and fill
 rules. The package export map exposes JSON examples as
 `@jbcom/medieval-hexagon-gameboard/examples/*.json`; raw TypeScript examples
 stay in the repo, while npm consumers use explicit compiled exports such as
-`@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage`.
+`tests/integration/simple-rpg/simple-rpg.ts (test-only post-PRD R4)`.
 
 ## Scenarios
 
@@ -867,7 +867,7 @@ settlements, neutral buildings, bridges, walls, construction, siege, elevation
 ramps, nature, flags, prop clusters, transitions, colored and neutral EXTRA unit
 parts, unit presets, scatter, custom tile declarations, and authored tile asset
 overrides while preserving the playable quest path.
-`examples/simple-rpg-usage.ts` exposes
+`tests/integration/simple-rpg/simple-rpg.ts` exposes
 `summarizeSimpleRpgGuidePublicApiExercises()` so the packaged consumer smoke can
 assert that every current `listKayKitGuidePublicApiCoverages()` row has
 SimpleRPG evidence and no stale evidence rows. It also exposes

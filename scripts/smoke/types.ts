@@ -115,21 +115,14 @@ void IsGameboardPlacementFromTraits;
 void GameboardErrorFromErrors;
 import assetManifest from '@jbcom/medieval-hexagon-gameboard/assets/free/manifest.json' with { type: 'json' };
 import blueprintBoardJson from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board.json' with { type: 'json' };
-import simpleRpgScenario from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json' with { type: 'json' };
+// PRD R4: SimpleRPG no longer ships through the published \`examples/\`
+// subpath. The packed-consumer types attestation now uses
+// \`blueprint-board.json\` as the canonical scenario fixture; SimpleRPG
+// evidence stays bundled inside \`dist/cli.js\` via the runtime CLI smoke.
 import {
   runBlueprintBoardUsageExample,
   type BlueprintBoardUsageSummary,
 } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
-import {
-  listSimpleRpgGuidePublicApiExercises,
-  runSimpleRpgExecutableGuideApiSmoke,
-  runSimpleRpgUsageExample,
-  summarizeSimpleRpgGuidePublicApiExercises,
-  type SimpleRpgExecutableGuideApiSmokeSummary,
-  type SimpleRpgGuidePublicApiExercise,
-  type SimpleRpgGuidePublicApiExerciseCoverage,
-  type SimpleRpgUsageSummary,
-} from '@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage';
 import {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
   createGameboardInteractionHandlerPreset,
@@ -268,7 +261,6 @@ import {
   renderGameboardCoverageMarkdown as renderGameboardCoverageMarkdownFromCoverage,
   summarizeGameboardCoverage as summarizeGameboardCoverageFromCoverage,
   type GameboardCoverageReport as GameboardCoverageReportFromCoverage,
-  type GameboardCoverageSimpleRpgEvidenceRow,
 } from '@jbcom/medieval-hexagon-gameboard/coverage';
 import {
   readGameboardPlacements as readGameboardPlacementsFromKoota,
@@ -359,22 +351,21 @@ const plan: GameboardPlan = createSeededGameboardPlan({
 const planSummary: GameboardPlanSummary = summarizeGameboardPlan(plan);
 const blueprintUsage: BlueprintBoardUsageSummary = runBlueprintBoardUsageExample();
 const blueprintScenarioId: string = blueprintBoardJson.scenarioId;
-const usage: SimpleRpgUsageSummary = runSimpleRpgUsageExample();
-const simpleRpgExecutableGuideApiSmoke: SimpleRpgExecutableGuideApiSmokeSummary =
-  runSimpleRpgExecutableGuideApiSmoke();
-const simpleRpgGuideExerciseCoverage: SimpleRpgGuidePublicApiExerciseCoverage =
-  summarizeSimpleRpgGuidePublicApiExercises();
-const simpleRpgGuideExercises: readonly SimpleRpgGuidePublicApiExercise[] =
-  listSimpleRpgGuidePublicApiExercises();
-const simpleRpgEvidenceRows: readonly GameboardCoverageSimpleRpgEvidenceRow[] =
-  simpleRpgGuideExercises;
-const simpleRpgBridgeExercise: SimpleRpgGuidePublicApiExercise | undefined =
-  simpleRpgGuideExercises.find((exercise) => exercise.publicApi === 'GameboardBuilder.addBridge');
-const scenarioSummary: GameboardScenarioSummary = summarizeGameboardScenario(
-  simpleRpgScenario as GameboardScenario
-);
+// Minimal in-tree scenario fixture for type attestation. Post-R4 the
+// SimpleRPG scenario JSON is a test-only fixture and not part of the
+// published \`examples/\`; the type smoke synthesises just enough shape to
+// exercise the GameboardScenario surface.
+const typesAttestationScenario: GameboardScenario = {
+  schemaVersion: '1.0.0',
+  id: 'packed-consumer-types-scenario',
+  board: createGameboardRecipe(
+    { seed: 'packed-consumer-types-board', shape: { kind: 'rectangle', width: 2, height: 2 } },
+    []
+  ),
+};
+const scenarioSummary: GameboardScenarioSummary = summarizeGameboardScenario(typesAttestationScenario);
 const scenarioSummaryFromScenario: GameboardScenarioSummaryFromScenario =
-  summarizeGameboardScenarioFromScenario(simpleRpgScenario as GameboardScenario);
+  summarizeGameboardScenarioFromScenario(typesAttestationScenario);
 const coverageReport: GameboardCoverageReport = summarizeGameboardCoverage();
 const coverageReportFromCoverage: GameboardCoverageReportFromCoverage =
   summarizeGameboardCoverageFromCoverage();
@@ -760,7 +751,7 @@ const runtimeInteropSnapshotFromState = createGameboardRuntimeInteropSnapshot(
   runtimeInteropOptions
 );
 const runtimeInteropMount = runtime.mountInterop(createInMemoryGameboardEcs().adapter);
-const scenarioRuntime = createGameboardRuntimeFromScenario(simpleRpgScenario as GameboardScenario);
+const scenarioRuntime = createGameboardRuntimeFromScenario(typesAttestationScenario);
 const scenarioRuntimeInteropSnapshot = scenarioRuntime.createScenarioInteropSnapshot();
 const scenarioRuntimeInteropMount = scenarioRuntime.mountScenarioInterop(createInMemoryGameboardEcs().adapter);
 const scenarioRuntimeSummary: GameboardScenarioSummary = scenarioRuntime.summarizeScenario();
@@ -857,7 +848,7 @@ const placementEntity = plan.placements[0] ? findPlacementEntity(world, plan.pla
 const occupancyValue: PlacementOccupancyValue | undefined = tileEntity && placementEntity ? placementEntity.get(PlacementOccupiesTile(tileEntity)) : undefined;
 const occupancySnapshots: readonly PlacementOccupancySnapshot[] = readPlacementOccupancyForTile(world, '0,0');
 const totalAssets: number = assetManifest.counts.total;
-const scenarioId: string = simpleRpgScenario.id;
+const scenarioId: string = typesAttestationScenario.id;
 const handlerPreset: GameboardInteractionHandlerPreset = 'default-rpg';
 const handlerPresetCount: number = GAMEBOARD_INTERACTION_HANDLER_PRESETS.length;
 const handlerCount: number = createGameboardInteractionHandlerPreset(handlerPreset).length;
@@ -1024,12 +1015,6 @@ void siteInspection;
 void totalAssets;
 void blueprintScenarioId;
 void blueprintUsage;
-void usage;
-void simpleRpgExecutableGuideApiSmoke;
-void simpleRpgGuideExerciseCoverage;
-void simpleRpgGuideExercises;
-void simpleRpgEvidenceRows;
-void simpleRpgBridgeExercise;
 `,
     'utf8'
   );

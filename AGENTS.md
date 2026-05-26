@@ -363,14 +363,16 @@ contract for CI and npm consumers.
   fortifications, construction, siege, transitions, EXTRA unit parts, prop
   clusters, scatter, coast/water, roads, rivers, hills, forests, and stacked
   mountains.
-- Keep `packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts` as the
-  repo source for the compiled public package subpath exported as
-  `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage`. It should remain
-  the human-facing example for scenario instantiation, board-aware spawn
-  selection, ECS interop snapshots, simulation playback, and serializable
-  smoke-test summaries. It also owns `summarizeSimpleRpgGuidePublicApiExercises()`,
-  which joins `listKayKitGuidePublicApiCoverages()` to SimpleRPG exercise
-  evidence. Update that evidence map whenever a new guide-facing public API is
+- Keep `tests/integration/simple-rpg/simple-rpg.ts` as the canonical
+  in-repo SimpleRPG public-API driver. Post-PRD R4 it is a test-only
+  fixture (no published subpath) — consumers reach the SimpleRPG evidence
+  through the bundled CLI (`medieval-hexagon-gameboard coverage` and
+  `doctor --coverage`). It should remain the in-repo reference for scenario
+  instantiation, board-aware spawn selection, ECS interop snapshots,
+  simulation playback, and serializable smoke-test summaries. It also owns
+  `summarizeSimpleRpgGuidePublicApiExercises()`, which joins
+  `listKayKitGuidePublicApiCoverages()` to SimpleRPG exercise evidence.
+  Update that evidence map whenever a new guide-facing public API is
   added. Keep `runSimpleRpgExecutableGuideApiSmoke()` in the same file aligned
   with the evidence map for low-level helper APIs such as selectors, manifests,
   registries, layout pieces, recipes, blueprints, seeded generation, spawn
@@ -471,10 +473,10 @@ contract for CI and npm consumers.
   for app-local EXTRA manifests.
 - `./assets/free/*`: direct published FREE GLTF, BIN, PNG, and manifest files
   for bundlers or renderers that need package asset URLs.
-- `./examples/simple-rpg-usage`: compiled SimpleRPG public-import walkthrough
-  used by humans, agents, and packed consumer smoke tests.
 - `./examples/blueprint-board-usage`: compiled blueprint-board public-import
   walkthrough for board-scale authoring, runtime, and interop smoke tests.
+  (SimpleRPG is a test driver — see `tests/integration/simple-rpg/` — and is
+  NOT exposed as a published subpath post-PRD R4.)
 - `./examples/*.json`: packaged recipe, scenario, and simulation fixtures.
 - `./ingest`: Node/build-time source validation, GLTF tree copying, and manifest
   generation helpers for app-local FREE/EXTRA bundles. Keep this out of browser
@@ -627,18 +629,18 @@ pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role pro
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js blueprint --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --outInterop /tmp/blueprint.interop.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js summarize-plan --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --out /tmp/blueprint.summary.json --outPlan /tmp/blueprint.summary.plan.json --allowUnknownAssets
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js summarize-scenario --scenario packages/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json --out /tmp/simple-rpg.scenario-summary.json --allowUnknownAssets
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js summarize-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/simple-rpg.scenario-summary.json --allowUnknownAssets
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze-layout --recipe docs/examples/generated-piece-scenario.recipe.json --rules layout-rules.json --out /tmp/layout-analysis.json --outPlan /tmp/scenario-plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js spawn-groups --recipe docs/examples/generated-piece-scenario.recipe.json --groups spawn-groups.json --out /tmp/spawn-groups.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js patrol-routes --scenario packages/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json --out /tmp/package-simple-rpg-patrol-routes.json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js patrol-routes --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/package-simple-rpg-patrol-routes.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js patrol-script --routes /tmp/package-simple-rpg-patrol-routes.json --routeId bandit-watch --actorId bandit --out /tmp/package-simple-rpg-patrol.script.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe docs/examples/generated-piece-scenario.recipe.json --outPlan /tmp/generated-piece-scenario.plan.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe packages/medieval-hexagon-gameboard/examples/generated-piece-scenario.recipe.json --outPlan /tmp/package-generated-piece-scenario.plan.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-scenario --scenario packages/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --outPlan /tmp/package-simple-rpg-scenario.plan.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-simulation --scenario packages/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json --script packages/medieval-hexagon-gameboard/examples/simple-rpg-simulation.script.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js snapshot --scenario packages/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --spawnCount 2 --spawnSeed simple-rpg --out /tmp/package-simple-rpg-interop.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js simulate-scenario --scenario packages/medieval-hexagon-gameboard/examples/simple-rpg-scenario.json --script packages/medieval-hexagon-gameboard/examples/simple-rpg-simulation.script.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/package-simple-rpg-simulation.json --outPlan /tmp/package-simple-rpg-final-plan.json --outInterop /tmp/package-simple-rpg-simulation-interop.json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --outPlan /tmp/package-simple-rpg-scenario.plan.json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-simulation --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js snapshot --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --spawnCount 2 --spawnSeed simple-rpg --out /tmp/package-simple-rpg-interop.json
+pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js simulate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/package-simple-rpg-simulation.json --outPlan /tmp/package-simple-rpg-final-plan.json --outInterop /tmp/package-simple-rpg-simulation-interop.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js compatibility --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --intendedRole tile --sourcePack "Kenney Castle Kit" --failOnWarning
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js piece --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --id kenney:tower-hexagon-base --intendedRole tile --sourcePack "Kenney Castle Kit" --tags castle,landmark --out /tmp/kenney-piece.json
 pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js pieces-from-assets --assets "references/kenney_castle-kit/Models/GLB format" --sourcePack "Kenney Castle Kit" --intendedRole tile --assetIdPrefix kenney --pieceIdPrefix kenney-castle --tags castle --pieceOverrides docs/examples/local-piece-overrides.kenney-castle.json --includeReports --out /tmp/kenney-pieces.json

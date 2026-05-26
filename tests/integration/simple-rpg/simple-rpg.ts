@@ -1,6 +1,12 @@
 /**
- * End-to-end SimpleRPG usage example that exercises the public API for fixed
- * and seeded boards, actors, movement, commands, quests, and interop snapshots.
+ * SimpleRPG integration test driver. Exercises the public API for fixed and
+ * seeded boards, actors, movement, commands, quests, and interop snapshots.
+ *
+ * This module is consumed by the CLI's release-readiness coverage gate
+ * (`doctor --coverage`) and by `src/interop/__tests__/coverage.test.ts`.
+ * It is intentionally NOT part of the published surface — the npm tarball
+ * does not ship a `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage`
+ * subpath (PRD R4 relocation).
  *
  * @module
  */
@@ -69,8 +75,8 @@ import {
   runGameboardScenarioSimulationScript,
   type GameboardScenarioSimulationScript,
 } from '@jbcom/medieval-hexagon-gameboard/simulation';
-import scenarioJson from './simple-rpg-scenario.json';
-import simulationScriptJson from './simple-rpg-simulation.script.json';
+import scenarioJson from './fixtures/simple-rpg-scenario.json';
+import simulationScriptJson from './fixtures/simple-rpg-simulation.script.json';
 
 /** How the SimpleRPG fixture proves a guide-facing public API. */
 export type SimpleRpgGuidePublicApiExerciseMode =

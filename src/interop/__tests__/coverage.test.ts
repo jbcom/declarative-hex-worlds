@@ -7,7 +7,7 @@ import {
 import {
   runSimpleRpgExecutableGuideApiSmoke,
   summarizeSimpleRpgGuidePublicApiExercises,
-} from '../../../examples/simple-rpg-usage';
+} from '../../../tests/integration/simple-rpg/simple-rpg';
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   GAMEBOARD_RELEASE_GATE_COMMANDS,

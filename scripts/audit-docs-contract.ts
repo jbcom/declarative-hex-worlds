@@ -20,7 +20,7 @@ const workspaceRoot = resolve(import.meta.dirname, '..');
 const pillarsDir = resolve(workspaceRoot, 'docs/pillars');
 const simpleRpgExamplePath = resolve(
   workspaceRoot,
-  'examples/simple-rpg-usage.ts'
+  'tests/integration/simple-rpg/simple-rpg.ts'
 );
 const simpleRpgExecutableApiCount = extractStringArrayConst(
   readFileSync(simpleRpgExamplePath, 'utf8'),

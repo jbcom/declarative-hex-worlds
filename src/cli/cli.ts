@@ -39,7 +39,7 @@ import {
   listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,
   summarizeSimpleRpgGuidePublicApiExercises,
-} from '../../examples/simple-rpg-usage';
+} from '../../tests/integration/simple-rpg/simple-rpg';
 import {
   inspectMedievalGameboardBlueprint,
   inspectMedievalGameboardBlueprintScenario,

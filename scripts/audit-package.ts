@@ -483,6 +483,21 @@ function assertPackFileList(): void {
   const [result] = JSON.parse(output) as PackResult[];
   const files = result?.files ?? [];
   assert(files.length > 0, 'npm pack dry run returned no files');
+  // PRD R4: SimpleRPG is a test driver, not a published example. Reject
+  // any tarball that ships its compiled module, JSON fixtures, or raw
+  // source. SimpleRPG SHOWCASE PNGs under `docs/showcases/` are still
+  // shipped — they're product marketing screenshots referenced from the
+  // README gallery, separate from the relocated test driver.
+  for (const file of files) {
+    const path = file.path;
+    if (path.startsWith('docs/showcases/') && path.endsWith('.png')) {
+      continue;
+    }
+    assert(
+      !/simple-rpg/i.test(path),
+      `tarball must not ship SimpleRPG (PRD R4 — SimpleRPG is a test driver, not a published example): ${path}`
+    );
+  }
   for (const file of files) {
     const path = file.path;
     assert(!path.includes('references/'), `tarball includes local references path: ${path}`);
