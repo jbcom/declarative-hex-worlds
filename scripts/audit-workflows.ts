@@ -57,6 +57,7 @@ requireIncludes(ci, 'ci.yml', [
 requireExcludes(ci, 'ci.yml', ['continue-on-error: true']);
 requireWorkflowJobRunCommands(ci, files.ci, 'package', [
   'pnpm install --frozen-lockfile',
+  'pnpm audit --prod --audit-level=high',
   'pnpm test:assets',
   'pnpm test:workspace',
   'pnpm test:workflows',
