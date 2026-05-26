@@ -19,7 +19,7 @@ import {
   type PackEdition,
   type TextureSet,
   type UnitStyle,
-} from './types';
+} from '../types';
 
 interface GltfAccessor {
   min?: number[];
