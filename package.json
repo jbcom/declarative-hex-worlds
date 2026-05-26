@@ -169,6 +169,10 @@
       "types": "./dist/manifest/schema.d.ts",
       "import": "./dist/manifest/schema.js"
     },
+    "./manifest/upstream-layout": {
+      "types": "./dist/manifest/upstream-layout.d.ts",
+      "import": "./dist/manifest/upstream-layout.js"
+    },
     "./assets/free/manifest.json": "./assets/free/manifest.json",
     "./examples/blueprint-board-usage": {
       "types": "./dist/examples/blueprint-board-usage.d.ts",

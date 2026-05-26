@@ -42,6 +42,7 @@ export default defineConfig({
     ingest: 'src/ingest/index.ts',
     'manifest/free': 'src/manifest/free.ts',
     'manifest/schema': 'src/manifest/schema.ts',
+    'manifest/upstream-layout': 'src/manifest/upstream-layout.ts',
     'examples/blueprint-board-usage': 'examples/blueprint-board-usage.ts',
     'examples/simple-rpg-usage': 'examples/simple-rpg-usage.ts',
   },
