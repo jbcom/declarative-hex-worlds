@@ -145,6 +145,10 @@
       "types": "./dist/types.d.ts",
       "import": "./dist/types.js"
     },
+    "./traits": {
+      "types": "./dist/traits.d.ts",
+      "import": "./dist/traits.js"
+    },
     "./react": {
       "types": "./dist/react.d.ts",
       "import": "./dist/react.js"

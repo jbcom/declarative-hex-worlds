@@ -47,7 +47,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - [x] **R2a** — ✅ commit 6890682 (2026-05-26): `src/types.ts` → `src/types/index.ts`, `src/types/brands.ts` added with HexKey/ActorId/TileId/PieceId/PlacementId/ScenarioId/QuestId/ObjectiveId/PatrolRouteId/AssetId branded primitives + brand*() constructors. Not yet enforced; brands adopt progressively per-sub-package.
   - [x] **R2b** — ✅ commit 27e8399 (2026-05-26): `coordinates.ts` + `grid.ts` + `projection.ts` + `layout.ts` moved into `src/coordinates/` with barrel. External callers rewritten to import from the barrel.
   - [x] **R2c** — ✅ commit (2026-05-26): `src/manifest/index.ts` barrel added; internal callers route through `./manifest` not `./manifest/{schema,free}`. Public subpath exports unchanged.
-  - **R2d** — `ingest/` (walker + secure resolve)
+  - [x] **R2d** — ✅ commit (2026-05-26): `src/ingest.ts` → `src/ingest/{ingest,index}.ts`. Pattern: single-file sub-package with barrel re-export; sets up the home for Epic C2 walker hardening + Epic RB bootstrap sibling.
   - **R2e** — `traits/` (split koota.ts + actors.ts + movement.ts + patrol.ts + quests.ts + world-rules.ts trait declarations into `traits/{board,actors,movement,combat,quests,render}.ts`)
   - **R2f** — `selectors/` (`@internal`)
   - **R2g** — `commands/` (`@internal`)
