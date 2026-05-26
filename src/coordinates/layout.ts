@@ -7,6 +7,7 @@
 import seedrandom from 'seedrandom';
 import { containsHex, hexDistance, hexKey, hexRange, neighbor, parseHexKey } from './coordinates';
 import { KAYKIT_HEX_DEPTH, KAYKIT_HEX_WIDTH, axialToWorld } from './grid';
+import { GameboardRuntimeError } from '../errors';
 import {
   gameboardPlanIndex,
   type GameboardPlacementKind,
@@ -692,7 +693,7 @@ export function resolveGameboardLayoutArchetype(
   }
   const resolved = registry[archetype];
   if (!resolved) {
-    throw new Error(`Unknown gameboard layout archetype: ${archetype}`);
+    throw new GameboardRuntimeError(`Unknown gameboard layout archetype: ${archetype}`);
   }
   return resolved;
 }
@@ -799,7 +800,7 @@ export function createGameboardLayoutPlacements(
   const criteria = resolveGameboardLayoutCriteria(options.archetype, options.criteria, options.archetypes);
   const kind = options.kind ?? archetype?.kind;
   if (!kind) {
-    throw new Error('createGameboardLayoutPlacements requires kind or an archetype with a kind');
+    throw new GameboardRuntimeError('createGameboardLayoutPlacements requires kind or an archetype with a kind');
   }
   const layer = options.layer ?? archetype?.layer;
   const rotation = options.rotationSteps ?? archetype?.rotationSteps;
@@ -1705,12 +1706,12 @@ function assetForRule(rule: GameboardLayoutFillRule, index: number, seed: string
     const rng = seedrandom(`${seed}:${index}`);
     const picked = rule.assets[Math.floor(rng() * rule.assets.length)];
     if (picked === undefined) {
-      throw new Error(`Layout fill rule ${rule.id ?? '<unnamed>'} produced empty asset pick`);
+      throw new GameboardRuntimeError(`Layout fill rule ${rule.id ?? '<unnamed>'} produced empty asset pick`);
     }
     return picked;
   }
   if (!rule.assetId) {
-    throw new Error(`Layout fill rule ${rule.id ?? '<unnamed>'} requires assetId or assets`);
+    throw new GameboardRuntimeError(`Layout fill rule ${rule.id ?? '<unnamed>'} requires assetId or assets`);
   }
   return rule.assetId;
 }
@@ -1749,7 +1750,7 @@ function placementOptionToSpec(
   const key = typeof placement.at === 'string' ? placement.at : hexKey(placement.at);
   const tile = tilesByKey.get(key);
   if (!tile) {
-    throw new Error(`Layout placement references missing tile ${key}`);
+    throw new GameboardRuntimeError(`Layout placement references missing tile ${key}`);
   }
   const rotationSteps = ((Math.floor(placement.rotationSteps ?? 0) % 6) + 6) % 6;
   const elevationOffset = placement.elevationOffset ?? 0;
@@ -1787,7 +1788,7 @@ function layoutSlotPositionOffset(
     : [Math.PI * 1.5, Math.PI / 6, Math.PI * 5 / 6, Math.PI * 0.5, Math.PI * 7 / 6, Math.PI * 11 / 6];
   const angle = angles[slotIndex % angles.length];
   if (angle === undefined) {
-    throw new Error(`stack angle lookup failed for slot ${slotIndex}`);
+    throw new GameboardRuntimeError(`stack angle lookup failed for slot ${slotIndex}`);
   }
   const ring = Math.floor(slotIndex / angles.length);
   const distance = radius + ring * radius * 0.45;
@@ -1853,7 +1854,7 @@ function coordinatesFor(value: HexCoordinates | string): HexCoordinates {
 function projectWorldForLayout(world: World): GameboardPlan {
   const board = world.get(GameboardState);
   if (!board) {
-    throw new Error('World does not contain GameboardState');
+    throw new GameboardRuntimeError('World does not contain GameboardState');
   }
   return {
     schemaVersion: board.schemaVersion as GameboardPlan['schemaVersion'],

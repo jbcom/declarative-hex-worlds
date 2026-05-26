@@ -12,6 +12,7 @@ import {
   type SpawnLocation,
   type SpawnLocationOptions,
 } from '../coordinates';
+import { GameboardRuntimeError } from '../errors';
 import {
   gameboardPlanIndex,
   type GameboardPlan,
@@ -667,7 +668,7 @@ export function createGameboardScenarioInteropSnapshot(
     ? planGameboardSpawnGroups(plan, scenario.spawnGroups)
     : undefined;
   if (spawnGroups?.errors.length) {
-    throw new Error(
+    throw new GameboardRuntimeError(
       `Scenario ${scenario.id} spawn groups failed: ${spawnGroups.errors.join('; ')}`
     );
   }
@@ -681,7 +682,7 @@ export function createGameboardScenarioInteropSnapshot(
         })
       : undefined;
   if (patrolRoutes?.errors.length) {
-    throw new Error(
+    throw new GameboardRuntimeError(
       `Scenario ${scenario.id} patrol routes failed: ${patrolRoutes.errors.join('; ')}`
     );
   }

@@ -12,6 +12,7 @@ import {
   type TraitRecord,
   type World,
 } from 'koota';
+import { GameboardRuntimeError } from '../errors';
 import { isKnownExtraAssetId } from '../scenario';
 import {
   hexKey,
@@ -418,7 +419,7 @@ export function spawnGameboardPlan(world: World, plan: GameboardPlan): Gameboard
   for (const placement of plan.placements) {
     const tile = tiles.get(placement.tileKey);
     if (!tile) {
-      throw new Error(`Placement ${placement.id} references missing tile ${placement.tileKey}`);
+      throw new GameboardRuntimeError(`Placement ${placement.id} references missing tile ${placement.tileKey}`);
     }
     const entity = world.spawn(
       IsGameboardPlacement,
@@ -444,7 +445,7 @@ export function spawnGameboardPlacement(
   const tile = requireTileEntity(world, options.at);
   const tileState = tile.get(HexTileState);
   if (!tileState) {
-    throw new Error(`Tile ${tileKey(options.at)} is missing HexTileState`);
+    throw new GameboardRuntimeError(`Tile ${tileKey(options.at)} is missing HexTileState`);
   }
   const placement = runtimePlacementSpec(world, tileState, options);
   assertPlacementOccupancyGuard(world, placement, options.occupancyGuard);
@@ -472,12 +473,12 @@ export function updateGameboardPlacement(
   const entity = requirePlacementEntity(world, placement);
   const current = entity.get(PlacementState);
   if (!current) {
-    throw new Error(`Placement ${placementId(placement)} is missing PlacementState`);
+    throw new GameboardRuntimeError(`Placement ${placementId(placement)} is missing PlacementState`);
   }
   const tile = requireTileEntity(world, options.at ?? current.tileKey);
   const tileState = tile.get(HexTileState);
   if (!tileState) {
-    throw new Error(`Tile ${tileKey(options.at ?? current.tileKey)} is missing HexTileState`);
+    throw new GameboardRuntimeError(`Tile ${tileKey(options.at ?? current.tileKey)} is missing HexTileState`);
   }
 
   const rotationSteps = normalizeRotationSteps(options.rotationSteps ?? current.rotationSteps);
@@ -771,7 +772,7 @@ function assertPlacementOccupancyGuard(
   });
 
   if (!inspection.canOccupy) {
-    throw new Error(
+    throw new GameboardRuntimeError(
       `Placement ${placement.id} cannot occupy ${inspection.tileKey}: ${inspection.reason ?? 'blocked'}`
     );
   }
@@ -925,7 +926,7 @@ function defaultLayerForPlacementKind(kind: GameboardPlacementKind): GameboardPl
 function requireTileEntity(world: World, coordinates: HexCoordinates | string): Entity {
   const entity = findTileEntity(world, coordinates);
   if (!entity) {
-    throw new Error(`No tile exists at ${tileKey(coordinates)}`);
+    throw new GameboardRuntimeError(`No tile exists at ${tileKey(coordinates)}`);
   }
   return entity;
 }
@@ -933,7 +934,7 @@ function requireTileEntity(world: World, coordinates: HexCoordinates | string): 
 function requirePlacementEntity(world: World, placement: Entity | string): Entity {
   const entity = findPlacementEntity(world, placement);
   if (!entity) {
-    throw new Error(`No placement exists with id ${placementId(placement)}`);
+    throw new GameboardRuntimeError(`No placement exists with id ${placementId(placement)}`);
   }
   return entity;
 }
@@ -1163,7 +1164,7 @@ function uniqueStrings(values: readonly (string | undefined)[]): string[] {
 function parseTileKey(key: string): HexCoordinates {
   const [q, r] = key.split(',').map(Number);
   if (q === undefined || r === undefined) {
-    throw new Error(`Invalid tile key: ${key}`);
+    throw new GameboardRuntimeError(`Invalid tile key: ${key}`);
   }
   return { q, r };
 }

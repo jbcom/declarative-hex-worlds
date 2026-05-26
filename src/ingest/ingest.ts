@@ -16,6 +16,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
+import { GameboardIoError, GameboardManifestError } from '../errors';
 import {
   FACTIONS,
   KAYKIT_PACK_VERSION,
@@ -144,7 +145,7 @@ export function validateSourceRoot(sourceRoot: string, edition: PackEdition): Va
 export function copyGltfTree(sourceRoot: string, destinationRoot: string): void {
   const gltfRoot = join(sourceRoot, 'Assets', 'gltf');
   if (!existsSync(gltfRoot)) {
-    throw new Error(`Missing GLTF source directory: ${gltfRoot}`);
+    throw new GameboardIoError(`Missing GLTF source directory: ${gltfRoot}`);
   }
 
   rmSync(destinationRoot, { recursive: true, force: true });
@@ -167,7 +168,7 @@ export function generateManifestFromSource(options: GenerateManifestOptions): Me
   const assetBasePath = trimSlashes(options.assetBasePath ?? `assets/${options.edition}`);
   const gltfRoot = join(options.sourceRoot, 'Assets', 'gltf');
   if (!existsSync(gltfRoot)) {
-    throw new Error(`Missing GLTF source directory: ${gltfRoot}`);
+    throw new GameboardIoError(`Missing GLTF source directory: ${gltfRoot}`);
   }
 
   const filePaths = listFiles(gltfRoot, '.gltf').sort((a, b) => a.localeCompare(b));
@@ -213,7 +214,7 @@ export function writeManifestModule(
   const body = JSON.stringify(manifest, null, 2);
   const exportName = options.exportName ?? defaultManifestExportName(manifest.edition);
   if (!isValidIdentifier(exportName)) {
-    throw new Error(`Invalid manifest module export name: ${exportName}`);
+    throw new GameboardManifestError(`Invalid manifest module export name: ${exportName}`);
   }
   const editionLabel = manifest.edition.toUpperCase();
   const typeImport = options.typeImportPath ?? '../types';
@@ -482,7 +483,7 @@ function parseCategory(segment: string | undefined): AssetCategory {
   if (segment === 'tiles' || segment === 'buildings' || segment === 'decoration' || segment === 'units') {
     return segment;
   }
-  throw new Error(`Unsupported asset category: ${segment ?? '<missing>'}`);
+  throw new GameboardManifestError(`Unsupported asset category: ${segment ?? '<missing>'}`);
 }
 
 function parseFaction(id: string, subcategory: string): Faction | undefined {

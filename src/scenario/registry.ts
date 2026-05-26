@@ -4,6 +4,7 @@
  *
  * @module
  */
+import { GameboardScenarioError } from '../errors';
 import type {
   GameboardBuilder,
   GameboardPlacementKind,
@@ -411,7 +412,7 @@ export function applyTileDeclaration(
       ? registry.byId[options.declaration] ?? registry.byAssetId[options.declaration]
       : options.declaration;
   if (!declaration) {
-    throw new Error(`Unknown tile declaration: ${String(options.declaration)}`);
+    throw new GameboardScenarioError(`Unknown tile declaration: ${String(options.declaration)}`);
   }
 
   const roadEdges = rotatedChannelMask(declaration, 'road', options.rotationSteps);

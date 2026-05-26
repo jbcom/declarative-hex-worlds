@@ -12,6 +12,7 @@ import {
   type SpawnGameboardActorOptions,
 } from '../actors';
 import { hexKey, parseHexKey } from '../coordinates';
+import { GameboardScenarioError } from '../errors';
 import {
   summarizeGameboardPlan,
   type GameboardPlan,
@@ -647,7 +648,7 @@ export function createGameboardWorldFromScenario(
     ? planGameboardSpawnGroups(plan, scenario.spawnGroups)
     : undefined;
   if (spawnGroups?.errors.length) {
-    throw new Error(
+    throw new GameboardScenarioError(
       `Scenario ${scenario.id} spawn groups failed: ${spawnGroups.errors.join('; ')}`
     );
   }
@@ -659,7 +660,7 @@ export function createGameboardWorldFromScenario(
       })
     : undefined;
   if (patrolRoutes?.errors.length) {
-    throw new Error(
+    throw new GameboardScenarioError(
       `Scenario ${scenario.id} patrol routes failed: ${patrolRoutes.errors.join('; ')}`
     );
   }
@@ -678,7 +679,7 @@ export function createGameboardWorldFromScenario(
     if (patrolAgent) {
       const route = patrolRoutes?.routes.find((candidate) => candidate.id === patrolAgent.routeId);
       if (!route) {
-        throw new Error(`Scenario actor ${actor.actorId} references unknown patrol route ${patrolAgent.routeId}`);
+        throw new GameboardScenarioError(`Scenario actor ${actor.actorId} references unknown patrol route ${patrolAgent.routeId}`);
       }
       setGameboardPatrolAgent(world, entity, { ...patrolOptionsWithoutRouteId(patrolAgent), route });
     }
@@ -710,10 +711,10 @@ export function resolveGameboardScenarioActors(
   return actors.map((actor) => {
     const resolution = resolveScenarioActorSpawn(actor, spawnGroups, spawnAllocations);
     if (resolution.errorCode) {
-      throw new Error(resolution.errorMessage);
+      throw new GameboardScenarioError(resolution.errorMessage);
     }
     if (!resolution.at) {
-      throw new Error(`Scenario actor ${actor.actorId} has no resolved spawn tile`);
+      throw new GameboardScenarioError(`Scenario actor ${actor.actorId} has no resolved spawn tile`);
     }
 
     return resolvedScenarioActor(actor, resolution);
@@ -823,7 +824,7 @@ function resolvedScenarioActor(
   resolution: ScenarioActorSpawnResolution
 ): ResolvedGameboardScenarioActor {
   if (!resolution.at) {
-    throw new Error(`Scenario actor ${actor.actorId} has no resolved spawn tile`);
+    throw new GameboardScenarioError(`Scenario actor ${actor.actorId} has no resolved spawn tile`);
   }
   const spawnMetadata =
     resolution.spawnGroupId && resolution.spawnLocation

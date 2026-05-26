@@ -1,48 +1,66 @@
 /**
  * `src/errors/` — typed error hierarchy.
  *
- * Currently a placeholder home: Epic D2 lands the full
- * `GameboardError` base + `GameboardValidationError`,
- * `GameboardManifestError`, `GameboardScenarioError`,
- * `GameboardRuntimeError`, and `GameboardCliError` subclasses, and
- * migrates the ~130 `throw new Error()` sites across src/ to throw the
- * typed variants. The base class lives here so consumers can `instanceof
- * GameboardError` to discriminate library failures from arbitrary other
- * `Error` instances.
- *
- * @module
- */
-
-/**
- * Base class for every error this library throws.
- *
- * Catch this to filter library failures from everything else:
+ * Every error this library throws extends {@link GameboardError}. Consumers
+ * branch on `instanceof` to react programmatically without regexing message
+ * strings:
  *
  * ```ts
- * import { GameboardError } from '@jbcom/medieval-hexagon-gameboard';
+ * import {
+ *   GameboardValidationError,
+ *   GameboardError,
+ * } from '@jbcom/medieval-hexagon-gameboard';
  *
  * try {
  *   runSimulation(scenario, script);
  * } catch (error) {
- *   if (error instanceof GameboardError) {
- *     // library failure — inspect `error.code` and re-throw or recover
+ *   if (error instanceof GameboardValidationError) {
+ *     // user-supplied data was malformed — surface to the user
+ *   } else if (error instanceof GameboardError) {
+ *     // library-originated, but not a validation issue — log + recover
  *   } else {
  *     throw error;
  *   }
  * }
  * ```
  *
- * Subclasses set `name` to their constructor and may attach a stable
- * `code` (e.g. `'MANIFEST_SCHEMA_MISMATCH'`) for programmatic
- * discrimination separate from the human-readable message. Epic D2
- * lays out the full code taxonomy in `docs/api/errors.md`.
+ * Subclass selection follows the source domain that raised the error.
+ * The mapping is documented in `docs/api/errors.md`.
+ *
+ * @module
+ */
+
+/**
+ * Base for every error this library throws.
+ *
+ * Consumers can branch on `instanceof GameboardError` to handle anything
+ * library-originated separately from genuine bugs (`TypeError`,
+ * `ReferenceError`, etc.).
  */
 export class GameboardError extends Error {
-  /** Programmatic discriminator. Subclasses set this to a stable string. */
-  readonly code: string;
-  constructor(message: string, options?: { code?: string; cause?: unknown }) {
-    super(message, options?.cause === undefined ? undefined : { cause: options.cause });
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
     this.name = new.target.name;
-    this.code = options?.code ?? 'GAMEBOARD_ERROR';
   }
 }
+
+/** Thrown when input data fails structural / domain validation. */
+export class GameboardValidationError extends GameboardError {}
+
+/** Thrown when the manifest is malformed, missing assets, or version-incompatible. */
+export class GameboardManifestError extends GameboardError {}
+
+/** Thrown when a scenario JSON / blueprint / recipe fails to compile or load. */
+export class GameboardScenarioError extends GameboardError {}
+
+/**
+ * Thrown when the runtime hits a state it cannot recover from (missing
+ * entity, broken trait shape, simulation invariant violated, etc.).
+ */
+export class GameboardRuntimeError extends GameboardError {}
+
+/** Thrown when the CLI hits invalid flags / missing inputs / illegal output paths. */
+export class GameboardCliError extends GameboardError {}
+
+/** Thrown when ingest / bootstrap / file IO cannot proceed. */
+export class GameboardIoError extends GameboardError {}

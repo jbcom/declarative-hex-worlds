@@ -14,6 +14,7 @@ import {
   hexRange,
   neighbor,
 } from '../coordinates';
+import { GameboardScenarioError } from '../errors';
 import type {
   GameboardPlan,
   GameboardPlanOptions,
@@ -887,7 +888,7 @@ function applyRoads(
         const segmentStart = path[index];
         const segmentEnd = path[index + 1];
         if (segmentStart === undefined || segmentEnd === undefined) {
-          throw new Error(`Road path index ${index} out of range`);
+          throw new GameboardScenarioError(`Road path index ${index} out of range`);
         }
         const current = tiles.get(hexKey(segmentStart));
         const next = tiles.get(hexKey(segmentEnd));
@@ -1103,7 +1104,7 @@ function normalizeMountainRanges(
   const start = top[Math.floor(top.length * 0.2)] ?? coordinates[0];
   const end = top[Math.floor(top.length * 0.8)] ?? coordinates[coordinates.length - 1];
   if (start === undefined || end === undefined) {
-    throw new Error('default ridge requires at least one tile in shape');
+    throw new GameboardScenarioError('default ridge requires at least one tile in shape');
   }
   return [{ id: 'default-ridge', path: hexLine(start, end), width: 1, height: maxElevation, variant: 'cycle' }];
 }
@@ -1164,7 +1165,7 @@ function createAutoRoads(
     const current = towns[index];
     const next = towns[index + 1];
     if (current === undefined || next === undefined) {
-      throw new Error(`Town link index ${index} out of range`);
+      throw new GameboardScenarioError(`Town link index ${index} out of range`);
     }
     roads.push({
       id: `town-link-${index + 1}`,
@@ -1202,7 +1203,7 @@ function expandWaypointPath(path: readonly HexCoordinates[], shape: GameboardSha
     const segmentStart = path[index];
     const segmentEnd = path[index + 1];
     if (segmentStart === undefined || segmentEnd === undefined) {
-      throw new Error(`Waypoint path index ${index} out of range`);
+      throw new GameboardScenarioError(`Waypoint path index ${index} out of range`);
     }
     const segment = hexLine(segmentStart, segmentEnd).filter((coordinate) => containsHex(shape, coordinate));
     if (index > 0) {

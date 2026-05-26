@@ -5,6 +5,7 @@
  * @module
  */
 import seedrandom from 'seedrandom';
+import { GameboardValidationError } from '../errors';
 import { coloredUnitAssetId, factionBuildingAssetId } from '../scenario';
 import {
   containsHex,
@@ -249,7 +250,7 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
   const harborCandidate = harborCandidates[Math.floor(harborCandidates.length * between(0.35, 0.7, rng))] ?? harborCandidates[0];
   const fallbackTile = shapeCoordinates[0];
   if (fallbackTile === undefined) {
-    throw new Error('canonical scenario requires non-empty shapeCoordinates');
+    throw new GameboardValidationError('canonical scenario requires non-empty shapeCoordinates');
   }
   const harbor: HexCoordinates = harborCandidate?.coordinates ?? fallbackTile;
   const harborFacing = harborCandidate?.waterEdges[0] ?? 1;
@@ -317,7 +318,7 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
     reserved.add(hexKey(coordinates));
     const building = SETTLEMENT_SEQUENCE[index % SETTLEMENT_SEQUENCE.length];
     if (building === undefined) {
-      throw new Error('SETTLEMENT_SEQUENCE must be non-empty');
+      throw new GameboardValidationError('SETTLEMENT_SEQUENCE must be non-empty');
     }
     builder.addSettlement({
       at: coordinates,
@@ -458,7 +459,7 @@ export function createSeededGameboardPieceFillRules(
     return [];
   }
   if (!registry) {
-    throw new Error('createSeededGameboardPieceFillRules requires a piece registry when piece fills are provided');
+    throw new GameboardValidationError('createSeededGameboardPieceFillRules requires a piece registry when piece fills are provided');
   }
   return fills.flatMap((fill, index) => {
     const {
@@ -593,7 +594,7 @@ function assertPiecePoolCompatible(
   id: string
 ): void {
   if (!isPiecePoolCompatible(pieces)) {
-    throw new Error(`Piece fill pool ${id} can only pool pieces with the same archetype, kind, and layer`);
+    throw new GameboardValidationError(`Piece fill pool ${id} can only pool pieces with the same archetype, kind, and layer`);
   }
 }
 
@@ -667,7 +668,7 @@ function takeRandom<T>(items: readonly T[], count: number, rng: seedrandom.PRNG)
 
 function pick<T>(items: readonly T[], rng: seedrandom.PRNG): T {
   if (items.length === 0) {
-    throw new Error('pick requires non-empty input');
+    throw new GameboardValidationError('pick requires non-empty input');
   }
   return items[Math.floor(rng() * items.length)] as T;
 }

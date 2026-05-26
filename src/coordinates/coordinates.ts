@@ -5,6 +5,7 @@
  * @module
  */
 import seedrandom from 'seedrandom';
+import { GameboardRuntimeError } from '../errors';
 import type { GameboardShape, HexCoordinates, HexEdgeIndex } from '../types';
 
 /** Axial neighbor offsets ordered clockwise for the library edge convention. */
@@ -81,7 +82,7 @@ export function hexKey(coordinates: HexCoordinates): string {
 export function parseHexKey(key: string): HexCoordinates {
   const parsed = tryParseHexKey(key);
   if (parsed === undefined) {
-    throw new Error(`Invalid hex key: ${key}`);
+    throw new GameboardRuntimeError(`Invalid hex key: ${key}`);
   }
   return parsed;
 }

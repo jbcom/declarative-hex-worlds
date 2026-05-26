@@ -23,6 +23,7 @@ import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
 } from './occupancy';
+import { GameboardRuntimeError } from '../errors';
 import type { HexCoordinates } from '../types';
 
 /**
@@ -1112,7 +1113,7 @@ function routePatrolWaypoints(
     const current = waypoints[index];
     const next = waypoints[index + 1];
     if (current === undefined || next === undefined) {
-      throw new Error(`patrol waypoint pair index ${index} out of range`);
+      throw new GameboardRuntimeError(`patrol waypoint pair index ${index} out of range`);
     }
     pairs.push([current, next]);
   }
@@ -1120,7 +1121,7 @@ function routePatrolWaypoints(
     const last = waypoints[waypoints.length - 1];
     const first = waypoints[0];
     if (last === undefined || first === undefined) {
-      throw new Error('patrol loop requires at least two waypoints');
+      throw new GameboardRuntimeError('patrol loop requires at least two waypoints');
     }
     pairs.push([last, first]);
   }
@@ -1172,7 +1173,7 @@ function coordinatesFor(coordinates: HexCoordinates | string): HexCoordinates {
   }
   const [q, r] = coordinates.split(',').map(Number);
   if (q === undefined || r === undefined) {
-    throw new Error(`Invalid hex key string: ${coordinates}`);
+    throw new GameboardRuntimeError(`Invalid hex key string: ${coordinates}`);
   }
   return { q, r };
 }

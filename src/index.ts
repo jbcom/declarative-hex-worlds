@@ -4,6 +4,15 @@
  *
  * @module
  */
+export {
+  GameboardCliError,
+  GameboardError,
+  GameboardIoError,
+  GameboardManifestError,
+  GameboardRuntimeError,
+  GameboardScenarioError,
+  GameboardValidationError,
+} from './errors';
 export { freeManifest, loadFreeManifest } from './manifest';
 export {
   ASSET_CATEGORIES,

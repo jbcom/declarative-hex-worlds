@@ -20,6 +20,7 @@ import {
   type UpdateGameboardActorOptions,
 } from '../actors';
 import { hexKey, parseHexKey } from '../coordinates';
+import { GameboardRuntimeError } from '../errors';
 import type {
   GameboardPlacementLayer,
   GameboardPlacementSpec,
@@ -1440,7 +1441,7 @@ export function assertGameboardScenarioSimulationExpectations(
 ): void {
   const failures = evaluateGameboardScenarioSimulationExpectations(report, expectations);
   if (failures.length > 0) {
-    throw new Error(failures.map((failure) => `${failure.path}: ${failure.message}`).join('\n'));
+    throw new GameboardRuntimeError(failures.map((failure) => `${failure.path}: ${failure.message}`).join('\n'));
   }
 }
 
@@ -4140,7 +4141,7 @@ function resolveSimulationSpawnActor(
 ): SpawnGameboardActorOptions {
   if (actor.spawnGroupId === undefined) {
     if (actor.at === undefined) {
-      throw new Error(`Simulation actor ${actor.actorId} has no spawn tile or spawn group`);
+      throw new GameboardRuntimeError(`Simulation actor ${actor.actorId} has no spawn tile or spawn group`);
     }
     return actor as SpawnGameboardActorOptions;
   }

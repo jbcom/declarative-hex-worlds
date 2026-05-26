@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { GameboardCliError } from '../errors';
 import {
   copyGltfTree,
   defaultSourceRoot,
@@ -292,7 +293,7 @@ function safeResolveOutput(value: string, outRoot: string = defaultOutRoot()): s
   if (rel === '' || (rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel))) {
     return resolved;
   }
-  throw new Error(`--out path escapes the output root: ${value}`);
+  throw new GameboardCliError(`--out path escapes the output root: ${value}`);
 }
 
 function main(argv: string[]): void {
@@ -418,7 +419,7 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'validate-plan') {
     if (typeof parsed.flags.plan !== 'string') {
-      throw new Error('validate-plan requires --plan <path>');
+      throw new GameboardCliError('validate-plan requires --plan <path>');
     }
     const plan = readJson<GameboardPlan>(resolve(parsed.flags.plan));
     const violations = validateGameboardPlan(
@@ -458,7 +459,7 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'validate-recipe') {
     if (typeof parsed.flags.recipe !== 'string') {
-      throw new Error('validate-recipe requires --recipe <path>');
+      throw new GameboardCliError('validate-recipe requires --recipe <path>');
     }
     const recipe = readJson<GameboardRecipe>(resolve(parsed.flags.recipe));
     const inspection = inspectGameboardRecipe(recipe, {
@@ -486,7 +487,7 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'validate-scenario') {
     if (typeof parsed.flags.scenario !== 'string') {
-      throw new Error('validate-scenario requires --scenario <path>');
+      throw new GameboardCliError('validate-scenario requires --scenario <path>');
     }
     const scenario = readJson<GameboardScenario>(resolve(parsed.flags.scenario));
     const inspection = inspectGameboardScenario(scenario, {
@@ -571,7 +572,7 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'compatibility') {
     if (typeof parsed.flags.asset !== 'string') {
-      throw new Error('compatibility requires --asset <path>');
+      throw new GameboardCliError('compatibility requires --asset <path>');
     }
     const metadata = readGltfMetadata(resolve(parsed.flags.asset));
     const report = analyzeExternalAssetCompatibility({
@@ -603,7 +604,7 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'piece') {
     if (typeof parsed.flags.asset !== 'string') {
-      throw new Error('piece requires --asset <path>');
+      throw new GameboardCliError('piece requires --asset <path>');
     }
     const assetId = String(parsed.flags.id ?? assetIdFromPath(parsed.flags.asset));
     const intendedRole = readIntendedRole(parsed.flags.intendedRole);
@@ -651,7 +652,7 @@ function main(argv: string[]): void {
 
   if (parsed.command === 'pieces') {
     if (typeof parsed.flags.pieces !== 'string') {
-      throw new Error('pieces requires --pieces <path>');
+      throw new GameboardCliError('pieces requires --pieces <path>');
     }
     const registry = readPieceRegistry(resolve(parsed.flags.pieces));
     const fill = pieceFillFromFlags(parsed.flags);
@@ -660,7 +661,7 @@ function main(argv: string[]): void {
       (key) => typeof parsed.flags[key] === 'string'
     );
     if (placementInputFlags.length > 1) {
-      throw new Error(
+      throw new GameboardCliError(
         'pieces placement inspection requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
       );
     }
@@ -761,7 +762,7 @@ function main(argv: string[]): void {
       statSync(assetRoot).isDirectory() &&
       readdirSync(assetRoot).length > 0
     ) {
-      throw new Error(
+      throw new GameboardCliError(
         `extract destination ${relativizePath(assetRoot)} is not empty; pass --force to wipe.`
       );
     }
@@ -782,7 +783,7 @@ function main(argv: string[]): void {
 function readManifest(path: string): MedievalHexagonManifest {
   const inspection = inspectManifestPath(path);
   if (!inspection.manifest || inspection.errorCount > 0) {
-    throw new Error(
+    throw new GameboardCliError(
       [
         `Invalid manifest ${relativizePath(path)}`,
         ...inspection.issues
@@ -804,7 +805,7 @@ function inspectManifestPath(path: string): MedievalHexagonManifestInspection {
 
 function runValidateManifest(parsed: ParsedArgs): void {
   if (typeof parsed.flags.manifest !== 'string') {
-    throw new Error('validate-manifest requires --manifest <path>');
+    throw new GameboardCliError('validate-manifest requires --manifest <path>');
   }
   const manifestPath = resolve(parsed.flags.manifest);
   const inspection = inspectManifestPath(manifestPath);
@@ -903,7 +904,7 @@ function readRegistry(path: string): HexTileRegistry {
   );
   const declarations = Array.isArray(payload) ? payload : payload.declarations;
   if (!Array.isArray(declarations)) {
-    throw new Error(
+    throw new GameboardCliError(
       `Registry file ${relativizePath(path)} must be a declaration array or { "declarations": [...] }`
     );
   }
@@ -928,7 +929,7 @@ function readPieceRegistry(path: string): GameboardPieceRegistry {
         ? [payload.declaration]
         : (payload.pieces ?? payload.declarations);
   if (!Array.isArray(declarations)) {
-    throw new Error(
+    throw new GameboardCliError(
       `Piece registry file ${relativizePath(path)} must be a declaration, an array, { "declaration": ... }, { "pieces": [...] }, or { "declarations": [...] }`
     );
   }
@@ -959,7 +960,7 @@ function runPiecesFromAssets(parsed: ParsedArgs): void {
   const assetInputs = readAssetInputs(parsed.flags);
   const assetPaths = collectGltfAssetPaths(assetInputs);
   if (assetPaths.length === 0) {
-    throw new Error('pieces-from-assets found no .glb or .gltf files');
+    throw new GameboardCliError('pieces-from-assets found no .glb or .gltf files');
   }
   const roots = assetInputRoots(assetInputs);
   const includeAbsolutePaths = parsed.flags.includeAbsolutePaths === true;
@@ -1066,7 +1067,7 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
   }
   if (typeof parsed.flags.outScenario === 'string') {
     if (!scenarioInspection) {
-      throw new Error('blueprint --outScenario requires scenario options or --includeScenario');
+      throw new GameboardCliError('blueprint --outScenario requires scenario options or --includeScenario');
     }
     writeFileSync(
       safeResolveOutput(String(parsed.flags.outScenario)),
@@ -1077,7 +1078,7 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
   }
   if (typeof parsed.flags.outScenarioInspection === 'string') {
     if (!scenarioInspection) {
-      throw new Error(
+      throw new GameboardCliError(
         'blueprint --outScenarioInspection requires scenario options or --includeScenarioInspection'
       );
     }
@@ -1092,7 +1093,7 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
   }
   if (typeof parsed.flags.outInterop === 'string') {
     if (!interop) {
-      throw new Error('blueprint --outInterop requires a generated blueprint scenario');
+      throw new GameboardCliError('blueprint --outInterop requires a generated blueprint scenario');
     }
     writeFileSync(
       safeResolveOutput(String(parsed.flags.outInterop)),
@@ -1144,7 +1145,7 @@ function runSnapshot(parsed: ParsedArgs, sourceRoot: string, edition: PackEditio
     (key) => typeof parsed.flags[key] === 'string'
   );
   if (inputFlags.length !== 1) {
-    throw new Error(
+    throw new GameboardCliError(
       'snapshot requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
     );
   }
@@ -1220,7 +1221,7 @@ function runSummarizePlan(parsed: ParsedArgs, sourceRoot: string, edition: PackE
 
 function runSummarizeScenario(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
   if (typeof parsed.flags.scenario !== 'string') {
-    throw new Error('summarize-scenario requires --scenario <path>');
+    throw new GameboardCliError('summarize-scenario requires --scenario <path>');
   }
   const scenarioPath = resolve(parsed.flags.scenario);
   const scenario = readJson<GameboardScenario>(scenarioPath);
@@ -1253,12 +1254,12 @@ function runAnalyzeLayout(parsed: ParsedArgs, sourceRoot: string, edition: PackE
     (key) => typeof parsed.flags[key] === 'string'
   );
   if (inputFlags.length !== 1) {
-    throw new Error(
+    throw new GameboardCliError(
       'analyze-layout requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
     );
   }
   if (typeof parsed.flags.rules !== 'string') {
-    throw new Error('analyze-layout requires --rules <path>');
+    throw new GameboardCliError('analyze-layout requires --rules <path>');
   }
   const { plan, violations } = layoutAnalysisPlanFromArgs(
     parsed,
@@ -1299,12 +1300,12 @@ function runSpawnGroups(parsed: ParsedArgs, sourceRoot: string, edition: PackEdi
     (key) => typeof parsed.flags[key] === 'string'
   );
   if (inputFlags.length !== 1) {
-    throw new Error(
+    throw new GameboardCliError(
       'spawn-groups requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
     );
   }
   if (typeof parsed.flags.groups !== 'string') {
-    throw new Error('spawn-groups requires --groups <path>');
+    throw new GameboardCliError('spawn-groups requires --groups <path>');
   }
   const { plan, violations } = layoutAnalysisPlanFromArgs(
     parsed,
@@ -1342,7 +1343,7 @@ function runPatrolRoutes(parsed: ParsedArgs, sourceRoot: string, edition: PackEd
     (key) => typeof parsed.flags[key] === 'string'
   );
   if (inputFlags.length !== 1) {
-    throw new Error(
+    throw new GameboardCliError(
       'patrol-routes requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
     );
   }
@@ -1351,7 +1352,7 @@ function runPatrolRoutes(parsed: ParsedArgs, sourceRoot: string, edition: PackEd
       ? readJson<GameboardScenario>(resolve(parsed.flags.scenario))
       : undefined;
   if (typeof parsed.flags.routes !== 'string' && !scenario?.patrolRoutes?.length) {
-    throw new Error('patrol-routes requires --routes <path> unless --scenario includes patrolRoutes');
+    throw new GameboardCliError('patrol-routes requires --routes <path> unless --scenario includes patrolRoutes');
   }
 
   const { plan, violations } = routePlanningPlanFromArgs(
@@ -1443,12 +1444,12 @@ function runPlacePiece(parsed: ParsedArgs, sourceRoot: string, edition: PackEdit
     (key) => typeof parsed.flags[key] === 'string'
   );
   if (inputFlags.length !== 1) {
-    throw new Error(
+    throw new GameboardCliError(
       'place-piece requires exactly one of --plan <path>, --recipe <path>, or --scenario <path>'
     );
   }
   if (typeof parsed.flags.pieces !== 'string') {
-    throw new Error('place-piece requires --pieces <path>');
+    throw new GameboardCliError('place-piece requires --pieces <path>');
   }
   const { plan, violations } = layoutAnalysisPlanFromArgs(
     parsed,
@@ -1544,7 +1545,7 @@ function layoutAnalysisPlanFromArgs(
         printViolations(inspection.violations);
         process.exit(1);
       }
-      throw new Error(`Recipe ${relativizePath(String(parsed.flags.recipe))} did not compile to a GameboardPlan`);
+      throw new GameboardCliError(`Recipe ${relativizePath(String(parsed.flags.recipe))} did not compile to a GameboardPlan`);
     }
     return {
       plan: inspection.plan,
@@ -1559,7 +1560,7 @@ function layoutAnalysisPlanFromArgs(
       printViolations(inspection.violations);
       process.exit(1);
     }
-    throw new Error(`Scenario ${relativizePath(scenarioPath)} did not compile to a GameboardPlan`);
+    throw new GameboardCliError(`Scenario ${relativizePath(scenarioPath)} did not compile to a GameboardPlan`);
   }
   return {
     plan: inspection.plan,
@@ -1583,7 +1584,7 @@ function summaryPlanFromArgs(
     ...(blueprintPath ? ['blueprint'] : []),
   ];
   if (inputFlags.length !== 1) {
-    throw new Error(
+    throw new GameboardCliError(
       'summarize-plan requires exactly one of --plan <path>, --recipe <path>, --scenario <path>, or --blueprint <path>'
     );
   }
@@ -1608,7 +1609,7 @@ function summaryPlanFromArgs(
         printViolations(inspection.violations);
         process.exit(1);
       }
-      throw new Error(`Recipe ${relativizePath(path)} did not compile to a GameboardPlan`);
+      throw new GameboardCliError(`Recipe ${relativizePath(path)} did not compile to a GameboardPlan`);
     }
     return {
       source: { kind: 'recipe', path },
@@ -1627,7 +1628,7 @@ function summaryPlanFromArgs(
         printViolations(inspection.violations);
         process.exit(1);
       }
-      throw new Error(`Scenario ${relativizePath(path)} did not compile to a GameboardPlan`);
+      throw new GameboardCliError(`Scenario ${relativizePath(path)} did not compile to a GameboardPlan`);
     }
     return {
       source: { kind: 'scenario', path },
@@ -1673,7 +1674,7 @@ function routePlanningPlanFromArgs(
       ? readJson<GameboardRecipe>(resolve(parsed.flags.recipe))
       : undefined);
   if (!recipe) {
-    throw new Error(`Scenario ${relativizePath(String(parsed.flags.scenario))} did not include a board recipe`);
+    throw new GameboardCliError(`Scenario ${relativizePath(String(parsed.flags.scenario))} did not include a board recipe`);
   }
   const inspection = inspectGameboardRecipe(recipe, { plan: validationConfig });
   if (!inspection.plan) {
@@ -1681,7 +1682,7 @@ function routePlanningPlanFromArgs(
       printViolations(inspection.violations);
       process.exit(1);
     }
-    throw new Error('Route planning input did not compile to a GameboardPlan');
+    throw new GameboardCliError('Route planning input did not compile to a GameboardPlan');
   }
   return {
     plan: inspection.plan,
@@ -1715,14 +1716,14 @@ function patrolRouteSetFromArgs(
   }
 
   if (!scenario?.patrolRoutes?.length && typeof parsed.flags.routes !== 'string') {
-    throw new Error('patrol-script requires --routes <path> or --scenario <path> with patrolRoutes');
+    throw new GameboardCliError('patrol-script requires --routes <path> or --scenario <path> with patrolRoutes');
   }
 
   const inputFlags = ['plan', 'recipe', 'scenario'].filter(
     (key) => typeof parsed.flags[key] === 'string'
   );
   if (inputFlags.length !== 1) {
-    throw new Error(
+    throw new GameboardCliError(
       'patrol-script requires exactly one of --plan <path>, --recipe <path>, or --scenario <path> when routes are not a planned route set'
     );
   }
@@ -1776,7 +1777,7 @@ function readPatrolSimulationAssignments(
         ? (payload.assignments as readonly GameboardPatrolSimulationActorAssignment[])
         : undefined;
     if (!Array.isArray(assignments)) {
-      throw new Error(`Patrol assignment file ${relativizePath(String(parsed.flags.assignments))} must be an array or { "assignments": [...] }`);
+      throw new GameboardCliError(`Patrol assignment file ${relativizePath(String(parsed.flags.assignments))} must be an array or { "assignments": [...] }`);
     }
     return assignments.map((assignment) => ({
       ...assignment,
@@ -1793,15 +1794,15 @@ function readPatrolSimulationAssignments(
       },
     ];
   }
-  throw new Error('patrol-script requires --assignments <path> or both --routeId <id> and --actorId <id>');
+  throw new GameboardCliError('patrol-script requires --assignments <path> or both --routeId <id> and --actorId <id>');
 }
 
 function runValidateSimulation(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
   if (typeof parsed.flags.scenario !== 'string') {
-    throw new Error('validate-simulation requires --scenario <path>');
+    throw new GameboardCliError('validate-simulation requires --scenario <path>');
   }
   if (typeof parsed.flags.script !== 'string') {
-    throw new Error('validate-simulation requires --script <path>');
+    throw new GameboardCliError('validate-simulation requires --script <path>');
   }
 
   const scenario = readJson<GameboardScenario>(resolve(parsed.flags.scenario));
@@ -1910,7 +1911,7 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
     assetIds: assetIdFilter,
   });
   if (scenarios.length === 0) {
-    throw new Error('guide-scenarios selection did not match any extracted guide scenarios');
+    throw new GameboardCliError('guide-scenarios selection did not match any extracted guide scenarios');
   }
   const coverage = summarizeKayKitGuideCoverage();
   const treatmentByAssetId = new Map(
@@ -2050,7 +2051,7 @@ function runGuideUsages(parsed: ParsedArgs, sourceRoot: string, edition: PackEdi
     publicApis: publicApiFilter,
   });
   if (usages.length === 0) {
-    throw new Error('guide-usages selection did not match any guide scenario asset usages');
+    throw new GameboardCliError('guide-usages selection did not match any guide scenario asset usages');
   }
 
   const catalog = validationCatalogFromArgs(parsed, sourceRoot, edition);
@@ -2157,7 +2158,7 @@ function runGuideRenderRequests(
   };
   const requests = listKayKitGuideScenarioAssetRenderRequests(requestOptions);
   if (requests.length === 0) {
-    throw new Error('guide-render-requests selection did not match any guide scenario asset render requests');
+    throw new GameboardCliError('guide-render-requests selection did not match any guide scenario asset render requests');
   }
 
   const groups = listKayKitGuideScenarioAssetRenderGroups(requestOptions);
@@ -2253,7 +2254,7 @@ function runGuidePublicApis(parsed: ParsedArgs): void {
   const publicApiFilter = readCsv(parsed.flags.publicApi);
   const coverages = filterGuidePublicApiCoverages(listKayKitGuidePublicApiCoverages(), publicApiFilter);
   if (coverages.length === 0) {
-    throw new Error('guide-apis selection did not match any public API coverage records');
+    throw new GameboardCliError('guide-apis selection did not match any public API coverage records');
   }
   const payload = {
     schemaVersion: '1.0.0',
@@ -2300,7 +2301,7 @@ function runGuideAssets(parsed: ParsedArgs): void {
     roles: roleFilter,
   });
   if (coverages.length === 0) {
-    throw new Error('guide-assets selection did not match any public asset coverage records');
+    throw new GameboardCliError('guide-assets selection did not match any public asset coverage records');
   }
   const payload = {
     schemaVersion: '1.0.0',
@@ -2340,7 +2341,7 @@ function runGuideRoles(parsed: ParsedArgs): void {
   const roleFilter = readCsv(parsed.flags.role ?? parsed.flags.guideRole);
   const coverages = filterGuideRoleCoverages(listKayKitGuideRoleCoverages(), roleFilter);
   if (coverages.length === 0) {
-    throw new Error('guide-roles selection did not match any public role coverage records');
+    throw new GameboardCliError('guide-roles selection did not match any public role coverage records');
   }
   const payload = {
     schemaVersion: '1.0.0',
@@ -2520,7 +2521,7 @@ function readGuideScenarioPageFilter(value: string | boolean | undefined): numbe
   return readCsv(value).map((page) => {
     const parsedPage = Number(page);
     if (!Number.isInteger(parsedPage) || parsedPage < 1) {
-      throw new Error(`Expected --page to contain one-based guide page numbers, received ${page}`);
+      throw new GameboardCliError(`Expected --page to contain one-based guide page numbers, received ${page}`);
     }
     return parsedPage;
   });
@@ -2533,7 +2534,7 @@ function readGuideScenarioEditionFilter(
     if (edition === 'free' || edition === 'extra' || edition === 'mixed' || edition === 'reference') {
       return edition;
     }
-    throw new Error(
+    throw new GameboardCliError(
       `Expected --editionScope to contain free, extra, mixed, or reference, received ${edition}`
     );
   });
@@ -2553,7 +2554,7 @@ function readGuideUsageMinimumEdition(value: string | boolean | undefined): Pack
   if (value === 'free' || value === 'extra' || value === 'all') {
     return value;
   }
-  throw new Error(`Expected --minimumEdition to contain free, extra, or all, received ${String(value)}`);
+  throw new GameboardCliError(`Expected --minimumEdition to contain free, extra, or all, received ${String(value)}`);
 }
 
 function readGuideUsageCategoryFilter(value: string | boolean | undefined): AssetCategory[] {
@@ -2561,7 +2562,7 @@ function readGuideUsageCategoryFilter(value: string | boolean | undefined): Asse
     if (category === 'tiles' || category === 'buildings' || category === 'decoration' || category === 'units') {
       return category;
     }
-    throw new Error(`Expected --category to contain tiles, buildings, decoration, or units, received ${category}`);
+    throw new GameboardCliError(`Expected --category to contain tiles, buildings, decoration, or units, received ${category}`);
   });
 }
 
@@ -2571,7 +2572,7 @@ function readGuideUsageRoleFilter(value: string | boolean | undefined): KayKitAs
     if (validRoles.has(role as KayKitAssetPublicRole)) {
       return role as KayKitAssetPublicRole;
     }
-    throw new Error(`Expected --role to contain a known guide asset role, received ${role}`);
+    throw new GameboardCliError(`Expected --role to contain a known guide asset role, received ${role}`);
   });
 }
 
@@ -2729,10 +2730,10 @@ function countGuidePermutationsByKind(
 
 function runSimulateScenario(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
   if (typeof parsed.flags.scenario !== 'string') {
-    throw new Error('simulate-scenario requires --scenario <path>');
+    throw new GameboardCliError('simulate-scenario requires --scenario <path>');
   }
   if (typeof parsed.flags.script !== 'string') {
-    throw new Error('simulate-scenario requires --script <path>');
+    throw new GameboardCliError('simulate-scenario requires --script <path>');
   }
 
   const scenario = readJson<GameboardScenario>(resolve(parsed.flags.scenario));
@@ -2881,7 +2882,7 @@ function readBlueprintOptionsFile(path: string): MedievalGameboardBlueprintScena
         ? payload.options
         : payload;
   if (!isRecord(options)) {
-    throw new Error(
+    throw new GameboardCliError(
       `Blueprint file ${relativizePath(path)} must be an options object, { "blueprint": ... }, or { "options": ... }`
     );
   }
@@ -2977,7 +2978,7 @@ function createBlueprintScenarioInteropSnapshot(
   scenarioInspection: MedievalGameboardBlueprintScenarioInspection | undefined
 ): GameboardInteropSnapshot {
   if (!scenarioInspection) {
-    throw new Error('blueprint interop output requires a generated blueprint scenario');
+    throw new GameboardCliError('blueprint interop output requires a generated blueprint scenario');
   }
   return createGameboardScenarioInteropSnapshot(
     scenarioInspection.scenario,
@@ -3006,7 +3007,7 @@ function readSimulationScript(path: string): GameboardScenarioSimulationScript {
     };
   }
   if (!isRecord(payload) || !Array.isArray(payload.steps)) {
-    throw new Error(`Simulation script ${relativizePath(path)} must be a step array or { "steps": [...] }`);
+    throw new GameboardCliError(`Simulation script ${relativizePath(path)} must be a step array or { "steps": [...] }`);
   }
   return payload as unknown as GameboardScenarioSimulationScript;
 }
@@ -3022,7 +3023,7 @@ function readLayoutFillOptions(
       ? (payload.rules as readonly GameboardLayoutFillRule[])
       : undefined;
   if (!Array.isArray(rules)) {
-    throw new Error(`Layout rules file ${relativizePath(path)} must be a rule array or { "rules": [...] }`);
+    throw new GameboardCliError(`Layout rules file ${relativizePath(path)} must be a rule array or { "rules": [...] }`);
   }
   const fileSeed = isRecord(payload) && typeof payload.seed === 'string' ? payload.seed : undefined;
   return {
@@ -3042,7 +3043,7 @@ function readSpawnGroupOptions(
       ? (payload.groups as GameboardSpawnGroupOptions['groups'])
       : undefined;
   if (!Array.isArray(groups)) {
-    throw new Error(`Spawn group file ${relativizePath(path)} must be a group array or { "groups": [...] }`);
+    throw new GameboardCliError(`Spawn group file ${relativizePath(path)} must be a group array or { "groups": [...] }`);
   }
   const fileSeed = isRecord(payload) && typeof payload.seed === 'string' ? payload.seed : undefined;
   const profile =
@@ -3067,7 +3068,7 @@ function readPatrolRouteOptions(
       ? (payload.routes as readonly GameboardPatrolRouteRule[])
       : undefined;
   if (!Array.isArray(routes)) {
-    throw new Error(`Patrol route file ${relativizePath(path)} must be a route array or { "routes": [...] }`);
+    throw new GameboardCliError(`Patrol route file ${relativizePath(path)} must be a route array or { "routes": [...] }`);
   }
   const fileSeed = isRecord(payload) && typeof payload.seed === 'string' ? payload.seed : undefined;
   const profile =
@@ -3188,7 +3189,7 @@ function snapshotFromRecipe(
   const inspection = inspectGameboardRecipe(recipe, { plan: validationConfig });
   failOnSnapshotViolations(inspection.violations, allowInvalid);
   if (!inspection.plan) {
-    throw new Error(`Recipe ${relativizePath(path)} did not compile to a GameboardPlan`);
+    throw new GameboardCliError(`Recipe ${relativizePath(path)} did not compile to a GameboardPlan`);
   }
   return createGameboardInteropSnapshot(inspection.plan, options);
 }
@@ -3663,7 +3664,7 @@ function readGltfMetadata(path: string): {
 function readGlbJson(path: string): GltfDocumentMetadata {
   const buffer = readFileSync(path);
   if (buffer.toString('utf8', 0, 4) !== 'glTF') {
-    throw new Error(`Invalid GLB header: ${relativizePath(path)}`);
+    throw new GameboardCliError(`Invalid GLB header: ${relativizePath(path)}`);
   }
   const length = buffer.readUInt32LE(8);
   let offset = 12;
@@ -3678,7 +3679,7 @@ function readGlbJson(path: string): GltfDocumentMetadata {
     }
     offset += chunkLength;
   }
-  throw new Error(`GLB file has no JSON chunk: ${relativizePath(path)}`);
+  throw new GameboardCliError(`GLB file has no JSON chunk: ${relativizePath(path)}`);
 }
 
 function extractMetadataBounds(document: GltfDocumentMetadata): AssetBounds {
@@ -3850,9 +3851,9 @@ function pieceForPlacementFromFlags(
   }
   const description = JSON.stringify(selection);
   if (selected.length === 0) {
-    throw new Error(`place-piece matched no pieces for selection ${description}`);
+    throw new GameboardCliError(`place-piece matched no pieces for selection ${description}`);
   }
-  throw new Error(
+  throw new GameboardCliError(
     `place-piece matched ${selected.length} pieces for selection ${description}; narrow with --pieceId`
   );
 }
@@ -3886,20 +3887,20 @@ function readPieceSourceRoots(value: string): Readonly<Record<string, string>> {
   const source = existsSync(resolve(value)) ? readJson<unknown>(resolve(value)) : JSON.parse(value);
   const payload = isRecord(source) && isRecord(source.sourceRoots) ? source.sourceRoots : source;
   if (!isRecord(payload)) {
-    throw new Error('--pieceSourceRoots must be a JSON object or { "sourceRoots": { ... } }');
+    throw new GameboardCliError('--pieceSourceRoots must be a JSON object or { "sourceRoots": { ... } }');
   }
   // Null-prototype output so downstream Object.assign/spread can't reach
   // through Object.prototype even if an attacker bypassed the key filter.
   const roots: Record<string, string> = Object.create(null) as Record<string, string>;
   for (const [key, root] of Object.entries(payload)) {
     if (RESERVED_OBJECT_KEYS.has(key)) {
-      throw new Error(`--pieceSourceRoots key not allowed (prototype pollution risk): ${key}`);
+      throw new GameboardCliError(`--pieceSourceRoots key not allowed (prototype pollution risk): ${key}`);
     }
     if (!SAFE_PIECE_SOURCE_ROOT_KEY.test(key)) {
-      throw new Error(`--pieceSourceRoots key must match [A-Za-z0-9_:-]+: ${key}`);
+      throw new GameboardCliError(`--pieceSourceRoots key must match [A-Za-z0-9_:-]+: ${key}`);
     }
     if (typeof root !== 'string') {
-      throw new Error(`--pieceSourceRoots entry ${key} must be a string`);
+      throw new GameboardCliError(`--pieceSourceRoots entry ${key} must be a string`);
     }
     roots[key] = root;
   }
@@ -3934,7 +3935,7 @@ function readAssetInputs(flags: Record<string, string | boolean>): string[] {
     inputs.push(flags.asset);
   }
   if (inputs.length === 0) {
-    throw new Error('pieces-from-assets requires --assets <path[,path]> or --asset <path>');
+    throw new GameboardCliError('pieces-from-assets requires --assets <path[,path]> or --asset <path>');
   }
   return inputs.map((input) => resolve(input));
 }
@@ -4103,7 +4104,7 @@ function readNumberFlag(value: string | boolean | undefined): number | undefined
   }
   const number = Number(value);
   if (!Number.isFinite(number)) {
-    throw new Error(`Expected numeric flag value, received ${value}`);
+    throw new GameboardCliError(`Expected numeric flag value, received ${value}`);
   }
   return number;
 }
@@ -4117,7 +4118,7 @@ function readModelForward(
   if (value === '+z' || value === '-z' || value === '+x' || value === '-x') {
     return value;
   }
-  throw new Error(`Expected --modelForward to be one of +z, -z, +x, -x; received ${String(value)}`);
+  throw new GameboardCliError(`Expected --modelForward to be one of +z, -z, +x, -x; received ${String(value)}`);
 }
 
 function readBoardForwardEdge(value: string | boolean | undefined): HexEdgeIndex | undefined {
@@ -4126,7 +4127,7 @@ function readBoardForwardEdge(value: string | boolean | undefined): HexEdgeIndex
     return undefined;
   }
   if (!Number.isInteger(edge) || edge < 0 || edge > 5) {
-    throw new Error(`Expected --boardForwardEdge to be an integer from 0 to 5; received ${edge}`);
+    throw new GameboardCliError(`Expected --boardForwardEdge to be an integer from 0 to 5; received ${edge}`);
   }
   return edge as HexEdgeIndex;
 }
@@ -4233,7 +4234,7 @@ function readEdition(value: string | boolean | undefined): PackEdition {
   if (value === 'free' || value === 'extra') {
     return value;
   }
-  throw new Error(`Unsupported edition: ${String(value)}`);
+  throw new GameboardCliError(`Unsupported edition: ${String(value)}`);
 }
 
 function readGuideScenarioAssetScope(
@@ -4247,7 +4248,7 @@ function readGuideScenarioAssetScope(
   if (value === 'free' || value === 'extra' || value === 'all') {
     return value;
   }
-  throw new Error(`Unsupported guide scenario asset scope: ${String(value)}`);
+  throw new GameboardCliError(`Unsupported guide scenario asset scope: ${String(value)}`);
 }
 
 function usage(exitCode: number): never {

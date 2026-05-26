@@ -5,6 +5,7 @@
  * @module
  */
 import seedrandom from 'seedrandom';
+import { GameboardRuntimeError } from '../errors';
 import {
   coloredUnitAssetId,
   factionBuildingAssetId,
@@ -1474,7 +1475,7 @@ export class GameboardBuilder {
     const key = hexKey(coordinates);
     const tile = this.tiles.get(key);
     if (!tile) {
-      throw new Error(`No tile exists at ${key} for ${this.shape.kind} gameboard`);
+      throw new GameboardRuntimeError(`No tile exists at ${key} for ${this.shape.kind} gameboard`);
     }
     return tile;
   }
@@ -2070,11 +2071,11 @@ function pathMasks(path: readonly HexCoordinates[]): Map<string, number> {
     const current = path[index];
     const next = path[index + 1];
     if (current === undefined || next === undefined) {
-      throw new Error(`pathMasks index ${index} out of range`);
+      throw new GameboardRuntimeError(`pathMasks index ${index} out of range`);
     }
     const edge = edgeBetween(current, next);
     if (edge === undefined) {
-      throw new Error(`Path step ${hexKey(current)} -> ${hexKey(next)} is not adjacent`);
+      throw new GameboardRuntimeError(`Path step ${hexKey(current)} -> ${hexKey(next)} is not adjacent`);
     }
     masks.set(hexKey(current), mergeMask(masks.get(hexKey(current)) ?? 0, 1 << edge));
     masks.set(hexKey(next), mergeMask(masks.get(hexKey(next)) ?? 0, 1 << oppositeEdge(edge)));
@@ -2110,7 +2111,7 @@ function edgeFromSingleBit(mask: number): HexEdgeIndex {
       return edge as HexEdgeIndex;
     }
   }
-  throw new Error('Expected a single-edge mask');
+  throw new GameboardRuntimeError('Expected a single-edge mask');
 }
 
 function waterEdgesFor(coordinates: HexCoordinates, waterKeys: ReadonlySet<string>): HexEdgeIndex[] {
@@ -2124,7 +2125,7 @@ function firstExistingCoordinate(
 ): HexCoordinates {
   const coordinate = candidates.find((candidate) => keys.has(hexKey(candidate)) && !excludedKeys.has(hexKey(candidate)));
   if (!coordinate) {
-    throw new Error('No available coordinate exists for the requested board feature');
+    throw new GameboardRuntimeError('No available coordinate exists for the requested board feature');
   }
   return coordinate;
 }
@@ -2164,7 +2165,7 @@ function fortificationAssetId(material: FortificationMaterial, segment: Fortific
     }
   }
   if (segment !== 'straight' && segment !== 'gate' && segment !== 'straight-gate') {
-    throw new Error(`Fortification material ${material} does not support segment ${segment}`);
+    throw new GameboardRuntimeError(`Fortification material ${material} does not support segment ${segment}`);
   }
   const fenceSegment = segment === 'straight' ? 'straight' : 'straight_gate';
   return `fence_${material === 'wood-fence' ? 'wood' : 'stone'}_${fenceSegment}` as NeutralStructureKind;

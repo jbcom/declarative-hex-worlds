@@ -4,6 +4,7 @@
  *
  * @module
  */
+import { GameboardRuntimeError } from '../errors';
 import type {
   ExternalAssetCompatibilityReport,
 } from '../interop';
@@ -584,7 +585,7 @@ export function createGameboardLayoutFillRuleFromPieces(
 ): GameboardLayoutFillRule {
   const first = pieces[0];
   if (!first) {
-    throw new Error('createGameboardLayoutFillRuleFromPieces requires at least one piece');
+    throw new GameboardRuntimeError('createGameboardLayoutFillRuleFromPieces requires at least one piece');
   }
   const ids = pieces.map((piece) => piece.id);
   const roles = uniqueValues(pieces.map((piece) => piece.role));
