@@ -80,7 +80,9 @@ requireIncludes(cd, 'cd.yml', [
   'pnpm/action-setup',
   'googleapis/release-please-action',
   'secrets.CI_GITHUB_TOKEN',
-  'pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build',
+  // Post-F-Site-5: replaces the legacy vitepress build with the Astro Starlight
+  // build under docs-site/. F-Site-12 removes the vitepress source.
+  'pnpm docs-site:build',
   'actions/deploy-pages',
 ]);
 requireIncludes(automerge, 'automerge.yml', [
