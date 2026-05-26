@@ -165,3 +165,24 @@ jobs:
         with:
           fail-on-severity: high
           comment-summary-in-pr: always
+
+  semgrep:
+    name: Semgrep SAST
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install Semgrep
+        run: python3 -m pip install --user 'semgrep==1.96.0'
+
+      - name: Run Semgrep (OWASP Top 10 + Node.js)
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          semgrep --config p/owasp-top-ten --config p/nodejs \
+            --error --metrics=off \
+            --exclude='packages/medieval-hexagon-gameboard/src/manifest/free.ts' \
+            --exclude='packages/medieval-hexagon-gameboard/dist' \
+            --exclude='node_modules' .
