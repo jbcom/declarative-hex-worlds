@@ -18,7 +18,7 @@ pnpm coverage:ledger
 - Public roles: 12
 - Visual artifacts: 70 available, 0 missing, 0 skipped
 - Local references: 4 available, 0 missing, 0 skipped
-- Release checks: 11 passed, 0 failed, 0 not run, 0 skipped
+- Release checks: 12 passed, 0 failed, 0 not run, 0 skipped
 
 ## Manifest Coverage
 
@@ -50,6 +50,7 @@ pnpm coverage:ledger
 | passed | `pnpm typecheck` | Strict TypeScript validation for runtime, package tests, docs scripts, and generated examples. |
 | passed | `pnpm build` | Nx package build including tsup ESM chunks, declarations, CLI shebang preservation, and asset copies. |
 | passed | `pnpm test:ci` | Serialized non-browser release gate: docs contracts, API docs, assets, workspace/workflow audits, CLI smoke, expectations, unit tests, package audit, consumer smoke, and dry-run pack. |
+| passed | `pnpm test:docs-contract` | Pillar frontmatter/link audit plus README, pillar, and guide SimpleRPG executable coverage contract for 40 guide-facing helper APIs, 404 KayKit public treatment records, and 19 guide pages. |
 | passed | `pnpm expectations` | Behavior-drift fixtures for seeded generation, SimpleRPG quests, executable guide API smoke, movement, actor targets, patrols, mutations, and final placements. |
 | passed | `pnpm docs:build` | TypeDoc and VitePress documentation build with public JSDoc and guide-link validation. |
 | passed | `pnpm test:consumer` | Packed tarball installed into a temporary app, then compiled and executed through public subpaths, examples, and the CLI bin. |
@@ -163,6 +164,7 @@ pnpm coverage:ledger
 - `pnpm typecheck`
 - `pnpm build`
 - `pnpm test:ci`
+- `pnpm test:docs-contract`
 - `pnpm expectations`
 - `pnpm docs:build`
 - `pnpm test:consumer`

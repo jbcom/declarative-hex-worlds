@@ -35684,6 +35684,13 @@
       "summary": "Serialized non-browser release gate: docs contracts, API docs, assets, workspace/workflow audits, CLI smoke, expectations, unit tests, package audit, consumer smoke, and dry-run pack."
     },
     {
+      "id": "test-docs-contract",
+      "label": "pnpm test:docs-contract",
+      "command": "pnpm test:docs-contract",
+      "status": "passed",
+      "summary": "Pillar frontmatter/link audit plus README, pillar, and guide SimpleRPG executable coverage contract for 40 guide-facing helper APIs, 404 KayKit public treatment records, and 19 guide pages."
+    },
+    {
       "id": "expectations",
       "label": "pnpm expectations",
       "command": "pnpm expectations",
@@ -35739,6 +35746,7 @@
     "pnpm typecheck",
     "pnpm build",
     "pnpm test:ci",
+    "pnpm test:docs-contract",
     "pnpm expectations",
     "pnpm docs:build",
     "pnpm test:consumer",

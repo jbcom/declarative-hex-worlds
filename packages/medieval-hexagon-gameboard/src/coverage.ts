@@ -304,6 +304,7 @@ export const GAMEBOARD_RELEASE_GATE_COMMANDS = [
   'pnpm typecheck',
   'pnpm build',
   'pnpm test:ci',
+  'pnpm test:docs-contract',
   'pnpm expectations',
   'pnpm docs:build',
   'pnpm test:consumer',
@@ -317,21 +318,28 @@ export const GAMEBOARD_RELEASE_GATE_COMMANDS = [
 export const GAMEBOARD_RELEASE_GATE_SUMMARIES: Readonly<
   Record<(typeof GAMEBOARD_RELEASE_GATE_COMMANDS)[number], string>
 > = {
-  'pnpm lint': 'Biome lint over workspace packages, docs scripts, and generated public TypeScript surfaces.',
-  'pnpm typecheck': 'Strict TypeScript validation for runtime, package tests, docs scripts, and generated examples.',
-  'pnpm build': 'Nx package build including tsup ESM chunks, declarations, CLI shebang preservation, and asset copies.',
+  'pnpm lint':
+    'Biome lint over workspace packages, docs scripts, and generated public TypeScript surfaces.',
+  'pnpm typecheck':
+    'Strict TypeScript validation for runtime, package tests, docs scripts, and generated examples.',
+  'pnpm build':
+    'Nx package build including tsup ESM chunks, declarations, CLI shebang preservation, and asset copies.',
   'pnpm test:ci':
     'Serialized non-browser release gate: docs contracts, API docs, assets, workspace/workflow audits, CLI smoke, expectations, unit tests, package audit, consumer smoke, and dry-run pack.',
+  'pnpm test:docs-contract':
+    'Pillar frontmatter/link audit plus README, pillar, and guide SimpleRPG executable coverage contract for 40 guide-facing helper APIs, 404 KayKit public treatment records, and 19 guide pages.',
   'pnpm expectations':
     'Behavior-drift fixtures for seeded generation, SimpleRPG quests, executable guide API smoke, movement, actor targets, patrols, mutations, and final placements.',
-  'pnpm docs:build': 'TypeDoc and VitePress documentation build with public JSDoc and guide-link validation.',
+  'pnpm docs:build':
+    'TypeDoc and VitePress documentation build with public JSDoc and guide-link validation.',
   'pnpm test:consumer':
     'Packed tarball installed into a temporary app, then compiled and executed through public subpaths, examples, and the CLI bin.',
   'pnpm test:visual':
     'FREE, EXTRA, SimpleRPG, Kenney Castle Kit, and KayKit Adventurers browser visual suites with screenshot quality checks.',
   'pnpm showcases:promote -- --check':
     'Curated browser screenshots match committed docs/package showcase copies and pass the shared PNG quality analyzer.',
-  'pnpm test:workflows': 'CI, Release Please, npm OIDC publish, automerge, and Dependabot workflow contract audit.',
+  'pnpm test:workflows':
+    'CI, Release Please, npm OIDC publish, automerge, and Dependabot workflow contract audit.',
   'pnpm pack:dry-run':
     'npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, KayKit attribution/NOTICE, and packaged showcase PNG quality.',
 };
@@ -387,7 +395,10 @@ export function createDefaultGameboardCoveragePackageChecks(
   status: GameboardCoverageCheckStatus = 'not-run'
 ): GameboardCoveragePackageCheck[] {
   return GAMEBOARD_RELEASE_GATE_COMMANDS.map((command) => ({
-    id: command.replace(/^pnpm /, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, ''),
+    id: command
+      .replace(/^pnpm /, '')
+      .replace(/[^a-z0-9]+/gi, '-')
+      .replace(/^-|-$/g, ''),
     label: command,
     command,
     status,
@@ -516,7 +527,12 @@ export function renderGameboardCoverageMarkdown(
     lines.push('');
   }
 
-  lines.push('## Local References', '', '| Status | Reference | Path | Purpose |', '| --- | --- | --- | --- |');
+  lines.push(
+    '## Local References',
+    '',
+    '| Status | Reference | Path | Purpose |',
+    '| --- | --- | --- | --- |'
+  );
   for (const reference of report.references) {
     lines.push(
       `| ${reference.status} | ${markdownCell(reference.label)} | \`${reference.path}\` | ${markdownCell(reference.purpose)} |`
@@ -525,9 +541,7 @@ export function renderGameboardCoverageMarkdown(
 
   lines.push('', '## Release Checks', '', '| Status | Command | Summary |', '| --- | --- | --- |');
   for (const check of report.packageChecks) {
-    lines.push(
-      `| ${check.status} | \`${check.command}\` | ${markdownCell(check.summary ?? '')} |`
-    );
+    lines.push(`| ${check.status} | \`${check.command}\` | ${markdownCell(check.summary ?? '')} |`);
   }
 
   lines.push(
@@ -610,7 +624,9 @@ function summarizeManifestCoverage(
     freeGuideAssetsInManifest: freeGuideAssetIds.length - freeGuideAssetsMissingFromManifest.length,
     freeGuideAssetsMissingFromManifest,
     extraGuideAssetsInManifest: extraGuideAssetsInManifest.length,
-    extraGuideAssetsLocalOnly: extraGuideAssetIds.filter((assetId) => !manifestAssetIds.has(assetId)),
+    extraGuideAssetsLocalOnly: extraGuideAssetIds.filter(
+      (assetId) => !manifestAssetIds.has(assetId)
+    ),
     errorCount: inspection.errorCount,
     warningCount: inspection.warningCount,
     issues: inspection.issues,

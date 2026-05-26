@@ -4,6 +4,7 @@ import {
   renderGameboardCoverageMarkdown as renderGameboardCoverageMarkdownFromRoot,
   summarizeGameboardCoverage as summarizeGameboardCoverageFromRoot,
 } from '../../src';
+import { runSimpleRpgExecutableGuideApiSmoke } from '../../examples/simple-rpg-usage';
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   GAMEBOARD_RELEASE_GATE_COMMANDS,
@@ -22,9 +23,11 @@ describe('release-readiness coverage', () => {
       packageChecks: createDefaultGameboardCoveragePackageChecks('passed'),
     });
 
-    expect(summarizeGameboardCoverageFromRoot({ packageChecks: createDefaultGameboardCoveragePackageChecksFromRoot('passed') }).guide.assetCounts).toEqual(
-      report.guide.assetCounts
-    );
+    expect(
+      summarizeGameboardCoverageFromRoot({
+        packageChecks: createDefaultGameboardCoveragePackageChecksFromRoot('passed'),
+      }).guide.assetCounts
+    ).toEqual(report.guide.assetCounts);
     expect(report.schemaVersion).toBe('1.0.0');
     expect(report.status).toBe('passed');
     expect(report.guide).toMatchObject({
@@ -81,6 +84,16 @@ describe('release-readiness coverage', () => {
     expect(report.packageChecks.map((check) => check.summary)).toEqual(
       GAMEBOARD_RELEASE_GATE_COMMANDS.map((command) => GAMEBOARD_RELEASE_GATE_SUMMARIES[command])
     );
+
+    const simpleRpgSmoke = runSimpleRpgExecutableGuideApiSmoke();
+    const docsContractSummary = GAMEBOARD_RELEASE_GATE_SUMMARIES['pnpm test:docs-contract'];
+    expect(docsContractSummary).toContain(
+      `${simpleRpgSmoke.directPublicApiCount} guide-facing helper APIs`
+    );
+    expect(docsContractSummary).toContain(
+      `${simpleRpgSmoke.publicTreatmentCount} KayKit public treatment`
+    );
+    expect(docsContractSummary).toContain(`${simpleRpgSmoke.guideScenarioCount} guide pages`);
   });
 
   it('keeps each curated showcase wired to both docs and package README destinations', () => {
@@ -160,9 +173,12 @@ describe('release-readiness coverage', () => {
     expect(renderGameboardCoverageMarkdownFromRoot(report)).toBe(markdown);
     expect(markdown).toContain('# Release Readiness Coverage');
     expect(markdown).toContain('- Guide pages: 19/19');
-    expect(markdown).toContain('- Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences');
+    expect(markdown).toContain(
+      '- Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences'
+    );
     expect(markdown).toContain('| Status | Reference | Path | Purpose |');
     expect(markdown).toContain('| Status | Command | Summary |');
+    expect(markdown).toContain('`pnpm test:docs-contract`');
     expect(markdown).toContain('`pnpm test:visual`');
     expect(markdown).toContain('README gallery links');
     expect(markdown).toContain('`pnpm showcases:promote -- --check`');
