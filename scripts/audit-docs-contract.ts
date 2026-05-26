@@ -1,5 +1,9 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
+import {
+  listKayKitAssetPublicTreatments,
+  listKayKitGuideScenarios,
+} from '../packages/medieval-hexagon-gameboard/src/catalog';
 
 type PillarStatus = 'draft' | 'implemented' | 'verified';
 
@@ -14,6 +18,23 @@ interface PillarFrontmatter {
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
 const pillarsDir = resolve(workspaceRoot, 'docs/pillars');
+const simpleRpgExamplePath = resolve(
+  workspaceRoot,
+  'packages/medieval-hexagon-gameboard/examples/simple-rpg-usage.ts'
+);
+const simpleRpgExecutableApiCount = extractStringArrayConst(
+  readFileSync(simpleRpgExamplePath, 'utf8'),
+  'SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS',
+  simpleRpgExamplePath
+).length;
+const kayKitPublicTreatmentCount = listKayKitAssetPublicTreatments().length;
+const kayKitGuideScenarioCount = listKayKitGuideScenarios().length;
+const simpleRpgCoverageDocPaths = [
+  'README.md',
+  'packages/medieval-hexagon-gameboard/README.md',
+  'docs/pillars/05-koota-runtime-rules.md',
+  'docs/guides/recipes-scenarios-and-simulation.md',
+] as const;
 const allowedStatuses = new Set<PillarStatus>(['draft', 'implemented', 'verified']);
 const allowedSourcePacks = new Set([
   'references/KayKit_Medieval_Hexagon_Pack_1.0_FREE',
@@ -41,6 +62,7 @@ if (pillarPaths.length === 0) {
 for (const pillarPath of pillarPaths) {
   auditPillar(pillarPath);
 }
+auditSimpleRpgCoverageDocs();
 
 if (failures.length > 0) {
   for (const failure of failures) {
@@ -49,7 +71,9 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`docs contract passed for ${pillarPaths.length} pillar docs`);
+console.log(
+  `docs contract passed for ${pillarPaths.length} pillar docs and SimpleRPG executable coverage docs`
+);
 
 function auditPillar(pillarPath: string): void {
   const label = basename(pillarPath);
@@ -73,7 +97,9 @@ function auditPillar(pillarPath: string): void {
     failures.push(`${label} last_verified must be YYYY-MM-DD`);
   }
 
-  auditPathList(label, 'source_images', frontmatter.source_images, { allowIgnoredReferencePath: false });
+  auditPathList(label, 'source_images', frontmatter.source_images, {
+    allowIgnoredReferencePath: false,
+  });
   auditPathList(label, 'implementation_links', frontmatter.implementation_links, {
     allowIgnoredReferencePath: false,
   });
@@ -88,8 +114,12 @@ function auditPillar(pillarPath: string): void {
 
 function auditSourceImages(label: string, paths: string[] | undefined): void {
   for (const path of paths ?? []) {
-    if (!/^docs\/assets\/kaykit-guide\/(?:montage|pages\/page-(?:0[1-9]|1[0-9]))\.png$/.test(path)) {
-      failures.push(`${label} source_images must point at extracted KayKit guide PNGs, got ${path}`);
+    if (
+      !/^docs\/assets\/kaykit-guide\/(?:montage|pages\/page-(?:0[1-9]|1[0-9]))\.png$/.test(path)
+    ) {
+      failures.push(
+        `${label} source_images must point at extracted KayKit guide PNGs, got ${path}`
+      );
     }
   }
 }
@@ -113,7 +143,8 @@ function auditImplementedPillarLinks(label: string, frontmatter: PillarFrontmatt
     label,
     'test_links',
     frontmatter.test_links,
-    (path) => path.startsWith('packages/medieval-hexagon-gameboard/tests/') || path.startsWith('scripts/'),
+    (path) =>
+      path.startsWith('packages/medieval-hexagon-gameboard/tests/') || path.startsWith('scripts/'),
     'a package test or script audit path'
   );
 }
@@ -232,4 +263,36 @@ function parseFrontmatter(source: string, label: string): PillarFrontmatter | un
   }
 
   return data;
+}
+
+function auditSimpleRpgCoverageDocs(): void {
+  const expectedSnippets = [
+    `${simpleRpgExecutableApiCount} guide-facing helper APIs`,
+    `${kayKitPublicTreatmentCount} KayKit public treatment`,
+    `${kayKitGuideScenarioCount} decomposed guide pages`,
+  ];
+
+  for (const docPath of simpleRpgCoverageDocPaths) {
+    const source = normalizeDocText(readFileSync(resolve(workspaceRoot, docPath), 'utf8'));
+    for (const expectedSnippet of expectedSnippets) {
+      if (!source.includes(expectedSnippet)) {
+        failures.push(`${docPath} must mention "${expectedSnippet}"`);
+      }
+    }
+  }
+}
+
+function extractStringArrayConst(source: string, constName: string, label: string): string[] {
+  const escapedConstName = constName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = new RegExp(`const ${escapedConstName} = \\[([\\s\\S]*?)\\] as const;`).exec(source);
+  if (!match) {
+    failures.push(`${label} is missing ${constName}`);
+    return [];
+  }
+
+  return [...(match[1] ?? '').matchAll(/'([^']+)'/g)].map((entry) => entry[1] ?? '');
+}
+
+function normalizeDocText(source: string): string {
+  return source.replace(/\s+/g, ' ');
 }
