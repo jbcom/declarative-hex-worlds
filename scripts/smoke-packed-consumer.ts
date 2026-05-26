@@ -2433,6 +2433,15 @@ console.log(JSON.stringify({
       stdio: ['ignore', 'pipe', 'pipe'],
     }
   );
+  const binCoverageDoctorOutput = execFileSync(
+    join(appRoot, 'node_modules/.bin/medieval-hexagon-gameboard'),
+    ['doctor', '--coverage', '--checksPassed'],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
 
   assert(
     smokeOutput.includes('"usageScenarioId": "docs-simple-rpg-scenario"'),
@@ -2453,6 +2462,15 @@ console.log(JSON.stringify({
   assert(
     binOutput.includes('source exists: no'),
     'installed CLI doctor did not report the missing source'
+  );
+  assert(
+    binCoverageDoctorOutput.includes('guide pages: 19/19') &&
+      binCoverageDoctorOutput.includes('public APIs: 74') &&
+      binCoverageDoctorOutput.includes('manifest: 221 asset(s), 221/221 FREE guide asset(s)') &&
+      binCoverageDoctorOutput.includes(
+        'SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)'
+      ),
+    'installed CLI doctor --coverage did not emit release-readiness and SimpleRPG evidence'
   );
 
   console.log(
