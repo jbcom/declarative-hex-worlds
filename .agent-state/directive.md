@@ -25,6 +25,35 @@ while queue has `[ ]` items: implement → verify → commit → dispatch review
 
 Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Order is dependency-respecting.
 
+### Phase R — restructure (PRECEDES Phases A-G; remaining Phase A items are unblocked once R is done)
+
+- [ ] **R1** — **De-monorepo.** Plan in one commit; execute in subsequent atomic commits. Delete `pnpm-workspace.yaml`, the `packages/` dir, the `apps/` workspace registration, and Nx (`nx.json`, `nx/`, `@nx/*` deps). Merge `packages/medieval-hexagon-gameboard/package.json` into root `package.json` keeping the published name `@jbcom/medieval-hexagon-gameboard`. Move `packages/medieval-hexagon-gameboard/{src,tests,tsup.config.ts,vitest.config.ts,vitest.browser.*.config.ts,tsconfig.json}` to root paths. Update every script + audit script + workflow + tsconfig path. Verify `pnpm verify` end-to-end clean.
+- [ ] **R2** — **Decompose `src/` per koota-idiomatic layout** (see `~/src/reference-codebases/koota/examples/cards/src` and `examples/n-body-react/src`). The shape is **not** "one ECS subpackage" — koota apps split into `traits/` (declarations), `systems/` (per-tick functions), `actions.ts` (createActions bundles), `world.ts` (createWorld bootstrap), and `frameloop.ts`/`startup.ts` (lifecycle). Per PRD Appendix C, one sub-package per commit. Suggested order:
+  - **R2a** — `types/` (branded primitives — least coupled)
+  - **R2b** — `coordinates/` (hex algebra; pure, deterministic, no ECS)
+  - **R2c** — `manifest/` (data shape + bundled FREE manifest)
+  - **R2d** — `ingest/` (walker + secure resolve)
+  - **R2e** — `traits/` (split koota.ts + actors.ts + movement.ts + patrol.ts + quests.ts + world-rules.ts trait declarations into `traits/{board,actors,movement,combat,quests,render}.ts`)
+  - **R2f** — `selectors/` (`@internal`)
+  - **R2g** — `commands/` (`@internal`)
+  - **R2h** — `gameboard/` (gameboard.ts + occupancy.ts + navigation.ts)
+  - **R2i** — `pieces/`
+  - **R2j** — `rules/` (rules.ts + rule-types.ts + validation.ts; world-rules logic moves into `systems/`)
+  - **R2k** — `scenario/` (scenario + recipe + blueprint + catalog + registry)
+  - **R2l** — `simulation/` (engine + script + report + assertions — Epic D3 decomposition)
+  - **R2m** — `interop/` (interop + compatibility + coverage)
+  - **R2n** — `systems/` (per-system file each — `movement-system.ts`, `patrol-system.ts`, `quests-system.ts`, `rules-system.ts`, `world-rules-system.ts`)
+  - **R2o** — `errors/` (Epic D2 lands here)
+  - **R2p** — `cli/` (Epic B3 also lands here)
+  - **R2q** — `react/` + `three/` (peer-dep gated; Epic D6 peer guards land here)
+  - **R2r** — Compose: `src/world.ts`, `src/actions.ts`, `src/frameloop.ts`, `src/startup.ts`, `src/index.ts`
+  - After each commit: lint + typecheck + tests green; cross-domain imports traverse barrels only.
+- [ ] **R3** — **Enforce barrel-only cross-domain imports.** Add Biome `noRestrictedImports` rule: within `src/<X>/`, importing from `'../<Y>/<anything-but-index>'` is an error. Tests get an allowlist via `tests/internal/` re-export.
+- [ ] **R4** — **Relocate SimpleRPG to tests.** Move `examples/simple-rpg-usage.ts` and SimpleRPG JSON fixtures into `tests/integration/simple-rpg/` (unit-level) + `tests/e2e/simple-rpg/` (playwright). Drop SimpleRPG from `package.json#exports` and from the published `examples/` directory. Update scripts that reference the old paths.
+- [ ] **R5** — **Drop `apps/docs` workspace package.** Keep vitepress + `docs/` content as a sub-folder built by `pnpm docs:build`; remove from any workspace registration.
+- [ ] **R6** — **Coverage instrumentation across unit + browser + e2e.** All three harnesses feed the same `coverage/` report so `react.ts`/`three.ts` (browser-only) count too. Use `@vitest/coverage-v8` + `--coverage` on the browser configs; merge with `vitest run --coverage --merge-coverage` or `nyc merge`. This is the precondition for the 100% gate (A8 / E0-E10).
+- [ ] **R7** — **`pnpm verify` green end-to-end** on the restructured layout. This commit closes Phase R.
+
 ### Phase A — foundation gates (un-block everything else)
 
 - [x] **A0** — Bootstrap `CLAUDE.md`, `.agent-state/`, `.claude/gates.json`, `docs/PRD/1.0.md`. (this commit)
@@ -36,7 +65,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 - [ ] **A5** — Migrate `cd.yml` `secrets.CI_GITHUB_TOKEN` PAT to GitHub App token usage. Document in `docs/DEPLOYMENT.md`.
 - [ ] **A6** — Add `needs:` chain in `ci.yml` so `package` / `browser-free` / `docs` jobs depend on `check`.
 - [ ] **A7** — Add semgrep `p/owasp-top-ten` + `p/nodejs` CI step.
-- [ ] **A8** — Convert `coverage` config to enforce thresholds (lines 80, branches 75, funcs 80) — branch-protect on regression only after first passing run.
+- [ ] **A8** — Enforce **100 / 100 / 100 / 100** coverage thresholds (statements / branches / functions / lines) in `vitest.config.ts`. Initially `--passWithNoTests` not allowed; runs MUST hit 100 across `src/`, `examples/`, and `scripts/`. Baseline measured at 86.2 / 76.5 / 93.2 / 85.9 — Epic E0 closes the gap before this gate flips on.
 
 ### Phase B — performance criticals (publish-blocking)
 
@@ -73,8 +102,20 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 - [ ] **D9** — **M-2**: Split `scripts/audit-workspace.ts` (1,293 LOC, 89 functions) into `scripts/audits/{packagejson,pnpm,nx,tsconfig,typedoc,tsup,markdown,release}.ts` with thin top-level dispatcher.
 - [ ] **D10** — **M-3**: Split `scripts/smoke-packed-consumer.ts` (2,489 LOC) into `pack-install.ts` (runtime smoke) + `types.ts` (compile-time API attestation only). Add labelled-phase harness.
 
-### Phase E — test debt (publish-blocking)
+### Phase E — test debt (publish-blocking, raises floor to 100%)
 
+Floor is **100 / 100 / 100 / 100** across statements / branches / functions / lines for `src/`, `examples/`, and `scripts/`. Anything less is unacceptable. Baseline at the start of 1.0 work: **86.2 % stmts / 76.5 % branches / 93.2 % funcs / 85.9 % lines**.
+
+- [ ] **E0a** — `simulation.ts` to 100% (currently 67.7 / 66.6 / 85.9 / 67.2). Largest gap; likely sub-decomposition (Epic D3) will land first.
+- [ ] **E0b** — `patrol.ts` to 100% (72.3 / 64.5 / 76.9 / 71.9).
+- [ ] **E0c** — `recipe.ts` to 100% (78.9 / 68.4 / 82.4 / 79.0).
+- [ ] **E0d** — `commands.ts` to 100% (82.9 / 74.2 / 88.5 / 82.7).
+- [ ] **E0e** — `systems.ts` to 100% (83.3 / 76.6 / 81.8 / 83.0).
+- [ ] **E0f** — `world-rules.ts` to 100% branches (88.9 / 53.3 / 100 / 88.2).
+- [ ] **E0g** — `manifest/schema.ts` to 100% (81.2 / 70.9 / 97.8 / 80.5).
+- [ ] **E0h** — Sweep remaining files to 100%: `actors.ts`, `blueprint.ts`, `catalog.ts`, `compatibility.ts`, `coordinates.ts`, `coverage.ts`, `gameboard.ts`, `grid.ts`, `ingest.ts`, `interop.ts`, `koota.ts`, `layout.ts`, `movement.ts`, `navigation.ts`, `occupancy.ts`, `pieces.ts`, `projection.ts`, `quests.ts`, `registry.ts`, `rules.ts`, `runtime.ts`, `scenario.ts`, `selectors.ts`, `three.ts`, `validation.ts`.
+- [ ] **E0i** — `examples/simple-rpg-usage.ts` to 100% (96.0 / 53.8 / 91.7 / 95.7).
+- [ ] **E0j** — Add coverage instrumentation + thresholds for `scripts/*.ts` (currently not measured) and bring to 100%.
 - [ ] **E1** — Cross-process determinism test: spawn N node subprocesses, run identical scenario with same seed, assert byte-identical JSON output. Live in `tests/unit/determinism.test.ts`.
 - [ ] **E2** — Public API snapshot test (`tests/unit/public-api.test.ts`) — `import * as lib from '../src/index'` and snapshot the sorted `Object.keys(lib)` + their `typeof`. Pin the umbrella export surface.
 - [ ] **E3** — Hostile-input CLI tests: `--out ../etc/foo` → throws; `--source` with symlink loop → throws; `--source` with symlink to outside-root → throws; `{__proto__:...}` JSON payload → rejected. Live in `tests/unit/cli-security.test.ts`.
@@ -82,7 +123,9 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 - [ ] **E5** — CLI cold-start benchmark: `node dist/cli.js --help` ≤ 80 ms. Live in `tests/perf/cli-cold-start.test.ts`. Initially non-blocking.
 - [ ] **E6** — Simulation throughput micro-bench via `tinybench` (`tests/perf/simulation.bench.ts`); regression alarm at >10%.
 - [ ] **E7** — React render-count assertion for selector hooks with stable vs unstable `options` (`tests/unit/react-memoization.test.ts`). Pins P-H4 fix.
-- [ ] **E8** — Coverage thresholds (lines 80, branches 75, funcs 80) enforced in CI.
+- [ ] **E8** — Coverage thresholds enforced at **100 / 100 / 100 / 100** in `vitest.config.ts`; CI gates.
+- [ ] **E9** — **Visual integration gate.** Every renderer-binding (`react.ts`, `three.ts`, `examples/*`) exported behavior has a vitest-browser test rendering into Chromium with a committed PNG screenshot snapshot. Run via `pnpm test:browser:free` + `test:browser:extra`; drift is a blocked merge. Snapshots live in `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/`.
+- [ ] **E10** — **E2E coverage matrix.** `pnpm test:e2e:local-assets` covers happy path + failure modes (asset-missing, invalid scenario, replay-mismatch). Currently 4 tests; expand to ≥12 covering each failure category and the full catalog→blueprint→simulation→render bridge.
 
 ### Phase F — documentation (publish-blocking)
 

@@ -12,18 +12,41 @@ Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS state and
 
 ## Repo-specific
 
-- **Package:** `@jbcom/medieval-hexagon-gameboard` (published from `packages/medieval-hexagon-gameboard/`)
-- **Workspace manager:** `pnpm@9.15.9`, Node ≥22
-- **Build:** `pnpm build` (Nx → tsup per package)
-- **Lint:** `pnpm lint` (workspace Biome + per-package Biome)
-- **Typecheck:** `pnpm typecheck`
-- **Test:** `pnpm test` (unit) / `pnpm test:browser:free` / `pnpm test:browser:extra` / `pnpm test:e2e:local-assets`
-- **Full local gate:** `pnpm verify` (typecheck + docs-contract + api-docs + docs:build + assets + workspace + workflows + build + cli + expectations + test + package + consumer + pack:dry-run)
-- **Docs:** `pnpm docs` (typedoc) + `pnpm docs:build` (vitepress)
-- **Release:** release-please → `release.yml` builds + `npm publish --provenance` → `cd.yml` deploys docs
+- **Package:** `@jbcom/medieval-hexagon-gameboard` published from **repo root** (not a workspace). pnpm workspaces dropped during 1.0 restructure (see PRD Epic R). Use pnpm only for install + script-running; no `workspace:` protocol, no `pnpm-workspace.yaml`, no `apps/` consumer package.
+- **`src/` layout:** koota-idiomatic decomposition (mirrors `reference-codebases/koota/examples/cards/src` and `n-body-react/src`). Composition layer at `src/` root (`world.ts`, `actions.ts`, `frameloop.ts`, `startup.ts`, `index.ts`). Domain sub-packages each with a barrel `index.ts`:
+  - `src/types/` — branded primitives (`HexKey`, `ActorId`, etc.)
+  - `src/coordinates/` — pure hex algebra (grid, projection, layout, hex-key)
+  - `src/traits/` — koota `trait()` declarations, grouped: `{board,actors,movement,combat,quests,render}.ts`
+  - `src/systems/` — one file per tickable system (`movement-system.ts`, `patrol-system.ts`, …)
+  - `src/selectors/` — `@internal` query selectors used by React hooks
+  - `src/commands/` — `@internal` factories consumed by `src/actions.ts`
+  - `src/gameboard/` — gameboard, occupancy, navigation
+  - `src/pieces/` — piece declarations + placement helpers
+  - `src/scenario/` — scenarios, recipes, blueprints, registry, catalog
+  - `src/rules/` — rules, rule-types, validation
+  - `src/simulation/` — engine, script, report, assertions (Epic D3 decomposition)
+  - `src/manifest/` — schema + bundled FREE manifest + lazy loader
+  - `src/ingest/` — KayKit source ingestion + secure walker
+  - `src/interop/` — interop, compatibility, coverage
+  - `src/errors/` — `GameboardError` hierarchy (Epic D2)
+  - `src/cli/` — CLI + per-subcommand modules (Epic B3)
+  - `src/react/` — optional React bindings (peer-dep gated)
+  - `src/three/` — optional Three.js bindings (peer-dep gated + disposal helpers)
+  - **Cross-domain imports MUST traverse barrels** — `import {…} from '../scenario'`, never `import {…} from '../scenario/recipe'`. Biome `noRestrictedImports` enforces. See PRD Appendix C for full layout.
+- **SimpleRPG lives in tests, not src/.** `tests/integration/simple-rpg/` for fixture + behavior tests; `tests/e2e/simple-rpg/` for end-to-end playwright runs. NOT a public consumer-facing example, NOT published.
+- **Node ≥22, pnpm ≥9 (script-runner only)**, ESM-only, sideEffects:false.
+- **Build:** `pnpm build` (tsup, multi-entry from the sub-package barrels).
+- **Lint:** `pnpm lint` (biome on src/ + tests/ + scripts/).
+- **Typecheck:** `pnpm typecheck` (`tsc --noEmit`).
+- **Test:** `pnpm test` (unit, with coverage gate) / `pnpm test:browser` (vitest-browser visual + integration) / `pnpm test:e2e` (playwright with bundled + local assets).
+- **Coverage:** **100 / 100 / 100 / 100** required, instrumented across unit + browser + e2e harnesses (Epic E0 ratchets up from baseline 86/76/93/86).
+- **Full local gate:** `pnpm verify` runs every CI step in order.
+- **Docs:** `pnpm docs` (typedoc) + `pnpm docs:build` (vitepress). `apps/docs/` is the only legitimate "second package" — and even that lives as a sub-folder consumed by vitepress directly; no workspace registration.
+- **Release:** release-please → `release.yml` builds + `npm publish --provenance` → `cd.yml` deploys docs.
 
 ## Architecture invariants (DO NOT VIOLATE)
 
+0. **100 % test coverage.** Statements, branches, functions, and lines must all read 100 % across `src/`, `examples/`, and `scripts/`. Every behavior is covered by **unit tests**, integration paths are confirmed **visually in the browser** via vitest-browser screenshot snapshots, and full flows are exercised by **e2e** under playwright/local-assets. Anything less is unacceptable. CI gates on the 100 % threshold and on screenshot drift. New code without a co-landing test is a bug — fix the gap before the commit lands.
 1. **Determinism is the product.** All RNG flows through `seedrandom` from `src/blueprint.ts`/`coordinates.ts`/`gameboard.ts`/`layout.ts`/`rules.ts`. **No `Math.random`** in `packages/medieval-hexagon-gameboard/src/`. Cosmetic `new Date()` is only acceptable in CLI output formatters with an override flag.
 2. **No `any`, no `@ts-ignore`, no non-null assertions.** Biome enforces. Phase 1 verified zero hits; keep it so.
 3. **No `TODO`/`FIXME`/`it.todo`/`describe.skip`/stubs.** Either fix or delete.
