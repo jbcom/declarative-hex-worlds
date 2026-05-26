@@ -73,7 +73,13 @@ requireIncludes(release, 'release.yml', [
   'pnpm/action-setup',
   'id-token: write',
   'pnpm test:ci',
-  'npm publish --access public --provenance',
+  // Post-G1/G2: publish step explicitly hands the packed tarball to `npm publish`
+  // so the SLSA L3 attestation in the previous step covers the exact bytes that ship.
+  '--access public --provenance',
+  // PRD G1
+  'actions/attest-build-provenance',
+  // PRD G2
+  '@cyclonedx/cyclonedx-npm',
 ]);
 requireIncludes(cd, 'cd.yml', [
   "NODE_VERSION: '22'",

@@ -255,8 +255,8 @@ Each item is one commit. The audit happens last because it can't be done well un
 
 ### Phase G — release readiness (final gate)
 
-- [ ] **G1** — Add `actions/attest-build-provenance@v2` for SLSA L3 attestation.
-- [ ] **G2** — Add `@cyclonedx/cyclonedx-npm` SBOM as release artifact (`anchore/sbom-action` alt).
+- [x] **G1** — ✅ commit (2026-05-26): `release.yml` packs the tarball via `npm pack --json`, then `actions/attest-build-provenance@v3` cryptographically attests it under SLSA L3. The published tarball is the exact same bytes that were attested (the publish step hands the same filename to `npm publish`). Consumers verify via `npm audit signatures` or `gh attestation verify`. `permissions: attestations: write` added.
+- [x] **G2** — ✅ commit (2026-05-26): same `release.yml` runs `npx @cyclonedx/cyclonedx-npm` to produce a CycloneDX 1.6 JSON SBOM of the prod-dep tree. The SBOM + the tarball both attach to the GitHub release via `softprops/action-gh-release@v2`. Release consumers get a complete dependency manifest for SCA tooling.
 - [x] **G3** — ✅ commit (2026-05-26): `.github/dependabot.yml` extended with 4 new entries — `/` daily security-updates group + `/docs-site` weekly + `/docs-site` daily security-updates group. Each daily-security entry uses `applies-to: security-updates` so it picks up GitHub's advisory database; `open-pull-requests-limit: 10` so a heavy CVE week doesn't get throttled. PRs from these channels carry the `security` label for filtering.
 - [ ] **G4** — `pnpm verify` parity audit: every CI gate runs locally via `pnpm verify`. Add missing entries.
 - [ ] **G5** — Run `pnpm verify` end-to-end clean on this branch.
