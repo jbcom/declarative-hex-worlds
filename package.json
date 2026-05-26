@@ -297,6 +297,7 @@
     "@types/seedrandom": "^3.0.8",
     "@types/three": "^0.184.1",
     "@types/yauzl": "^2.10.3",
+    "@types/yazl": "^3.3.1",
     "@vitest/browser": "4.1.7",
     "@vitest/browser-playwright": "^4.1.7",
     "@vitest/coverage-v8": "4.1.7",
@@ -310,7 +311,8 @@
     "vite": "^8.0.14",
     "vitepress": "^2.0.0-alpha.17",
     "vitest": "^4.1.7",
-    "vue": "^3.5.34"
+    "vue": "^3.5.34",
+    "yazl": "^3.3.1"
   },
   "pnpm": {
     "overrides": {
