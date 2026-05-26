@@ -16,11 +16,11 @@ import {
   type KayKitGuideRoleCoverage,
   type KayKitGuideScenario,
 } from './catalog';
-import { freeManifest } from './manifest/free';
+import { freeManifest } from './manifest';
 import {
   inspectMedievalHexagonManifest,
   type MedievalHexagonManifestIssue,
-} from './manifest/schema';
+} from './manifest';
 import type { MedievalHexagonManifest, PackEdition } from './types';
 
 /** Schema version for generated release-readiness reports. */

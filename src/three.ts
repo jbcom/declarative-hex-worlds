@@ -21,7 +21,7 @@ import {
   resolveManifestAssetUrl,
   type ManifestAssetCatalog,
   type ManifestAssetUrlOptions,
-} from './manifest/schema';
+} from './manifest';
 import type { HexCoordinates, MedievalHexagonAsset, VariantSelection, WorldPosition } from './types';
 
 /**

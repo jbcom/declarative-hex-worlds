@@ -4,7 +4,7 @@
  *
  * @module
  */
-export { freeManifest } from './manifest/free';
+export { freeManifest } from './manifest';
 export {
   ASSET_CATEGORIES,
   FACTIONS,
@@ -22,7 +22,7 @@ export {
   resolveManifestAssetUrl,
   selectManifestAssets,
   validateMedievalHexagonManifest,
-} from './manifest/schema';
+} from './manifest';
 export type {
   AssetBounds,
   AssetCategory,
@@ -49,7 +49,7 @@ export type {
   UnitStyle,
   VariantSelection,
   WorldPosition,
-} from './manifest/schema';
+} from './manifest';
 export {
   analyzeExternalAssetCompatibility,
   externalAssetSpawnOptions,

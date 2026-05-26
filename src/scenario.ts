@@ -19,7 +19,7 @@ import {
   type SummarizeGameboardPlanOptions,
 } from './gameboard';
 import { createGameboardWorld } from './koota';
-import { getManifestAsset } from './manifest/schema';
+import { getManifestAsset } from './manifest';
 import { setGameboardMovementAgent, type SetGameboardMovementAgentOptions } from './movement';
 import {
   setGameboardPatrolAgent,

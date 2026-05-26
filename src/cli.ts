@@ -157,7 +157,7 @@ import type {
 import {
   inspectMedievalHexagonManifest,
   type MedievalHexagonManifestInspection,
-} from './manifest/schema';
+} from './manifest';
 
 interface GltfAccessorMetadata {
   min?: number[];

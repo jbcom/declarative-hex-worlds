@@ -6,7 +6,7 @@
  */
 import { hexKey, neighbor, oppositeEdge } from './coordinates';
 import type { GameboardPlan, GameboardPlacementSpec, GameboardTileSpec } from './gameboard';
-import { getManifestAsset, type ManifestAssetCatalog } from './manifest/schema';
+import { getManifestAsset, type ManifestAssetCatalog } from './manifest';
 import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,

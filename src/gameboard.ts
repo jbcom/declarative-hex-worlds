@@ -29,7 +29,7 @@ import {
   parseHexKey,
 } from './coordinates';
 import { axialToWorld } from './coordinates';
-import { freeManifest } from './manifest/free';
+import { freeManifest } from './manifest';
 import {
   edgeMask,
   selectCoastVariant,
