@@ -1,0 +1,124 @@
+# Continuous Work Directive — medieval-hexagon-gameboard
+
+**Status:** ACTIVE
+**Owner:** jonbogaty@gmail.com
+**Goal:** Ship `@jbcom/medieval-hexagon-gameboard@1.0.0` to npm with the full quality posture defined in `docs/PRD/1.0.md`.
+
+## What CONTINUOUS means
+
+1. Never stop for status reports the user didn't ask for.
+2. Never stop for scope caution.
+3. Never stop to summarize — git log is the summary.
+4. Never stop for context pressure — task-batch + PreCompact handle it.
+5. Never stop because a task feels big — pick the next atomic commit.
+6. Only stop on: explicit user halt, red CI blocking, genuine STOP_FAIL.
+
+## Operating loop
+
+while queue has `[ ]` items: implement → verify → commit → dispatch reviewers (background, parallel) → mark `[x]` → next.
+
+## Forbidden phrases
+
+"deferred" | "v2+" | "out of scope" | "future work" | "tracked separately" | "follow-up" | "TODO" | "FIXME" | "stub" | "placeholder" | "mock for now" | "pause point" | "fresh session" | "stopping point" | "clean handoff" | "let me know when..."
+
+## Active queue — 1.0 stabilization
+
+Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Order is dependency-respecting.
+
+### Phase A — foundation gates (un-block everything else)
+
+- [x] **A0** — Bootstrap `CLAUDE.md`, `.agent-state/`, `.claude/gates.json`, `docs/PRD/1.0.md`. (this commit)
+- [ ] **A1** — Clear `pnpm audit` moderates via `pnpm.overrides` (`yaml >=2.8.3`, `brace-expansion >=5.0.6`). (S-M3)
+- [ ] **A2** — Add Biome rule set from review (S-context section), set `noUncheckedIndexedAccess` + `verbatimModuleSyntax` in `tsconfig.base.json`. (4a-H, S-context)
+- [ ] **A3** — Add `size-limit` config + CI gate with budgets from `02b-performance.md`. Fails PR on breach.
+- [ ] **A4** — Add `pnpm audit --prod --audit-level=high` to package job in `ci.yml`. Add `actions/dependency-review-action` summary check.
+- [ ] **A5** — Migrate `cd.yml` `secrets.CI_GITHUB_TOKEN` PAT to GitHub App token usage. Document in `docs/DEPLOYMENT.md`.
+- [ ] **A6** — Add `needs:` chain in `ci.yml` so `package` / `browser-free` / `docs` jobs depend on `check`.
+- [ ] **A7** — Add semgrep `p/owasp-top-ten` + `p/nodejs` CI step.
+- [ ] **A8** — Convert `coverage` config to enforce thresholds (lines 80, branches 75, funcs 80) — branch-protect on regression only after first passing run.
+
+### Phase B — performance criticals (publish-blocking)
+
+- [ ] **B1** — **P-C1**: Convert `src/manifest/free.ts` → `src/manifest/free.json` + thin loader using `import data from './free.json' with { type: 'json' }`. Re-emit `dist/manifest/free.js` as a wrapper. Add CI drift check (`pnpm assets:free` then `git diff --exit-code`).
+- [ ] **B2** — **P-C1 cont'd**: Remove `freeManifest` from `src/index.ts` umbrella export. Update README + docs/guides to instruct consumers to import from `/manifest/free`.
+- [ ] **B3** — **P-C2**: Refactor `cli.ts` (4,297 LOC) to `src/cli/index.ts` + `src/cli/commands/*.ts` with dynamic per-subcommand imports. Use `node:util.parseArgs`. Move `examples/simple-rpg-usage` import out of CLI eager path.
+- [ ] **B4** — **P-H3**: Materialize `tilesByKey` (+ `placementsByTile`) indexes once at projection time on `ProjectedGameboardPlan`. Replace 4 in-call rebuilds.
+- [ ] **B5** — **P-H1**: Single-pass `readGameboardActorTargets` reducer (`actors.ts:940-953` + `:1085-1093`).
+- [ ] **B6** — **P-H2**: Add `tryParseHexKey(key): HexCoordinates | undefined` in `coordinates.ts`; migrate `interop.ts`/`scenario.ts` `try { parseHexKey } catch { undefined }` sites.
+- [ ] **B7** — **P-H4**: Hash-stabilize `options` in selector hooks in `react.ts` (or document loudly + sample memo helpers in examples).
+- [ ] **B8** — **P-H5**: Replace `JSON.parse(JSON.stringify(...))` in `simulation.ts:5212` with `structuredClone`.
+
+### Phase C — security criticals (publish-blocking)
+
+- [ ] **C1** — **S-H1**: Add `safeResolveOutput(value, outRoot=cwd())` helper; refactor all 40+ CLI `--out*` write sites in `cli.ts` to use it. Require explicit `--force` for `extract`'s `rmSync` destination; refuse to wipe non-empty dirs without `--force`.
+- [ ] **C2** — **S-H2**: Harden `listFiles` in `ingest.ts:310` — skip `entry.isSymbolicLink()`, verify `realpathSync(child).startsWith(realRoot)` before descending. Cycle-safe.
+- [ ] **C3** — **S-M1**: Prototype-pollution guard in `readPieceSourceRoots`; return `Object.create(null)`-backed map; use `JSON.parse` reviver to strip `__proto__`.
+- [ ] **C4** — **S-M2**: Fix `extract-kaykit-guide.ts:129` `sh -c` quoting via positional args.
+- [ ] **C5** — **S-M4**: Normalize CLI error messages to relative paths via `relative(cwd, resolve(value))`.
+- [ ] **C6** — **S-M5**: Gate full stack traces behind `MEDIEVAL_HEXAGON_DEBUG=1`; keep terse default.
+- [ ] **C7** — **S-M6**: Block source-map publish via `"!dist/**/*.map"` in `files` or `sourcemap: false` for publish build.
+
+### Phase D — architectural debt (publish-blocking)
+
+- [ ] **D1** — **F1**: Tier subpath exports. Remove ~10 internal subpaths (`coordinates`, `grid`, `koota`, `selectors`, `systems`, `rule-types`, `world-rules`, `registry`, `commands`, `projection`) from `package.json#exports` and mirror in `tsup.config.ts`. Keep them re-exported from `index.ts`. Add `docs/api/public-api.md` tier table.
+- [ ] **D2** — **F11**: Add `src/errors.ts` taxonomy (`GameboardError` base; `GameboardValidationError`, `GameboardManifestError`, `GameboardScenarioError`, `GameboardRuntimeError`). Convert 130 `throw new Error()` sites; preserve messages.
+- [ ] **D3** — **H-3 (re-scoped)**: Decompose `simulation.ts` (5,213 LOC) into `simulation/{engine,script,report,assertions,index}.ts`. Add `assertNever` exhaustiveness on the action switch. Keep public surface stable.
+- [ ] **D4** — **M-4**: Invert `catalog.ts:1337 createKayKitGuideScenarios` (377-line function) into top-level data table + 5-line iteration.
+- [ ] **D5** — **F5/F13**: Add `src/traits.ts` umbrella that re-exports every trait with a table-of-contents docblock. Add `src/actions.ts` umbrella for `*Actions` symbols.
+- [ ] **D6** — **F4**: Add peer-dep runtime guards in `react.ts`/`three.ts` (throw clear error at import if peer missing).
+- [ ] **D7** — **F9**: Move package-scoped scripts (`audit-package.ts`, `audit-free-assets.ts`, `audit-reference-assets.ts`, `smoke-built-cli.ts`, `smoke-packed-consumer.ts`, `generate-package-assets.ts`, `extract-kaykit-guide.ts`, `promote-showcases.ts`) into `packages/medieval-hexagon-gameboard/scripts/`. Keep only true workspace audits at root.
+- [ ] **D8** — **M-1**: Extract `scripts/_lib.ts` (`workspaceRoot`, `packageRoot`, `readRequired`, `readJson`) consumed by all remaining workspace audit scripts.
+- [ ] **D9** — **M-2**: Split `scripts/audit-workspace.ts` (1,293 LOC, 89 functions) into `scripts/audits/{packagejson,pnpm,nx,tsconfig,typedoc,tsup,markdown,release}.ts` with thin top-level dispatcher.
+- [ ] **D10** — **M-3**: Split `scripts/smoke-packed-consumer.ts` (2,489 LOC) into `pack-install.ts` (runtime smoke) + `types.ts` (compile-time API attestation only). Add labelled-phase harness.
+
+### Phase E — test debt (publish-blocking)
+
+- [ ] **E1** — Cross-process determinism test: spawn N node subprocesses, run identical scenario with same seed, assert byte-identical JSON output. Live in `tests/unit/determinism.test.ts`.
+- [ ] **E2** — Public API snapshot test (`tests/unit/public-api.test.ts`) — `import * as lib from '../src/index'` and snapshot the sorted `Object.keys(lib)` + their `typeof`. Pin the umbrella export surface.
+- [ ] **E3** — Hostile-input CLI tests: `--out ../etc/foo` → throws; `--source` with symlink loop → throws; `--source` with symlink to outside-root → throws; `{__proto__:...}` JSON payload → rejected. Live in `tests/unit/cli-security.test.ts`.
+- [ ] **E4** — Trait-identity test: import the same trait from `/koota` and from umbrella; assert reference-equality. Pins `splitting: true` invariant.
+- [ ] **E5** — CLI cold-start benchmark: `node dist/cli.js --help` ≤ 80 ms. Live in `tests/perf/cli-cold-start.test.ts`. Initially non-blocking.
+- [ ] **E6** — Simulation throughput micro-bench via `tinybench` (`tests/perf/simulation.bench.ts`); regression alarm at >10%.
+- [ ] **E7** — React render-count assertion for selector hooks with stable vs unstable `options` (`tests/unit/react-memoization.test.ts`). Pins P-H4 fix.
+- [ ] **E8** — Coverage thresholds (lines 80, branches 75, funcs 80) enforced in CI.
+
+### Phase F — documentation (publish-blocking)
+
+- [ ] **F1d** — Rewrite top of `README.md`: install + quickstart (≤30 lines of code, including a render). Add Module Map table (umbrella vs subpath tiers).
+- [ ] **F2d** — Write `docs/guides/cli-reference.md` — generated from the new command registry (D1+B3). Replace `cli.ts` template-literal `usage()`.
+- [ ] **F3d** — Write `docs/guides/determinism-contract.md` — seed model, replay guarantees, where Date/Math.random are/aren't permitted.
+- [ ] **F4d** — Write `docs/guides/peer-deps-and-bundling.md` — subpath imports, trait identity hazard, react/three peer-dep contract.
+- [ ] **F5d** — Write `docs/api/errors.md` — full error taxonomy with `instanceof` examples (lands with D2).
+- [ ] **F6d** — Write `CHANGELOG.md` (Keep a Changelog 1.1.0). release-please populates from here forward.
+- [ ] **F7d** — Write `STANDARDS.md` (style + brand + non-negotiables).
+- [ ] **F8d** — Write `docs/ARCHITECTURE.md` (module graph, ECS layering, build pipeline).
+- [ ] **F9d** — Write `docs/DESIGN.md` (vision, identity, UX principles).
+- [ ] **F10d** — Write `docs/TESTING.md` (strategy, coverage, smoke, perf gates).
+- [ ] **F11d** — Write `docs/DEPLOYMENT.md` (release flow, OIDC, GitHub App token, SBOM).
+- [ ] **F12d** — Write `docs/STATE.md` (current state, in-flight initiatives, links to PRD + directive).
+- [ ] **F13d** — Add frontmatter (title/updated/status/domain) to every `.md` in root + `docs/`.
+
+### Phase G — release readiness (final gate)
+
+- [ ] **G1** — Add `actions/attest-build-provenance@v2` for SLSA L3 attestation.
+- [ ] **G2** — Add `@cyclonedx/cyclonedx-npm` SBOM as release artifact (`anchore/sbom-action` alt).
+- [ ] **G3** — Dependabot: add `security-updates` daily group with `open-pull-requests-limit: 10`.
+- [ ] **G4** — `pnpm verify` parity audit: every CI gate runs locally via `pnpm verify`. Add missing entries.
+- [ ] **G5** — Run `pnpm verify` end-to-end clean on this branch.
+- [ ] **G6** — Bump `packages/medieval-hexagon-gameboard/package.json` version → `1.0.0` and `release-please-manifest.json` accordingly.
+- [ ] **G7** — Open PR `codex/initial-medieval-hexagon-gameboard` → `main`; wait for CI green; merge.
+- [ ] **G8** — release-please opens release PR; merge it; tag `v1.0.0`; OIDC-publish to npm; verify provenance + SBOM artifacts on the release.
+
+## Self-assessment after each commit
+
+Before flipping `[ ]` → `[x]`:
+1. What did I just ship? Did the visual / behavior match the spec doc?
+2. What did the just-finished work surface about the next item? Encode in directive notes if non-trivial.
+3. Did this commit introduce any banned pattern? (run gates locally — `pnpm lint && pnpm typecheck`)
+4. Did I update relevant docs in the same commit? Drift is a bug.
+
+## Notes
+
+- This directive is the authoritative work queue. PRD in `docs/PRD/1.0.md` explains the *why*.
+- Reviewer trio dispatched per commit: `comprehensive-review:full-review` (background), `security-scanning:security-sast` (background), `code-simplifier` (background).
+- Visuals: any commit touching `react.ts` / `three.ts` / `examples/` requires a screenshot via vitest-browser before commit.

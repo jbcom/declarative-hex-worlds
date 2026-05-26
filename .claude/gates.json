@@ -1,0 +1,135 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jbcom/dotfiles/main/claude/gates.schema.json",
+  "version": 1,
+  "description": "Coverage + content gates for medieval-hexagon-gameboard. Enforced by ~/.claude/hooks/commit-gate.mjs (PreToolUse: git commit).",
+  "ban_patterns": [
+    {
+      "id": "no-math-random-in-src",
+      "pattern": "Math\\.random\\s*\\(",
+      "paths": ["packages/medieval-hexagon-gameboard/src/**/*.ts"],
+      "exclude": ["packages/medieval-hexagon-gameboard/src/**/*.test.ts"],
+      "message": "Determinism contract: never call Math.random in src/. All RNG must thread through seedrandom. Override with `// no-determinism: <reason ≥10 words>`."
+    },
+    {
+      "id": "no-ts-ignore",
+      "pattern": "@ts-ignore|@ts-expect-error|@ts-nocheck",
+      "paths": ["packages/medieval-hexagon-gameboard/src/**/*.ts", "scripts/**/*.ts"],
+      "message": "No TS escape hatches. Fix the type. Override `// no-ts-escape: <reason ≥10 words>`."
+    },
+    {
+      "id": "no-as-any",
+      "pattern": "\\bas\\s+any\\b|<any>",
+      "paths": ["packages/medieval-hexagon-gameboard/src/**/*.ts", "scripts/**/*.ts"],
+      "message": "No `as any` / `<any>` casts. Use unknown + narrowing. Override `// no-any-cast: <reason ≥10 words>`."
+    },
+    {
+      "id": "no-todo-fixme",
+      "pattern": "\\b(TODO|FIXME|XXX|HACK)\\b",
+      "paths": ["packages/medieval-hexagon-gameboard/src/**/*.ts", "packages/medieval-hexagon-gameboard/tests/**/*.ts", "scripts/**/*.ts"],
+      "message": "Either fix or delete. No backlog markers in code. Override `// no-marker: <reason ≥10 words>`."
+    },
+    {
+      "id": "no-it-todo",
+      "pattern": "\\b(it|test|describe)\\.(todo|skip)\\b",
+      "paths": ["packages/medieval-hexagon-gameboard/tests/**/*.ts"],
+      "message": "No skipped/todo tests. Either implement or delete. Override `// no-skip: <reason ≥10 words>`."
+    },
+    {
+      "id": "no-process-exit-in-handler",
+      "pattern": "process\\.exit\\s*\\(",
+      "paths": ["packages/medieval-hexagon-gameboard/src/cli/commands/**/*.ts"],
+      "message": "CLI subcommands must throw CliError, never process.exit. Top-level cli/index.ts owns the exit code. Override `// no-exit: <reason ≥10 words>`."
+    },
+    {
+      "id": "no-non-null-assertion",
+      "pattern": "[\\w\\)\\]]!\\.|!\\)|!\\,|!\\;",
+      "paths": ["packages/medieval-hexagon-gameboard/src/**/*.ts"],
+      "message": "No non-null assertions. Narrow with explicit check. Override `// no-non-null: <reason ≥10 words>`."
+    },
+    {
+      "id": "no-shell-true",
+      "pattern": "exec\\(|execSync\\(|shell:\\s*true",
+      "paths": ["packages/medieval-hexagon-gameboard/src/**/*.ts", "scripts/**/*.ts"],
+      "exclude": [],
+      "message": "No shell-true child_process. Use execFile / spawn with array args. Override `// no-shell: <reason ≥10 words>`."
+    },
+    {
+      "id": "no-import-from-internal-subpath",
+      "pattern": "from\\s+['\"]@jbcom/medieval-hexagon-gameboard/(coordinates|grid|koota|selectors|systems|rule-types|world-rules|registry|commands|projection)['\"]",
+      "paths": ["packages/medieval-hexagon-gameboard/tests/**/*.ts", "packages/medieval-hexagon-gameboard/examples/**/*.ts", "scripts/**/*.ts", "apps/**/*.ts"],
+      "message": "Demoted-to-internal subpath. Import from the package umbrella instead. Override `// no-private-import: <reason ≥10 words>`."
+    }
+  ],
+  "forbidden_bash": [
+    {
+      "id": "no-verify",
+      "pattern": "--no-verify",
+      "message": "Never bypass hooks. Fix the underlying issue."
+    },
+    {
+      "id": "no-force-push-main",
+      "pattern": "push.*--force.*\\bmain\\b|push.*\\bmain\\b.*--force",
+      "message": "Force-pushing main requires explicit per-operation authorization."
+    },
+    {
+      "id": "no-publish-without-ci",
+      "pattern": "npm publish|pnpm publish",
+      "message": "Publish only via release-please + CD workflow. Local publish leaks home paths in source maps."
+    }
+  ],
+  "coverage_rules": [
+    {
+      "id": "src-changes-need-tests",
+      "when_paths_match": ["packages/medieval-hexagon-gameboard/src/**/*.ts"],
+      "require_paths_match": ["packages/medieval-hexagon-gameboard/tests/**/*.test.ts", "packages/medieval-hexagon-gameboard/tests/**/__snapshots__/**"],
+      "exclude_when_paths_match": ["packages/medieval-hexagon-gameboard/src/manifest/free.json", "packages/medieval-hexagon-gameboard/src/**/*.d.ts"],
+      "override_tag": "no-test-impact",
+      "min_reason_words": 10,
+      "message": "Source change without a test update. Add the test or annotate `// no-test-impact: <reason ≥10 words>`."
+    },
+    {
+      "id": "cli-changes-need-cli-tests",
+      "when_paths_match": ["packages/medieval-hexagon-gameboard/src/cli/**/*.ts", "packages/medieval-hexagon-gameboard/src/cli.ts"],
+      "require_paths_match": ["packages/medieval-hexagon-gameboard/tests/unit/cli*.test.ts", "scripts/smoke-built-cli.ts", "scripts/smoke-packed-consumer.ts"],
+      "override_tag": "no-cli-test-impact",
+      "min_reason_words": 10,
+      "message": "CLI change without a CLI test update."
+    },
+    {
+      "id": "renderer-changes-need-visuals",
+      "when_paths_match": ["packages/medieval-hexagon-gameboard/src/react.ts", "packages/medieval-hexagon-gameboard/src/three.ts"],
+      "require_paths_match": ["packages/medieval-hexagon-gameboard/tests/browser/**/*.test.ts", "packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/**"],
+      "override_tag": "no-visual-impact",
+      "min_reason_words": 10,
+      "message": "Renderer binding change without browser/screenshot update. Run vitest-browser first."
+    },
+    {
+      "id": "manifest-changes-need-audit",
+      "when_paths_match": ["packages/medieval-hexagon-gameboard/src/manifest/**", "references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/**"],
+      "require_paths_match": ["scripts/audit-free-assets.ts", "packages/medieval-hexagon-gameboard/tests/unit/manifest*.test.ts"],
+      "override_tag": "no-manifest-impact",
+      "min_reason_words": 10,
+      "message": "Manifest / asset source change without an audit-script or manifest test update."
+    }
+  ],
+  "require_run": [
+    {
+      "id": "typecheck-passed",
+      "when_paths_match": ["packages/medieval-hexagon-gameboard/src/**/*.ts", "packages/medieval-hexagon-gameboard/tests/**/*.ts", "scripts/**/*.ts"],
+      "command": "pnpm typecheck",
+      "evidence_pattern": "Found 0 errors",
+      "override_tag": "no-typecheck",
+      "min_reason_words": 10,
+      "message": "Run `pnpm typecheck` before committing TS changes."
+    },
+    {
+      "id": "lint-passed",
+      "when_paths_match": ["packages/medieval-hexagon-gameboard/src/**/*.ts", "packages/medieval-hexagon-gameboard/tests/**/*.ts", "scripts/**/*.ts"],
+      "command": "pnpm lint",
+      "evidence_pattern": "Checked \\d+ files in",
+      "override_tag": "no-lint",
+      "min_reason_words": 10,
+      "message": "Run `pnpm lint` before committing TS changes."
+    }
+  ]
+}
