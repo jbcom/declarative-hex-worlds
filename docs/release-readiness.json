@@ -35688,7 +35688,7 @@
       "label": "pnpm expectations",
       "command": "pnpm expectations",
       "status": "passed",
-      "summary": "Behavior-drift fixtures for seeded generation, SimpleRPG quests, movement, actor targets, patrols, mutations, and final placements."
+      "summary": "Behavior-drift fixtures for seeded generation, SimpleRPG quests, executable guide API smoke, movement, actor targets, patrols, mutations, and final placements."
     },
     {
       "id": "docs-build",

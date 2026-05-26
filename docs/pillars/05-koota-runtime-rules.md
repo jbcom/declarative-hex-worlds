@@ -870,7 +870,12 @@ overrides while preserving the playable quest path.
 `examples/simple-rpg-usage.ts` exposes
 `summarizeSimpleRpgGuidePublicApiExercises()` so the packaged consumer smoke can
 assert that every current `listKayKitGuidePublicApiCoverages()` row has
-SimpleRPG evidence and no stale evidence rows.
+SimpleRPG evidence and no stale evidence rows. It also exposes
+`runSimpleRpgExecutableGuideApiSmoke()`, which directly invokes the lower-level
+selector, manifest, registry, layout-piece, recipe, blueprint, seeded board,
+spawn, and external compatibility helpers that games compose around the runtime.
+That helper is part of the `pnpm expectations` gate and packed-consumer smoke so
+guide-facing APIs cannot remain only documented.
 `./simulation` and `simple-rpg-simulation.script.json` are the package-facing
 version of that same principle: a saved scenario can be exercised headlessly
 through public command, system, spawn/update/remove mutation, and report APIs

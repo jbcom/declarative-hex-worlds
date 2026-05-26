@@ -323,7 +323,7 @@ export const GAMEBOARD_RELEASE_GATE_SUMMARIES: Readonly<
   'pnpm test:ci':
     'Serialized non-browser release gate: docs contracts, API docs, assets, workspace/workflow audits, CLI smoke, expectations, unit tests, package audit, consumer smoke, and dry-run pack.',
   'pnpm expectations':
-    'Behavior-drift fixtures for seeded generation, SimpleRPG quests, movement, actor targets, patrols, mutations, and final placements.',
+    'Behavior-drift fixtures for seeded generation, SimpleRPG quests, executable guide API smoke, movement, actor targets, patrols, mutations, and final placements.',
   'pnpm docs:build': 'TypeDoc and VitePress documentation build with public JSDoc and guide-link validation.',
   'pnpm test:consumer':
     'Packed tarball installed into a temporary app, then compiled and executed through public subpaths, examples, and the CLI bin.',
