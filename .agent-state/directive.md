@@ -139,7 +139,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 
 ### Phase C — security criticals (publish-blocking)
 
-- [ ] **C1** — **S-H1**: Add `safeResolveOutput(value, outRoot=cwd())` helper; refactor all 40+ CLI `--out*` write sites in `cli.ts` to use it. Require explicit `--force` for `extract`'s `rmSync` destination; refuse to wipe non-empty dirs without `--force`.
+- [x] **C1** ✅ commit (2026-05-26) — **S-H1**: `safeResolveOutput(value, outRoot=defaultOutRoot())` added to `src/cli/cli.ts`. Jail root defaults to `process.cwd()`; tests/smoke harnesses opt into a wider jail via `MEDIEVAL_HEXAGON_OUT_ROOT`. 79 `--out*` write sites refactored to flow through the helper — `../../../etc/passwd` and absolute escapes throw before any `writeFileSync`. `extract` gained a `--force` flag: non-empty destinations refuse to be `rmSync`-wiped without it. Behavior tests pin both the jail escape and `--force` semantics.
 - [x] **C2** ✅ commit (2026-05-26) — **S-H2**: Harden `listFiles` in `ingest.ts:310` — skip `entry.isSymbolicLink()`, verify `realpathSync(child).startsWith(realRoot)` before descending. Cycle-safe.
 - [x] **C3** ✅ commit (2026-05-26) — **S-M1**: Prototype-pollution guard in `readPieceSourceRoots`; return `Object.create(null)`-backed map; use `JSON.parse` reviver to strip `__proto__`.
 - [x] **C4** ✅ commit b3837f0 (2026-05-26) — **S-M2**: Fix `extract-kaykit-guide.ts:129` `sh -c` quoting via positional args.

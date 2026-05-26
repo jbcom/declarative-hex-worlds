@@ -1171,6 +1171,10 @@ function runCli(args: readonly string[]): string {
       ...process.env,
       FORCE_COLOR: '0',
       NO_COLOR: '1',
+      // Widen the safeResolveOutput jail to `/` for smoke runs — the smoke
+      // harness writes outputs into os.tmpdir(), which escapes cwd. Production
+      // CLI users never set this; the helper still rejects `..` escapes.
+      MEDIEVAL_HEXAGON_OUT_ROOT: '/',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

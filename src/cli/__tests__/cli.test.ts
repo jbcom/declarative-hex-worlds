@@ -2915,6 +2915,66 @@ describe('CLI', () => {
       /Expected 221 free GLTF files, found 1/
     );
   });
+
+  it('refuses to write --out* paths that escape the jail (PRD C1)', () => {
+    // Production CLI defaults: jail = process.cwd() (no env override).
+    // Hostile `--out=../../../tmp/...` and absolute `/tmp/...` both escape and
+    // must throw before any writeFileSync happens.
+    const escapeTargets: readonly string[] = [
+      '../../../tmp/medieval-hexagon-escape-relative.json',
+      '/tmp/medieval-hexagon-escape-absolute.json',
+    ];
+    const sourceRoot = createFixtureSourceRoot();
+    for (const target of escapeTargets) {
+      const stderr = runCliExpectFailureUnjailed([
+        'manifest',
+        '--source',
+        sourceRoot,
+        '--assetBasePath',
+        'assets/free',
+        '--out',
+        target,
+      ]);
+      expect(stderr).toContain('--out path escapes the output root');
+      expect(stderr).toContain(target);
+      // Defense in depth: assert no file was created at the absolute target.
+      if (target.startsWith('/')) {
+        expect(existsSync(target)).toBe(false);
+      }
+    }
+  });
+
+  it('refuses to wipe a non-empty extract destination without --force (PRD C1)', () => {
+    const sourceRoot = createFixtureSourceRoot();
+    const extractRoot = resolve(createTempRoot(), 'extracted');
+    const assetRoot = resolve(extractRoot, 'assets');
+    mkdirSync(assetRoot, { recursive: true });
+    writeFileSync(resolve(assetRoot, 'pre-existing.txt'), 'do-not-clobber');
+
+    const stderr = runCliExpectFailure([
+      'extract',
+      '--source',
+      sourceRoot,
+      '--out',
+      extractRoot,
+    ]);
+    expect(stderr).toContain('is not empty; pass --force to wipe.');
+    // Sentinel file must survive the failed extract.
+    expect(existsSync(resolve(assetRoot, 'pre-existing.txt'))).toBe(true);
+
+    // With --force, the extract clobbers and proceeds.
+    const forced = runCli([
+      'extract',
+      '--source',
+      sourceRoot,
+      '--out',
+      extractRoot,
+      '--force',
+    ]);
+    expect(forced).toContain(`Extracted 1 free assets to ${extractRoot}`);
+    expect(existsSync(resolve(assetRoot, 'pre-existing.txt'))).toBe(false);
+    expect(existsSync(resolve(assetRoot, 'tiles/base/hex_grass.gltf'))).toBe(true);
+  });
 });
 
 function runCli(args: readonly string[]): string {
@@ -2925,6 +2985,11 @@ function runCli(args: readonly string[]): string {
       ...process.env,
       FORCE_COLOR: '0',
       NO_COLOR: '1',
+      // Widen the safeResolveOutput jail to `/` for tests — fixtures live under
+      // os.tmpdir(), which escapes cwd=packageRoot. Production CLI users never
+      // set this; the helper still rejects `..` escapes relative to `/`, which
+      // is unreachable.
+      MEDIEVAL_HEXAGON_OUT_ROOT: '/',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -2933,6 +2998,29 @@ function runCli(args: readonly string[]): string {
 function runCliExpectFailure(args: readonly string[]): string {
   try {
     runCli(args);
+  } catch (error) {
+    const output = error as { stderr?: unknown; stdout?: unknown };
+    return `${String(output.stdout ?? '')}${String(output.stderr ?? '')}`;
+  }
+  throw new Error(`Expected CLI failure for ${args.join(' ')}`);
+}
+
+// Same as runCliExpectFailure but does NOT widen the safeResolveOutput jail.
+// Used exclusively to exercise the C1 jail against cwd=packageRoot, where
+// `../../..` and `/tmp/...` are guaranteed to escape.
+function runCliExpectFailureUnjailed(args: readonly string[]): string {
+  try {
+    execFileSync('pnpm', ['exec', 'tsx', 'src/cli/cli.ts', ...args], {
+      cwd: packageRoot,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        FORCE_COLOR: '0',
+        NO_COLOR: '1',
+        MEDIEVAL_HEXAGON_OUT_ROOT: '',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
   } catch (error) {
     const output = error as { stderr?: unknown; stdout?: unknown };
     return `${String(output.stdout ?? '')}${String(output.stderr ?? '')}`;

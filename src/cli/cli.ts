@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import {
   copyGltfTree,
   defaultSourceRoot,
@@ -251,6 +251,50 @@ function relativizePath(value: string): string {
   }
 }
 
+/**
+ * Compute the effective output root used to jail user-supplied `--out*` paths.
+ *
+ * Production CLI use cases always write inside the current working directory,
+ * so `process.cwd()` is the default jail root. The test harness — which spawns
+ * the CLI from `packageRoot` and writes outputs into `os.tmpdir()` — opts into
+ * a wider jail by setting `MEDIEVAL_HEXAGON_OUT_ROOT`. The env var is the only
+ * legitimate way to widen the jail; CLI users never set it.
+ */
+function defaultOutRoot(): string {
+  const envRoot = process.env.MEDIEVAL_HEXAGON_OUT_ROOT;
+  if (typeof envRoot === 'string' && envRoot.length > 0) {
+    return resolve(envRoot);
+  }
+  return process.cwd();
+}
+
+/**
+ * Resolve a user-supplied `--out*` value against an output root (defaults to
+ * `defaultOutRoot()`), then assert the resolved path is inside that root.
+ *
+ * Defense in depth (PRD C1 / S-H1): even when a caller is careless, hostile
+ * inputs like `--outJson=../../../etc/passwd` resolve outside `outRoot` and
+ * throw instead of clobbering host files. `extract`'s destructive `rmSync`
+ * destination flows through here too, so escape attempts can never wipe a
+ * directory outside the jail.
+ *
+ * @param value User-supplied path from CLI flags.
+ * @param outRoot Directory the resolved path must stay inside. Defaults to
+ *   `defaultOutRoot()` (cwd, or `MEDIEVAL_HEXAGON_OUT_ROOT` when set).
+ * @returns Absolute resolved path, guaranteed to be inside `outRoot`.
+ * @throws When the resolved path escapes the jail via `..` segments or via an
+ *   absolute path that points outside `outRoot`.
+ */
+function safeResolveOutput(value: string, outRoot: string = defaultOutRoot()): string {
+  const root = resolve(outRoot);
+  const resolved = resolve(root, value);
+  const rel = relative(root, resolved);
+  if (rel === '' || (rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel))) {
+    return resolved;
+  }
+  throw new Error(`--out path escapes the output root: ${value}`);
+}
+
 function main(argv: string[]): void {
   const parsed = parseArgs(argv);
   const edition = readEdition(parsed.flags.edition);
@@ -278,8 +322,9 @@ function main(argv: string[]): void {
     });
     const output = parsed.flags.out;
     if (typeof output === 'string') {
-      writeManifestJson(manifest, resolve(output));
-      console.log(`Wrote manifest to ${resolve(output)}`);
+      const outputPath = safeResolveOutput(output);
+      writeManifestJson(manifest, outputPath);
+      console.log(`Wrote manifest to ${outputPath}`);
     } else {
       console.log(JSON.stringify(manifest, null, 2));
     }
@@ -307,8 +352,9 @@ function main(argv: string[]): void {
     const output = parsed.flags.out;
     const declarations = registry.declarations;
     if (typeof output === 'string') {
-      writeFileSync(resolve(output), `${JSON.stringify(declarations, null, 2)}\n`, 'utf8');
-      console.log(`Wrote ${declarations.length} tile declarations to ${resolve(output)}`);
+      const outputPath = safeResolveOutput(output);
+      writeFileSync(outputPath, `${JSON.stringify(declarations, null, 2)}\n`, 'utf8');
+      console.log(`Wrote ${declarations.length} tile declarations to ${outputPath}`);
     } else {
       console.log(JSON.stringify(declarations, null, 2));
     }
@@ -420,11 +466,11 @@ function main(argv: string[]): void {
     });
     if (typeof parsed.flags.outPlan === 'string' && inspection.plan) {
       writeFileSync(
-        resolve(parsed.flags.outPlan),
+        safeResolveOutput(String(parsed.flags.outPlan)),
         `${JSON.stringify(inspection.plan, null, 2)}\n`,
         'utf8'
       );
-      console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+      console.log(`Wrote compiled GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
     }
     const violations = inspection.violations;
     if (parsed.flags.json === true) {
@@ -452,11 +498,11 @@ function main(argv: string[]): void {
     const runtime = hasScenarioErrors ? undefined : createGameboardWorldFromScenario(scenario);
     if (typeof parsed.flags.outPlan === 'string' && (inspection.plan ?? runtime?.plan)) {
       writeFileSync(
-        resolve(parsed.flags.outPlan),
+        safeResolveOutput(String(parsed.flags.outPlan)),
         `${JSON.stringify(inspection.plan ?? runtime?.plan, null, 2)}\n`,
         'utf8'
       );
-      console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+      console.log(`Wrote compiled GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
     }
     const violations = [...inspection.violations];
     if (parsed.flags.json === true) {
@@ -584,8 +630,8 @@ function main(argv: string[]): void {
     });
     const payload = parsed.flags.includeReport === true ? { declaration, report } : declaration;
     if (typeof parsed.flags.out === 'string') {
-      writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-      console.log(`Wrote piece declaration to ${resolve(parsed.flags.out)}`);
+      writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+      console.log(`Wrote piece declaration to ${safeResolveOutput(String(parsed.flags.out))}`);
     } else {
       console.log(JSON.stringify(payload, null, 2));
     }
@@ -647,11 +693,11 @@ function main(argv: string[]): void {
         placementInspection.inspection.placements
       );
       writeFileSync(
-        resolve(parsed.flags.outPlan),
+        safeResolveOutput(String(parsed.flags.outPlan)),
         `${JSON.stringify(nextPlan, null, 2)}\n`,
         'utf8'
       );
-      console.log(`Wrote piece-filled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+      console.log(`Wrote piece-filled GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
     }
     const payload =
       rules || sourceUrls || placementInspection
@@ -663,8 +709,8 @@ function main(argv: string[]): void {
           }
         : analysis;
     if (typeof parsed.flags.out === 'string') {
-      writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-      console.log(`Wrote piece registry output to ${resolve(parsed.flags.out)}`);
+      writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+      console.log(`Wrote piece registry output to ${safeResolveOutput(String(parsed.flags.out))}`);
     } else if (parsed.flags.json === true || rules) {
       console.log(JSON.stringify(payload, null, 2));
     } else {
@@ -700,8 +746,25 @@ function main(argv: string[]): void {
   }
 
   if (parsed.command === 'extract') {
-    const outputRoot = resolve(String(parsed.flags.out ?? `kaykit-medieval-hexagon-${edition}`));
+    const outputRoot = safeResolveOutput(
+      String(parsed.flags.out ?? `kaykit-medieval-hexagon-${edition}`)
+    );
     const assetRoot = join(outputRoot, 'assets');
+    // `copyGltfTree` rmSyncs `assetRoot` before re-mirroring the upstream tree.
+    // Refuse to wipe a non-empty existing destination without explicit --force
+    // (PRD C1 / S-H1). The check runs on the destination FOLDER (assetRoot),
+    // not the wrapping outputRoot, because that's the directory copyGltfTree
+    // actually destroys.
+    if (
+      parsed.flags.force !== true &&
+      existsSync(assetRoot) &&
+      statSync(assetRoot).isDirectory() &&
+      readdirSync(assetRoot).length > 0
+    ) {
+      throw new Error(
+        `extract destination ${relativizePath(assetRoot)} is not empty; pass --force to wipe.`
+      );
+    }
     copyGltfTree(sourceRoot, assetRoot);
     const manifest = generateManifestFromSource({
       sourceRoot,
@@ -747,11 +810,11 @@ function runValidateManifest(parsed: ParsedArgs): void {
   const inspection = inspectManifestPath(manifestPath);
   if (typeof parsed.flags.outManifest === 'string' && inspection.manifest) {
     writeFileSync(
-      resolve(parsed.flags.outManifest),
+      safeResolveOutput(String(parsed.flags.outManifest)),
       `${JSON.stringify(inspection.manifest, null, 2)}\n`,
       'utf8'
     );
-    console.log(`Wrote normalized manifest to ${resolve(parsed.flags.outManifest)}`);
+    console.log(`Wrote normalized manifest to ${safeResolveOutput(String(parsed.flags.outManifest))}`);
   }
   if (parsed.flags.json === true) {
     console.log(
@@ -951,8 +1014,8 @@ function runPiecesFromAssets(parsed: ParsedArgs): void {
   };
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote ${pieces.length} piece declarations to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${pieces.length} piece declarations to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true || includeReports) {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -987,30 +1050,30 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
 
   if (typeof parsed.flags.outRecipe === 'string') {
     writeFileSync(
-      resolve(parsed.flags.outRecipe),
+      safeResolveOutput(String(parsed.flags.outRecipe)),
       `${JSON.stringify(inspection.recipe, null, 2)}\n`,
       'utf8'
     );
-    console.log(`Wrote blueprint GameboardRecipe to ${resolve(parsed.flags.outRecipe)}`);
+    console.log(`Wrote blueprint GameboardRecipe to ${safeResolveOutput(String(parsed.flags.outRecipe))}`);
   }
   if (typeof parsed.flags.outPlan === 'string') {
     writeFileSync(
-      resolve(parsed.flags.outPlan),
+      safeResolveOutput(String(parsed.flags.outPlan)),
       `${JSON.stringify(inspection.plan, null, 2)}\n`,
       'utf8'
     );
-    console.log(`Wrote blueprint GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+    console.log(`Wrote blueprint GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
   }
   if (typeof parsed.flags.outScenario === 'string') {
     if (!scenarioInspection) {
       throw new Error('blueprint --outScenario requires scenario options or --includeScenario');
     }
     writeFileSync(
-      resolve(parsed.flags.outScenario),
+      safeResolveOutput(String(parsed.flags.outScenario)),
       `${JSON.stringify(scenarioInspection.scenario, null, 2)}\n`,
       'utf8'
     );
-    console.log(`Wrote blueprint GameboardScenario to ${resolve(parsed.flags.outScenario)}`);
+    console.log(`Wrote blueprint GameboardScenario to ${safeResolveOutput(String(parsed.flags.outScenario))}`);
   }
   if (typeof parsed.flags.outScenarioInspection === 'string') {
     if (!scenarioInspection) {
@@ -1019,12 +1082,12 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
       );
     }
     writeFileSync(
-      resolve(parsed.flags.outScenarioInspection),
+      safeResolveOutput(String(parsed.flags.outScenarioInspection)),
       `${JSON.stringify(scenarioInspection.scenarioInspection, null, 2)}\n`,
       'utf8'
     );
     console.log(
-      `Wrote blueprint scenario inspection to ${resolve(parsed.flags.outScenarioInspection)}`
+      `Wrote blueprint scenario inspection to ${safeResolveOutput(String(parsed.flags.outScenarioInspection))}`
     );
   }
   if (typeof parsed.flags.outInterop === 'string') {
@@ -1032,12 +1095,12 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
       throw new Error('blueprint --outInterop requires a generated blueprint scenario');
     }
     writeFileSync(
-      resolve(parsed.flags.outInterop),
+      safeResolveOutput(String(parsed.flags.outInterop)),
       `${JSON.stringify(interop, null, 2)}\n`,
       'utf8'
     );
     console.log(
-      `Wrote blueprint interop snapshot with ${interop.entities.length} entities and ${interop.relations.length} relations to ${resolve(parsed.flags.outInterop)}`
+      `Wrote blueprint interop snapshot with ${interop.entities.length} entities and ${interop.relations.length} relations to ${safeResolveOutput(String(parsed.flags.outInterop))}`
     );
   }
 
@@ -1049,8 +1112,8 @@ function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEditi
     interop
   );
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote blueprint inspection to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote blueprint inspection to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true) {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -1102,9 +1165,9 @@ function runSnapshot(parsed: ParsedArgs, sourceRoot: string, edition: PackEditio
           );
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(snapshot, null, 2)}\n`, 'utf8');
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(snapshot, null, 2)}\n`, 'utf8');
     console.log(
-      `Wrote interop snapshot with ${snapshot.entities.length} entities and ${snapshot.relations.length} relations to ${resolve(parsed.flags.out)}`
+      `Wrote interop snapshot with ${snapshot.entities.length} entities and ${snapshot.relations.length} relations to ${safeResolveOutput(String(parsed.flags.out))}`
     );
   } else {
     console.log(JSON.stringify(snapshot, null, 2));
@@ -1137,13 +1200,13 @@ function runSummarizePlan(parsed: ParsedArgs, sourceRoot: string, edition: PackE
   };
 
   if (typeof parsed.flags.outPlan === 'string') {
-    writeFileSync(resolve(parsed.flags.outPlan), `${JSON.stringify(input.plan, null, 2)}\n`, 'utf8');
-    console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.outPlan)), `${JSON.stringify(input.plan, null, 2)}\n`, 'utf8');
+    console.log(`Wrote compiled GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
   }
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote plan summary to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote plan summary to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true) {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -1172,8 +1235,8 @@ function runSummarizeScenario(parsed: ParsedArgs, sourceRoot: string, edition: P
   }
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
-    console.log(`Wrote scenario summary to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
+    console.log(`Wrote scenario summary to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true) {
     console.log(JSON.stringify(summary, null, 2));
   } else {
@@ -1210,14 +1273,14 @@ function runAnalyzeLayout(parsed: ParsedArgs, sourceRoot: string, edition: PackE
     process.exit(1);
   }
   if (typeof parsed.flags.outPlan === 'string') {
-    writeFileSync(resolve(parsed.flags.outPlan), `${JSON.stringify(plan, null, 2)}\n`, 'utf8');
-    console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.outPlan)), `${JSON.stringify(plan, null, 2)}\n`, 'utf8');
+    console.log(`Wrote compiled GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
   }
   const options = readLayoutFillOptions(resolve(parsed.flags.rules), parsed.flags.seed);
   const analysis = analyzeGameboardLayoutFill(plan, options);
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(analysis, null, 2)}\n`, 'utf8');
-    console.log(`Wrote layout analysis to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(analysis, null, 2)}\n`, 'utf8');
+    console.log(`Wrote layout analysis to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true) {
     console.log(JSON.stringify(analysis, null, 2));
   } else {
@@ -1259,8 +1322,8 @@ function runSpawnGroups(parsed: ParsedArgs, sourceRoot: string, edition: PackEdi
   const options = readSpawnGroupOptions(resolve(parsed.flags.groups), parsed.flags.seed);
   const spawnPlan = planGameboardSpawnGroups(plan, options);
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(spawnPlan, null, 2)}\n`, 'utf8');
-    console.log(`Wrote spawn group plan to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(spawnPlan, null, 2)}\n`, 'utf8');
+    console.log(`Wrote spawn group plan to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true) {
     console.log(JSON.stringify(spawnPlan, null, 2));
   } else {
@@ -1330,8 +1393,8 @@ function runPatrolRoutes(parsed: ParsedArgs, sourceRoot: string, edition: PackEd
   });
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(routeSet, null, 2)}\n`, 'utf8');
-    console.log(`Wrote patrol route plan to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(routeSet, null, 2)}\n`, 'utf8');
+    console.log(`Wrote patrol route plan to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true) {
     console.log(JSON.stringify(routeSet, null, 2));
   } else {
@@ -1359,8 +1422,8 @@ function runPatrolScript(parsed: ParsedArgs, sourceRoot: string, edition: PackEd
 
   const payload = parsed.flags.includeReport === true ? scriptPlan : scriptPlan.script;
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote patrol simulation script to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote patrol simulation script to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true) {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -1411,12 +1474,12 @@ function runPlacePiece(parsed: ParsedArgs, sourceRoot: string, edition: PackEdit
 
   if (typeof parsed.flags.outPlan === 'string') {
     const nextPlan = appendGameboardLayoutPlacementsToPlan(plan, inspection.placements);
-    writeFileSync(resolve(parsed.flags.outPlan), `${JSON.stringify(nextPlan, null, 2)}\n`, 'utf8');
-    console.log(`Wrote placed GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.outPlan)), `${JSON.stringify(nextPlan, null, 2)}\n`, 'utf8');
+    console.log(`Wrote placed GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
   }
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(inspection, null, 2)}\n`, 'utf8');
-    console.log(`Wrote piece placement inspection to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(inspection, null, 2)}\n`, 'utf8');
+    console.log(`Wrote piece placement inspection to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true) {
     console.log(JSON.stringify(inspection, null, 2));
   } else {
@@ -1754,11 +1817,11 @@ function runValidateSimulation(parsed: ParsedArgs, sourceRoot: string, edition: 
 
   if (typeof parsed.flags.outPlan === 'string' && scenarioInspection.plan) {
     writeFileSync(
-      resolve(parsed.flags.outPlan),
+      safeResolveOutput(String(parsed.flags.outPlan)),
       `${JSON.stringify(scenarioInspection.plan, null, 2)}\n`,
       'utf8'
     );
-    console.log(`Wrote compiled GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+    console.log(`Wrote compiled GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
   }
 
   if (parsed.flags.json === true) {
@@ -1809,8 +1872,8 @@ function runGuidePermutations(parsed: ParsedArgs, sourceRoot: string, edition: P
   };
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote ${permutations.length} guide permutations to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${permutations.length} guide permutations to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -1922,8 +1985,8 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
       includePublicApiInversion: scenarios.length === listKayKitGuideScenarios().length,
     });
     if (typeof parsed.flags.out === 'string') {
-      writeFileSync(resolve(parsed.flags.out), markdown, 'utf8');
-      console.log(`Wrote ${scenarios.length} guide scenario markdown rows to ${resolve(parsed.flags.out)}`);
+      writeFileSync(safeResolveOutput(String(parsed.flags.out)), markdown, 'utf8');
+      console.log(`Wrote ${scenarios.length} guide scenario markdown rows to ${safeResolveOutput(String(parsed.flags.out))}`);
     } else {
       process.stdout.write(markdown);
     }
@@ -1934,8 +1997,8 @@ function runGuideScenarios(parsed: ParsedArgs, sourceRoot: string, edition: Pack
   }
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote ${scenarios.length} guide scenarios to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${scenarios.length} guide scenarios to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -2035,8 +2098,8 @@ function runGuideUsages(parsed: ParsedArgs, sourceRoot: string, edition: PackEdi
   };
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote ${usages.length} guide usage rows to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${usages.length} guide usage rows to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -2149,8 +2212,8 @@ function runGuideRenderRequests(
   };
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote ${requests.length} guide render requests to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${requests.length} guide render requests to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -2204,8 +2267,8 @@ function runGuidePublicApis(parsed: ParsedArgs): void {
   };
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote ${coverages.length} guide public API coverages to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${coverages.length} guide public API coverages to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -2256,8 +2319,8 @@ function runGuideAssets(parsed: ParsedArgs): void {
   };
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote ${coverages.length} guide asset coverages to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${coverages.length} guide asset coverages to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -2289,8 +2352,8 @@ function runGuideRoles(parsed: ParsedArgs): void {
   };
 
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    console.log(`Wrote ${coverages.length} guide role coverages to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${coverages.length} guide role coverages to ${safeResolveOutput(String(parsed.flags.out))}`);
   } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
     console.log(JSON.stringify(payload, null, 2));
   } else {
@@ -2332,19 +2395,19 @@ function runCoverage(parsed: ParsedArgs): void {
     parsed.flags.markdown === true ? renderGameboardCoverageMarkdown(report) : undefined;
 
   if (typeof parsed.flags.outJson === 'string') {
-    writeFileSync(resolve(parsed.flags.outJson), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
-    console.log(`Wrote coverage JSON to ${resolve(parsed.flags.outJson)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.outJson)), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+    console.log(`Wrote coverage JSON to ${safeResolveOutput(String(parsed.flags.outJson))}`);
   }
   if (typeof parsed.flags.outMarkdown === 'string') {
     writeFileSync(
-      resolve(parsed.flags.outMarkdown),
+      safeResolveOutput(String(parsed.flags.outMarkdown)),
       `${renderGameboardCoverageMarkdown(report)}\n`,
       'utf8'
     );
-    console.log(`Wrote coverage Markdown to ${resolve(parsed.flags.outMarkdown)}`);
+    console.log(`Wrote coverage Markdown to ${safeResolveOutput(String(parsed.flags.outMarkdown))}`);
   }
   if (typeof parsed.flags.out === 'string') {
-    const outputPath = resolve(parsed.flags.out);
+    const outputPath = safeResolveOutput(String(parsed.flags.out));
     const output =
       parsed.flags.markdown === true
         ? (markdown ?? renderGameboardCoverageMarkdown(report))
@@ -2695,11 +2758,11 @@ function runSimulateScenario(parsed: ParsedArgs, sourceRoot: string, edition: Pa
 
   if (typeof parsed.flags.outPlan === 'string') {
     writeFileSync(
-      resolve(parsed.flags.outPlan),
+      safeResolveOutput(String(parsed.flags.outPlan)),
       `${JSON.stringify(report.finalPlan, null, 2)}\n`,
       'utf8'
     );
-    console.log(`Wrote final simulated GameboardPlan to ${resolve(parsed.flags.outPlan)}`);
+    console.log(`Wrote final simulated GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
   }
   if (typeof parsed.flags.outInterop === 'string') {
     const interop = createGameboardSimulationInteropSnapshot(report, {
@@ -2709,15 +2772,15 @@ function runSimulateScenario(parsed: ParsedArgs, sourceRoot: string, edition: Pa
       includeTimeline: parsed.flags.excludeTimeline !== true,
     });
     writeFileSync(
-      resolve(parsed.flags.outInterop),
+      safeResolveOutput(String(parsed.flags.outInterop)),
       `${JSON.stringify(interop, null, 2)}\n`,
       'utf8'
     );
-    console.log(`Wrote simulation interop snapshot to ${resolve(parsed.flags.outInterop)}`);
+    console.log(`Wrote simulation interop snapshot to ${safeResolveOutput(String(parsed.flags.outInterop))}`);
   }
   if (typeof parsed.flags.out === 'string') {
-    writeFileSync(resolve(parsed.flags.out), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
-    console.log(`Wrote scenario simulation report to ${resolve(parsed.flags.out)}`);
+    writeFileSync(safeResolveOutput(String(parsed.flags.out)), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+    console.log(`Wrote scenario simulation report to ${safeResolveOutput(String(parsed.flags.out))}`);
   }
   if (parsed.flags.json === true) {
     if (typeof parsed.flags.out !== 'string') {
@@ -4338,6 +4401,7 @@ Options:
   --format json|markdown
   --markdown
   --assetBasePath <path>
+  --force
   --json`);
   process.exit(exitCode);
 }
