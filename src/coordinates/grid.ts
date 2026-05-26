@@ -14,7 +14,7 @@ import {
   type HexPathOptions,
   type HexPathResult,
 } from './coordinates';
-import type { GameboardShape, HexCoordinates, WorldPosition } from './types';
+import type { GameboardShape, HexCoordinates, WorldPosition } from '../types';
 
 /** Canonical KayKit hex tile width in world units. */
 export const KAYKIT_HEX_WIDTH = 2;

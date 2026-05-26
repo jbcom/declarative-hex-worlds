@@ -5,7 +5,7 @@
  * @module
  */
 import seedrandom from 'seedrandom';
-import type { GameboardShape, HexCoordinates, HexEdgeIndex } from './types';
+import type { GameboardShape, HexCoordinates, HexEdgeIndex } from '../types';
 
 /** Axial neighbor offsets ordered clockwise for the library edge convention. */
 export const HEX_DIRECTIONS: readonly HexCoordinates[] = [

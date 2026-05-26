@@ -31,7 +31,7 @@ import {
   type GameboardLayoutArchetypeRegistry,
   type GameboardLayoutFillAnalysis,
   type GameboardLayoutFillRule,
-} from './layout';
+} from './coordinates';
 import {
   createGameboardLayoutFillRuleFromPieces,
   createGameboardLayoutFillRulesFromRegistry,
@@ -42,11 +42,11 @@ import {
   type GameboardPieceRegistrySelection,
 } from './pieces';
 import type { SpawnGameboardPlacementOptions } from './koota';
-import { projectWorldToGameboardPlan } from './projection';
+import { projectWorldToGameboardPlan } from './coordinates';
 import type { Faction, HexCoordinates, HexEdgeIndex } from './types';
 import type { World } from 'koota';
 
-export { projectWorldToGameboardPlan, readDecomposedTileSpecs } from './projection';
+export { projectWorldToGameboardPlan, readDecomposedTileSpecs } from './coordinates';
 export type { GameboardRuleConfig, GameboardRuleViolation, RuleSeverity } from './rule-types';
 export {
   canPlaceHarborAt,

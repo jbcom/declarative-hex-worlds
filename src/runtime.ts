@@ -91,7 +91,7 @@ import {
   type SpawnGameboardPlacementOptions,
   type UpdateGameboardPlacementOptions,
 } from './koota';
-import type { SpawnLocation } from './grid';
+import type { SpawnLocation } from './coordinates';
 import {
   type GameboardLayoutArchetypeRegistry,
   analyzeGameboardLayoutFill,
@@ -106,7 +106,7 @@ import {
   type GameboardLayoutPlacementOptions,
   type GameboardLayoutSiteInspection,
   type InspectGameboardLayoutSitesOptions,
-} from './layout';
+} from './coordinates';
 import { gameboardMovementActions } from './movement';
 import {
   createGameboardNavigation,
@@ -150,7 +150,7 @@ import {
 import {
   projectWorldToGameboardPlan,
   readValidationGameboardPlanFromWorld,
-} from './projection';
+} from './coordinates';
 import {
   advanceAllGameboardQuests,
   advanceGameboardQuest,

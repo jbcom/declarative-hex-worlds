@@ -28,7 +28,7 @@ import {
   oppositeEdge,
   parseHexKey,
 } from './coordinates';
-import { axialToWorld } from './grid';
+import { axialToWorld } from './coordinates';
 import { freeManifest } from './manifest/free';
 import {
   edgeMask,

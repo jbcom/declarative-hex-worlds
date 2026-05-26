@@ -42,7 +42,7 @@ import {
   type GameboardLayoutArchetypeRegistry,
   type GameboardLayoutFillRule,
   type GameboardLayoutPreference,
-} from './layout';
+} from './coordinates';
 import {
   createGameboardPieceRegistry,
   type GameboardPieceDeclarationInput,
@@ -52,7 +52,7 @@ import {
   createSeededGameboardPieceFillRules,
   type SeededGameboardPieceFillOptions,
 } from './rules';
-import { projectWorldToGameboardPlan } from './projection';
+import { projectWorldToGameboardPlan } from './coordinates';
 import type { GameboardRuleViolation } from './rule-types';
 import type { Faction, HexCoordinates, HexEdgeIndex, TextureSet } from './types';
 import { validateGameboardPlan, type GameboardPlanValidationConfig } from './validation';

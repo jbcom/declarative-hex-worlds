@@ -18,7 +18,7 @@ import {
   createSpawnLocations,
   type SpawnLocation,
   type SpawnLocationOptions,
-} from './grid';
+} from './coordinates';
 import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,

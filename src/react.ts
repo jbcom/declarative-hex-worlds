@@ -61,7 +61,7 @@ import {
   type TileTagListValue,
   type TileTerrainValue,
 } from './koota';
-import { projectWorldToGameboardPlan } from './projection';
+import { projectWorldToGameboardPlan } from './coordinates';
 import type { GameboardRuleConfig, GameboardRuleViolation } from './rule-types';
 import { validateGameboardRules } from './world-rules';
 import {
@@ -162,7 +162,7 @@ import {
   type GameboardLayoutPlacementOptions,
   type GameboardLayoutSiteInspection,
   type InspectGameboardLayoutSitesOptions,
-} from './layout';
+} from './coordinates';
 import {
   analyzeGameboardPieceRegistry,
   createGameboardPieceSourceUrlMap,
@@ -184,7 +184,7 @@ import {
   type SeededGameboardPieceFillOptions,
 } from './rules';
 import type { Entity, World } from 'koota';
-import type { SpawnLocation } from './grid';
+import type { SpawnLocation } from './coordinates';
 import type { HexCoordinates } from './types';
 import type { GameboardRecipe, GameboardRecipePlanOptionsOverride } from './recipe';
 import type { GameboardScenario } from './scenario';

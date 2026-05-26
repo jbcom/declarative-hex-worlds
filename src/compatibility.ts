@@ -4,7 +4,7 @@
  *
  * @module
  */
-import { KAYKIT_HEX_DEPTH, KAYKIT_HEX_GEOMETRY, KAYKIT_HEX_WIDTH } from './grid';
+import { KAYKIT_HEX_DEPTH, KAYKIT_HEX_GEOMETRY, KAYKIT_HEX_WIDTH } from './coordinates';
 import type { SpawnGameboardPlacementOptions } from './koota';
 import type { AssetBounds, HexCoordinates, HexEdgeIndex } from './types';
 

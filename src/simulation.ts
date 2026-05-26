@@ -36,7 +36,7 @@ import {
   type SpawnGameboardPlacementOptions,
   type UpdateGameboardPlacementOptions,
 } from './koota';
-import { projectWorldToGameboardPlan } from './projection';
+import { projectWorldToGameboardPlan } from './coordinates';
 import {
   readGameboardQuests,
   type GameboardQuestMetadataValue,

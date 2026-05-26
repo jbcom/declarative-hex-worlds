@@ -27,7 +27,7 @@ import {
   type GameboardTerrain,
   type GameboardTileSpec,
 } from './gameboard';
-import { axialToWorld } from './grid';
+import { axialToWorld } from './coordinates';
 import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,

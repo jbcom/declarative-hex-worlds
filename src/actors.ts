@@ -44,7 +44,7 @@ import {
   type GameboardNavigationProfile,
 } from './navigation';
 import { gameboardPlacementBlocksOccupancy } from './occupancy';
-import { projectWorldToGameboardPlan } from './projection';
+import { projectWorldToGameboardPlan } from './coordinates';
 import type { HexCoordinates } from './types';
 
 /**

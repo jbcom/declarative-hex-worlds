@@ -136,7 +136,7 @@ import {
   type GameboardLayoutFillAnalysis,
   type GameboardLayoutFillOptions,
   type GameboardLayoutFillRule,
-} from './layout';
+} from './coordinates';
 import {
   planGameboardPatrolRoutes,
   planGameboardSpawnGroups,

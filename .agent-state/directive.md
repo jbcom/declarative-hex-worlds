@@ -44,7 +44,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 
 - [x] **R1** — **De-monorepo.** ✅ Landed in commit 70ce4e8 (2026-05-26). 587 files moved from `packages/medieval-hexagon-gameboard/` to root. pnpm-workspace.yaml/nx.json/apps/docs/project.json/tsconfig.scripts.json removed. audit-workspace.ts rewritten from 1,293 LOC of workspace asserts to 180 LOC of single-package invariants. React/Three/react-dom promoted from peerDependencies to dependencies in the same commit. tsc + biome + audit-workspace + audit-workflows + tsup build all green. 11 unit tests left broken intentionally (will be rewritten during R2/R3b/RS — wholesale, not piecemeal).
 - [ ] **R2** — **Decompose `src/` per koota-idiomatic layout** (see `~/src/reference-codebases/koota/examples/cards/src` and `examples/n-body-react/src`). The shape is **not** "one ECS subpackage" — koota apps split into `traits/` (declarations), `systems/` (per-tick functions), `actions.ts` (createActions bundles), `world.ts` (createWorld bootstrap), and `frameloop.ts`/`startup.ts` (lifecycle). Per PRD Appendix C, one sub-package per commit. Suggested order:
-  - **R2a** — `types/` (branded primitives — least coupled)
+  - [x] **R2a** — ✅ commit 6890682 (2026-05-26): `src/types.ts` → `src/types/index.ts`, `src/types/brands.ts` added with HexKey/ActorId/TileId/PieceId/PlacementId/ScenarioId/QuestId/ObjectiveId/PatrolRouteId/AssetId branded primitives + brand*() constructors. Not yet enforced; brands adopt progressively per-sub-package.
   - **R2b** — `coordinates/` (hex algebra; pure, deterministic, no ECS)
   - **R2c** — `manifest/` (data shape + bundled FREE manifest)
   - **R2d** — `ingest/` (walker + secure resolve)

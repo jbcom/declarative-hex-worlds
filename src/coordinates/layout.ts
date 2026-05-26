@@ -14,7 +14,7 @@ import type {
   GameboardPlan,
   GameboardTerrain,
   GameboardTileSpec,
-} from './gameboard';
+} from '../gameboard';
 import {
   GameboardState,
   readGameboardPlacements,
@@ -23,8 +23,8 @@ import {
   type GameboardPlacementPositionOffset,
   type PlacementStateValue,
   type SpawnGameboardPlacementOptions,
-} from './koota';
-import type { HexCoordinates, HexEdgeIndex } from './types';
+} from '../koota';
+import type { HexCoordinates, HexEdgeIndex } from '../types';
 import type { Entity, World } from 'koota';
 
 /**

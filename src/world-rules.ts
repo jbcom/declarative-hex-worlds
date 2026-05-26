@@ -7,7 +7,7 @@
 import { hexKey, neighbor } from './coordinates';
 import type { GameboardTerrain, GameboardTileSpec } from './gameboard';
 import { HexTileState, TileElevation, TileTerrain, findTileEntity } from './koota';
-import { readDecomposedTileSpecs, readValidationGameboardPlanFromWorld } from './projection';
+import { readDecomposedTileSpecs, readValidationGameboardPlanFromWorld } from './coordinates';
 import type { GameboardRuleConfig, GameboardRuleViolation } from './rule-types';
 import type { HexCoordinates } from './types';
 import { canStackInPlan, validateGameboardPlan } from './validation';

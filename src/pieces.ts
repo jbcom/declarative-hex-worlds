@@ -24,7 +24,7 @@ import {
   type GameboardLayoutSiteInspection,
   inspectGameboardLayoutSites,
   resolveGameboardLayoutCriteria,
-} from './layout';
+} from './coordinates';
 import type { GameboardPlacementOccupancyGuard, SpawnGameboardPlacementOptions } from './koota';
 
 /**

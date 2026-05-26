@@ -15,7 +15,7 @@ import {
   KAYKIT_HEX_GEOMETRY,
   type HexGeometry,
   rowSpacingForGeometry,
-} from './grid';
+} from './coordinates';
 import { COAST_VARIANTS, RIVER_VARIANTS, ROAD_VARIANTS, edgeMask, rotateMask } from './selectors';
 import type {
   AssetBounds,

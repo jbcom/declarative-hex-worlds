@@ -14,7 +14,7 @@ import {
 } from 'three';
 import type { GameboardInteractionTargetInput } from './actors';
 import type { GameboardPlacementSpec } from './gameboard';
-import { axialToWorld } from './grid';
+import { axialToWorld } from './coordinates';
 import type { GameboardPlacementPositionOffset } from './koota';
 import {
   getManifestAsset,

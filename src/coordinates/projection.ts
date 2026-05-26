@@ -4,7 +4,7 @@
  *
  * @module
  */
-import { isKnownExtraAssetId } from './catalog';
+import { isKnownExtraAssetId } from '../catalog';
 import { axialToWorld } from './grid';
 import type {
   GameboardPlacementKind,
@@ -12,15 +12,15 @@ import type {
   GameboardPlacementSpec,
   GameboardPlan,
   GameboardTileSpec,
-} from './gameboard';
+} from '../gameboard';
 import {
   DecomposedGameboardTileQuery,
   GameboardState,
   readGameboardPlacements,
   type PlacementStateValue,
-} from './koota';
+} from '../koota';
 import { normalizeHexRotationSteps, oppositeEdge } from './coordinates';
-import { selectCoastVariant, selectRiverCrossingVariant, selectRiverVariant, selectRoadVariant } from './selectors';
+import { selectCoastVariant, selectRiverCrossingVariant, selectRiverVariant, selectRoadVariant } from '../selectors';
 import type { World } from 'koota';
 
 /** Projects a Koota gameboard world into a serializable gameboard plan with render placements. */

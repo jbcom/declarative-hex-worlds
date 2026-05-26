@@ -283,7 +283,7 @@ export {
   createSpawnLocations,
   rowSpacingForGeometry,
   worldToAxial,
-} from './grid';
+} from './coordinates';
 export type {
   GameboardCoordinateSystem,
   GameboardCoordinateSystemOptions,
@@ -294,7 +294,7 @@ export type {
   RectangleGridOptions,
   SpawnLocation,
   SpawnLocationOptions,
-} from './grid';
+} from './coordinates';
 export {
   BASE_TILE_ASSET_IDS,
   COAST_TILE_ASSET_IDS,
@@ -702,7 +702,7 @@ export {
   selectGameboardLayoutSites,
   spawnGameboardLayoutFill,
   spawnGameboardLayoutPlacements,
-} from './layout';
+} from './coordinates';
 export type {
   BuiltInGameboardLayoutArchetypeId,
   CreateGameboardLayoutArchetypeRegistryOptions,
@@ -727,7 +727,7 @@ export type {
   InspectGameboardLayoutSitesOptions,
   ResolvedGameboardLayoutFootprint,
   SelectGameboardLayoutSitesOptions,
-} from './layout';
+} from './coordinates';
 export {
   createGameboardNavigation,
   createGameboardOccupancyIndex,
