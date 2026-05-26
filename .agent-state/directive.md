@@ -75,10 +75,12 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
 
 **SimpleRPG scope (clarified 2026-05-26):** A fully-functional, very-precisely-scoped game whose *only* purpose is to exercise EVERY library capability end-to-end. No "real" gameplay purpose beyond coverage. Layout under `tests/`:
 
-- [ ] **RS1** — `tests/simple-rpg/` holds the SimpleRPG game implementation:
-  - `tests/simple-rpg/assets-embedded/` — **gitignored except `.gitkeep`** — contains the EXTRA-pack pieces (props, character models from KayKit Adventurers, etc.) that this game needs for exercising add-piece / inject-tile / inject-prop / cross-kit composition flows. Local-only; ignore-everything in git.
-  - `tests/simple-rpg/assets-bootstrap-target/` — **gitignored except `.gitkeep` + `.gitignore` with `*` and `!.gitignore` + `!.gitkeep`** — the directory the `bootstrap` CLI writes into during test runs. Cleared between runs.
-  - `tests/simple-rpg/game/` — TypeScript SimpleRPG implementation (uses the library's full public API).
+- [x] **RS1** — ✅ commit (2026-05-26): `tests/simple-rpg/` directory scaffold landed. Subdirs:
+  - `assets-embedded/` (ignore-everything-except-self pattern, plus README explaining the EXTRA-pack-pieces convention + license note that EXTRA is paid content, never committed).
+  - `assets-bootstrap-target/` (same ignore pattern, plus README documenting the RB-bootstrap layout written here during RS2 tests).
+  - `game/index.ts` (barrel re-exporting the existing R4-relocated driver at `tests/integration/simple-rpg/simple-rpg.ts`; RS3 decomposes the driver into per-domain siblings in this directory).
+  - Top-level `README.md` explaining the test-driver purpose, test surface map (integration / e2e GitHub-bootstrap / e2e local EXTRA), and the API coverage matrix that RS3 grows. Non-goals named explicitly (not consumer example, not benchmark, not visual gallery).
+  Verified: tsc clean, lint clean, 331/6 tests unchanged.
 - [ ] **RS2** — Vitest browser plugin config for SimpleRPG e2e:
   - `tests/e2e/simple-rpg-ci.test.ts` — uses `bootstrap --source github` against the live KayKit FREE repo. CI-only, scheduled (not per-PR for rate-limit reasons).
   - `tests/e2e/simple-rpg-local-extra.test.ts` — uses `bootstrap --source zip --zip references/...EXTRA.zip` for the EXTRA-pack tests. Gated by `MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1` env var.
