@@ -237,10 +237,10 @@ Each item builds the SimpleRPG scenario, the vitest-browser screenshot test that
 
 Each item is one commit. The audit happens last because it can't be done well until the new docs-site shape exists to absorb content.
 
-- [ ] **F-Audit-1** — Audit `CONTRIBUTING.md`: align with current `pnpm verify` posture, the single-package layout, the install-once CI pattern (A9), the test trinity (unit + browser + e2e). Add "Working with the agentic state" section pointing at `.agent-state/`.
-- [ ] **F-Audit-2** — Write `CHANGELOG.md` (Keep a Changelog 1.1.0). Backfill from `git log --oneline` for releases prior to release-please ownership; release-please populates from here forward.
-- [ ] **F-Audit-3** — Write `STANDARDS.md`: style + brand + non-negotiables. Pulls from PRD §6. Authoritative source for "what we don't do".
-- [ ] **F-Audit-4** — Audit `CODE_OF_CONDUCT.md` + `SECURITY.md`: ensure they exist with current contact info. SECURITY.md links to GitHub's private vulnerability reporting.
+- [x] **F-Audit-1** — ✅ commit (2026-05-26): `CONTRIBUTING.md` written. Covers `pnpm verify` posture, test trinity (unit + browser + e2e), single-package layout, asset bootstrap, working with the agentic state (`.agent-state/`), Conventional Commits, PR squash-merge model.
+- [x] **F-Audit-2** — ✅ commit (2026-05-26): `CHANGELOG.md` written in Keep a Changelog 1.1.0 format. Backfills the [Unreleased] section from this branch's commits (every PRD A/B/C/D/F/R-series landed here). release-please takes over for 1.0.0+.
+- [x] **F-Audit-3** — ✅ commit (2026-05-26): `STANDARDS.md` written. Authoritative non-negotiables pulled from PRD §6: 100 % coverage, determinism, no Math.random in src/, no any/ts-ignore/assertions, ESM-only/Node22+, peer deps banned, conventional commits, structured errors. Also includes perf budgets, security posture, deps policy.
+- [x] **F-Audit-4** — ✅ commit (2026-05-26): `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1) and `SECURITY.md` written. SECURITY.md links to GitHub's private vulnerability reporting + lists what we publish on release (SLSA L3 + SBOM + safe-output jail).
 - [ ] **F-Audit-5** — Audit `CLAUDE.md` (root): align with current single-package layout, drop any pre-R1 references to `packages/medieval-hexagon-gameboard/`. Move agentic-only content out of `CLAUDE.md` into `AGENTS.md` if any cross-agent collaboration is wanted.
 - [ ] **F-Audit-6** — Audit `.agent-state/directive.md` (this file): once 1.0 ships, archive the 1.0 stabilization section into `docs-site/src/content/docs/about/history/1.0-stabilization.md`; reset to a slim post-1.0 maintenance directive.
 - [ ] **F-Audit-7** — Audit `docs/` legacy content: every file gets a "keep + revise to docs-site" or "delete" verdict. Migrate kept content into `docs-site/`; delete the `docs/` directory once empty.
