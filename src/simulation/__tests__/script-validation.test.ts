@@ -789,6 +789,19 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('flags command expectation with non-record entries (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+      expectations: { commands: ['not-a-record'] },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_command')
+    ).toBe(true);
+  });
+
   it('flags expectations.eventTypes as non-array (E0b)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
