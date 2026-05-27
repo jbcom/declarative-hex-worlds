@@ -55,6 +55,58 @@ describe('engine sourceActor-required short-circuits (PRD E0a)', () => {
   });
 });
 
+describe('update-actor + update-placement mutation records (PRD E0a)', () => {
+  it('records actor-updated mutation after update-actor step', () => {
+    const result = runGameboardScenarioSimulation(minimalScenario, [
+      {
+        action: 'spawn-actor',
+        id: 'spawn-hero',
+        actor: {
+          actorId: 'hero',
+          assetId: 'flag_blue',
+          kind: 'unit',
+          at: '0,0',
+        },
+        systems: false,
+      },
+      {
+        action: 'update-actor',
+        id: 'rename-hero',
+        actorId: 'hero',
+        actor: { actorMetadata: { mood: 'happy' } },
+        systems: false,
+      },
+    ]);
+    const mutation = result.steps[1]?.mutations?.[0];
+    expect(mutation?.type).toBe('actor-updated');
+  });
+
+  it('records placement-updated mutation after update-placement step', () => {
+    const result = runGameboardScenarioSimulation(minimalScenario, [
+      {
+        action: 'spawn-placement',
+        id: 'spawn-flag',
+        placement: {
+          id: 'flag-1',
+          at: '0,0',
+          assetId: 'flag_yellow',
+          kind: 'prop',
+        },
+        systems: false,
+      },
+      {
+        action: 'update-placement',
+        id: 'paint-flag',
+        placementId: 'flag-1',
+        placement: { metadata: { color: 'red' } },
+        systems: false,
+      },
+    ]);
+    const mutation = result.steps[1]?.mutations?.[0];
+    expect(mutation?.type).toBe('placement-updated');
+  });
+});
+
 describe('runRemovePlacementStep (PRD E0a)', () => {
   it('removes a placement that was spawned earlier in the script', () => {
     const result = runGameboardScenarioSimulation(minimalScenario, [
