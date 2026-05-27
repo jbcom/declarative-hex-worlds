@@ -64,7 +64,7 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
     - `scenario/recipe.ts` ~82% (was 79.5) — recipe generation edge cases
     - `patrol/patrol.ts` ~81% (was 79.56) — patrol agent edge cases
     Each file's continuation work lands as one commit that adds ≤200 LOC of test code and ratchets the floor.
-- [ ] **E8** — Flip coverage thresholds to **100 / 100 / 100 / 100** in `vitest.coverage.shared.ts`. Depends on E0a + E0h completion. Final ratchet commit.
+- [ ] [WAIT] **E8** — Flip coverage thresholds to **100 / 100 / 100 / 100** in `vitest.coverage.shared.ts`. Depends on E0a + E0h reaching the floor at 100. Currently 65.94/63.83/76.87/65.57; unblocks when the per-file gaps in the E0a/E0h lists close out. Final ratchet commit.
 
 ### Phase E9 — visual integration gate (continuation)
 
@@ -72,7 +72,7 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
 
 ### Phase F-Site — docs-site continuation
 
-- [ ] **F-Audit-7b-equiv** — Migrate the six `docs/guides/*.md` legacy files into `docs-site/src/content/docs/guides/` with redirect notes. Skipped at 1.0 stabilization time (F-Audit-7b cancelled — those paths are load-bearing in `src/scenario/catalog.ts`). Address via dual-write: keep the `docs/guides/*.md` paths as internal metadata, add canonical guide pages under `docs-site/` with cross-links. Each file = one commit.
+- [ ] [WAIT] **F-Audit-7b-equiv** — Migrate the six `docs/guides/*.md` legacy files into `docs-site/src/content/docs/guides/` with redirect notes. Skipped at 1.0 stabilization time (F-Audit-7b cancelled — those paths are load-bearing in `src/scenario/catalog.ts`). Blocked on PR#10 merge so the docs-site site map is rebuilt against a stable trunk. Address via dual-write once unblocked: keep the `docs/guides/*.md` paths as internal metadata, add canonical guide pages under `docs-site/` with cross-links. Each file = one commit.
 
 ## Self-assessment after each commit
 
