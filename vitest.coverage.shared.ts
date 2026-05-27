@@ -46,8 +46,8 @@ export const COVERAGE_EXCLUDES = [
 export const COVERAGE_THRESHOLDS = {
   statements: 62.5,
   branches: 60,
-  functions: 74.8,
-  lines: 62,
+  functions: 75,
+  lines: 62.5,
 };
 
 /**

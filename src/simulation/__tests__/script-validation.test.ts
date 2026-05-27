@@ -184,6 +184,45 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     );
   });
 
+  it('flags set-actor-targets step with non-object targeting field', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'inspect-actor-targets', sourceActor: 'a', targeting: 99 }],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.actor_targets_targeting')).toBe(
+      true
+    );
+  });
+
+  it('flags set-actor-targets with wrong-shape kinds/teams/factions/tags fields', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          sourceActor: 'a',
+          targeting: {
+            kinds: 17,
+            teams: { not: 'array' },
+            factions: false,
+            tags: [42], // array elements must be strings
+            excludeTags: 'not-array',
+            radius: 'not-a-number',
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.actor_targets_kinds');
+    expect(codes).toContain('simulation.actor_targets_teams');
+    expect(codes).toContain('simulation.actor_targets_factions');
+  });
+
   it('flags update-placement step with non-object placement field', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
