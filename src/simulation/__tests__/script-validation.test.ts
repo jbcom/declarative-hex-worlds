@@ -380,6 +380,66 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(codes).toContain('simulation.spawn_actor_id');
   });
 
+  it('flags spawn-actor with empty spawnGroupId + non-integer spawnLocationIndex (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            spawnGroupId: '', // empty string
+            spawnLocationIndex: 1.7, // non-integer
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.spawn_actor_spawn_group');
+    expect(codes).toContain('simulation.spawn_actor_spawn_location_index');
+  });
+
+  it('flags spawn-actor referencing unknown scenario spawn group (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            spawnGroupId: 'definitely-not-a-group',
+          },
+        },
+      ],
+    };
+    const scenario = {
+      schemaVersion: '1.0.0',
+      id: 'spawn-scenario',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 3, height: 3 } },
+        steps: [],
+      },
+      spawnGroups: { groups: [{ id: 'home', count: 1 }] },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any, {
+      // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+      scenario: scenario as any,
+    });
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_actor_spawn_group_missing')
+    ).toBe(true);
+  });
+
   it('flags spawn-actor duplicate when actor id already exists in scenario (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
