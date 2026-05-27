@@ -758,12 +758,28 @@ function isUnitStyle(value: unknown): value is UnitStyle {
 }
 
 function joinUrl(baseUrl: string | URL, path: string): string {
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = stripLeadingSlashes(path);
   if (baseUrl instanceof URL) {
     return new URL(cleanPath, baseUrl).toString();
   }
   if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(baseUrl)) {
     return new URL(cleanPath, baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`).toString();
   }
-  return `${baseUrl.replace(/\/+$/, '')}/${cleanPath}`;
+  return `${stripTrailingSlashes(baseUrl)}/${cleanPath}`;
+}
+
+function stripLeadingSlashes(value: string): string {
+  let i = 0;
+  while (i < value.length && value.charCodeAt(i) === 47) {
+    i += 1;
+  }
+  return i === 0 ? value : value.slice(i);
+}
+
+function stripTrailingSlashes(value: string): string {
+  let i = value.length;
+  while (i > 0 && value.charCodeAt(i - 1) === 47) {
+    i -= 1;
+  }
+  return i === value.length ? value : value.slice(0, i);
 }
