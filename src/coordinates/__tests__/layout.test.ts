@@ -8,6 +8,8 @@ import {
   createGameboardLayoutFillPlacements,
   createGameboardLayoutPlacements,
   inspectGameboardLayoutSites,
+  normalizeGameboardLayoutArchetypeRegistry,
+  resolveGameboardLayoutArchetype,
   selectGameboardLayoutSites,
   spawnGameboardLayoutPlacements,
 } from '../../coordinates/layout';
@@ -569,6 +571,43 @@ describe('gameboard layout placement criteria', () => {
         occupancyGuard: true,
       })
     ).toThrow(/cannot occupy 0,0/);
+  });
+});
+
+describe('layout archetype + selection edge branches (PRD E0a)', () => {
+  it('normalizeGameboardLayoutArchetypeRegistry returns empty object for undefined input', () => {
+    expect(normalizeGameboardLayoutArchetypeRegistry(undefined)).toEqual({});
+  });
+
+  it('normalizeGameboardLayoutArchetypeRegistry indexes an array input by id', () => {
+    const normalized = normalizeGameboardLayoutArchetypeRegistry([
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      { id: 'arch-a', criteria: { terrain: 'grass' } } as any,
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      { id: 'arch-b', criteria: { terrain: 'water' } } as any,
+    ]);
+    expect(Object.keys(normalized)).toEqual(['arch-a', 'arch-b']);
+  });
+
+  it('resolveGameboardLayoutArchetype throws on unknown string id', () => {
+    expect(() => resolveGameboardLayoutArchetype('not-a-real-archetype', {})).toThrow(
+      /Unknown gameboard layout archetype/
+    );
+  });
+
+  it('resolveGameboardLayoutArchetype returns undefined for undefined input', () => {
+    expect(resolveGameboardLayoutArchetype(undefined, {})).toBeUndefined();
+  });
+
+  it('resolveGameboardLayoutArchetype returns inline archetype object unchanged', () => {
+    // biome-ignore lint/suspicious/noExplicitAny: minimal inline archetype
+    const inline = { id: 'inline', criteria: { terrain: 'grass' } } as any;
+    expect(resolveGameboardLayoutArchetype(inline, {})).toBe(inline);
+  });
+
+  it('selectGameboardLayoutSites returns empty array when count is 0', () => {
+    const plan = createSingleForestTilePlan();
+    expect(selectGameboardLayoutSites(plan, { count: 0, seed: 'empty' })).toEqual([]);
   });
 });
 
