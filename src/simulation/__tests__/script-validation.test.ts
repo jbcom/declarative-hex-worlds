@@ -748,6 +748,44 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('flags spawn-placement with duplicate id (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 'twin-flag', at: '0,0', assetId: 'flag_blue', kind: 'prop' },
+        },
+        {
+          id: 's2',
+          action: 'spawn-placement',
+          placement: { id: 'twin-flag', at: '1,0', assetId: 'flag_red', kind: 'prop' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_placement_duplicate')
+    ).toBe(true);
+  });
+
+  it('flags actorTargets expectation with non-record entries (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+      expectations: {
+        actorTargets: ['not-a-record'],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_actor_target')
+    ).toBe(true);
+  });
+
   it('flags movement expectation with invalid eventType (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
