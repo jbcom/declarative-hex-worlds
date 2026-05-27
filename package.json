@@ -225,7 +225,7 @@
     "test:assets:free": "tsx scripts/audit-free-assets.ts",
     "test:cli": "tsx scripts/smoke-built-cli.ts",
     "test:consumer": "tsx scripts/smoke-packed-consumer.ts",
-    "test:docs-contract": "tsx scripts/audit-docs-contract.ts",
+    "test:docs-contract": "tsx scripts/audit-docs-contract.ts && tsx scripts/audit-docs-frontmatter.ts",
     "test:package": "tsx scripts/audit-package.ts",
     "test:workspace": "tsx scripts/audit-workspace.ts",
     "test:workflows": "tsx scripts/audit-workflows.ts",
