@@ -3,6 +3,7 @@ import { freeManifest, loadFreeManifest } from '../../manifest/free';
 import {
   createManifestBundle,
   getManifestAsset,
+  hasManifestAsset,
   inspectMedievalHexagonManifest,
   manifestAssetRequiresExtra,
   normalizeMedievalHexagonManifest,
@@ -192,6 +193,21 @@ describe('free manifest', () => {
     // null + undefined → manifest.object.
     expect(inspectMedievalHexagonManifest(null).issues.map((i) => i.code)).toContain('manifest.object');
     expect(inspectMedievalHexagonManifest(undefined).issues.map((i) => i.code)).toContain('manifest.object');
+  });
+});
+
+describe('hasManifestAsset (PRD E0g)', () => {
+  it('returns true for an asset id present in the FREE manifest', () => {
+    // Pull any known asset id off the FREE manifest to avoid hardcoding.
+    const firstAsset = freeManifest.assets[0];
+    if (firstAsset === undefined) {
+      throw new Error('FREE manifest is empty — fixture invariant broken');
+    }
+    expect(hasManifestAsset(freeManifest, firstAsset.id)).toBe(true);
+  });
+
+  it('returns false for an unknown asset id', () => {
+    expect(hasManifestAsset(freeManifest, 'definitely-not-a-real-asset-id')).toBe(false);
   });
 });
 
