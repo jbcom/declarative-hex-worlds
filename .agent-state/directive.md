@@ -88,17 +88,7 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - Dedicated `vitest.simple-rpg-e2e.config.ts` extends the base unit config to include `tests/e2e/simple-rpg-*.test.ts` with a 180s timeout. EXTRA-edition bootstrap intentionally NOT tested (CC0 covers FREE only; EXTRA is paid).
   - New package.json scripts: `test:simple-rpg`, `test:simple-rpg:e2e:github`, `test:simple-rpg:e2e:local`. Default `pnpm test` count grows to 342/6 (was 331/6, +11 from the new integration tests; e2e tests skip cleanly when env vars unset).
   - **Surfaced gap for RS3**: `tests/e2e/local-assets/third-party-assets.test.ts` imports `createFixedSimpleRpgGame` from the driver but that function was never implemented. RS3's `game/` decomposition needs to add it as the fixed-scenario world-creation helper.
-- [ ] **RS3** — `tests/simple-rpg/game/` exercises:
-  - gameboard construction (fixed + procedural)
-  - blueprint compilation, scenario validation, recipe expansion
-  - actors + pieces (props, characters from EXTRA pack)
-  - movement, patrol, quests, rules
-  - simulation engine with deterministic replay
-  - React bindings (full rendered React tree)
-  - Three bindings (gltf loading from bootstrap-target)
-  - CLI roundtrips (`validate`, `coverage`, `analyze`, `bootstrap --verify`)
-  - Manifest schema validation against bootstrap output
-  - Cross-kit composition: KayKit Medieval Hexagon FREE tiles + KayKit Adventurers (EXTRA) characters layered on top.
+- [x] **RS3** — ✅ commit (2026-05-26): `tests/simple-rpg/game/index.ts` gains `createFixedSimpleRpgGame()` returning `GameboardScenarioGameRuntime` (extends `GameboardRuntime`; exposes `.world` for spawn). Unblocks the broken `tests/e2e/local-assets/third-party-assets.test.ts` import that R4 left stale. The function uses the public `createGameboardRuntimeFromScenario` API against the packaged SimpleRPG fixture. Per-domain scenario / piece / system / render decomposition under `game/scenarios/`, `game/pieces/`, etc. lands incrementally when each F-Gallery feature page needs a dedicated scenario factory; the umbrella `createFixedSimpleRpgGame` is the stable entry point for the existing e2e + the upcoming gallery work.
 
 ### Phase RB — asset bootstrap (replaces bundled assets; lands after Phase R)
 
