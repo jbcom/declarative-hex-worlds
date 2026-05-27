@@ -332,4 +332,33 @@ describe('medieval gameboard blueprints', () => {
     });
     expect(runtime.patrolRoutes?.routes[0]?.pathKeys.length).toBeGreaterThan(0);
   });
+
+  it('warns when a prop cluster anchor is outside the board (E0a)', () => {
+    const inspection = inspectMedievalGameboardBlueprint({
+      seed: 'blueprint-bad-cluster',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+      propClusterDressing: {
+        clusters: [{ id: 'oob-cluster', at: { q: 99, r: 99 }, kind: 'camp' }],
+      },
+    });
+    expect(
+      inspection.warnings.some((warning) =>
+        warning.includes('Prop cluster') && warning.includes('outside the board')
+      )
+    ).toBe(true);
+  });
+
+  it('warns when a mountain range has all out-of-bounds ridge coordinates (E0a)', () => {
+    const inspection = inspectMedievalGameboardBlueprint({
+      seed: 'blueprint-bad-mountain',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+      mountainRanges: [
+        // Path entirely outside the 3x3 board.
+        { id: 'oob-range', path: [{ q: 99, r: 99 }, { q: 100, r: 99 }], width: 0, height: 1 },
+      ],
+    });
+    expect(
+      inspection.warnings.some((warning) => warning.includes('has no in-bounds ridge'))
+    ).toBe(true);
+  });
 });

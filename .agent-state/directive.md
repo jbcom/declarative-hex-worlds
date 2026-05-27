@@ -32,8 +32,27 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] **E0a** — Simulation files to 100%. As of `33d271b`: `script.ts` ~79 / 73 / 97.7 / 79; `engine.ts` ~87 / 74 / 97 / 87; `assertions.ts` ~88 / 91 / 89 / 87; `report.ts` 93%; `simulation.ts` shim 100%. Remaining gaps: deep validator branches in `script.ts` (set-actor-targets/ inspect-actor-targets sub-fields, expectation sub-validators), report.ts copyQuestObjective, engine.ts edge mutation paths. Each is <100 LOC of test code per commit; ratchet advances per closure.
-- [ ] **E0h** — Sweep remaining src/ files to 100%. Status post-merge:
+- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10 (`feat/e0-coverage-continuation`) has 102 commits ahead of main. Local 66.77 / 65.04 / 77.06 / 66.44 (was 62.5/60.5/75/62 at PR#4 merge — +4.27 pp statements). Threshold floor: 65.1/63.1/75.5/64.7 (CI-adjusted). Blocked on PR#10 squash-merge to main; next iteration cuts a new PR from a clean trunk.
+    - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
+    - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
+    - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.
+    - report.ts 100 / 96.42 / 100 / 100 — copyQuestObjective tile/targetTile branches done.
+    - patrol.ts 83.21 → ratcheting; paused/short-route/missing-id/loop-wrap/end-of-route.
+    - layout.ts 87.13 → ratcheting; normalizeArchetypes, resolveArchetype, selectLayout count=0.
+    - quests.ts 92.8 → ratcheting; expect=hostile + interactive, missing-quest throw.
+    - manifest/schema.ts 87.24 → duplicatePreference variants done.
+    - actors.ts 88.93 → register + navigationProfile action wrappers.
+    - pieces.ts 93.64 → inferPieceRoleFromCompatibility role branches.
+    - scenario/scenario.ts 87.74 → actor spawnLocationIndex errors.
+    - gameboard.ts 92.21 → addUnitPreset role variants.
+    - bootstrap.ts 75 → verifyBootstrap unsafe-sidecar + missing-file.
+    - selectors.ts 97.43 → selectRoadVariant unreachable-mask throw.
+    - movement.ts 82.8 → runSystem/reachable wrappers + profile-not-found.
+    - commands.ts 84.76 → createRemoveTargetPlacementHandler factory.
+    - interop/compatibility.ts 93.33 → -x modelForward axis.
+    - navigation.ts 86.06 → reachableGameboardTiles defensive returns.
+    Remaining gaps: deep validator branches in script.ts (remaining expectation sub-validators), engine.ts edge mutation paths (lines 491-499, 674), patrol.ts wait-state + completed-by-targetIndex-undefined deeper paths, navigation.ts patrol-route generation edge cases, scenario.ts deeper allocator paths, bootstrap GitHub source, ingest.ts duplicate disambiguation. Each ≤200 LOC commit + threshold ratchet.
+- [ ] [WAIT] **E0h** — Sweep remaining src/ files to 100%. Blocked on PR#10 squash-merge. Status post-merge:
     - `pieces/pieces.ts` ~91% (was 89.69) — cross-pack composition + remaining infer paths
     - `quests/quests.ts` ~89% (was 87.2) — quest objective rollover + reward dispatch
     - `actors/actors.ts` ~88% (was 87.58) — placement-state inference edge cases
@@ -44,15 +63,15 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
     - `scenario/recipe.ts` ~82% (was 79.5) — recipe generation edge cases
     - `patrol/patrol.ts` ~81% (was 79.56) — patrol agent edge cases
     Each file's continuation work lands as one commit that adds ≤200 LOC of test code and ratchets the floor.
-- [ ] **E8** — Flip coverage thresholds to **100 / 100 / 100 / 100** in `vitest.coverage.shared.ts`. Depends on E0a + E0h completion. Final ratchet commit.
+- [ ] [WAIT] **E8** — Flip coverage thresholds to **100 / 100 / 100 / 100** in `vitest.coverage.shared.ts`. Depends on E0a + E0h reaching the floor at 100. Currently 65.94/63.83/76.87/65.57; unblocks when the per-file gaps in the E0a/E0h lists close out. Final ratchet commit.
 
 ### Phase E9 — visual integration gate (continuation)
 
-- [ ] **E9** — Every renderer-binding (`react.ts`, `three.ts`, `examples/*`) gets a vitest-browser test rendering into Chromium with a committed PNG screenshot snapshot. RB-CI unblocked this 2026-05-27; the visual job now runs by default. Continuation work: audit `react.ts` + `three.ts` exported behaviors, add per-behavior browser tests with snapshot PNGs.
+- [ ] [WAIT] **E9** — Every renderer-binding (`react.ts`, `three.ts`, `examples/*`) gets a vitest-browser test rendering into Chromium with a committed PNG screenshot snapshot. RB-CI unblocked this 2026-05-27; the visual job now runs by default. Continuation work blocked on PR#10 merge so the visual harness baselines from a stable trunk. Once PR#10 lands: audit `react.ts` + `three.ts` exported behaviors, add per-behavior browser tests with snapshot PNGs.
 
 ### Phase F-Site — docs-site continuation
 
-- [ ] **F-Audit-7b-equiv** — Migrate the six `docs/guides/*.md` legacy files into `docs-site/src/content/docs/guides/` with redirect notes. Skipped at 1.0 stabilization time (F-Audit-7b cancelled — those paths are load-bearing in `src/scenario/catalog.ts`). Address via dual-write: keep the `docs/guides/*.md` paths as internal metadata, add canonical guide pages under `docs-site/` with cross-links. Each file = one commit.
+- [ ] [WAIT] **F-Audit-7b-equiv** — Migrate the six `docs/guides/*.md` legacy files into `docs-site/src/content/docs/guides/` with redirect notes. Skipped at 1.0 stabilization time (F-Audit-7b cancelled — those paths are load-bearing in `src/scenario/catalog.ts`). Blocked on PR#10 merge so the docs-site site map is rebuilt against a stable trunk. Address via dual-write once unblocked: keep the `docs/guides/*.md` paths as internal metadata, add canonical guide pages under `docs-site/` with cross-links. Each file = one commit.
 
 ## Self-assessment after each commit
 

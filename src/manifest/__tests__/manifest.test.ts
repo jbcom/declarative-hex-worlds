@@ -180,6 +180,50 @@ describe('free manifest', () => {
     ).toContain('manifest.source_pack_edition_mismatch');
   });
 
+  it('reports asset_field + asset_array_field for malformed asset (E0a)', () => {
+    const manifest = manifestFixture('free', []);
+    const malformed = {
+      id: 'malformed',
+      category: 'tiles',
+      textureSet: 'default',
+      edition: 'free',
+      // Missing subcategory/family/modelPath/sourcePath (non-empty strings).
+      // Missing bufferPaths/texturePaths/materialSlots (arrays).
+      bounds: { min: [0, 0, 0], max: [1, 1, 1], size: [1, 1, 1] },
+      fileSizeBytes: 0,
+    };
+    const codes = validateMedievalHexagonManifest({
+      ...manifest,
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately-malformed asset
+      assets: [malformed as any],
+    }).map((i) => i.code);
+    expect(codes).toContain('manifest.asset_field');
+    expect(codes).toContain('manifest.asset_array_field');
+  });
+
+  it('reports invalid textureSet entries (E0a)', () => {
+    const manifest = manifestFixture('free', [
+      assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const codes = validateMedievalHexagonManifest({
+      ...manifest,
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid textureSet
+      textureSets: ['default', 'not-a-supported-texture-set' as any],
+    }).map((i) => i.code);
+    expect(codes).toContain('manifest.texture_set');
+  });
+
+  it('reports non-object asset entries + missing asset id (E0a)', () => {
+    const manifest = manifestFixture('free', []);
+    const codes = validateMedievalHexagonManifest({
+      ...manifest,
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid asset entry
+      assets: [42 as any, { /* no id */ } as any],
+    }).map((i) => i.code);
+    expect(codes).toContain('manifest.asset_object');
+    expect(codes).toContain('manifest.asset_id');
+  });
+
   it('inspectMedievalHexagonManifest rejects non-object input + missing assets array (PRD E0g)', () => {
     // Non-object → manifest.object error.
     const fromString = inspectMedievalHexagonManifest('not an object');
@@ -232,13 +276,49 @@ describe('selectManifestAssets filter branches (PRD E0h)', () => {
 
   it('rejects assets missing a faction when factions filter is set', () => {
     // Some FREE assets have faction undefined; the filter should exclude them.
-    const result = selectManifestAssets(freeManifest, { factions: ['neutral'] });
-    expect(result.every((a) => a.faction === 'neutral')).toBe(true);
+    const result = selectManifestAssets(freeManifest, { factions: ['blue'] });
+    expect(result.every((a) => a.faction === 'blue')).toBe(true);
   });
 
   it('rejects assets missing a unitStyle when unitStyles filter is set', () => {
     const result = selectManifestAssets(freeManifest, { unitStyles: ['accent'] });
     expect(result.every((a) => a.unitStyle === 'accent')).toBe(true);
+  });
+});
+
+describe('createManifestBundle duplicatePreference variants (PRD E0a)', () => {
+  it('prefers the first occurrence when duplicatePreference="first"', () => {
+    const free = manifestFixture('free', [
+      assetFixture({ id: 'shared', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const extra = manifestFixture('extra', [
+      assetFixture({ id: 'shared', edition: 'extra', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const bundle = createManifestBundle([free, extra], { duplicatePreference: 'first' });
+    expect(getManifestAsset(bundle, 'shared')?.edition).toBe('free');
+  });
+
+  it('prefers the last occurrence when duplicatePreference="last"', () => {
+    const free = manifestFixture('free', [
+      assetFixture({ id: 'shared', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const extra = manifestFixture('extra', [
+      assetFixture({ id: 'shared', edition: 'extra', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const bundle = createManifestBundle([free, extra], { duplicatePreference: 'last' });
+    expect(getManifestAsset(bundle, 'shared')?.edition).toBe('extra');
+  });
+
+  it('prefers the FREE edition when duplicatePreference="free" (E0a)', () => {
+    const free = manifestFixture('free', [
+      assetFixture({ id: 'shared', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const extra = manifestFixture('extra', [
+      assetFixture({ id: 'shared', edition: 'extra', category: 'tiles', subcategory: 'base' }),
+    ]);
+    // Insert extra first so the duplicate-pref branch fires (existing.edition !== 'free' && next.edition === 'free').
+    const bundle = createManifestBundle([extra, free], { duplicatePreference: 'free' });
+    expect(getManifestAsset(bundle, 'shared')?.edition).toBe('free');
   });
 });
 

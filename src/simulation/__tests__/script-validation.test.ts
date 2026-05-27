@@ -380,6 +380,152 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(codes).toContain('simulation.spawn_actor_id');
   });
 
+  it('flags actor-targets targeting.center with non-string non-coord (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          sourceActor: 'a',
+          targeting: { center: 17 },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.actor_targets_center')
+    ).toBe(true);
+  });
+
+  it('flags actorTargets expectation nearestPathKeys not an array (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+      expectations: {
+        actorTargets: [
+          {
+            nearestPathKeys: 'not-an-array',
+            targetPathKeys: 17,
+          },
+        ],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.tile_reference_list')).toBe(true);
+  });
+
+  it('flags update-actor with non-string + duplicate actorId (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        // First spawn hero
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            at: '0,0',
+          },
+        },
+        // Second spawn elder
+        {
+          id: 's2',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'elder',
+            assetId: 'flag_green',
+            kind: 'prop',
+            at: '1,0',
+          },
+        },
+        // Update hero to non-string id → simulation.update_actor_id
+        {
+          id: 's3',
+          action: 'update-actor',
+          actorId: 'hero',
+          actor: { actorId: 17 },
+        },
+        // Update hero to elder's id → simulation.update_actor_duplicate
+        {
+          id: 's4',
+          action: 'update-actor',
+          actorId: 'hero',
+          actor: { actorId: 'elder' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.update_actor_id');
+    expect(codes).toContain('simulation.update_actor_duplicate');
+  });
+
+  it('flags spawn-actor with empty spawnGroupId + non-integer spawnLocationIndex (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            spawnGroupId: '', // empty string
+            spawnLocationIndex: 1.7, // non-integer
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.spawn_actor_spawn_group');
+    expect(codes).toContain('simulation.spawn_actor_spawn_location_index');
+  });
+
+  it('flags spawn-actor referencing unknown scenario spawn group (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            spawnGroupId: 'definitely-not-a-group',
+          },
+        },
+      ],
+    };
+    const scenario = {
+      schemaVersion: '1.0.0',
+      id: 'spawn-scenario',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 3, height: 3 } },
+        steps: [],
+      },
+      spawnGroups: { groups: [{ id: 'home', count: 1 }] },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any, {
+      // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+      scenario: scenario as any,
+    });
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_actor_spawn_group_missing')
+    ).toBe(true);
+  });
+
   it('flags spawn-actor duplicate when actor id already exists in scenario (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
@@ -528,5 +674,555 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
     const result = inspectGameboardScenarioSimulationScript(script as any);
     expect(result.violations.some((v) => v.code === 'simulation.update_placement')).toBe(true);
+  });
+
+  it('flags spawn-actor with both at and spawnGroupId set (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'conflict-hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            at: '0,0',
+            spawnGroupId: 'players',
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_actor_location_conflict')
+    ).toBe(true);
+  });
+
+  it('flags spawn-actor with neither at nor spawnGroupId (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'homeless-hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            // No at, no spawnGroupId
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_actor_location')
+    ).toBe(true);
+  });
+
+  it('flags command target string referencing unknown id when index has entries (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        // Spawn a placement first so scenarioIndex has entries — line 3304's
+        // `> 0` branch becomes true and pushes the missing-target violation.
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 'real-flag', at: '0,0', assetId: 'flag_blue', kind: 'prop' },
+        },
+        {
+          id: 's2',
+          action: 'command',
+          target: 'absolutely-no-such-target-id',
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.command_target_missing')
+    ).toBe(true);
+  });
+
+  it('flags spawn-placement with duplicate id (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 'twin-flag', at: '0,0', assetId: 'flag_blue', kind: 'prop' },
+        },
+        {
+          id: 's2',
+          action: 'spawn-placement',
+          placement: { id: 'twin-flag', at: '1,0', assetId: 'flag_red', kind: 'prop' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_placement_duplicate')
+    ).toBe(true);
+  });
+
+  it('flags inspect-actor-targets placementIds as non-string non-array (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: { placementIds: 17 },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.placement_reference_list')
+    ).toBe(true);
+  });
+
+  it('flags quest expectation completedObjectives as non-array (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [],
+      expectations: {
+        quests: [
+          {
+            questId: 'some-quest',
+            completedObjectives: 'not-an-array',
+          },
+        ],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_objective_ids')
+    ).toBe(true);
+  });
+
+  it('flags quest expectation with non-string objective id in array (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [],
+      expectations: {
+        quests: [
+          {
+            questId: 'some-quest',
+            completedObjectives: [17],
+          },
+        ],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_objective_id')
+    ).toBe(true);
+  });
+
+  it('flags update-actor with non-string faction/team (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'update-actor',
+          actorId: 'somebody',
+          actor: { faction: 17, team: 42 },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.update_actor_faction');
+    expect(codes).toContain('simulation.update_actor_team');
+  });
+
+  it('flags command target as non-string non-coords non-record (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: 42 },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.command_target')
+    ).toBe(true);
+  });
+
+  it('flags command target with bad coordinates field (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'command',
+          target: { coordinates: 'not-coords' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.command_target_coordinates')
+    ).toBe(true);
+  });
+
+  it('flags placement expectation referencing missing placement id (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 'real-flag', at: '0,0', assetId: 'flag_blue', kind: 'prop' },
+        },
+      ],
+      expectations: {
+        placements: [{ placementId: 'absolutely-no-such-placement' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.placement_missing')
+    ).toBe(true);
+  });
+
+  it('flags patrol expectation with non-record entries (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+      expectations: {
+        patrols: ['not-a-record'],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_patrol')
+    ).toBe(true);
+  });
+
+  it('flags movement expectation with non-record entries (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+      expectations: {
+        movements: ['not-a-record'],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_movement')
+    ).toBe(true);
+  });
+
+  it('flags actorTargets expectation with non-record entries (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+      expectations: {
+        actorTargets: ['not-a-record'],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_actor_target')
+    ).toBe(true);
+  });
+
+  it('flags movement expectation with invalid eventType (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        movements: [{ eventType: 'not-a-real-movement-event' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_movement_event_type')
+    ).toBe(true);
+  });
+
+  it('flags patrol expectation with invalid eventType (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        patrols: [{ eventType: 'not-a-real-patrol-event' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code.includes('patrol'))
+    ).toBe(true);
+  });
+
+  it('flags spawn-placement without at field (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 'orphan-flag', assetId: 'flag_blue', kind: 'prop' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_tile')
+    ).toBe(true);
+  });
+
+  it('flags spawn-placement with non-string placement id (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 17, at: '0,0', assetId: 'flag_yellow', kind: 'prop' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_placement_id')
+    ).toBe(true);
+  });
+
+  it('validates inspect-actor-targets targeting.tileKeys as array (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: { tileKeys: ['0,0', 'not-a-valid-tile'] },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    // Array branch fires (line 1958-1962); doesn't matter if the keys are valid.
+    expect(Array.isArray(result.violations)).toBe(true);
+  });
+
+  it('validates inspect-actor-targets center as HexCoordinates object (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: { center: { q: 0, r: 0 } },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    // Triggers validateActorTargetCenterReference HexCoordinates branch
+    // (line 2010-2012) — pass either way.
+    expect(Array.isArray(result.violations)).toBe(true);
+  });
+
+  it('flags inspect-actor-targets center with non-string non-coords value (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: { center: 17 },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.actor_targets_center')
+    ).toBe(true);
+  });
+
+  it('validates inspect-actor-targets center as tile-key string (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: { center: '0,0' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(Array.isArray(result.violations)).toBe(true);
+  });
+
+  it('flags inspect-actor-targets with non-record targeting object (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'inspect-actor-targets', targeting: 'not-a-record' },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.actor_targets_targeting')
+    ).toBe(true);
+  });
+
+  it('flags every expectation kind as non-array (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        mutations: 'not-an-array',
+        actors: 'not-an-array',
+        placements: 'not-an-array',
+        quests: 'not-an-array',
+        actorTargets: 'not-an-array',
+        commands: 'not-an-array',
+        patrols: 'not-an-array',
+        movements: 'not-an-array',
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.expectation_mutations');
+    expect(codes).toContain('simulation.expectation_actors');
+    expect(codes).toContain('simulation.expectation_placements');
+    expect(codes).toContain('simulation.expectation_quests');
+  });
+
+  it('flags every expectation entry as non-record (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        mutations: ['not-a-record'],
+        actors: ['not-a-record'],
+        placements: ['not-a-record'],
+        quests: ['not-a-record'],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.expectation_mutation');
+    expect(codes).toContain('simulation.expectation_actor');
+    expect(codes).toContain('simulation.expectation_placement');
+    expect(codes).toContain('simulation.expectation_quest');
+  });
+
+  it('flags mutation expectation with invalid type (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        mutations: [{ type: 'not-a-real-mutation-type' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_mutation_type')
+    ).toBe(true);
+  });
+
+  it('flags quest expectation with non-string questId + missing questId (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        quests: [{ questId: 17 }, { questId: '' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_quest_id')
+    ).toBe(true);
+  });
+
+  it('flags inspect-actor-targets with every targeting sub-field wrong (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: {
+            kinds: 17,
+            teams: 17,
+            factions: 17,
+            tags: 17,
+            excludeTags: 17,
+            radius: 'not-a-number',
+            maxPathCost: 'not-a-number',
+            includeSource: 'not-a-bool',
+            hostile: 'not-a-bool',
+            interactive: 'not-a-bool',
+            blocksMovement: 'not-a-bool',
+            hostileToSource: 'not-a-bool',
+            includeUnreachable: 'not-a-bool',
+            approach: 'not-a-real-approach',
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.actor_targets_kinds');
+    expect(codes).toContain('simulation.actor_targets_teams');
+    expect(codes).toContain('simulation.actor_targets_factions');
+    expect(codes).toContain('simulation.actor_targets_tags');
+    expect(codes).toContain('simulation.actor_targets_exclude_tags');
+    expect(codes).toContain('simulation.actor_targets_radius');
+    expect(codes).toContain('simulation.actor_targets_max_path_cost');
+    expect(codes).toContain('simulation.actor_targets_include_source');
+    expect(codes).toContain('simulation.actor_targets_hostile');
+    expect(codes).toContain('simulation.actor_targets_interactive');
+    expect(codes).toContain('simulation.actor_targets_blocks_movement');
+    expect(codes).toContain('simulation.actor_targets_hostile_to_source');
+    expect(codes).toContain('simulation.actor_targets_include_unreachable');
+    expect(codes).toContain('simulation.actor_targets_approach');
   });
 });

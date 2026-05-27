@@ -65,6 +65,7 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
     };
     const plan = createGameboardPatrolSimulationSteps({
       // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-1', actorId: 'guard-1' }],
     });
@@ -82,10 +83,95 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
     };
     const plan = createGameboardPatrolSimulationSteps({
       // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-empty', actorId: 'guard-1' }],
     });
     expect(plan.warnings.some((w) => w.includes('has no movement segments'))).toBe(true);
+  });
+
+  it('records warnings (not errors) for unfound segments when requireFoundRoutes=false (E0a)', () => {
+    const route: GameboardPatrolPlannedRoute = {
+      id: 'route-unfound',
+      waypointKeys: ['0,0', '1,0'],
+      loop: false,
+      found: true,
+      segments: [
+        // biome-ignore lint/suspicious/noExplicitAny: minimal fixture
+        { fromIndex: 0, toIndex: 1, fromKey: '0,0', toKey: '1,0', found: false } as any,
+      ],
+      segmentCosts: [1],
+    };
+    const plan = createGameboardPatrolSimulationSteps({
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
+      routes: [route as any],
+      assignments: [{ routeId: 'route-unfound', actorId: 'guard-1' }],
+      requireFoundRoutes: false,
+    });
+    expect(plan.warnings.some((w) => w.includes('has no passable path'))).toBe(true);
+  });
+
+  it('records errors when segment has no destination waypoint and requireFoundRoutes=true (E0a)', () => {
+    const route: GameboardPatrolPlannedRoute = {
+      id: 'route-no-dest',
+      waypointKeys: ['0,0', '1,0'],
+      loop: false,
+      found: true,
+      segments: [
+        // biome-ignore lint/suspicious/noExplicitAny: minimal fixture
+        { fromIndex: 0, toIndex: 1, fromKey: '0,0', toKey: undefined, found: false } as any,
+      ],
+      segmentCosts: [1],
+    };
+    const plan = createGameboardPatrolSimulationSteps({
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
+      routes: [route as any],
+      assignments: [{ routeId: 'route-no-dest', actorId: 'guard-1' }],
+      requireFoundRoutes: true,
+    });
+    expect(plan.errors.some((e) => e.includes('has no destination waypoint'))).toBe(true);
+  });
+
+  it('records warning when segment has no destination waypoint and requireFoundRoutes=false (E0a)', () => {
+    const route: GameboardPatrolPlannedRoute = {
+      id: 'route-no-dest-warn',
+      waypointKeys: ['0,0', '1,0'],
+      loop: false,
+      found: true,
+      segments: [
+        // biome-ignore lint/suspicious/noExplicitAny: minimal fixture
+        { fromIndex: 0, toIndex: 1, fromKey: '0,0', toKey: undefined, found: false } as any,
+      ],
+      segmentCosts: [1],
+    };
+    const plan = createGameboardPatrolSimulationSteps({
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
+      routes: [route as any],
+      assignments: [{ routeId: 'route-no-dest-warn', actorId: 'guard-1' }],
+      requireFoundRoutes: false,
+    });
+    expect(plan.warnings.some((w) => w.includes('has no destination waypoint'))).toBe(true);
+  });
+
+  it('records error when segment is not found and requireFoundRoutes=true (E0a)', () => {
+    const route: GameboardPatrolPlannedRoute = {
+      id: 'route-unfound-strict',
+      waypointKeys: ['0,0', '1,0'],
+      loop: false,
+      found: true,
+      segments: [
+        // biome-ignore lint/suspicious/noExplicitAny: minimal fixture
+        { fromIndex: 0, toIndex: 1, fromKey: '0,0', toKey: '1,0', found: false } as any,
+      ],
+      segmentCosts: [1],
+    };
+    const plan = createGameboardPatrolSimulationSteps({
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
+      routes: [route as any],
+      assignments: [{ routeId: 'route-unfound-strict', actorId: 'guard-1' }],
+      requireFoundRoutes: true,
+    });
+    expect(plan.errors.some((e) => e.includes('has no passable path'))).toBe(true);
   });
 
   it('clamps roundCount to >=1 when rounds is undefined or zero', () => {
@@ -98,13 +184,13 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
       segmentCosts: [],
     };
     const planZero = createGameboardPatrolSimulationSteps({
-      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-clamp', actorId: 'guard-1', rounds: 0 }],
     });
     expect(planZero.assignments[0]?.roundCount).toBe(1);
     const planNeg = createGameboardPatrolSimulationSteps({
-      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       // biome-ignore lint/suspicious/noExplicitAny: deliberate negative
       assignments: [{ routeId: 'route-clamp', actorId: 'guard-1', rounds: -3 } as any],

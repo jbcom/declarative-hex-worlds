@@ -142,4 +142,25 @@ describe('external asset compatibility', () => {
     expect(report.placement.layer).toBe('structure');
     expect(report.placement.kind).toBe('structure');
   });
+
+  it('reports hex footprint shape for hex-ratio bounds (E0a)', () => {
+    // width/depth ≈ 2/2.3094 = 0.866 → footprint shape 'hex' (line 435-436).
+    const report = analyzeExternalAssetCompatibility({
+      id: 'hex-shape',
+      sourcePack: 'test',
+      bounds: { min: [-1, 0, -1.1547], max: [1, 0.1, 1.1547], size: [2, 0.1, 2.3094] },
+    });
+    expect(report.tile).toBeDefined();
+  });
+
+  it('handles -x modelForward axis (E0a)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'axis-neg-x',
+      sourcePack: 'test',
+      bounds: { min: [-0.5, 0, -0.5], max: [0.5, 1, 0.5], size: [1, 1, 1] },
+      modelForward: '-x',
+    });
+    // Hits modelForwardYaw '-x' branch at line 454.
+    expect(report.placement.rotationRadians).toBeDefined();
+  });
 });

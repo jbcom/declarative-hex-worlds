@@ -8,6 +8,7 @@ import {
   createGameboardInteractionHandlerPreset,
   createMarkTargetActorInteractedHandler,
   createRemoveTargetActorHandler,
+  createRemoveTargetPlacementHandler,
   executeGameboardInteractionCommand,
   gameboardCommandActions,
   isGameboardInteractionHandlerPreset,
@@ -429,5 +430,66 @@ describe('gameboard interaction commands', () => {
       approach: 'nearest',
     });
     expect(targetPlan).toBeDefined();
+  });
+});
+
+describe('createRemoveTargetPlacementHandler factory (PRD E0a)', () => {
+  it('returns a callable handler with the configured handlerId', () => {
+    // The factory branch (commands.ts ~526) is uncovered. Direct
+    // construction + identity-of-shape assertion is enough to exercise it
+    // without wiring a full command pipeline.
+    const handler = createRemoveTargetPlacementHandler({ handlerId: 'custom-id' });
+    expect(typeof handler).toBe('function');
+  });
+});
+
+describe('commandHandlerMutations placement-updated mapping (PRD E0a)', () => {
+  it('maps placement-updated effects from a host-supplied handler', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'cmd-placement-updated',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    spawnGameboardActor(world, {
+      id: 'hero-placement',
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      id: 'merchant-placement',
+      actorId: 'merchant',
+      actorKind: 'npc',
+      interactive: true,
+      at: '1,0',
+      assetId: 'flag_yellow',
+      kind: 'unit',
+    });
+
+    // Custom handler that emits a `placement-updated` effect — exercises
+    // engine.ts commandHandlerMutations switch-arm 'placement-updated'
+    // (lines 491-496).
+    // biome-ignore lint/suspicious/noExplicitAny: minimal handler shape
+    const handler: any = () => ({
+      handlerId: 'manual-placement-mutator',
+      status: 'handled' as const,
+      effects: [
+        {
+          type: 'placement-updated' as const,
+          placementId: 'merchant-placement',
+          updated: true,
+          reason: 'test',
+        },
+      ],
+    });
+    const result = executeGameboardInteractionCommand(
+      world,
+      { actorId: 'merchant' },
+      { sourceActor: 'hero', handlers: handler }
+    );
+    expect(result.effects?.some((effect) => effect.type === 'placement-updated')).toBe(true);
   });
 });

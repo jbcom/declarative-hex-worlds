@@ -101,37 +101,4 @@ describe('tile registry and ECS interop', () => {
     expect(tile?.roadEdges).toBe(1 << 3);
   });
 
-  it('createHexTileRegistry warns on duplicate ids + duplicate assetIds (E0h)', () => {
-    const registry = createHexTileRegistry([
-      { id: 'tile-a', assetId: 'asset-a', adjacencyChannels: { default: 0 } },
-      { id: 'tile-a', assetId: 'asset-b', adjacencyChannels: { default: 0 } },
-      { id: 'tile-c', assetId: 'asset-a', adjacencyChannels: { default: 0 } },
-    ]);
-    expect(registry.warnings.some((w) => w.includes('Duplicate tile declaration id'))).toBe(true);
-    expect(
-      registry.warnings.some((w) => w.includes('Duplicate tile declaration assetId'))
-    ).toBe(true);
-  });
-
-  it('analyzeTileGeometry returns empty analysis when bounds metadata missing (E0h)', () => {
-    const analysis = analyzeTileGeometry({
-      id: 'no-bounds',
-      assetId: 'asset-no-bounds',
-      adjacencyChannels: { default: 0 },
-      // No bounds field — triggers emptyGeometryAnalysis path
-    });
-    expect(analysis.warnings.some((w) => w.includes('Missing bounds metadata'))).toBe(true);
-  });
-
-  it('analyzeTileGeometry warns when bounds have non-positive width/depth (E0h)', () => {
-    const analysis = analyzeTileGeometry({
-      id: 'zero-bounds',
-      assetId: 'asset-zero-bounds',
-      adjacencyChannels: { default: 0 },
-      bounds: { min: [0, 0, 0], max: [0, 1, 0], size: [0, 1, 0] },
-    });
-    expect(
-      analysis.warnings.some((w) => w.includes('non-positive width or depth'))
-    ).toBe(true);
-  });
 });

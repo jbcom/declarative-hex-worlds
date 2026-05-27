@@ -4,6 +4,7 @@ import {
   EnemyActorQuery,
   GameboardActor,
   HostileActorQuery,
+  areGameboardActorsHostile,
   InteractiveActorQuery,
   PlayerActorQuery,
   classifyGameboardPlacement,
@@ -738,18 +739,104 @@ describe('gameboard actor semantics', () => {
   });
 
   it('gameboardActorBlocksMovement reports true for blocking actor + structure layer (E0h)', () => {
-    const blockingActor = {
+    // biome-ignore lint/suspicious/noExplicitAny: minimal fixture for the helper
+    const blockingActor: any = {
       actorId: 'wall',
-      actorKind: 'prop' as const,
+      kind: 'prop',
       blocksMovement: true,
-      team: 'neutral' as const,
-      tags: [] as const,
+      team: 'neutral',
+      tags: [],
       metadata: {},
       interactive: false,
       hostile: false,
+      faction: undefined,
     };
     expect(
-      gameboardActorBlocksMovement(blockingActor, { kind: 'wall', layer: 'structure' })
+      gameboardActorBlocksMovement(blockingActor, { kind: 'wall', layer: 'structure' } as unknown as Parameters<typeof gameboardActorBlocksMovement>[1])
     ).toBe(true);
+  });
+});
+
+describe('gameboardActorActions register + navigationProfile (PRD E0a)', () => {
+  it('neighborhood accepts a hex-key string center (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'neighborhood-hexkey',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const actions = gameboardActorActions(world);
+    // No actor/placement at '1,0' — falls through to parseHexKey on the string.
+    const inspection = actions.neighborhood('1,0', { radius: 1 });
+    expect(inspection.tiles.length).toBeGreaterThan(0);
+  });
+
+  it('areGameboardActorsHostile returns false for undefined inputs (E0a)', () => {
+    expect(areGameboardActorsHostile(undefined, undefined)).toBe(false);
+  });
+
+  it('neighborhood accepts HexCoordinates center input (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'neighborhood-hex',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const actions = gameboardActorActions(world);
+    actions.spawn({
+      actorId: 'pivot',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    // Pass HexCoordinates object directly — resolveNeighborhoodCenter line 1464-1465.
+    const inspection = actions.neighborhood({ q: 1, r: 0 }, { radius: 1 });
+    expect(inspection.tiles.length).toBeGreaterThan(0);
+  });
+
+  it('register attaches actor traits to an existing placement', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'actor-register',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    const actions = gameboardActorActions(world);
+    // Spawn a placement directly (no actor), then register it.
+    const spawned = actions.spawn({
+      actorId: 'temp-hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    // Re-register the same placement entity with updated metadata to
+    // exercise the action wrapper around registerGameboardActor (line 710).
+    const registered = actions.register(spawned, {
+      actorId: 'temp-hero',
+      actorKind: 'player',
+      tags: ['re-registered'],
+    });
+    expect(registered).toBeDefined();
+  });
+
+  it('navigationProfile returns a profile keyed to the actor (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'actor-nav-profile',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const actions = gameboardActorActions(world);
+    actions.spawn({
+      actorId: 'scout',
+      actorKind: 'npc',
+      at: '0,0',
+      assetId: 'flag_yellow',
+      kind: 'unit',
+    });
+    const profile = actions.navigationProfile('scout', {});
+    expect(profile).toBeDefined();
   });
 });

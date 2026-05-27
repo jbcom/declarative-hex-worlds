@@ -484,3 +484,60 @@ describe('board-aware navigation and occupancy', () => {
     expect(routes.errors).toContain('guard-loop: Patrol route guard-loop is declared more than once');
   });
 });
+
+describe('findGameboardPath defensive returns (PRD E0a)', () => {
+  it('returns not-found when start or goal is off the plan', () => {
+    const plan = createGameboardBuilder({
+      seed: 'path-oob',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    expect(findGameboardPath(plan, '99,99', '0,0').found).toBe(false);
+    expect(findGameboardPath(plan, '0,0', '99,99').found).toBe(false);
+  });
+
+});
+
+describe('planGameboardSpawnGroups validation branches (PRD E0a)', () => {
+  it('errors when a spawn group has an empty id', () => {
+    const plan = createGameboardBuilder({
+      seed: 'spawn-no-id',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    const spawns = planGameboardSpawnGroups(plan, {
+      seed: 'spawn-no-id-seed',
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately-missing id
+      groups: [{ id: '' as any, count: 1 }],
+    });
+    expect(spawns.errors.some((e) => e.includes('Spawn group id must be a non-empty string'))).toBe(true);
+  });
+
+  it('errors when a spawn group cannot fulfill its requested count', () => {
+    const plan = createGameboardBuilder({
+      seed: 'spawn-undersupply',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    }).build();
+    const spawns = planGameboardSpawnGroups(plan, {
+      seed: 'spawn-undersupply-seed',
+      groups: [{ id: 'all', count: 5 }],
+    });
+    expect(spawns.errors.some((e) => e.includes('selected'))).toBe(true);
+  });
+});
+
+describe('reachableGameboardTiles defensive branches (PRD E0a)', () => {
+  it('returns [] when movementBudget is negative', () => {
+    const plan = createGameboardBuilder({
+      seed: 'reach-neg',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    expect(reachableGameboardTiles(plan, '0,0', -1)).toEqual([]);
+  });
+
+  it('returns [] when start tile is not in the plan', () => {
+    const plan = createGameboardBuilder({
+      seed: 'reach-missing-start',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    expect(reachableGameboardTiles(plan, '99,99', 5)).toEqual([]);
+  });
+});

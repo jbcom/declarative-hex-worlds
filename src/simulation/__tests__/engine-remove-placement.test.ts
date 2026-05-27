@@ -55,6 +55,58 @@ describe('engine sourceActor-required short-circuits (PRD E0a)', () => {
   });
 });
 
+describe('update-actor + update-placement mutation records (PRD E0a)', () => {
+  it('records actor-updated mutation after update-actor step', () => {
+    const result = runGameboardScenarioSimulation(minimalScenario, [
+      {
+        action: 'spawn-actor',
+        id: 'spawn-hero',
+        actor: {
+          actorId: 'hero',
+          assetId: 'flag_blue',
+          kind: 'unit',
+          at: '0,0',
+        },
+        systems: false,
+      },
+      {
+        action: 'update-actor',
+        id: 'rename-hero',
+        actorId: 'hero',
+        actor: { actorMetadata: { mood: 'happy' } },
+        systems: false,
+      },
+    ]);
+    const mutation = result.steps[1]?.mutations?.[0];
+    expect(mutation?.type).toBe('actor-updated');
+  });
+
+  it('records placement-updated mutation after update-placement step', () => {
+    const result = runGameboardScenarioSimulation(minimalScenario, [
+      {
+        action: 'spawn-placement',
+        id: 'spawn-flag',
+        placement: {
+          id: 'flag-1',
+          at: '0,0',
+          assetId: 'flag_yellow',
+          kind: 'prop',
+        },
+        systems: false,
+      },
+      {
+        action: 'update-placement',
+        id: 'paint-flag',
+        placementId: 'flag-1',
+        placement: { metadata: { color: 'red' } },
+        systems: false,
+      },
+    ]);
+    const mutation = result.steps[1]?.mutations?.[0];
+    expect(mutation?.type).toBe('placement-updated');
+  });
+});
+
 describe('runRemovePlacementStep (PRD E0a)', () => {
   it('removes a placement that was spawned earlier in the script', () => {
     const result = runGameboardScenarioSimulation(minimalScenario, [
@@ -129,5 +181,37 @@ describe('runRemovePlacementStep (PRD E0a)', () => {
     ]);
 
     expect(result.steps[1]?.systems).toBeDefined();
+  });
+});
+
+describe('runSimulationStep + assertNever default (PRD E0a)', () => {
+  it('throws GameboardRuntimeError for unknown step action', () => {
+    expect(() =>
+      runGameboardScenarioSimulation(minimalScenario, [
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid action
+        { action: 'definitely-not-a-real-action' } as any,
+      ])
+    ).toThrow(/unreachable simulation step action/);
+  });
+});
+
+describe('resolveSimulationSpawnActor missing spawn target (PRD E0a)', () => {
+  it('throws GameboardRuntimeError when spawn-actor has neither at nor spawnGroupId', () => {
+    expect(() =>
+      runGameboardScenarioSimulation(minimalScenario, [
+        {
+          action: 'spawn-actor',
+          id: 'spawn-orphan',
+          actor: {
+            actorId: 'orphan',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            // No `at`, no `spawnGroupId` — triggers resolveSimulationSpawnActor throw branch
+            // biome-ignore lint/suspicious/noExplicitAny: deliberately-incomplete scenario actor
+          } as any,
+          systems: false,
+        },
+      ])
+    ).toThrow(/has no spawn tile or spawn group/);
   });
 });

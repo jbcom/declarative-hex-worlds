@@ -475,19 +475,51 @@ describe('serializable gameboard recipes', () => {
       },
       [
         { action: 'addBridge', at: { q: 1, r: 0 }, facing: 1 },
-        { action: 'addFortification', at: { q: 2, r: 0 }, faction: 'blue', kind: 'wall' },
-        { action: 'addConstructionSite', at: { q: 3, r: 0 }, faction: 'blue' },
-        { action: 'addSiegeProjectile', at: { q: 4, r: 0 }, faction: 'blue', kind: 'catapult' },
+        { action: 'addFortification', at: { q: 2, r: 0 }, material: 'wall' },
+        { action: 'addConstructionSite', at: { q: 3, r: 0 } },
+        { action: 'addSiegeProjectile', at: { q: 4, r: 0 }, kind: 'catapult' },
         { action: 'addElevationRamp', at: { q: 5, r: 0 }, facing: 1 },
         {
           action: 'addProp',
           at: { q: 0, r: 1 },
           assetId: 'flag_blue',
-          kind: 'prop',
         },
       ]
     );
     const plan = createGameboardPlanFromRecipe(recipe);
     expect(plan.placements.length).toBeGreaterThan(5);
+  });
+
+  it('dispatches addNeutralStructure / addNature / addPlacement / addUnit / scatterDecorations (E0a)', () => {
+    const recipe = createGameboardRecipe(
+      {
+        seed: 'recipe-dispatch-coverage',
+        shape: { kind: 'rectangle', width: 8, height: 8 },
+      },
+      [
+        { action: 'addNeutralStructure', at: { q: 0, r: 0 }, structure: 'building_destroyed' },
+        { action: 'addNature', at: { q: 1, r: 0 }, assetId: 'tree_single_A' },
+        {
+          action: 'addPlacement',
+          at: { q: 2, r: 0 },
+          assetId: 'tree_single_A',
+          kind: 'decoration',
+          layer: 'feature',
+        },
+        {
+          action: 'addUnit',
+          at: { q: 3, r: 0 },
+          part: 'unit',
+          faction: 'blue',
+        },
+        {
+          action: 'scatterDecorations',
+          assets: ['tree_single_A'],
+          count: 2,
+        },
+      ]
+    );
+    const plan = createGameboardPlanFromRecipe(recipe);
+    expect(plan.placements.length).toBeGreaterThan(0);
   });
 });

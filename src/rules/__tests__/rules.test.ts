@@ -468,7 +468,7 @@ describe('Koota rules and seeded generation', () => {
       seed: 'tiny-road',
       shape: { kind: 'rectangle', width: 1, height: 1 },
     })
-      .addRoadPath({ key: '0,0', edges: [1] })
+      .addRoadPath([{ q: 0, r: 0 }])
       .build();
     const violations = validateGameboardPlan(plan);
     // Default profile is permissive — no errors for off-board edges.

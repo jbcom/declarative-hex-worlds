@@ -133,4 +133,12 @@ describe('tile selectors', () => {
       /Unknown coast guide label/
     );
   });
+
+  it('selectRoadVariant throws when mask has no canonical variant (E0a)', () => {
+    // 0b111111 (all edges) is not a canonical road variant — road variants
+    // cover 1, 2, or 3 edges in specific patterns.
+    expect(() => selectRoadVariant([0, 1, 2, 3, 4, 5])).toThrow(
+      /No road variant covers edge mask/
+    );
+  });
 });

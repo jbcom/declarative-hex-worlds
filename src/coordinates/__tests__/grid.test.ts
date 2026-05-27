@@ -74,4 +74,15 @@ describe('grid helpers', () => {
     expect(first).toHaveLength(3);
     expect(first[0]?.position).toEqual(system.toWorld(first[0]?.coordinates ?? { q: 0, r: 0 }));
   });
+
+  it('fromWorld + findPath wrappers fire on the coordinate system (E0a)', () => {
+    const system = createGameboardCoordinateSystem();
+    // fromWorld inverse — picks the axial coord closest to a world position.
+    const round = system.fromWorld(system.toWorld({ q: 2, r: 1 }));
+    expect(round.q).toBe(2);
+    expect(round.r).toBe(1);
+    // findPath wrapper — driver for findHexPath at line 193.
+    const path = system.findPath({ q: 0, r: 0 }, { q: 2, r: 0 }, {});
+    expect(path.found).toBe(true);
+  });
 });

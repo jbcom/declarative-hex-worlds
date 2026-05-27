@@ -847,11 +847,142 @@ describe('gameboard scenarios', () => {
         schemaVersion: '1.0.0',
         options: { seed: 'x', shape: { kind: 'rectangle', width: 2, height: 2 } },
         // biome-ignore lint/suspicious/noExplicitAny: deliberately invalid action
-        steps: [{ action: 'not-a-real-recipe-action' as any }],
+        steps: [{ action: 'not-a-real-recipe-action' } as any],
       },
     });
     expect(
       inspection.violations.some((v) => v.code === 'scenario.board_compile_failed')
     ).toBe(true);
+  });
+
+  it('reports actor with negative spawnLocationIndex (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'bad-spawn-index',
+      shape: { kind: 'rectangle', width: 3, height: 2 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-spawn-index', board, {
+      spawnGroups: {
+        groups: [{ id: 'guards', count: 2 }],
+      },
+      actors: [
+        {
+          actorId: 'guard-1',
+          actorKind: 'npc',
+          spawnGroupId: 'guards',
+          // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid index
+          spawnLocationIndex: -1 as any,
+          assetId: 'flag_green',
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_spawn_location_index');
+  });
+
+  it('reports quest with empty id + duplicate quest id (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'bad-quest-ids',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-quest-ids', board, {
+      quests: [
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately-empty id
+        { id: '' as any, objectives: [] },
+        { id: 'twin', objectives: [] },
+        { id: 'twin', objectives: [] },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.quest_id');
+    expect(codes).toContain('scenario.quest_duplicate');
+  });
+
+  it('reports actor missing assetId (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'no-asset',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:no-asset', board, {
+      actors: [
+        {
+          actorId: 'wraith',
+          actorKind: 'npc',
+          at: '0,0',
+          // biome-ignore lint/suspicious/noExplicitAny: deliberately-empty asset
+          assetId: '' as any,
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_asset');
+  });
+
+  it('reports actor missing kind (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'no-kind',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:no-kind', board, {
+      actors: [
+        {
+          actorId: 'kindless',
+          actorKind: 'npc',
+          at: '0,0',
+          assetId: 'flag_blue',
+          // biome-ignore lint/suspicious/noExplicitAny: deliberately-empty kind
+          kind: '' as any,
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_kind');
+  });
+
+  it('reports actor whose assetId is missing from the manifest catalog (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'bad-actor-asset',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-actor-asset', board, {
+      actors: [
+        {
+          actorId: 'mystery',
+          actorKind: 'npc',
+          at: '0,0',
+          assetId: 'not-a-real-asset',
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario, {
+      plan: { assetCatalog: freeManifest, requireExtraAssetFlags: false },
+    }).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_unknown_asset');
+  });
+
+  it('reports actor with out-of-range spawnLocationIndex (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'oor-spawn-index',
+      shape: { kind: 'rectangle', width: 3, height: 2 },
+    });
+    const scenario = createGameboardScenario('scenario:oor-spawn-index', board, {
+      spawnGroups: {
+        groups: [{ id: 'guards', count: 2 }],
+      },
+      actors: [
+        {
+          actorId: 'guard-1',
+          actorKind: 'npc',
+          spawnGroupId: 'guards',
+          spawnLocationIndex: 99,
+          assetId: 'flag_green',
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_spawn_location_missing');
   });
 });

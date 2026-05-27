@@ -393,10 +393,11 @@ describe('gameboard plan builder', () => {
 
   it('gameboardPlacementBlocksOccupancy honors ignorePlacementIds (E0h)', async () => {
     const { gameboardPlacementBlocksOccupancy } = await import('../../gameboard/occupancy');
-    const placement = {
+    // biome-ignore lint/suspicious/noExplicitAny: minimal fixture matching GameboardPlacementOccupancyLike
+    const placement: any = {
       id: 'wall-1',
-      kind: 'structure' as const,
-      layer: 'structure' as const,
+      kind: 'structure',
+      layer: 'structure',
       metadata: {},
     };
     // Default blocks.
@@ -415,11 +416,51 @@ describe('gameboard plan builder', () => {
     const beforeCount = builder.build().placements.length;
     const after = builder.addPropCluster({
       at: { q: 1, r: 1 },
-      kind: 'forest',
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture for the helper
+      kind: 'forest' as any,
       density: 0,
     });
     expect(after).toBe(builder);
     expect(after.build().placements.length).toBe(beforeCount);
   });
 
+});
+
+describe('addConstructionSite kind variants (PRD E0a)', () => {
+  it('emits asset placements for each construction kind', () => {
+    const builder = createGameboardBuilder({
+      seed: 'construction-variants',
+      shape: { kind: 'rectangle', width: 7, height: 1 },
+    });
+    const kinds = ['destroyed', 'dirt', 'grain', 'scaffolding', 'stage-A', 'stage-B', 'stage-C'] as const;
+    kinds.forEach((kind, index) => {
+      builder.addConstructionSite({ at: { q: index, r: 0 }, kind });
+    });
+    const plan = builder.build();
+    expect(plan.placements.length).toBeGreaterThanOrEqual(kinds.length);
+  });
+});
+
+describe('addUnitPreset role variants (PRD E0a)', () => {
+  it('adds correct parts for each unit role', () => {
+    const builder = createGameboardBuilder({
+      seed: 'unit-preset-roles',
+      shape: { kind: 'rectangle', width: 7, height: 1 },
+    });
+    // Each role triggers a different switch-branch in addUnitPreset (gameboard.ts 1314-1340).
+    const roles = ['worker', 'soldier', 'archer', 'cavalry', 'merchant', 'siege', 'ship'] as const;
+    roles.forEach((role, index) => {
+      builder.addUnitPreset({
+        at: { q: index, r: 0 },
+        faction: 'blue',
+        role,
+        style: 'full',
+      });
+    });
+    const plan = builder.build();
+    // Each preset contributes ≥1 placement; the unit base is always added,
+    // plus role-specific parts (1 for worker/merchant/siege/ship,
+    // 3 for soldier, 2 for archer/cavalry).
+    expect(plan.placements.length).toBeGreaterThan(roles.length);
+  });
 });

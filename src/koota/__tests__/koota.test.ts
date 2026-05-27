@@ -404,6 +404,9 @@ describe('Koota gameboard runtime', () => {
     const id = entity.get(PlacementState)?.id ?? '';
 
     expect(actions.canOccupyPlacement({ at: '0,0', kind: 'unit' })).toBe(true);
+    // Inspect occupancy via gameboardActions wrapper (line 352-353).
+    const inspection = actions.inspectPlacementOccupancy({ at: '0,0', kind: 'unit' });
+    expect(inspection).toBeDefined();
     actions.movePlacement(id, { q: 1, r: 1 });
     expect(findPlacementEntity(world, id)?.get(PlacementState)?.tileKey).toBe('1,1');
 

@@ -345,6 +345,12 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
     );
   });
 
+  it('bootstrap throws on invalid --source value (E0a)', async () => {
+    await expect(
+      runBootstrap({ command: 'bootstrap', flags: { source: 'magic' } }, '/x', 'free')
+    ).rejects.toThrow(/bootstrap --source must be/);
+  });
+
   it('bootstrap --source zip throws without --zip', async () => {
     await expect(
       runBootstrap({ command: 'bootstrap', flags: { source: 'zip' } }, '/x', 'free')
@@ -420,6 +426,24 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
     await expect(runExtract(parsed, '/nonexistent-extract-source', 'free')).rejects.toThrow(
       /Missing GLTF source directory/
     );
+  });
+
+  it('extract throws when destination is non-empty without --force (E0a)', async () => {
+    const { mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const outRel = `.test-tmp/extract-nonempty-${Date.now()}`;
+    const assetRoot = join(outRel, 'assets');
+    mkdirSync(assetRoot, { recursive: true });
+    writeFileSync(join(assetRoot, 'sentinel.txt'), 'pre-existing');
+    try {
+      const parsed: ParsedArgs = {
+        command: 'extract',
+        flags: { out: outRel },
+      };
+      await expect(runExtract(parsed, '/no-source', 'free')).rejects.toThrow(/not empty/);
+    } finally {
+      rmSync(outRel, { recursive: true, force: true });
+    }
   });
 
   it('declarations surfaces GameboardIoError when source root is missing', async () => {

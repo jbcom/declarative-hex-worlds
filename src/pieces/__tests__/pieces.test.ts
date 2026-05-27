@@ -668,6 +668,64 @@ describe('gameboard piece declarations', () => {
     });
     expect(fallback.role).toBe('prop');
   });
+
+  it('inferPieceRoleFromCompatibility returns unit when placement.kind is unit (E0a)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'generic-figure',
+      sourcePack: 'External Source',
+      // Generic id (no harbor/tree/rock/tower regex hit), intendedRole=unit → placement.kind='unit'
+      intendedRole: 'unit',
+      bounds: { min: [-0.25, 0, -0.25], max: [0.25, 1.5, 0.25], size: [0.5, 1.5, 0.5] },
+    });
+    const piece = declareGameboardPieceFromCompatibility(report);
+    expect(piece.role).toBe('unit');
+  });
+
+  it('inferPieceRoleFromCompatibility returns surface when placement.kind is terrain (E0a)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'generic-tile-pad',
+      sourcePack: 'External Source',
+      // Tile-compatible bounds + intendedRole=tile → placement.kind='terrain'
+      intendedRole: 'tile',
+      bounds: { min: [-1, 0, -1.1547], max: [1, 0.1, 1.1547], size: [2, 0.1, 2.3094] },
+    });
+    const piece = declareGameboardPieceFromCompatibility(report);
+    expect(piece.role).toBe('surface');
+  });
+
+  it('inferPieceRoleFromCompatibility returns scatter for rock/barrel ids (E0a)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'kaykit:rock_cluster_a',
+      sourcePack: 'External Source',
+      bounds: { min: [-0.2, 0, -0.2], max: [0.2, 0.3, 0.2], size: [0.4, 0.3, 0.4] },
+    });
+    const piece = declareGameboardPieceFromCompatibility(report);
+    expect(piece.role).toBe('scatter');
+  });
+
+  it('analyzeGameboardPieceRegistry warns on custom role (E0a)', () => {
+    // biome-ignore lint/suspicious/noExplicitAny: forced custom role for warning path
+    const piece = declareGameboardPiece({ id: 'custom-piece', assetId: 'custom-piece-asset', source: 'test', role: 'custom' as any });
+    const registry = createGameboardPieceRegistry([piece]);
+    const analysis = analyzeGameboardPieceRegistry(registry);
+    expect(analysis.warnings.some((w) => w.includes('custom role'))).toBe(true);
+  });
+
+  it('createGameboardLayoutFillRuleFromPieces throws on empty input (E0a)', () => {
+    expect(() => createGameboardLayoutFillRuleFromPieces([])).toThrow(
+      /requires at least one piece/
+    );
+  });
+
+  it('inferPieceRoleFromCompatibility falls back to prop for unknown ids (E0a)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'mystery-widget-xyz',
+      sourcePack: 'External Source',
+      bounds: { min: [-0.15, 0, -0.15], max: [0.15, 0.5, 0.15], size: [0.3, 0.5, 0.3] },
+    });
+    const piece = declareGameboardPieceFromCompatibility(report);
+    expect(piece.role).toBe('prop');
+  });
 });
 
 function createPieceFixturePlan() {
