@@ -758,6 +758,19 @@ describe('gameboard actor semantics', () => {
 });
 
 describe('gameboardActorActions register + navigationProfile (PRD E0a)', () => {
+  it('neighborhood accepts a hex-key string center (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'neighborhood-hexkey',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const actions = gameboardActorActions(world);
+    // No actor/placement at '1,0' — falls through to parseHexKey on the string.
+    const inspection = actions.neighborhood('1,0', { radius: 1 });
+    expect(inspection.tiles.length).toBeGreaterThan(0);
+  });
+
   it('areGameboardActorsHostile returns false for undefined inputs (E0a)', () => {
     expect(areGameboardActorsHostile(undefined, undefined)).toBe(false);
   });
