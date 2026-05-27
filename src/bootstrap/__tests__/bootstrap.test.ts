@@ -7,7 +7,7 @@
  * archive is present.
  */
 import { createHash } from 'node:crypto';
-import { createWriteStream, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createWriteStream, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import yazl from 'yazl';
@@ -165,10 +165,12 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     expect(sidecar.files.length).toBeGreaterThan(0);
     for (const entry of sidecar.files) {
       const absolute = join(outRoot, 'addons/kaykit_medieval_hexagon_pack', entry.path);
-      expect(existsSync(absolute)).toBe(true);
-      const actualSize = statSync(absolute).size;
-      expect(actualSize).toBe(entry.bytes);
-      const actualHash = createHash('sha256').update(readFileSync(absolute)).digest('hex');
+      // Single read covers existence + size + hash without the
+      // existsSync/stat/readFile time-of-check-time-of-use race
+      // CodeQL flags as js/file-system-race.
+      const contents = readFileSync(absolute);
+      expect(contents.byteLength).toBe(entry.bytes);
+      const actualHash = createHash('sha256').update(contents).digest('hex');
       expect(actualHash).toBe(entry.sha256);
     }
     // Files list is sorted.
