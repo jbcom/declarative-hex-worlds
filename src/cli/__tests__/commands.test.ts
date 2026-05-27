@@ -17,6 +17,7 @@ import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ParsedArgs } from '../_shared';
+import { run as runAnalyze } from '../commands/analyze';
 import { run as runCoverageCmd } from '../commands/coverage';
 import { run as runDoctor } from '../commands/doctor';
 import { run as runManifest } from '../commands/manifest';
@@ -99,6 +100,33 @@ describe.skipIf(!HAS_FREE_REFERENCES)('CLI manifest subcommand (PRD E0h)', () =>
     const parsedManifest = JSON.parse(readFileSync(outAbsolute, 'utf8'));
     expect(parsedManifest.edition).toBe('free');
     expect(parsedManifest.counts.total).toBe(221);
+  });
+});
+
+describe.skipIf(!HAS_FREE_REFERENCES)('CLI analyze subcommand (PRD E0h)', () => {
+  let logs: string[];
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    logs = [];
+    logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+  });
+
+  it('emits JSON analysis for the FREE reference pack with --json flag', async () => {
+    const parsed: ParsedArgs = {
+      command: 'analyze',
+      flags: { json: true },
+    };
+    await runAnalyze(parsed, referenceFreeRoot, 'free');
+    const joined = logs.join('\n');
+    expect(joined).toContain('tileCount');
+    expect(joined).toContain('analyzedCount');
   });
 });
 
