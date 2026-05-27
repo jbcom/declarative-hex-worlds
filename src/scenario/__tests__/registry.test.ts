@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { KAYKIT_HEX_GEOMETRY } from '../../coordinates/grid';
 import { createGameboardBuilder } from '../../gameboard';
 import { createGameboardInteropSnapshot } from '../../interop';
 import { freeManifest } from '../../manifest/free';
@@ -84,6 +85,7 @@ describe('tile registry and ECS interop', () => {
     const analysis = analyzeTileGeometry({
       id: 'no-bounds',
       assetId: 'asset-no-bounds',
+      geometry: KAYKIT_HEX_GEOMETRY,
     });
     expect(analysis.warnings.some((warning) => warning.includes('Missing bounds metadata'))).toBe(true);
   });
@@ -92,6 +94,7 @@ describe('tile registry and ECS interop', () => {
     const analysis = analyzeTileGeometry({
       id: 'zero-bounds',
       assetId: 'asset-zero-bounds',
+      geometry: KAYKIT_HEX_GEOMETRY,
       bounds: { min: [0, 0, 0], max: [0, 1, 0], size: [0, 1, 0] },
     });
     expect(analysis.warnings.some((warning) => warning.includes('non-positive width or depth'))).toBe(true);
