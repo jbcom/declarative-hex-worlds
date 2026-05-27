@@ -209,6 +209,29 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     expect(report.drift.some((entry) => entry.includes('integrity sidecar missing'))).toBe(true);
   });
 
+  it('verifyBootstrap flags unsafe sidecar entry paths and missing files (E0a)', async () => {
+    const targetRoot = join(outRoot, 'addons/kaykit_medieval_hexagon_pack');
+    const sidecarPath = join(targetRoot, KAYKIT_BOOTSTRAP_SIDECAR);
+    const original = readFileSync(sidecarPath, 'utf8');
+    const sidecar = JSON.parse(original) as BootstrapSidecar;
+    const tamperedSidecar = {
+      ...sidecar,
+      files: [
+        // Path-traversal escape — rel starts with '..'.
+        { path: '../escape.txt', bytes: 0, sha256: '0'.repeat(64) },
+        // File that doesn't exist (missing-file branch).
+        { path: 'Assets/gltf/does-not-exist.gltf', bytes: 0, sha256: '0'.repeat(64) },
+      ],
+    };
+    writeFileSync(sidecarPath, JSON.stringify(tamperedSidecar));
+    const report = await verifyBootstrap(outRoot);
+    expect(report.ok).toBe(false);
+    expect(report.drift.some((entry) => entry.includes('unsafe sidecar entry path'))).toBe(true);
+    expect(report.drift.some((entry) => entry.includes('missing file'))).toBe(true);
+    // Restore so subsequent tests aren't impacted.
+    writeFileSync(sidecarPath, original);
+  });
+
   it('idempotent re-run with force=true produces identical sidecar files', async () => {
     const localOut = tmp();
     const first = await bootstrapKayKitAssets({
