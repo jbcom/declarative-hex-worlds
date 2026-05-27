@@ -351,6 +351,63 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.some((v) => v.code === 'simulation.placement_reference_list')).toBe(true);
   });
 
+  it('flags step shape errors: non-object step, bad id, duplicate id, unknown action', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        'not-an-object',
+        { id: 17, action: 'command' },
+        { id: 'dup', action: 'command' },
+        { id: 'dup', action: 'command' },
+        { id: 's4', action: 'unknown-action-not-real' },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.step');
+    expect(codes).toContain('simulation.step_id');
+    expect(codes).toContain('simulation.step_duplicate');
+    expect(codes).toContain('simulation.step_action');
+  });
+
+  it('indexes scenario quest ids + objectives during validation', () => {
+    // Triggers the `config.scenario?.quests ?? []` index loop on line 1182.
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+    };
+    const scenario = {
+      schemaVersion: '1.0.0',
+      id: 'quest-scenario',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'q', shape: { kind: 'rectangle', width: 3, height: 3 } },
+        steps: [],
+      },
+      quests: [
+        {
+          id: 'main-quest',
+          objectives: [
+            { id: 'obj-1' },
+            { id: 'obj-2' },
+            { id: '' }, // empty string is skipped by the isNonEmptyString filter
+          ],
+        },
+        { id: '', objectives: [] }, // empty quest id is skipped at the outer continue
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any, {
+      // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+      scenario: scenario as any,
+    });
+    // No quest-related violations from the index step alone.
+    expect(
+      result.violations.filter((v) => v.code.startsWith('simulation.quest'))
+    ).toHaveLength(0);
+  });
+
   it('flags actorTargets expectation with bad nearest/target fields', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
