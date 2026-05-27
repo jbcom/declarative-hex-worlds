@@ -32,7 +32,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] **E0a** — Simulation + patrol files toward 100%. PR#10-#21 merged. PR#22 (`feat/e0-coverage-batch-12`) open: next closures.
+- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10-#21 merged. PR#22 (`feat/e0-coverage-batch-12`) open awaiting CI: textureSets filter excludes-all.
     - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
     - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
     - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.
@@ -52,7 +52,7 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
     - interop/compatibility.ts 93.33 → -x modelForward axis.
     - navigation.ts 86.06 → reachableGameboardTiles defensive returns.
     Remaining gaps: deep validator branches in script.ts (remaining expectation sub-validators), engine.ts edge mutation paths (lines 491-499, 674), patrol.ts wait-state + completed-by-targetIndex-undefined deeper paths, navigation.ts patrol-route generation edge cases, scenario.ts deeper allocator paths, bootstrap GitHub source, ingest.ts duplicate disambiguation. Each ≤200 LOC commit + threshold ratchet.
-- [ ] **E0h** — Sweep remaining src/ files to 100% (paired with E0a per-PR). PR#10 closures advanced many of these in tandem with E0a. Status post-merge:
+- [ ] [WAIT] **E0h** — Sweep remaining src/ files to 100% (paired with E0a per-PR). PR#10 closures advanced many of these in tandem with E0a. Status post-merge:
     - `pieces/pieces.ts` ~91% (was 89.69) — cross-pack composition + remaining infer paths
     - `quests/quests.ts` ~89% (was 87.2) — quest objective rollover + reward dispatch
     - `actors/actors.ts` ~88% (was 87.58) — placement-state inference edge cases
