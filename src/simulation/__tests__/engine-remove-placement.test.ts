@@ -26,6 +26,35 @@ const minimalScenario: GameboardScenario = {
   },
 };
 
+describe('engine sourceActor-required short-circuits (PRD E0a)', () => {
+  it('actor-target-command without sourceActor returns empty actorTargets record', () => {
+    const result = runGameboardScenarioSimulation(minimalScenario, [
+      {
+        action: 'actor-target-command',
+        id: 'targetless-cmd',
+        // No sourceActor — empty record path
+        targeting: { approach: 'nearest' },
+      },
+    ]);
+    const step = result.steps[0];
+    expect(step?.actorTargets?.targets).toEqual([]);
+    expect(step?.actorTargets?.reason).toMatch(/Actor target command requires sourceActor/);
+  });
+
+  it('inspect-actor-targets without sourceActor returns empty actorTargets record', () => {
+    const result = runGameboardScenarioSimulation(minimalScenario, [
+      {
+        action: 'inspect-actor-targets',
+        id: 'targetless-inspect',
+        // No sourceActor — empty record path
+      },
+    ]);
+    const step = result.steps[0];
+    expect(step?.actorTargets?.targets).toEqual([]);
+    expect(step?.actorTargets?.reason).toMatch(/sourceActor/);
+  });
+});
+
 describe('runRemovePlacementStep (PRD E0a)', () => {
   it('removes a placement that was spawned earlier in the script', () => {
     const result = runGameboardScenarioSimulation(minimalScenario, [
