@@ -263,6 +263,47 @@ describe('engine-neutral plan validation', () => {
       validateGameboardPlan(missingFootprint, { allowUnknownAssets: true }).map((violation) => violation.code)
     ).toContain('placement.footprint_missing_tile');
   });
+
+  it('reports stack.max_elevation when tile elevation exceeds global cap (E0a)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'stack-max-cap',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .setTileAsset({
+        at: { q: 0, r: 0 },
+        assetId: 'hex_grass',
+        terrain: 'grass',
+        elevation: 5,
+      })
+      .build();
+    const violations = validateGameboardPlan(plan, { maxElevation: 1 });
+    expect(violations.map((v) => v.code)).toContain('stack.max_elevation');
+  });
+
+  it('reports declaration.stack_max_elevation when declaration caps elevation (E0a)', () => {
+    const registry = createHexTileRegistry([
+      {
+        id: 'capped',
+        assetId: 'capped',
+        role: 'base',
+        terrain: 'grass',
+        stack: { canStack: true, maxElevation: 1 },
+      },
+    ]);
+    const plan = createGameboardBuilder({
+      seed: 'stack-decl-cap',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .setTileAsset({
+        at: { q: 0, r: 0 },
+        assetId: 'capped',
+        terrain: 'grass',
+        elevation: 3,
+      })
+      .build();
+    const violations = validateGameboardPlan(plan, { registry });
+    expect(violations.map((v) => v.code)).toContain('declaration.stack_max_elevation');
+  });
 });
 
 function freeCatalogFixture(): MedievalHexagonManifest {
