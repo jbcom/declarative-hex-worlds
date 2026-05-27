@@ -168,4 +168,44 @@ describe('Koota movement profiles and systems', () => {
         .map((placement) => findPlacementEntity(world, placement.id)?.get(MovementAgent)?.remainingMovement)
     ).toEqual([6, 6]);
   });
+
+  it('gameboardMovementActions runSystem + reachable wrappers fire (E0a)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'movement-actions-cover',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    })
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'unit_blue_full',
+        kind: 'unit',
+        layer: 'unit',
+      })
+      .build();
+    const world = createGameboardWorld(plan);
+    const unitId = plan.placements.find((p) => p.assetId === 'unit_blue_full')?.id ?? '';
+    const actions = gameboardMovementActions(world);
+    actions.setAgent(unitId, { profile: 'ground' });
+    // runSystem (line 253) + reachable (line 256) wrappers.
+    expect(actions.runSystem()).toBeDefined();
+    expect(actions.reachable(unitId)).toBeDefined();
+  });
+
+  it('resolveGameboardMovementProfile throws on unknown id (E0a)', () => {
+    const placedPlan = createGameboardBuilder({
+      seed: 'movement-profile-unknown',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'unit_blue_full',
+        kind: 'unit',
+        layer: 'unit',
+      })
+      .build();
+    const world = createGameboardWorld(placedPlan);
+    const id = placedPlan.placements[0]?.id ?? '';
+    expect(() =>
+      setGameboardMovementAgent(world, id, { profile: 'not-a-real-profile-id' })
+    ).toThrow(/Unknown gameboard movement profile/);
+  });
 });
