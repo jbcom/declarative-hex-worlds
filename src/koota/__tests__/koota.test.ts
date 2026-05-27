@@ -419,4 +419,25 @@ describe('Koota gameboard runtime', () => {
     expect(actions.removePlacement(id)).toBe(true);
     expect(findPlacementEntity(world, id)).toBeUndefined();
   });
+
+  it('defaultLayerForPlacementKind covers terrain + surface + structure kinds (E0b)', () => {
+    // Exercises koota.ts lines 910 (terrain) + 915 (road/river/coast/transition).
+    const plan = createGameboardBuilder({
+      seed: 'kind-layer-defaults',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    }).build();
+    const world = createGameboardWorld(plan);
+    const terrain = spawnGameboardPlacement(world, {
+      at: { q: 0, r: 0 },
+      assetId: 'hex_grass',
+      kind: 'terrain',
+    });
+    expect(terrain.get(PlacementState)?.layer).toBe('terrain');
+    const road = spawnGameboardPlacement(world, {
+      at: { q: 1, r: 0 },
+      assetId: 'hex_road_A',
+      kind: 'road',
+    });
+    expect(road.get(PlacementState)?.layer).toBe('surface');
+  });
 });
