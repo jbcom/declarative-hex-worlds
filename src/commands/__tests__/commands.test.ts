@@ -441,6 +441,61 @@ describe('createRemoveTargetPlacementHandler factory (PRD E0a)', () => {
     const handler = createRemoveTargetPlacementHandler({ handlerId: 'custom-id' });
     expect(typeof handler).toBe('function');
   });
+
+  it('returns blocked when no target placement is resolved (E0b)', () => {
+    // Direct call exercises commands.ts lines 538-545: command.target.placement is absent.
+    const handler = createRemoveTargetPlacementHandler();
+    // biome-ignore lint/suspicious/noExplicitAny: minimal command shape for unit test
+    const result = handler({
+      // biome-ignore lint/suspicious/noExplicitAny: stub world
+      world: {} as any,
+      // biome-ignore lint/suspicious/noExplicitAny: stub preview
+      preview: {} as any,
+      command: {
+        kind: 'interact-placement',
+        target: {},
+        // biome-ignore lint/suspicious/noExplicitAny: minimal command shape for unit test
+      } as any,
+    });
+    expect(result).toMatchObject({ status: 'blocked', reason: 'No target placement for command' });
+  });
+
+  it('returns undefined for unaccepted command kinds (E0b)', () => {
+    // Direct call exercises commands.ts lines 532-533: command.kind not in commandKinds.
+    const handler = createRemoveTargetPlacementHandler();
+    const result = handler({
+      // biome-ignore lint/suspicious/noExplicitAny: stub world
+      world: {} as any,
+      // biome-ignore lint/suspicious/noExplicitAny: stub preview
+      preview: {} as any,
+      command: {
+        kind: 'attack-actor',
+        target: { placement: { id: 'p1' } },
+        // biome-ignore lint/suspicious/noExplicitAny: minimal command shape for unit test
+      } as any,
+    });
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined for actor-target placements without includeActorPlacements (E0b)', () => {
+    // Direct call exercises commands.ts lines 535-536.
+    const handler = createRemoveTargetPlacementHandler();
+    const result = handler({
+      // biome-ignore lint/suspicious/noExplicitAny: stub world
+      world: {} as any,
+      // biome-ignore lint/suspicious/noExplicitAny: stub preview
+      preview: {} as any,
+      command: {
+        kind: 'interact-placement',
+        target: {
+          actor: { entity: 'e1', actor: { actorId: 'a1' }, placement: { id: 'p1' } },
+          placement: { id: 'p1' },
+        },
+        // biome-ignore lint/suspicious/noExplicitAny: minimal command shape for unit test
+      } as any,
+    });
+    expect(result).toBeUndefined();
+  });
 });
 
 describe('commandHandlerMutations placement-updated mapping (PRD E0a)', () => {

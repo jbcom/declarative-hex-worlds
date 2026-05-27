@@ -193,6 +193,8 @@ describe('gameboard plan builder', () => {
     expect(assetIds).toContain('wall_corner_A_outside');
     expect(assetIds).toContain('wall_corner_B_inside');
     expect(assetIds).toContain('wall_corner_B_outside');
+    // Both `straight-gate` and `gate` map to wall_straight_gate (lines 2151 + 2163).
+    expect(assetIds.filter((id) => id === 'wall_straight_gate').length).toBeGreaterThanOrEqual(2);
   });
 
   it('models fortifications, construction sites, and siege projectiles as named neutral structures', () => {

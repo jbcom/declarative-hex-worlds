@@ -1336,20 +1336,14 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.some((v) => v.code === 'simulation.command_handler_options')).toBe(true);
   });
 
-  it('flags command step expectations.eventTypes non-array (E0b)', () => {
+  it('flags script-level expectations.eventTypes non-array (E0b)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
-      steps: [
-        {
-          id: 's1',
-          action: 'command',
-          target: { actorId: 'someone' },
-          handlers: 'not-an-array',
-        },
-      ],
+      steps: [{ id: 's1', action: 'run-systems' }],
+      expectations: { eventTypes: 'not-an-array' },
     };
     // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
     const result = inspectGameboardScenarioSimulationScript(script as any);
-    expect(result.violations.some((v) => v.code === 'simulation.command_handlers')).toBe(true);
+    expect(result.violations.some((v) => v.code === 'simulation.expectation_event_types')).toBe(true);
   });
 });
