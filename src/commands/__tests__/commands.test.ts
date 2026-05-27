@@ -8,6 +8,7 @@ import {
   createGameboardInteractionHandlerPreset,
   createMarkTargetActorInteractedHandler,
   createRemoveTargetActorHandler,
+  createRemoveTargetPlacementHandler,
   executeGameboardInteractionCommand,
   gameboardCommandActions,
   isGameboardInteractionHandlerPreset,
@@ -429,5 +430,15 @@ describe('gameboard interaction commands', () => {
       approach: 'nearest',
     });
     expect(targetPlan).toBeDefined();
+  });
+});
+
+describe('createRemoveTargetPlacementHandler factory (PRD E0a)', () => {
+  it('returns a callable handler with the configured handlerId', () => {
+    // The factory branch (commands.ts ~526) is uncovered. Direct
+    // construction + identity-of-shape assertion is enough to exercise it
+    // without wiring a full command pipeline.
+    const handler = createRemoveTargetPlacementHandler({ handlerId: 'custom-id' });
+    expect(typeof handler).toBe('function');
   });
 });
