@@ -484,3 +484,21 @@ describe('board-aware navigation and occupancy', () => {
     expect(routes.errors).toContain('guard-loop: Patrol route guard-loop is declared more than once');
   });
 });
+
+describe('reachableGameboardTiles defensive branches (PRD E0a)', () => {
+  it('returns [] when movementBudget is negative', () => {
+    const plan = createGameboardBuilder({
+      seed: 'reach-neg',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    expect(reachableGameboardTiles(plan, '0,0', -1)).toEqual([]);
+  });
+
+  it('returns [] when start tile is not in the plan', () => {
+    const plan = createGameboardBuilder({
+      seed: 'reach-missing-start',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    expect(reachableGameboardTiles(plan, '99,99', 5)).toEqual([]);
+  });
+});
