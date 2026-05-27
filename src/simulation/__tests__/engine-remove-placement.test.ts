@@ -184,6 +184,17 @@ describe('runRemovePlacementStep (PRD E0a)', () => {
   });
 });
 
+describe('runSimulationStep + assertNever default (PRD E0a)', () => {
+  it('throws GameboardRuntimeError for unknown step action', () => {
+    expect(() =>
+      runGameboardScenarioSimulation(minimalScenario, [
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid action
+        { action: 'definitely-not-a-real-action' } as any,
+      ])
+    ).toThrow(/unreachable simulation step action/);
+  });
+});
+
 describe('resolveSimulationSpawnActor missing spawn target (PRD E0a)', () => {
   it('throws GameboardRuntimeError when spawn-actor has neither at nor spawnGroupId', () => {
     expect(() =>
