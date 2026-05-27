@@ -859,4 +859,30 @@ describe('gameboard runtime facade', () => {
     const runtime = createGameboardRuntime({ plan });
     expect(runtime.plan().tiles.length).toBe(3);
   });
+
+  it('runtime moveActor + executeCommand + interact wrappers (E0a)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'runtime-wrappers',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    const runtime = createGameboardRuntime(plan);
+    runtime.spawnActor({
+      id: 'hero-placement',
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    runtime.movement.setAgent('hero-placement', { profile: 'ground', movementBudget: 4 });
+    // moveActor wrapper (runtime.ts line 836).
+    const moveResult = runtime.moveActor('hero', '1,0');
+    expect(moveResult).toBeDefined();
+    // executeCommand wrapper (line 850-851).
+    const execResult = runtime.executeCommand('2,0', { sourceActor: 'hero' });
+    expect(execResult).toBeDefined();
+    // interact wrapper (line 852-853).
+    const interactResult = runtime.interact('1,0', { sourceActor: 'hero' });
+    expect(interactResult).toBeDefined();
+  });
 });
