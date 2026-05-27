@@ -1357,6 +1357,46 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.filter((v) => v.code === 'simulation.command_handler_command_kinds').length).toBeGreaterThanOrEqual(3);
   });
 
+  it('flags command step with empty-object target (no known field) (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: {} }],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.command_target')).toBe(true);
+  });
+
+  it('accepts command step with object.coordinates {q,r} as tile target (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: { coordinates: { q: 0, r: 0 } } }],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.command_target_coordinates')).toBe(false);
+  });
+
+  it('flags command step with invalid coordinates object (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: { coordinates: 'not-a-tile-key' } }],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.command_target_coordinates')).toBe(true);
+  });
+
+  it('flags command step with empty-string target (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '' }],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.command_target')).toBe(true);
+  });
+
   it('flags command expectation placementId as empty string (E0b)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
