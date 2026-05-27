@@ -50,6 +50,18 @@ describe('gameboard layout placement criteria', () => {
     expect(first.every((site) => !site.occupied)).toBe(true);
   });
 
+  it('createGameboardLayoutPlacements throws when neither kind nor archetype.kind is provided (E0b)', () => {
+    const plan = createLayoutFixturePlan();
+    expect(() =>
+      createGameboardLayoutPlacements(plan, {
+        count: 1,
+        seed: 'no-kind',
+        assetId: 'rock_single_A',
+        // No `kind`, no `archetype` — line 803 throw.
+      })
+    ).toThrow(/requires kind or an archetype/);
+  });
+
   it('creates spawn options with layout metadata and random deterministic rotation', () => {
     const plan = createLayoutFixturePlan();
     const placements = createGameboardLayoutPlacements(plan, {
