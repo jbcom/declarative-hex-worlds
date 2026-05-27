@@ -279,6 +279,20 @@ describe('board-aware navigation and occupancy', () => {
     expect(spawns.errors).toContain('player: Spawn group player is declared more than once');
   });
 
+  it('reports unknown spawn-group route target via pathToGroups (E0b)', () => {
+    // Covers navigation.ts line 681-682: pathToGroups entry doesn't match a real group.
+    const plan = createGameboardBuilder({
+      seed: 'unknown-pathto-target',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    }).build();
+    const spawns = planGameboardSpawnGroups(plan, {
+      groups: [
+        { id: 'player', count: 1, pathToGroups: ['ghost-group-never-declared'] },
+      ],
+    });
+    expect(spawns.errors.some((e) => e.includes('unknown route target group'))).toBe(true);
+  });
+
   it('plans deterministic patrol routes from spawn groups with loop diagnostics', () => {
     const plan = createGameboardBuilder({
       seed: 'patrol-route',
