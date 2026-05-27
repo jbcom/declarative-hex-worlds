@@ -771,6 +771,36 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('flags patrol expectation with non-record entries (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+      expectations: {
+        patrols: ['not-a-record'],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_patrol')
+    ).toBe(true);
+  });
+
+  it('flags movement expectation with non-record entries (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+      expectations: {
+        movements: ['not-a-record'],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_movement')
+    ).toBe(true);
+  });
+
   it('flags actorTargets expectation with non-record entries (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
