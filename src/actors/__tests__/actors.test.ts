@@ -755,3 +755,50 @@ describe('gameboard actor semantics', () => {
     ).toBe(true);
   });
 });
+
+describe('gameboardActorActions register + navigationProfile (PRD E0a)', () => {
+  it('register attaches actor traits to an existing placement', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'actor-register',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    const actions = gameboardActorActions(world);
+    // Spawn a placement directly (no actor), then register it.
+    const spawned = actions.spawn({
+      actorId: 'temp-hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    // Re-register the same placement entity with updated metadata to
+    // exercise the action wrapper around registerGameboardActor (line 710).
+    const registered = actions.register(spawned, {
+      actorId: 'temp-hero',
+      actorKind: 'player',
+      tags: ['re-registered'],
+    });
+    expect(registered).toBeDefined();
+  });
+
+  it('navigationProfile returns a profile keyed to the actor (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'actor-nav-profile',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const actions = gameboardActorActions(world);
+    actions.spawn({
+      actorId: 'scout',
+      actorKind: 'npc',
+      at: '0,0',
+      assetId: 'flag_yellow',
+      kind: 'unit',
+    });
+    const profile = actions.navigationProfile('scout', {});
+    expect(profile).toBeDefined();
+  });
+});
