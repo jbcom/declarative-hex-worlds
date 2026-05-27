@@ -380,6 +380,55 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(codes).toContain('simulation.spawn_actor_id');
   });
 
+  it('flags update-actor with non-string + duplicate actorId (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        // First spawn hero
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            at: '0,0',
+          },
+        },
+        // Second spawn elder
+        {
+          id: 's2',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'elder',
+            assetId: 'flag_green',
+            kind: 'prop',
+            at: '1,0',
+          },
+        },
+        // Update hero to non-string id → simulation.update_actor_id
+        {
+          id: 's3',
+          action: 'update-actor',
+          actorId: 'hero',
+          actor: { actorId: 17 },
+        },
+        // Update hero to elder's id → simulation.update_actor_duplicate
+        {
+          id: 's4',
+          action: 'update-actor',
+          actorId: 'hero',
+          actor: { actorId: 'elder' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.update_actor_id');
+    expect(codes).toContain('simulation.update_actor_duplicate');
+  });
+
   it('flags spawn-actor with empty spawnGroupId + non-integer spawnLocationIndex (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
