@@ -179,6 +179,27 @@ describe('gameboard quests', () => {
     expect(evaluation.progress.detail).toMatch(/Target actor .* is missing/);
   });
 
+  it('gameboardQuestActions bundle exercises spawn/advance/advanceAll/read/find (E0h)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const actions = gameboardQuestActions(world);
+    actions.spawn({
+      id: 'arrive',
+      objectives: [{ id: 'arrive-objective', kind: 'reach-tile', actor: 'hero', tile: '0,0' }],
+    });
+    expect(actions.read().length).toBe(1);
+    expect(actions.find('arrive')?.quest.questId).toBe('arrive');
+    actions.advance('arrive');
+    actions.advanceAll();
+    expect(actions.read().length).toBe(1);
+  });
+
   it('completes reach-actor objective when actors are within maxDistance (E0h)', () => {
     const world = createQuestTestWorld();
     spawnGameboardActor(world, {
