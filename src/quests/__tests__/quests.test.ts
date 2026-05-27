@@ -147,6 +147,57 @@ describe('gameboard quests', () => {
     expect(actions.advance(quest).quest.status).toBe('completed');
     expect(actions.find('interaction')?.quest.questId).toBe('interaction');
   });
+
+  it('marks reach-tile objective blocked when source actor is missing (E0h)', () => {
+    const world = createQuestTestWorld();
+    const evaluation = evaluateGameboardQuestObjective(world, {
+      id: 'walk-to-base',
+      kind: 'reach-tile',
+      actor: 'ghost-actor-not-in-world',
+      tile: '0,0',
+    });
+    expect(evaluation.progress.status).toBe('blocked');
+    expect(evaluation.progress.detail).toMatch(/is missing/);
+  });
+
+  it('marks reach-actor objective blocked when target actor is missing (E0h)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const evaluation = evaluateGameboardQuestObjective(world, {
+      id: 'find-elder',
+      kind: 'reach-actor',
+      actor: 'hero',
+      targetActor: 'ghost-target-not-in-world',
+    });
+    expect(evaluation.progress.status).toBe('blocked');
+    expect(evaluation.progress.detail).toMatch(/Target actor .* is missing/);
+  });
+
+  it('marks collision objective blocked when target tile cannot resolve (E0h)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const evaluation = evaluateGameboardQuestObjective(world, {
+      id: 'block-cache',
+      kind: 'collision',
+      actor: 'hero',
+      // No tile + no targetActor — targetTileForCollisionObjective returns undefined.
+      expect: 'blocked',
+    });
+    expect(evaluation.progress.status).toBe('blocked');
+    expect(evaluation.progress.detail).toMatch(/no resolvable target tile/);
+  });
 });
 
 function createQuestTestWorld() {
