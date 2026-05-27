@@ -748,6 +748,24 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('accepts command target string that matches a spawned placement id (E0b)', () => {
+    // Exercises script.ts line 3302 — scenarioIndex.actorOrPlacementIds.has(target) early return.
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 'crate', at: '0,0', assetId: 'flag_blue', kind: 'prop' },
+        },
+        { id: 's2', action: 'command', target: 'crate' },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.command_target_missing')).toBe(false);
+  });
+
   it('flags spawn-placement with duplicate id (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
