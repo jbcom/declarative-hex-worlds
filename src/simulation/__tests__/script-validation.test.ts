@@ -351,6 +351,35 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.some((v) => v.code === 'simulation.placement_reference_list')).toBe(true);
   });
 
+  it('flags non-object expectations + spawn-actor branch errors (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'run-systems' },
+        { id: 's2', action: 'spawn-actor' /* no actor field */ },
+        {
+          id: 's3',
+          action: 'spawn-actor',
+          actor: {
+            // empty actorId triggers 'simulation.spawn_actor_id'
+            actorId: '',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            at: '0,0',
+          },
+        },
+      ],
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately bad expectation
+      expectations: 'not-an-object' as any,
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.expectations');
+    expect(codes).toContain('simulation.spawn_actor');
+    expect(codes).toContain('simulation.spawn_actor_id');
+  });
+
   it('flags step shape errors: non-object step, bad id, duplicate id, unknown action', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
