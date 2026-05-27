@@ -406,4 +406,20 @@ describe('gameboard plan builder', () => {
       gameboardPlacementBlocksOccupancy(placement, { ignorePlacementIds: ['wall-1'] })
     ).toBe(false);
   });
+
+  it('addPropCluster zero density returns the builder unchanged (E0h)', () => {
+    const builder = createGameboardBuilder({
+      seed: 'prop-cluster-zero',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    });
+    const beforeCount = builder.build().placements.length;
+    const after = builder.addPropCluster({
+      at: { q: 1, r: 1 },
+      kind: 'forest',
+      density: 0,
+    });
+    expect(after).toBe(builder);
+    expect(after.build().placements.length).toBe(beforeCount);
+  });
+
 });
