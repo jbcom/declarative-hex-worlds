@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { hexLine, hexRing, hexKey, tryParseHexKey } from '../coordinates';
+import { findHexPath, hexLine, hexRing, hexKey, tryParseHexKey } from '../coordinates';
 
 describe('hexRing (PRD E0h)', () => {
   it('returns the center alone for radius 0', () => {
@@ -57,6 +57,14 @@ describe('projectWorldToGameboardPlan empty-world throw (PRD E0a)', () => {
     expect(() => readValidationGameboardPlanFromWorld(empty)).toThrow(
       /World does not contain GameboardState/
     );
+  });
+});
+
+describe('findHexPath maxVisited limit (PRD E0a)', () => {
+  it('breaks out of search when visited count exceeds maxVisited', () => {
+    // Path far enough that A* visits >1 tile; maxVisited=1 trips early-exit.
+    const result = findHexPath({ q: 0, r: 0 }, { q: 5, r: 5 }, { maxVisited: 1 });
+    expect(result.found).toBe(false);
   });
 });
 
