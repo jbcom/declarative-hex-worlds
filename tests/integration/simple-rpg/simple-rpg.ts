@@ -73,6 +73,7 @@ import {
 import {
   createGameboardScenarioSimulationReport,
   runGameboardScenarioSimulationScript,
+  type GameboardScenarioSimulationReport,
   type GameboardScenarioSimulationScript,
 } from '@jbcom/medieval-hexagon-gameboard/simulation';
 import scenarioJson from './fixtures/simple-rpg-scenario.json';
@@ -904,7 +905,7 @@ export function runSimpleRpgUsageExample(): SimpleRpgUsageSummary {
       candidates: spawnLocations.map((spawn) => spawn.coordinates),
     },
   });
-  const report = createGameboardScenarioSimulationReport(
+  const report: GameboardScenarioSimulationReport = createGameboardScenarioSimulationReport(
     runGameboardScenarioSimulationScript(scenario, script),
     script.expectations
   );
