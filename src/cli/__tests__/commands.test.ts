@@ -20,6 +20,11 @@ import type { ParsedArgs } from '../_shared';
 import { run as runAnalyze } from '../commands/analyze';
 import { run as runCoverageCmd } from '../commands/coverage';
 import { run as runDoctor } from '../commands/doctor';
+import { run as runGuideApis } from '../commands/guide-apis';
+import { run as runGuideAssets } from '../commands/guide-assets';
+import { run as runGuidePermutations } from '../commands/guide-permutations';
+import { run as runGuideRoles } from '../commands/guide-roles';
+import { run as runGuideScenarios } from '../commands/guide-scenarios';
 import { run as runManifest } from '../commands/manifest';
 import { run as runValidate } from '../commands/validate';
 
@@ -158,5 +163,54 @@ describe('CLI coverage subcommand (PRD E0h)', () => {
     const joined = logs.join('\n');
     expect(joined).toContain('schemaVersion');
     expect(joined).toContain('"status"');
+  });
+});
+
+describe('CLI guide-* subcommands (PRD E0h)', () => {
+  // The guide-* commands delegate to _shared helpers; testing the run()
+  // entrypoint covers the per-command delegation closures (which are the
+  // uncovered 0% lines today).
+  let logs: string[];
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    logs = [];
+    logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+  });
+
+  it('guide-apis run() delegates to runGuideApis', async () => {
+    const parsed: ParsedArgs = { command: 'guide-apis', flags: { json: true } };
+    await runGuideApis(parsed, '/nonexistent', 'free');
+    expect(logs.length).toBeGreaterThan(0);
+  });
+
+  it('guide-assets run() delegates to runGuideAssets', async () => {
+    const parsed: ParsedArgs = { command: 'guide-assets', flags: { json: true } };
+    await runGuideAssets(parsed, '/nonexistent', 'free');
+    expect(logs.length).toBeGreaterThan(0);
+  });
+
+  it('guide-permutations run() delegates to runGuidePermutations', async () => {
+    const parsed: ParsedArgs = { command: 'guide-permutations', flags: { json: true } };
+    await runGuidePermutations(parsed, '/nonexistent', 'free');
+    expect(logs.length).toBeGreaterThan(0);
+  });
+
+  it('guide-roles run() delegates to runGuideRoles', async () => {
+    const parsed: ParsedArgs = { command: 'guide-roles', flags: { json: true } };
+    await runGuideRoles(parsed, '/nonexistent', 'free');
+    expect(logs.length).toBeGreaterThan(0);
+  });
+
+  it('guide-scenarios run() delegates to runGuideScenarios', async () => {
+    const parsed: ParsedArgs = { command: 'guide-scenarios', flags: { json: true } };
+    await runGuideScenarios(parsed, '/nonexistent', 'free');
+    expect(logs.length).toBeGreaterThan(0);
   });
 });
