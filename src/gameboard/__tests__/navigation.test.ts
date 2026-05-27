@@ -485,6 +485,18 @@ describe('board-aware navigation and occupancy', () => {
   });
 });
 
+describe('findGameboardPath defensive returns (PRD E0a)', () => {
+  it('returns not-found when start or goal is off the plan', () => {
+    const plan = createGameboardBuilder({
+      seed: 'path-oob',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    expect(findGameboardPath(plan, '99,99', '0,0').found).toBe(false);
+    expect(findGameboardPath(plan, '0,0', '99,99').found).toBe(false);
+  });
+
+});
+
 describe('planGameboardSpawnGroups validation branches (PRD E0a)', () => {
   it('errors when a spawn group has an empty id', () => {
     const plan = createGameboardBuilder({
