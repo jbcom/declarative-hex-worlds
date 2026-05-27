@@ -95,6 +95,35 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
     expect(failures.length).toBeGreaterThan(0);
   });
 
+  it('reports failure when placement expected present but missing (E0a)', () => {
+    // Use spawn-placement step to add a placement during simulation.
+    const script: GameboardScenarioSimulationScript = {
+      schemaVersion: '1.0.0',
+      steps: [
+        {
+          action: 'spawn-placement',
+          id: 'add-flag',
+          placement: {
+            id: 'flag-placement',
+            at: '0,0',
+            assetId: 'flag_yellow',
+            kind: 'prop',
+          },
+          systems: false,
+        },
+      ],
+      expectations: {
+        placements: [
+          { placementId: 'flag-placement', exists: false }, // present → fails
+          { placementId: 'ghost-placement', exists: true }, // absent → fails
+        ],
+      },
+    };
+    const failures = evaluate(script);
+    expect(failures.some((f) => f.message.includes('was expected to be absent'))).toBe(true);
+    expect(failures.some((f) => f.message.includes('was not found'))).toBe(true);
+  });
+
   it('reports failure when actor expected to be absent but exists, and vice versa (E0a)', () => {
     const scenarioWithActor: GameboardScenario = {
       ...scenario,
