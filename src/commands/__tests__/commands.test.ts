@@ -490,6 +490,6 @@ describe('commandHandlerMutations placement-updated mapping (PRD E0a)', () => {
       { actorId: 'merchant' },
       { sourceActor: 'hero', handlers: handler }
     );
-    expect(result.effects.some((effect) => effect.type === 'placement-updated')).toBe(true);
+    expect(result.effects?.some((effect) => effect.type === 'placement-updated')).toBe(true);
   });
 });
