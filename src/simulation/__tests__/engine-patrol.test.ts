@@ -132,6 +132,48 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
     expect(plan.errors.some((e) => e.includes('has no destination waypoint'))).toBe(true);
   });
 
+  it('records warning when segment has no destination waypoint and requireFoundRoutes=false (E0a)', () => {
+    const route: GameboardPatrolPlannedRoute = {
+      id: 'route-no-dest-warn',
+      waypointKeys: ['0,0', '1,0'],
+      loop: false,
+      found: true,
+      segments: [
+        // biome-ignore lint/suspicious/noExplicitAny: minimal fixture
+        { fromIndex: 0, toIndex: 1, fromKey: '0,0', toKey: undefined, found: false } as any,
+      ],
+      segmentCosts: [1],
+    };
+    const plan = createGameboardPatrolSimulationSteps({
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
+      routes: [route as any],
+      assignments: [{ routeId: 'route-no-dest-warn', actorId: 'guard-1' }],
+      requireFoundRoutes: false,
+    });
+    expect(plan.warnings.some((w) => w.includes('has no destination waypoint'))).toBe(true);
+  });
+
+  it('records error when segment is not found and requireFoundRoutes=true (E0a)', () => {
+    const route: GameboardPatrolPlannedRoute = {
+      id: 'route-unfound-strict',
+      waypointKeys: ['0,0', '1,0'],
+      loop: false,
+      found: true,
+      segments: [
+        // biome-ignore lint/suspicious/noExplicitAny: minimal fixture
+        { fromIndex: 0, toIndex: 1, fromKey: '0,0', toKey: '1,0', found: false } as any,
+      ],
+      segmentCosts: [1],
+    };
+    const plan = createGameboardPatrolSimulationSteps({
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
+      routes: [route as any],
+      assignments: [{ routeId: 'route-unfound-strict', actorId: 'guard-1' }],
+      requireFoundRoutes: true,
+    });
+    expect(plan.errors.some((e) => e.includes('has no passable path'))).toBe(true);
+  });
+
   it('clamps roundCount to >=1 when rounds is undefined or zero', () => {
     const route: GameboardPatrolPlannedRoute = {
       id: 'route-clamp',
