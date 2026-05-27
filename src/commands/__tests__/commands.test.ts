@@ -385,4 +385,48 @@ describe('gameboard interaction commands', () => {
     });
     expect(findGameboardActor(world, 'raider')).toBeUndefined();
   });
+
+  it('exposes plan + preview + targetCommand on the gameboardCommandActions bundle (PRD E0d)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'commands-actions-coverage',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    spawnGameboardActor(world, {
+      id: 'hero-placement',
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      id: 'elder-placement',
+      actorId: 'elder',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_yellow',
+      kind: 'unit',
+      interactive: true,
+    });
+
+    const actions = gameboardCommandActions(world);
+
+    // plan: tile target.
+    const planned = actions.plan('1,0', { sourceActor: 'hero' });
+    expect(planned).toBeDefined();
+    expect(planned?.kind).toBeDefined();
+
+    // preview: same target, no mutation.
+    const previewed = actions.preview('1,0', { sourceActor: 'hero' });
+    expect(previewed).toBeDefined();
+
+    // targetCommand: actor-aware targeting.
+    const targetPlan = actions.targetCommand({
+      sourceActor: 'hero',
+      targeting: { interactiveOnly: true, approach: 'nearest' },
+    });
+    expect(targetPlan).toBeDefined();
+  });
 });

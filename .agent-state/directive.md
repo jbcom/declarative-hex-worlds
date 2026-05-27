@@ -166,7 +166,7 @@ Floor is **100 / 100 / 100 / 100** across statements / branches / functions / li
 - [ ] **E0a** — `simulation.ts` to 100% (currently 67.7 / 66.6 / 85.9 / 67.2). Continuation work post-PR#4 merge: A8's ratchet at the current floor blocks regressions today; closing the remaining ~35 % gap is incremental per-file work that flows into the post-merge maintenance directive.
 - [ ] **E0b** — `patrol.ts` to 100% (72.3 / 64.5 / 76.9 / 71.9). Same continuation model as E0a.
 - [ ] **E0c** — `recipe.ts` to 100% (78.9 / 68.4 / 82.4 / 79.0).
-- [ ] **E0d** — `commands.ts` to 100% (82.9 / 74.2 / 88.5 / 82.7). Uncovered are the `createActions` closure bodies in `gameboardCommandActions`; need real koota-dispatch tests in tests/integration to exercise the .actions() facade.
+- [x] **E0d (partial)** — ✅ commit (2026-05-26): added tests for `gameboardCommandActions.plan` + `.preview` + `.targetCommand` action methods. `commands.ts` coverage: 82.9 → 84.8 stmt / 88.5 → 96.2 func. Remaining uncovered (deeper internal helpers) are continuation work.
 - [x] **E0e (partial)** — ✅ commit (2026-05-26): added tests for `gameboardSystemActions.dispatchCommand` + `.dispatchActorTargetCommand` + `.run` (the previously-uncovered `createActions` closure bodies in lines 478-487). `systems.ts` coverage: 83.3 → 86.1 stmt / 76.6 → 79.8 branch / 81.8 → 90.9 func / 83.0 → 85.8 line. Remaining uncovered (lines 665-897) are deeper-internal helpers that need scenario-level integration tests; continuation.
 - [ ] **E0f** — `world-rules.ts` to 100% branches (88.9 / 53.3 / 100 / 88.2).
 - [ ] **E0g** — `manifest/schema.ts` to 100% (81.2 / 70.9 / 97.8 / 80.5).
