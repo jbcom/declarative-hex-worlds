@@ -5,6 +5,10 @@ on:
     types: [opened, synchronize, reopened]
   schedule:
     - cron: '0 6 * * 1'
+  # workflow_dispatch lets `gh workflow run ci.yml --ref <branch>` re-fire
+  # CI when a transient infra hiccup (runner OOM, network blip) leaves the
+  # PR without a fresh run — see PRD G7.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
