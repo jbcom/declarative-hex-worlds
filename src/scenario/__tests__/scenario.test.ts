@@ -880,6 +880,28 @@ describe('gameboard scenarios', () => {
     expect(codes).toContain('scenario.actor_spawn_location_index');
   });
 
+  it('reports actor whose assetId is missing from the manifest catalog (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'bad-actor-asset',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-actor-asset', board, {
+      actors: [
+        {
+          actorId: 'mystery',
+          actorKind: 'npc',
+          at: '0,0',
+          assetId: 'not-a-real-asset',
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario, {
+      plan: { assetCatalog: freeManifest, requireExtraAssetFlags: false },
+    }).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_unknown_asset');
+  });
+
   it('reports actor with out-of-range spawnLocationIndex (E0a)', () => {
     const board = createGameboardRecipe({
       seed: 'oor-spawn-index',
