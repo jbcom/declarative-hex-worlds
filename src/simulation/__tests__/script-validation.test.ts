@@ -771,6 +771,38 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('flags command target as non-string non-coords non-record (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: 42 },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.command_target')
+    ).toBe(true);
+  });
+
+  it('flags command target with bad coordinates field (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'command',
+          target: { coordinates: 'not-coords' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.command_target_coordinates')
+    ).toBe(true);
+  });
+
   it('flags placement expectation referencing missing placement id (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
