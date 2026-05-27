@@ -63,4 +63,47 @@ describe('gameboardPatrolActions bundle (PRD E0b)', () => {
     actions.clear(guard);
     expect(actions.read().length).toBe(0);
   });
+
+  it('set accepts currentWaypointIndex and clamps out-of-range values (E0h)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'patrol-clamp',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const sentry = spawnGameboardActor(world, {
+      id: 'sentry-placement',
+      actorId: 'sentry',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const actions = gameboardPatrolActions(world);
+    actions.set(sentry, {
+      route: {
+        id: 'sentry-loop',
+        waypointKeys: ['0,0', '1,0', '2,0'],
+        loop: false,
+        segmentCosts: [1, 1],
+      },
+      // Out-of-range index — clampWaypointIndex returns last (2)
+      currentWaypointIndex: 99,
+      movement: { profile: 'ground' },
+    });
+    expect(actions.read().length).toBe(1);
+
+    // Negative index → 0
+    actions.set(sentry, {
+      route: {
+        id: 'sentry-loop',
+        waypointKeys: ['0,0', '1,0', '2,0'],
+        loop: false,
+        segmentCosts: [1, 1],
+      },
+      currentWaypointIndex: -5,
+      movement: { profile: 'ground' },
+    });
+    expect(actions.read().length).toBe(1);
+  });
 });
