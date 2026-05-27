@@ -38,6 +38,9 @@ describe('grid helpers', () => {
     expect(typeof b.q).toBe('number');
     const c = worldToAxial({ x: 0.3, z: 1.001 });
     expect(typeof c.q).toBe('number');
+    // (q=0.4, r=0.45) → rDiff > sDiff branch (grid.ts line 238).
+    const d = worldToAxial({ x: 1.25, z: 0.7794 });
+    expect(typeof d.q).toBe('number');
   });
 
   it('round-trips axial/world coordinates', () => {

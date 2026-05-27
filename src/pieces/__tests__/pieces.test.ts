@@ -609,6 +609,17 @@ describe('gameboard piece declarations', () => {
       'kenney:tower round': '/@fs/references/Kenney Castle Kit/towers/tower%20round.glb',
       'adventurer:knight': '/assets/adventurer/Knight.glb',
     });
+
+    // stripLeadingSlashes + stripTrailingSlashes paths (pieces.ts lines 888-901).
+    const piece = declareGameboardPiece({
+      id: 'slash-stripper',
+      assetId: 'slash:asset',
+      source: 'pack',
+      metadata: { sourceRelativePath: '///nested/path.glb' },
+    });
+    expect(resolveGameboardPieceSourceUrl(piece, { sourceRoot: '/assets/root///' })).toBe(
+      '/assets/root/nested/path.glb'
+    );
   });
 
   it('analyzeGameboardPieceRegistry warns on empty registry (E0h)', () => {
