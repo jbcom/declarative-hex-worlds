@@ -81,6 +81,20 @@ describe('tile registry and ECS interop', () => {
     expect(snapshot.spawnLocations).toHaveLength(2);
   });
 
+  it('applyTileDeclaration throws on unknown declaration id (E0b)', () => {
+    const registry = createHexTileRegistry([]);
+    const builder = createGameboardBuilder({
+      seed: 'unknown-decl',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    expect(() =>
+      applyTileDeclaration(builder, registry, {
+        at: { q: 0, r: 0 },
+        declaration: 'not-a-real-decl',
+      })
+    ).toThrow(/Unknown tile declaration/);
+  });
+
   it('analyzeTileGeometry returns empty analysis when bounds metadata missing (E0b)', () => {
     const analysis = analyzeTileGeometry({
       id: 'no-bounds',
