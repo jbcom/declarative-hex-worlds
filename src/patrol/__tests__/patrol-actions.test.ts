@@ -106,4 +106,64 @@ describe('gameboardPatrolActions bundle (PRD E0b)', () => {
     });
     expect(actions.read().length).toBe(1);
   });
+
+  it('advance returns paused result when agent.active=false (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'patrol-paused',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const guard = spawnGameboardActor(world, {
+      id: 'paused-placement',
+      actorId: 'paused-guard',
+      actorKind: 'npc',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const actions = gameboardPatrolActions(world);
+    actions.set(guard, {
+      route: {
+        id: 'paused-loop',
+        waypointKeys: ['0,0', '1,0', '2,0'],
+        loop: false,
+        segmentCosts: [1, 1],
+      },
+      active: false,
+      movement: { profile: 'ground' },
+    });
+    const result = actions.advance(guard);
+    expect(result.state.status).toBe('paused');
+  });
+
+  it('advance returns blocked when route has fewer than two waypoints (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'patrol-short-route',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const guard = spawnGameboardActor(world, {
+      id: 'short-route-placement',
+      actorId: 'short-route-guard',
+      actorKind: 'npc',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const actions = gameboardPatrolActions(world);
+    actions.set(guard, {
+      route: {
+        id: 'single-waypoint',
+        waypointKeys: ['0,0'],
+        loop: false,
+        segmentCosts: [],
+      },
+      movement: { profile: 'ground' },
+    });
+    const result = actions.advance(guard);
+    expect(result.state.status).toBe('blocked');
+    expect(result.state.reason).toMatch(/requires at least two waypoints/);
+  });
 });
