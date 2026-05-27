@@ -298,6 +298,59 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('normalizeUnknownList accepts a single non-empty string for actorIds', () => {
+    // actorIds as a bare string normalizes to [[0, string]] — single ref.
+    // No 'simulation.actor_reference_list' (shape) violation should fire.
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          sourceActor: 'a',
+          targeting: { actorIds: 'lone-actor' },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.actor_reference_list')).toBe(false);
+  });
+
+  it('normalizeUnknownList flags numeric actorIds with the noun-specific code', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          sourceActor: 'a',
+          targeting: { actorIds: 99 },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.actor_reference_list')).toBe(true);
+  });
+
+  it('normalizeUnknownList flags numeric placementIds with the placement-specific code', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          sourceActor: 'a',
+          targeting: { placementIds: 17 },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.placement_reference_list')).toBe(true);
+  });
+
   it('flags actorTargets expectation with bad nearest/target fields', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
