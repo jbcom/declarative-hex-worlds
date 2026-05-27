@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { hexLine, hexRing, hexKey } from '../coordinates';
+import { hexLine, hexRing, hexKey, tryParseHexKey } from '../coordinates';
 
 describe('hexRing (PRD E0h)', () => {
   it('returns the center alone for radius 0', () => {
@@ -41,5 +41,17 @@ describe('hexLine zero-distance branch (PRD E0h)', () => {
   it('returns a single coordinate when start and end are identical', () => {
     const line = hexLine({ q: 4, r: -2 }, { q: 4, r: -2 });
     expect(line).toEqual([{ q: 4, r: -2 }]);
+  });
+});
+
+describe('tryParseHexKey defensive branches (PRD E0a)', () => {
+  it('returns undefined for malformed (non-2-part) keys', () => {
+    expect(tryParseHexKey('only-one')).toBeUndefined();
+    expect(tryParseHexKey('1,2,3')).toBeUndefined();
+  });
+
+  it('returns undefined when a part is not a finite number', () => {
+    expect(tryParseHexKey('not-a-number,2')).toBeUndefined();
+    expect(tryParseHexKey('1,Infinity')).toBeUndefined();
   });
 });
