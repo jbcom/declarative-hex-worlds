@@ -23,8 +23,10 @@ import { run as runDoctor } from '../commands/doctor';
 import { run as runGuideApis } from '../commands/guide-apis';
 import { run as runGuideAssets } from '../commands/guide-assets';
 import { run as runGuidePermutations } from '../commands/guide-permutations';
+import { run as runGuideRenderRequests } from '../commands/guide-render-requests';
 import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideScenarios } from '../commands/guide-scenarios';
+import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runManifest } from '../commands/manifest';
 import { run as runValidate } from '../commands/validate';
 
@@ -211,6 +213,18 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
   it('guide-scenarios run() delegates to runGuideScenarios', async () => {
     const parsed: ParsedArgs = { command: 'guide-scenarios', flags: { json: true } };
     await runGuideScenarios(parsed, '/nonexistent', 'free');
+    expect(logs.length).toBeGreaterThan(0);
+  });
+
+  it('guide-render-requests run() delegates to runGuideRenderRequests', async () => {
+    const parsed: ParsedArgs = { command: 'guide-render-requests', flags: { json: true } };
+    await runGuideRenderRequests(parsed, '/nonexistent', 'free');
+    expect(logs.length).toBeGreaterThan(0);
+  });
+
+  it('guide-usages run() delegates to runGuideUsages', async () => {
+    const parsed: ParsedArgs = { command: 'guide-usages', flags: { json: true } };
+    await runGuideUsages(parsed, '/nonexistent', 'free');
     expect(logs.length).toBeGreaterThan(0);
   });
 });
