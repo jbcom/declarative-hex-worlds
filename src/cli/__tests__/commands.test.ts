@@ -250,6 +250,36 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
   });
 });
 
+describe.skipIf(!HAS_FREE_REFERENCES)('CLI compatibility happy path (PRD E0h)', () => {
+  let logs: string[];
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    logs = [];
+    logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+  });
+
+  it('compatibility emits a JSON report for a real FREE asset', async () => {
+    const asset = resolve(
+      referenceFreeRoot,
+      'Assets/gltf/decoration/props/flag_yellow.gltf'
+    );
+    const parsed: ParsedArgs = {
+      command: 'compatibility',
+      flags: { asset, json: true },
+    };
+    await runCompatibilityCmd(parsed, '/x', 'free');
+    expect(logs.length).toBeGreaterThan(0);
+    expect(logs.join('\n')).toContain('"id"');
+  });
+});
+
 describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', () => {
   it('validate-manifest throws GameboardCliError without --manifest', async () => {
     await expect(runValidateManifest({ command: 'validate-manifest', flags: {} }, '/x', 'free')).rejects.toThrow(
@@ -335,6 +365,7 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
       /compatibility requires --asset/
     );
   });
+
 
   it('piece throws GameboardCliError without --asset', async () => {
     await expect(runPiece({ command: 'piece', flags: {} }, '/x', 'free')).rejects.toThrow(
