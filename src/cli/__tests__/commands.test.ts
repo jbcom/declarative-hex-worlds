@@ -29,6 +29,14 @@ import { run as runGuideScenarios } from '../commands/guide-scenarios';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runAnalyzeLayout } from '../commands/analyze-layout';
 import { run as runBootstrap } from '../commands/bootstrap';
+import { run as runCompatibilityCmd } from '../commands/compatibility';
+import { run as runDeclarations } from '../commands/declarations';
+import { run as runPatrolRoutes } from '../commands/patrol-routes';
+import { run as runPatrolScript } from '../commands/patrol-script';
+import { run as runPiece } from '../commands/piece';
+import { run as runSimulateScenario } from '../commands/simulate-scenario';
+import { run as runSnapshot } from '../commands/snapshot';
+import { run as runSpawnGroups } from '../commands/spawn-groups';
 import { run as runManifest } from '../commands/manifest';
 import { run as runPiecesFromAssets } from '../commands/pieces-from-assets';
 import { run as runPlacePiece } from '../commands/place-piece';
@@ -318,5 +326,57 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
     await expect(
       runSummarizePlan({ command: 'summarize-plan', flags: {} }, '/x', 'free')
     ).rejects.toThrow();
+  });
+
+  it('compatibility throws GameboardCliError without --asset', async () => {
+    await expect(runCompatibilityCmd({ command: 'compatibility', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /compatibility requires --asset/
+    );
+  });
+
+  it('piece throws GameboardCliError without --asset', async () => {
+    await expect(runPiece({ command: 'piece', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /piece requires --asset/
+    );
+  });
+
+  it('snapshot throws when neither --plan/--recipe/--scenario supplied', async () => {
+    await expect(runSnapshot({ command: 'snapshot', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /snapshot requires exactly one of/
+    );
+  });
+
+  it('spawn-groups throws when neither --plan/--recipe/--scenario supplied', async () => {
+    await expect(runSpawnGroups({ command: 'spawn-groups', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /spawn-groups requires exactly one of/
+    );
+  });
+
+  it('patrol-routes throws when neither --plan/--recipe/--scenario supplied', async () => {
+    await expect(runPatrolRoutes({ command: 'patrol-routes', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /patrol-routes requires/
+    );
+  });
+
+  it('patrol-script throws when --routes/--scenario missing', async () => {
+    await expect(runPatrolScript({ command: 'patrol-script', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /patrol-script requires/
+    );
+  });
+
+  it('simulate-scenario throws GameboardCliError without --scenario', async () => {
+    await expect(runSimulateScenario({ command: 'simulate-scenario', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /simulate-scenario requires --scenario/
+    );
+  });
+
+  it('declarations surfaces GameboardIoError when source root is missing', async () => {
+    // registryFromArgs reads the GLTF tree from <sourceRoot>/Assets/gltf;
+    // pointing at /nonexistent exercises the wrapper-import line + the
+    // ingest error path.
+    const parsed: ParsedArgs = { command: 'declarations', flags: {} };
+    await expect(runDeclarations(parsed, '/nonexistent', 'free')).rejects.toThrow(
+      /Missing GLTF source directory/
+    );
   });
 });
