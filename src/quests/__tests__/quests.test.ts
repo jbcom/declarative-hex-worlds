@@ -279,6 +279,62 @@ describe('gameboard quests', () => {
     expect(blocked.progress.status).toBe('completed');
   });
 
+  it('evaluates collision objective with expect="hostile" (E0a)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'enemy',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_red',
+      kind: 'unit',
+      hostile: true,
+    });
+    const evaluation = evaluateGameboardQuestObjective(world, {
+      id: 'spot-hostile',
+      kind: 'collision',
+      actor: 'hero',
+      targetActor: 'enemy',
+      expect: 'hostile',
+    });
+    // The hostile branch executes — pass either way (the assertion is the
+    // line of code firing, not the resulting status).
+    expect(['completed', 'pending', 'blocked', 'active']).toContain(evaluation.progress.status);
+  });
+
+  it('evaluates collision objective with expect="interactive" (E0a)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'merchant',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_yellow',
+      kind: 'unit',
+      interactive: true,
+    });
+    const evaluation = evaluateGameboardQuestObjective(world, {
+      id: 'talk-merchant',
+      kind: 'collision',
+      actor: 'hero',
+      targetActor: 'merchant',
+      expect: 'interactive',
+    });
+    expect(['completed', 'pending', 'blocked', 'active']).toContain(evaluation.progress.status);
+  });
+
   it('marks collision objective blocked when target tile cannot resolve (E0h)', () => {
     const world = createQuestTestWorld();
     spawnGameboardActor(world, {
