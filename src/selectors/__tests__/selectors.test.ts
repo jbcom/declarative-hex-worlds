@@ -116,6 +116,15 @@ describe('tile selectors', () => {
     ]);
   });
 
+  it('listRiverGuidePermutations honors explicit waterless: true|false (E0b)', () => {
+    const onlyWaterless = listRiverGuidePermutations({ waterless: true });
+    const onlyWatered = listRiverGuidePermutations({ waterless: false });
+    expect(onlyWaterless.length).toBeGreaterThan(0);
+    expect(onlyWatered.length).toBeGreaterThan(0);
+    expect(onlyWaterless.every((p) => p.waterless === true)).toBe(true);
+    expect(onlyWatered.every((p) => p.waterless === false)).toBe(true);
+  });
+
   it('selectRoadVariantByLabel throws for unknown labels (E0h)', () => {
     expect(() => selectRoadVariantByLabel('definitely-not-a-label')).toThrow(
       /Unknown road guide label/
