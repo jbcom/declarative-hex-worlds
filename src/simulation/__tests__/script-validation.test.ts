@@ -676,6 +676,53 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.some((v) => v.code === 'simulation.update_placement')).toBe(true);
   });
 
+  it('flags spawn-actor with both at and spawnGroupId set (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'conflict-hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            at: '0,0',
+            spawnGroupId: 'players',
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_actor_location_conflict')
+    ).toBe(true);
+  });
+
+  it('flags spawn-actor with neither at nor spawnGroupId (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'homeless-hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            // No at, no spawnGroupId
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_actor_location')
+    ).toBe(true);
+  });
+
   it('flags command target string referencing unknown id when index has entries (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
