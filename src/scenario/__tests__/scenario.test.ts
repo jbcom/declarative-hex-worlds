@@ -854,4 +854,53 @@ describe('gameboard scenarios', () => {
       inspection.violations.some((v) => v.code === 'scenario.board_compile_failed')
     ).toBe(true);
   });
+
+  it('reports actor with negative spawnLocationIndex (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'bad-spawn-index',
+      shape: { kind: 'rectangle', width: 3, height: 2 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-spawn-index', board, {
+      spawnGroups: {
+        groups: [{ id: 'guards', count: 2 }],
+      },
+      actors: [
+        {
+          actorId: 'guard-1',
+          actorKind: 'npc',
+          spawnGroupId: 'guards',
+          // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid index
+          spawnLocationIndex: -1 as any,
+          assetId: 'flag_green',
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_spawn_location_index');
+  });
+
+  it('reports actor with out-of-range spawnLocationIndex (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'oor-spawn-index',
+      shape: { kind: 'rectangle', width: 3, height: 2 },
+    });
+    const scenario = createGameboardScenario('scenario:oor-spawn-index', board, {
+      spawnGroups: {
+        groups: [{ id: 'guards', count: 2 }],
+      },
+      actors: [
+        {
+          actorId: 'guard-1',
+          actorKind: 'npc',
+          spawnGroupId: 'guards',
+          spawnLocationIndex: 99,
+          assetId: 'flag_green',
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_spawn_location_missing');
+  });
 });
