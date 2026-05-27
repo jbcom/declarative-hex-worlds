@@ -380,6 +380,61 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(codes).toContain('simulation.spawn_actor_id');
   });
 
+  it('flags spawn-actor duplicate when actor id already exists in scenario (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            at: '0,0',
+          },
+        },
+        // Second spawn with same actorId triggers duplicate
+        {
+          id: 's2',
+          action: 'spawn-actor',
+          actor: {
+            actorId: 'hero',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            at: '1,0',
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.spawn_actor_duplicate')
+    ).toBe(true);
+  });
+
+  it('flags inspect-actor-targets with non-array tileKeys list (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          sourceActor: 'a',
+          targeting: {
+            tileKeys: 17, // non-array, non-string → not a valid selection
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    // The selector accepts string or string[]; numeric input triggers
+    // the tile-reference path which records its own violation.
+    expect(result.violations.length).toBeGreaterThan(0);
+  });
+
   it('flags step shape errors: non-object step, bad id, duplicate id, unknown action', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
