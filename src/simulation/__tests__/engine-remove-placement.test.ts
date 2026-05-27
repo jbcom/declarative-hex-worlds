@@ -183,3 +183,24 @@ describe('runRemovePlacementStep (PRD E0a)', () => {
     expect(result.steps[1]?.systems).toBeDefined();
   });
 });
+
+describe('resolveSimulationSpawnActor missing spawn target (PRD E0a)', () => {
+  it('throws GameboardRuntimeError when spawn-actor has neither at nor spawnGroupId', () => {
+    expect(() =>
+      runGameboardScenarioSimulation(minimalScenario, [
+        {
+          action: 'spawn-actor',
+          id: 'spawn-orphan',
+          actor: {
+            actorId: 'orphan',
+            assetId: 'flag_blue',
+            kind: 'unit',
+            // No `at`, no `spawnGroupId` — triggers resolveSimulationSpawnActor throw branch
+            // biome-ignore lint/suspicious/noExplicitAny: deliberately-incomplete scenario actor
+          } as any,
+          systems: false,
+        },
+      ])
+    ).toThrow(/has no spawn tile or spawn group/);
+  });
+});
