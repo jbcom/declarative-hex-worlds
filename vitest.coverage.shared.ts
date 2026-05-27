@@ -53,7 +53,7 @@ export const COVERAGE_THRESHOLDS = {
   // tests do execute on the runner — local + CI floors converge. Each
   // E0a/E0h commit advances these.
   statements: 65,
-  branches: 62.9,
+  branches: 63,
   functions: 75.5,
   lines: 64.6,
 };
