@@ -599,6 +599,75 @@ describe('gameboard piece declarations', () => {
       'adventurer:knight': '/assets/adventurer/Knight.glb',
     });
   });
+
+  it('analyzeGameboardPieceRegistry warns on empty registry (E0h)', () => {
+    const registry = createGameboardPieceRegistry([]);
+    const analysis = analyzeGameboardPieceRegistry(registry);
+    expect(analysis.warnings.some((w) => w.includes('empty'))).toBe(true);
+  });
+
+  it('analyzeGameboardPieceRegistry errors when piece missing assetId (E0h)', () => {
+    const registry = createGameboardPieceRegistry([
+      {
+        id: 'no-asset',
+        assetId: '',
+        source: 'test',
+      },
+    ]);
+    const analysis = analyzeGameboardPieceRegistry(registry);
+    expect(analysis.errors.some((e) => e.includes('missing assetId'))).toBe(true);
+  });
+
+  it('inferPieceRole maps id keywords to roles for declared pieces (E0h)', () => {
+    const harbor = declareGameboardPiece({
+      id: 'shipyard-1',
+      assetId: 'asset-harbor',
+      source: 'test',
+    });
+    expect(harbor.role).toBe('harbor');
+
+    const tree = declareGameboardPiece({
+      id: 'forest-oak',
+      assetId: 'asset-tree',
+      source: 'test',
+    });
+    expect(tree.role).toBe('tree');
+
+    const scatter = declareGameboardPiece({
+      id: 'crate-pile',
+      assetId: 'asset-crate',
+      source: 'test',
+    });
+    expect(scatter.role).toBe('scatter');
+
+    const unit = declareGameboardPiece({
+      id: 'knight-blue',
+      assetId: 'asset-unit',
+      source: 'test',
+    });
+    expect(unit.role).toBe('unit');
+
+    const landmark = declareGameboardPiece({
+      id: 'gatehouse-east',
+      assetId: 'asset-landmark',
+      source: 'test',
+    });
+    expect(landmark.role).toBe('landmark');
+
+    const building = declareGameboardPiece({
+      id: 'barracks-main',
+      assetId: 'asset-building',
+      source: 'test',
+    });
+    expect(building.role).toBe('building');
+
+    const fallback = declareGameboardPiece({
+      id: 'mystery-thing',
+      assetId: 'asset-mystery',
+      source: 'test',
+    });
+    expect(fallback.role).toBe('prop');
+  });
 });
 
 function createPieceFixturePlan() {
