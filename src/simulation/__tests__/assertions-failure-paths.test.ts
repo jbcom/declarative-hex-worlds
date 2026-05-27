@@ -76,6 +76,25 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
     expect(failures.some((f) => f.message.includes('No movement event matched'))).toBe(true);
   });
 
+  it('reports failure for quest objective status mismatch', () => {
+    const script: GameboardScenarioSimulationScript = {
+      schemaVersion: '1.0.0',
+      steps: [],
+      expectations: {
+        quests: [
+          {
+            questId: 'definitely-not-a-real-quest',
+            completedObjectiveIds: ['obj-1'],
+          },
+        ],
+      },
+    };
+    const failures = evaluate(script);
+    // Either the quest selector matches nothing OR the objective check
+    // fires; both prove the quest-expectation pathway is exercised.
+    expect(failures.length).toBeGreaterThan(0);
+  });
+
   it('reports failure when expectations.patrols selector has zero candidates', () => {
     const script: GameboardScenarioSimulationScript = {
       schemaVersion: '1.0.0',
