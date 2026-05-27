@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   coordinatesForShape,
   createGameboardBuilder,
+  createGameboardPlan,
   createMedievalHarborBoard,
   edgeBetween,
   gameboardPlanIndex,
+  getPlacementAsset,
   hexKey,
   listPropClusterAssets,
   neighbor,
@@ -356,5 +358,36 @@ describe('gameboard plan builder', () => {
     expect(coordinatesForShape({ kind: 'hexagon', radius: 2 })).toHaveLength(19);
     expect(requiresExtraAsset('building_shipyard_blue')).toBe(true);
     expect(requiresExtraAsset('building_castle_blue')).toBe(false);
+  });
+
+  it('createGameboardPlan builds a plan with an optional builder callback (E0h)', () => {
+    const planNoCallback = createGameboardPlan({
+      seed: 'plain-plan',
+      shape: { kind: 'rectangle', width: 2, height: 2 },
+    });
+    expect(planNoCallback.tiles.length).toBe(4);
+
+    let callbackInvoked = false;
+    const planWithCallback = createGameboardPlan(
+      {
+        seed: 'configured-plan',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      },
+      () => {
+        callbackInvoked = true;
+      }
+    );
+    expect(callbackInvoked).toBe(true);
+    expect(planWithCallback.tiles.length).toBe(3);
+  });
+
+  it('getPlacementAsset resolves bundled FREE manifest asset records (E0h)', () => {
+    // Pick a known FREE asset id (hex_grass) — present in the freeManifest.
+    const asset = getPlacementAsset({ assetId: 'hex_grass' });
+    expect(asset?.id).toBe('hex_grass');
+    expect(asset?.edition).toBe('free');
+
+    // Unknown id returns undefined.
+    expect(getPlacementAsset({ assetId: 'definitely-not-an-asset' })).toBeUndefined();
   });
 });
