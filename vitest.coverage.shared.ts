@@ -30,7 +30,6 @@ export const COVERAGE_EXCLUDES = [
   '**/__tests__/**',
   '**/__screenshots__/**',
   'examples/**', // moved to tests/ in R4
-  'scripts/**', // build/audit scripts; tested via integration runs
 ];
 
 /**
@@ -45,10 +44,10 @@ export const COVERAGE_EXCLUDES = [
  * does the ratchet automatically.
  */
 export const COVERAGE_THRESHOLDS = {
-  statements: 65.5,
-  branches: 60.5,
-  functions: 73,
-  lines: 65,
+  statements: 56.5,
+  branches: 56,
+  functions: 68,
+  lines: 56,
 };
 
 /**
@@ -66,7 +65,7 @@ export function harnessCoverage(harness: string): CoverageOptions {
     enabled: process.env.MEDIEVAL_HEXAGON_COVERAGE === '1',
     reporter: ['json', 'lcov', 'text'],
     reportsDirectory: `./coverage/${harness}`,
-    include: ['src/**/*.ts'],
+    include: ['src/**/*.ts', 'scripts/**/*.ts'],
     exclude: COVERAGE_EXCLUDES,
     clean: false, // do not wipe sibling harness output
     cleanOnRerun: false,
