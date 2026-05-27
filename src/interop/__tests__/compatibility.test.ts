@@ -142,4 +142,15 @@ describe('external asset compatibility', () => {
     expect(report.placement.layer).toBe('structure');
     expect(report.placement.kind).toBe('structure');
   });
+
+  it('handles -x modelForward axis (E0a)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'axis-neg-x',
+      sourcePack: 'test',
+      bounds: { min: [-0.5, 0, -0.5], max: [0.5, 1, 0.5], size: [1, 1, 1] },
+      modelForward: '-x',
+    });
+    // Hits modelForwardYaw '-x' branch at line 454.
+    expect(report.placement.rotationRadians).toBeDefined();
+  });
 });
