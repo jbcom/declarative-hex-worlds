@@ -738,18 +738,20 @@ describe('gameboard actor semantics', () => {
   });
 
   it('gameboardActorBlocksMovement reports true for blocking actor + structure layer (E0h)', () => {
-    const blockingActor = {
+    // biome-ignore lint/suspicious/noExplicitAny: minimal fixture for the helper
+    const blockingActor: any = {
       actorId: 'wall',
-      actorKind: 'prop' as const,
+      kind: 'prop',
       blocksMovement: true,
-      team: 'neutral' as const,
-      tags: [] as const,
+      team: 'neutral',
+      tags: [],
       metadata: {},
       interactive: false,
       hostile: false,
+      faction: undefined,
     };
     expect(
-      gameboardActorBlocksMovement(blockingActor, { kind: 'wall', layer: 'structure' })
+      gameboardActorBlocksMovement(blockingActor, { kind: 'wall', layer: 'structure' } as unknown as Parameters<typeof gameboardActorBlocksMovement>[1])
     ).toBe(true);
   });
 });

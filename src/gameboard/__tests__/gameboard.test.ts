@@ -393,10 +393,11 @@ describe('gameboard plan builder', () => {
 
   it('gameboardPlacementBlocksOccupancy honors ignorePlacementIds (E0h)', async () => {
     const { gameboardPlacementBlocksOccupancy } = await import('../../gameboard/occupancy');
-    const placement = {
+    // biome-ignore lint/suspicious/noExplicitAny: minimal fixture matching GameboardPlacementOccupancyLike
+    const placement: any = {
       id: 'wall-1',
-      kind: 'structure' as const,
-      layer: 'structure' as const,
+      kind: 'structure',
+      layer: 'structure',
       metadata: {},
     };
     // Default blocks.
@@ -415,7 +416,8 @@ describe('gameboard plan builder', () => {
     const beforeCount = builder.build().placements.length;
     const after = builder.addPropCluster({
       at: { q: 1, r: 1 },
-      kind: 'forest',
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture for the helper
+      kind: 'forest' as any,
       density: 0,
     });
     expect(after).toBe(builder);

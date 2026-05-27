@@ -84,7 +84,7 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
         quests: [
           {
             questId: 'definitely-not-a-real-quest',
-            completedObjectiveIds: ['obj-1'],
+            completedObjectives: ['obj-1'],
           },
         ],
       },

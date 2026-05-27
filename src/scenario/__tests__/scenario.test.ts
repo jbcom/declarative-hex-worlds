@@ -847,7 +847,7 @@ describe('gameboard scenarios', () => {
         schemaVersion: '1.0.0',
         options: { seed: 'x', shape: { kind: 'rectangle', width: 2, height: 2 } },
         // biome-ignore lint/suspicious/noExplicitAny: deliberately invalid action
-        steps: [{ action: 'not-a-real-recipe-action' as any }],
+        steps: [{ action: 'not-a-real-recipe-action' } as any],
       },
     });
     expect(

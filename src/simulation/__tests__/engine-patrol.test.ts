@@ -65,6 +65,7 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
     };
     const plan = createGameboardPatrolSimulationSteps({
       // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-1', actorId: 'guard-1' }],
     });
@@ -82,6 +83,7 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
     };
     const plan = createGameboardPatrolSimulationSteps({
       // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-empty', actorId: 'guard-1' }],
     });
@@ -101,6 +103,7 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
       segmentCosts: [1],
     };
     const plan = createGameboardPatrolSimulationSteps({
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-unfound', actorId: 'guard-1' }],
       requireFoundRoutes: false,
@@ -121,6 +124,7 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
       segmentCosts: [1],
     };
     const plan = createGameboardPatrolSimulationSteps({
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-no-dest', actorId: 'guard-1' }],
       requireFoundRoutes: true,
@@ -138,13 +142,13 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
       segmentCosts: [],
     };
     const planZero = createGameboardPatrolSimulationSteps({
-      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-clamp', actorId: 'guard-1', rounds: 0 }],
     });
     expect(planZero.assignments[0]?.roundCount).toBe(1);
     const planNeg = createGameboardPatrolSimulationSteps({
-      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
+      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       // biome-ignore lint/suspicious/noExplicitAny: deliberate negative
       assignments: [{ routeId: 'route-clamp', actorId: 'guard-1', rounds: -3 } as any],

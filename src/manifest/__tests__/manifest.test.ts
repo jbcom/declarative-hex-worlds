@@ -232,8 +232,8 @@ describe('selectManifestAssets filter branches (PRD E0h)', () => {
 
   it('rejects assets missing a faction when factions filter is set', () => {
     // Some FREE assets have faction undefined; the filter should exclude them.
-    const result = selectManifestAssets(freeManifest, { factions: ['neutral'] });
-    expect(result.every((a) => a.faction === 'neutral')).toBe(true);
+    const result = selectManifestAssets(freeManifest, { factions: ['blue'] });
+    expect(result.every((a) => a.faction === 'blue')).toBe(true);
   });
 
   it('rejects assets missing a unitStyle when unitStyles filter is set', () => {

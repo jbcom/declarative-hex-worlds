@@ -475,15 +475,14 @@ describe('serializable gameboard recipes', () => {
       },
       [
         { action: 'addBridge', at: { q: 1, r: 0 }, facing: 1 },
-        { action: 'addFortification', at: { q: 2, r: 0 }, faction: 'blue', kind: 'wall' },
-        { action: 'addConstructionSite', at: { q: 3, r: 0 }, faction: 'blue' },
-        { action: 'addSiegeProjectile', at: { q: 4, r: 0 }, faction: 'blue', kind: 'catapult' },
+        { action: 'addFortification', at: { q: 2, r: 0 }, material: 'wall' },
+        { action: 'addConstructionSite', at: { q: 3, r: 0 } },
+        { action: 'addSiegeProjectile', at: { q: 4, r: 0 }, kind: 'catapult' },
         { action: 'addElevationRamp', at: { q: 5, r: 0 }, facing: 1 },
         {
           action: 'addProp',
           at: { q: 0, r: 1 },
           assetId: 'flag_blue',
-          kind: 'prop',
         },
       ]
     );
