@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../gameboard/index';
-import { createGameboardInteropSnapshot } from '../../interop/index';
+import { createGameboardBuilder } from '../../gameboard';
+import { createGameboardInteropSnapshot } from '../../interop';
 import { freeManifest } from '../../manifest/free';
 import {
   analyzeHexTileRegistry,

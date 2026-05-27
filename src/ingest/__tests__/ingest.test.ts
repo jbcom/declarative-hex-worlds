@@ -8,7 +8,7 @@ import {
   generateManifestFromSource,
   validateSourceRoot,
   writeManifestModule,
-} from '../../ingest/index';
+} from '../../ingest';
 import { freeManifest } from '../../manifest/free';
 import { validateMedievalHexagonManifest } from '../../manifest/schema';
 

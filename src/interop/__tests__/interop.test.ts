@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../gameboard/index';
+import { createGameboardBuilder } from '../../gameboard';
 import {
   createGameboardInteropSnapshotIndex,
   createGameboardInteropSnapshot,
@@ -9,14 +9,14 @@ import {
   indexGameboardInteropSnapshot,
   mountGameboardInteropSnapshot,
   selectGameboardInteropRelations,
-} from '../../interop/index';
+} from '../../interop';
 import { createGameboardRecipe } from '../../scenario/recipe';
-import { createGameboardScenario } from '../../scenario/index';
+import { createGameboardScenario } from '../../scenario';
 import {
   createGameboardScenarioSimulationReport,
   runGameboardScenarioSimulationScript,
   type GameboardScenarioSimulationScript,
-} from '../../simulation/index';
+} from '../../simulation';
 
 describe('generic ECS interop adapter', () => {
   it('indexes neutral entities and mounts them into an in-memory ECS', () => {

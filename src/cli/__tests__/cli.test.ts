@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { createGameboardBuilder } from '../../gameboard/index';
+import { createGameboardBuilder } from '../../gameboard';
 import { createGameboardRecipe } from '../../scenario/recipe';
-import { createGameboardScenario } from '../../scenario/index';
-import type { MedievalHexagonManifest } from '../../types/index';
+import { createGameboardScenario } from '../../scenario';
+import type { MedievalHexagonManifest } from '../../types';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const packageRoot = resolve(testDir, '../../..');

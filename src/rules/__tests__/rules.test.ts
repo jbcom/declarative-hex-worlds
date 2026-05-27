@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { factionBuildingAssetId, isKnownExtraAssetId, textureFileName } from '../../scenario/catalog';
-import { containsHex, coordinatesForShape } from '../../coordinates/index';
-import { createGameboardBuilder } from '../../gameboard/index';
-import { AdjacentTo, HexTileState, createGameboardWorld, findTileEntity } from '../../koota/index';
-import { createGameboardPieceRegistry } from '../../pieces/index';
+import { containsHex, coordinatesForShape } from '../../coordinates';
+import { createGameboardBuilder } from '../../gameboard';
+import { AdjacentTo, HexTileState, createGameboardWorld, findTileEntity } from '../../koota';
+import { createGameboardPieceRegistry } from '../../pieces';
 import {
   canPlaceHarborAt,
   canStackAt,
@@ -17,7 +17,7 @@ import {
   setTileElevation,
   setTileTerrain,
   validateGameboardRules,
-} from '../../rules/index';
+} from '../../rules';
 import { validateGameboardPlan } from '../../rules/validation';
 
 describe('Koota rules and seeded generation', () => {
