@@ -771,6 +771,27 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('flags placement expectation referencing missing placement id (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 'real-flag', at: '0,0', assetId: 'flag_blue', kind: 'prop' },
+        },
+      ],
+      expectations: {
+        placements: [{ placementId: 'absolutely-no-such-placement' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.placement_missing')
+    ).toBe(true);
+  });
+
   it('flags patrol expectation with non-record entries (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
