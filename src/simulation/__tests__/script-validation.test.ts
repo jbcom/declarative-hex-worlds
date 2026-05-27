@@ -223,6 +223,52 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(codes).toContain('simulation.actor_targets_factions');
   });
 
+  it('flags update-placement field shape errors (assetId/kind/layer/metadata)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'update-placement',
+          placementId: 'p1',
+          placement: {
+            assetId: 17, // non-string
+            kind: '', // empty string is invalid
+            layer: 42, // non-string
+            metadata: 'not-an-object', // metadata must be record-like
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.update_asset_id');
+    expect(codes).toContain('simulation.update_kind');
+    expect(codes).toContain('simulation.update_layer');
+    expect(codes).toContain('simulation.update_metadata');
+  });
+
+  it('flags update-actor with non-object placement override and chains to validateUpdatePlacementFields', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'update-actor',
+          actorId: 'a1',
+          actor: {},
+          placement: {
+            assetId: 99, // non-string
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.update_asset_id')).toBe(true);
+  });
+
   it('flags update-placement step with non-object placement field', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
