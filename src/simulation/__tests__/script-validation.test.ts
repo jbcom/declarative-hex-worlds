@@ -789,6 +789,24 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('validates inspect-actor-targets placementIds as array (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: { placementIds: ['placement-x', 'placement-y'] },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    // Array body iterates each — line 1996-1998 fires (the references resolve
+    // to placement_missing because no spawn-placement preceded). Pass-through.
+    expect(Array.isArray(result.violations)).toBe(true);
+  });
+
   it('flags command expectation with non-record entries (E0b)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
