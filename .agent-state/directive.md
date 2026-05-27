@@ -32,7 +32,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] **E0a** — Simulation + patrol files toward 100%. PR#10 merged at `e753cd4`, PR#11 (directive recap) at `3d7816e`, PR#12 (batch-2) merged at `e6a4802`. PR#13 (`feat/e0-coverage-batch-3`) open: actors.ts resolveNeighborhoodCenter unknown-string throw / rules/validation.ts road+river reciprocal=false skip / gameboard.ts addFortification wall corner/gate segment variants / scenario/registry.ts applyTileDeclaration unknown-id throw. Local 66.51/65.08/77.14 (lines/branches/funcs). Threshold floor advanced to 65.8/63.8/76.0/65.5. Continue per-file gap closure toward 100/100/100/100.
+- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10 merged at `e753cd4`, PR#11 (directive recap) at `3d7816e`, PR#12 (batch-2) merged at `e6a4802`. PR#13 (`feat/e0-coverage-batch-3`) open and awaiting CI: actors neighborhood-center throw / rules reciprocal-off / gameboard wall corner+gate segments / scenario/registry unknown-id throw / manifest counts+assetsById warnings / simulation script-level eventTypes + command handlerOptions / selectors waterless singleton / commands createRemoveTargetPlacementHandler body branches / pieces structure→building / coordinates/grid axialRound qDiff+rDiff branches. Local 66.51/65.08/77.14 (lines/branches/funcs). Threshold floor advanced to 65.8/63.8/76.0/65.5. After PR#13 merges, next batch resumes per-file gap closure toward 100/100/100/100.
     - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
     - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
     - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.
@@ -52,7 +52,7 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
     - interop/compatibility.ts 93.33 → -x modelForward axis.
     - navigation.ts 86.06 → reachableGameboardTiles defensive returns.
     Remaining gaps: deep validator branches in script.ts (remaining expectation sub-validators), engine.ts edge mutation paths (lines 491-499, 674), patrol.ts wait-state + completed-by-targetIndex-undefined deeper paths, navigation.ts patrol-route generation edge cases, scenario.ts deeper allocator paths, bootstrap GitHub source, ingest.ts duplicate disambiguation. Each ≤200 LOC commit + threshold ratchet.
-- [ ] **E0h** — Sweep remaining src/ files to 100%. PR#10 closures advanced many of these in tandem with E0a. Status post-merge:
+- [ ] [WAIT] **E0h** — Sweep remaining src/ files to 100%. PR#10 closures advanced many of these in tandem with E0a. Status post-merge:
     - `pieces/pieces.ts` ~91% (was 89.69) — cross-pack composition + remaining infer paths
     - `quests/quests.ts` ~89% (was 87.2) — quest objective rollover + reward dispatch
     - `actors/actors.ts` ~88% (was 87.58) — placement-state inference edge cases
