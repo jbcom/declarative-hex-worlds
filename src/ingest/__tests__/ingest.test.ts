@@ -2,7 +2,13 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
-import { generateManifestFromSource, validateSourceRoot, writeManifestModule } from '../../ingest/index';
+import {
+  copyGltfTree,
+  defaultSourceRoot,
+  generateManifestFromSource,
+  validateSourceRoot,
+  writeManifestModule,
+} from '../../ingest/index';
 import { freeManifest } from '../../manifest/free';
 import { validateMedievalHexagonManifest } from '../../manifest/schema';
 
@@ -100,5 +106,25 @@ describe('source ingestion', () => {
     expect(validateMedievalHexagonManifest(manifest).map((issue) => issue.code)).not.toContain(
       'manifest.asset_duplicate'
     );
+  });
+
+  it('defaultSourceRoot resolves both edition suffixes (PRD E0h)', () => {
+    const cwd = '/some/repo/root';
+    expect(defaultSourceRoot('free', cwd)).toBe(
+      resolve(cwd, 'references/KayKit_Medieval_Hexagon_Pack_1.0_FREE')
+    );
+    expect(defaultSourceRoot('extra', cwd)).toBe(
+      resolve(cwd, 'references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA')
+    );
+  });
+
+  it('copyGltfTree throws GameboardIoError when source missing (PRD E0h)', () => {
+    const missingRoot = join(tmpdir(), 'medieval-hexagon-missing-source-root');
+    const destRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-copy-dest-'));
+    try {
+      expect(() => copyGltfTree(missingRoot, destRoot)).toThrow(/Missing GLTF source directory/);
+    } finally {
+      rmSync(destRoot, { recursive: true, force: true });
+    }
   });
 });
