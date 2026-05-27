@@ -198,7 +198,7 @@ function assertWorkspaceTestCiOrder(_testCiScript: string): void {
     'pnpm audit --prod --audit-level=high',
     'pnpm test:docs-contract',
     'pnpm test:api-docs',
-    'pnpm docs',
+    'pnpm run docs',
     'pnpm test:assets',
     'pnpm test:workspace',
     'pnpm test:workflows',

@@ -180,7 +180,7 @@ jobs:
         run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
 
       - name: Build docs
-        run: pnpm test:docs-contract && pnpm test:api-docs && pnpm docs
+        run: pnpm test:docs-contract && pnpm test:api-docs && pnpm run docs
 
   docs-site:
     # PRD F-Site-4 — Astro Starlight build. Sibling project under docs-site/
