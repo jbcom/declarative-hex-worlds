@@ -54,6 +54,8 @@ function Scene() {
 
 That's it. The bootstrap command downloaded 221 KayKit FREE GLTFs into `public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/`. The plan + runtime are deterministic — same seed, same render, byte-for-byte.
 
+> The snippet uses [`@react-three/fiber`](https://github.com/pmndrs/react-three-fiber) for the Canvas. That's an optional companion (`pnpm add @react-three/fiber`) — it's not a library dependency because consumers might prefer a different react-three layer. The library's own `/three` subpath gives you the raw helpers if you want to skip react-three-fiber.
+
 ---
 
 ## Why this exists
