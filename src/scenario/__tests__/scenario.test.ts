@@ -880,6 +880,24 @@ describe('gameboard scenarios', () => {
     expect(codes).toContain('scenario.actor_spawn_location_index');
   });
 
+  it('reports quest with empty id + duplicate quest id (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'bad-quest-ids',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-quest-ids', board, {
+      quests: [
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately-empty id
+        { id: '' as any, objectives: [] },
+        { id: 'twin', objectives: [] },
+        { id: 'twin', objectives: [] },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.quest_id');
+    expect(codes).toContain('scenario.quest_duplicate');
+  });
+
   it('reports actor missing assetId (E0a)', () => {
     const board = createGameboardRecipe({
       seed: 'no-asset',
