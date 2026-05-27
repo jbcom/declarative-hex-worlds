@@ -292,6 +292,12 @@ describe('selectManifestAssets filter branches (PRD E0h)', () => {
     expect(result.every((a) => a.textureSet === 'default')).toBe(true);
   });
 
+  it('returns empty when textureSets filter excludes everything (E0b)', () => {
+    // Forces the early-return false branch at schema.ts line 333.
+    const result = selectManifestAssets(freeManifest, { textureSets: ['nonexistent-set'] });
+    expect(result).toEqual([]);
+  });
+
   it('rejects assets missing a faction when factions filter is set', () => {
     // Some FREE assets have faction undefined; the filter should exclude them.
     const result = selectManifestAssets(freeManifest, { factions: ['blue'] });
