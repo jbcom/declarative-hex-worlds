@@ -64,6 +64,22 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
     expect(failures.some((f) => f.message.includes('No actor target inspection matched'))).toBe(true);
   });
 
+  it('movements no-candidates also serializes step.eventRecords when scenario has them (E0b)', () => {
+    const script: GameboardScenarioSimulationScript = {
+      schemaVersion: '1.0.0',
+      steps: [
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 'p1', at: '0,0', assetId: 'flag_blue', kind: 'prop' },
+        },
+      ],
+      expectations: { movements: [{ actorId: 'no-such-actor' }] },
+    };
+    const failures = evaluate(script);
+    expect(failures.some((f) => f.message.includes('No movement event matched'))).toBe(true);
+  });
+
   it('reports failure when expectations.movements selector has zero candidates', () => {
     const script: GameboardScenarioSimulationScript = {
       schemaVersion: '1.0.0',
