@@ -748,6 +748,40 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('flags movement expectation with invalid eventType (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        movements: [{ eventType: 'not-a-real-movement-event' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_movement_event_type')
+    ).toBe(true);
+  });
+
+  it('flags patrol expectation with invalid eventType (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        patrols: [{ eventType: 'not-a-real-patrol-event' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code.includes('patrol'))
+    ).toBe(true);
+  });
+
   it('flags spawn-placement without at field (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
