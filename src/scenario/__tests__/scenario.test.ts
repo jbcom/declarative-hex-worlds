@@ -880,6 +880,48 @@ describe('gameboard scenarios', () => {
     expect(codes).toContain('scenario.actor_spawn_location_index');
   });
 
+  it('reports actor missing assetId (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'no-asset',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:no-asset', board, {
+      actors: [
+        {
+          actorId: 'wraith',
+          actorKind: 'npc',
+          at: '0,0',
+          // biome-ignore lint/suspicious/noExplicitAny: deliberately-empty asset
+          assetId: '' as any,
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_asset');
+  });
+
+  it('reports actor missing kind (E0a)', () => {
+    const board = createGameboardRecipe({
+      seed: 'no-kind',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:no-kind', board, {
+      actors: [
+        {
+          actorId: 'kindless',
+          actorKind: 'npc',
+          at: '0,0',
+          assetId: 'flag_blue',
+          // biome-ignore lint/suspicious/noExplicitAny: deliberately-empty kind
+          kind: '' as any,
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_kind');
+  });
+
   it('reports actor whose assetId is missing from the manifest catalog (E0a)', () => {
     const board = createGameboardRecipe({
       seed: 'bad-actor-asset',
