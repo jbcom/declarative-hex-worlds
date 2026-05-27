@@ -10,13 +10,13 @@
       "@jbcom/medieval-hexagon-gameboard/*": ["src/*"]
     }
   },
-  "include": ["../src/**/*.ts"],
+  "include": ["../src/**/*.ts", "../tests/integration/**/*.ts"],
   "exclude": [
     "../dist",
     "../coverage",
     "../node_modules",
     "../assets/free",
-    "../tests",
-    "../src/**/__tests__/**"
+    "../src/**/__tests__/**",
+    "../tests/**/__tests__/**"
   ]
 }
