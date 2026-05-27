@@ -345,6 +345,12 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
     );
   });
 
+  it('bootstrap throws on invalid --source value (E0a)', async () => {
+    await expect(
+      runBootstrap({ command: 'bootstrap', flags: { source: 'magic' } }, '/x', 'free')
+    ).rejects.toThrow(/bootstrap --source must be/);
+  });
+
   it('bootstrap --source zip throws without --zip', async () => {
     await expect(
       runBootstrap({ command: 'bootstrap', flags: { source: 'zip' } }, '/x', 'free')
