@@ -28,7 +28,14 @@ import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideScenarios } from '../commands/guide-scenarios';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runManifest } from '../commands/manifest';
+import { run as runPlacePiece } from '../commands/place-piece';
+import { run as runSummarizeScenario } from '../commands/summarize-scenario';
 import { run as runValidate } from '../commands/validate';
+import { run as runValidateManifest } from '../commands/validate-manifest';
+import { run as runValidatePlan } from '../commands/validate-plan';
+import { run as runValidateRecipe } from '../commands/validate-recipe';
+import { run as runValidateScenario } from '../commands/validate-scenario';
+import { run as runValidateSimulation } from '../commands/validate-simulation';
 
 describe('CLI doctor subcommand (PRD E0h)', () => {
   let logs: string[];
@@ -226,5 +233,59 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
     const parsed: ParsedArgs = { command: 'guide-usages', flags: { json: true } };
     await runGuideUsages(parsed, '/nonexistent', 'free');
     expect(logs.length).toBeGreaterThan(0);
+  });
+});
+
+describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', () => {
+  it('validate-manifest throws GameboardCliError without --manifest', async () => {
+    await expect(runValidateManifest({ command: 'validate-manifest', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /validate-manifest requires --manifest/
+    );
+  });
+
+  it('validate-plan throws GameboardCliError without --plan', async () => {
+    await expect(runValidatePlan({ command: 'validate-plan', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /validate-plan requires --plan/
+    );
+  });
+
+  it('validate-recipe throws GameboardCliError without --recipe', async () => {
+    await expect(runValidateRecipe({ command: 'validate-recipe', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /validate-recipe requires --recipe/
+    );
+  });
+
+  it('validate-scenario throws GameboardCliError without --scenario', async () => {
+    await expect(runValidateScenario({ command: 'validate-scenario', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /validate-scenario requires --scenario/
+    );
+  });
+
+  it('validate-simulation throws GameboardCliError without --scenario', async () => {
+    await expect(runValidateSimulation({ command: 'validate-simulation', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /validate-simulation requires --scenario/
+    );
+  });
+
+  it('summarize-scenario throws GameboardCliError without --scenario', async () => {
+    await expect(runSummarizeScenario({ command: 'summarize-scenario', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /summarize-scenario requires --scenario/
+    );
+  });
+
+  it('place-piece throws when neither --plan/--recipe/--scenario supplied', async () => {
+    await expect(runPlacePiece({ command: 'place-piece', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /place-piece requires exactly one of/
+    );
+  });
+
+  it('place-piece throws when --pieces missing but plan supplied', async () => {
+    await expect(
+      runPlacePiece(
+        { command: 'place-piece', flags: { plan: '/tmp/no.json' } },
+        '/x',
+        'free'
+      )
+    ).rejects.toThrow();
   });
 });
