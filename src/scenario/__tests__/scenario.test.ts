@@ -708,6 +708,31 @@ describe('gameboard scenarios', () => {
     expect(codes).toContain('scenario.objective_missing_collision_target');
   });
 
+  it('reports quest objective tile coordinate / missing tile errors (E0b)', () => {
+    const board = createGameboardRecipe({
+      seed: 'objective-tile-violations',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:obj-tiles', board, {
+      actors: [
+        { actorId: 'hero', actorKind: 'player', at: '0,0', assetId: 'flag_blue', kind: 'unit' },
+      ],
+      quests: [
+        {
+          id: 'quest-1',
+          objectives: [
+            // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid tile
+            { id: 'obj-bad-tile', kind: 'reach', actor: 'hero', tile: 'not,a,key' as any },
+            { id: 'obj-off-board', kind: 'reach', actor: 'hero', tile: '99,99' },
+          ],
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.objective_tile_key');
+    expect(codes).toContain('scenario.objective_missing_tile');
+  });
+
   it('reports actor patrolAgent with empty routeId (E0b)', () => {
     const board = createGameboardRecipe({
       seed: 'empty-patrol-route-id',
