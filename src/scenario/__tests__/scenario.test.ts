@@ -880,6 +880,67 @@ describe('gameboard scenarios', () => {
     expect(codes).toContain('scenario.actor_spawn_location_index');
   });
 
+  it('summarizeGameboardScenario sorts actor tags alphabetically (E0b)', () => {
+    const board = createGameboardRecipe({
+      seed: 'tagged-actors',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:tagged-actors', board, {
+      actors: [
+        {
+          actorId: 'tagged',
+          actorKind: 'npc',
+          at: '0,0',
+          assetId: 'flag_blue',
+          kind: 'unit',
+          tags: ['zebra', 'apple', 'mango'],
+        },
+      ],
+    });
+    const summary = summarizeGameboardScenario(scenario);
+    const actor = summary.actors.find((a) => a.actorId === 'tagged');
+    expect(actor?.tags).toEqual(['apple', 'mango', 'zebra']);
+  });
+
+  it('reports actor with invalid tile coordinate (E0b)', () => {
+    const board = createGameboardRecipe({
+      seed: 'bad-actor-tile',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-actor-tile', board, {
+      actors: [
+        {
+          actorId: 'orphan',
+          actorKind: 'npc',
+          // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid coord
+          at: 17 as any,
+          assetId: 'flag_blue',
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_tile_key');
+  });
+
+  it('reports actor with empty actorId + duplicate actorId (E0b)', () => {
+    const board = createGameboardRecipe({
+      seed: 'bad-actor-ids',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-actor-ids', board, {
+      actors: [
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately-empty actorId
+        { actorId: '' as any, actorKind: 'npc', at: '0,0', assetId: 'flag_blue', kind: 'unit' },
+        { actorId: 'twin', actorKind: 'npc', at: '0,0', assetId: 'flag_red', kind: 'unit' },
+        { actorId: 'twin', actorKind: 'npc', at: '1,0', assetId: 'flag_yellow', kind: 'unit' },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_id');
+    expect(codes).toContain('scenario.actor_duplicate');
+  });
+
   it('reports quest with empty id + duplicate quest id (E0a)', () => {
     const board = createGameboardRecipe({
       seed: 'bad-quest-ids',

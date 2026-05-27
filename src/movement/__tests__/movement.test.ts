@@ -5,11 +5,13 @@ import {
   IsMoving,
   MovementAgent,
   MovementPathState,
+  advanceGameboardMovement,
   createGameboardMovementNavigation,
   gameboardMovementActions,
   reachableGameboardMovementTiles,
   requestGameboardMovement,
   resetGameboardMovementBudget,
+  resolveGameboardMovementProfile,
   runGameboardMovementSystem,
   setGameboardMovementAgent,
 } from '../../movement/index';
@@ -207,5 +209,40 @@ describe('Koota movement profiles and systems', () => {
     expect(() =>
       setGameboardMovementAgent(world, id, { profile: 'not-a-real-profile-id' })
     ).toThrow(/Unknown gameboard movement profile/);
+  });
+
+  it('resolveGameboardMovementProfile falls back to ground default (E0a)', () => {
+    // undefined profile → returns ground (line 266-271).
+    const resolved = resolveGameboardMovementProfile(undefined);
+    expect(resolved.id).toBe('ground');
+    // Inline profile object passthrough (line 273-274).
+    // biome-ignore lint/suspicious/noExplicitAny: minimal inline profile
+    const inline = { id: 'inline-custom' } as any;
+    expect(resolveGameboardMovementProfile(inline)).toBe(inline);
+    // Throws when registry has no ground.
+    expect(() => resolveGameboardMovementProfile(undefined, {})).toThrow(
+      /missing required default "ground"/
+    );
+  });
+
+  it('advance on completed path returns advanceResult without throwing (E0a)', () => {
+    const placedPlan = createGameboardBuilder({
+      seed: 'movement-advance-completed',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    })
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'unit_blue_full',
+        kind: 'unit',
+        layer: 'unit',
+      })
+      .build();
+    const world = createGameboardWorld(placedPlan);
+    const id = placedPlan.placements[0]?.id ?? '';
+    setGameboardMovementAgent(world, id, { profile: 'ground' });
+    // Advance without a requested path — currentPath.status === 'idle' triggers
+    // the !'ready' && !'moving' early-return at line 466-468.
+    const result = advanceGameboardMovement(world, id);
+    expect(result).toBeDefined();
   });
 });

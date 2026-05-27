@@ -426,6 +426,22 @@ describe('gameboard plan builder', () => {
 
 });
 
+describe('addRoadPath non-adjacent step throw (PRD E0b)', () => {
+  it('throws when consecutive path coords are not adjacent', () => {
+    const builder = createGameboardBuilder({
+      seed: 'road-non-adjacent',
+      shape: { kind: 'rectangle', width: 5, height: 1 },
+    });
+    expect(() =>
+      builder.addRoadPath([
+        { q: 0, r: 0 },
+        // (4,0) is not adjacent to (0,0) — pathMasks throws.
+        { q: 4, r: 0 },
+      ])
+    ).toThrow(/is not adjacent/);
+  });
+});
+
 describe('addConstructionSite kind variants (PRD E0a)', () => {
   it('emits asset placements for each construction kind', () => {
     const builder = createGameboardBuilder({
