@@ -3,8 +3,20 @@
   "compilerOptions": {
     "rootDir": "..",
     "ignoreDeprecations": "6.0",
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": "..",
+    "paths": {
+      "@jbcom/medieval-hexagon-gameboard": ["src/index.ts"],
+      "@jbcom/medieval-hexagon-gameboard/*": ["src/*"]
+    }
   },
   "include": ["../src/**/*.ts"],
-  "exclude": ["../dist", "../coverage", "../node_modules", "../assets/free"]
+  "exclude": [
+    "../dist",
+    "../coverage",
+    "../node_modules",
+    "../assets/free",
+    "../tests",
+    "../src/**/__tests__/**"
+  ]
 }
