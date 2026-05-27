@@ -32,7 +32,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10-#14 merged. PR#15 (`feat/e0-coverage-batch-5`) open awaiting CI: layout createGameboardLayoutPlacements kind-required throw, grid axialRound rDiff>sDiff branch, pieces strip{Leading,Trailing}Slashes branches. actors neighborhood-center throw / rules reciprocal-off / gameboard wall corner+gate segments / scenario/registry unknown-id throw / manifest counts+assetsById warnings / simulation script-level eventTypes + command handlerOptions / selectors waterless singleton / commands createRemoveTargetPlacementHandler body branches / pieces structure→building / coordinates/grid axialRound qDiff+rDiff branches. Local 67.27/65.94/77.39/66.51 (statements/branches/functions/lines). Threshold floor advanced to 65.8/63.8/76.0/65.5. After PR#13 merges, next batch resumes per-file gap closure toward 100/100/100/100.
+- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10-#15 merged. PR#16 (`feat/e0-coverage-batch-6`) open awaiting CI: handler commandKinds non-array (3 presets), command expectation stepId+actorId empty-string.
     - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
     - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
     - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.

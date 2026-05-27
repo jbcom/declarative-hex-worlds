@@ -1336,6 +1336,41 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.some((v) => v.code === 'simulation.command_handler_options')).toBe(true);
   });
 
+  it('flags handler removeTargetActor.commandKinds non-array (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'command',
+          target: { actorId: 'someone' },
+          handlerOptions: {
+            removeTargetActor: { commandKinds: 'not-array' },
+            removeTargetPlacement: { commandKinds: 'not-array' },
+            markTargetActorInteracted: { commandKinds: 'not-array' },
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.filter((v) => v.code === 'simulation.command_handler_command_kinds').length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('flags command expectation stepId + actorId as empty string (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [],
+      expectations: {
+        commands: [{ stepId: '', actorId: '' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.step_reference')).toBe(true);
+    expect(result.violations.some((v) => v.code === 'simulation.actor_reference')).toBe(true);
+  });
+
   it('flags script-level expectations.eventTypes non-array (E0b)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
