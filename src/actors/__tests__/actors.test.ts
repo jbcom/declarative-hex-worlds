@@ -757,6 +757,26 @@ describe('gameboard actor semantics', () => {
 });
 
 describe('gameboardActorActions register + navigationProfile (PRD E0a)', () => {
+  it('neighborhood accepts HexCoordinates center input (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'neighborhood-hex',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const actions = gameboardActorActions(world);
+    actions.spawn({
+      actorId: 'pivot',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    // Pass HexCoordinates object directly — resolveNeighborhoodCenter line 1464-1465.
+    const inspection = actions.neighborhood({ q: 1, r: 0 }, { radius: 1 });
+    expect(inspection.tiles.length).toBeGreaterThan(0);
+  });
+
   it('register attaches actor traits to an existing placement', () => {
     const world = createGameboardWorld(
       createGameboardBuilder({
