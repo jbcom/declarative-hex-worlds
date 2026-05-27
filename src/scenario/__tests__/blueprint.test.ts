@@ -333,6 +333,21 @@ describe('medieval gameboard blueprints', () => {
     expect(runtime.patrolRoutes?.routes[0]?.pathKeys.length).toBeGreaterThan(0);
   });
 
+  it('warns when a prop cluster anchor is outside the board (E0a)', () => {
+    const inspection = inspectMedievalGameboardBlueprint({
+      seed: 'blueprint-bad-cluster',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+      propClusterDressing: {
+        clusters: [{ id: 'oob-cluster', at: { q: 99, r: 99 }, assets: ['barrel'] }],
+      },
+    });
+    expect(
+      inspection.warnings.some((warning) =>
+        warning.includes('Prop cluster') && warning.includes('outside the board')
+      )
+    ).toBe(true);
+  });
+
   it('warns when a mountain range has all out-of-bounds ridge coordinates (E0a)', () => {
     const inspection = inspectMedievalGameboardBlueprint({
       seed: 'blueprint-bad-mountain',
