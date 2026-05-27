@@ -68,7 +68,7 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
 
 ### Phase E9 — visual integration gate (continuation)
 
-- [ ] **E9** — Every renderer-binding (`react.ts`, `three.ts`, `examples/*`) gets a vitest-browser test rendering into Chromium with a committed PNG screenshot snapshot. RB-CI unblocked this 2026-05-27; the visual job now runs by default. Continuation work: audit `react.ts` + `three.ts` exported behaviors, add per-behavior browser tests with snapshot PNGs.
+- [ ] [WAIT] **E9** — Every renderer-binding (`react.ts`, `three.ts`, `examples/*`) gets a vitest-browser test rendering into Chromium with a committed PNG screenshot snapshot. RB-CI unblocked this 2026-05-27; the visual job now runs by default. Continuation work blocked on PR#10 merge so the visual harness baselines from a stable trunk. Once PR#10 lands: audit `react.ts` + `three.ts` exported behaviors, add per-behavior browser tests with snapshot PNGs.
 
 ### Phase F-Site — docs-site continuation
 
