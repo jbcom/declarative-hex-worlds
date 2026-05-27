@@ -44,10 +44,10 @@ export const COVERAGE_EXCLUDES = [
  * does the ratchet automatically.
  */
 export const COVERAGE_THRESHOLDS = {
-  statements: 58.5,
-  branches: 57.5,
-  functions: 70,
-  lines: 58,
+  statements: 59.5,
+  branches: 58,
+  functions: 71.5,
+  lines: 59,
 };
 
 /**
