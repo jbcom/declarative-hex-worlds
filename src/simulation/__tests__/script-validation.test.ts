@@ -269,6 +269,35 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.some((v) => v.code === 'simulation.update_asset_id')).toBe(true);
   });
 
+  it('records scenario_board_compile_failed when the scenario board cannot compile', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'command', target: '0,0' }],
+    };
+    // Scenario whose board step references a non-existent action — recipe
+    // compiler rejects, hitting the scenario_board_compile_failed branch.
+    const scenario = {
+      schemaVersion: '1.0.0',
+      id: 'broken-scenario',
+      board: {
+        schemaVersion: '1.0.0',
+        options: {
+          seed: 'broken',
+          shape: { kind: 'rectangle', width: 3, height: 3 },
+        },
+        steps: [{ action: 'definitely-not-a-real-recipe-action' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any, {
+      // biome-ignore lint/suspicious/noExplicitAny: deliberate broken scenario
+      scenario: scenario as any,
+    });
+    expect(
+      result.violations.some((v) => v.code === 'simulation.scenario_board_compile_failed')
+    ).toBe(true);
+  });
+
   it('flags actorTargets expectation with bad nearest/target fields', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
