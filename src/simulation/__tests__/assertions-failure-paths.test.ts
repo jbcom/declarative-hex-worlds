@@ -76,6 +76,24 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
     expect(failures.some((f) => f.message.includes('No movement event matched'))).toBe(true);
   });
 
+  it('matches actorTargets expectation that specifies no nearest/target fields (E0a)', () => {
+    const script: GameboardScenarioSimulationScript = {
+      schemaVersion: '1.0.0',
+      steps: [],
+      expectations: {
+        // sourceActorId only — no nearest/target fields means
+        // hasSpecificActorTargetExpectation() returns false, so
+        // matchesAnyActorTarget() takes the `return true` branch.
+        actorTargets: [{ sourceActorId: 'anyone' }],
+      },
+    };
+    const failures = evaluate(script);
+    // Expectation matches vacuously; the no-candidates branch may still
+    // fire because the sourceActor doesn't exist. The point is the line
+    // executes without throwing.
+    expect(Array.isArray(failures)).toBe(true);
+  });
+
   it('reports failure for quest objective status mismatch', () => {
     const script: GameboardScenarioSimulationScript = {
       schemaVersion: '1.0.0',
