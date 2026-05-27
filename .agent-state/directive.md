@@ -30,17 +30,19 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 ### Phase E0 — coverage closure (continuation toward 100/100/100/100)
 
-The A8 coverage ratchet floors at 61.5 / 59.5 / 74 / 61 (unit harness) as of `14c5f77`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
+The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] **E0a** — Simulation files to 100%. As of merge: `script.ts` 76.89 / 70.33 / 96.66 / 76.87; `engine.ts` 84.31 / 71.55 / 94.28 / 83.78; `assertions.ts` 86.54 / 91.01 / 87.5 / 85.62; `report.ts` 93%; `simulation.ts` shim 100%. Remaining: cover `normalizeUnknownList` + the mutation-record matchers + the report fixed_at flow. Each is <100 LOC of test code per commit; ratchet advances per closure.
-- [ ] **E0h** — Sweep remaining src/ files to 100%. Largest gaps (per the merged unit-coverage baseline):
-    - `pieces/pieces.ts` 89.69 — exercise the cross-pack composition error paths
-    - `quests/quests.ts` 87.2 — quest objective rollover + reward dispatch
-    - `actors/actors.ts` 87.58 — placement-state inference edge cases
-    - `scenario/scenario.ts` 85.8 — interop snapshot drift paths
-    - `manifest/schema.ts` 85.1 — unit-style narrowing + texture-set normalization
-    - `gameboard/navigation.ts` 83.9 — patrol-route generation edge cases
-    - `simulation/script.ts` validators (continuation of E0a)
+- [ ] **E0a** — Simulation files to 100%. As of `33d271b`: `script.ts` ~79 / 73 / 97.7 / 79; `engine.ts` ~87 / 74 / 97 / 87; `assertions.ts` ~88 / 91 / 89 / 87; `report.ts` 93%; `simulation.ts` shim 100%. Remaining gaps: deep validator branches in `script.ts` (set-actor-targets/ inspect-actor-targets sub-fields, expectation sub-validators), report.ts copyQuestObjective, engine.ts edge mutation paths. Each is <100 LOC of test code per commit; ratchet advances per closure.
+- [ ] **E0h** — Sweep remaining src/ files to 100%. Status post-merge:
+    - `pieces/pieces.ts` ~91% (was 89.69) — cross-pack composition + remaining infer paths
+    - `quests/quests.ts` ~89% (was 87.2) — quest objective rollover + reward dispatch
+    - `actors/actors.ts` ~88% (was 87.58) — placement-state inference edge cases
+    - `scenario/scenario.ts` ~88% (was 85.8) — actor allocation + interop snapshot drift
+    - `manifest/schema.ts` ~88% (was 85.1) — additional filter combinations
+    - `gameboard/navigation.ts` ~85% (was 83.9) — patrol-route generation edge cases
+    - `coordinates/layout.ts` 87.13 — layout fill site selection edge cases
+    - `scenario/recipe.ts` ~82% (was 79.5) — recipe generation edge cases
+    - `patrol/patrol.ts` ~81% (was 79.56) — patrol agent edge cases
     Each file's continuation work lands as one commit that adds ≤200 LOC of test code and ratchets the floor.
 - [ ] **E8** — Flip coverage thresholds to **100 / 100 / 100 / 100** in `vitest.coverage.shared.ts`. Depends on E0a + E0h completion. Final ratchet commit.
 
