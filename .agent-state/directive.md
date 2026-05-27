@@ -32,7 +32,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10 (`feat/e0-coverage-continuation`) has 102 commits ahead of main. Local 66.77 / 65.04 / 77.06 / 66.44 (was 62.5/60.5/75/62 at PR#4 merge — +4.27 pp statements). Threshold floor: 65.1/63.1/75.5/64.7 (CI-adjusted). Blocked on PR#10 squash-merge to main; next iteration cuts a new PR from a clean trunk.
+- [ ] **E0a** — Simulation + patrol files toward 100%. PR#10 merged to main at `e753cd4` on 2026-05-27 (+2283/-63 across 31 files, 100 commits squashed). Trunk now at 66.77 / 65.04 / 77.06 / 66.44 local (CI floor 65.1/63.1/75.5/64.7). Next iteration: cut new branch from clean trunk and continue per-file gap closure toward 100/100/100/100.
     - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
     - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
     - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.
@@ -52,7 +52,7 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
     - interop/compatibility.ts 93.33 → -x modelForward axis.
     - navigation.ts 86.06 → reachableGameboardTiles defensive returns.
     Remaining gaps: deep validator branches in script.ts (remaining expectation sub-validators), engine.ts edge mutation paths (lines 491-499, 674), patrol.ts wait-state + completed-by-targetIndex-undefined deeper paths, navigation.ts patrol-route generation edge cases, scenario.ts deeper allocator paths, bootstrap GitHub source, ingest.ts duplicate disambiguation. Each ≤200 LOC commit + threshold ratchet.
-- [ ] [WAIT] **E0h** — Sweep remaining src/ files to 100%. Blocked on PR#10 squash-merge. Status post-merge:
+- [ ] **E0h** — Sweep remaining src/ files to 100%. PR#10 closures advanced many of these in tandem with E0a. Status post-merge:
     - `pieces/pieces.ts` ~91% (was 89.69) — cross-pack composition + remaining infer paths
     - `quests/quests.ts` ~89% (was 87.2) — quest objective rollover + reward dispatch
     - `actors/actors.ts` ~88% (was 87.58) — placement-state inference edge cases
