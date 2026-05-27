@@ -96,6 +96,14 @@ export default defineConfig({
 						excludeInternal: true,
 						excludePrivate: true,
 						hideGenerator: true,
+						// src/cli/_shared.ts imports the SimpleRPG fixture
+						// under tests/integration/. typedoc's TS pass walks
+						// that import, then errors on its module resolution
+						// because docs-site has no @jbcom/... alias mapping
+						// available to its TS install. Skip TS error checking
+						// so traversal is tolerated; emitted reference pages
+						// stay correct (they come from entryPoints).
+						skipErrorChecking: true,
 					},
 				}),
 			],
