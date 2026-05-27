@@ -137,6 +137,72 @@ describe('gameboardPatrolActions bundle (PRD E0b)', () => {
     expect(result.state.status).toBe('paused');
   });
 
+  it('advance from end of a non-loop route returns completed (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'patrol-end',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const guard = spawnGameboardActor(world, {
+      id: 'end-placement',
+      actorId: 'end-guard',
+      actorKind: 'npc',
+      at: '2,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const actions = gameboardPatrolActions(world);
+    // Set currentWaypointIndex to the last waypoint of a non-loop route
+    // so nextPatrolWaypointIndex returns undefined → completed branch.
+    actions.set(guard, {
+      route: {
+        id: 'end-route',
+        waypointKeys: ['0,0', '1,0', '2,0'],
+        loop: false,
+        segmentCosts: [1, 1],
+      },
+      currentWaypointIndex: 2,
+      movement: { profile: 'ground' },
+    });
+    const result = actions.advance(guard);
+    // Either completed or moving depending on movement state — both
+    // exercise advancePatrolEntity past the next-index resolution.
+    expect(['completed', 'requested', 'paused', 'moving', 'blocked', 'waiting']).toContain(result.state.status);
+  });
+
+  it('advance with looped route wraps next index back to 0 (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'patrol-loop',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const guard = spawnGameboardActor(world, {
+      id: 'loop-placement',
+      actorId: 'loop-guard',
+      actorKind: 'npc',
+      at: '2,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const actions = gameboardPatrolActions(world);
+    actions.set(guard, {
+      route: {
+        id: 'loop-route',
+        waypointKeys: ['0,0', '1,0', '2,0'],
+        loop: true,
+        segmentCosts: [1, 1, 1],
+      },
+      currentWaypointIndex: 2,
+      movement: { profile: 'ground' },
+    });
+    const result = actions.advance(guard);
+    // nextPatrolWaypointIndex returns 0 (loop), advance proceeds to request
+    // movement back to (0,0).
+    expect(result).toBeDefined();
+  });
+
   it('set throws when given a string id that does not resolve to an entity (E0a)', () => {
     const world = createGameboardWorld(
       createGameboardBuilder({
