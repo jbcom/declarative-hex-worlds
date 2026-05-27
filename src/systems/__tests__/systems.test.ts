@@ -505,4 +505,54 @@ describe('gameboard systems', () => {
     ]);
     expect(readGameboardPatrolAgents(world)[0]?.agent.active).toBe(false);
   });
+
+  it('exercises gameboardSystemActions.dispatchCommand + .dispatchActorTargetCommand + .run (PRD E0e)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'systems-actions-coverage',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const hero = spawnGameboardActor(world, {
+      id: 'hero-placement',
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    setGameboardMovementAgent(world, hero, { profile: 'ground' });
+    spawnGameboardActor(world, {
+      id: 'goblin-placement',
+      actorId: 'goblin',
+      actorKind: 'npc',
+      at: '2,0',
+      assetId: 'flag_red',
+      kind: 'unit',
+      hostile: true,
+      team: 'enemies',
+    });
+
+    const actions = gameboardSystemActions(world);
+
+    // dispatchCommand: plan a move-to command on the goblin's tile. With no
+    // handler registered for the command kind the execution stays in
+    // 'handler-required' state, which is still a valid (testable) outcome
+    // of the action-bundle wiring.
+    const dispatched = actions.dispatchCommand('2,0', { sourceActor: 'hero', systems: false });
+    expect(dispatched.execution).toBeDefined();
+    expect(dispatched.events.length).toBeGreaterThan(0);
+
+    // dispatchActorTargetCommand: pick the nearest hostile target + plan.
+    const actorTarget = actions.dispatchActorTargetCommand(
+      { sourceActor: 'hero', targeting: { hostileToSource: true, approach: 'nearest' } },
+      { systems: false }
+    );
+    expect(actorTarget.targetCommand).toBeDefined();
+    expect(actorTarget.events).toBeDefined();
+
+    // run: tick systems with no inputs; should not throw.
+    const tickResult = actions.run({ movement: { steps: 1 } });
+    expect(tickResult).toBeDefined();
+  });
 });
