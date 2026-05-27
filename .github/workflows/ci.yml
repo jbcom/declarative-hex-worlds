@@ -114,13 +114,14 @@ jobs:
     name: FREE Browser Visuals
     needs: [install, check]
     runs-on: ubuntu-latest
-    # PRD RB4: the FREE GLTF tree is no longer bundled in the tarball; it's
-    # bootstrapped at install time by the upcoming CLI `bootstrap` command
-    # (Phase RB). Until that command lands, browser visuals cannot load the
-    # 221 FREE GLTFs. Gate the job behind `RUN_BROWSER_VISUALS=1` so the
-    # default CI run stays green; Phase RB flips this to always-on once the
-    # `bootstrap` step is wired in below.
-    if: ${{ vars.RUN_BROWSER_VISUALS == '1' || github.event_name == 'schedule' }}
+    # PRD RB4 + RB-CI (2026-05-27): the FREE GLTF tree is bootstrap-fetched
+    # by the CLI's `bootstrap --source github` subcommand. This job runs
+    # it as a pre-step so visual tests can load the 221 FREE GLTFs under
+    # `public/assets/models/addons/kaykit_medieval_hexagon_pack/`. With the
+    # bootstrap step wired, the job becomes a default CI gate (the
+    # `RUN_BROWSER_VISUALS` opt-in vars escape hatch is preserved for
+    # local debugging — set to '0' to skip).
+    if: ${{ vars.RUN_BROWSER_VISUALS != '0' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -142,8 +143,12 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      # Phase RB will insert `pnpm cli bootstrap --source github` here so the
-      # FREE GLTF tree is in place under public/assets before visuals run.
+      - name: Bootstrap FREE KayKit pack (RB-CI)
+        # Pulls 221 FREE GLTFs from KayKit's GitHub source into the
+        # consumer-shape default tree at public/assets/models/. Sidecar
+        # records the SHA256 of each file; verify drift via
+        # `medieval-hexagon-gameboard bootstrap --verify`.
+        run: pnpm exec tsx src/cli/cli.ts bootstrap --source github --out public/assets/models
 
       - name: Run FREE browser visual tests
         run: pnpm test:browser:free
