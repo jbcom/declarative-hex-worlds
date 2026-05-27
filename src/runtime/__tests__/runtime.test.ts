@@ -399,6 +399,13 @@ describe('gameboard runtime facade', () => {
       seed: 'runtime-piece-spawn',
       occupancyGuard: true,
     });
+    const spawnedLayout = runtime.spawnLayoutPlacements({
+      seed: 'runtime-layout-spawn',
+      archetype: 'scatter',
+      assetId: 'crate_A_small',
+      count: 1,
+    });
+    expect(spawnedLayout.length).toBeGreaterThanOrEqual(0);
     const spawnedFill = runtime.spawnLayoutFill({
       seed: 'runtime-piece-fill',
       rules: [{ id: 'runtime-crates', archetype: 'scatter', assetId: 'crate_A_small', count: 1 }],
