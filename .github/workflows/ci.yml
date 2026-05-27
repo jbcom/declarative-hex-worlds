@@ -202,14 +202,13 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: docs-site/pnpm-lock.yaml
 
-      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          name: node-modules-${{ needs.install.outputs.cache-key }}
-
-      - name: Restore library node_modules
-        # starlight-typedoc reads the library's src/ tree via typedoc; needs
-        # the library's tsconfig + node_modules in place to resolve imports.
-        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
+      - name: Install library dependencies (for typedoc to read src/)
+        # starlight-typedoc walks src/ via the lib's own deps (koota, three,
+        # etc.). The shared install-artifact has them but downloading it
+        # imports a typescript version that conflicts with docs-site's
+        # typescript@6.0.3; do a clean `pnpm install` instead so the
+        # versions stay separated under docs-site/node_modules/.pnpm.
+        run: pnpm install --frozen-lockfile
 
       - name: Install docs-site dependencies
         run: cd docs-site && pnpm install --frozen-lockfile
