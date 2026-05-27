@@ -703,6 +703,20 @@ describe('gameboard piece declarations', () => {
     expect(piece.role).toBe('scatter');
   });
 
+  it('analyzeGameboardPieceRegistry warns on custom role (E0a)', () => {
+    // biome-ignore lint/suspicious/noExplicitAny: forced custom role for warning path
+    const piece = declareGameboardPiece({ id: 'custom-piece', assetId: 'custom-piece-asset', source: 'test', role: 'custom' as any });
+    const registry = createGameboardPieceRegistry([piece]);
+    const analysis = analyzeGameboardPieceRegistry(registry);
+    expect(analysis.warnings.some((w) => w.includes('custom role'))).toBe(true);
+  });
+
+  it('createGameboardLayoutFillRuleFromPieces throws on empty input (E0a)', () => {
+    expect(() => createGameboardLayoutFillRuleFromPieces([])).toThrow(
+      /requires at least one piece/
+    );
+  });
+
   it('inferPieceRoleFromCompatibility falls back to prop for unknown ids (E0a)', () => {
     const report = analyzeExternalAssetCompatibility({
       id: 'mystery-widget-xyz',
