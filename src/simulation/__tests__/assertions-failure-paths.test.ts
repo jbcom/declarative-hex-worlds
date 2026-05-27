@@ -76,6 +76,23 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
     expect(failures.some((f) => f.message.includes('No movement event matched'))).toBe(true);
   });
 
+  it('reports failure for quest expectation referencing missing quest (E0a)', () => {
+    const script: GameboardScenarioSimulationScript = {
+      schemaVersion: '1.0.0',
+      steps: [],
+      expectations: {
+        quests: [
+          {
+            questId: 'absolutely-no-such-quest',
+            status: 'completed',
+          },
+        ],
+      },
+    };
+    const failures = evaluate(script);
+    expect(failures.some((f) => f.message.includes('was not found'))).toBe(true);
+  });
+
   it('reports failure when a command record matches the selector but not the expectation fields (E0a)', () => {
     const script: GameboardScenarioSimulationScript = {
       schemaVersion: '1.0.0',
