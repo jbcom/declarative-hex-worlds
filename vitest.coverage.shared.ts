@@ -49,10 +49,13 @@ export const COVERAGE_THRESHOLDS = {
   // test stays unexecuted. The threshold ratchet uses the CI floor — local
   // runs read higher because the skip-gated tests do execute against the
   // local references checkout.
-  statements: 61.5,
-  branches: 59.5,
-  functions: 74,
-  lines: 61,
+  // Now that RB-CI runs the bootstrap step in CI, the references-gated
+  // tests do execute on the runner — local + CI floors converge. Each
+  // E0a/E0h commit advances these.
+  statements: 64.5,
+  branches: 62.3,
+  functions: 76.4,
+  lines: 64,
 };
 
 /**

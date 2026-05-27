@@ -752,4 +752,106 @@ describe('gameboard scenarios', () => {
     expect(hero?.actor.metadata.scenarioSpawnLocationIndex).toBe(0);
     expect(scout?.placement.tileKey).not.toBe(hero?.placement.tileKey);
   });
+
+  it('flags scenario actor with both at and spawnGroupId set (E0h)', () => {
+    const inspection = inspectGameboardScenario({
+      schemaVersion: GAMEBOARD_SCENARIO_SCHEMA_VERSION,
+      id: 'actor-conflict',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 3, height: 3 } },
+        steps: [],
+      },
+      actors: [
+        {
+          id: 'hero',
+          actorId: 'hero',
+          actorKind: 'player',
+          team: 'blue',
+          at: '0,0',
+          spawnGroupId: 'base',
+          assetId: 'flag_blue',
+          kind: 'unit',
+        },
+      ],
+    });
+    expect(
+      inspection.violations.some((v) => v.code === 'scenario.actor_spawn_conflict')
+    ).toBe(true);
+  });
+
+  it('flags scenario actor referencing missing spawn group plan (E0h)', () => {
+    const inspection = inspectGameboardScenario({
+      schemaVersion: GAMEBOARD_SCENARIO_SCHEMA_VERSION,
+      id: 'no-spawn-plan',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 3, height: 3 } },
+        steps: [],
+      },
+      actors: [
+        {
+          id: 'hero',
+          actorId: 'hero',
+          actorKind: 'player',
+          team: 'blue',
+          spawnGroupId: 'unconfigured-base',
+          assetId: 'flag_blue',
+          kind: 'unit',
+        },
+      ],
+      // No spawnGroups plan supplied.
+    });
+    expect(
+      inspection.violations.some(
+        (v) => v.code === 'scenario.actor_spawn_group_missing'
+      )
+    ).toBe(true);
+  });
+
+  it('inspectGameboardScenario flags wrong schemaVersion (E0h)', () => {
+    const inspection = inspectGameboardScenario({
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately wrong
+      schemaVersion: '0.0.1-not-current' as any,
+      id: 'wrong-schema',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 2, height: 2 } },
+        steps: [],
+      },
+    });
+    expect(
+      inspection.violations.some((v) => v.code === 'scenario.schema_version')
+    ).toBe(true);
+  });
+
+  it('inspectGameboardScenario flags missing scenario id (E0h)', () => {
+    const inspection = inspectGameboardScenario({
+      schemaVersion: GAMEBOARD_SCENARIO_SCHEMA_VERSION,
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately empty
+      id: '' as any,
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 2, height: 2 } },
+        steps: [],
+      },
+    });
+    expect(inspection.violations.some((v) => v.code === 'scenario.id')).toBe(true);
+  });
+
+  it('inspectGameboardScenario flags board recipe that fails to compile (E0h)', () => {
+    const inspection = inspectGameboardScenario({
+      schemaVersion: GAMEBOARD_SCENARIO_SCHEMA_VERSION,
+      id: 'broken-board',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 2, height: 2 } },
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately invalid action
+        steps: [{ action: 'not-a-real-recipe-action' as any }],
+      },
+    });
+    expect(
+      inspection.violations.some((v) => v.code === 'scenario.board_compile_failed')
+    ).toBe(true);
+  });
 });

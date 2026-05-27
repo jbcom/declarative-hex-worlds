@@ -115,4 +115,22 @@ describe('tile selectors', () => {
       selectRiverCrossingVariant('B', { waterless: true }).assetId,
     ]);
   });
+
+  it('selectRoadVariantByLabel throws for unknown labels (E0h)', () => {
+    expect(() => selectRoadVariantByLabel('definitely-not-a-label')).toThrow(
+      /Unknown road guide label/
+    );
+  });
+
+  it('selectRiverVariantByLabel throws for unknown labels (E0h)', () => {
+    expect(() => selectRiverVariantByLabel('definitely-not-a-label')).toThrow(
+      /Unknown river guide label/
+    );
+  });
+
+  it('selectCoastVariantByLabel throws for unknown labels (E0h)', () => {
+    expect(() => selectCoastVariantByLabel('definitely-not-a-label')).toThrow(
+      /Unknown coast guide label/
+    );
+  });
 });

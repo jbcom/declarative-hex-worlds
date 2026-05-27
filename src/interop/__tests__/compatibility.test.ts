@@ -92,4 +92,54 @@ describe('external asset compatibility', () => {
       },
     });
   });
+
+  it('flags empty horizontal bounds with errors (E0h)', () => {
+    const flat: AssetBounds = { min: [0, 0, 0], max: [0, 1, 0], size: [0, 1, 0] };
+    const report = analyzeExternalAssetCompatibility({
+      id: 'flat-asset',
+      sourcePack: 'test',
+      bounds: flat,
+      intendedRole: 'prop',
+      hasRig: false,
+      modelForward: '+z',
+    });
+    expect(report.errors.some((e) => e.includes('empty horizontal bounds'))).toBe(true);
+  });
+
+  it('promotes rigged prop-intended asset to unit role (E0h)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'rigged-prop',
+      sourcePack: 'test',
+      bounds: { min: [-0.5, 0, -0.5], max: [0.5, 1, 0.5], size: [1, 1, 1] },
+      intendedRole: 'prop',
+      hasRig: true,
+      modelForward: '+z',
+    });
+    expect(report.suggestedRole).toBe('unit');
+  });
+
+  it('warns when unit-intended asset is not rigged (E0h)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'unrigged-unit',
+      sourcePack: 'test',
+      bounds: { min: [-0.5, 0, -0.5], max: [0.5, 1, 0.5], size: [1, 1, 1] },
+      intendedRole: 'unit',
+      hasRig: false,
+      modelForward: '+z',
+    });
+    expect(report.warnings.some((w) => w.includes('no rig was detected'))).toBe(true);
+  });
+
+  it('recommends structure placement for structure-intended assets (E0h)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'rect-structure',
+      sourcePack: 'test',
+      bounds: { min: [-1.2, 0, -0.3], max: [1.2, 1, 0.3], size: [2.4, 1, 0.6] },
+      intendedRole: 'structure',
+      hasRig: false,
+      modelForward: '+z',
+    });
+    expect(report.placement.layer).toBe('structure');
+    expect(report.placement.kind).toBe('structure');
+  });
 });

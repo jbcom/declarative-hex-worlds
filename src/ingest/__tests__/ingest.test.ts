@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
@@ -124,6 +124,23 @@ describe('source ingestion', () => {
     try {
       expect(() => copyGltfTree(missingRoot, destRoot)).toThrow(/Missing GLTF source directory/);
     } finally {
+      rmSync(destRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('copyGltfTree mirrors a synthetic source GLTF tree into the destination (E0h)', () => {
+    const sourceRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-copy-source-'));
+    const destRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-copy-dest2-'));
+    try {
+      const gltfRoot = join(sourceRoot, 'Assets', 'gltf');
+      mkdirSync(join(gltfRoot, 'tiles/base'), { recursive: true });
+      writeFileSync(join(gltfRoot, 'tiles/base/hex_grass.gltf'), '{"asset":{"version":"2.0"}}');
+      writeFileSync(join(gltfRoot, 'tiles/base/hex_grass.bin'), Buffer.from([1, 2]));
+      copyGltfTree(sourceRoot, destRoot);
+      expect(existsSync(join(destRoot, 'tiles/base/hex_grass.gltf'))).toBe(true);
+      expect(existsSync(join(destRoot, 'tiles/base/hex_grass.bin'))).toBe(true);
+    } finally {
+      rmSync(sourceRoot, { recursive: true, force: true });
       rmSync(destRoot, { recursive: true, force: true });
     }
   });

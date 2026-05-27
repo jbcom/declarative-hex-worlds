@@ -196,6 +196,52 @@ describe('free manifest', () => {
   });
 });
 
+describe('selectManifestAssets filter branches (PRD E0h)', () => {
+  it('filters by explicit ids', () => {
+    const first = freeManifest.assets[0];
+    if (!first) throw new Error('manifest empty');
+    const result = selectManifestAssets(freeManifest, { ids: [first.id] });
+    expect(result).toHaveLength(1);
+    expect(result[0]?.id).toBe(first.id);
+  });
+
+  it('returns empty when id filter matches nothing', () => {
+    expect(selectManifestAssets(freeManifest, { ids: ['no-such-id'] })).toEqual([]);
+  });
+
+  it('filters by subcategories', () => {
+    const some = freeManifest.assets.find((a) => a.subcategory !== undefined);
+    if (!some?.subcategory) throw new Error('no subcategorized asset');
+    const result = selectManifestAssets(freeManifest, { subcategories: [some.subcategory] });
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.every((a) => a.subcategory === some.subcategory)).toBe(true);
+  });
+
+  it('filters by families', () => {
+    const some = freeManifest.assets.find((a) => a.family !== undefined);
+    if (!some?.family) throw new Error('no family asset');
+    const result = selectManifestAssets(freeManifest, { families: [some.family] });
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('filters by textureSets', () => {
+    const result = selectManifestAssets(freeManifest, { textureSets: ['default'] });
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.every((a) => a.textureSet === 'default')).toBe(true);
+  });
+
+  it('rejects assets missing a faction when factions filter is set', () => {
+    // Some FREE assets have faction undefined; the filter should exclude them.
+    const result = selectManifestAssets(freeManifest, { factions: ['neutral'] });
+    expect(result.every((a) => a.faction === 'neutral')).toBe(true);
+  });
+
+  it('rejects assets missing a unitStyle when unitStyles filter is set', () => {
+    const result = selectManifestAssets(freeManifest, { unitStyles: ['accent'] });
+    expect(result.every((a) => a.unitStyle === 'accent')).toBe(true);
+  });
+});
+
 describe('hasManifestAsset (PRD E0g)', () => {
   it('returns true for an asset id present in the FREE manifest', () => {
     // Pull any known asset id off the FREE manifest to avoid hardcoding.

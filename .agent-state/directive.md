@@ -26,7 +26,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 ### Phase RB — bootstrap CI integration (continuation)
 
-- [ ] **RB-CI** — Wire `pnpm cli bootstrap --source github` into the CI pre-step for `FREE Browser Visuals` (currently gated by `vars.RUN_BROWSER_VISUALS == '1'`). Once the bootstrap step lands, ungate the job. Browser-free visuals become a default CI gate. Drift on `tests/browser/__screenshots__/` blocks merge.
+- [x] **RB-CI** — ✅ commit (2026-05-27): `.github/workflows/ci.yml` `browser-free` job adds a `Bootstrap FREE KayKit pack (RB-CI)` step before the visual tests, invoking `tsx src/cli/cli.ts bootstrap --source github --out public/assets/models`. Conditional flipped from `RUN_BROWSER_VISUALS == '1'` to `RUN_BROWSER_VISUALS != '0'` — the job now runs by default, with the env var preserved as a skip escape hatch. Drift on `tests/browser/__screenshots__/` blocks merge.
 
 ### Phase E0 — coverage closure (continuation toward 100/100/100/100)
 
@@ -46,7 +46,7 @@ The A8 coverage ratchet floors at 61.5 / 59.5 / 74 / 61 (unit harness) as of `14
 
 ### Phase E9 — visual integration gate (continuation)
 
-- [ ] [WAIT] **E9** — Every renderer-binding (`react.ts`, `three.ts`, `examples/*`) gets a vitest-browser test rendering into Chromium with a committed PNG screenshot snapshot. Unblocks after RB-CI lands (visual job is currently gated).
+- [ ] **E9** — Every renderer-binding (`react.ts`, `three.ts`, `examples/*`) gets a vitest-browser test rendering into Chromium with a committed PNG screenshot snapshot. RB-CI unblocked this 2026-05-27; the visual job now runs by default. Continuation work: audit `react.ts` + `three.ts` exported behaviors, add per-behavior browser tests with snapshot PNGs.
 
 ### Phase F-Site — docs-site continuation
 

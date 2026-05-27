@@ -466,4 +466,28 @@ describe('serializable gameboard recipes', () => {
     expect(plan.tiles.length).toBeGreaterThan(0);
     expect(plan.placements.length).toBeGreaterThan(3);
   });
+
+  it('compiles addBridge / addFortification / addConstructionSite / addSiegeProjectile / addElevationRamp / addProp steps (E0h)', () => {
+    const recipe = createGameboardRecipe(
+      {
+        seed: 'composite-recipe',
+        shape: { kind: 'rectangle', width: 6, height: 6 },
+      },
+      [
+        { action: 'addBridge', at: { q: 1, r: 0 }, facing: 1 },
+        { action: 'addFortification', at: { q: 2, r: 0 }, faction: 'blue', kind: 'wall' },
+        { action: 'addConstructionSite', at: { q: 3, r: 0 }, faction: 'blue' },
+        { action: 'addSiegeProjectile', at: { q: 4, r: 0 }, faction: 'blue', kind: 'catapult' },
+        { action: 'addElevationRamp', at: { q: 5, r: 0 }, facing: 1 },
+        {
+          action: 'addProp',
+          at: { q: 0, r: 1 },
+          assetId: 'flag_blue',
+          kind: 'prop',
+        },
+      ]
+    );
+    const plan = createGameboardPlanFromRecipe(recipe);
+    expect(plan.placements.length).toBeGreaterThan(5);
+  });
 });

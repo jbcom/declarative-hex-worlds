@@ -76,6 +76,65 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
     expect(failures.some((f) => f.message.includes('No movement event matched'))).toBe(true);
   });
 
+  it('reports failure for quest objective status mismatch', () => {
+    const script: GameboardScenarioSimulationScript = {
+      schemaVersion: '1.0.0',
+      steps: [],
+      expectations: {
+        quests: [
+          {
+            questId: 'definitely-not-a-real-quest',
+            completedObjectiveIds: ['obj-1'],
+          },
+        ],
+      },
+    };
+    const failures = evaluate(script);
+    // Either the quest selector matches nothing OR the objective check
+    // fires; both prove the quest-expectation pathway is exercised.
+    expect(failures.length).toBeGreaterThan(0);
+  });
+
+  it('reports failure when actor expected to be absent but exists, and vice versa (E0a)', () => {
+    const scenarioWithActor: GameboardScenario = {
+      ...scenario,
+      actors: [
+        {
+          id: 'hero-placement',
+          actorId: 'hero',
+          actorKind: 'player',
+          at: '0,0',
+          assetId: 'flag_blue',
+          kind: 'unit',
+        },
+      ],
+    };
+    const result = runGameboardScenarioSimulationScript(scenarioWithActor, {
+      schemaVersion: '1.0.0',
+      steps: [],
+      expectations: {
+        actors: [
+          { actorId: 'hero', exists: false }, // hero is present → fails
+          { actorId: 'ghost', exists: true }, // ghost absent → fails
+        ],
+      },
+    });
+    const report = createGameboardScenarioSimulationReport(result, {
+      actors: [
+        { actorId: 'hero', exists: false },
+        { actorId: 'ghost', exists: true },
+      ],
+    });
+    const failures = evaluateGameboardScenarioSimulationExpectations(report, {
+      actors: [
+        { actorId: 'hero', exists: false },
+        { actorId: 'ghost', exists: true },
+      ],
+    });
+    expect(failures.some((f) => f.message.includes('was expected to be absent'))).toBe(true);
+    expect(failures.some((f) => f.message.includes('was not found'))).toBe(true);
+  });
+
   it('reports failure when expectations.patrols selector has zero candidates', () => {
     const script: GameboardScenarioSimulationScript = {
       schemaVersion: '1.0.0',

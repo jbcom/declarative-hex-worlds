@@ -9,6 +9,7 @@ import {
   classifyGameboardPlacement,
   createGameboardActorNavigationProfile,
   gameboardActorActions,
+  gameboardActorBlocksMovement,
   inspectGameboardActorCollision,
   inspectGameboardActorTargets,
   inspectGameboardInteractionTarget,
@@ -715,5 +716,40 @@ describe('gameboard actor semantics', () => {
       canExecute: false,
       reason: 'No target resolved',
     });
+  });
+
+  it('inspectGameboardActorTargets reports missing source actor (E0h)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'no-source-actor',
+        shape: { kind: 'rectangle', width: 3, height: 3 },
+      }).build()
+    );
+    const result = inspectGameboardActorTargets(world, {
+      sourceActor: 'ghost-actor-not-in-world',
+    });
+    expect(result.targets).toEqual([]);
+    expect(result.reachableTargets).toEqual([]);
+    expect(result.reason).toMatch(/No source actor exists/);
+  });
+
+  it('gameboardActorBlocksMovement reports false for undefined actor (E0h)', () => {
+    expect(gameboardActorBlocksMovement(undefined)).toBe(false);
+  });
+
+  it('gameboardActorBlocksMovement reports true for blocking actor + structure layer (E0h)', () => {
+    const blockingActor = {
+      actorId: 'wall',
+      actorKind: 'prop' as const,
+      blocksMovement: true,
+      team: 'neutral' as const,
+      tags: [] as const,
+      metadata: {},
+      interactive: false,
+      hostile: false,
+    };
+    expect(
+      gameboardActorBlocksMovement(blockingActor, { kind: 'wall', layer: 'structure' })
+    ).toBe(true);
   });
 });

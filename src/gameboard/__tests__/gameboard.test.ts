@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   coordinatesForShape,
   createGameboardBuilder,
+  createGameboardPlan,
   createMedievalHarborBoard,
   edgeBetween,
   gameboardPlanIndex,
+  getPlacementAsset,
   hexKey,
   listPropClusterAssets,
   neighbor,
@@ -357,4 +359,67 @@ describe('gameboard plan builder', () => {
     expect(requiresExtraAsset('building_shipyard_blue')).toBe(true);
     expect(requiresExtraAsset('building_castle_blue')).toBe(false);
   });
+
+  it('createGameboardPlan builds a plan with an optional builder callback (E0h)', () => {
+    const planNoCallback = createGameboardPlan({
+      seed: 'plain-plan',
+      shape: { kind: 'rectangle', width: 2, height: 2 },
+    });
+    expect(planNoCallback.tiles.length).toBe(4);
+
+    let callbackInvoked = false;
+    const planWithCallback = createGameboardPlan(
+      {
+        seed: 'configured-plan',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      },
+      () => {
+        callbackInvoked = true;
+      }
+    );
+    expect(callbackInvoked).toBe(true);
+    expect(planWithCallback.tiles.length).toBe(3);
+  });
+
+  it('getPlacementAsset resolves bundled FREE manifest asset records (E0h)', () => {
+    // Pick a known FREE asset id (hex_grass) — present in the freeManifest.
+    const asset = getPlacementAsset({ assetId: 'hex_grass' });
+    expect(asset?.id).toBe('hex_grass');
+    expect(asset?.edition).toBe('free');
+
+    // Unknown id returns undefined.
+    expect(getPlacementAsset({ assetId: 'definitely-not-an-asset' })).toBeUndefined();
+  });
+
+  it('gameboardPlacementBlocksOccupancy honors ignorePlacementIds (E0h)', async () => {
+    const { gameboardPlacementBlocksOccupancy } = await import('../../gameboard/occupancy');
+    const placement = {
+      id: 'wall-1',
+      kind: 'structure' as const,
+      layer: 'structure' as const,
+      metadata: {},
+    };
+    // Default blocks.
+    expect(gameboardPlacementBlocksOccupancy(placement)).toBe(true);
+    // Skipped via ignorePlacementIds.
+    expect(
+      gameboardPlacementBlocksOccupancy(placement, { ignorePlacementIds: ['wall-1'] })
+    ).toBe(false);
+  });
+
+  it('addPropCluster zero density returns the builder unchanged (E0h)', () => {
+    const builder = createGameboardBuilder({
+      seed: 'prop-cluster-zero',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    });
+    const beforeCount = builder.build().placements.length;
+    const after = builder.addPropCluster({
+      at: { q: 1, r: 1 },
+      kind: 'forest',
+      density: 0,
+    });
+    expect(after).toBe(builder);
+    expect(after.build().placements.length).toBe(beforeCount);
+  });
+
 });

@@ -147,6 +147,157 @@ describe('gameboard quests', () => {
     expect(actions.advance(quest).quest.status).toBe('completed');
     expect(actions.find('interaction')?.quest.questId).toBe('interaction');
   });
+
+  it('marks reach-tile objective blocked when source actor is missing (E0h)', () => {
+    const world = createQuestTestWorld();
+    const evaluation = evaluateGameboardQuestObjective(world, {
+      id: 'walk-to-base',
+      kind: 'reach-tile',
+      actor: 'ghost-actor-not-in-world',
+      tile: '0,0',
+    });
+    expect(evaluation.progress.status).toBe('blocked');
+    expect(evaluation.progress.detail).toMatch(/is missing/);
+  });
+
+  it('marks reach-actor objective blocked when target actor is missing (E0h)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const evaluation = evaluateGameboardQuestObjective(world, {
+      id: 'find-elder',
+      kind: 'reach-actor',
+      actor: 'hero',
+      targetActor: 'ghost-target-not-in-world',
+    });
+    expect(evaluation.progress.status).toBe('blocked');
+    expect(evaluation.progress.detail).toMatch(/Target actor .* is missing/);
+  });
+
+  it('gameboardQuestActions bundle exercises spawn/advance/advanceAll/read/find (E0h)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const actions = gameboardQuestActions(world);
+    actions.spawn({
+      id: 'arrive',
+      objectives: [{ id: 'arrive-objective', kind: 'reach-tile', actor: 'hero', tile: '0,0' }],
+    });
+    expect(actions.read().length).toBe(1);
+    expect(actions.find('arrive')?.quest.questId).toBe('arrive');
+    actions.advance('arrive');
+    actions.advanceAll();
+    expect(actions.read().length).toBe(1);
+  });
+
+  it('completes reach-actor objective when actors are within maxDistance (E0h)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'elder',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_green',
+      kind: 'prop',
+    });
+    const result = evaluateGameboardQuestObjective(world, {
+      id: 'reach-elder',
+      kind: 'reach-actor',
+      actor: 'hero',
+      targetActor: 'elder',
+      maxDistance: 2,
+    });
+    expect(result.progress.status).toBe('completed');
+  });
+
+  it('reports pending reach-actor when distance exceeds maxDistance (E0h)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'distant-elder',
+      actorKind: 'npc',
+      at: '3,0',
+      assetId: 'flag_green',
+      kind: 'prop',
+    });
+    const result = evaluateGameboardQuestObjective(world, {
+      id: 'reach-distant',
+      kind: 'reach-actor',
+      actor: 'hero',
+      targetActor: 'distant-elder',
+      maxDistance: 1,
+    });
+    expect(result.progress.status).toBe('pending');
+  });
+
+  it('collision matches all expectation kinds (E0h)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'cache',
+      actorKind: 'prop',
+      at: '1,0',
+      assetId: 'flag_yellow',
+      kind: 'prop',
+    });
+    // can-enter expectation against a free target tile
+    const blocked = evaluateGameboardQuestObjective(world, {
+      id: 'block-cache',
+      kind: 'collision',
+      actor: 'hero',
+      targetActor: 'cache',
+      expect: 'prop',
+    });
+    expect(blocked.progress.status).toBe('completed');
+  });
+
+  it('marks collision objective blocked when target tile cannot resolve (E0h)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const evaluation = evaluateGameboardQuestObjective(world, {
+      id: 'block-cache',
+      kind: 'collision',
+      actor: 'hero',
+      // No tile + no targetActor — targetTileForCollisionObjective returns undefined.
+      expect: 'blocked',
+    });
+    expect(evaluation.progress.status).toBe('blocked');
+    expect(evaluation.progress.detail).toMatch(/no resolvable target tile/);
+  });
 });
 
 function createQuestTestWorld() {

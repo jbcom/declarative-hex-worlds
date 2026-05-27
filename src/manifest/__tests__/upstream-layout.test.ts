@@ -92,6 +92,42 @@ describe('KayKit upstream layouts', () => {
       expect(detectKayKitLayout(EXTRA_REFERENCE)).toBe(KAYKIT_MEDIEVAL_EXTRA_LAYOUT);
     }
   );
+
+  it('returns undefined for a synthetic free root that includes a units/ directory (E0h)', () => {
+    // FREE layout must NOT have units/ — detector rejects.
+    const root = mkdtempSync(join(tmpdir(), 'medieval-hexagon-fake-free-with-units-'));
+    try {
+      const gltfRoot = join(root, 'Assets', 'gltf');
+      mkdirSync(gltfRoot, { recursive: true });
+      // Create every required asset category to pass the earlier checks.
+      for (const category of KAYKIT_MEDIEVAL_FREE_LAYOUT.assetCategories) {
+        mkdirSync(join(gltfRoot, category), { recursive: true });
+      }
+      // Add the disqualifying units/ directory.
+      mkdirSync(join(gltfRoot, 'units'), { recursive: true });
+      expect(detectKayKitLayout(root)).toBeUndefined();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('returns undefined for an extra root missing the units/ directory (E0h)', () => {
+    // EXTRA layout requires units/ — without it, detection fails.
+    const root = mkdtempSync(join(tmpdir(), 'medieval-hexagon-fake-extra-no-units-'));
+    try {
+      const gltfRoot = join(root, 'Assets', 'gltf');
+      mkdirSync(gltfRoot, { recursive: true });
+      for (const category of KAYKIT_MEDIEVAL_EXTRA_LAYOUT.assetCategories) {
+        if (category !== 'units') {
+          mkdirSync(join(gltfRoot, category), { recursive: true });
+        }
+      }
+      // No units/ directory.
+      expect(detectKayKitLayout(root)).toBeUndefined();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });
 
 function seedLayout(root: string, layout: typeof KAYKIT_MEDIEVAL_FREE_LAYOUT): void {
