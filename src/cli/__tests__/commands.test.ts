@@ -31,7 +31,9 @@ import { run as runAnalyzeLayout } from '../commands/analyze-layout';
 import { run as runBootstrap } from '../commands/bootstrap';
 import { run as runCompatibilityCmd } from '../commands/compatibility';
 import { run as runDeclarations } from '../commands/declarations';
+import { run as runExtract } from '../commands/extract';
 import { run as runPatrolRoutes } from '../commands/patrol-routes';
+import { run as runPieces } from '../commands/pieces';
 import { run as runPatrolScript } from '../commands/patrol-script';
 import { run as runPiece } from '../commands/piece';
 import { run as runSimulateScenario } from '../commands/simulate-scenario';
@@ -367,6 +369,25 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
   it('simulate-scenario throws GameboardCliError without --scenario', async () => {
     await expect(runSimulateScenario({ command: 'simulate-scenario', flags: {} }, '/x', 'free')).rejects.toThrow(
       /simulate-scenario requires --scenario/
+    );
+  });
+
+  it('pieces throws GameboardCliError without --pieces', async () => {
+    await expect(runPieces({ command: 'pieces', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /pieces requires --pieces/
+    );
+  });
+
+  it('extract surfaces GameboardIoError for non-existent source root', async () => {
+    // extract calls copyGltfTree(sourceRoot, ...) which throws when the
+    // source GLTF dir is missing — covers the wrapper-import line + the
+    // copyGltfTree error branch.
+    const parsed: ParsedArgs = {
+      command: 'extract',
+      flags: { out: '.test-tmp/extract-missing' },
+    };
+    await expect(runExtract(parsed, '/nonexistent-extract-source', 'free')).rejects.toThrow(
+      /Missing GLTF source directory/
     );
   });
 
