@@ -52,10 +52,10 @@ export const COVERAGE_THRESHOLDS = {
   // Now that RB-CI runs the bootstrap step in CI, the references-gated
   // tests do execute on the runner — local + CI floors converge. Each
   // E0a/E0h commit advances these.
-  statements: 64.8,
-  branches: 62.8,
-  functions: 76.5,
-  lines: 64.3,
+  statements: 65.3,
+  branches: 63,
+  functions: 76.6,
+  lines: 64.9,
 };
 
 /**
