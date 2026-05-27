@@ -32,13 +32,27 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] **E0a** — Simulation + patrol files toward 100%. As of `7017d40` (post-PR#10 continuation):
-    - script.ts 88.76 / 83.88 / 98.88 / 88.83 — added inspect-actor-targets sub-field validator coverage (PR#10), expectation validators non-array + non-record branches (PR#10).
-    - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — added resolveSimulationSpawnActor throw-branch coverage.
-    - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — added matchesAnyActorTarget vacuous-match coverage.
+- [ ] **E0a** — Simulation + patrol files toward 100%. Local floor advancing on PR#10. As of `d0ddb37`:
+    - **Overall:** 65.94 / 63.83 / 76.87 / 65.57 (was 62.5/60.5/75/62 at PR#4 merge — +3.4 pp statements). Threshold floor: 64.6/62.5/75.5/64.2 (CI-adjusted).
+    - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
+    - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
+    - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.
     - report.ts 100 / 96.42 / 100 / 100 — copyQuestObjective tile/targetTile branches done.
-    - patrol.ts 83.21 → ratcheting; added paused/short-route/missing-id/loop-wrap/end-of-route branches.
-    Remaining gaps: deep validator branches in `script.ts` (`set-actor-targets` step types if any, remaining expectation sub-validators), engine.ts edge mutation paths (lines 491-499, 674), patrol.ts wait-state + completed-by-targetIndex-undefined deeper paths, navigation.ts patrol-route generation edge cases. Each closure lands as one commit ≤200 LOC with the threshold ratchet folded into the next per-area commit.
+    - patrol.ts 83.21 → ratcheting; paused/short-route/missing-id/loop-wrap/end-of-route.
+    - layout.ts 87.13 → ratcheting; normalizeArchetypes, resolveArchetype, selectLayout count=0.
+    - quests.ts 92.8 → ratcheting; expect=hostile + interactive, missing-quest throw.
+    - manifest/schema.ts 87.24 → duplicatePreference variants done.
+    - actors.ts 88.93 → register + navigationProfile action wrappers.
+    - pieces.ts 93.64 → inferPieceRoleFromCompatibility role branches.
+    - scenario/scenario.ts 87.74 → actor spawnLocationIndex errors.
+    - gameboard.ts 92.21 → addUnitPreset role variants.
+    - bootstrap.ts 75 → verifyBootstrap unsafe-sidecar + missing-file.
+    - selectors.ts 97.43 → selectRoadVariant unreachable-mask throw.
+    - movement.ts 82.8 → runSystem/reachable wrappers + profile-not-found.
+    - commands.ts 84.76 → createRemoveTargetPlacementHandler factory.
+    - interop/compatibility.ts 93.33 → -x modelForward axis.
+    - navigation.ts 86.06 → reachableGameboardTiles defensive returns.
+    Remaining gaps: deep validator branches in script.ts (remaining expectation sub-validators), engine.ts edge mutation paths (lines 491-499, 674), patrol.ts wait-state + completed-by-targetIndex-undefined deeper paths, navigation.ts patrol-route generation edge cases, scenario.ts deeper allocator paths, bootstrap GitHub source, ingest.ts duplicate disambiguation. Each ≤200 LOC commit + threshold ratchet.
 - [ ] **E0h** — Sweep remaining src/ files to 100%. Status post-merge:
     - `pieces/pieces.ts` ~91% (was 89.69) — cross-pack composition + remaining infer paths
     - `quests/quests.ts` ~89% (was 87.2) — quest objective rollover + reward dispatch
