@@ -675,4 +675,63 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     const result = inspectGameboardScenarioSimulationScript(script as any);
     expect(result.violations.some((v) => v.code === 'simulation.update_placement')).toBe(true);
   });
+
+  it('flags inspect-actor-targets with non-record targeting object (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'inspect-actor-targets', targeting: 'not-a-record' },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.actor_targets_targeting')
+    ).toBe(true);
+  });
+
+  it('flags inspect-actor-targets with every targeting sub-field wrong (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: {
+            kinds: 17,
+            teams: 17,
+            factions: 17,
+            tags: 17,
+            excludeTags: 17,
+            radius: 'not-a-number',
+            maxPathCost: 'not-a-number',
+            includeSource: 'not-a-bool',
+            hostile: 'not-a-bool',
+            interactive: 'not-a-bool',
+            blocksMovement: 'not-a-bool',
+            hostileToSource: 'not-a-bool',
+            includeUnreachable: 'not-a-bool',
+            approach: 'not-a-real-approach',
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.actor_targets_kinds');
+    expect(codes).toContain('simulation.actor_targets_teams');
+    expect(codes).toContain('simulation.actor_targets_factions');
+    expect(codes).toContain('simulation.actor_targets_tags');
+    expect(codes).toContain('simulation.actor_targets_exclude_tags');
+    expect(codes).toContain('simulation.actor_targets_radius');
+    expect(codes).toContain('simulation.actor_targets_max_path_cost');
+    expect(codes).toContain('simulation.actor_targets_include_source');
+    expect(codes).toContain('simulation.actor_targets_hostile');
+    expect(codes).toContain('simulation.actor_targets_interactive');
+    expect(codes).toContain('simulation.actor_targets_blocks_movement');
+    expect(codes).toContain('simulation.actor_targets_hostile_to_source');
+    expect(codes).toContain('simulation.actor_targets_include_unreachable');
+    expect(codes).toContain('simulation.actor_targets_approach');
+  });
 });
