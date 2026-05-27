@@ -1,0 +1,66 @@
+/**
+ * Patrol action bundle coverage (PRD E0b).
+ *
+ * Exercises the `gameboardPatrolActions` createActions closure bodies —
+ * koota wraps each method as an action that takes a `world` from
+ * `world.actions(bundle)`, so the body only runs when the bundle is
+ * actually dispatched. Direct calls to `setGameboardPatrolAgent` etc.
+ * are already tested in `systems.test.ts`; this file exercises the
+ * action-bundle wrapper.
+ *
+ * @module
+ */
+
+import { describe, expect, it } from 'vitest';
+import { createGameboardBuilder } from '../../gameboard/index';
+import { createGameboardWorld } from '../../koota/index';
+import { spawnGameboardActor } from '../../actors/index';
+import { gameboardPatrolActions } from '../patrol';
+
+describe('gameboardPatrolActions bundle (PRD E0b)', () => {
+  it('set + read + advance + clear + run all return safe values', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'patrol-actions',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const guard = spawnGameboardActor(world, {
+      id: 'guard-placement',
+      actorId: 'guard',
+      actorKind: 'npc',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+
+    const actions = gameboardPatrolActions(world);
+
+    // set: attach a patrol route.
+    actions.set(guard, {
+      route: {
+        id: 'wall-loop',
+        waypointKeys: ['0,0', '1,0', '2,0'],
+        loop: false,
+        segmentCosts: [1, 1],
+      },
+      movement: { profile: 'ground' },
+    });
+
+    // read: returns snapshots.
+    const snapshots = actions.read();
+    expect(snapshots.length).toBeGreaterThan(0);
+
+    // advance: tick one agent.
+    const advanceResult = actions.advance(guard);
+    expect(advanceResult).toBeDefined();
+
+    // run: tick every patrol agent.
+    const runResult = actions.run();
+    expect(runResult).toBeDefined();
+
+    // clear: remove patrol traits.
+    actions.clear(guard);
+    expect(actions.read().length).toBe(0);
+  });
+});
