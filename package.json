@@ -234,6 +234,7 @@
     "bench": "vitest bench --run",
     "bench:warm-start": "vitest bench tests/perf/warm-start.bench.ts --run",
     "bench:cli-cold-start": "pnpm build && vitest bench tests/perf/cli-cold-start.bench.ts --run",
+    "bench:simulation": "vitest bench tests/perf/simulation.bench.ts --run",
     "test:coverage": "MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --coverage",
     "test:coverage:enforce": "MEDIEVAL_HEXAGON_COVERAGE=1 MEDIEVAL_HEXAGON_COVERAGE_ENFORCE=1 vitest run --coverage",
     "test:coverage:browser:free": "MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.free.config.ts --coverage",
