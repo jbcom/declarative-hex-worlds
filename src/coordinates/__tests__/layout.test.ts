@@ -192,6 +192,34 @@ describe('gameboard layout placement criteria', () => {
     );
   });
 
+  it('rejects sites by excludeTerrain + excludeTileTags filters (E0b)', () => {
+    // Covers layout.ts lines 1073-1075 (excluded-terrain) + 1082-1084 (excluded-tags).
+    const plan = createGameboardBuilder({
+      seed: 'layout-exclusions',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    })
+      .setTerrain({ q: 1, r: 0 }, 'water')
+      .setTileAsset({
+        at: { q: 2, r: 0 },
+        assetId: 'hex_grass',
+        terrain: 'grass',
+        tags: ['restricted'],
+      })
+      .build();
+    const inspection = inspectGameboardLayoutSites(plan, {
+      criteria: {
+        excludeTerrain: 'water',
+        excludeTileTags: ['restricted'],
+      },
+    });
+    const rejected = inspection.rejected.map((s) => ({
+      key: s.key,
+      codes: s.rejections.map((r) => r.code),
+    }));
+    expect(rejected.some((r) => r.key === '1,0' && r.codes.includes('excluded-terrain'))).toBe(true);
+    expect(rejected.some((r) => r.key === '2,0' && r.codes.includes('excluded-tags'))).toBe(true);
+  });
+
   it('uses the harbor archetype for coast tiles with adjacent water', () => {
     const builder = createGameboardBuilder({
       seed: 'layout-harbor',
