@@ -210,25 +210,19 @@ describe('Koota movement profiles and systems', () => {
     ).toThrow(/Unknown gameboard movement profile/);
   });
 
-  it('resolveGameboardMovementProfile falls back to ground default (E0a)', () => {
-    // When profile is undefined, falls back to GAMEBOARD_MOVEMENT_PROFILES.ground.
-    // The function isn't exported; setGameboardMovementAgent with no profile
-    // exercises the default branch (line 266-271).
-    const placedPlan = createGameboardBuilder({
-      seed: 'movement-profile-default',
-      shape: { kind: 'rectangle', width: 2, height: 1 },
-    })
-      .addPlacement({
-        at: { q: 0, r: 0 },
-        assetId: 'unit_blue_full',
-        kind: 'unit',
-        layer: 'unit',
-      })
-      .build();
-    const world = createGameboardWorld(placedPlan);
-    const id = placedPlan.placements[0]?.id ?? '';
-    // No profile in options → resolves to GAMEBOARD_MOVEMENT_PROFILES.ground.
-    expect(() => setGameboardMovementAgent(world, id, {})).not.toThrow();
+  it('resolveGameboardMovementProfile falls back to ground default (E0a)', async () => {
+    const { resolveGameboardMovementProfile } = await import('../movement');
+    // undefined profile → returns ground (line 266-271).
+    const resolved = resolveGameboardMovementProfile(undefined);
+    expect(resolved.id).toBe('ground');
+    // Inline profile object passthrough (line 273-274).
+    // biome-ignore lint/suspicious/noExplicitAny: minimal inline profile
+    const inline = { id: 'inline-custom' } as any;
+    expect(resolveGameboardMovementProfile(inline)).toBe(inline);
+    // Throws when registry has no ground.
+    expect(() => resolveGameboardMovementProfile(undefined, {})).toThrow(
+      /missing required default "ground"/
+    );
   });
 
   it('advance on completed path returns advanceResult without throwing (E0a)', () => {
