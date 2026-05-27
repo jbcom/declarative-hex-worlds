@@ -10,6 +10,7 @@ export default defineConfig({
       'tests/unit/**/*.test.ts',
       'tests/integration/**/*.test.ts',
       'src/**/__tests__/**/*.test.ts',
+      'scripts/**/__tests__/**/*.test.ts',
     ],
     testTimeout: 15_000,
     coverage: harnessCoverage('unit'),
