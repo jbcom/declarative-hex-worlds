@@ -189,9 +189,13 @@ function assertEqualSet(actual: readonly string[], expected: readonly string[], 
 function assertWorkspaceTestCiOrder(_testCiScript: string): void {
   // Post-R1: `test:ci` delegates to `pnpm verify` (single source of truth);
   // `verify` itself is the canonical chain. Audit the chain against `verify`.
+  // Post-G4: verify now includes `pnpm audit --prod --audit-level=high` after
+  // typecheck and `pnpm test:coverage:enforce` after `pnpm test` to mirror what
+  // CI catches in the package job + check matrix respectively.
   const expectedSteps = [
     'pnpm lint',
     'pnpm typecheck',
+    'pnpm audit --prod --audit-level=high',
     'pnpm test:docs-contract',
     'pnpm test:api-docs',
     'pnpm docs:build',
@@ -202,6 +206,7 @@ function assertWorkspaceTestCiOrder(_testCiScript: string): void {
     'pnpm test:cli',
     'pnpm expectations',
     'pnpm test',
+    'pnpm test:coverage:enforce',
     'pnpm test:package',
     'pnpm test:consumer',
     'pnpm pack:dry-run',
