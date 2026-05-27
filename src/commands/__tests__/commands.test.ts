@@ -425,7 +425,8 @@ describe('gameboard interaction commands', () => {
     // targetCommand: actor-aware targeting.
     const targetPlan = actions.targetCommand({
       sourceActor: 'hero',
-      targeting: { interactiveOnly: true, approach: 'nearest' },
+      interactive: true,
+      approach: 'nearest',
     });
     expect(targetPlan).toBeDefined();
   });

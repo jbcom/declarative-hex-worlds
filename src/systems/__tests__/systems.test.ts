@@ -539,15 +539,16 @@ describe('gameboard systems', () => {
     // handler registered for the command kind the execution stays in
     // 'handler-required' state, which is still a valid (testable) outcome
     // of the action-bundle wiring.
-    const dispatched = actions.dispatchCommand('2,0', { sourceActor: 'hero', systems: false });
+    const dispatched = actions.dispatchCommand('2,0', { sourceActor: 'hero' });
     expect(dispatched.execution).toBeDefined();
     expect(dispatched.events.length).toBeGreaterThan(0);
 
     // dispatchActorTargetCommand: pick the nearest hostile target + plan.
-    const actorTarget = actions.dispatchActorTargetCommand(
-      { sourceActor: 'hero', targeting: { hostileToSource: true, approach: 'nearest' } },
-      { systems: false }
-    );
+    const actorTarget = actions.dispatchActorTargetCommand({
+      sourceActor: 'hero',
+      approach: 'nearest',
+      hostileToSource: true,
+    });
     expect(actorTarget.targetCommand).toBeDefined();
     expect(actorTarget.events).toBeDefined();
 

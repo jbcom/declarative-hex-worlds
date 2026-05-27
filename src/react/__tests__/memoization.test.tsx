@@ -18,7 +18,7 @@
  * @module
  */
 
-import { act, createElement, useRef } from 'react';
+import { act, useRef } from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { createGameboardWorld } from '../../../src';
@@ -53,10 +53,9 @@ describe('selector hook memoization (PRD E7)', () => {
     const renders = { count: 0 };
 
     const { rerender } = render(
-      createElement(MedievalGameboardProvider, {
-        world,
-        children: createElement(MemoizedChild, { renders }),
-      })
+      <MedievalGameboardProvider world={world}>
+        <MemoizedChild renders={renders} />
+      </MedievalGameboardProvider>
     );
 
     const afterFirst = renders.count;
@@ -66,10 +65,9 @@ describe('selector hook memoization (PRD E7)', () => {
     for (let i = 0; i < 5; i += 1) {
       act(() => {
         rerender(
-          createElement(MedievalGameboardProvider, {
-            world,
-            children: createElement(MemoizedChild, { renders }),
-          })
+          <MedievalGameboardProvider world={world}>
+            <MemoizedChild renders={renders} />
+          </MedievalGameboardProvider>
         );
       });
     }
