@@ -293,7 +293,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
     "@testing-library/react": "^16.3.2",
-    "@types/node": "^24.10.1",
+    "@types/node": "^25.9.1",
     "@types/react-dom": "^19.0.0",
     "@types/seedrandom": "^3.0.8",
     "@types/three": "^0.184.1",
@@ -309,7 +309,7 @@
     "tsup": "^8.5.1",
     "tsx": "^4.22.3",
     "typedoc": "^0.28.19",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^8.0.14",
     "vitest": "^4.1.7",
     "yazl": "^3.3.1"
