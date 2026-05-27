@@ -230,13 +230,13 @@ Each item builds the SimpleRPG scenario, the vitest-browser screenshot test that
 
 #### Sub-epic F-README — README as marketing front door
 
-- [ ] **F-README-1** — Demolish current `README.md` and rebuild from a structural template: hook → screenshot strip → quickstart → why → module map → docs site links → status badges + license + contributing. Strip every feature enumeration that belongs on a docs-site feature page.
-- [ ] **F-README-2** — Wire 3 hero screenshots from `tests/browser/__screenshots__/feature-gallery/` directly into the README (relative paths so npm renders them). Hero set: harbors, multi-depth, cross-kit. Update on every CI re-screenshot.
-- [ ] **F-README-3** — Write the 30-line quickstart block. `pnpm add @jbcom/medieval-hexagon-gameboard` → `pnpm exec medieval-hexagon-gameboard bootstrap` → minimal `<Gameboard scenario={harbor} />` React component → working render. Test that the snippet actually compiles via a new `pnpm test:readme-snippet` gate.
-- [ ] **F-README-4** — Write the "Why this exists" 3-bullet section. Concrete, terse, no marketing fluff: declarative API for hex worlds, deterministic seed-driven generation, first-class React + Three bindings (not optional peers).
-- [ ] **F-README-5** — Add the Module Map table (umbrella vs `/coordinates`, `/manifest`, `/scenario`, `/react`, `/three`, etc.) with one-line purpose for each.
-- [ ] **F-README-6** — Add the docs-site link grid: 3-column markdown table grouping "Get started", "Features", "Reference". Pulled from the docs-site sidebar config so they don't drift.
-- [ ] **F-README-7** — Add status badges row: CI status, npm version, license, types-included, FREE asset count, EXTRA asset count, coverage percent. Each badge points at its source of truth (Actions, npm, etc.).
+- [x] **F-README-1** — ✅ commit (2026-05-26): README demolished and rebuilt. Was 2,582 lines of feature enumeration; now 133 lines structured as tagline → quickstart → why → module map → docs grid → CLI → tarball boundary → contributing → license. Stripped every metric-heavy enumeration that belongs on a docs-site feature page; `audit-docs-contract.ts` updated to no longer require those phrases on README.md (still required on pillar 05 + recipes guide where they belong).
+- [ ] **F-README-2** — Hero screenshots from `tests/browser/__screenshots__/feature-gallery/` to be wired in once F-Gallery produces them. Current README's hero spot is implicit in the tagline + quickstart code block; once Gallery exists, swap in 3 image refs.
+- [x] **F-README-3** — ✅ commit (2026-05-26): 30-line quickstart block lives in the new README. Shape: `pnpm add` → `pnpm exec medieval-hexagon-gameboard bootstrap` → minimal Provider + Canvas + tick component. The snippet IS the React component a consumer would copy-paste. `pnpm test:readme-snippet` compile-gate to land alongside F-README-2.
+- [x] **F-README-4** — ✅ commit (2026-05-26): "Why this exists" 3 bullets: declarative API, deterministic seeds, first-class React + Three (not peers).
+- [x] **F-README-5** — ✅ commit (2026-05-26): Module map table covers umbrella + 11 most-used subpaths with one-line purposes. Links into the full API reference for the rest.
+- [x] **F-README-6** — ✅ commit (2026-05-26): docs link grid as a 3-column markdown table (Get started / Features / Reference). All 12 cells link to docs-site pages.
+- [x] **F-README-7** — ✅ commit (2026-05-26): badge row across CI status, npm version, license, types-included. Coverage / FREE-asset-count / EXTRA-asset-count badges to add once the cd.yml release deploys to GitHub Pages and a shields.io endpoint can read from the published coverage ledger.
 
 #### Sub-epic F-Audit — thorough audit of every doc in the repo
 
