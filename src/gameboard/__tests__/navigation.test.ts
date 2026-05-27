@@ -402,6 +402,69 @@ describe('board-aware navigation and occupancy', () => {
     ]);
   });
 
+  it('errors when patrol route references spawn group without a spawn-group plan (E0h)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'patrol-spawn-1',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    }).build();
+    const result = planGameboardPatrolRoute(plan, {
+      id: 'guard-from-group',
+      count: 2,
+      startGroupId: 'home-base',
+      seed: 'patrol-spawn-noplan',
+    });
+    expect(result.found).toBe(false);
+    expect(
+      result.errors.some((e) => /no spawn group plan was provided/.test(e))
+    ).toBe(true);
+  });
+
+  it('errors when patrol route uses non-integer startLocationIndex (E0h)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'patrol-spawn-2',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    }).build();
+    const spawnGroups = planGameboardSpawnGroups(plan, {
+      seed: 'spawn-base',
+      groups: [{ id: 'base', count: 2 }],
+    });
+    const result = planGameboardPatrolRoute(plan, {
+      id: 'fractional-index',
+      count: 2,
+      startGroupId: 'base',
+      // biome-ignore lint/suspicious/noExplicitAny: deliberate non-integer
+      startLocationIndex: 1.5 as any,
+      spawnGroups,
+      seed: 'patrol-fractional',
+    });
+    expect(result.found).toBe(false);
+    expect(
+      result.errors.some((e) => /invalid startLocationIndex/.test(e))
+    ).toBe(true);
+  });
+
+  it('errors when patrol route references unknown spawn group (E0h)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'patrol-spawn-3',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    }).build();
+    const spawnGroups = planGameboardSpawnGroups(plan, {
+      seed: 'spawn-base-3',
+      groups: [{ id: 'base', count: 2 }],
+    });
+    const result = planGameboardPatrolRoute(plan, {
+      id: 'unknown-group',
+      count: 2,
+      startGroupId: 'definitely-not-base',
+      spawnGroups,
+      seed: 'patrol-unknown',
+    });
+    expect(result.found).toBe(false);
+    expect(
+      result.errors.some((e) => /references unknown spawn group/.test(e))
+    ).toBe(true);
+  });
+
   it('plans patrol route sets and reports duplicate route ids', () => {
     const plan = createGameboardBuilder({
       seed: 'patrol-route-set',
