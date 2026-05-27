@@ -690,11 +690,11 @@ describe('gameboard scenarios', () => {
           id: 'quest-1',
           objectives: [
             // biome-ignore lint/suspicious/noExplicitAny: deliberate empty-id
-            { id: '', kind: 'interact', actor: 'hero', targetActor: 'hero' } as any,
-            { id: 'obj-a', kind: 'interact', actor: 'hero', targetActor: 'hero' },
-            { id: 'obj-a', kind: 'interact', actor: 'hero', targetActor: 'hero' },
-            { id: 'obj-b', kind: 'interact', actor: 'unknown-actor', targetActor: 'hero' },
-            { id: 'obj-c', kind: 'interact', actor: 'hero', targetActor: 'unknown-target' },
+            { id: '', kind: 'interact-actor', actor: 'hero', targetActor: 'hero' } as any,
+            { id: 'obj-a', kind: 'interact-actor', actor: 'hero', targetActor: 'hero' },
+            { id: 'obj-a', kind: 'interact-actor', actor: 'hero', targetActor: 'hero' },
+            { id: 'obj-b', kind: 'interact-actor', actor: 'unknown-actor', targetActor: 'hero' },
+            { id: 'obj-c', kind: 'interact-actor', actor: 'hero', targetActor: 'unknown-target' },
             { id: 'obj-d', kind: 'collision', actor: 'hero' },
           ],
         },
