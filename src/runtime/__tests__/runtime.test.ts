@@ -850,4 +850,13 @@ describe('gameboard runtime facade', () => {
     expect(tick.quests[0]?.quest.status).toBe('completed');
     expect(runtime.snapshot({ includeInterop: false }).interop).toBeUndefined();
   });
+
+  it('createGameboardRuntime accepts a plan-bearing options object (E0h)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'options-plan',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    const runtime = createGameboardRuntime({ plan });
+    expect(runtime.plan().tiles.length).toBe(3);
+  });
 });
