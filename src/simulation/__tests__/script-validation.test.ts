@@ -269,6 +269,32 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.some((v) => v.code === 'simulation.update_asset_id')).toBe(true);
   });
 
+  it('flags actorTargets expectation with bad nearest/target fields', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        actorTargets: [
+          {
+            nearestApproach: 'not-a-real-approach',
+            nearestReachable: 'not-a-bool',
+            nearestPathCost: 'not-a-number',
+            targetApproach: 17,
+            targetPathFound: 'not-a-bool',
+          },
+        ],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.expectation_actor_target_nearest_approach');
+    expect(codes).toContain('simulation.expectation_actor_target_nearest_reachable');
+    expect(codes).toContain('simulation.expectation_actor_target_target_approach');
+  });
+
   it('flags update-placement step with non-object placement field', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
