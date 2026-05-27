@@ -880,6 +880,28 @@ describe('gameboard scenarios', () => {
     expect(codes).toContain('scenario.actor_spawn_location_index');
   });
 
+  it('summarizeGameboardScenario sorts actor tags alphabetically (E0b)', () => {
+    const board = createGameboardRecipe({
+      seed: 'tagged-actors',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:tagged-actors', board, {
+      actors: [
+        {
+          actorId: 'tagged',
+          actorKind: 'npc',
+          at: '0,0',
+          assetId: 'flag_blue',
+          kind: 'unit',
+          tags: ['zebra', 'apple', 'mango'],
+        },
+      ],
+    });
+    const summary = summarizeGameboardScenario(scenario);
+    const actor = summary.actors.find((a) => a.actorId === 'tagged');
+    expect(actor?.tags).toEqual(['apple', 'mango', 'zebra']);
+  });
+
   it('reports actor with invalid tile coordinate (E0b)', () => {
     const board = createGameboardRecipe({
       seed: 'bad-actor-tile',
