@@ -235,8 +235,9 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     expect(second.fileCount).toBe(first.fileCount);
   });
 
-  it('refuses a non-empty target without force', async () => {
+  it('refuses a non-empty target without force when the sidecar edition differs', async () => {
     const localOut = tmp();
+    // First bootstrap a FREE pack so the target is non-empty.
     await bootstrapKayKitAssets({
       source: { kind: 'zip', path: zipPath },
       out: localOut,
@@ -245,14 +246,37 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
       libraryVersion: '0.0.0-test',
       fetchedAt: '2030-01-01T00:00:00.000Z',
     });
+    // Now attempt to bootstrap an EXTRA pack into the same directory —
+    // edition mismatch defeats the idempotency shortcut and produces the
+    // documented "not empty" error.
     await expect(
       bootstrapKayKitAssets({
         source: { kind: 'zip', path: zipPath },
         out: localOut,
         outRoot: '/',
-        edition: 'free',
+        edition: 'extra',
       })
     ).rejects.toThrow(/is not empty; pass force: true/);
+  });
+
+  it('idempotently returns when the sidecar already matches the requested edition', async () => {
+    const localOut = tmp();
+    const first = await bootstrapKayKitAssets({
+      source: { kind: 'zip', path: zipPath },
+      out: localOut,
+      outRoot: '/',
+      edition: 'free',
+      libraryVersion: '0.0.0-test',
+      fetchedAt: '2030-01-01T00:00:00.000Z',
+    });
+    const second = await bootstrapKayKitAssets({
+      source: { kind: 'zip', path: zipPath },
+      out: localOut,
+      outRoot: '/',
+      edition: 'free',
+    });
+    expect(second.fileCount).toBe(first.fileCount);
+    expect(second.outRoot).toBe(first.outRoot);
   });
 
   it('includes .fbx/.obj/.mtl when includeSourceFormats is true', async () => {

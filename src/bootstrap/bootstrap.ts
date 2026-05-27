@@ -209,6 +209,27 @@ export async function bootstrapKayKitAssets(
   if (options.force === true) {
     rmSync(targetRoot, { recursive: true, force: true });
   } else if (existsSync(targetRoot) && readdirSync(targetRoot).length > 0) {
+    // Idempotency: if the existing sidecar matches the requested edition,
+    // treat as a no-op return rather than throwing. This makes repeated
+    // `pnpm bootstrap` invocations cheap + the failure mode is reserved
+    // for genuine destination conflicts.
+    if (existsSync(sidecarPath)) {
+      try {
+        const existing = readSidecar(sidecarPath);
+        if (existing.edition === edition) {
+          const totalBytes = existing.files.reduce((sum, file) => sum + file.bytes, 0);
+          return {
+            edition,
+            outRoot: targetRoot,
+            fileCount: existing.files.length,
+            totalBytes,
+            integritySidecar: sidecarPath,
+          };
+        }
+      } catch {
+        // Corrupt sidecar — fall through to the non-empty error.
+      }
+    }
     throw new GameboardIoError(
       `Bootstrap destination ${targetRoot} is not empty; pass force: true to overwrite.`
     );
