@@ -753,6 +753,62 @@ describe('gameboard scenarios', () => {
     expect(scout?.placement.tileKey).not.toBe(hero?.placement.tileKey);
   });
 
+  it('flags scenario actor with both at and spawnGroupId set (E0h)', () => {
+    const inspection = inspectGameboardScenario({
+      schemaVersion: GAMEBOARD_SCENARIO_SCHEMA_VERSION,
+      id: 'actor-conflict',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 3, height: 3 } },
+        steps: [],
+      },
+      actors: [
+        {
+          id: 'hero',
+          actorId: 'hero',
+          actorKind: 'player',
+          team: 'blue',
+          at: '0,0',
+          spawnGroupId: 'base',
+          assetId: 'flag_blue',
+          kind: 'unit',
+        },
+      ],
+    });
+    expect(
+      inspection.violations.some((v) => v.code === 'scenario.actor_spawn_conflict')
+    ).toBe(true);
+  });
+
+  it('flags scenario actor referencing missing spawn group plan (E0h)', () => {
+    const inspection = inspectGameboardScenario({
+      schemaVersion: GAMEBOARD_SCENARIO_SCHEMA_VERSION,
+      id: 'no-spawn-plan',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 3, height: 3 } },
+        steps: [],
+      },
+      actors: [
+        {
+          id: 'hero',
+          actorId: 'hero',
+          actorKind: 'player',
+          team: 'blue',
+          spawnGroupId: 'unconfigured-base',
+          assetId: 'flag_blue',
+          kind: 'unit',
+        },
+      ],
+      // No spawnGroups plan supplied.
+    });
+    expect(
+      inspection.violations.some(
+        (v) => v.code === 'scenario.actor_spawn_group_missing'
+      )
+    ).toBe(true);
+  });
+
   it('inspectGameboardScenario flags wrong schemaVersion (E0h)', () => {
     const inspection = inspectGameboardScenario({
       // biome-ignore lint/suspicious/noExplicitAny: deliberately wrong
