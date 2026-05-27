@@ -390,4 +390,20 @@ describe('gameboard plan builder', () => {
     // Unknown id returns undefined.
     expect(getPlacementAsset({ assetId: 'definitely-not-an-asset' })).toBeUndefined();
   });
+
+  it('gameboardPlacementBlocksOccupancy honors ignorePlacementIds (E0h)', async () => {
+    const { gameboardPlacementBlocksOccupancy } = await import('../../gameboard/occupancy');
+    const placement = {
+      id: 'wall-1',
+      kind: 'structure' as const,
+      layer: 'structure' as const,
+      metadata: {},
+    };
+    // Default blocks.
+    expect(gameboardPlacementBlocksOccupancy(placement)).toBe(true);
+    // Skipped via ignorePlacementIds.
+    expect(
+      gameboardPlacementBlocksOccupancy(placement, { ignorePlacementIds: ['wall-1'] })
+    ).toBe(false);
+  });
 });
