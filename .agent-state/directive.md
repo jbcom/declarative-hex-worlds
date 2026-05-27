@@ -81,10 +81,13 @@ Source: `docs/PRD/1.0.md`. Items decompose to one commit each on this branch. Or
   - `game/index.ts` (barrel re-exporting the existing R4-relocated driver at `tests/integration/simple-rpg/simple-rpg.ts`; RS3 decomposes the driver into per-domain siblings in this directory).
   - Top-level `README.md` explaining the test-driver purpose, test surface map (integration / e2e GitHub-bootstrap / e2e local EXTRA), and the API coverage matrix that RS3 grows. Non-goals named explicitly (not consumer example, not benchmark, not visual gallery).
   Verified: tsc clean, lint clean, 331/6 tests unchanged.
-- [ ] **RS2** — Vitest browser plugin config for SimpleRPG e2e:
-  - `tests/e2e/simple-rpg-ci.test.ts` — uses `bootstrap --source github` against the live KayKit FREE repo. CI-only, scheduled (not per-PR for rate-limit reasons).
-  - `tests/e2e/simple-rpg-local-extra.test.ts` — uses `bootstrap --source zip --zip references/...EXTRA.zip` for the EXTRA-pack tests. Gated by `MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1` env var.
-  - `tests/integration/simple-rpg.test.ts` — unit-level fixture, no bootstrap, asserts the SimpleRPG scenario shape against the library API.
+- [x] **RS2** — ✅ commit (2026-05-26): three test surfaces wired.
+  - `tests/integration/simple-rpg/simple-rpg.test.ts` — Node-side. 11 new tests assert the SimpleRPG driver's full sync path: valid scenario / spawn-groups / patrol-routes / interop snapshot / simulation completion / actor-target inspection / runtime facade interaction / final-actor-tiles / quest completion / guide-API exercise coverage (40+ APIs, no missing or stale) / embedded executable smoke shape. Runs in default `pnpm test`. Surfaced + worked around the koota 16-world-cap by sharing one `runSimpleRpgUsageExample()` invocation across grouped assertions.
+  - `tests/e2e/simple-rpg-ci.test.ts` — Node-side, gated by `MEDIEVAL_HEXAGON_E2E_GITHUB=1`. Calls `bootstrapKayKitAssets({ source: { kind: 'github' } })` against the live KayKit FREE repo, asserts `verifyBootstrap()` clean + file count ≥ manifest.counts.total.
+  - `tests/e2e/simple-rpg-local-extra.test.ts` — Node-side, gated by `MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1`. Bootstraps from `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE.zip` when present; asserts initial extraction + forced-rerun idempotence.
+  - Dedicated `vitest.simple-rpg-e2e.config.ts` extends the base unit config to include `tests/e2e/simple-rpg-*.test.ts` with a 180s timeout. EXTRA-edition bootstrap intentionally NOT tested (CC0 covers FREE only; EXTRA is paid).
+  - New package.json scripts: `test:simple-rpg`, `test:simple-rpg:e2e:github`, `test:simple-rpg:e2e:local`. Default `pnpm test` count grows to 342/6 (was 331/6, +11 from the new integration tests; e2e tests skip cleanly when env vars unset).
+  - **Surfaced gap for RS3**: `tests/e2e/local-assets/third-party-assets.test.ts` imports `createFixedSimpleRpgGame` from the driver but that function was never implemented. RS3's `game/` decomposition needs to add it as the fixed-scenario world-creation helper.
 - [ ] **RS3** — `tests/simple-rpg/game/` exercises:
   - gameboard construction (fixed + procedural)
   - blueprint compilation, scenario validation, recipe expansion
