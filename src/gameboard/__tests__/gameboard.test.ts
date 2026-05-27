@@ -426,6 +426,21 @@ describe('gameboard plan builder', () => {
 
 });
 
+describe('addConstructionSite kind variants (PRD E0a)', () => {
+  it('emits asset placements for each construction kind', () => {
+    const builder = createGameboardBuilder({
+      seed: 'construction-variants',
+      shape: { kind: 'rectangle', width: 7, height: 1 },
+    });
+    const kinds = ['destroyed', 'dirt', 'grain', 'scaffolding', 'stage-A', 'stage-B', 'stage-C'] as const;
+    kinds.forEach((kind, index) => {
+      builder.addConstructionSite({ at: { q: index, r: 0 }, kind });
+    });
+    const plan = builder.build();
+    expect(plan.placements.length).toBeGreaterThanOrEqual(kinds.length);
+  });
+});
+
 describe('addUnitPreset role variants (PRD E0a)', () => {
   it('adds correct parts for each unit role', () => {
     const builder = createGameboardBuilder({
