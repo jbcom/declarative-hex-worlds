@@ -676,6 +676,27 @@ describe('gameboard scenarios', () => {
     expect(() => createGameboardWorldFromScenario(scenario)).toThrow(/unknown patrol route missing-route/);
   });
 
+  it('reports actor patrolAgent with empty routeId (E0b)', () => {
+    const board = createGameboardRecipe({
+      seed: 'empty-patrol-route-id',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:empty-patrol-route-id', board, {
+      actors: [
+        {
+          actorId: 'guard',
+          actorKind: 'npc',
+          at: '0,0',
+          assetId: 'flag_green',
+          kind: 'unit',
+          patrolAgent: { routeId: '' },
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_patrol_route_id');
+  });
+
   it('prevents two scenario actors from claiming the same spawn group location', () => {
     const board = createGameboardRecipe({
       seed: 'duplicate-spawn-claim',
