@@ -180,6 +180,29 @@ describe('free manifest', () => {
     ).toContain('manifest.source_pack_edition_mismatch');
   });
 
+  it('reports invalid textureSet entries (E0a)', () => {
+    const manifest = manifestFixture('free', [
+      assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const codes = validateMedievalHexagonManifest({
+      ...manifest,
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid textureSet
+      textureSets: ['default', 'not-a-supported-texture-set' as any],
+    }).map((i) => i.code);
+    expect(codes).toContain('manifest.texture_set');
+  });
+
+  it('reports non-object asset entries + missing asset id (E0a)', () => {
+    const manifest = manifestFixture('free', []);
+    const codes = validateMedievalHexagonManifest({
+      ...manifest,
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid asset entry
+      assets: [42 as any, { /* no id */ } as any],
+    }).map((i) => i.code);
+    expect(codes).toContain('manifest.asset_object');
+    expect(codes).toContain('manifest.asset_id');
+  });
+
   it('inspectMedievalHexagonManifest rejects non-object input + missing assets array (PRD E0g)', () => {
     // Non-object → manifest.object error.
     const fromString = inspectMedievalHexagonManifest('not an object');
