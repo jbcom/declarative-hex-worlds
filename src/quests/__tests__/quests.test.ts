@@ -279,6 +279,13 @@ describe('gameboard quests', () => {
     expect(blocked.progress.status).toBe('completed');
   });
 
+  it('advanceGameboardQuest throws when quest id is unknown (E0a)', () => {
+    const world = createQuestTestWorld();
+    expect(() => advanceGameboardQuest(world, 'no-such-quest')).toThrow(
+      /No gameboard quest exists/
+    );
+  });
+
   it('evaluates collision objective with expect="hostile" (E0a)', () => {
     const world = createQuestTestWorld();
     spawnGameboardActor(world, {
