@@ -80,6 +80,20 @@ describe('tile registry and ECS interop', () => {
     expect(snapshot.spawnLocations).toHaveLength(2);
   });
 
+  it('warns on duplicate ids + duplicate assetIds (E0b)', () => {
+    const registry = createHexTileRegistry([
+      { id: 'tile-a', assetId: 'asset-a' },
+      { id: 'tile-a', assetId: 'asset-b' },
+      { id: 'tile-c', assetId: 'asset-a' },
+    ]);
+    expect(
+      registry.warnings.some((warning) => warning.includes('Duplicate tile declaration id'))
+    ).toBe(true);
+    expect(
+      registry.warnings.some((warning) => warning.includes('Duplicate tile declaration assetId'))
+    ).toBe(true);
+  });
+
   it('rotates built-in edge masks when applying registered base tile declarations', () => {
     const registry = createHexTileRegistry([
       {
