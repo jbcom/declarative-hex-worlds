@@ -676,6 +676,38 @@ describe('gameboard scenarios', () => {
     expect(() => createGameboardWorldFromScenario(scenario)).toThrow(/unknown patrol route missing-route/);
   });
 
+  it('reports quest objective with empty id + duplicate + missing actor/target/collision (E0b)', () => {
+    const board = createGameboardRecipe({
+      seed: 'objective-violations',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:obj-violations', board, {
+      actors: [
+        { actorId: 'hero', actorKind: 'player', at: '0,0', assetId: 'flag_blue', kind: 'unit' },
+      ],
+      quests: [
+        {
+          id: 'quest-1',
+          objectives: [
+            // biome-ignore lint/suspicious/noExplicitAny: deliberate empty-id
+            { id: '', kind: 'interact', actor: 'hero', targetActor: 'hero' } as any,
+            { id: 'obj-a', kind: 'interact', actor: 'hero', targetActor: 'hero' },
+            { id: 'obj-a', kind: 'interact', actor: 'hero', targetActor: 'hero' },
+            { id: 'obj-b', kind: 'interact', actor: 'unknown-actor', targetActor: 'hero' },
+            { id: 'obj-c', kind: 'interact', actor: 'hero', targetActor: 'unknown-target' },
+            { id: 'obj-d', kind: 'collision', actor: 'hero' },
+          ],
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.objective_id');
+    expect(codes).toContain('scenario.objective_duplicate');
+    expect(codes).toContain('scenario.objective_missing_actor');
+    expect(codes).toContain('scenario.objective_missing_target_actor');
+    expect(codes).toContain('scenario.objective_missing_collision_target');
+  });
+
   it('reports actor patrolAgent with empty routeId (E0b)', () => {
     const board = createGameboardRecipe({
       seed: 'empty-patrol-route-id',
