@@ -771,6 +771,46 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('flags quest expectation completedObjectives as non-array (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [],
+      expectations: {
+        quests: [
+          {
+            questId: 'some-quest',
+            completedObjectives: 'not-an-array',
+          },
+        ],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_objective_ids')
+    ).toBe(true);
+  });
+
+  it('flags quest expectation with non-string objective id in array (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [],
+      expectations: {
+        quests: [
+          {
+            questId: 'some-quest',
+            completedObjectives: [17],
+          },
+        ],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_objective_id')
+    ).toBe(true);
+  });
+
   it('flags update-actor with non-string faction/team (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
