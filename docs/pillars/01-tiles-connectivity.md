@@ -19,9 +19,9 @@ implementation_links:
   - src/scenario/blueprint.ts
   - src/scenario/recipe.ts
 test_links:
-  - tests/unit/selectors.test.ts
-  - tests/unit/coverage.test.ts
-  - tests/unit/gameboard.test.ts
+  - src/selectors/__tests__/selectors.test.ts
+  - src/interop/__tests__/coverage.test.ts
+  - src/gameboard/__tests__/gameboard.test.ts
   - tests/browser/free-visual.test.ts
 ---
 

@@ -21,10 +21,10 @@ implementation_links:
   - package.json
   - scripts/audit-reference-assets.ts
 test_links:
-  - tests/unit/cli.test.ts
-  - tests/unit/coverage.test.ts
-  - tests/unit/ingest.test.ts
-  - tests/unit/manifest.test.ts
+  - src/cli/__tests__/cli.test.ts
+  - src/interop/__tests__/coverage.test.ts
+  - src/ingest/__tests__/ingest.test.ts
+  - src/manifest/__tests__/manifest.test.ts
   - tests/unit/examples.test.ts
   - scripts/audit-reference-assets.ts
 ---

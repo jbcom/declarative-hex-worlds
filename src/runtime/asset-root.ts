@@ -66,7 +66,8 @@ export function getGameboardAssetRootOverride(): string | undefined {
 /**
  * Resolve the consumer's bootstrap asset root using the documented priority
  * chain. The return value is always a string (never undefined) — callers can
- * always feed it to {@link resolveManifestAssetUrl} as `bootstrapAssetRoot`.
+ * always feed it as `bootstrapAssetRoot` to the manifest URL resolver
+ * exported from `@jbcom/medieval-hexagon-gameboard/manifest`.
  */
 export function resolveGameboardAssetRoot(): string {
   if (processOverride !== undefined) {

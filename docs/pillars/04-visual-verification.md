@@ -67,24 +67,24 @@ implementation_links:
   - src/pieces/pieces.ts
   - src/quests/quests.ts
 test_links:
-  - tests/unit/catalog.test.ts
-  - tests/unit/coverage.test.ts
-  - tests/unit/blueprint.test.ts
-  - tests/unit/cli.test.ts
+  - src/scenario/__tests__/catalog.test.ts
+  - src/interop/__tests__/coverage.test.ts
+  - src/scenario/__tests__/blueprint.test.ts
+  - src/cli/__tests__/cli.test.ts
   - tests/browser/free-visual.test.ts
   - tests/browser/simple-rpg-visual.test.ts
   - tests/scripts/assert-screenshots.ts
   - tests/scripts/screenshot-quality.ts
   - tests/e2e/local-assets/third-party-assets.test.ts
   - tests/browser/extra-visual.test.ts
-  - tests/unit/compatibility.test.ts
-  - tests/unit/gameboard.test.ts
-  - tests/unit/koota.test.ts
-  - tests/unit/layout.test.ts
-  - tests/unit/movement.test.ts
-  - tests/unit/pieces.test.ts
-  - tests/unit/quests.test.ts
-  - tests/unit/simple-rpg.test.ts
+  - src/interop/__tests__/compatibility.test.ts
+  - src/gameboard/__tests__/gameboard.test.ts
+  - src/koota/__tests__/koota.test.ts
+  - src/coordinates/__tests__/layout.test.ts
+  - src/movement/__tests__/movement.test.ts
+  - src/pieces/__tests__/pieces.test.ts
+  - src/quests/__tests__/quests.test.ts
+  - tests/integration/simple-rpg/simple-rpg.test.ts
   - scripts/smoke-packed-consumer.ts
 ---
 

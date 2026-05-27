@@ -30,13 +30,13 @@ implementation_links:
   - scripts/smoke-packed-consumer.ts
   - examples/blueprint-board-usage.ts
 test_links:
-  - tests/unit/coverage.test.ts
-  - tests/unit/blueprint.test.ts
-  - tests/unit/cli.test.ts
-  - tests/unit/manifest.test.ts
-  - tests/unit/gameboard.test.ts
-  - tests/unit/koota.test.ts
-  - tests/unit/rules.test.ts
+  - src/interop/__tests__/coverage.test.ts
+  - src/scenario/__tests__/blueprint.test.ts
+  - src/cli/__tests__/cli.test.ts
+  - src/manifest/__tests__/manifest.test.ts
+  - src/gameboard/__tests__/gameboard.test.ts
+  - src/koota/__tests__/koota.test.ts
+  - src/rules/__tests__/rules.test.ts
   - scripts/audit-docs-contract.ts
   - scripts/audit-free-assets.ts
   - scripts/audit-reference-assets.ts

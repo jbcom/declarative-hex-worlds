@@ -48,18 +48,39 @@ import {
 } from './bootstrap-target';
 
 /**
- * Canonical GitHub repo holding the FREE edition source tree.
+ * Canonical GitHub organization holding the FREE edition source tree.
  */
 export const KAYKIT_FREE_GITHUB_OWNER = 'KayKit-Game-Assets';
+
+/**
+ * Canonical GitHub repository name for the FREE edition (the repo at
+ * `KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0`).
+ */
 export const KAYKIT_FREE_GITHUB_REPO = 'KayKit-Medieval-Hexagon-Pack-1.0';
+
+/**
+ * Default git ref the bootstrap CLI fetches when no `--commit` is supplied.
+ */
 export const KAYKIT_FREE_GITHUB_DEFAULT_REF = 'main';
 
 /**
- * Source descriptor for {@link BootstrapKayKitAssetsOptions}.
+ * Source descriptor for {@link BootstrapKayKitAssetsOptions}. Discriminates
+ * between fetching from the upstream GitHub repo and extracting a locally
+ * cached zip archive.
  */
 export type BootstrapKayKitAssetsSource =
-  | { readonly kind: 'github'; readonly commit?: string }
-  | { readonly kind: 'zip'; readonly path: string };
+  | {
+      /** Source kind discriminator selecting the upstream-GitHub tarball path. */
+      readonly kind: 'github';
+      /** Optional git ref (commit / tag / branch). Defaults to {@link KAYKIT_FREE_GITHUB_DEFAULT_REF}. */
+      readonly commit?: string;
+    }
+  | {
+      /** Source kind discriminator selecting the local-zip extraction path. */
+      readonly kind: 'zip';
+      /** Filesystem path of the locally cached pack zip. */
+      readonly path: string;
+    };
 
 /**
  * Inputs to {@link bootstrapKayKitAssets}.
