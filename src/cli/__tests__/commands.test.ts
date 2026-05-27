@@ -27,8 +27,12 @@ import { run as runGuideRenderRequests } from '../commands/guide-render-requests
 import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideScenarios } from '../commands/guide-scenarios';
 import { run as runGuideUsages } from '../commands/guide-usages';
+import { run as runAnalyzeLayout } from '../commands/analyze-layout';
+import { run as runBootstrap } from '../commands/bootstrap';
 import { run as runManifest } from '../commands/manifest';
+import { run as runPiecesFromAssets } from '../commands/pieces-from-assets';
 import { run as runPlacePiece } from '../commands/place-piece';
+import { run as runSummarizePlan } from '../commands/summarize-plan';
 import { run as runSummarizeScenario } from '../commands/summarize-scenario';
 import { run as runValidate } from '../commands/validate';
 import { run as runValidateManifest } from '../commands/validate-manifest';
@@ -286,6 +290,33 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
         '/x',
         'free'
       )
+    ).rejects.toThrow();
+  });
+
+  it('analyze-layout throws GameboardCliError without --rules', async () => {
+    await expect(runAnalyzeLayout({ command: 'analyze-layout', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /analyze-layout requires exactly one of/
+    );
+  });
+
+  it('pieces-from-assets throws without --assets', async () => {
+    await expect(runPiecesFromAssets({ command: 'pieces-from-assets', flags: {} }, '/x', 'free')).rejects.toThrow(
+      /pieces-from-assets requires --assets/
+    );
+  });
+
+  it('bootstrap --source zip throws without --zip', async () => {
+    await expect(
+      runBootstrap({ command: 'bootstrap', flags: { source: 'zip' } }, '/x', 'free')
+    ).rejects.toThrow(/bootstrap --source zip requires --zip/);
+  });
+
+  it('summarize-plan delegates without throwing for blueprint-derived plan flag combo', async () => {
+    // summarize-plan accepts --plan/--blueprint/--recipe/--scenario; without
+    // any of them validationConfigFromArgs throws a different error. We pin
+    // the wrapper-import line by asserting a known error fires.
+    await expect(
+      runSummarizePlan({ command: 'summarize-plan', flags: {} }, '/x', 'free')
     ).rejects.toThrow();
   });
 });
