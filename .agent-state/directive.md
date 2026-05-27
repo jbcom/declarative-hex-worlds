@@ -32,8 +32,8 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] **E0a** — Simulation + patrol files toward 100%. Local floor advancing on PR#10. As of `d0ddb37`:
-    - **Overall:** 65.94 / 63.83 / 76.87 / 65.57 (was 62.5/60.5/75/62 at PR#4 merge — +3.4 pp statements). Threshold floor: 64.6/62.5/75.5/64.2 (CI-adjusted).
+- [ ] **E0a** — Simulation + patrol files toward 100%. Local floor advancing on PR#10. As of `bce1ed5`:
+    - **Overall:** 66.06 / 63.96 / 76.94 / 65.69 (was 62.5/60.5/75/62 at PR#4 merge — +3.6 pp statements). Threshold floor: 64.8/62.7/75.6/64.4 (CI-adjusted).
     - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
     - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
     - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.
