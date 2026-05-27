@@ -1357,6 +1357,30 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.filter((v) => v.code === 'simulation.command_handler_command_kinds').length).toBeGreaterThanOrEqual(3);
   });
 
+  it('flags command expectation placementId as empty string (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [],
+      expectations: { commands: [{ placementId: '' }] },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.placement_reference')).toBe(true);
+  });
+
+  it('accepts command step with HexCoordinates target via tile-reference path (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: { q: 0, r: 0 } },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    // Should not flag command_target — coord path is valid.
+    expect(result.violations.some((v) => v.code === 'simulation.command_target')).toBe(false);
+  });
+
   it('flags command expectation stepId + actorId as empty string (E0b)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
