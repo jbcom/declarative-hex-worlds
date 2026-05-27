@@ -676,6 +676,31 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.some((v) => v.code === 'simulation.update_placement')).toBe(true);
   });
 
+  it('flags command target string referencing unknown id when index has entries (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        // Spawn a placement first so scenarioIndex has entries — line 3304's
+        // `> 0` branch becomes true and pushes the missing-target violation.
+        {
+          id: 's1',
+          action: 'spawn-placement',
+          placement: { id: 'real-flag', at: '0,0', assetId: 'flag_blue', kind: 'prop' },
+        },
+        {
+          id: 's2',
+          action: 'command',
+          target: 'absolutely-no-such-target-id',
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.command_target_missing')
+    ).toBe(true);
+  });
+
   it('flags inspect-actor-targets with non-record targeting object (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
