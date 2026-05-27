@@ -459,4 +459,19 @@ describe('Koota rules and seeded generation', () => {
     expect(canPlaceHarborAt(world, { q: 0, r: 0 }, 0)).toBe(false);
     expect(canPlaceHarborAt(world, { q: 99, r: 99 }, 0)).toBe(false);
   });
+
+  it('validateGameboardPlan accepts a 1x1 plan with an unconnected road edge (E0h)', () => {
+    // Just exercises the validateConnectivityEdges loop with a tile
+    // whose only road edge is off-board — the default profile doesn't
+    // requireReciprocal=true so no violation fires, but the loop runs.
+    const plan = createGameboardBuilder({
+      seed: 'tiny-road',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .addRoadPath({ key: '0,0', edges: [1] })
+      .build();
+    const violations = validateGameboardPlan(plan);
+    // Default profile is permissive — no errors for off-board edges.
+    expect(violations.filter((v) => v.severity === 'error')).toEqual([]);
+  });
 });
