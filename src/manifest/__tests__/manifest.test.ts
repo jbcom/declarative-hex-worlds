@@ -180,6 +180,27 @@ describe('free manifest', () => {
     ).toContain('manifest.source_pack_edition_mismatch');
   });
 
+  it('reports asset_field + asset_array_field for malformed asset (E0a)', () => {
+    const manifest = manifestFixture('free', []);
+    const malformed = {
+      id: 'malformed',
+      category: 'tiles',
+      textureSet: 'default',
+      edition: 'free',
+      // Missing subcategory/family/modelPath/sourcePath (non-empty strings).
+      // Missing bufferPaths/texturePaths/materialSlots (arrays).
+      bounds: { min: [0, 0, 0], max: [1, 1, 1], size: [1, 1, 1] },
+      fileSizeBytes: 0,
+    };
+    const codes = validateMedievalHexagonManifest({
+      ...manifest,
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately-malformed asset
+      assets: [malformed as any],
+    }).map((i) => i.code);
+    expect(codes).toContain('manifest.asset_field');
+    expect(codes).toContain('manifest.asset_array_field');
+  });
+
   it('reports invalid textureSet entries (E0a)', () => {
     const manifest = manifestFixture('free', [
       assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles', subcategory: 'base' }),
