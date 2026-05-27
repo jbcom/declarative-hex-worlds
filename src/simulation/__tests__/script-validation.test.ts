@@ -1357,6 +1357,20 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(result.violations.filter((v) => v.code === 'simulation.command_handler_command_kinds').length).toBeGreaterThanOrEqual(3);
   });
 
+  it('flags command expectation stepId + actorId as empty string (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [],
+      expectations: {
+        commands: [{ stepId: '', actorId: '' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.step_reference')).toBe(true);
+    expect(result.violations.some((v) => v.code === 'simulation.actor_reference')).toBe(true);
+  });
+
   it('flags script-level expectations.eventTypes non-array (E0b)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
