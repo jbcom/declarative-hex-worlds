@@ -264,6 +264,18 @@ describe('engine-neutral plan validation', () => {
     ).toContain('placement.footprint_missing_tile');
   });
 
+  it('skips coast-adjacency validation when requireCoastsTouchWater=false (E0a)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'coast-disabled',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .setCoastEdges({ q: 0, r: 0 }, [0])
+      // No water neighbor — would normally trigger coast.adjacent_land.
+      .build();
+    const violations = validateGameboardPlan(plan, { requireCoastsTouchWater: false });
+    expect(violations.map((v) => v.code)).not.toContain('coast.adjacent_land');
+  });
+
   it('reports stack.max_elevation when tile elevation exceeds global cap (E0a)', () => {
     const plan = createGameboardBuilder({
       seed: 'stack-max-cap',
