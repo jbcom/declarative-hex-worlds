@@ -44,6 +44,22 @@ describe('hexLine zero-distance branch (PRD E0h)', () => {
   });
 });
 
+describe('projectWorldToGameboardPlan empty-world throw (PRD E0a)', () => {
+  it('throws when the world has no GameboardState', async () => {
+    const { createWorld } = await import('koota');
+    const { projectWorldToGameboardPlan, readValidationGameboardPlanFromWorld } = await import(
+      '../projection'
+    );
+    const empty = createWorld();
+    expect(() => projectWorldToGameboardPlan(empty)).toThrow(
+      /World does not contain GameboardState/
+    );
+    expect(() => readValidationGameboardPlanFromWorld(empty)).toThrow(
+      /World does not contain GameboardState/
+    );
+  });
+});
+
 describe('tryParseHexKey defensive branches (PRD E0a)', () => {
   it('returns undefined for malformed (non-2-part) keys', () => {
     expect(tryParseHexKey('only-one')).toBeUndefined();
