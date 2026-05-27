@@ -44,10 +44,15 @@ export const COVERAGE_EXCLUDES = [
  * does the ratchet automatically.
  */
 export const COVERAGE_THRESHOLDS = {
-  statements: 62.5,
-  branches: 60,
-  functions: 75,
-  lines: 62.5,
+  // CI runs without the references/ tree (it's gitignored — bootstrap is the
+  // consumer story per Phase RB), so any `it.skipIf(!HAS_FREE_REFERENCES)`
+  // test stays unexecuted. The threshold ratchet uses the CI floor — local
+  // runs read higher because the skip-gated tests do execute against the
+  // local references checkout.
+  statements: 61.5,
+  branches: 59.5,
+  functions: 74,
+  lines: 61,
 };
 
 /**
