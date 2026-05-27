@@ -43,7 +43,8 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
       schemaVersion: '1.0.0',
       steps: [],
       expectations: {
-        commands: [{ kind: 'no-such-command-kind-ever' }],
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately-bad selector
+        commands: [{ kind: 'no-such-command-kind-ever' as any }],
       },
     };
     const failures = evaluate(script);
@@ -56,7 +57,7 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
       schemaVersion: '1.0.0',
       steps: [],
       expectations: {
-        actorTargets: [{ sourceActor: 'nobody-in-empty-scenario' }],
+        actorTargets: [{ sourceActorId: 'nobody-in-empty-scenario' }],
       },
     };
     const failures = evaluate(script);

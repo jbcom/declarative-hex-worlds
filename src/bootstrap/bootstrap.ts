@@ -261,6 +261,14 @@ export async function verifyBootstrap(outRoot: string): Promise<BootstrapVerific
   const drift: string[] = [];
   for (const entry of sidecar.files) {
     const absolute = join(targetRoot, entry.path);
+    // Reject sidecar entries that escape targetRoot via `..` segments or
+    // absolute paths — a tampered sidecar could otherwise point hashFile
+    // at arbitrary host files (CodeQL / CodeRabbit hardening).
+    const rel = relative(targetRoot, absolute);
+    if (rel === '' || rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
+      drift.push(`unsafe sidecar entry path: ${entry.path}`);
+      continue;
+    }
     if (!existsSync(absolute)) {
       drift.push(`missing file: ${entry.path}`);
       continue;

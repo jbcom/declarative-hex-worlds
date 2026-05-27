@@ -486,10 +486,21 @@ export function useGameboardRuntime<TRuntime extends GameboardRuntime = Gameboar
  * stays stable as long as the JSON serialization matches.
  */
 function useStableOptions<T>(options: T): T {
-  const ref = useRef<{ key: string; value: T } | undefined>(undefined);
-  const nextKey = JSON.stringify(options);
-  if (ref.current === undefined || ref.current.key !== nextKey) {
-    ref.current = { key: nextKey, value: options };
+  const ref = useRef<{ key: string; value: T; tick: number } | undefined>(undefined);
+  // JSON.stringify returns undefined for `T = undefined` and for values
+  // whose only enumerable members are functions/symbols. Use the option
+  // value itself as the cache discriminator when the serialization fails
+  // — Object.is identity is the correct semantic for non-serializable T.
+  const serialized = JSON.stringify(options);
+  const nextKey = serialized ?? '__unserializable__';
+  const useIdentity = serialized === undefined;
+  const tick = (ref.current?.tick ?? 0) + 1;
+  if (
+    ref.current === undefined ||
+    ref.current.key !== nextKey ||
+    (useIdentity && !Object.is(ref.current.value, options))
+  ) {
+    ref.current = { key: nextKey, value: options, tick };
   }
   return ref.current.value;
 }

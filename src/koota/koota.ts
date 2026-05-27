@@ -1162,8 +1162,13 @@ function uniqueStrings(values: readonly (string | undefined)[]): string[] {
 }
 
 function parseTileKey(key: string): HexCoordinates {
-  const [q, r] = key.split(',').map(Number);
-  if (q === undefined || r === undefined) {
+  const parts = key.split(',').map(Number);
+  const q = parts[0];
+  const r = parts[1];
+  // Number('abc') returns NaN; only `Number.isFinite` rejects both NaN and
+  // ±Infinity. The bare `undefined` check let malformed keys like "abc,def"
+  // sneak through and produce NaN coordinates downstream.
+  if (q === undefined || r === undefined || !Number.isFinite(q) || !Number.isFinite(r)) {
     throw new GameboardRuntimeError(`Invalid tile key: ${key}`);
   }
   return { q, r };
