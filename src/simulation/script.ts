@@ -66,7 +66,18 @@ export const GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS = [
   'update-actor',
   'update-placement',
 ] as const;
+/**
+ * Shorter alias for {@link GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS} — the
+ * full set of action discriminators a simulation step can use. Re-exported
+ * for ergonomic in-line validation.
+ */
 export const SIMULATION_STEP_ACTIONS = GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS;
+
+/**
+ * Every interaction-command kind a simulation can dispatch. Subset of
+ * {@link GameboardInteractionCommandKind}; pinned here so script validators
+ * stay narrow when new command kinds appear upstream.
+ */
 export const SIMULATION_COMMAND_KIND_VALUES = [
   'move',
   'interact-actor',
@@ -77,6 +88,11 @@ export const SIMULATION_COMMAND_KIND_VALUES = [
   'inspect-tile',
   'none',
 ] as const satisfies readonly GameboardInteractionCommandKind[];
+
+/**
+ * Every world-mutation discriminator the simulation engine can apply to a
+ * koota world while executing a script. Used by {@link GameboardScenarioSimulationMutationRecord}.
+ */
 export const SIMULATION_MUTATION_TYPES = [
   'actor-removed',
   'placement-removed',
@@ -85,6 +101,12 @@ export const SIMULATION_MUTATION_TYPES = [
   'actor-updated',
   'placement-updated',
 ] as const;
+
+/**
+ * Every system-event type the simulation can emit. Mirrors the full
+ * {@link GameboardSystemEventRecord} union; useful for filter predicates
+ * over event-record arrays.
+ */
 export const SIMULATION_EVENT_TYPES = [
   'command-handled',
   'movement-requested',
@@ -102,18 +124,34 @@ export const SIMULATION_EVENT_TYPES = [
   'quest-completed',
   'quest-blocked',
 ] as const satisfies readonly GameboardSystemEventRecord['type'][];
+
+/**
+ * The movement-only subset of {@link SIMULATION_EVENT_TYPES}. Useful for
+ * narrowing event-record filters when tracking just movement progress.
+ */
 export const SIMULATION_MOVEMENT_EVENT_TYPES = [
   'movement-requested',
   'movement-stepped',
   'movement-completed',
   'movement-blocked',
 ] as const satisfies readonly GameboardSystemEventRecord['type'][];
+
+/**
+ * The patrol-only subset of {@link SIMULATION_EVENT_TYPES}. Useful for
+ * narrowing event-record filters when tracking just patrol activity.
+ */
 export const SIMULATION_PATROL_EVENT_TYPES = [
   'patrol-move-requested',
   'patrol-waiting',
   'patrol-completed',
   'patrol-blocked',
 ] as const satisfies readonly GameboardSystemEventRecord['type'][];
+
+/**
+ * Every actor-target approach mode accepted by simulation step targeting
+ * expectations. Aligns with the `GameboardActorTargetApproach` union exported
+ * from `@jbcom/medieval-hexagon-gameboard/actors`.
+ */
 export const SIMULATION_ACTOR_TARGET_APPROACH_VALUES = [
   'target-tile',
   'adjacent',
@@ -121,6 +159,12 @@ export const SIMULATION_ACTOR_TARGET_APPROACH_VALUES = [
   'self',
   'none',
 ] as const;
+
+/**
+ * Every actor-target sort key accepted by simulation step targeting
+ * expectations. Aligns with the `GameboardActorTargetSort` union exported
+ * from `@jbcom/medieval-hexagon-gameboard/actors`.
+ */
 export const SIMULATION_ACTOR_TARGET_SORT_VALUES = [
   'pathCost',
   'distance',

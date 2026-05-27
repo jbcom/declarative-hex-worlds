@@ -521,7 +521,14 @@ function assertPackFileList(): void {
       `unexpected tarball file: ${path}`
     );
     if (path.startsWith('examples/')) {
-      assert(path.endsWith('.json'), `tarball includes non-JSON example source: ${path}`);
+      // Permitted under examples/: JSON fixtures (consumer-loadable samples)
+      // + README.md (npm browsers see this as the examples/ entry).
+      // Source .ts deliberately excluded — consumers use the dist
+      // `./examples/blueprint-board-usage` subpath instead.
+      assert(
+        path.endsWith('.json') || path === 'examples/README.md',
+        `tarball includes non-JSON example source: ${path}`
+      );
     }
     // Bundled binary assets must NOT ship: the runtime bootstrap (Epic RB) fetches
     // them at install time. Only `assets/free/manifest.json` is permitted under
@@ -597,13 +604,17 @@ function assertPackedAttribution(files: readonly PackFile[]): void {
   const readme = readFileSync(join(packageRoot, 'README.md'), 'utf8');
   requireAttributionText(license, 'package LICENSE', ['MIT License']);
   requireAttributionText(notice, 'package NOTICE.md', expectedAttributionSnippets());
+  // Post-F-README-1: marketing README rewrote the license section. The
+  // current README has `## License` (not `## License And Attribution`),
+  // mentions MIT for code, KayKit CC0-1.0 for assets, and points at
+  // NOTICE.md for the long-form attribution list. NOTICE.md itself is
+  // still audited for the full attribution snippet set.
   requireAttributionText(readme, 'package README.md', [
-    '## License And Attribution',
-    'MIT licensed',
-    'assets/free/',
-    'Purchased EXTRA and third-party reference assets stay local-only',
-    '[NOTICE.md](NOTICE.md)',
-    ...expectedAttributionSnippets(),
+    '## License',
+    'MIT',
+    'KayKit Medieval Hexagon Pack',
+    'CC0-1.0',
+    'NOTICE.md',
   ]);
 }
 
@@ -651,7 +662,13 @@ function assertPackedReadmeLocalLinks(files: readonly PackFile[]): void {
   for (const path of imagePaths) {
     assertPackedPngQuality(path, `package README image ${path}`);
   }
-  assertPackageReadmeShowcaseImages([...imagePaths]);
+  // Post-F-README-1: marketing README intentionally omits inline showcase
+  // images (F-Gallery delivers hero screenshots separately). The
+  // tarball-shipped docs/showcases/ tree is still asserted by
+  // assertPackedShowcaseImageQuality below; this README-side assertion
+  // is dropped because the README no longer is the primary gallery
+  // surface.
+  void assertPackageReadmeShowcaseImages;
 }
 
 function assertPackedShowcaseImageQuality(files: readonly PackFile[]): void {

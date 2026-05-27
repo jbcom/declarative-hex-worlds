@@ -122,7 +122,7 @@ medieval-hexagon-gameboard coverage --json # release-readiness ledger
 
 ## Contributing
 
-`pnpm verify` runs every CI gate locally. See [CONTRIBUTING.md](./CONTRIBUTING.md). The work queue lives in [`.agent-state/directive.md`](./.agent-state/directive.md); the PRD in [`docs/PRD/1.0.md`](./docs/PRD/1.0.md) explains the why.
+`pnpm verify` runs every CI gate locally. See [CONTRIBUTING.md](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/CONTRIBUTING.md). The work queue lives in [`.agent-state/directive.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/.agent-state/directive.md); the PRD in [`docs/PRD/1.0.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/PRD/1.0.md) explains the why.
 
 Conventional Commits required. PRs are squash-merged. Coverage gate ratchets toward 100 / 100 / 100 / 100 (currently at the measured floor + slack; regressions block merge).
 
