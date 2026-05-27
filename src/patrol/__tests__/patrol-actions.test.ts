@@ -137,6 +137,27 @@ describe('gameboardPatrolActions bundle (PRD E0b)', () => {
     expect(result.state.status).toBe('paused');
   });
 
+  it('set throws when given a string id that does not resolve to an entity (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'patrol-missing-id',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const actions = gameboardPatrolActions(world);
+    expect(() =>
+      actions.set('definitely-no-such-actor-or-placement', {
+        route: {
+          id: 'orphan-route',
+          waypointKeys: ['0,0', '1,0'],
+          loop: false,
+          segmentCosts: [1],
+        },
+        movement: { profile: 'ground' },
+      })
+    ).toThrow(/No placement or actor exists/);
+  });
+
   it('advance returns blocked when route has fewer than two waypoints (E0a)', () => {
     const world = createGameboardWorld(
       createGameboardBuilder({
