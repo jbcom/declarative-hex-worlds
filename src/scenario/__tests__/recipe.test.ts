@@ -489,4 +489,36 @@ describe('serializable gameboard recipes', () => {
     const plan = createGameboardPlanFromRecipe(recipe);
     expect(plan.placements.length).toBeGreaterThan(5);
   });
+
+  it('dispatches addNeutralStructure / addNature / addPlacement / addUnit / scatterDecorations (E0a)', () => {
+    const recipe = createGameboardRecipe(
+      {
+        seed: 'recipe-dispatch-coverage',
+        shape: { kind: 'rectangle', width: 8, height: 8 },
+      },
+      [
+        { action: 'addNeutralStructure', at: { q: 0, r: 0 } },
+        { action: 'addNature', at: { q: 1, r: 0 } },
+        {
+          action: 'addPlacement',
+          at: { q: 2, r: 0 },
+          assetId: 'tree_single_A',
+          kind: 'decoration',
+        },
+        {
+          action: 'addUnit',
+          at: { q: 3, r: 0 },
+          part: 'unit',
+          faction: 'blue',
+        },
+        {
+          action: 'scatterDecorations',
+          assets: ['tree_single_A'],
+          density: 0.1,
+        },
+      ]
+    );
+    const plan = createGameboardPlanFromRecipe(recipe);
+    expect(plan.placements.length).toBeGreaterThan(0);
+  });
 });
