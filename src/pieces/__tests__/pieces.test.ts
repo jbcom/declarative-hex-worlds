@@ -617,6 +617,19 @@ describe('gameboard piece declarations', () => {
     expect(analysis.warnings.some((w) => w.includes('empty'))).toBe(true);
   });
 
+  it('piecePoolCompatible returns true for empty selection in pool-mode check (E0b)', () => {
+    // Empty selection → piecePoolCompatible returns true early (line 745).
+    const registry = createGameboardPieceRegistry([
+      declareGameboardPiece({ id: 'piece-1', assetId: 'asset-1', source: 'test' }),
+    ]);
+    const analysis = analyzeGameboardPieceRegistry(registry, {
+      checks: [{ id: 'empty-pool', mode: 'pool', selection: { ids: ['no-such-piece'] } }],
+    });
+    // Should not error (empty pool is compatible); should warn about empty match.
+    expect(analysis.checks[0]?.selectedCount).toBe(0);
+    expect(analysis.errors.every((e) => !e.includes('empty-pool'))).toBe(true);
+  });
+
   it('analyzeGameboardPieceRegistry errors when piece missing assetId (E0h)', () => {
     const registry = createGameboardPieceRegistry([
       {
