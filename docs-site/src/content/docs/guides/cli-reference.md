@@ -63,6 +63,7 @@ Commands:
   piece      Emit a custom piece declaration from an external GLB/GLTF compatibility scan
   pieces-from-assets Scan GLB/GLTF files and emit custom piece declarations plus compatibility summaries
   extract    Copy GLTF assets and write a manifest to an output folder
+  bootstrap  Materialize KayKit GLTF assets under a consumer asset root (PRD RB)
 
 Options:
   --edition free|extra
@@ -179,6 +180,17 @@ Options:
   --assetBasePath <path>
   --force
   --json
+
+Bootstrap subcommand:
+  --source github|zip          Source mode (default: github; zip requires --zip)
+  --zip <path>                 Path to a user-supplied KayKit zip (FREE or EXTRA)
+  --commit <sha>               Pin the GitHub source to a specific commit/ref (default: main)
+  --out <path>                 Consumer asset root (default: ./public/assets/models)
+  --edition free|extra         Pack edition (default: free; extra requires --source zip)
+  --force                      Wipe existing target before mirroring
+  --verify                     Re-hash an existing bootstrap target and report drift
+  --include-source-formats     Mirror .fbx/.obj/.mtl alongside the gltf tree
+  --json                       Emit machine-readable BootstrapResult / verify report
 ```
 
 ## Common command recipes
