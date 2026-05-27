@@ -58,7 +58,7 @@ The library is the API surface; the asset tree is consumer-owned. SimpleRPG (tes
 ## Architecture invariants (DO NOT VIOLATE)
 
 0. **100 % test coverage.** Statements, branches, functions, and lines must all read 100 % across `src/`, `examples/`, and `scripts/`. Every behavior is covered by **unit tests**, integration paths are confirmed **visually in the browser** via vitest-browser screenshot snapshots, and full flows are exercised by **e2e** under playwright/local-assets. Anything less is unacceptable. CI gates on the 100 % threshold and on screenshot drift. New code without a co-landing test is a bug — fix the gap before the commit lands.
-1. **Determinism is the product.** All RNG flows through `seedrandom` from `src/blueprint.ts`/`coordinates.ts`/`gameboard.ts`/`layout.ts`/`rules.ts`. **No `Math.random`** in `packages/medieval-hexagon-gameboard/src/`. Cosmetic `new Date()` is only acceptable in CLI output formatters with an override flag.
+1. **Determinism is the product.** All RNG flows through `seedrandom` from `src/blueprint.ts`/`coordinates.ts`/`gameboard.ts`/`layout.ts`/`rules.ts`. **No `Math.random`** in `src/`. Cosmetic `new Date()` is only acceptable in CLI output formatters with an override flag.
 2. **No `any`, no `@ts-ignore`, no non-null assertions.** Biome enforces. Phase 1 verified zero hits; keep it so.
 3. **No `TODO`/`FIXME`/`it.todo`/`describe.skip`/stubs.** Either fix or delete.
 4. **Public API surface is tiered** (see PRD §F1) — internal modules MUST NOT be added to `package.json#exports` without explicit promotion.
@@ -79,7 +79,7 @@ The library is the API surface; the asset tree is consumer-owned. SimpleRPG (tes
 
 ## Notes
 
-- This is a monorepo. Most architecture lives under `packages/medieval-hexagon-gameboard/`. Workspace-root `scripts/` audits + smoke-tests it.
-- `apps/docs/` is the vitepress consumer of `docs/` content.
-- `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/` is the asset source-of-truth for `manifest/free`.
-- Coverage gates live in `.claude/gates.json` (commit-gate.mjs). Visual checks: vitest-browser screenshots in `packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/`.
+- This is a single-package repository at root (R1 de-monorepo dropped `packages/` + `apps/`). 20 domain sub-packages live under `src/` with barrel-only cross-domain imports (Biome `noRestrictedImports` enforces).
+- Docs site: Astro Starlight at `docs-site/` (F-Site-1 through F-Site-12). The legacy vitepress at `docs/.vitepress/` was deleted in F-Site-12; the content trees under `docs/` (api/, guides/, pillars/, PRD/, showcases/) stay until F-Audit-7 migrates them into docs-site/.
+- `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/` is the asset source-of-truth for `manifest/free` regeneration locally; the published tarball ships only the manifest JSON (Phase RB bootstrap-not-bundle).
+- Coverage gates live in `.claude/gates.json` (commit-gate.mjs) and in `vitest.coverage.shared.ts` (CI thresholds, PRD A8). Visual checks: vitest-browser screenshots in `tests/browser/__screenshots__/`.
