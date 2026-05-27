@@ -178,6 +178,21 @@ describe('free manifest', () => {
       }).map((issue) => issue.code)
     ).toContain('manifest.source_pack_edition_mismatch');
   });
+
+  it('inspectMedievalHexagonManifest rejects non-object input + missing assets array (PRD E0g)', () => {
+    // Non-object → manifest.object error.
+    const fromString = inspectMedievalHexagonManifest('not an object');
+    expect(fromString.manifest).toBeUndefined();
+    expect(fromString.issues.map((i) => i.code)).toContain('manifest.object');
+
+    // Object without `assets` array → manifest.assets error.
+    const missingAssets = inspectMedievalHexagonManifest({ schemaVersion: '1.0.0' });
+    expect(missingAssets.issues.map((i) => i.code)).toContain('manifest.assets');
+
+    // null + undefined → manifest.object.
+    expect(inspectMedievalHexagonManifest(null).issues.map((i) => i.code)).toContain('manifest.object');
+    expect(inspectMedievalHexagonManifest(undefined).issues.map((i) => i.code)).toContain('manifest.object');
+  });
 });
 
 function manifestFixture(
