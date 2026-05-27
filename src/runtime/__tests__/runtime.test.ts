@@ -860,6 +860,21 @@ describe('gameboard runtime facade', () => {
     expect(runtime.plan().tiles.length).toBe(3);
   });
 
+  it('runtime loadPlan + validationPlan wrappers (E0a)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'runtime-load-plan',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    const runtime = createGameboardRuntime(plan);
+    const otherPlan = createGameboardBuilder({
+      seed: 'runtime-load-plan-2',
+      shape: { kind: 'rectangle', width: 4, height: 1 },
+    }).build();
+    runtime.loadPlan(otherPlan);
+    expect(runtime.plan().tiles.length).toBe(4);
+    expect(runtime.validationPlan().tiles.length).toBe(4);
+  });
+
   it('runtime moveActor + executeCommand + interact wrappers (E0a)', () => {
     const plan = createGameboardBuilder({
       seed: 'runtime-wrappers',
