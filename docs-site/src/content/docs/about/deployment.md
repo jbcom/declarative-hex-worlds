@@ -1,6 +1,6 @@
 ---
 title: Deployment
-description: Release flow, OIDC publish, GitHub App token, SBOM, SLSA L3 attestation.
+description: Release flow, OIDC publish, CI_GITHUB_TOKEN auth, SBOM, SLSA L3 attestation.
 sidebar:
   order: 3
 ---
@@ -21,19 +21,11 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
    - Attaches both as GitHub release assets.
    - Publishes to npm with OIDC provenance.
 
-## GitHub App token (PRD A5)
+## release-please auth (PRD A5)
 
-The `release-please` job prefers a GitHub App token over the legacy `secrets.CI_GITHUB_TOKEN` PAT. Short-lived (1h max), scope-limited, and PRs the App opens *trigger downstream CI* (Bot-user PATs don't, by GitHub design).
+The `release-please` job uses `secrets.CI_GITHUB_TOKEN` — an org-level secret available across `@jbcom` repos. No per-repo setup required; the secret is already in place.
 
-To enable the App pathway:
-
-1. Install a GitHub App on the repo with permissions `contents:write`, `pull_requests:write`, `metadata:read`.
-2. Set `vars.RELEASE_PLEASE_APP_ID` (repo variable, not secret — the App ID is public).
-3. Set `secrets.RELEASE_PLEASE_APP_PRIVATE_KEY` (the App's private key PEM).
-
-Once those are set, `cd.yml`'s `if: vars.RELEASE_PLEASE_APP_ID != ''` guard flips the App pathway on. The PAT fallback can be removed in a follow-up commit.
-
-Until the App is provisioned, the fallback path keeps CD working.
+The GitHub App alternative (short-lived 1h scoped tokens via `actions/create-github-app-token`) was considered but rejected — provisioning the App per-repo is operational toil for a marginal scope-narrowing win, and the org PAT already covers the needed permissions (`contents:write`, `pull_requests:write`, `metadata:read`).
 
 ## npm OIDC publish
 
