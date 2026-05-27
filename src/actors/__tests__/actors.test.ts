@@ -4,6 +4,7 @@ import {
   EnemyActorQuery,
   GameboardActor,
   HostileActorQuery,
+  areGameboardActorsHostile,
   InteractiveActorQuery,
   PlayerActorQuery,
   classifyGameboardPlacement,
@@ -757,6 +758,10 @@ describe('gameboard actor semantics', () => {
 });
 
 describe('gameboardActorActions register + navigationProfile (PRD E0a)', () => {
+  it('areGameboardActorsHostile returns false for undefined inputs (E0a)', () => {
+    expect(areGameboardActorsHostile(undefined, undefined)).toBe(false);
+  });
+
   it('neighborhood accepts HexCoordinates center input (E0a)', () => {
     const world = createGameboardWorld(
       createGameboardBuilder({
