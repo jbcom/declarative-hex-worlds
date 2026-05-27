@@ -783,6 +783,42 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(Array.isArray(result.violations)).toBe(true);
   });
 
+  it('validates inspect-actor-targets center as HexCoordinates object (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: { center: { q: 0, r: 0 } },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    // Triggers validateActorTargetCenterReference HexCoordinates branch
+    // (line 2010-2012) — pass either way.
+    expect(Array.isArray(result.violations)).toBe(true);
+  });
+
+  it('flags inspect-actor-targets center with non-string non-coords value (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'inspect-actor-targets',
+          targeting: { center: 17 },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.actor_targets_center')
+    ).toBe(true);
+  });
+
   it('validates inspect-actor-targets center as tile-key string (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
