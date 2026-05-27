@@ -722,8 +722,8 @@ describe('gameboard scenarios', () => {
           id: 'quest-1',
           objectives: [
             // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid tile
-            { id: 'obj-bad-tile', kind: 'reach', actor: 'hero', tile: 'not,a,key' as any },
-            { id: 'obj-off-board', kind: 'reach', actor: 'hero', tile: '99,99' },
+            { id: 'obj-bad-tile', kind: 'reach-tile', actor: 'hero', tile: 'not,a,key' as any },
+            { id: 'obj-off-board', kind: 'reach-tile', actor: 'hero', tile: '99,99' },
           ],
         },
       ],
