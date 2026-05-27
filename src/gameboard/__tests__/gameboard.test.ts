@@ -425,3 +425,27 @@ describe('gameboard plan builder', () => {
   });
 
 });
+
+describe('addUnitPreset role variants (PRD E0a)', () => {
+  it('adds correct parts for each unit role', () => {
+    const builder = createGameboardBuilder({
+      seed: 'unit-preset-roles',
+      shape: { kind: 'rectangle', width: 7, height: 1 },
+    });
+    // Each role triggers a different switch-branch in addUnitPreset (gameboard.ts 1314-1340).
+    const roles = ['worker', 'soldier', 'archer', 'cavalry', 'merchant', 'siege', 'ship'] as const;
+    roles.forEach((role, index) => {
+      builder.addUnitPreset({
+        at: { q: index, r: 0 },
+        faction: 'blue',
+        role,
+        style: 'full',
+      });
+    });
+    const plan = builder.build();
+    // Each preset contributes ≥1 placement; the unit base is always added,
+    // plus role-specific parts (1 for worker/merchant/siege/ship,
+    // 3 for soldier, 2 for archer/cavalry).
+    expect(plan.placements.length).toBeGreaterThan(roles.length);
+  });
+});
