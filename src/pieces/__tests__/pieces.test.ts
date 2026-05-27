@@ -283,6 +283,17 @@ describe('gameboard piece declarations', () => {
     });
   });
 
+  it('inferPieceRoleFromCompatibility maps structure intendedRole to building (E0b)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'generic_tower',
+      sourcePack: 'test-pack',
+      intendedRole: 'structure',
+      bounds: { min: [-0.4, 0, -0.4], max: [0.4, 1, 0.4], size: [0.8, 1, 0.8] },
+    });
+    const piece = declareGameboardPieceFromCompatibility(report);
+    expect(piece.role).toBe('building');
+  });
+
   it('declares custom pieces directly from compatibility reports', () => {
     const report = analyzeExternalAssetCompatibility({
       id: 'kenney:tower-hexagon-base',
