@@ -444,4 +444,26 @@ describe('serializable gameboard recipes', () => {
       'recipe.layout_archetype_kind_missing',
     ]);
   });
+
+  it('compiles a recipe that exercises many additive step kinds in one pass (PRD E0c)', () => {
+    const recipe = createGameboardRecipe(
+      {
+        seed: 'recipe-many-step-kinds',
+        shape: { kind: 'rectangle', width: 6, height: 6 },
+      },
+      [
+        { action: 'setElevation', at: { q: 0, r: 0 }, elevation: 1 },
+        { action: 'setTextureSet', at: { q: 0, r: 0 }, textureSet: 'default' },
+        { action: 'addRoadPath', path: [{ q: 0, r: 1 }, { q: 1, r: 1 }] },
+        { action: 'addFactionBuilding', at: { q: 3, r: 2 }, kind: 'home_A', faction: 'blue' },
+        { action: 'addFlag', at: { q: 0, r: 3 }, faction: 'blue' },
+        { action: 'addHill', at: { q: 2, r: 3 } },
+        { action: 'addForest', at: { q: 3, r: 3 } },
+      ] as readonly GameboardRecipeStep[]
+    );
+    const plan = createGameboardPlanFromRecipe(recipe);
+    expect(plan).toBeDefined();
+    expect(plan.tiles.length).toBeGreaterThan(0);
+    expect(plan.placements.length).toBeGreaterThan(3);
+  });
 });
