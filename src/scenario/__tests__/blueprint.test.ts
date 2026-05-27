@@ -338,7 +338,7 @@ describe('medieval gameboard blueprints', () => {
       seed: 'blueprint-bad-cluster',
       shape: { kind: 'rectangle', width: 3, height: 3 },
       propClusterDressing: {
-        clusters: [{ id: 'oob-cluster', at: { q: 99, r: 99 }, assets: ['barrel'] }],
+        clusters: [{ id: 'oob-cluster', at: { q: 99, r: 99 }, kind: 'camp' }],
       },
     });
     expect(
