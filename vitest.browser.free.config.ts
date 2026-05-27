@@ -47,6 +47,7 @@ export default defineConfig({
       'tests/browser/free-visual.test.ts',
       'tests/browser/simple-rpg-visual.test.ts',
       'tests/browser/react-bindings.test.ts',
+      'tests/browser/feature-gallery.spec.ts',
     ],
     testTimeout: 120_000,
     coverage: harnessCoverage('browser-free'),
