@@ -76,6 +76,31 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
     expect(failures.some((f) => f.message.includes('No movement event matched'))).toBe(true);
   });
 
+  it('reports failure when expectations.eventTypes mismatch the actual event sequence (E0a)', () => {
+    const script: GameboardScenarioSimulationScript = {
+      schemaVersion: '1.0.0',
+      steps: [],
+      expectations: {
+        // Empty actual eventTypes won't match this.
+        eventTypes: ['movement-stepped', 'movement-completed'],
+      },
+    };
+    const failures = evaluate(script);
+    expect(failures.some((f) => f.message.includes('Simulation event type sequence'))).toBe(true);
+  });
+
+  it('reports failure when expectations.requiredEventTypes are absent (E0a)', () => {
+    const script: GameboardScenarioSimulationScript = {
+      schemaVersion: '1.0.0',
+      steps: [],
+      expectations: {
+        requiredEventTypes: ['quest-completed'],
+      },
+    };
+    const failures = evaluate(script);
+    expect(failures.length).toBeGreaterThan(0);
+  });
+
   it('matches actorTargets expectation that specifies no nearest/target fields (E0a)', () => {
     const script: GameboardScenarioSimulationScript = {
       schemaVersion: '1.0.0',
