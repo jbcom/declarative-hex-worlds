@@ -321,6 +321,18 @@ describe('gameboard actor semantics', () => {
     ).toEqual(['2,0']);
   });
 
+  it('throws when neighborhood center string resolves to nothing (E0b)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'neighborhood-unknown-center',
+        shape: { kind: 'rectangle', width: 2, height: 2 },
+      }).build()
+    );
+    expect(() =>
+      inspectGameboardNeighborhood(world, 'no-such-thing-anywhere', { radius: 1 })
+    ).toThrow(/neighborhood center/);
+  });
+
   it('selects actors by source, hostility, tags, tile range, and stable buckets', () => {
     const world = createGameboardWorld(
       createGameboardBuilder({

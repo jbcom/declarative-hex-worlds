@@ -1296,4 +1296,54 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     expect(codes).toContain('simulation.actor_targets_include_unreachable');
     expect(codes).toContain('simulation.actor_targets_approach');
   });
+
+  it('flags command step handlerOptions sub-fields when non-record (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'command',
+          target: { actorId: 'someone' },
+          handlerOptions: {
+            removeTargetActor: 'not-a-record',
+            removeTargetPlacement: 'not-a-record',
+            markTargetActorInteracted: 'not-a-record',
+          },
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes.filter((c) => c === 'simulation.command_handler_options').length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('flags command step handlerOptions when itself non-record (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        {
+          id: 's1',
+          action: 'command',
+          target: { actorId: 'someone' },
+          handlerOptions: 'not-an-object',
+        },
+      ],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.command_handler_options')).toBe(true);
+  });
+
+  it('flags script-level expectations.eventTypes non-array (E0b)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [{ id: 's1', action: 'run-systems' }],
+      expectations: { eventTypes: 'not-an-array' },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(result.violations.some((v) => v.code === 'simulation.expectation_event_types')).toBe(true);
+  });
 });

@@ -224,6 +224,24 @@ describe('free manifest', () => {
     expect(codes).toContain('manifest.asset_id');
   });
 
+  it('warns on missing/malformed counts + assetsById (E0b)', () => {
+    const manifest = manifestFixture('free', [
+      assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    // validateMedievalHexagonManifest accepts `unknown` — no cast needed.
+    const missingCounts = validateMedievalHexagonManifest({
+      ...manifest,
+      counts: undefined,
+    }).map((i) => i.code);
+    expect(missingCounts).toContain('manifest.counts');
+
+    const missingAssetsById = validateMedievalHexagonManifest({
+      ...manifest,
+      assetsById: 'not-an-object',
+    }).map((i) => i.code);
+    expect(missingAssetsById).toContain('manifest.assets_by_id');
+  });
+
   it('inspectMedievalHexagonManifest rejects non-object input + missing assets array (PRD E0g)', () => {
     // Non-object → manifest.object error.
     const fromString = inspectMedievalHexagonManifest('not an object');

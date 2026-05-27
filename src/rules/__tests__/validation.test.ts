@@ -292,6 +292,25 @@ describe('engine-neutral plan validation', () => {
     expect(violations.map((v) => v.code)).toContain('stack.max_elevation');
   });
 
+  it('skips road/river reciprocal validation when both flags disabled (E0b)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'recip-disabled',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .setTileAsset({
+        at: { q: 0, r: 0 },
+        assetId: 'hex_road_A',
+        terrain: 'grass',
+      })
+      .build();
+    const violations = validateGameboardPlan(plan, {
+      requireReciprocalRoads: false,
+      requireReciprocalRivers: false,
+    });
+    expect(violations.map((v) => v.code)).not.toContain('road.missing_reciprocal_edge');
+    expect(violations.map((v) => v.code)).not.toContain('river.missing_reciprocal_edge');
+  });
+
   it('reports declaration.stack_max_elevation when declaration caps elevation (E0a)', () => {
     const registry = createHexTileRegistry([
       {
