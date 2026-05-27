@@ -80,6 +80,23 @@ describe('tile registry and ECS interop', () => {
     expect(snapshot.spawnLocations).toHaveLength(2);
   });
 
+  it('analyzeTileGeometry returns empty analysis when bounds metadata missing (E0b)', () => {
+    const analysis = analyzeTileGeometry({
+      id: 'no-bounds',
+      assetId: 'asset-no-bounds',
+    });
+    expect(analysis.warnings.some((warning) => warning.includes('Missing bounds metadata'))).toBe(true);
+  });
+
+  it('analyzeTileGeometry warns on non-positive width or depth (E0b)', () => {
+    const analysis = analyzeTileGeometry({
+      id: 'zero-bounds',
+      assetId: 'asset-zero-bounds',
+      bounds: { min: [0, 0, 0], max: [0, 1, 0], size: [0, 1, 0] },
+    });
+    expect(analysis.warnings.some((warning) => warning.includes('non-positive width or depth'))).toBe(true);
+  });
+
   it('warns on duplicate ids + duplicate assetIds (E0b)', () => {
     const registry = createHexTileRegistry([
       { id: 'tile-a', assetId: 'asset-a' },
