@@ -690,6 +690,88 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
     ).toBe(true);
   });
 
+  it('flags every expectation kind as non-array (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        mutations: 'not-an-array',
+        actors: 'not-an-array',
+        placements: 'not-an-array',
+        quests: 'not-an-array',
+        actorTargets: 'not-an-array',
+        commands: 'not-an-array',
+        patrols: 'not-an-array',
+        movements: 'not-an-array',
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.expectation_mutations');
+    expect(codes).toContain('simulation.expectation_actors');
+    expect(codes).toContain('simulation.expectation_placements');
+    expect(codes).toContain('simulation.expectation_quests');
+  });
+
+  it('flags every expectation entry as non-record (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        mutations: ['not-a-record'],
+        actors: ['not-a-record'],
+        placements: ['not-a-record'],
+        quests: ['not-a-record'],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    const codes = result.violations.map((v) => v.code);
+    expect(codes).toContain('simulation.expectation_mutation');
+    expect(codes).toContain('simulation.expectation_actor');
+    expect(codes).toContain('simulation.expectation_placement');
+    expect(codes).toContain('simulation.expectation_quest');
+  });
+
+  it('flags mutation expectation with invalid type (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        mutations: [{ type: 'not-a-real-mutation-type' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_mutation_type')
+    ).toBe(true);
+  });
+
+  it('flags quest expectation with non-string questId + missing questId (E0a)', () => {
+    const script = {
+      schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+      steps: [
+        { id: 's1', action: 'command', target: '0,0' },
+      ],
+      expectations: {
+        quests: [{ questId: 17 }, { questId: '' }],
+      },
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+    const result = inspectGameboardScenarioSimulationScript(script as any);
+    expect(
+      result.violations.some((v) => v.code === 'simulation.expectation_quest_id')
+    ).toBe(true);
+  });
+
   it('flags inspect-actor-targets with every targeting sub-field wrong (E0a)', () => {
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
