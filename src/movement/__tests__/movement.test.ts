@@ -11,6 +11,7 @@ import {
   reachableGameboardMovementTiles,
   requestGameboardMovement,
   resetGameboardMovementBudget,
+  resolveGameboardMovementProfile,
   runGameboardMovementSystem,
   setGameboardMovementAgent,
 } from '../../movement/index';
@@ -210,8 +211,7 @@ describe('Koota movement profiles and systems', () => {
     ).toThrow(/Unknown gameboard movement profile/);
   });
 
-  it('resolveGameboardMovementProfile falls back to ground default (E0a)', async () => {
-    const { resolveGameboardMovementProfile } = await import('../movement');
+  it('resolveGameboardMovementProfile falls back to ground default (E0a)', () => {
     // undefined profile → returns ground (line 266-271).
     const resolved = resolveGameboardMovementProfile(undefined);
     expect(resolved.id).toBe('ground');
