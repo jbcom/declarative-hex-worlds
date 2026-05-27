@@ -173,6 +173,28 @@ describe('gameboard plan builder', () => {
     });
   });
 
+  it('addFortification covers all wall corner + gate segment variants (E0b)', () => {
+    const plan = createGameboardBuilder({
+      seed: 'wall-segments',
+      shape: { kind: 'rectangle', width: 6, height: 2 },
+    })
+      .addFortification({ at: { q: 0, r: 0 }, material: 'wall', segment: 'straight' })
+      .addFortification({ at: { q: 1, r: 0 }, material: 'wall', segment: 'straight-gate' })
+      .addFortification({ at: { q: 2, r: 0 }, material: 'wall', segment: 'corner-A-gate' })
+      .addFortification({ at: { q: 3, r: 0 }, material: 'wall', segment: 'corner-A-outside' })
+      .addFortification({ at: { q: 4, r: 0 }, material: 'wall', segment: 'corner-B-inside' })
+      .addFortification({ at: { q: 5, r: 0 }, material: 'wall', segment: 'corner-B-outside' })
+      .addFortification({ at: { q: 0, r: 1 }, material: 'wall', segment: 'gate' })
+      .build();
+    const assetIds = plan.placements.map((p) => p.assetId);
+    expect(assetIds).toContain('wall_straight');
+    expect(assetIds).toContain('wall_straight_gate');
+    expect(assetIds).toContain('wall_corner_A_gate');
+    expect(assetIds).toContain('wall_corner_A_outside');
+    expect(assetIds).toContain('wall_corner_B_inside');
+    expect(assetIds).toContain('wall_corner_B_outside');
+  });
+
   it('models fortifications, construction sites, and siege projectiles as named neutral structures', () => {
     const plan = createGameboardBuilder({
       seed: 'neutral-semantics',
