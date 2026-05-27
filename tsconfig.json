@@ -4,6 +4,7 @@
     "rootDir": ".",
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@jbcom/medieval-hexagon-gameboard": ["src/index.ts"],

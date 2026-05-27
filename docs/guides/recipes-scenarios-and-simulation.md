@@ -165,18 +165,18 @@ medieval-hexagon-gameboard validate-recipe \
   --outPlan /tmp/generated-piece-scenario.plan.json
 
 medieval-hexagon-gameboard validate-scenario \
-  --scenario examples/simple-rpg-scenario.json \
+  --scenario <your-scenario.json> \
   --manifest assets/free/manifest.json \
   --outPlan /tmp/simple-rpg-plan.json
 
 medieval-hexagon-gameboard validate-simulation \
-  --scenario examples/simple-rpg-scenario.json \
-  --script examples/simple-rpg-simulation.script.json \
+  --scenario <your-scenario.json> \
+  --script <your-simulation-script.json> \
   --manifest assets/free/manifest.json
 
 medieval-hexagon-gameboard simulate-scenario \
-  --scenario examples/simple-rpg-scenario.json \
-  --script examples/simple-rpg-simulation.script.json \
+  --scenario <your-scenario.json> \
+  --script <your-simulation-script.json> \
   --manifest assets/free/manifest.json \
   --out /tmp/simple-rpg-simulation.json \
   --outInterop /tmp/simple-rpg-interop.json

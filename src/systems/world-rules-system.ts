@@ -5,6 +5,7 @@
  * @module
  */
 import { hexKey, neighbor } from '../coordinates';
+import { GameboardRuntimeError } from '../errors';
 import type { GameboardTerrain, GameboardTileSpec } from '../gameboard';
 import { HexTileState, TileElevation, TileTerrain } from '../traits';
 import { findTileEntity } from '../koota';
@@ -48,7 +49,7 @@ export function setTileTerrain(
 ): void {
   const entity = findTileEntity(world, coordinates);
   if (!entity) {
-    throw new Error(`No tile exists at ${typeof coordinates === 'string' ? coordinates : hexKey(coordinates)}`);
+    throw new GameboardRuntimeError(`No tile exists at ${typeof coordinates === 'string' ? coordinates : hexKey(coordinates)}`);
   }
   entity.set(TileTerrain, { terrain });
   entity.set(HexTileState, { terrain });
@@ -62,7 +63,7 @@ export function setTileElevation(
 ): void {
   const entity = findTileEntity(world, coordinates);
   if (!entity) {
-    throw new Error(`No tile exists at ${typeof coordinates === 'string' ? coordinates : hexKey(coordinates)}`);
+    throw new GameboardRuntimeError(`No tile exists at ${typeof coordinates === 'string' ? coordinates : hexKey(coordinates)}`);
   }
   entity.set(TileElevation, { elevation });
   entity.set(HexTileState, { elevation });

@@ -235,8 +235,14 @@ const cliPath = join(packageRoot, 'dist/cli.js');
 const freeManifestPath = join(packageRoot, 'assets/free/manifest.json');
 const blueprintPath = join(packageRoot, 'examples/blueprint-board.json');
 const recipePath = join(packageRoot, 'examples/generated-piece-scenario.recipe.json');
-const scenarioPath = join(packageRoot, 'examples/simple-rpg-scenario.json');
-const simulationScriptPath = join(packageRoot, 'examples/simple-rpg-simulation.script.json');
+const scenarioPath = join(
+  packageRoot,
+  'tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json'
+);
+const simulationScriptPath = join(
+  packageRoot,
+  'tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json'
+);
 const tempRoot = mkdtempSync(join(tmpdir(), 'medieval-built-cli-'));
 const keepTemp = process.env.MEDIEVAL_HEXAGON_KEEP_CLI_SMOKE === '1';
 
@@ -697,11 +703,11 @@ try {
   );
   assert(blueprint.tileCount > 0, 'blueprint command did not compile tiles');
   assert(blueprint.placementCount > 0, 'blueprint command did not compile placements');
-  assert(blueprint.counts.mountainStacks > 0, 'blueprint command did not compile mountains');
-  assert(blueprint.counts.townBuildings > 0, 'blueprint command did not compile town buildings');
+  assert((blueprint.counts.mountainStacks ?? 0) > 0, 'blueprint command did not compile mountains');
+  assert((blueprint.counts.townBuildings ?? 0) > 0, 'blueprint command did not compile town buildings');
   assert(blueprint.counts.harbors === 1, 'blueprint command did not compile the harbor');
   assert(blueprint.counts.rivers === 1, 'blueprint command did not compile the river');
-  assert(blueprint.counts.bridges > 0, 'blueprint command did not compile bridges');
+  assert((blueprint.counts.bridges ?? 0) > 0, 'blueprint command did not compile bridges');
   assert(existsSync(blueprintRecipePath), 'blueprint command did not write recipe JSON');
   assert(existsSync(blueprintPlanPath), 'blueprint command did not write plan JSON');
 
@@ -1171,6 +1177,10 @@ function runCli(args: readonly string[]): string {
       ...process.env,
       FORCE_COLOR: '0',
       NO_COLOR: '1',
+      // Widen the safeResolveOutput jail to `/` for smoke runs — the smoke
+      // harness writes outputs into os.tmpdir(), which escapes cwd. Production
+      // CLI users never set this; the helper still rejects `..` escapes.
+      MEDIEVAL_HEXAGON_OUT_ROOT: '/',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

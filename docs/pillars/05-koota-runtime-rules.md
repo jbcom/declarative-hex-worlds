@@ -50,34 +50,34 @@ implementation_links:
   - src/rules/validation.ts
   - src/systems/world-rules-system.ts
   - examples/blueprint-board-usage.ts
-  - examples/simple-rpg-usage.ts
+  - tests/integration/simple-rpg/simple-rpg.ts
 test_links:
-  - tests/unit/catalog.test.ts
-  - tests/unit/coverage.test.ts
-  - tests/unit/blueprint.test.ts
-  - tests/unit/actors.test.ts
-  - tests/unit/commands.test.ts
-  - tests/unit/cli.test.ts
-  - tests/unit/grid.test.ts
-  - tests/unit/compatibility.test.ts
-  - tests/unit/gameboard.test.ts
-  - tests/unit/interop.test.ts
-  - tests/unit/koota.test.ts
-  - tests/unit/layout.test.ts
-  - tests/unit/movement.test.ts
-  - tests/unit/navigation.test.ts
-  - tests/unit/pieces.test.ts
-  - tests/unit/quests.test.ts
-  - tests/unit/recipe.test.ts
-  - tests/unit/registry.test.ts
-  - tests/unit/rules.test.ts
-  - tests/unit/runtime.test.ts
-  - tests/unit/scenario.test.ts
-  - tests/unit/simulation.test.ts
-  - tests/unit/systems.test.ts
-  - tests/unit/three.test.ts
-  - tests/unit/validation.test.ts
-  - tests/unit/simple-rpg.test.ts
+  - src/scenario/__tests__/catalog.test.ts
+  - src/interop/__tests__/coverage.test.ts
+  - src/scenario/__tests__/blueprint.test.ts
+  - src/actors/__tests__/actors.test.ts
+  - src/commands/__tests__/commands.test.ts
+  - src/cli/__tests__/cli.test.ts
+  - src/coordinates/__tests__/grid.test.ts
+  - src/interop/__tests__/compatibility.test.ts
+  - src/gameboard/__tests__/gameboard.test.ts
+  - src/interop/__tests__/interop.test.ts
+  - src/koota/__tests__/koota.test.ts
+  - src/coordinates/__tests__/layout.test.ts
+  - src/movement/__tests__/movement.test.ts
+  - src/gameboard/__tests__/navigation.test.ts
+  - src/pieces/__tests__/pieces.test.ts
+  - src/quests/__tests__/quests.test.ts
+  - src/scenario/__tests__/recipe.test.ts
+  - src/scenario/__tests__/registry.test.ts
+  - src/rules/__tests__/rules.test.ts
+  - src/runtime/__tests__/runtime.test.ts
+  - src/scenario/__tests__/scenario.test.ts
+  - src/simulation/__tests__/simulation.test.ts
+  - src/systems/__tests__/systems.test.ts
+  - src/three/__tests__/three.test.ts
+  - src/rules/__tests__/validation.test.ts
+  - tests/integration/simple-rpg/simple-rpg.test.ts
   - tests/unit/examples.test.ts
   - tests/browser/free-visual.test.ts
   - tests/browser/react-bindings.test.ts
@@ -765,7 +765,7 @@ are the canonical small JSON examples for generated piece declarations and fill
 rules. The package export map exposes JSON examples as
 `@jbcom/medieval-hexagon-gameboard/examples/*.json`; raw TypeScript examples
 stay in the repo, while npm consumers use explicit compiled exports such as
-`@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage`.
+`tests/integration/simple-rpg/simple-rpg.ts (test-only post-PRD R4)`.
 
 ## Scenarios
 
@@ -867,7 +867,7 @@ settlements, neutral buildings, bridges, walls, construction, siege, elevation
 ramps, nature, flags, prop clusters, transitions, colored and neutral EXTRA unit
 parts, unit presets, scatter, custom tile declarations, and authored tile asset
 overrides while preserving the playable quest path.
-`examples/simple-rpg-usage.ts` exposes
+`tests/integration/simple-rpg/simple-rpg.ts` exposes
 `summarizeSimpleRpgGuidePublicApiExercises()` so the packaged consumer smoke can
 assert that every current `listKayKitGuidePublicApiCoverages()` row has
 SimpleRPG evidence and no stale evidence rows. It also exposes

@@ -1,0 +1,78 @@
+name: Bootstrap nightly (GitHub source)
+
+# Scheduled-only — runs once a day against the live upstream KayKit FREE
+# tarball on GitHub. NOT per-PR (rate-limited / network-dependent). The
+# per-PR pipeline uses the synthetic-zip end-to-end test in
+# `tests/integration/bootstrap/` which has no network dependency.
+#
+# Triggers:
+#  - schedule: daily at 04:00 UTC
+#  - workflow_dispatch: manual trigger for verification
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  bootstrap-github-source:
+    name: Bootstrap FREE edition from GitHub
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI
+        run: pnpm build
+
+      - name: Bootstrap FREE assets from GitHub source
+        run: |
+          mkdir -p /tmp/bootstrap-target
+          node dist/cli.js bootstrap \
+            --source github \
+            --out /tmp/bootstrap-target \
+            --json > /tmp/bootstrap-result.json
+          cat /tmp/bootstrap-result.json
+        env:
+          MEDIEVAL_HEXAGON_OUT_ROOT: '/'
+
+      - name: Verify bootstrap integrity sidecar
+        run: |
+          node dist/cli.js bootstrap --verify --out /tmp/bootstrap-target
+        env:
+          MEDIEVAL_HEXAGON_OUT_ROOT: '/'
+
+      - name: Assert expected GLTF count
+        run: |
+          node -e "
+            const r = require('/tmp/bootstrap-result.json');
+            if (r.fileCount < 221) {
+              throw new Error('bootstrap from GitHub produced ' + r.fileCount + ' files; expected >= 221');
+            }
+            console.log('GitHub bootstrap produced ' + r.fileCount + ' files (' + r.totalBytes + ' bytes)');
+          "
+
+      - name: Upload bootstrap result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootstrap-result-${{ github.run_id }}
+          path: /tmp/bootstrap-result.json
+          retention-days: 14

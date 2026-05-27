@@ -12,6 +12,7 @@ import {
   type World,
 } from 'koota';
 import { hexKey } from '../coordinates';
+import { GameboardRuntimeError } from '../errors';
 import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
 import { GameboardState, IsGameboardPlacement, IsUnitPlacement, PlacementState } from '../traits';
 import {
@@ -263,14 +264,18 @@ export function resolveGameboardMovementProfile(
   profiles: GameboardMovementProfileRegistry = GAMEBOARD_MOVEMENT_PROFILES
 ): GameboardMovementProfile {
   if (!profile) {
-    return profiles.ground;
+    const ground = profiles.ground;
+    if (!ground) {
+      throw new GameboardRuntimeError('Movement profile registry missing required default "ground"');
+    }
+    return ground;
   }
   if (typeof profile !== 'string') {
     return profile;
   }
   const resolved = profiles[profile];
   if (!resolved) {
-    throw new Error(`Unknown gameboard movement profile: ${profile}`);
+    throw new GameboardRuntimeError(`Unknown gameboard movement profile: ${profile}`);
   }
   return resolved;
 }
@@ -470,6 +475,11 @@ function advanceOneGameboardMovement(
 
   const placement = requirePlacementState(entity);
   const nextKey = currentPath.pathKeys[currentPath.nextIndex];
+  if (nextKey === undefined) {
+    throw new GameboardRuntimeError(
+      `Movement path index ${currentPath.nextIndex} out of range (length ${currentPath.pathKeys.length})`
+    );
+  }
   const navigation = createGameboardMovementNavigation(world, entity, options);
   if (!navigation.canEnter(nextKey, placement.tileKey)) {
     const blocked = movementPathState({
@@ -628,7 +638,7 @@ function movementAdvanceResult(
 function requirePlacementEntity(world: World, placement: Entity | string): Entity {
   const entity = findPlacementEntity(world, placement);
   if (!entity) {
-    throw new Error(`No placement exists with id ${typeof placement === 'string' ? placement : String(placement.id())}`);
+    throw new GameboardRuntimeError(`No placement exists with id ${typeof placement === 'string' ? placement : String(placement.id())}`);
   }
   return entity;
 }
@@ -636,7 +646,7 @@ function requirePlacementEntity(world: World, placement: Entity | string): Entit
 function requirePlacementState(entity: Entity): PlacementStateValue {
   const state = entity.get(PlacementState);
   if (!state) {
-    throw new Error(`Placement entity ${entity.id()} is missing PlacementState`);
+    throw new GameboardRuntimeError(`Placement entity ${entity.id()} is missing PlacementState`);
   }
   return {
     ...state,
@@ -665,7 +675,7 @@ function uniqueStrings(values: readonly string[]): string[] {
 function projectWorldForMovement(world: World): GameboardPlan {
   const board = world.get(GameboardState);
   if (!board) {
-    throw new Error('World does not contain GameboardState');
+    throw new GameboardRuntimeError('World does not contain GameboardState');
   }
   return {
     schemaVersion: board.schemaVersion as GameboardPlan['schemaVersion'],

@@ -22,7 +22,7 @@ import {
   loadGameboardPlacementObject,
   updateGameboardPlacementAnimation,
 } from '@jbcom/medieval-hexagon-gameboard/three';
-import { createFixedSimpleRpgGame } from '../../simple-rpg/simple-rpg';
+import { createFixedSimpleRpgGame } from '../../simple-rpg/game';
 import { assertCanvasHasRenderableContent, renderGameboardPlan } from '../../browser/rendering';
 
 declare const __KENNEY_CASTLE_ROOT__: string;

@@ -12,7 +12,13 @@ import {
   type SpawnLocation,
   type SpawnLocationOptions,
 } from '../coordinates';
-import type { GameboardPlan, GameboardPlacementSpec, GameboardTileSpec } from '../gameboard';
+import { GameboardRuntimeError } from '../errors';
+import {
+  gameboardPlanIndex,
+  type GameboardPlan,
+  type GameboardPlacementSpec,
+  type GameboardTileSpec,
+} from '../gameboard';
 import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
@@ -617,7 +623,7 @@ export function createGameboardInteropSnapshot(
   plan: GameboardPlan,
   options: GameboardInteropOptions = {}
 ): GameboardInteropSnapshot {
-  const tilesByKey = new Map(plan.tiles.map((tile) => [tile.key, tile]));
+  const { tilesByKey } = gameboardPlanIndex(plan);
   const placements = (options.includePlacements ?? true) ? plan.placements : [];
   const spawnLocations = options.spawnLocations
     ? createSpawnLocations({
@@ -662,7 +668,7 @@ export function createGameboardScenarioInteropSnapshot(
     ? planGameboardSpawnGroups(plan, scenario.spawnGroups)
     : undefined;
   if (spawnGroups?.errors.length) {
-    throw new Error(
+    throw new GameboardRuntimeError(
       `Scenario ${scenario.id} spawn groups failed: ${spawnGroups.errors.join('; ')}`
     );
   }
@@ -676,7 +682,7 @@ export function createGameboardScenarioInteropSnapshot(
         })
       : undefined;
   if (patrolRoutes?.errors.length) {
-    throw new Error(
+    throw new GameboardRuntimeError(
       `Scenario ${scenario.id} patrol routes failed: ${patrolRoutes.errors.join('; ')}`
     );
   }
@@ -689,7 +695,7 @@ export function createGameboardScenarioInteropSnapshot(
   const scenarioSpawnLocations = includeSpawnGroups
     ? (spawnGroups?.groups.flatMap((group) => [...group.locations]) ?? [])
     : [];
-  const tilesByKey = new Map(plan.tiles.map((tile) => [tile.key, tile]));
+  const { tilesByKey } = gameboardPlanIndex(plan);
 
   return {
     ...snapshot,

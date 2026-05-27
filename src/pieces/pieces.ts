@@ -4,6 +4,7 @@
  *
  * @module
  */
+import { GameboardRuntimeError } from '../errors';
 import type {
   ExternalAssetCompatibilityReport,
 } from '../interop';
@@ -584,7 +585,7 @@ export function createGameboardLayoutFillRuleFromPieces(
 ): GameboardLayoutFillRule {
   const first = pieces[0];
   if (!first) {
-    throw new Error('createGameboardLayoutFillRuleFromPieces requires at least one piece');
+    throw new GameboardRuntimeError('createGameboardLayoutFillRuleFromPieces requires at least one piece');
   }
   const ids = pieces.map((piece) => piece.id);
   const roles = uniqueValues(pieces.map((piece) => piece.role));
@@ -881,7 +882,23 @@ function joinPieceId(prefix: string | undefined, id: string): string {
 }
 
 function joinUrl(root: string, relativePath: string): string {
-  return `${root.replace(/\/+$/, '')}/${relativePath.replace(/^\/+/, '')}`;
+  return `${stripTrailingSlashes(root)}/${stripLeadingSlashes(relativePath)}`;
+}
+
+function stripLeadingSlashes(value: string): string {
+  let i = 0;
+  while (i < value.length && value.charCodeAt(i) === 47) {
+    i += 1;
+  }
+  return i === 0 ? value : value.slice(i);
+}
+
+function stripTrailingSlashes(value: string): string {
+  let i = value.length;
+  while (i > 0 && value.charCodeAt(i - 1) === 47) {
+    i -= 1;
+  }
+  return i === value.length ? value : value.slice(0, i);
 }
 
 function normalizeUrlPath(path: string, encode: boolean): string {

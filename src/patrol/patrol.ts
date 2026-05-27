@@ -15,6 +15,7 @@ import {
   findGameboardActor,
   type GameboardActorSnapshot,
 } from '../actors';
+import { GameboardRuntimeError } from '../errors';
 import { IsGameboardPlacement, PlacementState } from '../traits';
 import { findPlacementEntity, type PlacementStateValue } from '../koota';
 import {
@@ -317,6 +318,9 @@ function advancePatrolEntity(
   }
 
   const targetKey = nextAgent.waypointKeys[targetIndex];
+  if (targetKey === undefined) {
+    throw new GameboardRuntimeError(`Patrol waypoint index ${targetIndex} out of range`);
+  }
   const movementOptions = movementOptionsForPatrol(nextAgent, targetIndex, options);
   if (options.resetMovementBudget ?? true) {
     setGameboardMovementAgent(world, entity, movementOptions);
@@ -379,7 +383,7 @@ function segmentCostFor(agent: GameboardPatrolAgentValue, targetIndex: number): 
     targetIndex === 0 && agent.currentWaypointIndex === agent.waypointKeys.length - 1
       ? agent.segmentCosts[agent.currentWaypointIndex]
       : agent.segmentCosts[Math.min(agent.currentWaypointIndex, targetIndex)];
-  return Number.isFinite(cost) ? Math.max(1, Math.ceil(cost)) : undefined;
+  return cost !== undefined && Number.isFinite(cost) ? Math.max(1, Math.ceil(cost)) : undefined;
 }
 
 function nextPatrolWaypointIndex(agent: GameboardPatrolAgentValue): number | undefined {
@@ -471,7 +475,7 @@ function requirePatrolPlacementEntity(world: World, placement: Entity | string):
   const actor = findGameboardActor(world, placement);
   const entity = actor?.entity ?? findPlacementEntity(world, placement);
   if (!entity) {
-    throw new Error(`No placement or actor exists with id ${placement}`);
+    throw new GameboardRuntimeError(`No placement or actor exists with id ${placement}`);
   }
   return entity;
 }
@@ -479,7 +483,7 @@ function requirePatrolPlacementEntity(world: World, placement: Entity | string):
 function requirePlacementState(entity: Entity): PlacementStateValue {
   const state = entity.get(PlacementState);
   if (!state) {
-    throw new Error(`Placement entity ${entity.id()} is missing PlacementState`);
+    throw new GameboardRuntimeError(`Placement entity ${entity.id()} is missing PlacementState`);
   }
   return {
     ...state,
@@ -492,7 +496,7 @@ function requirePlacementState(entity: Entity): PlacementStateValue {
 function readPatrolAgent(entity: Entity): GameboardPatrolAgentValue {
   const agent = entity.get(GameboardPatrolAgent);
   if (!agent) {
-    throw new Error(`Placement entity ${entity.id()} is missing GameboardPatrolAgent`);
+    throw new GameboardRuntimeError(`Placement entity ${entity.id()} is missing GameboardPatrolAgent`);
   }
   return patrolAgentValue(agent);
 }

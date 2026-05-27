@@ -4,6 +4,7 @@
  *
  * @module
  */
+import { GameboardRuntimeError } from '../errors';
 import { isKnownExtraAssetId } from '../scenario';
 import { axialToWorld } from './grid';
 import type {
@@ -27,7 +28,7 @@ import type { World } from 'koota';
 export function projectWorldToGameboardPlan(world: World): GameboardPlan {
   const board = world.get(GameboardState);
   if (!board) {
-    throw new Error('World does not contain GameboardState');
+    throw new GameboardRuntimeError('World does not contain GameboardState');
   }
 
   const tiles = readDecomposedTileSpecs(world);
@@ -75,7 +76,7 @@ export function readDecomposedTileSpecs(world: World): GameboardTileSpec[] {
 export function readValidationGameboardPlanFromWorld(world: World): GameboardPlan {
   const board = world.get(GameboardState);
   if (!board) {
-    throw new Error('World does not contain GameboardState');
+    throw new GameboardRuntimeError('World does not contain GameboardState');
   }
   return {
     schemaVersion: board.schemaVersion as GameboardPlan['schemaVersion'],

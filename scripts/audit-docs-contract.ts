@@ -20,7 +20,7 @@ const workspaceRoot = resolve(import.meta.dirname, '..');
 const pillarsDir = resolve(workspaceRoot, 'docs/pillars');
 const simpleRpgExamplePath = resolve(
   workspaceRoot,
-  'examples/simple-rpg-usage.ts'
+  'tests/integration/simple-rpg/simple-rpg.ts'
 );
 const simpleRpgExecutableApiCount = extractStringArrayConst(
   readFileSync(simpleRpgExamplePath, 'utf8'),
@@ -29,11 +29,11 @@ const simpleRpgExecutableApiCount = extractStringArrayConst(
 ).length;
 const kayKitPublicTreatmentCount = listKayKitAssetPublicTreatments().length;
 const kayKitGuideScenarioCount = listKayKitGuideScenarios().length;
-// Post-R1: workspace and package README collapsed to one canonical file at
-// the repo root. The pre-R1 dual entries (`README.md` + the in-package
-// `packages/medieval-hexagon-gameboard/README.md`) are now the same path.
+// Post-F-README-1: the marketing README drops metric-heavy SimpleRPG
+// enumeration in favor of a 30-line quickstart + module-map + docs grid.
+// The same metrics still live in the pillar doc + the SimpleRPG guide
+// content under docs/guides/. README.md is no longer audited here.
 const simpleRpgCoverageDocPaths = [
-  'README.md',
   'docs/pillars/05-koota-runtime-rules.md',
   'docs/guides/recipes-scenarios-and-simulation.md',
 ] as const;

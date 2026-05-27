@@ -254,6 +254,9 @@ describe('FREE visual coverage', () => {
       'wheelbarrow',
     ].map((id) => {
       const asset = freeManifest.assetsById[id];
+      if (asset === undefined) {
+        throw new Error(`FREE manifest missing asset ${id}`);
+      }
       return { asset, url: assetUrl(asset), label: id, caption: asset.sourcePath };
     });
 
@@ -413,6 +416,9 @@ describe('FREE visual coverage', () => {
 
 function requestForPermutation(permutation: GuideTilePermutation) {
   const asset = freeManifest.assetsById[permutation.assetId];
+  if (asset === undefined) {
+    throw new Error(`FREE manifest missing asset ${permutation.assetId}`);
+  }
   return {
     asset,
     url: assetUrl(asset),

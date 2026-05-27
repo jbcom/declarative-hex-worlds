@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
 const extraSourceRoot = resolve(
@@ -48,5 +49,6 @@ export default defineConfig({
     },
     include: ['tests/browser/extra-visual.test.ts'],
     testTimeout: 120_000,
+    coverage: harnessCoverage('browser-extra'),
   },
 });

@@ -4,6 +4,7 @@
  *
  * @module
  */
+import { GameboardScenarioError } from '../errors';
 import { createGameboardBuilder, type GameboardBuilder } from '../gameboard';
 import type {
   BridgeOptions,
@@ -1020,5 +1021,5 @@ function cloneLayoutPreference(preference: GameboardLayoutPreference): Gameboard
 }
 
 function assertNever(value: never): never {
-  throw new Error(`Unhandled gameboard recipe step: ${JSON.stringify(value)}`);
+  throw new GameboardScenarioError(`Unhandled gameboard recipe step: ${JSON.stringify(value)}`);
 }

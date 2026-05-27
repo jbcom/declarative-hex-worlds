@@ -19,3 +19,4 @@
 
 export * from './free';
 export * from './schema';
+export * from './upstream-layout';

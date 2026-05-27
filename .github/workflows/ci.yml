@@ -5,6 +5,10 @@ on:
     types: [opened, synchronize, reopened]
   schedule:
     - cron: '0 6 * * 1'
+  # workflow_dispatch lets `gh workflow run ci.yml --ref <branch>` re-fire
+  # CI when a transient infra hiccup (runner OOM, network blip) leaves the
+  # PR without a fresh run — see PRD G7.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -17,17 +21,21 @@ env:
   NODE_VERSION: '22'
 
 jobs:
-  check:
-    name: ${{ matrix.task }}
+  # PRD A9 — install once, share the result. Per-job `pnpm install` was both
+  # slow (~45s × N jobs) and non-deterministic (pnpm's content-addressable
+  # store guarantees identical *content* but not identical *resolution
+  # timing*; a CDN flip can swap a transitive between two jobs in the same
+  # workflow). One install + one artifact + tarball-restore in every
+  # downstream job makes every downstream step run against the identical
+  # frozen bytes.
+  install:
+    name: Install dependencies (shared artifact)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        task: [lint, typecheck, build, test]
+    outputs:
+      cache-key: ${{ steps.fingerprint.outputs.cache-key }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -40,18 +48,71 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - id: fingerprint
+        # Cache key folds the lockfile hash + node version so a lockfile bump
+        # invalidates the artifact even within the same PR.
+        run: |
+          echo "cache-key=node-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('pnpm-lock.yaml') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Pack node_modules
+        # Tarball + zstd compression. uploading raw `node_modules/` straight
+        # up via `actions/upload-artifact` is unworkable: GitHub's uploader
+        # walks every file individually, so a typical 600k-file tree takes
+        # 8-15 minutes. A single zstd tarball uploads in ~30s.
+        run: |
+          tar --use-compress-program=zstd -cf node_modules.tar.zst node_modules
+
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: node-modules-${{ steps.fingerprint.outputs.cache-key }}
+          path: node_modules.tar.zst
+          if-no-files-found: error
+          retention-days: 1
+
+  check:
+    name: ${{ matrix.task }}
+    needs: install
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # `test:coverage:enforce` enforces the ratchet thresholds defined in
+        # vitest.coverage.shared.ts (PRD A8). Floor = current measured baseline
+        # minus a small slack; E0-E10 raises it progressively toward 100/100/100/100.
+        task: [lint, typecheck, build, test, 'test:coverage:enforce']
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: node-modules-${{ needs.install.outputs.cache-key }}
+
+      - name: Restore node_modules
+        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
+
       - name: Run ${{ matrix.task }}
         # Bump the worker heap for tsup's DTS bundler: the freeManifest literal
         # (16k LOC of JSON-as-TS) blows the default ~1.7GB worker heap on
-        # ubuntu-latest GitHub runners. 4GB is comfortably under the runner's
-        # 7GB limit while leaving headroom for the main process.
+        # ubuntu-latest GitHub runners. 6GB sits comfortably under the
+        # runner's 7GB limit. tsup's DTS worker inherits NODE_OPTIONS via
+        # env, so this propagates to the rollup-plugin-dts thread that was
+        # OOMing during the cross-entry merge pass at 4GB.
         env:
-          NODE_OPTIONS: --max-old-space-size=4096
+          NODE_OPTIONS: --max-old-space-size=6144
         run: pnpm ${{ matrix.task }}
 
   browser-free:
     name: FREE Browser Visuals
-    needs: check
+    needs: [install, check]
     runs-on: ubuntu-latest
     # PRD RB4: the FREE GLTF tree is no longer bundled in the tarball; it's
     # bootstrapped at install time by the upcoming CLI `bootstrap` command
@@ -70,10 +131,13 @@ jobs:
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: node-modules-${{ needs.install.outputs.cache-key }}
+
+      - name: Restore node_modules
+        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
@@ -95,7 +159,35 @@ jobs:
 
   docs:
     name: Docs Build
-    needs: check
+    needs: [install, check]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: node-modules-${{ needs.install.outputs.cache-key }}
+
+      - name: Restore node_modules
+        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
+
+      - name: Build docs
+        run: pnpm test:docs-contract && pnpm test:api-docs && pnpm run docs
+
+  docs-site:
+    # PRD F-Site-4 — Astro Starlight build. Sibling project under docs-site/
+    # has its own pnpm install (R1 dropped workspaces). Artifact uploaded so
+    # F-Site-5's cd.yml deploy job can pick it up on main pushes.
+    name: Docs Site Build
+    needs: [install, check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -108,17 +200,38 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+          cache-dependency-path: docs-site/pnpm-lock.yaml
 
-      - name: Install dependencies
+      - name: Install library dependencies (for typedoc to read src/)
+        # starlight-typedoc walks src/ via the lib's own deps (koota, three,
+        # etc.). The shared install-artifact has them but downloading it
+        # imports a typescript version that conflicts with docs-site's
+        # typescript@6.0.3; do a clean `pnpm install` instead so the
+        # versions stay separated under docs-site/node_modules/.pnpm.
         run: pnpm install --frozen-lockfile
 
-      - name: Build docs
-        run: pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build
+      - name: Install docs-site dependencies
+        run: cd docs-site && pnpm install --frozen-lockfile
+
+      - name: Build docs site
+        env:
+          ASTRO_BASE: /medieval-hexagon-gameboard/
+          ASTRO_SITE: https://jbcom.github.io/medieval-hexagon-gameboard
+        run: pnpm docs-site:build
+
+      - name: Upload docs-site artifact (for cd.yml Pages deploy)
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: docs-site/dist
 
   package:
     name: npm Pack
-    needs: check
+    needs: [install, check]
     runs-on: ubuntu-latest
+    env:
+      # Pack's `pnpm build` step trips the same DTS-worker OOM the check
+      # job sees at 4GB — share the 6GB heap bump (see check job comment).
+      NODE_OPTIONS: --max-old-space-size=6144
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -129,10 +242,13 @@ jobs:
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: node-modules-${{ needs.install.outputs.cache-key }}
+
+      - name: Restore node_modules
+        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
 
       - name: Production audit (high+)
         run: pnpm audit --prod --audit-level=high
@@ -199,6 +315,6 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           semgrep --config p/owasp-top-ten --config p/nodejs \
             --error --metrics=off \
-            --exclude='packages/medieval-hexagon-gameboard/src/manifest/free.ts' \
-            --exclude='packages/medieval-hexagon-gameboard/dist' \
+            --exclude='src/manifest/free.ts' \
+            --exclude='dist' \
             --exclude='node_modules' .

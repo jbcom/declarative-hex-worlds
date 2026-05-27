@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
   id-token: write
+  # PRD G1 — actions/attest-build-provenance needs attestations:write to attach
+  # SLSA L3 build-provenance attestations to the release artifacts.
+  attestations: write
 
 concurrency:
   group: release
@@ -43,6 +46,43 @@ jobs:
       - name: Verify package
         run: pnpm test:ci
 
+      - name: Build package
+        run: pnpm build
+
+      - name: Pack tarball for attestation
+        # Pack BEFORE publishing so we can attest the exact bytes that ship.
+        # `npm pack --json` writes the tarball into the cwd; capture its
+        # filename for the attestation + release-assets steps.
+        id: pack
+        run: |
+          PACK_JSON=$(npm pack --json)
+          TARBALL=$(echo "$PACK_JSON" | node -e 'let d=""; process.stdin.on("data", c=>d+=c).on("end", ()=>{const a=JSON.parse(d); process.stdout.write(a[0].filename)})')
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+
+      - name: Attest build provenance (SLSA L3)
+        # PRD G1. Cryptographically attests that this exact tarball was built
+        # by this exact workflow run on GitHub-hosted infrastructure.
+        # Consumers verify via `npm audit signatures` or `gh attestation verify`.
+        uses: actions/attest-build-provenance@e7af5b09d2d75db5c1bea61edda4ea2c0a8b14eb # v3.0.0
+        with:
+          subject-path: ${{ steps.pack.outputs.tarball }}
+
+      - name: Generate SBOM (CycloneDX)
+        # PRD G2. CycloneDX 1.6 SBOM listing the full prod-dep tree of the
+        # published package. Attached as a release asset by the next step.
+        run: |
+          npx --yes @cyclonedx/cyclonedx-npm@latest \
+            --output-format json \
+            --output-file sbom.cdx.json \
+            --omit dev
+
+      - name: Attach SBOM + tarball to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.4.1
+        with:
+          files: |
+            ${{ steps.pack.outputs.tarball }}
+            sbom.cdx.json
+
       - name: Publish with OIDC provenance
-        working-directory: packages/medieval-hexagon-gameboard
-        run: npm publish --access public --provenance
+        run: npm publish ${{ steps.pack.outputs.tarball }} --access public --provenance

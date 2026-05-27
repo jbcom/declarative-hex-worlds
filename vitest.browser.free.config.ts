@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = resolve(packageRoot, '../..');
@@ -46,7 +47,9 @@ export default defineConfig({
       'tests/browser/free-visual.test.ts',
       'tests/browser/simple-rpg-visual.test.ts',
       'tests/browser/react-bindings.test.ts',
+      'tests/browser/feature-gallery.spec.ts',
     ],
     testTimeout: 120_000,
+    coverage: harnessCoverage('browser-free'),
   },
 });

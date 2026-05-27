@@ -56,7 +56,9 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as Package
 // Post-restructure: workspace and package are the same single manifest.
 const workspacePackageJson = packageJson;
 const freeManifest = JSON.parse(readFileSync(join(packageRoot, 'assets/free/manifest.json'), 'utf8')) as FreeManifestAttribution;
-const packedConsumerSmoke = readFileSync(join(workspaceRoot, 'scripts/smoke-packed-consumer.ts'), 'utf8');
+const packedConsumerSmoke = readSmokeOrchestratorSource(
+  join(workspaceRoot, 'scripts/smoke-packed-consumer.ts')
+);
 // Local-only path patterns that must NEVER appear in published package metadata
 // (`./Volumes/home` is the maintainer's NAS mount; kenney_castle + KayKit_Adventurers
 // are local-only reference packs from `references/`, which is gitignored). The
@@ -126,8 +128,9 @@ assert(
   'test:visual must serialize the local browser review suites',
 );
 assert(
-  packageJson.scripts?.['test:assets'] === 'pnpm test:assets:free && pnpm test:reference-assets',
-  'test:assets must run the FREE asset audit and local reference asset audit',
+  packageJson.scripts?.['test:assets'] ===
+    'pnpm test:assets:free && pnpm test:reference-assets && pnpm test:manifest-drift',
+  'test:assets must run the FREE asset audit, local reference asset audit, and manifest drift check',
 );
 assert(
   workspacePackageJson.scripts?.['test:consumer'] === 'tsx scripts/smoke-packed-consumer.ts',
@@ -186,12 +189,16 @@ function assertEqualSet(actual: readonly string[], expected: readonly string[], 
 function assertWorkspaceTestCiOrder(_testCiScript: string): void {
   // Post-R1: `test:ci` delegates to `pnpm verify` (single source of truth);
   // `verify` itself is the canonical chain. Audit the chain against `verify`.
+  // Post-G4: verify now includes `pnpm audit --prod --audit-level=high` after
+  // typecheck and `pnpm test:coverage:enforce` after `pnpm test` to mirror what
+  // CI catches in the package job + check matrix respectively.
   const expectedSteps = [
     'pnpm lint',
     'pnpm typecheck',
+    'pnpm audit --prod --audit-level=high',
     'pnpm test:docs-contract',
     'pnpm test:api-docs',
-    'pnpm docs:build',
+    'pnpm run docs',
     'pnpm test:assets',
     'pnpm test:workspace',
     'pnpm test:workflows',
@@ -199,6 +206,7 @@ function assertWorkspaceTestCiOrder(_testCiScript: string): void {
     'pnpm test:cli',
     'pnpm expectations',
     'pnpm test',
+    'pnpm test:coverage:enforce',
     'pnpm test:package',
     'pnpm test:consumer',
     'pnpm pack:dry-run',
@@ -408,6 +416,43 @@ async function assertExportImports(): Promise<void> {
 
 
 
+/**
+ * Read the smoke-packed-consumer orchestrator source plus every local module
+ * it imports, concatenated into a single virtual source. Needed because the
+ * D10 refactor split the orchestrator into `pack-install.ts` + `types.ts` +
+ * `_shared.ts` — the audit must continue to see the
+ * `@jbcom/medieval-hexagon-gameboard/...` import specifiers that moved to
+ * those sub-modules.
+ */
+function readSmokeOrchestratorSource(entryPath: string): string {
+  const visited = new Set<string>();
+  const parts: string[] = [];
+  const walk = (filePath: string): void => {
+    const absolute = resolve(filePath);
+    if (visited.has(absolute)) {
+      return;
+    }
+    visited.add(absolute);
+    if (!existsSync(absolute)) {
+      return;
+    }
+    const source = readFileSync(absolute, 'utf8');
+    parts.push(`// === ${absolute} ===\n${source}`);
+    const importPattern = /from\s+['"](\.[^'"]+)['"]|import\s*\(\s*['"](\.[^'"]+)['"]\s*\)/g;
+    const importDir = resolve(absolute, '..');
+    for (const match of source.matchAll(importPattern)) {
+      const rawSpecifier = match[1] ?? match[2];
+      if (!rawSpecifier) {
+        continue;
+      }
+      const candidate = rawSpecifier.replace(/\.js$/, '.ts');
+      walk(resolve(importDir, candidate));
+    }
+  };
+  walk(entryPath);
+  return parts.join('\n');
+}
+
 function collectSourceModules(root: string, prefix = ''): string[] {
   // Post-R2 sub-packages have an `index.ts` barrel that IS the public surface;
   // any other `.ts` siblings are internal-but-allowed. Treat a directory with
@@ -443,6 +488,21 @@ function assertPackFileList(): void {
   const [result] = JSON.parse(output) as PackResult[];
   const files = result?.files ?? [];
   assert(files.length > 0, 'npm pack dry run returned no files');
+  // PRD R4: SimpleRPG is a test driver, not a published example. Reject
+  // any tarball that ships its compiled module, JSON fixtures, or raw
+  // source. SimpleRPG SHOWCASE PNGs under `docs/showcases/` are still
+  // shipped — they're product marketing screenshots referenced from the
+  // README gallery, separate from the relocated test driver.
+  for (const file of files) {
+    const path = file.path;
+    if (path.startsWith('docs/showcases/') && path.endsWith('.png')) {
+      continue;
+    }
+    assert(
+      !/simple-rpg/i.test(path),
+      `tarball must not ship SimpleRPG (PRD R4 — SimpleRPG is a test driver, not a published example): ${path}`
+    );
+  }
   for (const file of files) {
     const path = file.path;
     assert(!path.includes('references/'), `tarball includes local references path: ${path}`);
@@ -461,7 +521,14 @@ function assertPackFileList(): void {
       `unexpected tarball file: ${path}`
     );
     if (path.startsWith('examples/')) {
-      assert(path.endsWith('.json'), `tarball includes non-JSON example source: ${path}`);
+      // Permitted under examples/: JSON fixtures (consumer-loadable samples)
+      // + README.md (npm browsers see this as the examples/ entry).
+      // Source .ts deliberately excluded — consumers use the dist
+      // `./examples/blueprint-board-usage` subpath instead.
+      assert(
+        path.endsWith('.json') || path === 'examples/README.md',
+        `tarball includes non-JSON example source: ${path}`
+      );
     }
     // Bundled binary assets must NOT ship: the runtime bootstrap (Epic RB) fetches
     // them at install time. Only `assets/free/manifest.json` is permitted under
@@ -470,6 +537,27 @@ function assertPackFileList(): void {
       assert(
         path === 'assets/free/manifest.json',
         `tarball includes a bundled asset (use CLI bootstrap instead): ${path}`
+      );
+    }
+    // Anywhere in the tarball — no GLTF, BIN, FBX, OBJ. The CLI bootstrap
+    // subcommand is the only supported channel for those binaries.
+    const lowerPath = path.toLowerCase();
+    if (
+      lowerPath.endsWith('.gltf') ||
+      lowerPath.endsWith('.bin') ||
+      lowerPath.endsWith('.fbx') ||
+      lowerPath.endsWith('.obj') ||
+      lowerPath.endsWith('.mtl')
+    ) {
+      throw new Error(
+        `tarball must not bundle asset binaries (use CLI bootstrap instead): ${path}`
+      );
+    }
+    // PNGs are only allowed under docs/showcases/ (curated marketing screens).
+    if (lowerPath.endsWith('.png')) {
+      assert(
+        path.startsWith('docs/showcases/'),
+        `tarball PNGs are restricted to docs/showcases/; got ${path}`
       );
     }
   }
@@ -516,13 +604,17 @@ function assertPackedAttribution(files: readonly PackFile[]): void {
   const readme = readFileSync(join(packageRoot, 'README.md'), 'utf8');
   requireAttributionText(license, 'package LICENSE', ['MIT License']);
   requireAttributionText(notice, 'package NOTICE.md', expectedAttributionSnippets());
+  // Post-F-README-1: marketing README rewrote the license section. The
+  // current README has `## License` (not `## License And Attribution`),
+  // mentions MIT for code, KayKit CC0-1.0 for assets, and points at
+  // NOTICE.md for the long-form attribution list. NOTICE.md itself is
+  // still audited for the full attribution snippet set.
   requireAttributionText(readme, 'package README.md', [
-    '## License And Attribution',
-    'MIT licensed',
-    'assets/free/',
-    'Purchased EXTRA and third-party reference assets stay local-only',
-    '[NOTICE.md](NOTICE.md)',
-    ...expectedAttributionSnippets(),
+    '## License',
+    'MIT',
+    'KayKit Medieval Hexagon Pack',
+    'CC0-1.0',
+    'NOTICE.md',
   ]);
 }
 
@@ -570,7 +662,13 @@ function assertPackedReadmeLocalLinks(files: readonly PackFile[]): void {
   for (const path of imagePaths) {
     assertPackedPngQuality(path, `package README image ${path}`);
   }
-  assertPackageReadmeShowcaseImages([...imagePaths]);
+  // Post-F-README-1: marketing README intentionally omits inline showcase
+  // images (F-Gallery delivers hero screenshots separately). The
+  // tarball-shipped docs/showcases/ tree is still asserted by
+  // assertPackedShowcaseImageQuality below; this README-side assertion
+  // is dropped because the README no longer is the primary gallery
+  // surface.
+  void assertPackageReadmeShowcaseImages;
 }
 
 function assertPackedShowcaseImageQuality(files: readonly PackFile[]): void {

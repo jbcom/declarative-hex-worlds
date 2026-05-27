@@ -24,3 +24,47 @@ updates:
         update-types: ["minor", "patch"]
       npm-major:
         update-types: ["major"]
+
+  # PRD G3 — security advisories get a daily channel so they don't wait for
+  # the weekly bulk update. open-pull-requests-limit higher so multiple
+  # advisories can land in parallel during a heavy CVE week.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "security"
+    labels:
+      - "security"
+    groups:
+      npm-security-updates:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  # docs-site/ has its own pnpm-lock.yaml (sibling project, R1 dropped
+  # workspaces). Weekly + daily-security cadences apply there too.
+  - package-ecosystem: "npm"
+    directory: "/docs-site"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps(docs-site)"
+    groups:
+      docs-site-non-major:
+        update-types: ["minor", "patch"]
+      docs-site-major:
+        update-types: ["major"]
+  - package-ecosystem: "npm"
+    directory: "/docs-site"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "security(docs-site)"
+    labels:
+      - "security"
+    groups:
+      docs-site-security-updates:
+        applies-to: security-updates
+        patterns: ["*"]

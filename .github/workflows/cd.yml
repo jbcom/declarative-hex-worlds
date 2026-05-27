@@ -24,6 +24,10 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      # Uses CI_GITHUB_TOKEN — an org-level secret available across @jbcom
+      # repos. The GitHub App alternative (short-lived 1h scoped token) was
+      # considered (PRD A5) but rejected: provisioning the App per-repo is
+      # operational toil; the org PAT is already in place + works.
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
@@ -31,7 +35,10 @@ jobs:
           manifest-file: .release-please-manifest.json
 
   docs:
-    name: Deploy Docs
+    # PRD F-Site-5 — deploy the Astro Starlight docs-site/ to GitHub Pages
+    # on main push. Replaces the legacy vitepress deploy (F-Site-12 removes
+    # the vitepress source entirely).
+    name: Deploy Docs Site
     if: "!contains(github.event.head_commit.message || '', '[skip actions]') && !cancelled()"
     runs-on: ubuntu-latest
     permissions:
@@ -54,16 +61,24 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - name: Install dependencies
+      - name: Install library dependencies
+        # starlight-typedoc reads the library's src/ tree via typedoc; needs
+        # the library's tsconfig + node_modules in place to resolve imports.
         run: pnpm install --frozen-lockfile
 
-      - name: Build docs
-        run: pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build
+      - name: Install docs-site dependencies
+        run: cd docs-site && pnpm install --frozen-lockfile
+
+      - name: Build docs site
+        env:
+          ASTRO_BASE: /medieval-hexagon-gameboard/
+          ASTRO_SITE: https://jbcom.github.io/medieval-hexagon-gameboard
+        run: pnpm docs-site:build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: apps/docs/dist
+          path: docs-site/dist
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -147,6 +147,20 @@ export interface ManifestAssetUrlOptions {
   baseUrl?: string | URL;
   /** Per-edition base URLs, useful when FREE is packaged and EXTRA is local. */
   editionBaseUrls?: Partial<Record<PackEdition, string | URL>>;
+  /**
+   * Consumer's bootstrap asset root (per PRD RB3).
+   *
+   * When set, legacy `assets/<edition>/...` model paths from the bundled
+   * manifest are rewritten to point at the bootstrap target tree —
+   * `<bootstrapAssetRoot>/addons/kaykit_medieval_hexagon_pack/Assets/gltf/...`.
+   * Useful when the library's bundled manifest metadata still names paths
+   * under `assets/free/` (the pre-RB layout) but the actual GLTFs live under
+   * the consumer's chosen `--out` directory.
+   *
+   * Honored only when neither {@link baseUrl} nor a matching
+   * {@link editionBaseUrls} entry is set; explicit base URLs always win.
+   */
+  bootstrapAssetRoot?: string | URL;
 }
 
 /**
@@ -347,17 +361,39 @@ export function manifestAssetRequiresExtra(catalog: ManifestAssetCatalog, assetI
 }
 
 /**
- * Resolves a manifest model path against a base URL.
+ * Resolves a manifest model path against a base URL or a bootstrap asset root.
  */
 export function resolveManifestAssetUrl(
   asset: MedievalHexagonAsset,
   options: ManifestAssetUrlOptions = {}
 ): string {
   const baseUrl = options.editionBaseUrls?.[asset.edition] ?? options.baseUrl;
-  if (!baseUrl) {
-    return asset.modelPath;
+  if (baseUrl) {
+    return joinUrl(baseUrl, asset.modelPath);
   }
-  return joinUrl(baseUrl, asset.modelPath);
+  if (options.bootstrapAssetRoot !== undefined) {
+    return joinBootstrapUrl(options.bootstrapAssetRoot, asset);
+  }
+  return asset.modelPath;
+}
+
+/**
+ * Translate a legacy `assets/<edition>/...` model path into a URL relative to
+ * a bootstrap asset root. Used by {@link resolveManifestAssetUrl} when the
+ * consumer has materialized assets via the CLI `bootstrap` subcommand and
+ * passes their asset root instead of an explicit `baseUrl`.
+ */
+export function rewriteToBootstrapPath(asset: MedievalHexagonAsset): string {
+  const editionPrefix = `assets/${asset.edition}/`;
+  const tail = asset.modelPath.startsWith(editionPrefix)
+    ? asset.modelPath.slice(editionPrefix.length)
+    : asset.modelPath;
+  return `addons/kaykit_medieval_hexagon_pack/Assets/gltf/${tail}`;
+}
+
+function joinBootstrapUrl(bootstrapAssetRoot: string | URL, asset: MedievalHexagonAsset): string {
+  const rewritten = rewriteToBootstrapPath(asset);
+  return joinUrl(bootstrapAssetRoot, rewritten);
 }
 
 function shouldReplaceDuplicate(
@@ -722,12 +758,28 @@ function isUnitStyle(value: unknown): value is UnitStyle {
 }
 
 function joinUrl(baseUrl: string | URL, path: string): string {
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = stripLeadingSlashes(path);
   if (baseUrl instanceof URL) {
     return new URL(cleanPath, baseUrl).toString();
   }
   if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(baseUrl)) {
     return new URL(cleanPath, baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`).toString();
   }
-  return `${baseUrl.replace(/\/+$/, '')}/${cleanPath}`;
+  return `${stripTrailingSlashes(baseUrl)}/${cleanPath}`;
+}
+
+function stripLeadingSlashes(value: string): string {
+  let i = 0;
+  while (i < value.length && value.charCodeAt(i) === 47) {
+    i += 1;
+  }
+  return i === 0 ? value : value.slice(i);
+}
+
+function stripTrailingSlashes(value: string): string {
+  let i = value.length;
+  while (i > 0 && value.charCodeAt(i - 1) === 47) {
+    i -= 1;
+  }
+  return i === value.length ? value : value.slice(0, i);
 }

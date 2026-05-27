@@ -27,11 +27,11 @@ implementation_links:
   - scripts/audit-free-assets.ts
   - scripts/audit-reference-assets.ts
 test_links:
-  - tests/unit/catalog.test.ts
-  - tests/unit/coverage.test.ts
-  - tests/unit/manifest.test.ts
-  - tests/unit/gameboard.test.ts
-  - tests/unit/koota.test.ts
+  - src/scenario/__tests__/catalog.test.ts
+  - src/interop/__tests__/coverage.test.ts
+  - src/manifest/__tests__/manifest.test.ts
+  - src/gameboard/__tests__/gameboard.test.ts
+  - src/koota/__tests__/koota.test.ts
   - tests/browser/free-visual.test.ts
   - scripts/audit-free-assets.ts
   - scripts/audit-reference-assets.ts

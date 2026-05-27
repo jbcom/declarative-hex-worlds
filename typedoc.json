@@ -25,8 +25,10 @@
     "src/three/index.ts",
     "src/traits/index.ts",
     "src/types/index.ts",
+    "src/bootstrap/index.ts",
     "src/manifest/free.ts",
     "src/manifest/schema.ts",
+    "src/manifest/upstream-layout.ts",
     "examples/blueprint-board-usage.ts"
   ],
   "entryPointStrategy": "expand",

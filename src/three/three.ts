@@ -13,6 +13,7 @@ import {
   Vector3,
 } from 'three';
 import type { GameboardInteractionTargetInput } from '../actors';
+import { GameboardRuntimeError } from '../errors';
 import type { GameboardPlacementSpec } from '../gameboard';
 import { axialToWorld } from '../coordinates';
 import type { GameboardPlacementPositionOffset } from '../koota';
@@ -261,7 +262,7 @@ export async function loadGameboardPlacementObject(
 ): Promise<LoadedGameboardPlacementObject> {
   const modelUrl = resolveGameboardPlacementAssetUrl(placement, options);
   if (!modelUrl) {
-    throw new Error(`No model URL resolved for placement ${placement.id} (${placement.assetId})`);
+    throw new GameboardRuntimeError(`No model URL resolved for placement ${placement.id} (${placement.assetId})`);
   }
 
   const model = await options.loader.loadAsync(modelUrl);

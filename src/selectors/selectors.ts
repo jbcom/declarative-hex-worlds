@@ -4,6 +4,7 @@
  *
  * @module
  */
+import { GameboardRuntimeError } from '../errors';
 import type { HexEdgeIndex, HexEdgeInput, VariantSelection } from '../types';
 
 /** Canonical guide asset variant before rotation and waterless/curvy modifiers. */
@@ -317,7 +318,7 @@ function selectVariant(
     }
   }
 
-  throw new Error(`No ${family} variant covers edge mask ${mask.toString(2).padStart(6, '0')}`);
+  throw new GameboardRuntimeError(`No ${family} variant covers edge mask ${mask.toString(2).padStart(6, '0')}`);
 }
 
 function selectVariantByLabel(
@@ -328,7 +329,7 @@ function selectVariantByLabel(
   const normalized = label.toUpperCase();
   const candidate = variants.find((item) => item.label === normalized);
   if (!candidate) {
-    throw new Error(`Unknown ${family} guide label: ${label}`);
+    throw new GameboardRuntimeError(`Unknown ${family} guide label: ${label}`);
   }
   return {
     family,

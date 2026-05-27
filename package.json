@@ -1,7 +1,7 @@
 {
   "name": "@jbcom/medieval-hexagon-gameboard",
   "version": "0.1.0",
-  "description": "Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS, first-class React + Three.js bindings, and bundled FREE GLTF assets",
+  "description": "Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS, first-class React + Three.js bindings, and a CLI bootstrap subcommand that fetches the FREE GLTF assets at install time",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -97,6 +97,10 @@
       "types": "./dist/interop.d.ts",
       "import": "./dist/interop.js"
     },
+    "./bootstrap": {
+      "types": "./dist/bootstrap.d.ts",
+      "import": "./dist/bootstrap.js"
+    },
     "./ingest": {
       "types": "./dist/ingest.d.ts",
       "import": "./dist/ingest.js"
@@ -169,14 +173,14 @@
       "types": "./dist/manifest/schema.d.ts",
       "import": "./dist/manifest/schema.js"
     },
+    "./manifest/upstream-layout": {
+      "types": "./dist/manifest/upstream-layout.d.ts",
+      "import": "./dist/manifest/upstream-layout.js"
+    },
     "./assets/free/manifest.json": "./assets/free/manifest.json",
     "./examples/blueprint-board-usage": {
       "types": "./dist/examples/blueprint-board-usage.d.ts",
       "import": "./dist/examples/blueprint-board-usage.js"
-    },
-    "./examples/simple-rpg-usage": {
-      "types": "./dist/examples/simple-rpg-usage.d.ts",
-      "import": "./dist/examples/simple-rpg-usage.js"
     },
     "./examples/*.json": "./examples/*.json"
   },
@@ -206,27 +210,46 @@
     "test:browser:free": "pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"captures a contact sheet\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"extracted guide pages\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"road guide permutations\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"river guide permutations\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"curvy river\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"coast guide permutations\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"guide page terrain\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"composed gameboard\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"blueprint builder\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"seeded random\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"seeded hexagon\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"generated-piece\" && pnpm exec vitest run tests/browser/simple-rpg-visual.test.ts --config vitest.browser.free.config.ts && pnpm exec vitest run tests/browser/react-bindings.test.ts --config vitest.browser.free.config.ts && pnpm run test:screenshots:free",
     "test:browser:extra": "MEDIEVAL_HEXAGON_ENABLE_EXTRA=1 vitest run --config vitest.browser.extra.config.ts && pnpm run test:screenshots:extra",
     "test:e2e:local-assets": "MEDIEVAL_HEXAGON_ENABLE_LOCAL_ASSETS=1 vitest run --config vitest.browser.local-assets.config.ts && pnpm run test:screenshots:local-assets",
+    "test:simple-rpg": "vitest run tests/integration/simple-rpg/simple-rpg.test.ts",
+    "test:simple-rpg:e2e:github": "MEDIEVAL_HEXAGON_E2E_GITHUB=1 vitest run --config vitest.simple-rpg-e2e.config.ts tests/e2e/simple-rpg-ci.test.ts",
+    "test:simple-rpg:e2e:local": "MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1 vitest run --config vitest.simple-rpg-e2e.config.ts tests/e2e/simple-rpg-local-extra.test.ts",
     "test:visual": "pnpm run test:browser:free && pnpm run test:browser:extra && pnpm run test:e2e:local-assets",
     "test:screenshots:free": "tsx tests/scripts/assert-screenshots.ts tests/browser/__screenshots__/free-catalog.png tests/browser/__screenshots__/free-guide-assets-by-public-role.png tests/browser/__screenshots__/free-guide-source-pages.png tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png tests/browser/__screenshots__/free-gameboard-recipe.png tests/browser/__screenshots__/free-blueprint-builder-showcase.png tests/browser/__screenshots__/free-seeded-gameboard.png tests/browser/__screenshots__/free-seeded-hex-gameboard.png tests/browser/__screenshots__/free-generated-piece-recipe.png tests/browser/__screenshots__/simple-rpg-fixed-completed.png tests/browser/__screenshots__/simple-rpg-seeded-completed.png tests/browser/__screenshots__/simple-rpg-packaged-scenario.png tests/browser/__screenshots__/simple-rpg-simulation-report.png",
     "test:screenshots:extra": "tsx tests/scripts/assert-screenshots.ts --minHeight 200 tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png tests/browser/__screenshots__/extra-guide-assets-by-public-role.png tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png tests/browser/__screenshots__/extra-seasonal-textures.png tests/browser/__screenshots__/extra-harbor-gameboard.png tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
     "test:screenshots:local-assets": "tsx tests/scripts/assert-screenshots.ts tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png",
     "expectations": "vitest run --config vitest.config.ts tests/unit/simulation.test.ts tests/unit/examples.test.ts tests/unit/simple-rpg.test.ts",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm expectations && pnpm test && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run",
+    "verify": "pnpm lint && pnpm typecheck && pnpm audit --prod --audit-level=high && pnpm test:docs-contract && pnpm test:api-docs && pnpm run docs && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm expectations && pnpm test && pnpm test:coverage:enforce && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run",
     "test:ci": "pnpm verify",
     "test:api-docs": "tsx scripts/audit-api-docs.ts",
-    "test:assets": "pnpm test:assets:free && pnpm test:reference-assets",
+    "test:assets": "pnpm test:assets:free && pnpm test:reference-assets && pnpm test:manifest-drift",
     "test:assets:free": "tsx scripts/audit-free-assets.ts",
     "test:cli": "tsx scripts/smoke-built-cli.ts",
     "test:consumer": "tsx scripts/smoke-packed-consumer.ts",
-    "test:docs-contract": "tsx scripts/audit-docs-contract.ts",
+    "test:docs-contract": "tsx scripts/audit-docs-contract.ts && tsx scripts/audit-docs-frontmatter.ts",
     "test:package": "tsx scripts/audit-package.ts",
     "test:workspace": "tsx scripts/audit-workspace.ts",
     "test:workflows": "tsx scripts/audit-workflows.ts",
     "test:reference-assets": "tsx scripts/audit-reference-assets.ts",
+    "test:manifest-drift": "tsx scripts/audit-manifest-drift.ts",
+    "bench": "vitest bench --run",
+    "bench:warm-start": "vitest bench tests/perf/warm-start.bench.ts --run",
+    "bench:cli-cold-start": "pnpm build && vitest bench tests/perf/cli-cold-start.bench.ts --run",
+    "bench:simulation": "vitest bench tests/perf/simulation.bench.ts --run",
+    "test:coverage": "MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --coverage",
+    "test:coverage:enforce": "MEDIEVAL_HEXAGON_COVERAGE=1 MEDIEVAL_HEXAGON_COVERAGE_ENFORCE=1 vitest run --coverage",
+    "test:coverage:browser:free": "MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.free.config.ts --coverage",
+    "test:coverage:browser:extra": "MEDIEVAL_HEXAGON_ENABLE_EXTRA=1 MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.extra.config.ts --coverage",
+    "test:coverage:e2e": "MEDIEVAL_HEXAGON_ENABLE_LOCAL_ASSETS=1 MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.local-assets.config.ts --coverage",
+    "coverage:merge": "tsx scripts/merge-coverage.ts",
+    "coverage:all": "rimraf coverage && pnpm test:coverage && pnpm test:coverage:browser:free && pnpm coverage:merge",
     "cli": "node dist/cli.js",
     "coverage:ledger": "pnpm build && node dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md",
     "docs": "typedoc --options typedoc.json",
-    "docs:build": "pnpm run docs && vitepress build docs --outDir docs/.vitepress/dist",
+    "//docs-site": "docs-site/ is a sibling Astro Starlight project — NOT a pnpm workspace member. We dropped workspaces in R1 (see PRD Epic R), so docs-site keeps its own package.json + lockfile and these scripts delegate via `cd docs-site && pnpm ...`. This keeps the library's tarball devDependencies focused on the runtime; the docs site's Astro/Starlight chain lives in its own dependency tree.",
+    "docs-site:install": "cd docs-site && pnpm install",
+    "docs-site:dev": "cd docs-site && pnpm dev",
+    "docs-site:build": "tsx scripts/generate-cli-reference.ts && cd docs-site && pnpm build",
+    "docs-site:preview": "cd docs-site && pnpm preview",
     "pack:dry-run": "npm pack --dry-run",
     "prepublishOnly": "pnpm verify"
   },
@@ -263,17 +286,24 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "seedrandom": "^3.0.5",
-    "three": "^0.184.0"
+    "tar": "^7.5.15",
+    "three": "^0.184.0",
+    "yauzl": "^3.3.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^25.9.1",
     "@types/react-dom": "^19.0.0",
     "@types/seedrandom": "^3.0.8",
     "@types/three": "^0.184.1",
+    "@types/yauzl": "^2.10.3",
+    "@types/yazl": "^3.3.1",
     "@vitest/browser": "4.1.7",
     "@vitest/browser-playwright": "^4.1.7",
     "@vitest/coverage-v8": "4.1.7",
+    "jsdom": "^29.1.1",
+    "nyc": "^18.0.0",
     "playwright": "^1.60.0",
     "rimraf": "^6.1.3",
     "tsup": "^8.5.1",
@@ -281,9 +311,8 @@
     "typedoc": "^0.28.19",
     "typescript": "^6.0.3",
     "vite": "^8.0.14",
-    "vitepress": "^2.0.0-alpha.17",
     "vitest": "^4.1.7",
-    "vue": "^3.5.34"
+    "yazl": "^3.3.1"
   },
   "pnpm": {
     "overrides": {

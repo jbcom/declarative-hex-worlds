@@ -37,9 +37,9 @@ const packageJson = readJson('package.json') as {
 requireIncludes(ci, 'ci.yml', [
   "NODE_VERSION: '22'",
   'pnpm/action-setup',
-  'task: [lint, typecheck, build, test]',
+  "task: [lint, typecheck, build, test, 'test:coverage:enforce']",
   'pnpm test:browser:free',
-  'pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build',
+  'pnpm test:docs-contract && pnpm test:api-docs && pnpm run docs',
   'pnpm test:assets',
   'pnpm test:workspace',
   'pnpm test:workflows',
@@ -52,8 +52,11 @@ requireIncludes(ci, 'ci.yml', [
   'fail-on-severity: high',
 ]);
 requireExcludes(ci, 'ci.yml', ['continue-on-error: true']);
+// Post-PRD-A9: `install` runs once and uploads node_modules as an artifact;
+// every downstream job restores via tar. The `package` job's first `run:`
+// is the restore step, not `pnpm install`.
 requireWorkflowJobRunCommands(ci, files.ci, 'package', [
-  'pnpm install --frozen-lockfile',
+  'tar --use-compress-program=unzstd -xf node_modules.tar.zst',
   'pnpm audit --prod --audit-level=high',
   'pnpm test:assets',
   'pnpm test:workspace',
@@ -70,14 +73,22 @@ requireIncludes(release, 'release.yml', [
   'pnpm/action-setup',
   'id-token: write',
   'pnpm test:ci',
-  'npm publish --access public --provenance',
+  // Post-G1/G2: publish step explicitly hands the packed tarball to `npm publish`
+  // so the SLSA L3 attestation in the previous step covers the exact bytes that ship.
+  '--access public --provenance',
+  // PRD G1
+  'actions/attest-build-provenance',
+  // PRD G2
+  '@cyclonedx/cyclonedx-npm',
 ]);
 requireIncludes(cd, 'cd.yml', [
   "NODE_VERSION: '22'",
   'pnpm/action-setup',
   'googleapis/release-please-action',
   'secrets.CI_GITHUB_TOKEN',
-  'pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build',
+  // Post-F-Site-5: replaces the legacy vitepress build with the Astro Starlight
+  // build under docs-site/. F-Site-12 removes the vitepress source.
+  'pnpm docs-site:build',
   'actions/deploy-pages',
 ]);
 requireIncludes(automerge, 'automerge.yml', [

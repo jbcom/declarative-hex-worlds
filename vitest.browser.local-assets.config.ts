@@ -2,6 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
+import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = resolve(packageRoot, '../..');
@@ -46,5 +47,6 @@ export default defineConfig({
     },
     include: ['tests/e2e/local-assets/**/*.test.ts'],
     testTimeout: 120_000,
+    coverage: harnessCoverage('browser-e2e-local-assets'),
   },
 });

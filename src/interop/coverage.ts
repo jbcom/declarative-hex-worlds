@@ -4,6 +4,7 @@
  *
  * @module
  */
+import { GameboardRuntimeError } from '../errors';
 import {
   listKayKitGuideAssetCoverages,
   listKayKitGuidePublicApiCoverages,
@@ -483,7 +484,7 @@ export function summarizeGameboardCoverage(
   const pages = scenarios.map((scenario) => {
     const page = pageByScenarioId.get(scenario.id);
     if (!page) {
-      throw new Error(`Missing guide coverage row for scenario ${scenario.id}`);
+      throw new GameboardRuntimeError(`Missing guide coverage row for scenario ${scenario.id}`);
     }
     const scenarioVisualArtifacts = visualArtifacts.filter((artifact) =>
       artifact.scenarioIds.includes(scenario.id)

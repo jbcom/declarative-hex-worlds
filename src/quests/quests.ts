@@ -18,6 +18,7 @@ import {
   type GameboardActorSnapshot,
 } from '../actors';
 import { hexDistance, hexKey, parseHexKey } from '../coordinates';
+import { GameboardRuntimeError } from '../errors';
 import type { HexCoordinates } from '../types';
 
 /**
@@ -276,6 +277,9 @@ export function advanceGameboardQuest(
 
   while (activeObjectiveIndex < current.objectives.length) {
     const objective = current.objectives[activeObjectiveIndex];
+    if (objective === undefined) {
+      throw new GameboardRuntimeError(`Quest objective index ${activeObjectiveIndex} out of range`);
+    }
     const evaluation = evaluateGameboardQuestObjective(world, objective, options.step ?? 0);
     progressById.set(objective.id, evaluation.progress);
 
@@ -444,7 +448,7 @@ function keyForTile(tile: HexCoordinates | string): string {
 function requireQuestEntity(world: World, quest: Entity | string): Entity {
   const entity = findGameboardQuestEntity(world, quest);
   if (!entity) {
-    throw new Error(`No gameboard quest exists with id ${typeof quest === 'string' ? quest : String(quest.id())}`);
+    throw new GameboardRuntimeError(`No gameboard quest exists with id ${typeof quest === 'string' ? quest : String(quest.id())}`);
   }
   return entity;
 }
@@ -452,7 +456,7 @@ function requireQuestEntity(world: World, quest: Entity | string): Entity {
 function requireQuestState(entity: Entity): GameboardQuestValue {
   const quest = entity.get(GameboardQuest);
   if (!quest) {
-    throw new Error(`Quest entity ${entity.id()} is missing GameboardQuest`);
+    throw new GameboardRuntimeError(`Quest entity ${entity.id()} is missing GameboardQuest`);
   }
   return copyQuestValue(quest);
 }

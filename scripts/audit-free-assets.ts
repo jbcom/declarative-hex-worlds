@@ -179,7 +179,7 @@ function assertBounds(asset: ManifestAsset): void {
     assert(asset.bounds[key].length === 3, `${asset.id} bounds.${key} must have three numbers`);
     assert(asset.bounds[key].every((value) => Number.isFinite(value)), `${asset.id} bounds.${key} must be finite`);
   }
-  for (let index = 0; index < 3; index += 1) {
+  for (const index of [0, 1, 2] as const) {
     const expectedSize = asset.bounds.max[index] - asset.bounds.min[index];
     assert(
       Math.abs(asset.bounds.size[index] - expectedSize) <= boundsTolerance,

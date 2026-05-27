@@ -12,6 +12,7 @@ import {
   type World,
 } from 'koota';
 import { hexDistance, hexKey, hexRange, neighbors, parseHexKey } from '../coordinates';
+import { GameboardRuntimeError } from '../errors';
 import type {
   GameboardPlacementKind,
   GameboardPlacementLayer,
@@ -1491,11 +1492,11 @@ function resolveNeighborhoodCenter(
     try {
       return parseHexKey(center);
     } catch {
-      throw new Error(`No tile, placement, actor, or hex key found for neighborhood center: ${center}`);
+      throw new GameboardRuntimeError(`No tile, placement, actor, or hex key found for neighborhood center: ${center}`);
     }
   }
 
-  throw new Error('No tile, placement, actor, or hex key found for neighborhood center');
+  throw new GameboardRuntimeError('No tile, placement, actor, or hex key found for neighborhood center');
 }
 
 function matchesNeighborhoodFilters(
@@ -2168,7 +2169,7 @@ function sameActorTeam(left: GameboardActorValue, right: GameboardActorValue): b
 function requireActorEntity(world: World, actor: Entity | string): Entity {
   const entity = findGameboardActorEntity(world, actor);
   if (!entity) {
-    throw new Error(
+    throw new GameboardRuntimeError(
       `No gameboard actor exists with id ${typeof actor === 'string' ? actor : String(actor.id())}`
     );
   }
@@ -2178,7 +2179,7 @@ function requireActorEntity(world: World, actor: Entity | string): Entity {
 function requirePlacementEntity(world: World, placement: Entity | string): Entity {
   const entity = findPlacementEntity(world, placement);
   if (!entity) {
-    throw new Error(
+    throw new GameboardRuntimeError(
       `No placement exists with id ${typeof placement === 'string' ? placement : String(placement.id())}`
     );
   }
@@ -2188,7 +2189,7 @@ function requirePlacementEntity(world: World, placement: Entity | string): Entit
 function requirePlacementState(entity: Entity): PlacementStateValue {
   const placement = entity.get(PlacementState);
   if (!placement) {
-    throw new Error(`Placement entity ${entity.id()} is missing PlacementState`);
+    throw new GameboardRuntimeError(`Placement entity ${entity.id()} is missing PlacementState`);
   }
   return copyPlacementState(placement);
 }
@@ -2196,7 +2197,7 @@ function requirePlacementState(entity: Entity): PlacementStateValue {
 function requireActorState(entity: Entity): GameboardActorValue {
   const actor = entity.get(GameboardActor);
   if (!actor) {
-    throw new Error(`Placement entity ${entity.id()} is missing GameboardActor`);
+    throw new GameboardRuntimeError(`Placement entity ${entity.id()} is missing GameboardActor`);
   }
   return copyActorValue(actor);
 }

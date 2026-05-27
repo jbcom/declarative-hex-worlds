@@ -5,6 +5,7 @@
  * @module
  */
 import seedrandom from 'seedrandom';
+import { GameboardRuntimeError } from '../errors';
 import {
   coloredUnitAssetId,
   factionBuildingAssetId,
@@ -241,6 +242,56 @@ export interface GameboardPlan {
   placements: readonly GameboardPlacementSpec[];
   /** Non-fatal generation warnings. */
   warnings: readonly string[];
+}
+
+/**
+ * Memoized indexes derived from a {@link GameboardPlan} (PRD B4).
+ *
+ * Previously, hot-path callers in `coordinates/layout.ts` + `interop/interop.ts`
+ * rebuilt these maps on every invocation — 4+ calls per render frame. The
+ * indexes are now built once via {@link gameboardPlanIndex} and cached
+ * per-plan in a module-local WeakMap, so the second-and-later callers pay
+ * O(1) lookup instead of O(N) rebuild.
+ */
+export interface GameboardPlanIndex {
+  /** Tile keyed by `q,r` hexKey. */
+  readonly tilesByKey: ReadonlyMap<string, GameboardTileSpec>;
+  /** Placement specs grouped by their tile's `q,r` hexKey. */
+  readonly placementsByTile: ReadonlyMap<string, readonly GameboardPlacementSpec[]>;
+}
+
+const PLAN_INDEX_CACHE = new WeakMap<GameboardPlan, GameboardPlanIndex>();
+
+/**
+ * Return memoized indexes for a {@link GameboardPlan}, building them lazily
+ * the first time and caching per-plan thereafter (PRD B4).
+ *
+ * Hot-path callers should prefer this over inlining
+ * `new Map(plan.tiles.map(...))` — that rebuild cost shows up under
+ * profiling on every render of large boards.
+ */
+export function gameboardPlanIndex(plan: GameboardPlan): GameboardPlanIndex {
+  const cached = PLAN_INDEX_CACHE.get(plan);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const tilesByKey = new Map<string, GameboardTileSpec>();
+  for (const tile of plan.tiles) {
+    tilesByKey.set(tile.key, tile);
+  }
+  const placementsByTile = new Map<string, GameboardPlacementSpec[]>();
+  for (const placement of plan.placements) {
+    const key = placement.tileKey;
+    let bucket = placementsByTile.get(key);
+    if (bucket === undefined) {
+      bucket = [];
+      placementsByTile.set(key, bucket);
+    }
+    bucket.push(placement);
+  }
+  const index: GameboardPlanIndex = { tilesByKey, placementsByTile };
+  PLAN_INDEX_CACHE.set(plan, index);
+  return index;
 }
 
 /**
@@ -1424,7 +1475,7 @@ export class GameboardBuilder {
     const key = hexKey(coordinates);
     const tile = this.tiles.get(key);
     if (!tile) {
-      throw new Error(`No tile exists at ${key} for ${this.shape.kind} gameboard`);
+      throw new GameboardRuntimeError(`No tile exists at ${key} for ${this.shape.kind} gameboard`);
     }
     return tile;
   }
@@ -2019,9 +2070,12 @@ function pathMasks(path: readonly HexCoordinates[]): Map<string, number> {
   for (let index = 0; index < path.length - 1; index += 1) {
     const current = path[index];
     const next = path[index + 1];
+    if (current === undefined || next === undefined) {
+      throw new GameboardRuntimeError(`pathMasks index ${index} out of range`);
+    }
     const edge = edgeBetween(current, next);
     if (edge === undefined) {
-      throw new Error(`Path step ${hexKey(current)} -> ${hexKey(next)} is not adjacent`);
+      throw new GameboardRuntimeError(`Path step ${hexKey(current)} -> ${hexKey(next)} is not adjacent`);
     }
     masks.set(hexKey(current), mergeMask(masks.get(hexKey(current)) ?? 0, 1 << edge));
     masks.set(hexKey(next), mergeMask(masks.get(hexKey(next)) ?? 0, 1 << oppositeEdge(edge)));
@@ -2057,7 +2111,7 @@ function edgeFromSingleBit(mask: number): HexEdgeIndex {
       return edge as HexEdgeIndex;
     }
   }
-  throw new Error('Expected a single-edge mask');
+  throw new GameboardRuntimeError('Expected a single-edge mask');
 }
 
 function waterEdgesFor(coordinates: HexCoordinates, waterKeys: ReadonlySet<string>): HexEdgeIndex[] {
@@ -2071,7 +2125,7 @@ function firstExistingCoordinate(
 ): HexCoordinates {
   const coordinate = candidates.find((candidate) => keys.has(hexKey(candidate)) && !excludedKeys.has(hexKey(candidate)));
   if (!coordinate) {
-    throw new Error('No available coordinate exists for the requested board feature');
+    throw new GameboardRuntimeError('No available coordinate exists for the requested board feature');
   }
   return coordinate;
 }
@@ -2111,7 +2165,7 @@ function fortificationAssetId(material: FortificationMaterial, segment: Fortific
     }
   }
   if (segment !== 'straight' && segment !== 'gate' && segment !== 'straight-gate') {
-    throw new Error(`Fortification material ${material} does not support segment ${segment}`);
+    throw new GameboardRuntimeError(`Fortification material ${material} does not support segment ${segment}`);
   }
   const fenceSegment = segment === 'straight' ? 'straight' : 'straight_gate';
   return `fence_${material === 'wood-fence' ? 'wood' : 'stone'}_${fenceSegment}` as NeutralStructureKind;

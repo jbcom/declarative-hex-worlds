@@ -1,0 +1,48 @@
+# Contributing
+
+Thanks for considering a contribution to `@jbcom/medieval-hexagon-gameboard`.
+
+## Getting set up
+
+```bash
+git clone https://github.com/jbcom/medieval-hexagon-gameboard.git
+cd medieval-hexagon-gameboard
+pnpm install
+pnpm verify
+```
+
+`pnpm verify` runs every gate the CI applies (lint, typecheck, tests, asset audits, package boundary, packed-consumer smoke, dry-run pack). If it passes locally it will pass in CI.
+
+Node ≥22 and pnpm ≥9 required (`packageManager: pnpm@9.15.9` is pinned).
+
+## The test trinity
+
+This library treats coverage as a non-negotiable invariant (PRD §6). Three harnesses contribute:
+
+- **Unit** — `pnpm test`. Vitest against `src/**/__tests__/*.test.ts` (co-located with source).
+- **Browser** — `pnpm test:browser:free`. Vitest browser mode against real Chromium with committed screenshot snapshots in `tests/browser/__screenshots__/`.
+- **E2E** — `pnpm test:e2e:local-assets`. Full catalog → blueprint → simulation → render flow against bundled assets + cross-kit fixtures.
+
+Coverage from all three feeds into one merged report via `pnpm coverage:all`. The CI ratchet (PRD A8) refuses regressions from the current floor.
+
+## Asset bootstrap
+
+The published tarball ships only `assets/free/manifest.json` — the GLTF tree itself is fetched at install time by the CLI `bootstrap` subcommand (PRD §Phase RB). Locally, `pnpm assets:free` materializes the FREE pack into `assets/free/` for testing; those files stay gitignored.
+
+## Working with the agentic state
+
+`.agent-state/directive.md` is the authoritative work queue. PRD lives at `docs/PRD/1.0.md`. Both are tracked in git; the directive's checkboxes flip in the same commit as the work they describe.
+
+If you're using Claude Code, Codex, or similar harness on this repo, the directive is what the agent reads at session start. Update it when scope shifts; don't let it rot.
+
+## Commit + PR style
+
+- Conventional Commits required: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `perf:`, `test:`, `ci:`, `build:`. release-please derives the changelog from these.
+- One topic per commit; commit freely on a feature branch.
+- PRs are squash-merged. Make sure the squashed message reads cleanly.
+- Reference PRD items (`PRD A9`, `PRD F-Site-3`) in commit messages where applicable.
+- Never `--no-verify` to bypass hooks. If a hook fails, fix the cause.
+
+## Reporting bugs + asking questions
+
+Open an issue at https://github.com/jbcom/medieval-hexagon-gameboard/issues. For security-sensitive reports, see [SECURITY.md](./SECURITY.md).
