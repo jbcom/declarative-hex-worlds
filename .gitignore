@@ -196,3 +196,8 @@ tests/browser/**/__screenshots__
 docs-site/node_modules
 docs-site/dist
 docs-site/.astro
+
+# Claude Code runtime state (not for git)
+.claude/scheduled_tasks.lock
+.claude/state/task-batch/
+

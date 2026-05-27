@@ -3,8 +3,12 @@ import { createGameboardBuilder } from '../../gameboard/index';
 import { PlacementState, createGameboardWorld, findPlacementEntity } from '../../koota/index';
 import { setGameboardMovementAgent } from '../../movement/index';
 import { findGameboardActor, spawnGameboardActor } from '../../actors/index';
+import type { World } from 'koota';
+import type { GameboardInteractionCommand } from '../../actors/index';
 import {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
+  type GameboardInteractionCommandPreview,
+  type GameboardInteractionHandlerContext,
   createGameboardInteractionHandlerPreset,
   createMarkTargetActorInteractedHandler,
   createRemoveTargetActorHandler,
@@ -15,6 +19,25 @@ import {
   planGameboardActorTargetCommand,
   previewGameboardInteractionCommand,
 } from '../../commands/index';
+
+/**
+ * Build a typed minimal handler context — exercises the createRemove*Handler
+ * factories' decision logic without standing up a full Koota world. The
+ * handler bodies only read `command` (kind + target) and write through `world`
+ * via removeGameboardPlacement; for the not-handled and blocked branches
+ * targeted by these E0b tests, `world` is never touched. We type-cast the
+ * minimal record at function boundaries with empty-object `as` instead of
+ * `any`, so each call site stays type-checked.
+ */
+function stubHandlerContext(
+  command: Pick<GameboardInteractionCommand, 'kind' | 'target'>
+): GameboardInteractionHandlerContext {
+  return {
+    world: {} as unknown as World,
+    preview: {} as unknown as GameboardInteractionCommandPreview,
+    command: command as GameboardInteractionCommand,
+  };
+}
 
 describe('gameboard interaction commands', () => {
   it('previews and requests actor-aware movement commands', () => {
@@ -443,57 +466,29 @@ describe('createRemoveTargetPlacementHandler factory (PRD E0a)', () => {
   });
 
   it('returns blocked when no target placement is resolved (E0b)', () => {
-    // Direct call exercises commands.ts lines 538-545: command.target.placement is absent.
     const handler = createRemoveTargetPlacementHandler();
-    // biome-ignore lint/suspicious/noExplicitAny: minimal command shape for unit test
-    const result = handler({
-      // biome-ignore lint/suspicious/noExplicitAny: stub world
-      world: {} as any,
-      // biome-ignore lint/suspicious/noExplicitAny: stub preview
-      preview: {} as any,
-      command: {
-        kind: 'interact-placement',
-        target: {},
-        // biome-ignore lint/suspicious/noExplicitAny: minimal command shape for unit test
-      } as any,
-    });
+    const result = handler(
+      stubHandlerContext({ kind: 'interact-placement', target: { kind: 'tile' } as never })
+    );
     expect(result).toMatchObject({ status: 'blocked', reason: 'No target placement for command' });
   });
 
   it('returns undefined for unaccepted command kinds (E0b)', () => {
-    // Direct call exercises commands.ts lines 532-533: command.kind not in commandKinds.
     const handler = createRemoveTargetPlacementHandler();
-    const result = handler({
-      // biome-ignore lint/suspicious/noExplicitAny: stub world
-      world: {} as any,
-      // biome-ignore lint/suspicious/noExplicitAny: stub preview
-      preview: {} as any,
-      command: {
-        kind: 'attack-actor',
-        target: { placement: { id: 'p1' } },
-        // biome-ignore lint/suspicious/noExplicitAny: minimal command shape for unit test
-      } as any,
-    });
+    const result = handler(
+      stubHandlerContext({ kind: 'attack-actor', target: { kind: 'placement' } as never })
+    );
     expect(result).toBeUndefined();
   });
 
   it('returns undefined for actor-target placements without includeActorPlacements (E0b)', () => {
-    // Direct call exercises commands.ts lines 535-536.
     const handler = createRemoveTargetPlacementHandler();
-    const result = handler({
-      // biome-ignore lint/suspicious/noExplicitAny: stub world
-      world: {} as any,
-      // biome-ignore lint/suspicious/noExplicitAny: stub preview
-      preview: {} as any,
-      command: {
+    const result = handler(
+      stubHandlerContext({
         kind: 'interact-placement',
-        target: {
-          actor: { entity: 'e1', actor: { actorId: 'a1' }, placement: { id: 'p1' } },
-          placement: { id: 'p1' },
-        },
-        // biome-ignore lint/suspicious/noExplicitAny: minimal command shape for unit test
-      } as any,
-    });
+        target: { kind: 'actor', actor: { entity: 'e1' }, placement: { id: 'p1' } } as never,
+      })
+    );
     expect(result).toBeUndefined();
   });
 });
