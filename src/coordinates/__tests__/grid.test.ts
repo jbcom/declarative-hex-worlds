@@ -90,6 +90,24 @@ describe('grid helpers', () => {
     expect(first[0]?.position).toEqual(system.toWorld(first[0]?.coordinates ?? { q: 0, r: 0 }));
   });
 
+  it('createSpawnLocations honors edgePadding on hexagon-shaped boards (E0b)', () => {
+    // Covers coordinates.ts line 381: hexagon-shape edgePadding branch.
+    const locations = createSpawnLocations({
+      shape: { kind: 'hexagon', radius: 3 },
+      count: 2,
+      seed: 'hex-padding-seed',
+      edgePadding: 1,
+    });
+    // All selected coordinates must lie within radius - padding from origin.
+    expect(locations.every((loc) => {
+      const r = loc.coordinates.r;
+      const q = loc.coordinates.q;
+      const s = -q - r;
+      const dist = (Math.abs(q) + Math.abs(r) + Math.abs(s)) / 2;
+      return dist <= 2;
+    })).toBe(true);
+  });
+
   it('fromWorld + findPath wrappers fire on the coordinate system (E0a)', () => {
     const system = createGameboardCoordinateSystem();
     // fromWorld inverse — picks the axial coord closest to a world position.
