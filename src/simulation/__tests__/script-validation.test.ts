@@ -1141,22 +1141,31 @@ describe('inspectGameboardScenarioSimulationScript top-level structure errors', 
   });
 
   it('inspect-actor-targets center matches a known tile-key string (E0b)', () => {
-    // scenarioIndex.tileKeys gets populated from spawn-placement steps;
+    // scenarioIndex.tileKeys is populated from config.scenario's board recipe;
     // matching a known key takes the line 2023-2025 path.
+    const scenario = {
+      schemaVersion: '1.0.0',
+      id: 'center-known-tile-scenario',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'center-known-tile', shape: { kind: 'rectangle', width: 2, height: 2 } },
+        steps: [],
+      },
+    };
     const script = {
       schemaVersion: GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
       steps: [
-        {
-          id: 'spawn',
-          action: 'spawn-placement',
-          placement: { id: 'marker', at: '0,0', assetId: 'flag_blue', kind: 'prop' },
-        },
         { id: 'inspect', action: 'inspect-actor-targets', targeting: { center: '0,0' } },
       ],
     };
-    // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
-    const result = inspectGameboardScenarioSimulationScript(script as any);
-    expect(Array.isArray(result.violations)).toBe(true);
+    const result = inspectGameboardScenarioSimulationScript(
+      // biome-ignore lint/suspicious/noExplicitAny: schema-shaped fixture
+      script as any,
+      // biome-ignore lint/suspicious/noExplicitAny: schema-shaped scenario
+      { scenario: scenario as any }
+    );
+    // Should not flag center as a missing tile — '0,0' is in plan.tiles.
+    expect(result.violations.some((v) => v.code === 'simulation.tile_missing')).toBe(false);
   });
 
   it('flags inspect-actor-targets center with non-string non-coords value (E0a)', () => {
