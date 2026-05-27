@@ -294,7 +294,8 @@ describe('selectManifestAssets filter branches (PRD E0h)', () => {
 
   it('returns empty when textureSets filter excludes everything (E0b)', () => {
     // Forces the early-return false branch at schema.ts line 333.
-    const result = selectManifestAssets(freeManifest, { textureSets: ['nonexistent-set'] });
+    // 'winter' is a valid TextureSet but no FREE asset uses it — forces the early-return false branch.
+    const result = selectManifestAssets(freeManifest, { textureSets: ['winter'] });
     expect(result).toEqual([]);
   });
 
