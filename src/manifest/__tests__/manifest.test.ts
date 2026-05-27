@@ -242,6 +242,42 @@ describe('selectManifestAssets filter branches (PRD E0h)', () => {
   });
 });
 
+describe('createManifestBundle duplicatePreference variants (PRD E0a)', () => {
+  it('prefers the first occurrence when duplicatePreference="first"', () => {
+    const free = manifestFixture('free', [
+      assetFixture({ id: 'shared', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const extra = manifestFixture('extra', [
+      assetFixture({ id: 'shared', edition: 'extra', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const bundle = createManifestBundle([free, extra], { duplicatePreference: 'first' });
+    expect(getManifestAsset(bundle, 'shared')?.edition).toBe('free');
+  });
+
+  it('prefers the last occurrence when duplicatePreference="last"', () => {
+    const free = manifestFixture('free', [
+      assetFixture({ id: 'shared', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const extra = manifestFixture('extra', [
+      assetFixture({ id: 'shared', edition: 'extra', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const bundle = createManifestBundle([free, extra], { duplicatePreference: 'last' });
+    expect(getManifestAsset(bundle, 'shared')?.edition).toBe('extra');
+  });
+
+  it('prefers the FREE edition when duplicatePreference="free" (E0a)', () => {
+    const free = manifestFixture('free', [
+      assetFixture({ id: 'shared', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const extra = manifestFixture('extra', [
+      assetFixture({ id: 'shared', edition: 'extra', category: 'tiles', subcategory: 'base' }),
+    ]);
+    // Insert extra first so the duplicate-pref branch fires (existing.edition !== 'free' && next.edition === 'free').
+    const bundle = createManifestBundle([extra, free], { duplicatePreference: 'free' });
+    expect(getManifestAsset(bundle, 'shared')?.edition).toBe('free');
+  });
+});
+
 describe('hasManifestAsset (PRD E0g)', () => {
   it('returns true for an asset id present in the FREE manifest', () => {
     // Pull any known asset id off the FREE manifest to avoid hardcoding.
