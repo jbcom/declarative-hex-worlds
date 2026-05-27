@@ -497,13 +497,14 @@ describe('serializable gameboard recipes', () => {
         shape: { kind: 'rectangle', width: 8, height: 8 },
       },
       [
-        { action: 'addNeutralStructure', at: { q: 0, r: 0 } },
-        { action: 'addNature', at: { q: 1, r: 0 } },
+        { action: 'addNeutralStructure', at: { q: 0, r: 0 }, structure: 'building_destroyed' },
+        { action: 'addNature', at: { q: 1, r: 0 }, assetId: 'tree_single_A' },
         {
           action: 'addPlacement',
           at: { q: 2, r: 0 },
           assetId: 'tree_single_A',
           kind: 'decoration',
+          layer: 'feature',
         },
         {
           action: 'addUnit',
@@ -514,7 +515,7 @@ describe('serializable gameboard recipes', () => {
         {
           action: 'scatterDecorations',
           assets: ['tree_single_A'],
-          density: 0.1,
+          count: 2,
         },
       ]
     );

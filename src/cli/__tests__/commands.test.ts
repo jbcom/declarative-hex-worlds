@@ -422,6 +422,24 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
     );
   });
 
+  it('extract throws when destination is non-empty without --force (E0a)', async () => {
+    const { mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const outRel = `.test-tmp/extract-nonempty-${Date.now()}`;
+    const assetRoot = join(outRel, 'assets');
+    mkdirSync(assetRoot, { recursive: true });
+    writeFileSync(join(assetRoot, 'sentinel.txt'), 'pre-existing');
+    try {
+      const parsed: ParsedArgs = {
+        command: 'extract',
+        flags: { out: outRel },
+      };
+      await expect(runExtract(parsed, '/no-source', 'free')).rejects.toThrow(/not empty/);
+    } finally {
+      rmSync(outRel, { recursive: true, force: true });
+    }
+  });
+
   it('declarations surfaces GameboardIoError when source root is missing', async () => {
     // registryFromArgs reads the GLTF tree from <sourceRoot>/Assets/gltf;
     // pointing at /nonexistent exercises the wrapper-import line + the
