@@ -4,7 +4,7 @@
 //   - package.json shape (private/public flags, engines, packageManager, scripts pin to
 //     the release-gate chain, exports map matches sub-package barrels)
 //   - tsconfig + tsup wiring
-//   - typedoc + vitepress wiring
+//   - typedoc wiring (vitepress dropped in F-Site-12; docs site now ships from docs-site/ via Astro Starlight)
 //   - release-readiness ledger shape
 //   - README and AGENTS sanity (link integrity, attribution)
 //
@@ -86,7 +86,6 @@ const requiredScripts = [
   'cli',
   'coverage:ledger',
   'docs',
-  'docs:build',
   'pack:dry-run',
   'prepublishOnly',
 ] as const;

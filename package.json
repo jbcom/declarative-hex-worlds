@@ -218,7 +218,7 @@
     "test:screenshots:extra": "tsx tests/scripts/assert-screenshots.ts --minHeight 200 tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png tests/browser/__screenshots__/extra-guide-assets-by-public-role.png tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png tests/browser/__screenshots__/extra-seasonal-textures.png tests/browser/__screenshots__/extra-harbor-gameboard.png tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
     "test:screenshots:local-assets": "tsx tests/scripts/assert-screenshots.ts tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png",
     "expectations": "vitest run --config vitest.config.ts tests/unit/simulation.test.ts tests/unit/examples.test.ts tests/unit/simple-rpg.test.ts",
-    "verify": "pnpm lint && pnpm typecheck && pnpm audit --prod --audit-level=high && pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm expectations && pnpm test && pnpm test:coverage:enforce && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run",
+    "verify": "pnpm lint && pnpm typecheck && pnpm audit --prod --audit-level=high && pnpm test:docs-contract && pnpm test:api-docs && pnpm docs && pnpm test:assets && pnpm test:workspace && pnpm test:workflows && pnpm build && pnpm test:cli && pnpm expectations && pnpm test && pnpm test:coverage:enforce && pnpm test:package && pnpm test:consumer && pnpm pack:dry-run",
     "test:ci": "pnpm verify",
     "test:api-docs": "tsx scripts/audit-api-docs.ts",
     "test:assets": "pnpm test:assets:free && pnpm test:reference-assets && pnpm test:manifest-drift",
@@ -243,7 +243,6 @@
     "cli": "node dist/cli.js",
     "coverage:ledger": "pnpm build && node dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md",
     "docs": "typedoc --options typedoc.json",
-    "docs:build": "pnpm run docs && vitepress build docs --outDir docs/.vitepress/dist",
     "//docs-site": "docs-site/ is a sibling Astro Starlight project — NOT a pnpm workspace member. We dropped workspaces in R1 (see PRD Epic R), so docs-site keeps its own package.json + lockfile and these scripts delegate via `cd docs-site && pnpm ...`. This keeps the library's tarball devDependencies focused on the runtime; the docs site's Astro/Starlight chain lives in its own dependency tree.",
     "docs-site:install": "cd docs-site && pnpm install",
     "docs-site:dev": "cd docs-site && pnpm dev",
@@ -308,9 +307,7 @@
     "typedoc": "^0.28.19",
     "typescript": "^5.9.3",
     "vite": "^8.0.14",
-    "vitepress": "^2.0.0-alpha.17",
     "vitest": "^4.1.7",
-    "vue": "^3.5.34",
     "yazl": "^3.3.1"
   },
   "pnpm": {

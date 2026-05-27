@@ -39,7 +39,7 @@ requireIncludes(ci, 'ci.yml', [
   'pnpm/action-setup',
   "task: [lint, typecheck, build, test, 'test:coverage:enforce']",
   'pnpm test:browser:free',
-  'pnpm test:docs-contract && pnpm test:api-docs && pnpm docs:build',
+  'pnpm test:docs-contract && pnpm test:api-docs && pnpm docs',
   'pnpm test:assets',
   'pnpm test:workspace',
   'pnpm test:workflows',
