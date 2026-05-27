@@ -880,6 +880,27 @@ describe('gameboard scenarios', () => {
     expect(codes).toContain('scenario.actor_spawn_location_index');
   });
 
+  it('reports actor with invalid tile coordinate (E0b)', () => {
+    const board = createGameboardRecipe({
+      seed: 'bad-actor-tile',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-actor-tile', board, {
+      actors: [
+        {
+          actorId: 'orphan',
+          actorKind: 'npc',
+          // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid coord
+          at: 17 as any,
+          assetId: 'flag_blue',
+          kind: 'unit',
+        },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_tile_key');
+  });
+
   it('reports actor with empty actorId + duplicate actorId (E0b)', () => {
     const board = createGameboardRecipe({
       seed: 'bad-actor-ids',
