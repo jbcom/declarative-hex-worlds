@@ -32,11 +32,11 @@ describe('grid helpers', () => {
     // Fractional positions just inside neighboring hex boundaries — engineered
     // so the rounding pick crosses the qDiff > rDiff > sDiff branches
     // (grid.ts lines 235-241).
-    const a = worldToAxial({ x: 1.001, y: 0, z: 0.5 });
+    const a = worldToAxial({ x: 1.001, z: 0.5 });
     expect(typeof a.q).toBe('number');
-    const b = worldToAxial({ x: -1.001, y: 0, z: 0.5 });
+    const b = worldToAxial({ x: -1.001, z: 0.5 });
     expect(typeof b.q).toBe('number');
-    const c = worldToAxial({ x: 0.3, y: 0, z: 1.001 });
+    const c = worldToAxial({ x: 0.3, z: 1.001 });
     expect(typeof c.q).toBe('number');
   });
 
