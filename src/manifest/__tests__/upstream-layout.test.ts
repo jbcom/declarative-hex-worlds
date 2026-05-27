@@ -93,6 +93,22 @@ describe('KayKit upstream layouts', () => {
     }
   );
 
+  it('returns undefined when a required asset category directory is missing (E0b)', () => {
+    // Covers upstream-layout.ts line 170 — asset category dir missing under gltf root.
+    const root = mkdtempSync(join(tmpdir(), 'kaykit-missing-category-'));
+    try {
+      const layout = KAYKIT_MEDIEVAL_FREE_LAYOUT;
+      for (const marker of layout.markerFiles) {
+        writeFileSync(join(root, marker), 'marker');
+      }
+      mkdirSync(join(root, layout.relativeGltfRoot), { recursive: true });
+      // Intentionally do NOT create any of the asset categories.
+      expect(detectKayKitLayout(root)).toBeUndefined();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('returns undefined for a synthetic free root that includes a units/ directory (E0h)', () => {
     // FREE layout must NOT have units/ — detector rejects.
     const root = mkdtempSync(join(tmpdir(), 'medieval-hexagon-fake-free-with-units-'));
