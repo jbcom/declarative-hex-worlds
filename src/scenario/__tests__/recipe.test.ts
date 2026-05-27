@@ -490,6 +490,23 @@ describe('serializable gameboard recipes', () => {
     expect(plan.placements.length).toBeGreaterThan(5);
   });
 
+  it('mergeGameboardRecipes merges generations and selects last layoutFillSeed (E0b)', () => {
+    const recipeA = createGameboardRecipe(
+      { seed: 'merge-gen-a', shape: { kind: 'rectangle', width: 4, height: 4 } },
+      [],
+      { layoutFillSeed: 'seed-a' }
+    );
+    const recipeB = createGameboardRecipe(
+      { seed: 'merge-gen-b', shape: { kind: 'rectangle', width: 4, height: 4 } },
+      [],
+      { layoutFillSeed: 'seed-b' }
+    );
+    const merged = mergeGameboardRecipes(recipeA, [recipeB]);
+    // mergeRecipeGenerations + lastLayoutFillSeed run; merged.generation
+    // exists, and lastLayoutFillSeed returns the last non-undefined seed (b).
+    expect(merged.generation?.layoutFillSeed).toBe('seed-b');
+  });
+
   it('dispatches addNeutralStructure / addNature / addPlacement / addUnit / scatterDecorations (E0a)', () => {
     const recipe = createGameboardRecipe(
       {
