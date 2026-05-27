@@ -448,4 +448,15 @@ describe('Koota rules and seeded generation', () => {
 
     expect(validateGameboardRules(world)).toEqual(validateGameboardPlan(plan));
   });
+
+  it('world-rules error + false branches: missing tile throws; non-water adjacency rejects harbor (PRD E0f)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({ seed: 'world-rules-branches', shape: { kind: 'rectangle', width: 2, height: 2 } }).build()
+    );
+
+    expect(() => setTileTerrain(world, { q: 99, r: 99 }, 'water')).toThrow(/No tile exists/);
+    expect(() => setTileElevation(world, { q: 99, r: 99 }, 2)).toThrow(/No tile exists/);
+    expect(canPlaceHarborAt(world, { q: 0, r: 0 }, 0)).toBe(false);
+    expect(canPlaceHarborAt(world, { q: 99, r: 99 }, 0)).toBe(false);
+  });
 });
