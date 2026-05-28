@@ -121,7 +121,7 @@ Started: 2026-05-28T10:33:51Z
 ### task-LF4 Relocate bootstrap to CLI command area
 - [x] task-LF4 ✅ (commit, 2026-05-28) Moved src/bootstrap/* → src/cli/commands/bootstrap/ (core/target/upstream-layout/index.ts; index now hosts the `run` command merging the old thin wrapper). _shared imports `./commands/bootstrap/core` (cycle-safe). tsup + astro typedoc inputs repointed; subpath KEYS + dist paths unchanged. e2e/integration tests repointed. No top-level src/bootstrap/. All green: typecheck/715 unit/build/lint.
 ### task-LF5 Repoint subpaths + build + lint + docs
-- [ ] task-LF5 Update package.json exports (manifest/upstream-layout → cli/bootstrap; ./bootstrap repoint), tsup entries, biome noRestrictedImports, docs-site refs, scripts/smoke/types.ts; build+lint+typecheck+test green.
+- [x] task-LF5 ✅ (commit, 2026-05-28) Hand-written docs repointed (architecture, errors guide, kaykit-upstream-layout guide). Auto-typedoc regenerated. Empty stale `reference/bootstrap/` deleted. biome rule needed no change (bootstrap moved INTO src/cli/commands; the rule's `../bootstrap` matchers no longer apply since there's no top-level bootstrap domain). package.json exports + tsup + scripts/smoke + astro typedoc inputs already updated in LF3+LF4. All green.
 ### task-LF6 Proper CLI library
 - [ ] task-LF6 Replace hand-rolled cli.ts argv parsing + dispatch table with a real CLI framework (lazy subcommand loading preserved); all subcommands + --help preserved; cli smoke tests pass.
 ### task-LF7 Unify bootstrap source on the zip flow (no git, no peer dep)
