@@ -81,6 +81,34 @@ describe('tile registry and ECS interop', () => {
     expect(snapshot.spawnLocations).toHaveLength(2);
   });
 
+  it('analyzeHexTileRegistry warns on no tile-sized declarations + width/depth variance (E0b)', () => {
+    // Covers registry.ts lines 378-380 (empty scale set) + 385+388 (variance warnings).
+    const emptyRegistry = createHexTileRegistry([]);
+    expect(
+      analyzeHexTileRegistry(emptyRegistry).warnings.some((w) => w.includes('No tile-sized'))
+    ).toBe(true);
+
+    const varianceRegistry = createHexTileRegistry([
+      {
+        id: 'tile-a',
+        assetId: 'tile-a',
+        role: 'base',
+        terrain: 'grass',
+        bounds: { min: [-1, 0, -1], max: [1, 0.5, 1], size: [2, 0.5, 2] },
+      },
+      {
+        id: 'tile-b',
+        assetId: 'tile-b',
+        role: 'base',
+        terrain: 'grass',
+        bounds: { min: [-3, 0, -3], max: [3, 0.5, 3], size: [6, 0.5, 6] },
+      },
+    ]);
+    const analysis = analyzeHexTileRegistry(varianceRegistry);
+    expect(analysis.warnings.some((w) => w.includes('width variance'))).toBe(true);
+    expect(analysis.warnings.some((w) => w.includes('depth variance'))).toBe(true);
+  });
+
   it('applyTileDeclaration throws on unknown declaration id (E0b)', () => {
     const registry = createHexTileRegistry([]);
     const builder = createGameboardBuilder({
