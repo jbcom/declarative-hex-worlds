@@ -149,6 +149,35 @@ describe('free manifest', () => {
     );
   });
 
+  it('strips leading slashes from modelPath and trailing slashes from plain baseUrl (E0a)', () => {
+    // Covers schema.ts line 774 (stripLeadingSlashes loop body) + 782
+    // (stripTrailingSlashes loop body) via the plain (non-URL) join path.
+    const asset = assetFixture({
+      id: 'hex_grass',
+      edition: 'free',
+      category: 'tiles',
+      subcategory: 'base',
+      modelPath: '///assets/free/tiles/base/hex_grass.gltf',
+    });
+    expect(resolveManifestAssetUrl(asset, { baseUrl: '/vendor/kaykit///' })).toBe(
+      '/vendor/kaykit/assets/free/tiles/base/hex_grass.gltf'
+    );
+  });
+
+  it('rejects manifest counts whose byCategory is not a record (E0a)', () => {
+    // Covers schema.ts line 648 (sameNumberRecord non-record early return).
+    const base = manifestFixture('free', [
+      assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    const malformed = {
+      ...base,
+      counts: { total: base.counts.total, byCategory: 'not-a-record', bySubcategory: {} },
+    };
+    expect(validateMedievalHexagonManifest(malformed).map((issue) => issue.code)).toContain(
+      'manifest.counts_stale'
+    );
+  });
+
   it('reports manifest errors and stale generated indexes for app-local ingest', () => {
     const staleManifest = {
       ...manifestFixture('extra', [
