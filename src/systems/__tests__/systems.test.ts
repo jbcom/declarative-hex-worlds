@@ -556,4 +556,92 @@ describe('gameboard systems', () => {
     const tickResult = actions.run({ movement: { steps: 1 } });
     expect(tickResult).toBeDefined();
   });
+
+  it('copyQuestObjective covers targetTile-as-object and plain-fallback branches (E0a)', () => {
+    // Use a collision quest with targetTile as a HexCoordinates object so
+    // snapshotGameboardSystemEvents exercises the targetTile copy branch in
+    // copyQuestObjective (line 892-894 of systems.ts).
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'systems-copy-quest-objective',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    const hero = spawnGameboardActor(world, {
+      id: 'copy-hero-placement',
+      actorId: 'copy-hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      id: 'copy-npc-placement',
+      actorId: 'copy-npc',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_green',
+      kind: 'prop',
+    });
+    spawnGameboardQuest(world, {
+      id: 'collision-targetTile-quest',
+      objectives: [
+        {
+          id: 'collision-obj',
+          kind: 'collision',
+          actor: 'copy-hero',
+          targetTile: { q: 1, r: 0 },
+          expect: 'can-enter',
+        },
+      ],
+    });
+    setGameboardMovementAgent(world, hero, { profile: 'ground', movementBudget: 2 });
+    const dispatch = dispatchGameboardInteractionCommand(world, '1,0', { sourceActor: 'copy-hero' });
+    const systems = runGameboardSystems(world, { movement: { steps: 5 }, quests: { step: 1 } });
+    // The snapshot path calls copyQuestObjective which must copy the targetTile object.
+    const snapshot = snapshotGameboardSystemEvents([...dispatch.events, ...systems.events]);
+    const questEvent = snapshot.find((e) => e.type === 'quest-advanced' || e.type === 'quest-blocked');
+    expect(questEvent).toBeDefined();
+  });
+
+  it('snapshotGameboardSystemEvents with no movement covers questRecord undefined + movementRequestRecord undefined branches (E0a)', () => {
+    // A command that doesn't involve movement produces events without
+    // movement records, exercising the movementRequestRecord(undefined)
+    // and questRecord(undefined) guard branches (lines 851-852, 869-870).
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'systems-no-movement',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    spawnGameboardActor(world, {
+      id: 'stationary-hero',
+      actorId: 'stationary',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      id: 'stationary-target',
+      actorId: 'npc-target',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_green',
+      kind: 'prop',
+      hostile: false,
+    });
+    // Dispatch a handler-required interaction (no movement involved).
+    const dispatch = dispatchGameboardInteractionCommand(world, { actorId: 'npc-target' }, { sourceActor: 'stationary' });
+    expect(dispatch.events.some((e) => e.type === 'command-handler-required')).toBe(true);
+    // snapshotGameboardSystemEvents must not throw when movement/quest are absent.
+    const snapshot = snapshotGameboardSystemEvents(dispatch.events);
+    const handlerRequiredRecord = snapshot.find((e) => e.type === 'command-handler-required');
+    expect(handlerRequiredRecord).toBeDefined();
+    // The record has no movement or quest fields (those helpers return undefined).
+    // biome-ignore lint/suspicious/noExplicitAny: snapshot discriminated union
+    expect((handlerRequiredRecord as any)?.movement).toBeUndefined();
+    // biome-ignore lint/suspicious/noExplicitAny: snapshot discriminated union
+    expect((handlerRequiredRecord as any)?.quest).toBeUndefined();
+  });
 });
