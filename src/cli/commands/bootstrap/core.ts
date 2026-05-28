@@ -433,29 +433,28 @@ async function resolvePackRoot(
   return detected;
 }
 
-function findPackRoot(stagingRoot: string): string | undefined {
-  if (existsSync(join(stagingRoot, KAYKIT_MEDIEVAL_FREE_LAYOUT.relativeGltfRoot))) {
+function findPackRoot(stagingRoot: string, maxDepth = 4): string | undefined {
+  if (detectKayKitLayout(stagingRoot)) {
     return stagingRoot;
   }
-  const entries = readdirSync(stagingRoot, { withFileTypes: true });
+  if (maxDepth <= 0) {
+    return undefined;
+  }
+  let entries: import('node:fs').Dirent[];
+  try {
+    entries = readdirSync(stagingRoot, { withFileTypes: true });
+  } catch {
+    return undefined;
+  }
   for (const entry of entries) {
     if (!entry.isDirectory()) {
       continue;
     }
-    const candidate = join(stagingRoot, entry.name);
-    if (detectKayKitLayout(candidate)) {
-      return candidate;
-    }
-    // GitHub archives nest the pack under `<repo>-<ref>/`; recurse one level.
-    const innerEntries = readdirSync(candidate, { withFileTypes: true });
-    for (const innerEntry of innerEntries) {
-      if (!innerEntry.isDirectory()) {
-        continue;
-      }
-      const inner = join(candidate, innerEntry.name);
-      if (detectKayKitLayout(inner)) {
-        return inner;
-      }
+    // GitHub archives nest the pack under `<repo>-<ref>/addons/<pack>/`;
+    // recurse up to maxDepth levels to handle varying nesting depths.
+    const found = findPackRoot(join(stagingRoot, entry.name), maxDepth - 1);
+    if (found) {
+      return found;
     }
   }
   return undefined;

@@ -117,9 +117,9 @@ jobs:
         run: pnpm ${{ matrix.task }}
 
   browser-free:
-    # FREE browser visual tests + screenshot snapshot diffing. The
-    # `bootstrap --source github` step pulls 221 FREE GLTFs from KayKit's
-    # upstream tag before the visual suite renders them under Chromium.
+    # FREE browser visual tests + screenshot snapshot diffing. Uses the
+    # bundled assets/free/ GLTFs (committed to the repo) — no bootstrap step
+    # required. The bootstrap CLI is tested separately in the contract suite.
     name: FREE Browser Visuals
     needs: [install, check]
     runs-on: ubuntu-latest
@@ -143,9 +143,6 @@ jobs:
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
-
-      - name: Bootstrap FREE KayKit pack
-        run: pnpm exec tsx src/cli/cli.ts bootstrap --source github --out public/assets/models
 
       - name: Run FREE browser visual tests
         run: pnpm test:browser:free
