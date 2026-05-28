@@ -29,6 +29,7 @@ import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import yauzl from 'yauzl';
+import { BOOTSTRAP_PATHS, KAYKIT_SOURCE, kaykitGithubArchiveUrl } from '../../../config';
 import { GameboardIoError, GameboardManifestError } from '../../../errors';
 import {
   KAYKIT_MEDIEVAL_FREE_LAYOUT,
@@ -48,18 +49,18 @@ import {
 /**
  * Canonical GitHub organization holding the FREE edition source tree.
  */
-export const KAYKIT_FREE_GITHUB_OWNER = 'KayKit-Game-Assets';
+export const KAYKIT_FREE_GITHUB_OWNER = KAYKIT_SOURCE.github.owner;
 
 /**
  * Canonical GitHub repository name for the FREE edition (the repo at
  * `KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0`).
  */
-export const KAYKIT_FREE_GITHUB_REPO = 'KayKit-Medieval-Hexagon-Pack-1.0';
+export const KAYKIT_FREE_GITHUB_REPO = KAYKIT_SOURCE.github.repo;
 
 /**
  * Default git ref the bootstrap CLI fetches when no `--commit` is supplied.
  */
-export const KAYKIT_FREE_GITHUB_DEFAULT_REF = 'main';
+export const KAYKIT_FREE_GITHUB_DEFAULT_REF = KAYKIT_SOURCE.github.defaultRef;
 
 /**
  * Source descriptor for {@link BootstrapKayKitAssetsOptions}. Discriminates
@@ -180,10 +181,10 @@ export interface BootstrapVerificationReport {
   readonly sidecarPath: string;
 }
 
-const KAYKIT_FREE_USER_AGENT = '@jbcom/medieval-hexagon-gameboard bootstrap';
-const KAYKIT_INCLUDED_EXTENSIONS = new Set(['.gltf', '.bin', '.png', '.jpg', '.jpeg']);
-const KAYKIT_SOURCE_FORMAT_EXTENSIONS = new Set(['.fbx', '.obj', '.mtl']);
-const KAYKIT_SIDECAR_SCHEMA_VERSION = '1.0.0' as const;
+const KAYKIT_FREE_USER_AGENT = KAYKIT_SOURCE.userAgent;
+const KAYKIT_INCLUDED_EXTENSIONS = new Set(BOOTSTRAP_PATHS.includedExtensions);
+const KAYKIT_SOURCE_FORMAT_EXTENSIONS = new Set(BOOTSTRAP_PATHS.sourceFormatExtensions);
+const KAYKIT_SIDECAR_SCHEMA_VERSION = BOOTSTRAP_PATHS.sidecarSchemaVersion;
 
 /**
  * Materialize the KayKit asset tree under the consumer's asset root.
@@ -317,8 +318,7 @@ export async function verifyBootstrap(outRoot: string): Promise<BootstrapVerific
  * decompression and no git dependency.
  */
 export function kayKitFreeGithubTarballUrl(commit?: string): string {
-  const ref = commit ?? KAYKIT_FREE_GITHUB_DEFAULT_REF;
-  return `https://github.com/${KAYKIT_FREE_GITHUB_OWNER}/${KAYKIT_FREE_GITHUB_REPO}/archive/refs/heads/${ref}.zip`;
+  return kaykitGithubArchiveUrl(commit);
 }
 
 function resolveOutAbsolute(value: string, outRoot: string | undefined): string {

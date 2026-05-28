@@ -21,6 +21,7 @@ import {
   statSync,
 } from 'node:fs';
 import { join } from 'node:path';
+import { UPSTREAM_LAYOUTS } from '../../../config';
 import type { PackEdition } from '../../../types';
 
 /**
@@ -54,58 +55,19 @@ export interface KayKitUpstreamLayout {
  * KayKit Medieval Hexagon Pack — FREE edition layout (CC0).
  *
  * Mirrors `https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0`.
+ * Values are sourced from `src/config/upstream-layouts.json`.
  */
-export const KAYKIT_MEDIEVAL_FREE_LAYOUT: KayKitUpstreamLayout = {
-  editionName: 'free',
-  displayName: 'FREE',
-  packFolderName: 'KayKit_Medieval_Hexagon_Pack_1.0_FREE',
-  relativeGltfRoot: 'Assets/gltf',
-  relativeTextureRoot: 'Textures',
-  assetCategories: ['buildings', 'decoration', 'tiles'],
-  markerFiles: [
-    'License.txt',
-    'Medieval_Hexagon_UserGuide_v1.pdf',
-    'contents_buildings.jpg',
-    'contents_nature.jpg',
-    'contents_tiles.jpg',
-  ],
-  expectedGltfCount: 221,
-  expectedBinCount: 221,
-  textureFiles: ['hexagons_medieval.png'],
-} as const;
+export const KAYKIT_MEDIEVAL_FREE_LAYOUT: KayKitUpstreamLayout = UPSTREAM_LAYOUTS.free;
 
 /**
  * KayKit Medieval Hexagon Pack — EXTRA edition layout (purchased on itch.io).
  *
  * Adds the `units/` category, three seasonal texture variants, and a
  * `contents_units.jpg` + `contents_textures.jpg` marker pair. Otherwise
- * structurally identical to the FREE edition.
+ * structurally identical to the FREE edition. Sourced from
+ * `src/config/upstream-layouts.json`.
  */
-export const KAYKIT_MEDIEVAL_EXTRA_LAYOUT: KayKitUpstreamLayout = {
-  editionName: 'extra',
-  displayName: 'EXTRA',
-  packFolderName: 'KayKit_Medieval_Hexagon_Pack_1.0_EXTRA',
-  relativeGltfRoot: 'Assets/gltf',
-  relativeTextureRoot: 'Textures',
-  assetCategories: ['buildings', 'decoration', 'tiles', 'units'],
-  markerFiles: [
-    'License.txt',
-    'Medieval_Hexagon_UserGuide_v1.pdf',
-    'contents_buildings.jpg',
-    'contents_nature.jpg',
-    'contents_tiles.jpg',
-    'contents_units.jpg',
-    'contents_textures.jpg',
-  ],
-  expectedGltfCount: 404,
-  expectedBinCount: 404,
-  textureFiles: [
-    'hexagons_medieval.png',
-    'hexagons_medieval_Fall.png',
-    'hexagons_medieval_Summer.png',
-    'hexagons_medieval_Winter.png',
-  ],
-} as const;
+export const KAYKIT_MEDIEVAL_EXTRA_LAYOUT: KayKitUpstreamLayout = UPSTREAM_LAYOUTS.extra;
 
 /**
  * All supported KayKit upstream layouts, in declaration order.
