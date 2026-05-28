@@ -32,7 +32,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] **E0a** — Simulation + patrol files toward 100%. PR#10-#48 merged. Coverage 68.35/67.02/78.14/68.0. script.ts/pieces.ts/selectors.ts/runtime.ts/interop/coverage.ts at 100%. Remaining gaps: actors.ts defensive Entity-based paths, CLI surface (subprocess), bootstrap GitHub source, react.ts (browser-only), patrol agent loop edge states. Next closures lower-yield; per-batch typically +0.03pp. Continue with whichever surface gap is reachable from a unit test.
+- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10-#48 merged. PR#49 (`feat/e0-coverage-batch-37`) open awaiting CI: registry analyze warnings. Coverage 68.35/67.02/78.14/68.0. script.ts/pieces.ts/selectors.ts/runtime.ts/interop/coverage.ts at 100%.
     - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
     - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
     - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.
