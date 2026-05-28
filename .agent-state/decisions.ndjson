@@ -60,3 +60,4 @@
 {"ts":"2026-05-28T00:50:02.358Z","sha":"345ca3dad20c74064fbf939aba50401f6894f11e","subject":"feat: E0 coverage batch-24 (patrol route under-selected waypoints) (#36)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T00:57:51.280Z","sha":"86d6ecacaad080733259a94fe3ce1fa5906a7106","subject":"feat: E0 coverage batch-25 (manifest header validation) (#37)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T01:05:33.528Z","sha":"522de83a2e32f99a9055860a6c4875a28955b307","subject":"feat: E0 coverage batch-26 (stack support mismatch) (#38)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
+{"ts":"2026-05-28T01:13:34.372Z","sha":"715b9b7e9f3681527b6132413efe52175d5a9e5b","subject":"feat: E0 coverage batch-27 (manifest unitStyle enum + ratchet) (#39)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
