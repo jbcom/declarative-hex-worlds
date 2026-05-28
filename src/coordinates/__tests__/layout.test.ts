@@ -192,6 +192,25 @@ describe('gameboard layout placement criteria', () => {
     );
   });
 
+  it('site selection honors far-from-terrain preference (E0b)', () => {
+    // Covers layout.ts lines 1222-1225 (far-from-terrain preference).
+    const plan = createGameboardBuilder({
+      seed: 'layout-far-from-terrain',
+      shape: { kind: 'rectangle', width: 4, height: 1 },
+    })
+      .setTerrain({ q: 0, r: 0 }, 'water')
+      .build();
+    const inspection = inspectGameboardLayoutSites(plan, {
+      count: 1,
+      criteria: {
+        terrain: 'grass',
+        prefer: [{ kind: 'far-from-terrain', terrain: 'water', radius: 4, weight: 1 }],
+      },
+    });
+    // Selected should prefer the tile farthest from water (3,0).
+    expect(inspection.selected[0]?.key).toBe('3,0');
+  });
+
   it('rejects sites by min/max distance + forbidden adjacent placement layer (E0b)', () => {
     // Covers layout.ts lines 1122 + 1128 + 1131.
     const plan = createGameboardBuilder({
