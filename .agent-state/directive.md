@@ -32,7 +32,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] **E0a** — Simulation + patrol files toward 100%. PR#10-#49 merged. PR#50 (`feat/e0-coverage-batch-38`) open: next closures.
+- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10-#50 merged. PR#51 (`feat/e0-coverage-batch-39`) open awaiting CI: scenario.ts summarizer paths (spawn-group error map, extra-asset-id sort, resolve-throw fallback, empty-key increment). Coverage 68.51/67.26/78.32/68.15. Floor 67.4/65.5/76.8/67.1. NOTE: scenario.ts:1189 (spawn-group warning map) + 1204 (patrol warning map) are effectively unreachable — spawn groups never emit warnings, patrol warning at navigation.ts:793 needs >1 waypoint + 0 segments (contradictory). Skip these arms.
     - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
     - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
     - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.

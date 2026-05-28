@@ -1170,6 +1170,74 @@ describe('gameboard scenarios', () => {
     expect(codes).toContain('scenario.actor_unknown_asset');
   });
 
+  it('maps spawn-group errors into scenario violations (E0a)', () => {
+    // Covers scenario.ts line 1184 (spawnGroupViolations error map) via a
+    // spawn group that selects zero locations.
+    const board = createGameboardRecipe({
+      seed: 'spawn-err-map',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:spawn-err-map', board, {
+      spawnGroups: { groups: [{ id: 'phantom', count: 1, tileTags: ['no-such-tag'] }] },
+    });
+    const summary = summarizeGameboardScenario(scenario);
+    expect(
+      summary.validation.violations.some(
+        (v) => v.code === 'scenario.spawn_group' && v.severity === 'error'
+      )
+    ).toBe(true);
+  });
+
+  it('sorts multiple requiresExtra asset ids in the scenario summary (E0a)', () => {
+    // Covers scenario.ts line 610 (actorExtraAssetIds sort over >1 entry).
+    const board = createGameboardRecipe({
+      seed: 'extra-ids-sort',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:extra-ids-sort', board, {
+      actors: [
+        {
+          actorId: 'z-actor',
+          actorKind: 'npc',
+          at: '0,0',
+          assetId: 'z_extra_asset',
+          kind: 'unit',
+          requiresExtra: true,
+        },
+        {
+          actorId: 'a-actor',
+          actorKind: 'npc',
+          at: '1,0',
+          assetId: 'a_extra_asset',
+          kind: 'unit',
+          requiresExtra: true,
+        },
+      ],
+    });
+    const summary = summarizeGameboardScenario(scenario);
+    expect(summary.actorExtraAssetIds).toEqual(['a_extra_asset', 'z_extra_asset']);
+  });
+
+  it('falls back to unresolved actors when summary resolution throws (E0a)', () => {
+    // Covers scenario.ts line 1377 (tryResolveScenarioActors catch) + 1403
+    // (incrementSummaryCount early-return on empty key).
+    const board = createGameboardRecipe({
+      seed: 'summary-throw',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:summary-throw', board, {
+      spawnGroups: { groups: [{ id: 'nope', count: 1, tileTags: ['no-such-tag'] }] },
+      actors: [
+        // spawnGroupId resolves to 0 locations → resolveGameboardScenarioActors throws.
+        // actorKind/kind omitted so incrementSummaryCount sees an empty key.
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately under-typed actor for fallback path
+        { actorId: 'orphan', spawnGroupId: 'nope', assetId: 'flag_green' } as any,
+      ],
+    });
+    const summary = summarizeGameboardScenario(scenario);
+    expect(summary.actors.some((a) => a.actorId === 'orphan')).toBe(true);
+  });
+
   it('reports actor with out-of-range spawnLocationIndex (E0a)', () => {
     const board = createGameboardRecipe({
       seed: 'oor-spawn-index',
