@@ -114,7 +114,11 @@ const subCommands = Object.fromEntries(
         async run(ctx) {
           const flags = parseFlags(ctx.rawArgs ?? []);
           const edition = readEdition(flags.edition);
-          const sourceRoot = resolve(String(flags.source ?? defaultSourceRoot(edition)));
+          // `--source` without a value parses as `true`; treating `String(true)`
+          // as a path resolves to `<cwd>/true`. Type-check before coercing.
+          const sourceRoot = resolve(
+            typeof flags.source === 'string' ? flags.source : defaultSourceRoot(edition)
+          );
           await mod.run({ command: name, flags }, sourceRoot, edition);
         },
       });
@@ -145,7 +149,9 @@ async function runCli(argv: readonly string[]): Promise<void> {
     usage(0);
     return;
   }
-  await runMain(main);
+  // Forward the explicit `argv` so programmatic invocations (and tests that
+  // pass a custom array) don't fall back to `process.argv`.
+  await runMain(main, { rawArgs: argv as string[] });
 }
 
 runCli(process.argv.slice(2)).catch((error: unknown) => {

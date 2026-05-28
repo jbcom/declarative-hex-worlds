@@ -10,9 +10,13 @@
  * which made `tests/browser/react-bindings.test.ts` fail to import — keeping a
  * single source of truth here prevents that drift recurring.
  */
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = resolve(import.meta.dirname);
+// Use `fileURLToPath(import.meta.url)` instead of `import.meta.dirname` for
+// portability — `import.meta.dirname` only landed in Node 20.11/21.2, and the
+// other vitest configs already use this idiom.
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)));
 
 const SUBPATH_TARGETS: ReadonlyArray<readonly [string, string]> = [
   ['actors', 'src/actors/index.ts'],

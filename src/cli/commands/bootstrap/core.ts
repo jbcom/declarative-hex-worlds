@@ -352,7 +352,18 @@ async function downloadGithubArchiveZip(commit: string | undefined): Promise<str
   const zipPath = join(downloadRoot, 'kaykit-medieval-hexagon-free.zip');
   try {
     const incoming = await openHttpsStream(url);
-    await pipeline(incoming, createWriteStream(zipPath));
+    try {
+      await pipeline(incoming, createWriteStream(zipPath));
+    } catch (pipelineError) {
+      // If `pipeline` setup fails (e.g. createWriteStream EACCES), the
+      // upstream https stream is left dangling and would leak the socket
+      // until the connection times out. Force-destroy it here so the network
+      // connection is reclaimed immediately. The runtime object is a
+      // `Readable` (has `.destroy()`); the structural type-only
+      // `NodeJS.ReadableStream` doesn't expose it, hence the cast.
+      (incoming as { destroy?: () => void }).destroy?.();
+      throw pipelineError;
+    }
   } catch (error) {
     rmSync(downloadRoot, { recursive: true, force: true });
     const message = error instanceof Error ? error.message : String(error);
