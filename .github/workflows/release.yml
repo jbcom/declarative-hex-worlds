@@ -84,5 +84,20 @@ jobs:
             ${{ steps.pack.outputs.tarball }}
             sbom.cdx.json
 
-      - name: Publish with OIDC provenance
+      - name: Publish to npm
+        # Auth strategy:
+        # - **First publish:** `NPM_TOKEN` repo secret (the
+        #   user-generated automation token). The package does not yet
+        #   exist on the registry, so OIDC trusted publishing is not
+        #   configured. The token authenticates the create+publish.
+        # - **Subsequent publishes:** once the user configures OIDC
+        #   trusted publishing on npmjs.com against this workflow path
+        #   + ref, the `NPM_TOKEN` secret can be deleted. With no
+        #   token set, `setup-node` leaves `NODE_AUTH_TOKEN` empty and
+        #   npm falls through to OIDC (`id-token: write` is already
+        #   declared at the job permissions level).
+        # In both modes, `--provenance` attaches the SLSA provenance
+        # statement to the publish.
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish ${{ steps.pack.outputs.tarball }} --access public --provenance
