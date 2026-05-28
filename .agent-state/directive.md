@@ -32,6 +32,10 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 ## Active queue — post-merge release + maintenance
 
+### Phase LF — library-fit decomposition (Epic LF, in PR)
+
+- [ ] [WAIT-REVIEW] **LF-PR53** — PR #53 (Epic LF, branch `feat/library-fit-decomposition`) open with 21 commits across LF1–LF8. Wait for CI green + address CodeRabbit/Gemini threads + resolve every thread before squash-merge. All 8 LF tasks marked done in this directive; the PR is the integration gate.
+
 ### Phase G — release (in-flight)
 
 - [ ] [WAIT] **G8** — Post-merge release flow. With PR #4 on `main`, release-please reads `release-as: "1.0.0"` (PRD G6) and opens a release PR with the 1.0.0 changelog. Maintainer merges that release PR → release-please tags `v1.0.0` → `release.yml` builds the tarball, attests SLSA L3 (G1), generates CycloneDX SBOM (G2), publishes to npm with OIDC provenance. Verify post-publish via `npm audit signatures @jbcom/medieval-hexagon-gameboard` + GitHub release page assets (SBOM + tarball).
