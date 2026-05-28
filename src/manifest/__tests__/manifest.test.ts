@@ -224,6 +224,32 @@ describe('free manifest', () => {
     expect(codes).toContain('manifest.asset_id');
   });
 
+  it('reports malformed manifest header fields (E0b)', () => {
+    const manifest = manifestFixture('free', [
+      assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles', subcategory: 'base' }),
+    ]);
+    // Wrong schemaVersion → line 433.
+    const wrongSchema = validateMedievalHexagonManifest({
+      ...manifest,
+      schemaVersion: '0.0.0-not-current',
+    }).map((i) => i.code);
+    expect(wrongSchema).toContain('manifest.schema_version');
+
+    // sourcePack with empty name → line 458 (source_pack_field).
+    const emptySourcePackField = validateMedievalHexagonManifest({
+      ...manifest,
+      sourcePack: { ...manifest.sourcePack, name: '' },
+    }).map((i) => i.code);
+    expect(emptySourcePackField).toContain('manifest.source_pack_field');
+
+    // sourcePack.edition invalid → line 467 (source_pack_edition).
+    const wrongSourcePackEdition = validateMedievalHexagonManifest({
+      ...manifest,
+      sourcePack: { ...manifest.sourcePack, edition: 'not-a-real-edition' },
+    }).map((i) => i.code);
+    expect(wrongSourcePackEdition).toContain('manifest.source_pack_edition');
+  });
+
   it('warns on missing/malformed counts + assetsById (E0b)', () => {
     const manifest = manifestFixture('free', [
       assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles', subcategory: 'base' }),
