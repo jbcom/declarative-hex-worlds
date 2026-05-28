@@ -511,6 +511,26 @@ describe('board-aware navigation and occupancy', () => {
     expect(routes.routes[1]?.found).toBe(false);
     expect(routes.errors).toContain('guard-loop: Patrol route guard-loop is declared more than once');
   });
+
+  it('reports patrol-route empty id + single-waypoint count error (E0b)', () => {
+    // Covers navigation.ts lines 744-748: empty id + count < 2.
+    const plan = createGameboardBuilder({
+      seed: 'patrol-bad-config',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    const routes = planGameboardPatrolRoutes(plan, {
+      seed: 'route-bad',
+      routes: [
+        // Empty id
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid route id
+        { id: '', count: 2, start: '0,0' } as any,
+        // count < 2 (only one waypoint via count=1)
+        { id: 'short', count: 1, start: '0,0' },
+      ],
+    });
+    expect(routes.errors.some((e) => e.includes('non-empty string'))).toBe(true);
+    expect(routes.errors.some((e) => e.includes('at least 2 waypoints'))).toBe(true);
+  });
 });
 
 describe('findGameboardPath defensive returns (PRD E0a)', () => {
