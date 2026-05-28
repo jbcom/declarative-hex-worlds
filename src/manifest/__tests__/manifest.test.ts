@@ -130,6 +130,25 @@ describe('free manifest', () => {
     ).toBe('/local/kaykit-extra/assets/extra/tiles/transitions/hex_transition.gltf');
   });
 
+  it('resolveManifestAssetUrl accepts URL-instance baseUrl + http URL string (E0b)', () => {
+    const asset = assetFixture({
+      id: 'hex_grass',
+      edition: 'free',
+      category: 'tiles',
+      subcategory: 'base',
+      modelPath: 'assets/free/tiles/base/hex_grass.gltf',
+    });
+    // URL-instance branch (schema.ts line 763).
+    const urlBase = new URL('https://cdn.example.com/kaykit/');
+    expect(resolveManifestAssetUrl(asset, { baseUrl: urlBase })).toBe(
+      'https://cdn.example.com/kaykit/assets/free/tiles/base/hex_grass.gltf'
+    );
+    // http string branch (schema.ts line 765-767).
+    expect(resolveManifestAssetUrl(asset, { baseUrl: 'https://cdn.example.com/kaykit' })).toBe(
+      'https://cdn.example.com/kaykit/assets/free/tiles/base/hex_grass.gltf'
+    );
+  });
+
   it('reports manifest errors and stale generated indexes for app-local ingest', () => {
     const staleManifest = {
       ...manifestFixture('extra', [
