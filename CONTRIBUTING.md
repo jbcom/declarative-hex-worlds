@@ -1,12 +1,12 @@
 # Contributing
 
-Thanks for considering a contribution to `medieval-hexagon-gameboard`.
+Thanks for considering a contribution to `declarative-hex-worlds`.
 
 ## Getting set up
 
 ```bash
-git clone https://github.com/jbcom/medieval-hexagon-gameboard.git
-cd medieval-hexagon-gameboard
+git clone https://github.com/jbcom/declarative-hex-worlds.git
+cd declarative-hex-worlds
 pnpm install
 pnpm verify
 ```
@@ -45,4 +45,4 @@ If you're using Claude Code, Codex, or similar harness on this repo, the directi
 
 ## Reporting bugs + asking questions
 
-Open an issue at https://github.com/jbcom/medieval-hexagon-gameboard/issues. For security-sensitive reports, see [SECURITY.md](./SECURITY.md).
+Open an issue at https://github.com/jbcom/declarative-hex-worlds/issues. For security-sensitive reports, see [SECURITY.md](./SECURITY.md).

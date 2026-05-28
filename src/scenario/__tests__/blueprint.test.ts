@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
-  createMedievalGameboardBlueprintPlan,
-  createMedievalGameboardBlueprintRecipe,
-  createMedievalGameboardBlueprintScenario,
-  createMedievalGameboardWorldFromBlueprint,
+  createGameboardBlueprintPlan,
+  createGameboardBlueprintRecipe,
+  createGameboardBlueprintScenario,
+  createGameboardWorldFromBlueprint,
   createMedievalShowcaseBlueprintRecipe,
-  inspectMedievalGameboardBlueprint,
-  inspectMedievalGameboardBlueprintScenario,
+  inspectGameboardBlueprint,
+  inspectGameboardBlueprintScenario,
 } from '../../scenario/blueprint';
 import { freeManifest } from '../../manifest/free';
 import { createGameboardPlanFromRecipe } from '../../scenario/recipe';
@@ -15,7 +15,7 @@ import { validateGameboardPlan } from '../../rules/validation';
 
 describe('medieval gameboard blueprints', () => {
   it('compiles board intent into mountains, towns, roads, harbors, biomes, and transitions', () => {
-    const inspection = inspectMedievalGameboardBlueprint({
+    const inspection = inspectGameboardBlueprint({
       seed: 'blueprint-contract',
       shape: { kind: 'rectangle', width: 8, height: 6 },
       faction: 'green',
@@ -107,7 +107,7 @@ describe('medieval gameboard blueprints', () => {
   });
 
   it('compiles semantic prop-cluster dressing around towns, harbors, and authored anchors', () => {
-    const inspection = inspectMedievalGameboardBlueprint({
+    const inspection = inspectGameboardBlueprint({
       seed: 'blueprint-prop-cluster-dressing',
       shape: { kind: 'rectangle', width: 18, height: 12 },
       faction: 'red',
@@ -148,7 +148,7 @@ describe('medieval gameboard blueprints', () => {
   });
 
   it('keeps recipe texture-set steps serializable', () => {
-    const recipe = createMedievalGameboardBlueprintRecipe({
+    const recipe = createGameboardBlueprintRecipe({
       seed: 'blueprint-texture-steps',
       shape: { kind: 'rectangle', width: 4, height: 3 },
       waterFill: 0,
@@ -177,7 +177,7 @@ describe('medieval gameboard blueprints', () => {
   });
 
   it('builds a plan directly when games do not need intermediate recipe JSON', () => {
-    const plan = createMedievalGameboardBlueprintPlan({
+    const plan = createGameboardBlueprintPlan({
       seed: 'direct-blueprint-plan',
       shape: { kind: 'hexagon', radius: 3 },
       waterFill: 0.12,
@@ -294,9 +294,9 @@ describe('medieval gameboard blueprints', () => {
       scenarioMetadata: { fixture: true },
     } as const;
 
-    const scenario = createMedievalGameboardBlueprintScenario(options);
-    const inspection = inspectMedievalGameboardBlueprintScenario(options);
-    const runtime = createMedievalGameboardWorldFromBlueprint(options);
+    const scenario = createGameboardBlueprintScenario(options);
+    const inspection = inspectGameboardBlueprintScenario(options);
+    const runtime = createGameboardWorldFromBlueprint(options);
 
     expect(scenario).toMatchObject({
       id: 'blueprint:playable-scene',
@@ -334,7 +334,7 @@ describe('medieval gameboard blueprints', () => {
   });
 
   it('warns when a prop cluster anchor is outside the board (E0a)', () => {
-    const inspection = inspectMedievalGameboardBlueprint({
+    const inspection = inspectGameboardBlueprint({
       seed: 'blueprint-bad-cluster',
       shape: { kind: 'rectangle', width: 3, height: 3 },
       propClusterDressing: {
@@ -349,7 +349,7 @@ describe('medieval gameboard blueprints', () => {
   });
 
   it('warns when a mountain range has all out-of-bounds ridge coordinates (E0a)', () => {
-    const inspection = inspectMedievalGameboardBlueprint({
+    const inspection = inspectGameboardBlueprint({
       seed: 'blueprint-bad-mountain',
       shape: { kind: 'rectangle', width: 3, height: 3 },
       mountainRanges: [

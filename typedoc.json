@@ -41,7 +41,7 @@
   "excludeInternal": true,
   "categorizeByGroup": true,
   "navigationLinks": {
-    "GitHub": "https://github.com/jbcom/medieval-hexagon-gameboard"
+    "GitHub": "https://github.com/jbcom/declarative-hex-worlds"
   },
   "validation": {
     "notExported": true,

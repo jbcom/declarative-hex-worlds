@@ -49,7 +49,7 @@ describe('scripts/_lib (PRD E0j)', () => {
 
   it('readJson parses package.json into a typed object', () => {
     const pkg = readJson<{ name: string }>('package.json');
-    expect(pkg.name).toBe('medieval-hexagon-gameboard');
+    expect(pkg.name).toBe('declarative-hex-worlds');
   });
 
   it('readJson throws SyntaxError for non-JSON file contents', () => {

@@ -3014,7 +3014,7 @@ function runCli(args: readonly string[]): string {
       // os.tmpdir(), which escapes cwd=packageRoot. Production CLI users never
       // set this; the helper still rejects `..` escapes relative to `/`, which
       // is unreachable.
-      MEDIEVAL_HEXAGON_OUT_ROOT: '/',
+      HEX_WORLDS_OUT_ROOT: '/',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -3042,7 +3042,7 @@ function runCliExpectFailureUnjailed(args: readonly string[]): string {
         ...process.env,
         FORCE_COLOR: '0',
         NO_COLOR: '1',
-        MEDIEVAL_HEXAGON_OUT_ROOT: '',
+        HEX_WORLDS_OUT_ROOT: '',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     });

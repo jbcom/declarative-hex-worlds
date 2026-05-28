@@ -51,13 +51,13 @@ jobs:
             --json > /tmp/bootstrap-result.json
           cat /tmp/bootstrap-result.json
         env:
-          MEDIEVAL_HEXAGON_OUT_ROOT: '/'
+          HEX_WORLDS_OUT_ROOT: '/'
 
       - name: Verify bootstrap integrity sidecar
         run: |
           node dist/cli.js bootstrap --verify --out /tmp/bootstrap-target
         env:
-          MEDIEVAL_HEXAGON_OUT_ROOT: '/'
+          HEX_WORLDS_OUT_ROOT: '/'
 
       - name: Assert expected GLTF count
         run: |

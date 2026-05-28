@@ -1,5 +1,5 @@
 /**
- * `medieval-hexagon-gameboard` CLI help text.
+ * `declarative-hex-worlds` CLI help text.
  *
  * Split into its own module so that `--help` / `-h` / unknown-command paths in
  * the dispatcher can dynamic-import this file without pulling in the heavy
@@ -10,7 +10,7 @@
  * @module
  */
 export function usage(exitCode: number): never {
-  console.log(`medieval-hexagon-gameboard <command> [options]
+  console.log(`declarative-hex-worlds <command> [options]
 
 Commands:
   doctor     Report local source and docs status

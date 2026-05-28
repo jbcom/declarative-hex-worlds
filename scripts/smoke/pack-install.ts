@@ -1,5 +1,5 @@
 /**
- * Runtime smoke for the packed `medieval-hexagon-gameboard` tarball.
+ * Runtime smoke for the packed `declarative-hex-worlds` tarball.
  *
  * Responsibilities (per PRD D10 split):
  *   1. `npm pack` the workspace into a tmpdir.
@@ -9,7 +9,7 @@
  *   4. Write a runtime smoke `smoke.mjs` that exercises every public subpath
  *      against the installed package, run it under `node`, and assert the
  *      JSON output covers every documented capability.
- *   5. Hit the installed `medieval-hexagon-gameboard` bin (`doctor`,
+ *   5. Hit the installed `declarative-hex-worlds` bin (`doctor`,
  *      `doctor --coverage`) and assert the release-readiness output.
  *
  * The compile-time API attestation lives in
@@ -66,7 +66,7 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
         private: true,
         type: 'module',
         dependencies: {
-          'medieval-hexagon-gameboard': `file:${tarballPath}`,
+          'declarative-hex-worlds': `file:${tarballPath}`,
           '@types/react': '^19.0.0',
           react: '^19.0.0',
           three: '^0.180.0',
@@ -84,7 +84,7 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
-  const installedPackageRoot = join(appRoot, 'node_modules/medieval-hexagon-gameboard');
+  const installedPackageRoot = join(appRoot, 'node_modules/declarative-hex-worlds');
   const installedCliPath = join(installedPackageRoot, 'dist/cli.js');
   assert(
     existsSync(join(installedPackageRoot, 'dist/examples/blueprint-board-usage.js')),
@@ -312,8 +312,8 @@ import {
   summarizeGameboardCoverage,
   summarizeGameboardPlan,
   summarizeGameboardScenario,
-} from 'medieval-hexagon-gameboard';
-import { runBlueprintBoardUsageExample } from 'medieval-hexagon-gameboard/examples/blueprint-board-usage';
+} from 'declarative-hex-worlds';
+import { runBlueprintBoardUsageExample } from 'declarative-hex-worlds/examples/blueprint-board-usage';
 // PRD R4: SimpleRPG no longer exports through the package; the smoke
 // consumer only verifies the published surface. SimpleRPG evidence is
 // asserted via the installed CLI \`coverage\` and \`doctor --coverage\`
@@ -323,7 +323,7 @@ import {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
   createGameboardInteractionHandlerPreset,
   isGameboardInteractionHandlerPreset,
-} from 'medieval-hexagon-gameboard/commands';
+} from 'declarative-hex-worlds/commands';
 import {
   GAMEBOARD_LAYOUT_ARCHETYPES,
   analyzeGameboardLayoutFill,
@@ -332,42 +332,42 @@ import {
   createGameboardLayoutPlacements,
   inspectGameboardLayoutSites,
   spawnGameboardLayoutPlacements,
-} from 'medieval-hexagon-gameboard/layout';
-import { freeManifest } from 'medieval-hexagon-gameboard/manifest/free';
-import { inspectMedievalHexagonManifest } from 'medieval-hexagon-gameboard/manifest/schema';
+} from 'declarative-hex-worlds/layout';
+import { freeManifest } from 'declarative-hex-worlds/manifest/free';
+import { inspectMedievalHexagonManifest } from 'declarative-hex-worlds/manifest/schema';
 import {
   createGameboardNavigation,
   planGameboardSpawnGroups,
-} from 'medieval-hexagon-gameboard/navigation';
-import { gameboardPlacementFootprintKeys } from 'medieval-hexagon-gameboard/occupancy';
+} from 'declarative-hex-worlds/navigation';
+import { gameboardPlacementFootprintKeys } from 'declarative-hex-worlds/occupancy';
 import {
   createGameboardLayoutPlacementsFromPiece,
   createGameboardLayoutPlacementOptionsFromPiece,
   createGameboardPieceRegistry,
   declareGameboardPiece,
   inspectGameboardPiecePlacement,
-} from 'medieval-hexagon-gameboard/pieces';
-import { inspectSeededGameboardPieceFills } from 'medieval-hexagon-gameboard/rules';
+} from 'declarative-hex-worlds/pieces';
+import { inspectSeededGameboardPieceFills } from 'declarative-hex-worlds/rules';
 import {
   createGameboardRuntime,
   createGameboardRuntimeFromRecipe,
   createGameboardRuntimeFromScenario,
-} from 'medieval-hexagon-gameboard/runtime';
+} from 'declarative-hex-worlds/runtime';
 import {
   GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS as GAMEBOARD_SCENARIO_SIMULATION_SUBPATH_STEP_ACTIONS,
-} from 'medieval-hexagon-gameboard/simulation';
+} from 'declarative-hex-worlds/simulation';
 import {
   defaultSourceRoot,
   expectedModelCount,
   validateSourceRoot,
-} from 'medieval-hexagon-gameboard/ingest';
-import { validateGameboardPlan } from 'medieval-hexagon-gameboard/validation';
-import { readGameboardActors as readGameboardActorsFromActors } from 'medieval-hexagon-gameboard/actors';
+} from 'declarative-hex-worlds/ingest';
+import { validateGameboardPlan } from 'declarative-hex-worlds/validation';
+import { readGameboardActors as readGameboardActorsFromActors } from 'declarative-hex-worlds/actors';
 import {
   GAMEBOARD_SCHEMA_VERSION,
   createGameboardBuilder as createGameboardBuilderFromGameboard,
   summarizeGameboardPlan as summarizeGameboardPlanFromGameboard,
-} from 'medieval-hexagon-gameboard/gameboard';
+} from 'declarative-hex-worlds/gameboard';
 import {
   FACTION_BUILDING_KINDS,
   NATURE_ASSET_IDS,
@@ -376,85 +376,85 @@ import {
   listKayKitGuideScenarioAssetRenderGroups as listKayKitGuideScenarioAssetRenderGroupsFromCatalog,
   listKayKitGuideScenarioAssetRenderRequests as listKayKitGuideScenarioAssetRenderRequestsFromCatalog,
   listKayKitGuideScenarioAssetUsagesForScenario as listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog,
-} from 'medieval-hexagon-gameboard/catalog';
+} from 'declarative-hex-worlds/catalog';
 import {
   findHexPath,
   hexKey as hexKeyFromCoordinates,
   parseHexKey,
-} from 'medieval-hexagon-gameboard/coordinates';
+} from 'declarative-hex-worlds/coordinates';
 import {
   analyzeExternalAssetCompatibility,
   externalAssetSpawnOptions,
   recommendExternalAssetFacing,
-} from 'medieval-hexagon-gameboard/compatibility';
+} from 'declarative-hex-worlds/compatibility';
 import {
   renderGameboardCoverageMarkdown as renderGameboardCoverageMarkdownFromCoverage,
   summarizeGameboardCoverage as summarizeGameboardCoverageFromCoverage,
-} from 'medieval-hexagon-gameboard/coverage';
-import { readGameboardPlacements as readGameboardPlacementsFromKoota } from 'medieval-hexagon-gameboard/koota';
+} from 'declarative-hex-worlds/coverage';
+import { readGameboardPlacements as readGameboardPlacementsFromKoota } from 'declarative-hex-worlds/koota';
 import {
   GAMEBOARD_MOVEMENT_PROFILES,
   gameboardMovementActions as gameboardMovementActionsFromMovement,
-} from 'medieval-hexagon-gameboard/movement';
+} from 'declarative-hex-worlds/movement';
 import {
-  createMedievalGameboardBlueprintPlan,
-  inspectMedievalGameboardBlueprint,
-} from 'medieval-hexagon-gameboard/blueprint';
-import { gameboardPatrolActions as gameboardPatrolActionsFromPatrol } from 'medieval-hexagon-gameboard/patrol';
+  createGameboardBlueprintPlan,
+  inspectGameboardBlueprint,
+} from 'declarative-hex-worlds/blueprint';
+import { gameboardPatrolActions as gameboardPatrolActionsFromPatrol } from 'declarative-hex-worlds/patrol';
 import {
   GAMEBOARD_QUEST_SCHEMA_VERSION,
   readGameboardQuests as readGameboardQuestsFromQuests,
-} from 'medieval-hexagon-gameboard/quests';
+} from 'declarative-hex-worlds/quests';
 import {
   projectWorldToGameboardPlan,
   readValidationGameboardPlanFromWorld,
-} from 'medieval-hexagon-gameboard/projection';
+} from 'declarative-hex-worlds/projection';
 import {
   GAMEBOARD_RECIPE_SCHEMA_VERSION,
   createGameboardRecipe as createGameboardRecipeFromRecipe,
-} from 'medieval-hexagon-gameboard/recipe';
-import { summarizeGameboardScenario as summarizeGameboardScenarioFromScenario } from 'medieval-hexagon-gameboard/scenario';
+} from 'declarative-hex-worlds/recipe';
+import { summarizeGameboardScenario as summarizeGameboardScenarioFromScenario } from 'declarative-hex-worlds/scenario';
 import {
   KAYKIT_HEX_WIDTH,
   createGameboardCoordinateSystem,
-} from 'medieval-hexagon-gameboard/grid';
-import { createGameboardInteropSnapshot as createGameboardInteropSnapshotFromInterop } from 'medieval-hexagon-gameboard/interop';
+} from 'declarative-hex-worlds/grid';
+import { createGameboardInteropSnapshot as createGameboardInteropSnapshotFromInterop } from 'declarative-hex-worlds/interop';
 import {
   analyzeHexTileRegistry,
   createHexTileRegistry,
   createHexTileRegistryFromManifest,
   declareHexTile,
-} from 'medieval-hexagon-gameboard/registry';
+} from 'declarative-hex-worlds/registry';
 import {
   HEX_EDGE_COUNT,
   edgeMask,
   selectRoadVariant,
-} from 'medieval-hexagon-gameboard/selectors';
-import { runGameboardSystems as runGameboardSystemsFromSystems } from 'medieval-hexagon-gameboard/systems';
+} from 'declarative-hex-worlds/selectors';
+import { runGameboardSystems as runGameboardSystemsFromSystems } from 'declarative-hex-worlds/systems';
 import {
   canStackAt,
   validateGameboardRules,
-} from 'medieval-hexagon-gameboard/world-rules';
+} from 'declarative-hex-worlds/world-rules';
 import {
-  MEDIEVAL_HEXAGON_SCHEMA_VERSION,
+  HEX_WORLDS_SCHEMA_VERSION,
   PACK_EDITIONS,
   TEXTURE_SETS,
-} from 'medieval-hexagon-gameboard/types';
+} from 'declarative-hex-worlds/types';
 import {
   createGameboardPlacementAssetUrlResolver,
   transformForHex,
-} from 'medieval-hexagon-gameboard/three';
+} from 'declarative-hex-worlds/three';
 
-const assetManifestModule = await import('medieval-hexagon-gameboard/assets/free/manifest.json', {
+const assetManifestModule = await import('declarative-hex-worlds/assets/free/manifest.json', {
   with: { type: 'json' },
 });
 const scenarioModule = await import('./simple-rpg-scenario.json', {
   with: { type: 'json' },
 });
-const blueprintBoardModule = await import('medieval-hexagon-gameboard/examples/blueprint-board.json', {
+const blueprintBoardModule = await import('declarative-hex-worlds/examples/blueprint-board.json', {
   with: { type: 'json' },
 });
-const ruleTypesModule = await import('medieval-hexagon-gameboard/rule-types');
+const ruleTypesModule = await import('declarative-hex-worlds/rule-types');
 const manifestInspection = inspectMedievalHexagonManifest(assetManifestModule.default);
 if (manifestInspection.errorCount !== 0 || manifestInspection.warningCount !== 0) {
   throw new Error(\`packed FREE manifest inspection failed: \${JSON.stringify(manifestInspection.issues)}\`);
@@ -476,7 +476,7 @@ const plan = createSeededGameboardPlan({
   layoutDensity: { harbors: { count: 1 }, trees: 0.1, props: 0.05 },
 });
 const planSummary = summarizeGameboardPlan(plan);
-const blueprintInspection = inspectMedievalGameboardBlueprint({
+const blueprintInspection = inspectGameboardBlueprint({
   seed: 'packed-consumer-blueprint-runtime',
   shape: { kind: 'rectangle', width: 6, height: 4 },
   waterFill: 0.16,
@@ -485,7 +485,7 @@ const blueprintInspection = inspectMedievalGameboardBlueprint({
   harbors: 1,
   biomeFills: [{ textureSet: 'fall', fill: 0.18, center: { q: 2, r: 2 }, radius: 2 }],
 });
-const blueprintPlan = createMedievalGameboardBlueprintPlan({
+const blueprintPlan = createGameboardBlueprintPlan({
   seed: 'packed-consumer-blueprint-plan-runtime',
   shape: { kind: 'hexagon', radius: 2 },
   towns: 1,
@@ -592,7 +592,7 @@ if (
   GAMEBOARD_SCHEMA_VERSION !== '1.0.0' ||
   GAMEBOARD_QUEST_SCHEMA_VERSION !== '1.0.0' ||
   GAMEBOARD_RECIPE_SCHEMA_VERSION !== '1.0.0' ||
-  MEDIEVAL_HEXAGON_SCHEMA_VERSION !== '1.0.0' ||
+  HEX_WORLDS_SCHEMA_VERSION !== '1.0.0' ||
   !PACK_EDITIONS.includes('free') ||
   !TEXTURE_SETS.includes('winter') ||
   createGameboardBuilderFromGameboard({ seed: 'packed-consumer-gameboard-subpath', shape: { kind: 'rectangle', width: 1, height: 1 } }).build().schemaVersion !== GAMEBOARD_SCHEMA_VERSION ||
@@ -1371,7 +1371,7 @@ console.log(JSON.stringify({
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   const binOutput = execFileSync(
-    join(appRoot, 'node_modules/.bin/medieval-hexagon-gameboard'),
+    join(appRoot, 'node_modules/.bin/declarative-hex-worlds'),
     ['doctor', '--source', join(appRoot, 'missing-free')],
     {
       cwd: appRoot,
@@ -1380,7 +1380,7 @@ console.log(JSON.stringify({
     }
   );
   const binCoverageDoctorOutput = execFileSync(
-    join(appRoot, 'node_modules/.bin/medieval-hexagon-gameboard'),
+    join(appRoot, 'node_modules/.bin/declarative-hex-worlds'),
     ['doctor', '--coverage', '--checksPassed'],
     {
       cwd: appRoot,

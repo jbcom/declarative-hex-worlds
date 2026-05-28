@@ -9,7 +9,7 @@
  * import {
  *   GameboardValidationError,
  *   GameboardError,
- * } from 'medieval-hexagon-gameboard';
+ * } from 'declarative-hex-worlds';
  *
  * try {
  *   runSimulation(scenario, script);

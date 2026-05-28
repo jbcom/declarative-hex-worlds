@@ -21,7 +21,7 @@ const coverageRoot = join(repoRoot, 'coverage');
 const mergedDir = join(coverageRoot, '.merged');
 
 if (!existsSync(coverageRoot)) {
-  console.error('coverage merge: no coverage/ directory — run `MEDIEVAL_HEXAGON_COVERAGE=1 pnpm test:coverage` first.');
+  console.error('coverage merge: no coverage/ directory — run `HEX_WORLDS_COVERAGE=1 pnpm test:coverage` first.');
   process.exit(1);
 }
 

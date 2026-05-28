@@ -9,7 +9,7 @@
  *      against the installed `.d.ts` surface (see
  *      {@link ./smoke/types#runTypesAttestation}).
  *   4. `cleanup` — remove the tempdir (unless
- *      `MEDIEVAL_HEXAGON_KEEP_CONSUMER_SMOKE=1`).
+ *      `HEX_WORLDS_KEEP_CONSUMER_SMOKE=1`).
  *
  * Each phase prints a delimiter (`========== phase: <name> ==========`) so
  * log readers can locate the failing phase at a glance. A phase failure
@@ -47,7 +47,7 @@ const packageRoot = workspaceRoot;
 const tempRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-consumer-'));
 const packRoot = join(tempRoot, 'pack');
 const appRoot = join(tempRoot, 'app');
-const keepTemp = process.env.MEDIEVAL_HEXAGON_KEEP_CONSUMER_SMOKE === '1';
+const keepTemp = process.env.HEX_WORLDS_KEEP_CONSUMER_SMOKE === '1';
 
 const ctx: SmokeContext = {
   workspaceRoot,

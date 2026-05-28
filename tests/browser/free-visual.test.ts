@@ -7,8 +7,8 @@ import {
   listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarios,
 } from '../../src/scenario/catalog';
-import { createMedievalGameboardBlueprintPlan } from '../../src/scenario/blueprint';
-import { createMedievalHarborBoard } from '../../src/gameboard/index';
+import { createGameboardBlueprintPlan } from '../../src/scenario/blueprint';
+import { createHarborBoard } from '../../src/gameboard/index';
 import { freeManifest } from '../../src/manifest/free';
 import { createGameboardPlanFromRecipe, type GameboardRecipe } from '../../src/scenario/recipe';
 import { createSeededGameboardPlan } from '../../src/rules/index';
@@ -277,7 +277,7 @@ describe('FREE visual coverage', () => {
 
   it('captures a composed gameboard recipe with stacks, paths, coasts, and harbor context', async () => {
     await page.viewport(1600, 1000);
-    const plan = createMedievalHarborBoard({ seed: 'visual-free-harbor', faction: 'blue' });
+    const plan = createHarborBoard({ seed: 'visual-free-harbor', faction: 'blue' });
     const canvas = await renderGameboardPlan(plan, {
       title: 'free-gameboard-recipe',
       width: 1500,
@@ -293,7 +293,7 @@ describe('FREE visual coverage', () => {
 
   it('captures a blueprint builder board with vertical ranges, towns, roads, and a harbor', async () => {
     await page.viewport(1700, 1050);
-    const plan = createMedievalGameboardBlueprintPlan({
+    const plan = createGameboardBlueprintPlan({
       seed: 'visual-free-blueprint-builder',
       shape: { kind: 'rectangle', width: 10, height: 7 },
       faction: 'blue',

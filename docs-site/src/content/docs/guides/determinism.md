@@ -28,7 +28,7 @@ Given the same:
 The library uses [seedrandom](https://github.com/davidbau/seedrandom) under `src/scenario/recipe.ts` and `src/coordinates/layout.ts`. Every random decision threads through a `seedrandom.PRNG` instance derived from the seed:
 
 ```ts
-import { createSeededGameboardPlan } from 'medieval-hexagon-gameboard';
+import { createSeededGameboardPlan } from 'declarative-hex-worlds';
 
 const plan = createSeededGameboardPlan({
   seed: 'harbor-village-7',
@@ -76,7 +76,7 @@ This is what enables:
 ## Testing your own determinism
 
 ```ts
-import { createSeededGameboardPlan } from 'medieval-hexagon-gameboard';
+import { createSeededGameboardPlan } from 'declarative-hex-worlds';
 import { expect, test } from 'vitest';
 
 test('same seed → same plan', () => {

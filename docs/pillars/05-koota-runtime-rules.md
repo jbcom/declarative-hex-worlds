@@ -124,8 +124,8 @@ library also exposes neutral contracts for games with their own ECS:
   groups, patrol routes, actors, movement agents, patrol agents, and quests that
   instantiate into a ready Koota world for tests, examples, and starter gameplay
   scenes.
-- `createMedievalGameboardBlueprintScenario` and
-  `createMedievalGameboardWorldFromBlueprint`: board-scale medieval intent plus
+- `createGameboardBlueprintScenario` and
+  `createGameboardWorldFromBlueprint`: board-scale medieval intent plus
   scenario runtime content in one API, so generated 2.5D boards can ship with
   spawn groups, route-checked NPC/enemy patrols, actors, movement agents, and
   quests without a second stitching layer.
@@ -236,8 +236,8 @@ non-Koota paths stay aligned.
   probes. They should rerender on placement, actor, movement, patrol, and quest
   trait changes, not just entity membership changes.
 - `GameboardRuntimeProvider`,
-  `MedievalGameboardPlanProvider`, `MedievalGameboardRecipeProvider`, and
-  `MedievalGameboardScenarioProvider` mount the matching Koota world while
+  `GameboardPlanProvider`, `GameboardRecipeProvider`, and
+  `GameboardScenarioProvider` mount the matching Koota world while
   preserving any richer runtime facade in context, including recipe/scenario
   piece registries and source URL map helpers.
 - `useGameboardPatrolActions`, `useGameboardPatrolAgentEntities`,
@@ -689,9 +689,9 @@ back to placement IDs, tile keys, and actor metadata from Koota projection.
 
 ## Seeded generation
 
-`createMedievalGameboardBlueprintRecipe`,
-`createMedievalGameboardBlueprintPlan`, and
-`inspectMedievalGameboardBlueprint` are the high-level public path for complete
+`createGameboardBlueprintRecipe`,
+`createGameboardBlueprintPlan`, and
+`inspectGameboardBlueprint` are the high-level public path for complete
 2.5D board intent. Use them when a board should be specified in terms of biome
 fill percentages, mountain range paths and maximum height, towns, road
 networks, rivers, harbors/ports, transition tiles, sloped elevation ramps,
@@ -705,7 +705,7 @@ town and harbor intent instead of relying on later loose scatter.
 `createSeededGameboardPlan` and `createSeededGameboardWorld` use `seedrandom` to
 produce deterministic 2.5D rectangle or hexagon boards with coastlines, harbors,
 settlements, roads, rivers, mountains, hills, forests, and scatter.
-`createMedievalHarborBoard` also accepts both rectangle and hexagon shapes for a
+`createHarborBoard` also accepts both rectangle and hexagon shapes for a
 small authored harbor-town composition. New generation work should add Koota
 traits/rules first, then expose recipes as projections. Percentage fills from
 `./layout` are the public hook for biome-like density controls.
@@ -763,7 +763,7 @@ before layout generation mutates a board.
 `examples/generated-piece-scenario.recipe.json`
 are the canonical small JSON examples for generated piece declarations and fill
 rules. The package export map exposes JSON examples as
-`medieval-hexagon-gameboard/examples/*.json`; raw TypeScript examples
+`declarative-hex-worlds/examples/*.json`; raw TypeScript examples
 stay in the repo, while npm consumers use explicit compiled exports such as
 `tests/integration/simple-rpg/simple-rpg.ts (test-only post-PRD R4)`.
 
@@ -802,7 +802,7 @@ single blueprint JSON can emit its recipe, concrete plan, generated scenario,
 scenario diagnostics, and `--outInterop` neutral ECS snapshot. Use that path for
 external engines that want board-scale authoring plus spawn/patrol/quest records
 without adopting the Koota runtime.
-`medieval-hexagon-gameboard/examples/blueprint-board-usage` is the
+`declarative-hex-worlds/examples/blueprint-board-usage` is the
 packaged importable walkthrough for the same contract: it runs
 `examples/blueprint-board.json` through blueprint compilation, scenario
 inspection, Koota runtime creation, runtime facade snapshots, and scenario

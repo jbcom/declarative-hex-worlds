@@ -3,7 +3,7 @@ title: Get started
 description: Install, bootstrap the FREE asset pack, and render your first hexagon gameboard.
 ---
 
-`medieval-hexagon-gameboard` is a deterministic, ECS-driven, React +
+`declarative-hex-worlds` is a deterministic, ECS-driven, React +
 Three.js library for building hex-grid games on top of the KayKit Medieval
 Hexagon GLTF pack. This page gets you from `pnpm add` to rendered hexes in
 under five minutes.
@@ -11,8 +11,8 @@ under five minutes.
 ## 1. Install + bootstrap
 
 ```bash
-pnpm add medieval-hexagon-gameboard
-pnpm exec medieval-hexagon-gameboard bootstrap
+pnpm add declarative-hex-worlds
+pnpm exec declarative-hex-worlds bootstrap
 ```
 
 The library ships the typed runtime + the FREE manifest metadata; the GLTF
@@ -35,25 +35,25 @@ public/assets/models/addons/kaykit_medieval_hexagon_pack/
 ## 2. Point the runtime at your bootstrap target
 
 ```ts
-import { setGameboardAssetRoot } from 'medieval-hexagon-gameboard';
+import { setGameboardAssetRoot } from 'declarative-hex-worlds';
 
 // Call once at app boot:
 setGameboardAssetRoot('/public/assets/models');
 ```
 
-Or set `MEDIEVAL_HEXAGON_ASSET_ROOT` in your environment — the runtime falls
+Or set `HEX_WORLDS_ASSET_ROOT` in your environment — the runtime falls
 through `override → globalThis → process.env → 'public/assets/models'` default.
 
 ## 3. Build a deterministic gameboard
 
 ```ts
 import {
-  buildMedievalGameboardBlueprint,
+  buildGameboardBlueprint,
   createGameboardWorldFromScenario,
-} from 'medieval-hexagon-gameboard';
+} from 'declarative-hex-worlds';
 
 // One-call: shape + seed → fully populated scenario.
-const { scenario } = buildMedievalGameboardBlueprint({
+const { scenario } = buildGameboardBlueprint({
   shape: { kind: 'rectangle', width: 12, height: 8 },
   seed: 'tutorial-island',
 });
@@ -62,7 +62,7 @@ const { scenario } = buildMedievalGameboardBlueprint({
 const runtime = createGameboardWorldFromScenario(scenario);
 ```
 
-`buildMedievalGameboardBlueprint` compiles biome fills, mountain ranges,
+`buildGameboardBlueprint` compiles biome fills, mountain ranges,
 towns, roads, rivers, harbors, and prop clusters into a `GameboardScenario`
 that the Koota runtime can spawn deterministically from a seed.
 
@@ -70,7 +70,7 @@ that the Koota runtime can spawn deterministically from a seed.
 
 ```tsx
 import { Canvas } from '@react-three/fiber';
-import { GameboardScene } from 'medieval-hexagon-gameboard/react';
+import { GameboardScene } from 'declarative-hex-worlds/react';
 
 export function App({ runtime }: { runtime: GameboardRuntime }) {
   return (
@@ -93,4 +93,4 @@ so the bindings work without any extra installs.
 - [KayKit upstream layout](/guides/kaykit-upstream-layout/) — the on-disk
   shape the bootstrap step mirrors.
 - [CLI reference](/guides/cli-reference/) — every CLI subcommand and flag.
-- [`medieval-hexagon-gameboard`](/reference/) — typed API reference.
+- [`declarative-hex-worlds`](/reference/) — typed API reference.

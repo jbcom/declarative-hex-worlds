@@ -2,13 +2,13 @@
 
 ## Supported versions
 
-`medieval-hexagon-gameboard` is pre-1.0; only the latest published version receives security updates. Once 1.0 ships, the last two minor versions will receive patches.
+`declarative-hex-worlds` is pre-1.0; only the latest published version receives security updates. Once 1.0 ships, the last two minor versions will receive patches.
 
 ## Reporting a vulnerability
 
 **Do not open public GitHub issues for security reports.**
 
-Use GitHub's private vulnerability reporting: https://github.com/jbcom/medieval-hexagon-gameboard/security/advisories/new
+Use GitHub's private vulnerability reporting: https://github.com/jbcom/declarative-hex-worlds/security/advisories/new
 
 If you can't use the GitHub flow, email `security@jbcom.dev` with:
 
@@ -23,8 +23,8 @@ You'll get an acknowledgment within 72 hours. We aim to publish a fix within 30 
 
 In scope:
 
-- The published `medieval-hexagon-gameboard` npm package.
-- The CLI binary (`medieval-hexagon-gameboard`).
+- The published `declarative-hex-worlds` npm package.
+- The CLI binary (`declarative-hex-worlds`).
 - The asset bootstrap subcommand's downloads + integrity verification.
 - Anything that could let attacker-controlled scenario / manifest / blueprint JSON escalate to filesystem writes, network calls, or code execution outside the intended sandbox.
 

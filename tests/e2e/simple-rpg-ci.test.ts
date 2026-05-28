@@ -2,7 +2,7 @@
  * SimpleRPG GitHub-bootstrap e2e (PRD RS2, RB7).
  *
  * Scheduled-CI only. Per-PR runs would hit GitHub's anonymous-tarball
- * rate limit. Gated behind `MEDIEVAL_HEXAGON_E2E_GITHUB=1` so the default
+ * rate limit. Gated behind `HEX_WORLDS_E2E_GITHUB=1` so the default
  * `pnpm test` loop stays offline-clean.
  *
  * What it asserts:
@@ -47,7 +47,7 @@ function walkFileCount(root: string): number {
   return count;
 }
 
-const RUN = process.env.MEDIEVAL_HEXAGON_E2E_GITHUB === '1';
+const RUN = process.env.HEX_WORLDS_E2E_GITHUB === '1';
 const tmpRoot = RUN
   ? mkdtempSync(join(tmpdir(), 'medieval-hexagon-rs2-github-'))
   : '';

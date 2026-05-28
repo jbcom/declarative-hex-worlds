@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * `medieval-hexagon-gameboard` CLI entry point.
+ * `declarative-hex-worlds` CLI entry point.
  *
  * Built on `citty` for command routing + help formatting; each subcommand is a
  * lazy `() => import('./commands/<name>')` so the headless paths (`--help`,
@@ -128,7 +128,7 @@ const subCommands = Object.fromEntries(
 
 const main = defineCommand({
   meta: {
-    name: 'medieval-hexagon-gameboard',
+    name: 'declarative-hex-worlds',
     description:
       'KayKit Medieval Hexagon gameboard runtime CLI — manifest, validate, bootstrap, and scenario tools.',
   },
@@ -156,10 +156,10 @@ async function runCli(argv: readonly string[]): Promise<void> {
 
 runCli(process.argv.slice(2)).catch((error: unknown) => {
   // Terse default: only the message. Full stack is gated behind
-  // MEDIEVAL_HEXAGON_DEBUG=1 so failure output in CI / user terminals stays
+  // HEX_WORLDS_DEBUG=1 so failure output in CI / user terminals stays
   // quiet, but interactive debugging is one env-var away. Phase 2 security
   // review S-M5.
-  const debugEnabled = process.env.MEDIEVAL_HEXAGON_DEBUG === '1';
+  const debugEnabled = process.env.HEX_WORLDS_DEBUG === '1';
   if (debugEnabled && error instanceof Error) {
     console.error(error.stack ?? error.message);
   } else {

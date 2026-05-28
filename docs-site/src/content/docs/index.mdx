@@ -1,19 +1,187 @@
 ---
-title: 'medieval-hexagon-gameboard'
-description: Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS and first-class React + Three.js bindings.
+title: declarative-hex-worlds
+description: Declarative, deterministic hex worlds for TypeScript games. Bootstrap KayKit assets in one command. First-class React + Three.js bindings.
 template: splash
 hero:
-  tagline: Declarative hex worlds. Bootstrap the FREE KayKit pack in one command. First-class React + Three bindings.
+  title: declarative-hex-worlds
+  tagline: Declarative, deterministic hex worlds for TypeScript games. Bootstrap KayKit assets in one command. First-class React + Three.js bindings.
+  image:
+    file: ../../../public/hero.png
+    alt: A scroll, a wizard's hat, and seven illustrated hex tiles arranged around the words "Declarative Hex Worlds"
   actions:
     - text: Get started
       link: /guides/getting-started/
       icon: right-arrow
       variant: primary
-    - text: View on GitHub
-      link: https://github.com/jbcom/medieval-hexagon-gameboard
+    - text: Browse features
+      link: /features/
+      icon: document
+      variant: secondary
+    - text: GitHub
+      link: https://github.com/jbcom/declarative-hex-worlds
       icon: external
+      variant: minimal
 ---
 
-## Welcome
+import { CardGrid, Card, Steps, LinkCard } from '@astrojs/starlight/components';
 
-This is the docs scaffold. F-Site-2 through F-Site-12 fill it out.
+## What you ship
+
+<CardGrid>
+	<Card title="Declarative API" icon="document">
+		Describe what you want — a harbor with three depth tiers, a procedural
+		forest, a road network connecting both. The library handles tile
+		selection, connectivity, prop scatter, and validation. No imperative
+		grid bookkeeping.
+	</Card>
+	<Card title="Deterministic by construction" icon="approve-check">
+		Same seed, same output — byte-identical, across processes and
+		platforms. Server-authoritative simulation, save-game replays, and
+		cross-machine reproducibility all work out of the box.
+	</Card>
+	<Card title="First-class React + Three.js" icon="rocket">
+		Not optional peer-deps. The library tests against the versions it
+		ships and exposes idiomatic hooks and scene helpers. Install one
+		package and start rendering.
+	</Card>
+</CardGrid>
+
+## Bootstrap in three steps
+
+<Steps>
+
+1. **Install the package**
+
+   ```bash
+   pnpm add declarative-hex-worlds
+   ```
+
+2. **Fetch the FREE KayKit asset pack** (CC0-licensed; ~30 MB)
+
+   ```bash
+   pnpm exec declarative-hex-worlds bootstrap
+   ```
+
+   Downloads 221 GLTF models into `public/assets/models/addons/kaykit_medieval_hexagon_pack/`. SHA-256 sidecar verified.
+
+3. **Render your first harbor**
+
+   ```tsx
+   import { Canvas } from '@react-three/fiber';
+   import * as HexWorld from 'declarative-hex-worlds';
+
+   const plan = HexWorld.createGameboardBuilder({
+   	seed: 'harbor-village-1',
+   	shape: { kind: 'rectangle', width: 6, height: 6 },
+   }).build();
+
+   const runtime = HexWorld.createGameboardRuntimeFromScenario({
+   	plan,
+   	scenario: { actors: [], quests: [] },
+   });
+
+   export function Harbor() {
+   	return (
+   		<HexWorld.GameboardProvider runtime={runtime}>
+   			<Canvas>{/* your three.js scene of rt.snapshot() */}</Canvas>
+   		</HexWorld.GameboardProvider>
+   	);
+   }
+   ```
+
+</Steps>
+
+## Explore the library
+
+<CardGrid>
+	<LinkCard
+		title="Pieces & actors"
+		href="/features/pieces-and-actors/"
+		description="Declare buildings, units, decorations. The library spawns + binds them to ECS entities."
+	/>
+	<LinkCard
+		title="Multi-depth stacks"
+		href="/features/multi-depth-stacks/"
+		description="Stacked terrain (water → land → cliff → peak) with validated transitions."
+	/>
+	<LinkCard
+		title="Harbors"
+		href="/features/harbors/"
+		description="Sandy crescents, piers, fishing villages — composable harbor recipes."
+	/>
+	<LinkCard
+		title="Bridges & connectors"
+		href="/features/bridges-and-connectors/"
+		description="Spans, ferries, roads — connectivity validation across biome edges."
+	/>
+	<LinkCard
+		title="Quests"
+		href="/features/quests/"
+		description="Patrol routes, spawn groups, scripted scenarios. Deterministic replay."
+	/>
+	<LinkCard
+		title="Determinism & replay"
+		href="/features/determinism-replay/"
+		description="The full seed → blueprint → scenario → simulation chain, byte-for-byte."
+	/>
+	<LinkCard
+		title="Tile injection"
+		href="/features/tile-injection/"
+		description="Drop bespoke tiles into procedural maps without breaking constraints."
+	/>
+	<LinkCard
+		title="Prop injection"
+		href="/features/prop-injection/"
+		description="Authored set-pieces (a watchtower, a graveyard) layered onto generated terrain."
+	/>
+	<LinkCard
+		title="Cross-kit composition"
+		href="/features/cross-kit-composition/"
+		description="Mix the FREE pack with EXTRA-pack tiles or third-party GLTFs."
+	/>
+	<LinkCard
+		title="Movement & patrols"
+		href="/features/movement-and-patrols/"
+		description="Actor movement, patrol routes, navigation predicates."
+	/>
+</CardGrid>
+
+## Why this exists
+
+Hex-grid games are simple in concept and a maintenance nightmare in code. Tile
+adjacency rules, biome blending, asset selection, deterministic seeding,
+multiplayer-safe replay — each is a small problem; all of them together is a
+six-month detour from shipping a game.
+
+**declarative-hex-worlds** treats the whole stack as one declarative pipeline:
+recipe → blueprint → scenario → koota ECS world → React + Three.js render.
+You declare what you want and what's allowed; the library decides what goes
+where, validates it, and gives you back a deterministic snapshot.
+
+The hex-tile assets are the [KayKit Medieval Hexagon Pack](https://kaykit.itch.io/medieval-hexagon-pack)
+by [Kay Lousberg](https://kaylousberg.com/) — gorgeous, low-poly, CC0. The
+library bootstraps them at install time; the npm tarball stays small (~2.3 MB)
+and asset licensing stays clean.
+
+<CardGrid>
+	<LinkCard
+		title="Architecture"
+		href="/about/architecture/"
+		description="How recipe / blueprint / scenario / runtime fit together."
+	/>
+	<LinkCard
+		title="Design rationale"
+		href="/about/design/"
+		description="Why determinism is the product, and why react+three are runtime deps."
+	/>
+	<LinkCard
+		title="API reference"
+		href="/reference/index/"
+		description="Every public symbol across the 21 subpath exports."
+	/>
+	<LinkCard
+		title="CLI reference"
+		href="/guides/cli-reference/"
+		description="36 commands — bootstrap, validate, simulate, coverage, and more."
+	/>
+</CardGrid>

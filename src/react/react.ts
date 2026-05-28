@@ -20,7 +20,7 @@ import {
   useTargets,
   useTrait,
   useWorld,
-  WorldProvider as MedievalGameboardProvider,
+  WorldProvider as GameboardProvider,
 } from 'koota/react';
 import { hexKey } from '../coordinates';
 import type { GameboardPlan } from '../gameboard';
@@ -190,7 +190,7 @@ import type { HexCoordinates } from '../types';
 import type { GameboardRecipe, GameboardRecipePlanOptionsOverride } from '../scenario';
 import type { GameboardScenario } from '../scenario';
 
-export { MedievalGameboardProvider, useWorld as useGameboardWorld };
+export { GameboardProvider, useWorld as useGameboardWorld };
 
 const DEFAULT_RULE_CONFIG = {} as const satisfies GameboardRuleConfig;
 const DEFAULT_NAVIGATION_PROFILE_OPTIONS = {} as const satisfies GameboardNavigationProfile;
@@ -223,7 +223,7 @@ export interface GameboardRuntimeProviderProps<TRuntime extends GameboardRuntime
 /**
  * Props for mounting a serializable plan directly in React.
  */
-export interface MedievalGameboardPlanProviderProps {
+export interface GameboardPlanProviderProps {
   /** Plan to load into a newly created runtime for this provider instance. */
   plan: GameboardPlan;
   /** React children that should read the created runtime and world. */
@@ -233,7 +233,7 @@ export interface MedievalGameboardPlanProviderProps {
 /**
  * Props for compiling a recipe and mounting the resulting runtime in React.
  */
-export interface MedievalGameboardRecipeProviderProps {
+export interface GameboardRecipeProviderProps {
   /** Recipe to compile into a live runtime. */
   recipe: GameboardRecipe;
   /** Optional plan-generation overrides applied while compiling the recipe. */
@@ -245,7 +245,7 @@ export interface MedievalGameboardRecipeProviderProps {
 /**
  * Props for compiling a scenario and mounting the resulting runtime in React.
  */
-export interface MedievalGameboardScenarioProviderProps {
+export interface GameboardScenarioProviderProps {
   /** Scenario containing the board recipe plus actors, patrols, movement, and quests. */
   scenario: GameboardScenario;
   /** Optional recipe overrides applied while compiling the scenario board. */
@@ -254,7 +254,7 @@ export interface MedievalGameboardScenarioProviderProps {
   children?: ReactNode;
 }
 
-type MedievalGameboardProviderComponent = ComponentType<{
+type GameboardProviderComponent = ComponentType<{
   world: World;
   children?: ReactNode;
 }>;
@@ -270,7 +270,7 @@ export function GameboardRuntimeProvider<TRuntime extends GameboardRuntime = Gam
   runtime,
   children,
 }: GameboardRuntimeProviderProps<TRuntime>): ReturnType<typeof createElement> {
-  const Provider = MedievalGameboardProvider as MedievalGameboardProviderComponent;
+  const Provider = GameboardProvider as GameboardProviderComponent;
   return createElement(
     GameboardRuntimeContext.Provider,
     { value: runtime },
@@ -281,10 +281,10 @@ export function GameboardRuntimeProvider<TRuntime extends GameboardRuntime = Gam
 /**
  * Create and mount a runtime from a prebuilt `GameboardPlan`.
  */
-export function MedievalGameboardPlanProvider({
+export function GameboardPlanProvider({
   plan,
   children,
-}: MedievalGameboardPlanProviderProps): ReturnType<typeof createElement> {
+}: GameboardPlanProviderProps): ReturnType<typeof createElement> {
   const runtime = useMemo(() => createGameboardRuntime(plan), [plan]);
   return createElement(GameboardRuntimeProvider, { runtime }, children);
 }
@@ -292,11 +292,11 @@ export function MedievalGameboardPlanProvider({
 /**
  * Compile a recipe, create a runtime, and mount it for React consumers.
  */
-export function MedievalGameboardRecipeProvider({
+export function GameboardRecipeProvider({
   recipe,
   overrides = {},
   children,
-}: MedievalGameboardRecipeProviderProps): ReturnType<typeof createElement> {
+}: GameboardRecipeProviderProps): ReturnType<typeof createElement> {
   const runtime = useMemo(
     () => createGameboardRuntimeFromRecipe(recipe, overrides),
     [recipe, overrides]
@@ -310,11 +310,11 @@ export function MedievalGameboardRecipeProvider({
  * The runtime returned by `useGameboardRuntime` keeps scenario actor/quest
  * indexes, spawn groups, patrol plans, and local source URL helpers available.
  */
-export function MedievalGameboardScenarioProvider({
+export function GameboardScenarioProvider({
   scenario,
   overrides = {},
   children,
-}: MedievalGameboardScenarioProviderProps): ReturnType<typeof createElement> {
+}: GameboardScenarioProviderProps): ReturnType<typeof createElement> {
   const runtime = useMemo(
     () => createGameboardRuntimeFromScenario(scenario, overrides),
     [scenario, overrides]

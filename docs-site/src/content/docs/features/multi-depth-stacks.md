@@ -18,7 +18,7 @@ You want a cliff face: lower coastal hexes at depth 0, a sheer cliff at depth 1,
 ## Snippet
 
 ```ts
-import { createGameboardBuilder } from 'medieval-hexagon-gameboard/gameboard';
+import { createGameboardBuilder } from 'declarative-hex-worlds/gameboard';
 
 const plan = createGameboardBuilder({
   seed: 'cliff-3',

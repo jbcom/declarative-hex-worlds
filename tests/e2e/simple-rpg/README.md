@@ -7,7 +7,7 @@ exists as a skeleton for PRD `RS1`-`RS3` — those items flesh it out with:
   live KayKit FREE repo. CI-scheduled (not per-PR; rate-limit guarded).
 - `simple-rpg-local-extra.test.ts` — exercises `bootstrap --source zip --zip
   references/...EXTRA.zip` for the EXTRA-pack flows. Gated by
-  `MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1`.
+  `HEX_WORLDS_LOCAL_REFERENCES=1`.
 
 Until `RS1`-`RS3` land, the unit-level SimpleRPG fixture (consumed by the
 CLI's release-readiness coverage gate, the interop coverage test, and the

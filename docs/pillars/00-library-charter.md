@@ -60,7 +60,7 @@ open source package useful while preserving the local-only purchased workflow.
 
 ## Public contract
 
-- Package name: `medieval-hexagon-gameboard`.
+- Package name: `declarative-hex-worlds`.
 - Code license: MIT.
 - Asset license: KayKit Medieval Hexagon Pack assets are CC0-1.0.
 - Toolchain contract: Node 22+ and pnpm 9.

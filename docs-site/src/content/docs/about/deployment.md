@@ -32,7 +32,7 @@ The GitHub App alternative (short-lived 1h scoped tokens via `actions/create-git
 `release.yml` publishes with `--provenance`. npm builds an OIDC trust relationship to GitHub's identity issuer; consumers can verify the published tarball was built by THIS exact workflow run:
 
 ```bash
-npm audit signatures medieval-hexagon-gameboard
+npm audit signatures declarative-hex-worlds
 ```
 
 No `NPM_TOKEN` secret needed — the publish auth is OIDC-derived at runtime.
@@ -91,7 +91,7 @@ Security PRs carry the `security` label so filters / auto-merge rules can pick t
 
 If the App token + PAT both fail:
 
-1. Maintainer can manually tag + publish from a clean checkout: `npm pack && npm publish --provenance jbcom-medieval-hexagon-gameboard-X.Y.Z.tgz`.
+1. Maintainer can manually tag + publish from a clean checkout: `npm pack && npm publish --provenance jbcom-declarative-hex-worlds-X.Y.Z.tgz`.
 2. Attestation step needs `gh attestation` CLI locally.
 3. SBOM step needs `npx @cyclonedx/cyclonedx-npm`.
 

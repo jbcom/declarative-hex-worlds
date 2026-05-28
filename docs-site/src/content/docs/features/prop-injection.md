@@ -18,7 +18,7 @@ A merchant arrives at the tavern tile with three crates of trade goods. You want
 ## Snippet
 
 ```ts
-import { spawnGameboardPlacement } from 'medieval-hexagon-gameboard/koota';
+import { spawnGameboardPlacement } from 'declarative-hex-worlds/koota';
 
 const crateA = spawnGameboardPlacement(world, {
   tileKey: '2,4',

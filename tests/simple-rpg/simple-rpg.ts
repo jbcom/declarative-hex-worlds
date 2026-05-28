@@ -24,7 +24,7 @@ import {
   type GameboardRuntime,
   type HexCoordinates,
   type HexTileRegistry,
-} from 'medieval-hexagon-gameboard';
+} from 'declarative-hex-worlds';
 import type { World } from 'koota';
 
 export const SIMPLE_RPG_FIXED_SEED = 'simple-rpg-fixed-v1';

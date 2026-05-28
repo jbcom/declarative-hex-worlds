@@ -1,8 +1,8 @@
-# Continuous Work Directive — medieval-hexagon-gameboard
+# Continuous Work Directive — declarative-hex-worlds
 
 **Status:** ACTIVE
 **Owner:** jonbogaty@gmail.com
-**Goal:** Ship `@jbcom/medieval-hexagon-gameboard@1.0.0` to npm — release-please picks up the merged 1.0 stabilization branch and cuts the release PR.
+**Goal:** Ship `@jbcom/declarative-hex-worlds@1.0.0` to npm — release-please picks up the merged 1.0 stabilization branch and cuts the release PR.
 
 ## Operating loop — FULL AUTONOMY (non-negotiable)
 
@@ -38,7 +38,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 ### Phase G — release (in-flight)
 
-- [ ] [WAIT] **G8** — Post-merge release flow. With PR #4 on `main`, release-please reads `release-as: "1.0.0"` (PRD G6) and opens a release PR with the 1.0.0 changelog. Maintainer merges that release PR → release-please tags `v1.0.0` → `release.yml` builds the tarball, attests SLSA L3 (G1), generates CycloneDX SBOM (G2), publishes to npm with OIDC provenance. Verify post-publish via `npm audit signatures @jbcom/medieval-hexagon-gameboard` + GitHub release page assets (SBOM + tarball).
+- [ ] [WAIT] **G8** — Post-merge release flow. With PR #4 on `main`, release-please reads `release-as: "1.0.0"` (PRD G6) and opens a release PR with the 1.0.0 changelog. Maintainer merges that release PR → release-please tags `v1.0.0` → `release.yml` builds the tarball, attests SLSA L3 (G1), generates CycloneDX SBOM (G2), publishes to npm with OIDC provenance. Verify post-publish via `npm audit signatures @jbcom/declarative-hex-worlds` + GitHub release page assets (SBOM + tarball).
 
 ### Phase RB — bootstrap CI integration (continuation)
 

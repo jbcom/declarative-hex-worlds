@@ -11,19 +11,19 @@ subcategories, factions, texture sets, bounds, material slots, local package
 paths, and KayKit license metadata.
 
 ```ts
-import { freeManifest } from 'medieval-hexagon-gameboard/manifest/free';
+import { freeManifest } from 'declarative-hex-worlds/manifest/free';
 import {
   createManifestBundle,
   getManifestAsset,
   resolveManifestAssetUrl,
-} from 'medieval-hexagon-gameboard/manifest/schema';
+} from 'declarative-hex-worlds/manifest/schema';
 
 const bundle = createManifestBundle([freeManifest]);
 const asset = getManifestAsset(bundle, 'hex_river_A');
 
 const url = asset
   ? resolveManifestAssetUrl(asset, {
-      baseUrl: '/node_modules/medieval-hexagon-gameboard/assets/free',
+      baseUrl: '/node_modules/declarative-hex-worlds/assets/free',
     })
   : undefined;
 ```
@@ -58,8 +58,8 @@ this package. Apps that own the assets can generate an app-local manifest and
 combine it with the packaged FREE manifest:
 
 ```ts
-import { freeManifest } from 'medieval-hexagon-gameboard/manifest/free';
-import { createManifestBundle } from 'medieval-hexagon-gameboard/manifest/schema';
+import { freeManifest } from 'declarative-hex-worlds/manifest/free';
+import { createManifestBundle } from 'declarative-hex-worlds/manifest/schema';
 import extraManifest from './generated/kaykit-extra-manifest.json';
 
 const bundle = createManifestBundle([freeManifest, extraManifest]);
@@ -87,7 +87,7 @@ import {
   createGameboardPlacementAssetUrlResolver,
   gameboardInteractionTargetForObject,
   syncGameboardPlacementObjects,
-} from 'medieval-hexagon-gameboard/three';
+} from 'declarative-hex-worlds/three';
 
 const sourceAssetUrls = runtime.createScenarioPieceSourceUrlMap({
   sourceRoots: { 'Kenney Castle Kit': '/assets/kenney/castle-kit' },
@@ -121,14 +121,14 @@ pieces. A mesh that is not a KayKit-compatible hex tile can still be useful as a
 prop, landmark, building, tree, scatter item, or unit.
 
 ```bash
-medieval-hexagon-gameboard compatibility \
+declarative-hex-worlds compatibility \
   --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" \
   --intendedRole tile \
   --sourcePack "Kenney Castle Kit" \
   --modelForward +z \
   --boardForwardEdge 1
 
-medieval-hexagon-gameboard pieces-from-assets \
+declarative-hex-worlds pieces-from-assets \
   --assets "references/kenney_castle-kit/Models/GLB format" \
   --sourcePack "Kenney Castle Kit" \
   --intendedRole tile \
@@ -144,7 +144,7 @@ The batch output omits absolute paths by default. Renderer URL maps should be
 generated from local source roots at app build time:
 
 ```bash
-medieval-hexagon-gameboard pieces \
+declarative-hex-worlds pieces \
   --pieces /tmp/kenney-pieces.json \
   --emitSourceUrls \
   --pieceSourceRoots docs/examples/local-piece-source-roots.example.json \

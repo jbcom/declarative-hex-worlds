@@ -1,5 +1,5 @@
 <!-- profile: ts-library + standard-repo v1 -->
-# medieval-hexagon-gameboard
+# declarative-hex-worlds
 
 Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS state and FREE GLTF assets. Published-to-npm TypeScript library exposing Koota traits, scenario engine, simulation, CLI, and optional React + Three.js bindings.
 
@@ -8,7 +8,7 @@ Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS state and
 - Downloads from the KayKit GitHub source (FREE) — or accepts a `--zip` path (for FREE / EXTRA bought from itch.io).
 - Auto-detects edition from zip structure.
 - Mirrors the upstream tree under `<out>/addons/kaykit_medieval_hexagon_pack/Assets/gltf` (or equivalent path the upstream provides), **gltf only** — fbx/obj are ignored.
-- The manifest (`medieval-hexagon-gameboard/manifest/free` etc.) ships as JSON metadata describing what should exist after a successful bootstrap. The runtime resolves asset URLs against the consumer's bootstrapped tree at game-init time.
+- The manifest (`declarative-hex-worlds/manifest/free` etc.) ships as JSON metadata describing what should exist after a successful bootstrap. The runtime resolves asset URLs against the consumer's bootstrapped tree at game-init time.
 
 The library is the API surface; the asset tree is consumer-owned. SimpleRPG (test-only, per earlier directive) exercises both the bootstrap path AND the post-bootstrap render in e2e/integration tests.
 
@@ -19,7 +19,7 @@ The library is the API surface; the asset tree is consumer-owned. SimpleRPG (tes
 
 ## Repo-specific
 
-- **Package:** `medieval-hexagon-gameboard` published from **repo root** (not a workspace). pnpm workspaces dropped during 1.0 restructure (see PRD Epic R). Use pnpm only for install + script-running; no `workspace:` protocol, no `pnpm-workspace.yaml`, no `apps/` consumer package.
+- **Package:** `declarative-hex-worlds` published from **repo root** (not a workspace). pnpm workspaces dropped during 1.0 restructure (see PRD Epic R). Use pnpm only for install + script-running; no `workspace:` protocol, no `pnpm-workspace.yaml`, no `apps/` consumer package.
 - **`src/` layout:** koota-idiomatic decomposition (mirrors `reference-codebases/koota/examples/cards/src` and `n-body-react/src`). Composition layer at `src/` root (`world.ts`, `actions.ts`, `frameloop.ts`, `startup.ts`, `index.ts`). Domain sub-packages each with a barrel `index.ts`:
   - `src/types/` — branded primitives (`HexKey`, `ActorId`, etc.)
   - `src/coordinates/` — pure hex algebra (grid, projection, layout, hex-key)

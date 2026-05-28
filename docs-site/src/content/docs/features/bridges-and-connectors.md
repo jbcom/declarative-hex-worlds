@@ -18,7 +18,7 @@ A river splits your board into two halves and you want the procedural generator 
 ## Snippet
 
 ```ts
-import { createSeededGameboardPlan } from 'medieval-hexagon-gameboard/rules';
+import { createSeededGameboardPlan } from 'declarative-hex-worlds/rules';
 
 const plan = createSeededGameboardPlan({
   seed: 'forest-with-river-3',

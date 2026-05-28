@@ -4,7 +4,7 @@ import {
   planGameboardInteractionCommand,
   readGameboardPlacements,
   summarizeGameboardPlan,
-} from 'medieval-hexagon-gameboard';
+} from 'declarative-hex-worlds';
 import {
   SIMPLE_RPG_RANDOM_SEED,
   assertSimpleRpgGameValid,

@@ -244,7 +244,7 @@ const simulationScriptPath = join(
   'tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json'
 );
 const tempRoot = mkdtempSync(join(tmpdir(), 'medieval-built-cli-'));
-const keepTemp = process.env.MEDIEVAL_HEXAGON_KEEP_CLI_SMOKE === '1';
+const keepTemp = process.env.HEX_WORLDS_KEEP_CLI_SMOKE === '1';
 
 try {
   assert(existsSync(cliPath), `missing ${cliPath}; run pnpm build before pnpm test:cli`);
@@ -1180,7 +1180,7 @@ function runCli(args: readonly string[]): string {
       // Widen the safeResolveOutput jail to `/` for smoke runs — the smoke
       // harness writes outputs into os.tmpdir(), which escapes cwd. Production
       // CLI users never set this; the helper still rejects `..` escapes.
-      MEDIEVAL_HEXAGON_OUT_ROOT: '/',
+      HEX_WORLDS_OUT_ROOT: '/',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

@@ -1,6 +1,6 @@
 {
-  "name": "medieval-hexagon-gameboard",
-  "version": "1.0.0",
+  "name": "declarative-hex-worlds",
+  "version": "0.0.0",
   "description": "Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS, first-class React + Three.js bindings, and a CLI bootstrap subcommand that fetches the FREE GLTF assets at install time",
   "type": "module",
   "main": "./dist/index.js",
@@ -185,7 +185,7 @@
     "./examples/*.json": "./examples/*.json"
   },
   "bin": {
-    "medieval-hexagon-gameboard": "./dist/cli.js"
+    "declarative-hex-worlds": "./dist/cli.js"
   },
   "files": [
     "assets/free/manifest.json",
@@ -208,11 +208,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "test:browser:free": "pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"captures a contact sheet\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"extracted guide pages\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"road guide permutations\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"river guide permutations\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"curvy river\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"coast guide permutations\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"guide page terrain\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"composed gameboard\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"blueprint builder\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"seeded random\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"seeded hexagon\" && pnpm exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t \"generated-piece\" && pnpm exec vitest run tests/browser/simple-rpg-visual.test.ts --config vitest.browser.free.config.ts && pnpm exec vitest run tests/browser/react-bindings.test.ts --config vitest.browser.free.config.ts && pnpm run test:screenshots:free",
-    "test:browser:extra": "MEDIEVAL_HEXAGON_ENABLE_EXTRA=1 vitest run --config vitest.browser.extra.config.ts && pnpm run test:screenshots:extra",
-    "test:e2e:local-assets": "MEDIEVAL_HEXAGON_ENABLE_LOCAL_ASSETS=1 vitest run --config vitest.browser.local-assets.config.ts && pnpm run test:screenshots:local-assets",
+    "test:browser:extra": "HEX_WORLDS_ENABLE_EXTRA=1 vitest run --config vitest.browser.extra.config.ts && pnpm run test:screenshots:extra",
+    "test:e2e:local-assets": "HEX_WORLDS_ENABLE_LOCAL_ASSETS=1 vitest run --config vitest.browser.local-assets.config.ts && pnpm run test:screenshots:local-assets",
     "test:simple-rpg": "vitest run tests/integration/simple-rpg/simple-rpg.test.ts",
-    "test:simple-rpg:e2e:github": "MEDIEVAL_HEXAGON_E2E_GITHUB=1 vitest run --config vitest.simple-rpg-e2e.config.ts tests/e2e/simple-rpg-ci.test.ts",
-    "test:simple-rpg:e2e:local": "MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1 vitest run --config vitest.simple-rpg-e2e.config.ts tests/e2e/simple-rpg-local-extra.test.ts",
+    "test:simple-rpg:e2e:github": "HEX_WORLDS_E2E_GITHUB=1 vitest run --config vitest.simple-rpg-e2e.config.ts tests/e2e/simple-rpg-ci.test.ts",
+    "test:simple-rpg:e2e:local": "HEX_WORLDS_LOCAL_REFERENCES=1 vitest run --config vitest.simple-rpg-e2e.config.ts tests/e2e/simple-rpg-local-extra.test.ts",
     "test:visual": "pnpm run test:browser:free && pnpm run test:browser:extra && pnpm run test:e2e:local-assets",
     "test:screenshots:free": "tsx tests/scripts/assert-screenshots.ts tests/browser/__screenshots__/free-catalog.png tests/browser/__screenshots__/free-guide-assets-by-public-role.png tests/browser/__screenshots__/free-guide-source-pages.png tests/browser/__screenshots__/free-guide-scenarios-by-extracted-page.png tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png tests/browser/__screenshots__/free-gameboard-recipe.png tests/browser/__screenshots__/free-blueprint-builder-showcase.png tests/browser/__screenshots__/free-seeded-gameboard.png tests/browser/__screenshots__/free-seeded-hex-gameboard.png tests/browser/__screenshots__/free-generated-piece-recipe.png tests/browser/__screenshots__/simple-rpg-fixed-completed.png tests/browser/__screenshots__/simple-rpg-seeded-completed.png tests/browser/__screenshots__/simple-rpg-packaged-scenario.png tests/browser/__screenshots__/simple-rpg-simulation-report.png",
     "test:screenshots:extra": "tsx tests/scripts/assert-screenshots.ts --minHeight 200 tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png tests/browser/__screenshots__/extra-guide-assets-by-public-role.png tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png tests/browser/__screenshots__/extra-guide-scenarios-pages-16-18.png tests/browser/__screenshots__/extra-seasonal-textures.png tests/browser/__screenshots__/extra-harbor-gameboard.png tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
@@ -235,11 +235,11 @@
     "bench:warm-start": "vitest bench tests/perf/warm-start.bench.ts --run",
     "bench:cli-cold-start": "pnpm build && vitest bench tests/perf/cli-cold-start.bench.ts --run",
     "bench:simulation": "vitest bench tests/perf/simulation.bench.ts --run",
-    "test:coverage": "MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --coverage",
-    "test:coverage:enforce": "MEDIEVAL_HEXAGON_COVERAGE=1 MEDIEVAL_HEXAGON_COVERAGE_ENFORCE=1 vitest run --coverage",
-    "test:coverage:browser:free": "MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.free.config.ts --coverage",
-    "test:coverage:browser:extra": "MEDIEVAL_HEXAGON_ENABLE_EXTRA=1 MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.extra.config.ts --coverage",
-    "test:coverage:e2e": "MEDIEVAL_HEXAGON_ENABLE_LOCAL_ASSETS=1 MEDIEVAL_HEXAGON_COVERAGE=1 vitest run --config vitest.browser.local-assets.config.ts --coverage",
+    "test:coverage": "HEX_WORLDS_COVERAGE=1 vitest run --coverage",
+    "test:coverage:enforce": "HEX_WORLDS_COVERAGE=1 HEX_WORLDS_COVERAGE_ENFORCE=1 vitest run --coverage",
+    "test:coverage:browser:free": "HEX_WORLDS_COVERAGE=1 vitest run --config vitest.browser.free.config.ts --coverage",
+    "test:coverage:browser:extra": "HEX_WORLDS_ENABLE_EXTRA=1 HEX_WORLDS_COVERAGE=1 vitest run --config vitest.browser.extra.config.ts --coverage",
+    "test:coverage:e2e": "HEX_WORLDS_ENABLE_LOCAL_ASSETS=1 HEX_WORLDS_COVERAGE=1 vitest run --config vitest.browser.local-assets.config.ts --coverage",
     "coverage:merge": "tsx scripts/merge-coverage.ts",
     "coverage:all": "rimraf coverage && pnpm test:coverage && pnpm test:coverage:browser:free && pnpm coverage:merge",
     "cli": "node dist/cli.js",
@@ -270,11 +270,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jbcom/medieval-hexagon-gameboard.git"
+    "url": "git+https://github.com/jbcom/declarative-hex-worlds.git"
   },
-  "homepage": "https://github.com/jbcom/medieval-hexagon-gameboard#readme",
+  "homepage": "https://github.com/jbcom/declarative-hex-worlds#readme",
   "bugs": {
-    "url": "https://github.com/jbcom/medieval-hexagon-gameboard/issues"
+    "url": "https://github.com/jbcom/declarative-hex-worlds/issues"
   },
   "publishConfig": {
     "access": "public"

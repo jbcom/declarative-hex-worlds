@@ -24,7 +24,7 @@ import { describe, expect, it } from 'vitest';
 import { createGameboardWorld } from '../../../src';
 import { GameboardState } from '../../traits/board';
 import {
-  MedievalGameboardProvider,
+  GameboardProvider,
   useGameboardActorSelection,
 } from '../react';
 
@@ -53,9 +53,9 @@ describe('selector hook memoization (PRD E7)', () => {
     const renders = { count: 0 };
 
     const { rerender } = render(
-      <MedievalGameboardProvider world={world}>
+      <GameboardProvider world={world}>
         <MemoizedChild renders={renders} />
-      </MedievalGameboardProvider>
+      </GameboardProvider>
     );
 
     const afterFirst = renders.count;
@@ -65,9 +65,9 @@ describe('selector hook memoization (PRD E7)', () => {
     for (let i = 0; i < 5; i += 1) {
       act(() => {
         rerender(
-          <MedievalGameboardProvider world={world}>
+          <GameboardProvider world={world}>
             <MemoizedChild renders={renders} />
-          </MedievalGameboardProvider>
+          </GameboardProvider>
         );
       });
     }

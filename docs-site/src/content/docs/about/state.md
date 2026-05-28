@@ -18,7 +18,7 @@ The 1.0 stabilization PR (`codex/1.0-stabilization-phase-2`) closes the gap to 1
 
 ## In-flight initiatives
 
-The authoritative work queue is [`.agent-state/directive.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/.agent-state/directive.md). Open items at a glance:
+The authoritative work queue is [`.agent-state/directive.md`](https://github.com/jbcom/declarative-hex-worlds/blob/main/.agent-state/directive.md). Open items at a glance:
 
 - **Asset bootstrap rollout** — `bootstrapKayKitAssets()` ships; bringing the FREE browser visuals CI job out of `RUN_BROWSER_VISUALS` gating once the bootstrap step is wired into CI.
 - **SimpleRPG `game/` decomposition** — the test-driver implementation grows from a single 1,005-line file into per-domain sibling modules (scenarios, pieces, systems, render, cli) to expose every public API.

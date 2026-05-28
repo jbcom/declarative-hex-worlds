@@ -598,7 +598,7 @@ function resolveLibraryVersion(): string {
     const candidate = join(dir, 'package.json');
     if (existsSync(candidate)) {
       const parsed = JSON.parse(readFileSync(candidate, 'utf8')) as { version?: string; name?: string };
-      if (parsed.name === 'medieval-hexagon-gameboard' && typeof parsed.version === 'string') {
+      if (parsed.name === 'declarative-hex-worlds' && typeof parsed.version === 'string') {
         return parsed.version;
       }
     }

@@ -50,13 +50,13 @@ describe('runtime asset root resolution (PRD RB3)', () => {
     expect(getGameboardAssetRootOverride()).toBeUndefined();
   });
 
-  it('falls back to globalThis.MEDIEVAL_HEXAGON_ASSET_ROOT when no override is set', () => {
+  it('falls back to globalThis.HEX_WORLDS_ASSET_ROOT when no override is set', () => {
     const ref = globalThis as GlobalWithAssetRoot;
     ref[GAMEBOARD_ASSET_ROOT_GLOBAL_KEY] = '/cdn/assets';
     expect(resolveGameboardAssetRoot()).toBe('/cdn/assets');
   });
 
-  it('falls back to process.env.MEDIEVAL_HEXAGON_ASSET_ROOT when no global is set', () => {
+  it('falls back to process.env.HEX_WORLDS_ASSET_ROOT when no global is set', () => {
     process.env[GAMEBOARD_ASSET_ROOT_ENV_VAR] = '/env/assets';
     expect(resolveGameboardAssetRoot()).toBe('/env/assets');
   });

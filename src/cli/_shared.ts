@@ -98,8 +98,8 @@ import {
   type HexTileRegistry,
   inspectGameboardRecipe,
   inspectGameboardScenario,
-  inspectMedievalGameboardBlueprint,
-  inspectMedievalGameboardBlueprintScenario,
+  inspectGameboardBlueprint,
+  inspectGameboardBlueprintScenario,
   type KayKitAssetPublicRole,
   type KayKitAssetPublicTreatment,
   type KayKitGuideAssetCoverage,
@@ -118,10 +118,10 @@ import {
   listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarioAssetUsages,
   listKayKitGuideScenarios,
-  type MedievalGameboardBlueprintInspection,
-  type MedievalGameboardBlueprintOptions,
-  type MedievalGameboardBlueprintScenarioInspection,
-  type MedievalGameboardBlueprintScenarioOptions,
+  type GameboardBlueprintInspection,
+  type GameboardBlueprintOptions,
+  type GameboardBlueprintScenarioInspection,
+  type GameboardBlueprintScenarioOptions,
   renderKayKitGuideScenarioCoverageMarkdown,
   summarizeGameboardScenario,
   summarizeKayKitGuideCoverage,
@@ -243,11 +243,11 @@ export function relativizePath(value: string): string {
  * Production CLI use cases always write inside the current working directory,
  * so `process.cwd()` is the default jail root. The test harness — which spawns
  * the CLI from `packageRoot` and writes outputs into `os.tmpdir()` — opts into
- * a wider jail by setting `MEDIEVAL_HEXAGON_OUT_ROOT`. The env var is the only
+ * a wider jail by setting `HEX_WORLDS_OUT_ROOT`. The env var is the only
  * legitimate way to widen the jail; CLI users never set it.
  */
 export function defaultOutRoot(): string {
-  const envRoot = process.env.MEDIEVAL_HEXAGON_OUT_ROOT;
+  const envRoot = process.env.HEX_WORLDS_OUT_ROOT;
   if (typeof envRoot === 'string' && envRoot.length > 0) {
     return resolve(envRoot);
   }
@@ -266,7 +266,7 @@ export function defaultOutRoot(): string {
  *
  * @param value User-supplied path from CLI flags.
  * @param outRoot Directory the resolved path must stay inside. Defaults to
- *   `defaultOutRoot()` (cwd, or `MEDIEVAL_HEXAGON_OUT_ROOT` when set).
+ *   `defaultOutRoot()` (cwd, or `HEX_WORLDS_OUT_ROOT` when set).
  * @returns Absolute resolved path, guaranteed to be inside `outRoot`.
  * @throws When the resolved path escapes the jail via `..` segments or via an
  *   absolute path that points outside `outRoot`.
@@ -649,10 +649,10 @@ export function runPiecesFromAssets(parsed: ParsedArgs): void {
 export function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: PackEdition): void {
   const options = readBlueprintOptions(parsed.flags);
   const validationConfig = validationConfigFromArgs(parsed, sourceRoot, edition);
-  const inspection = inspectMedievalGameboardBlueprint(options);
+  const inspection = inspectGameboardBlueprint(options);
   const violations = validateGameboardPlan(inspection.plan, validationConfig);
   const scenarioInspection = shouldInspectBlueprintScenario(options, parsed.flags)
-    ? inspectMedievalGameboardBlueprintScenario(options, { plan: validationConfig })
+    ? inspectGameboardBlueprintScenario(options, { plan: validationConfig })
     : undefined;
   const interop = shouldEmitBlueprintInterop(parsed.flags)
     ? createBlueprintScenarioInteropSnapshot(parsed, scenarioInspection)
@@ -1336,7 +1336,7 @@ export function summaryPlanFromArgs(
   }
 
   const path = resolve(String(blueprintPath));
-  const inspection = inspectMedievalGameboardBlueprint(readBlueprintOptions(parsed.flags));
+  const inspection = inspectGameboardBlueprint(readBlueprintOptions(parsed.flags));
   return {
     source: { kind: 'blueprint', path },
     plan: inspection.plan,
@@ -2638,7 +2638,7 @@ export function runSimulateScenario(
 
 export function readBlueprintOptions(
   flags: Record<string, string | boolean>
-): MedievalGameboardBlueprintScenarioOptions {
+): GameboardBlueprintScenarioOptions {
   const configPath =
     typeof flags.blueprint === 'string'
       ? flags.blueprint
@@ -2646,7 +2646,7 @@ export function readBlueprintOptions(
         ? flags.config
         : undefined;
   const fileOptions = configPath ? readBlueprintOptionsFile(resolve(configPath)) : {};
-  const cliOptions: MedievalGameboardBlueprintScenarioOptions = {};
+  const cliOptions: GameboardBlueprintScenarioOptions = {};
   const width = readNumberFlag(flags.width);
   const height = readNumberFlag(flags.height);
   const radius = readNumberFlag(flags.radius);
@@ -2655,14 +2655,14 @@ export function readBlueprintOptions(
     cliOptions.seed = flags.seed;
   }
   if (typeof flags.faction === 'string') {
-    cliOptions.faction = flags.faction as MedievalGameboardBlueprintOptions['faction'];
+    cliOptions.faction = flags.faction as GameboardBlueprintOptions['faction'];
   }
   if (typeof flags.textureSet === 'string') {
-    cliOptions.textureSet = flags.textureSet as MedievalGameboardBlueprintOptions['textureSet'];
+    cliOptions.textureSet = flags.textureSet as GameboardBlueprintOptions['textureSet'];
   }
   if (typeof flags.defaultTerrain === 'string') {
     cliOptions.defaultTerrain =
-      flags.defaultTerrain as MedievalGameboardBlueprintOptions['defaultTerrain'];
+      flags.defaultTerrain as GameboardBlueprintOptions['defaultTerrain'];
   }
   if (typeof flags.waterFill === 'string') {
     const waterFill = readNumberFlag(flags.waterFill);
@@ -2704,7 +2704,7 @@ export function readBlueprintOptions(
   };
 }
 
-export function readBlueprintOptionsFile(path: string): MedievalGameboardBlueprintScenarioOptions {
+export function readBlueprintOptionsFile(path: string): GameboardBlueprintScenarioOptions {
   const payload = readJson<unknown>(path);
   const options =
     isRecord(payload) && isRecord(payload.blueprint)
@@ -2717,14 +2717,14 @@ export function readBlueprintOptionsFile(path: string): MedievalGameboardBluepri
       `Blueprint file ${relativizePath(path)} must be an options object, { "blueprint": ... }, or { "options": ... }`
     );
   }
-  return options as unknown as MedievalGameboardBlueprintScenarioOptions;
+  return options as unknown as GameboardBlueprintScenarioOptions;
 }
 
 export function blueprintPayloadFromInspection(
-  inspection: MedievalGameboardBlueprintInspection,
+  inspection: GameboardBlueprintInspection,
   violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>,
   flags: Record<string, string | boolean>,
-  scenarioInspection?: MedievalGameboardBlueprintScenarioInspection,
+  scenarioInspection?: GameboardBlueprintScenarioInspection,
   interop?: GameboardInteropSnapshot
 ): Record<string, unknown> {
   const errorCount = violations.filter((violation) => violation.severity === 'error').length;
@@ -2786,7 +2786,7 @@ export function blueprintPayloadFromInspection(
 }
 
 export function shouldInspectBlueprintScenario(
-  options: MedievalGameboardBlueprintScenarioOptions,
+  options: GameboardBlueprintScenarioOptions,
   flags: Record<string, string | boolean>
 ): boolean {
   return (
@@ -2806,7 +2806,7 @@ export function shouldEmitBlueprintInterop(flags: Record<string, string | boolea
 
 export function createBlueprintScenarioInteropSnapshot(
   parsed: ParsedArgs,
-  scenarioInspection: MedievalGameboardBlueprintScenarioInspection | undefined
+  scenarioInspection: GameboardBlueprintScenarioInspection | undefined
 ): GameboardInteropSnapshot {
   if (!scenarioInspection) {
     throw new GameboardCliError('blueprint interop output requires a generated blueprint scenario');
@@ -2818,7 +2818,7 @@ export function createBlueprintScenarioInteropSnapshot(
 }
 
 export function hasBlueprintScenarioContent(
-  options: MedievalGameboardBlueprintScenarioOptions
+  options: GameboardBlueprintScenarioOptions
 ): boolean {
   return Boolean(
     options.scenarioId ||
@@ -3198,7 +3198,7 @@ export function formatShape(shape: GameboardPlan['shape']): string {
 }
 
 export function printBlueprintInspection(
-  inspection: MedievalGameboardBlueprintInspection,
+  inspection: GameboardBlueprintInspection,
   violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>
 ): void {
   console.log(`blueprint seed: ${inspection.plan.seed}`);
@@ -3219,7 +3219,7 @@ export function printBlueprintInspection(
 }
 
 export function printBlueprintScenarioInspection(
-  inspection: MedievalGameboardBlueprintScenarioInspection
+  inspection: GameboardBlueprintScenarioInspection
 ): void {
   const scenarioInspection = inspection.scenarioInspection;
   console.log(`scenario: ${inspection.scenario.id}`);

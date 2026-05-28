@@ -110,7 +110,7 @@ const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp 
 ];
 
 assertEqualSet(packageJson.files ?? [], expectedFiles, 'package files whitelist changed');
-assert(packageJson.name === 'medieval-hexagon-gameboard', 'package name changed');
+assert(packageJson.name === 'declarative-hex-worlds', 'package name changed');
 assert(packageJson.type === 'module', 'package must publish as ESM');
 assert(packageJson.sideEffects === false, 'package must remain side-effect-free for bundlers');
 assert(packageJson.license === 'MIT', 'package code license must stay MIT');
@@ -257,7 +257,7 @@ function assertRootEntrypointMetadata(): void {
 }
 
 function assertBin(): void {
-  const binPath = packageJson.bin?.['medieval-hexagon-gameboard'];
+  const binPath = packageJson.bin?.['declarative-hex-worlds'];
   assert(binPath === './dist/cli.js', 'CLI bin must point at ./dist/cli.js');
   const resolved = join(packageRoot, binPath.replace(/^\.\//, ''));
   assert(existsSync(resolved), `CLI bin target is missing: ${binPath}`);
@@ -291,7 +291,7 @@ function assertSourceModulesExported(): void {
 }
 
 function assertPackedConsumerSmokeCoversExports(): void {
-  const packageName = 'medieval-hexagon-gameboard';
+  const packageName = 'declarative-hex-worlds';
   const coveredSpecifiers = collectConsumerSmokePackageSpecifiers(packageName);
   for (const subpath of Object.keys(packageJson.exports ?? {})) {
     const exportPattern = subpath.slice(2);
@@ -427,7 +427,7 @@ async function assertExportImports(): Promise<void> {
  * it imports, concatenated into a single virtual source. Needed because the
  * D10 refactor split the orchestrator into `pack-install.ts` + `types.ts` +
  * `_shared.ts` — the audit must continue to see the
- * `medieval-hexagon-gameboard/...` import specifiers that moved to
+ * `declarative-hex-worlds/...` import specifiers that moved to
  * those sub-modules.
  */
 function readSmokeOrchestratorSource(entryPath: string): string {

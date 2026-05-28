@@ -1,6 +1,6 @@
 # Medieval Hexagon Gameboard Agent Guide
 
-This repo builds `medieval-hexagon-gameboard`, a Koota-first 2.5D
+This repo builds `declarative-hex-worlds`, a Koota-first 2.5D
 gameboard runtime for KayKit Medieval Hexagon assets.
 
 Use Node 22+ and pnpm 9. The workflow and package audits enforce this runtime
@@ -53,16 +53,16 @@ contract for CI and npm consumers.
 ## Asset Rules
 
 - `references/` is local-only and gitignored.
-- FREE assets under `packages/medieval-hexagon-gameboard/assets/free/` are
+- FREE assets under `packages/declarative-hex-worlds/assets/free/` are
   generated, committed, and published.
 - EXTRA assets are never committed or published. APIs may model EXTRA concepts,
   but generated placements must set `requiresExtra: true` when the asset is not
   in the FREE manifest.
 - Optional wider asset-library smoke tests should read
-  `MEDIEVAL_HEXAGON_ASSET_LIBRARY_ROOT` when a contributor provides it. For
+  `HEX_WORLDS_ASSET_LIBRARY_ROOT` when a contributor provides it. For
   mounted NAS or removable-disk paths, verify the configured mount point before
   running local smoke tests:
-  `ASSET_LIBRARY_ROOT=${MEDIEVAL_HEXAGON_ASSET_LIBRARY_ROOT:-/path/to/assets}; ASSET_LIBRARY_MOUNT=${ASSET_LIBRARY_ROOT%/assets}; mount | grep -q "$ASSET_LIBRARY_MOUNT" && echo MOUNTED || echo "NOT MOUNTED"`.
+  `ASSET_LIBRARY_ROOT=${HEX_WORLDS_ASSET_LIBRARY_ROOT:-/path/to/assets}; ASSET_LIBRARY_MOUNT=${ASSET_LIBRARY_ROOT%/assets}; mount | grep -q "$ASSET_LIBRARY_MOUNT" && echo MOUNTED || echo "NOT MOUNTED"`.
 
 ## Architecture Rules
 
@@ -267,12 +267,12 @@ contract for CI and npm consumers.
   `propClusterDressing` when the board-level spec should auto-place or
   explicitly place camps, resource caches, worksites, training yards, stable
   yards, and harbor support clusters around authored towns and harbors. Prefer
-  `createMedievalGameboardBlueprintRecipe` when the result should be saved or
-  inspected, `createMedievalGameboardBlueprintPlan` when a game needs the plan
-  directly, `createMedievalGameboardBlueprintScenario` when the generated board
+  `createGameboardBlueprintRecipe` when the result should be saved or
+  inspected, `createGameboardBlueprintPlan` when a game needs the plan
+  directly, `createGameboardBlueprintScenario` when the generated board
   should also carry spawn groups, actors, patrol routes, movement agents, and
-  quests, `createMedievalGameboardWorldFromBlueprint` when a game/test needs the
-  ready Koota runtime, and `inspectMedievalGameboardBlueprintScenario` when an
+  quests, `createGameboardWorldFromBlueprint` when a game/test needs the
+  ready Koota runtime, and `inspectGameboardBlueprintScenario` when an
   agent/editor needs both board counts and scenario route diagnostics before
   rendering. The `blueprint` CLI can also write `--outInterop` from the same
   blueprint scenario so external ECS examples do not need a second
@@ -366,7 +366,7 @@ contract for CI and npm consumers.
 - Keep `tests/integration/simple-rpg/simple-rpg.ts` as the canonical
   in-repo SimpleRPG public-API driver. Post-PRD R4 it is a test-only
   fixture (no published subpath) — consumers reach the SimpleRPG evidence
-  through the bundled CLI (`medieval-hexagon-gameboard coverage` and
+  through the bundled CLI (`declarative-hex-worlds coverage` and
   `doctor --coverage`). It should remain the in-repo reference for scenario
   instantiation, board-aware spawn selection, ECS interop snapshots,
   simulation playback, and serializable smoke-test summaries. It also owns
@@ -378,14 +378,14 @@ contract for CI and npm consumers.
   registries, layout pieces, recipes, blueprints, seeded generation, spawn
   selection, and external compatibility; package smoke tests import that helper
   from `node_modules`.
-- Keep `packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts`
+- Keep `packages/declarative-hex-worlds/examples/blueprint-board-usage.ts`
   as the repo source for the compiled public package subpath exported as
-  `medieval-hexagon-gameboard/examples/blueprint-board-usage`. It should
+  `declarative-hex-worlds/examples/blueprint-board-usage`. It should
   remain the human-facing example for board-scale blueprint JSON, generated
   scenarios, spawn groups, patrol routes, runtime facade snapshots, and neutral
   ECS interop summaries.
 - Keep packaged JSON scenarios and recipes exposed through
-  `medieval-hexagon-gameboard/examples/*.json`; do not restore a broad
+  `declarative-hex-worlds/examples/*.json`; do not restore a broad
   `./examples/*` export or package raw TypeScript example source. The tarball
   should carry compiled `dist/examples/*` JS/DTS and `examples/*.json` data only.
 - Treat `tests/e2e/local-assets/` as the isolated third-party asset harness. It
@@ -614,44 +614,44 @@ Run `pnpm build` before local CLI geometry analysis when adding or changing tile
 declarations:
 
 ```bash
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze --edition free
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js doctor --edition free
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js manifest --edition free --out /tmp/kaykit-manifest.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-manifest --manifest /tmp/kaykit-manifest.json --outManifest /tmp/kaykit-manifest.normalized.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js declarations --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-declarations.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-permutations --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-permutations.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/kaykit-guide-scenarios.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-scenarios --page 14 --includeTreatments --json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-usages --page 16,17,18 --json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-render-requests --page 16,17,18 --assetBaseUrl /assets/extra --includeGroups --out /tmp/kaykit-guide-render-requests.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-assets --assetId hex_road_M --json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-roles --role prop --json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js blueprint --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --outInterop /tmp/blueprint.interop.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js summarize-plan --blueprint packages/medieval-hexagon-gameboard/examples/blueprint-board.json --out /tmp/blueprint.summary.json --outPlan /tmp/blueprint.summary.plan.json --allowUnknownAssets
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js summarize-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/simple-rpg.scenario-summary.json --allowUnknownAssets
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js analyze-layout --recipe docs/examples/generated-piece-scenario.recipe.json --rules layout-rules.json --out /tmp/layout-analysis.json --outPlan /tmp/scenario-plan.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js spawn-groups --recipe docs/examples/generated-piece-scenario.recipe.json --groups spawn-groups.json --out /tmp/spawn-groups.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js patrol-routes --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/package-simple-rpg-patrol-routes.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js patrol-script --routes /tmp/package-simple-rpg-patrol-routes.json --routeId bandit-watch --actorId bandit --out /tmp/package-simple-rpg-patrol.script.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe docs/examples/generated-piece-scenario.recipe.json --outPlan /tmp/generated-piece-scenario.plan.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-recipe --recipe packages/medieval-hexagon-gameboard/examples/generated-piece-scenario.recipe.json --outPlan /tmp/package-generated-piece-scenario.plan.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --outPlan /tmp/package-simple-rpg-scenario.plan.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js validate-simulation --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js snapshot --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --spawnCount 2 --spawnSeed simple-rpg --out /tmp/package-simple-rpg-interop.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js simulate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest packages/medieval-hexagon-gameboard/assets/free/manifest.json --out /tmp/package-simple-rpg-simulation.json --outPlan /tmp/package-simple-rpg-final-plan.json --outInterop /tmp/package-simple-rpg-simulation-interop.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js compatibility --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --intendedRole tile --sourcePack "Kenney Castle Kit" --failOnWarning
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js piece --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --id kenney:tower-hexagon-base --intendedRole tile --sourcePack "Kenney Castle Kit" --tags castle,landmark --out /tmp/kenney-piece.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js pieces-from-assets --assets "references/kenney_castle-kit/Models/GLB format" --sourcePack "Kenney Castle Kit" --intendedRole tile --assetIdPrefix kenney --pieceIdPrefix kenney-castle --tags castle --pieceOverrides docs/examples/local-piece-overrides.kenney-castle.json --includeReports --out /tmp/kenney-pieces.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js pieces --pieces /tmp/kenney-piece.json --emitRules --mode pool --role landmark --count 1 --json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js pieces --pieces /tmp/kenney-pieces.json --emitSourceUrls --pieceSourceRoots docs/examples/local-piece-source-roots.example.json --json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js pieces --pieces /tmp/kenney-pieces.json --recipe docs/examples/generated-piece-scenario.recipe.json --mode pool --role tree --count 3 --seed preview --out /tmp/piece-fill-inspection.json --outPlan /tmp/piece-fill-plan.json
-pnpm exec packages/medieval-hexagon-gameboard/dist/cli.js place-piece --recipe docs/examples/generated-piece-scenario.recipe.json --pieces /tmp/kenney-pieces.json --pieceId kenney-castle:tower-hexagon-base --count 1 --seed preview --idPrefix preview:tower --out /tmp/piece-placement.json --outPlan /tmp/piece-placement-plan.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js analyze --edition free
+pnpm exec packages/declarative-hex-worlds/dist/cli.js doctor --edition free
+pnpm exec packages/declarative-hex-worlds/dist/cli.js manifest --edition free --out /tmp/kaykit-manifest.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-manifest --manifest /tmp/kaykit-manifest.json --outManifest /tmp/kaykit-manifest.normalized.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js declarations --manifest packages/declarative-hex-worlds/assets/free/manifest.json --out /tmp/kaykit-declarations.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-permutations --manifest packages/declarative-hex-worlds/assets/free/manifest.json --out /tmp/kaykit-guide-permutations.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-scenarios --manifest packages/declarative-hex-worlds/assets/free/manifest.json --out /tmp/kaykit-guide-scenarios.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-scenarios --page 14 --includeTreatments --json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-usages --page 16,17,18 --json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-render-requests --page 16,17,18 --assetBaseUrl /assets/extra --includeGroups --out /tmp/kaykit-guide-render-requests.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-assets --assetId hex_road_M --json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-roles --role prop --json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js blueprint --blueprint packages/declarative-hex-worlds/examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --outInterop /tmp/blueprint.interop.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
+pnpm exec packages/declarative-hex-worlds/dist/cli.js summarize-plan --blueprint packages/declarative-hex-worlds/examples/blueprint-board.json --out /tmp/blueprint.summary.json --outPlan /tmp/blueprint.summary.plan.json --allowUnknownAssets
+pnpm exec packages/declarative-hex-worlds/dist/cli.js summarize-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/simple-rpg.scenario-summary.json --allowUnknownAssets
+pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js analyze-layout --recipe docs/examples/generated-piece-scenario.recipe.json --rules layout-rules.json --out /tmp/layout-analysis.json --outPlan /tmp/scenario-plan.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js spawn-groups --recipe docs/examples/generated-piece-scenario.recipe.json --groups spawn-groups.json --out /tmp/spawn-groups.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js patrol-routes --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/package-simple-rpg-patrol-routes.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js patrol-script --routes /tmp/package-simple-rpg-patrol-routes.json --routeId bandit-watch --actorId bandit --out /tmp/package-simple-rpg-patrol.script.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-recipe --recipe docs/examples/generated-piece-scenario.recipe.json --outPlan /tmp/generated-piece-scenario.plan.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-recipe --recipe packages/declarative-hex-worlds/examples/generated-piece-scenario.recipe.json --outPlan /tmp/package-generated-piece-scenario.plan.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest packages/declarative-hex-worlds/assets/free/manifest.json --outPlan /tmp/package-simple-rpg-scenario.plan.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-simulation --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest packages/declarative-hex-worlds/assets/free/manifest.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js snapshot --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest packages/declarative-hex-worlds/assets/free/manifest.json --spawnCount 2 --spawnSeed simple-rpg --out /tmp/package-simple-rpg-interop.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js simulate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest packages/declarative-hex-worlds/assets/free/manifest.json --out /tmp/package-simple-rpg-simulation.json --outPlan /tmp/package-simple-rpg-final-plan.json --outInterop /tmp/package-simple-rpg-simulation-interop.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js compatibility --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --intendedRole tile --sourcePack "Kenney Castle Kit" --failOnWarning
+pnpm exec packages/declarative-hex-worlds/dist/cli.js piece --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --id kenney:tower-hexagon-base --intendedRole tile --sourcePack "Kenney Castle Kit" --tags castle,landmark --out /tmp/kenney-piece.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js pieces-from-assets --assets "references/kenney_castle-kit/Models/GLB format" --sourcePack "Kenney Castle Kit" --intendedRole tile --assetIdPrefix kenney --pieceIdPrefix kenney-castle --tags castle --pieceOverrides docs/examples/local-piece-overrides.kenney-castle.json --includeReports --out /tmp/kenney-pieces.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js pieces --pieces /tmp/kenney-piece.json --emitRules --mode pool --role landmark --count 1 --json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js pieces --pieces /tmp/kenney-pieces.json --emitSourceUrls --pieceSourceRoots docs/examples/local-piece-source-roots.example.json --json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js pieces --pieces /tmp/kenney-pieces.json --recipe docs/examples/generated-piece-scenario.recipe.json --mode pool --role tree --count 3 --seed preview --out /tmp/piece-fill-inspection.json --outPlan /tmp/piece-fill-plan.json
+pnpm exec packages/declarative-hex-worlds/dist/cli.js place-piece --recipe docs/examples/generated-piece-scenario.recipe.json --pieces /tmp/kenney-pieces.json --pieceId kenney-castle:tower-hexagon-base --count 1 --seed preview --idPrefix preview:tower --out /tmp/piece-placement.json --outPlan /tmp/piece-placement-plan.json
 ```
 
 Browser screenshots are generated under
-`packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/` and are
+`packages/declarative-hex-worlds/tests/browser/__screenshots__/` and are
 ignored. The browser scripts run `tests/scripts/assert-screenshots.ts` after
 capture, so existing artifacts can be rechecked with the package-level
 `test:screenshots:free`, `test:screenshots:extra`, and
@@ -667,10 +667,10 @@ drift silently.
 
 Curated README screenshots must be promoted out of the ignored browser output.
 For blueprint board examples, keep matching copies in `docs/assets/showcases/`
-for VitePress and `packages/medieval-hexagon-gameboard/docs/showcases/` for the
+for VitePress and `packages/declarative-hex-worlds/docs/showcases/` for the
 published package README. After `pnpm test:visual`, run
 `pnpm showcases:promote` to refresh those committed copies from
-`packages/medieval-hexagon-gameboard/tests/browser/__screenshots__/`; run
+`packages/declarative-hex-worlds/tests/browser/__screenshots__/`; run
 `pnpm showcases:promote -- --check` when you only need to verify the committed
 copies already match the latest ignored screenshots. The promotion check also
 parses the source and committed PNGs through the same quality analyzer as

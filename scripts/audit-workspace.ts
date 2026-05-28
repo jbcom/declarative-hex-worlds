@@ -60,7 +60,7 @@ const tsconfigBase = readJson<TsConfigJson>('tsconfig.base.json');
 const typedocJson = readJson<TypeDocJson>('typedoc.json');
 const tsupConfig = readRequired('tsup.config.ts');
 
-assert(packageJson.name === 'medieval-hexagon-gameboard', 'package name must be medieval-hexagon-gameboard');
+assert(packageJson.name === 'declarative-hex-worlds', 'package name must be declarative-hex-worlds');
 assert(packageJson.type === 'module', 'package must be ESM');
 assert(packageJson.packageManager === 'pnpm@9.15.9', 'packageManager must pin pnpm@9.15.9');
 assert(packageJson.engines?.node === '>=22', 'engines.node must be >=22');
@@ -140,7 +140,7 @@ assert(tsconfig.extends === './tsconfig.base.json', 'tsconfig must extend ./tsco
 assert(tsconfig.compilerOptions?.rootDir === '.', 'tsconfig rootDir must be repo root');
 assert(tsconfig.compilerOptions?.outDir === 'dist', 'tsconfig outDir must be ./dist');
 assert(
-  tsconfig.compilerOptions?.paths?.['medieval-hexagon-gameboard']?.[0] === 'src/index.ts',
+  tsconfig.compilerOptions?.paths?.['declarative-hex-worlds']?.[0] === 'src/index.ts',
   'tsconfig paths must resolve umbrella to src/index.ts'
 );
 
@@ -149,7 +149,7 @@ assert(tsconfigBase.compilerOptions?.['verbatimModuleSyntax' as keyof TsConfigJs
 assert(typedocJson.tsconfig === './tsconfig.json', 'typedoc.json must point at the root tsconfig.json');
 
 assert(tsupConfig.includes("entry:"), 'tsup.config.ts must declare an entry list');
-assert(!tsupConfig.includes('packages/medieval-hexagon-gameboard/'), 'tsup.config.ts must not reference the old packages/ path');
+assert(!tsupConfig.includes('packages/declarative-hex-worlds/'), 'tsup.config.ts must not reference the old packages/ path');
 
 const dependencies = packageJson.dependencies ?? {};
 for (const required of ['honeycomb-grid', 'koota', 'seedrandom', 'react', 'react-dom', 'three']) {

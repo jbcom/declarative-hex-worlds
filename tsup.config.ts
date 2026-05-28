@@ -57,8 +57,8 @@ export default defineConfig({
     options.sourcesContent = false;
   },
   external: [
-    'medieval-hexagon-gameboard',
-    /^medieval-hexagon-gameboard\//,
+    'declarative-hex-worlds',
+    /^declarative-hex-worlds\//,
     'koota',
     'koota/react',
     'react',
