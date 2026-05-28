@@ -119,7 +119,7 @@ Started: 2026-05-28T10:33:51Z
 ### task-LF3 Relocate upstream-layout
 - [x] task-LF3 ✅ (commit, 2026-05-28) Moved src/manifest/upstream-layout.ts → src/bootstrap/upstream-layout.ts (whole file; config extraction of its data deferred to reordered LF2). manifest barrel drops it; bootstrap barrel re-exports. Subpath renamed manifest/upstream-layout → bootstrap/upstream-layout (tsup+package.json+smoke+astro typedoc). 6 layout symbols left umbrella (→ ./bootstrap). Also: react/three added to umbrella (LF1 follow-up, invariant #5, commit `3461858`). All green: typecheck/715 unit/build/lint.
 ### task-LF4 Relocate bootstrap to CLI command area
-- [ ] task-LF4 Move src/bootstrap/* → src/cli/commands/bootstrap/; update cli/_shared.ts + cli.ts imports; no top-level src/bootstrap/ remains.
+- [x] task-LF4 ✅ (commit, 2026-05-28) Moved src/bootstrap/* → src/cli/commands/bootstrap/ (core/target/upstream-layout/index.ts; index now hosts the `run` command merging the old thin wrapper). _shared imports `./commands/bootstrap/core` (cycle-safe). tsup + astro typedoc inputs repointed; subpath KEYS + dist paths unchanged. e2e/integration tests repointed. No top-level src/bootstrap/. All green: typecheck/715 unit/build/lint.
 ### task-LF5 Repoint subpaths + build + lint + docs
 - [ ] task-LF5 Update package.json exports (manifest/upstream-layout → cli/bootstrap; ./bootstrap repoint), tsup entries, biome noRestrictedImports, docs-site refs, scripts/smoke/types.ts; build+lint+typecheck+test green.
 ### task-LF6 Proper CLI library
