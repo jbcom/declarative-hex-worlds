@@ -224,6 +224,21 @@ describe('free manifest', () => {
     expect(codes).toContain('manifest.asset_id');
   });
 
+  it('flags asset with invalid unitStyle enum (E0b)', () => {
+    // Covers schema.ts line 557 — unitStyle enum validation.
+    const manifest = manifestFixture('free', [
+      assetFixture({
+        id: 'bad-unit',
+        edition: 'free',
+        category: 'units',
+        subcategory: 'soldier',
+        unitStyle: 'not-a-real-unit-style' as never,
+      }),
+    ]);
+    const codes = validateMedievalHexagonManifest(manifest).map((i) => i.code);
+    expect(codes).toContain('manifest.asset_unitStyle');
+  });
+
   it('reports malformed manifest header fields (E0b)', () => {
     const manifest = manifestFixture('free', [
       assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles', subcategory: 'base' }),
