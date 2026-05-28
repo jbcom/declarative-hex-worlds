@@ -30,6 +30,7 @@ const releasePleaseConfig = readJson(files.releasePleaseConfig) as {
 };
 const releasePleaseManifest = readJson(files.releasePleaseManifest) as Record<string, string>;
 const packageJson = readJson('package.json') as {
+  version: string;
   engines?: Record<string, string>;
   packageManager?: string;
 };
@@ -120,8 +121,15 @@ const releasePackage = releasePleaseConfig.packages?.['.'];
 if (releasePackage?.component !== 'medieval-hexagon-gameboard') {
   failures.push('release-please config must target medieval-hexagon-gameboard at the root');
 }
-if (releasePleaseManifest['.'] !== '0.1.0') {
-  failures.push('release-please manifest must start "." at 0.1.0');
+// The manifest tracks the currently-released version for `.` (root pkg).
+// release-please bumps this in lockstep with `package.json#version` whenever
+// it cuts a release PR. Asserting they match catches a real failure mode
+// (hand-edited manifest, broken bump) without hardcoding a one-shot literal
+// that turns into a tripwire on every release.
+if (releasePleaseManifest['.'] !== packageJson.version) {
+  failures.push(
+    `release-please manifest "." (${releasePleaseManifest['.']}) must match package.json#version (${packageJson.version})`
+  );
 }
 if (packageJson.packageManager !== 'pnpm@9.15.9') {
   failures.push('packageManager must pin pnpm@9.15.9');
