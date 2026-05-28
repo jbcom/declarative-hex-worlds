@@ -391,20 +391,8 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
     "name": "KAYKIT_HEX_WIDTH",
   },
   {
-    "kind": "object",
-    "name": "KAYKIT_MEDIEVAL_EXTRA_LAYOUT",
-  },
-  {
-    "kind": "object",
-    "name": "KAYKIT_MEDIEVAL_FREE_LAYOUT",
-  },
-  {
     "kind": "string",
     "name": "KAYKIT_PACK_VERSION",
-  },
-  {
-    "kind": "object",
-    "name": "KAYKIT_UPSTREAM_LAYOUTS",
   },
   {
     "kind": "function",
@@ -964,10 +952,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
-    "name": "detectKayKitLayout",
-  },
-  {
-    "kind": "function",
     "name": "dispatchGameboardActorTargetCommand",
   },
   {
@@ -993,10 +977,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "executeGameboardInteractionCommand",
-  },
-  {
-    "kind": "function",
-    "name": "expectedTexturePaths",
   },
   {
     "kind": "function",
@@ -1233,10 +1213,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "isUnitStyle",
-  },
-  {
-    "kind": "function",
-    "name": "kayKitLayoutForEdition",
   },
   {
     "kind": "function",

@@ -16,7 +16,7 @@ import {
   KAYKIT_MEDIEVAL_FREE_LAYOUT,
   KAYKIT_MEDIEVAL_EXTRA_LAYOUT,
   type KayKitUpstreamLayout,
-} from '../../manifest/upstream-layout';
+} from '../upstream-layout';
 import {
   bootstrapKayKitAssets,
   verifyBootstrap,

@@ -17,13 +17,13 @@ import { join, relative } from 'node:path';
 import yazl from 'yazl';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
+  KAYKIT_MEDIEVAL_FREE_LAYOUT,
   bootstrapKayKitAssets,
   resolveBootstrapGltfRoot,
   resolveBootstrapTargetRoot,
   verifyBootstrap,
 } from '../../../src/bootstrap';
 import {
-  KAYKIT_MEDIEVAL_FREE_LAYOUT,
   freeManifest,
   gameboardAssetUrl,
   rewriteToBootstrapPath,

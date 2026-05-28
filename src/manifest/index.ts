@@ -19,4 +19,6 @@
 
 export * from './free';
 export * from './schema';
-export * from './upstream-layout';
+// NOTE: `upstream-layout` moved to the bootstrap (CLI) domain in LF3 — it is
+// consumed only by bootstrap, touches node:fs/node:path, and is server-only.
+// Reachable via `./bootstrap` (umbrella does not re-export it).

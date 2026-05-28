@@ -173,9 +173,9 @@
       "types": "./dist/manifest/schema.d.ts",
       "import": "./dist/manifest/schema.js"
     },
-    "./manifest/upstream-layout": {
-      "types": "./dist/manifest/upstream-layout.d.ts",
-      "import": "./dist/manifest/upstream-layout.js"
+    "./bootstrap/upstream-layout": {
+      "types": "./dist/bootstrap/upstream-layout.d.ts",
+      "import": "./dist/bootstrap/upstream-layout.js"
     },
     "./assets/free/manifest.json": "./assets/free/manifest.json",
     "./examples/blueprint-board-usage": {

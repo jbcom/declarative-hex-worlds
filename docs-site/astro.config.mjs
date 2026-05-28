@@ -53,7 +53,7 @@ const entryPoints = [
 	'../src/ingest/index.ts',
 	'../src/manifest/free.ts',
 	'../src/manifest/schema.ts',
-	'../src/manifest/upstream-layout.ts',
+	'../src/bootstrap/upstream-layout.ts',
 ];
 
 export default defineConfig({

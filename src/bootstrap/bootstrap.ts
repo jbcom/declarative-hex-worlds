@@ -37,7 +37,7 @@ import {
   detectKayKitLayout,
   kayKitLayoutForEdition,
   type KayKitUpstreamLayout,
-} from '../manifest/upstream-layout';
+} from './upstream-layout';
 import type { PackEdition } from '../types';
 import {
   KAYKIT_BOOTSTRAP_GLTF_RELATIVE,

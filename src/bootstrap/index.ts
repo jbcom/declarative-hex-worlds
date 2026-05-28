@@ -25,3 +25,4 @@
  */
 export * from './bootstrap';
 export * from './bootstrap-target';
+export * from './upstream-layout';

@@ -139,7 +139,7 @@ import {
   KAYKIT_MEDIEVAL_EXTRA_LAYOUT,
   detectKayKitLayout,
   type KayKitUpstreamLayout,
-} from '@jbcom/medieval-hexagon-gameboard/manifest/upstream-layout';
+} from '@jbcom/medieval-hexagon-gameboard/bootstrap/upstream-layout';
 import {
   KAYKIT_BOOTSTRAP_ROOT,
   KAYKIT_FREE_GITHUB_OWNER,

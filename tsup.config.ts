@@ -43,7 +43,7 @@ export default defineConfig({
     ingest: 'src/ingest/index.ts',
     'manifest/free': 'src/manifest/free.ts',
     'manifest/schema': 'src/manifest/schema.ts',
-    'manifest/upstream-layout': 'src/manifest/upstream-layout.ts',
+    'bootstrap/upstream-layout': 'src/bootstrap/upstream-layout.ts',
     'examples/blueprint-board-usage': 'examples/blueprint-board-usage.ts',
   },
   format: ['esm'],
