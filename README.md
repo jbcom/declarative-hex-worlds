@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./docs-site/public/hero.png" alt="Declarative Hex Worlds" width="540">
+<img src="https://raw.githubusercontent.com/jbcom/declarative-hex-worlds/main/docs-site/public/hero.png" alt="Declarative Hex Worlds" width="540">
 
 # declarative-hex-worlds
 
@@ -57,7 +57,7 @@ function Scene() {
 }
 ```
 
-That's it. The `bootstrap` command downloaded 221 KayKit FREE GLTFs into `public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/`. The plan + runtime are deterministic — same seed, same render, byte-for-byte.
+That's it. The `bootstrap` command downloads 221 KayKit FREE GLTFs into `public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/` and writes a SHA-256 sidecar for integrity verification. The plan + runtime are deterministic — same seed, same render, byte-for-byte.
 
 > [`@react-three/fiber`](https://github.com/pmndrs/react-three-fiber) is an optional companion (`pnpm add @react-three/fiber`). It's not a hard dep because some consumers prefer a different react-three layer; the library's own `/three` subpath gives you the raw helpers if you'd rather skip it.
 
@@ -129,9 +129,9 @@ declarative-hex-worlds coverage --json # release-readiness ledger
 
 ## Contributing
 
-`pnpm verify` runs every CI gate locally. See [CONTRIBUTING.md](https://github.com/jbcom/declarative-hex-worlds/blob/main/CONTRIBUTING.md). The work queue lives in [`.agent-state/directive.md`](https://github.com/jbcom/declarative-hex-worlds/blob/main/.agent-state/directive.md); the PRD in [`docs/PRD/1.0.md`](https://github.com/jbcom/declarative-hex-worlds/blob/main/docs/PRD/1.0.md) explains the why.
+`pnpm verify` runs every CI gate locally. See [CONTRIBUTING.md](https://github.com/jbcom/declarative-hex-worlds/blob/main/CONTRIBUTING.md). The PRD in [`docs/PRD/1.0.md`](https://github.com/jbcom/declarative-hex-worlds/blob/main/docs/PRD/1.0.md) explains the why.
 
-Conventional Commits required. PRs are squash-merged. Coverage gate ratchets toward 100 / 100 / 100 / 100 (currently at the measured floor + slack; regressions block merge).
+Conventional Commits required. PRs are squash-merged. Coverage gate enforces 100 / 100 / 100 / 100; regressions block merge.
 
 ---
 
