@@ -627,6 +627,26 @@ describe('gameboard scenarios', () => {
     expect(() => createGameboardWorldFromScenario(scenario)).toThrow(/patrol routes failed/);
   });
 
+  it('reports actor with neither at nor spawnGroupId + empty spawnGroupId (E0b)', () => {
+    // Covers scenario.ts lines 760-764 (no at, no spawnGroupId) + 766-770 (empty spawnGroupId).
+    const board = createGameboardRecipe({
+      seed: 'actor-spawn-missing',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:actor-spawn-missing', board, {
+      actors: [
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately-missing fields
+        { actorId: 'orphan', actorKind: 'npc', assetId: 'flag_blue', kind: 'unit' } as any,
+        // Empty spawnGroupId
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately-empty group id
+        { actorId: 'empty-group', actorKind: 'npc', spawnGroupId: '', assetId: 'flag_blue', kind: 'unit' } as any,
+      ],
+    });
+    const codes = validateGameboardScenario(scenario).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_tile_key');
+    expect(codes).toContain('scenario.actor_spawn_group_id');
+  });
+
   it('createGameboardWorldFromScenario throws when spawnGroups have errors (E0b)', () => {
     // Covers scenario.ts line 651: spawn groups errors → throw.
     const board = createGameboardRecipe({
