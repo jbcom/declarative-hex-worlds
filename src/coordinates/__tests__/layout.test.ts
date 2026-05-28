@@ -192,6 +192,21 @@ describe('gameboard layout placement criteria', () => {
     );
   });
 
+  it('rejects sites missing required tags or required-adjacent-placement-layer (E0b)', () => {
+    // Covers layout.ts line 1080 (missing-required-tags) + line 1116 (missing-adjacent-placement-layer).
+    const plan = createGameboardBuilder({
+      seed: 'layout-required',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    }).build();
+    const inspection = inspectGameboardLayoutSites(plan, {
+      criteria: { tileTags: ['must-have'], requiredAdjacentPlacementLayer: 'structure' },
+    });
+    // No tile has 'must-have' tag and no adjacent structure → all rejected.
+    const codes = new Set(inspection.rejected.flatMap((s) => s.rejections.map((r) => r.code)));
+    expect(codes.has('missing-required-tags')).toBe(true);
+    expect(codes.has('missing-adjacent-placement-layer')).toBe(true);
+  });
+
   it('rejects sites with forbiddenAdjacentTerrain (E0b)', () => {
     // Covers layout.ts line 1094-1096.
     const plan = createGameboardBuilder({
