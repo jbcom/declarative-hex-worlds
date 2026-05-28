@@ -65,9 +65,49 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
     Each file's continuation work lands as one commit that adds ≤200 LOC of test code and ratchets the floor.
 - [ ] [WAIT] **E8** — Flip coverage thresholds to **100 / 100 / 100 / 100** in `vitest.coverage.shared.ts`. Depends on E0a + E0h reaching the floor at 100. Currently 65.94/63.83/76.87/65.57; unblocks when the per-file gaps in the E0a/E0h lists close out. Final ratchet commit.
 
+### Phase E-MergedGate — wire browser coverage into the enforced gate
+
+**User decision (2026-05-28):** the enforced CI gate (`test:coverage:enforce`) is unit-only, but it measures `src/react/react.ts` + `src/three/three.ts` which Node can never cover (292 uncov lines / 134 uncov fns dragging the gate ~1.5–4pt). Chosen fix: **wire browser-free coverage into the gate** (merge unit + browser-free, enforce on merged) so react/three are measured where they CAN be covered — NOT exclude them.
+
+Investigation (2026-05-28) surfaced a 3-link blocker chain; only link 2 is done:
+1. **[BLOCKED — needs user]** browser-free CI job is *skipped on every run* (conclusion `skipped`, 0 steps). No repo var set; `if: vars.RUN_BROWSER_VISUALS != '0'` evaluates false → an **org-level `RUN_BROWSER_VISUALS=0`** is almost certainly forcing skip (can't read org vars). Job has NEVER run a step in CI (all 30 recent runs skipped/concurrency-cancelled-at-start). User must clear/flip the org var.
+2. **[DONE]** Stale browser alias (`src/$1.ts` wildcard) broke subpath imports → react-bindings.test.ts couldn't import. Fixed by `vitest.alias.shared.ts` consumed by all 4 harness configs (this branch, commit on `feat/merged-coverage-gate`). Unit suite stays green (715).
+3. **[BLOCKED — code work]** Browser build of react-bindings.test.ts fails: `Module "node:fs" has been externalized for browser compatibility` — a browser-reachable barrel transitively imports a Node-only module (bootstrap/ingest/cli/manifest/upstream-layout all import `node:fs`). The umbrella/manifest barrel chain must be made browser-safe (split Node-only exports behind a server-only entry, or lazy-import them) before the react test can load under Chromium. This is the real reason the visual gate was deferred.
+
+**Layering decisions (2026-05-28, user-directed during link-3 investigation):**
+- The 1100-line root `src/index.ts` hand-relisted 956 named symbols that the 18 domain barrels already `export *` — pure duplication, not curation (tiering is enforced at package.json#exports + @internal, not the root hand-list). **Root rewritten to barrel-forwarding** (`export * from './<domain>'`). Adding a public export to a domain now needs no root edit.
+- There is **NO server/browser split and NO `server.ts`** (rejected as a wrapper shim). The umbrella is browser-safe by *correct layering*: it exports library/runtime API only. `bootstrap` is a **CLI-domain capability** (reachable ONLY from `src/cli/`; never from runtime/react/three) — it was wrong to re-export it from the umbrella at all. Bootstrap stays reachable via the `./bootstrap` subpath for programmatic CLI-equivalent callers.
+- `manifest/upstream-layout.ts` was **mis-filed**: its data + fs-probers are consumed ONLY by bootstrap (CLI-domain), nothing in manifest/runtime uses it. **Move `src/manifest/upstream-layout.ts` → `src/bootstrap/upstream-layout.ts`**; published subpath renamed `./manifest/upstream-layout` → `./bootstrap/upstream-layout` (pre-1.0; update docs-site 3 refs + smoke/types.ts + architecture table + biome restricted-imports + tsup entry + package.json exports). bootstrap barrel re-exports it.
+
+**Ordered sequence:** The restructure (Steps A+B from earlier notes) is now formalized as the **LF batch** below (PRD: `docs/plans/library-fit-decomposition.prq.md`). After LF8 lands, E-MergedGate continues:
+- **Step C** — user clears org `RUN_BROWSER_VISUALS=0`; then get `test:browser:free` green locally + CI with coverage emitted.
+- **Step D** — extend `scripts/merge-coverage.ts` with merged-tree threshold enforcement; add CI `coverage-merge` job (download unit + browser-free coverage artifacts, enforce on merged). THEN the full src/ surface incl. react/three is measured — exclude nothing.
+
+## Batch — library-fit-decomposition (batch-20260528-103351)
+
+Source: docs/plans/library-fit-decomposition.prq.md (sha256: 42bbb50d5a7041055a2a67438c99192629f0f2264f89871989985fdb892d6f96)
+Started: 2026-05-28T10:33:51Z
+
+### task-LF1 Barrel-forwarding umbrella
+- [ ] task-LF1 Rewrite src/index.ts to `export * from './<domain>'` only (18 library barrels); drop bootstrap + upstream-layout re-exports; update public-api snapshot (intentional removals only); typecheck + unit green.
+### task-LF2 src/config JSON config domain
+- [ ] task-LF2 Create src/config/ with logically-decomposed JSON (kaykit-source, bootstrap-paths, upstream-layouts) + typed loader; migrate hardcoded KAYKIT_* bootstrap/layout constants to derive from config; no behavior change.
+### task-LF3 Relocate upstream-layout
+- [ ] task-LF3 Move upstream-layout fs-probers next to the bootstrap command; pure layout data lives in config (LF2); manifest barrel no longer exports upstream-layout; test moves with it.
+### task-LF4 Relocate bootstrap to CLI command area
+- [ ] task-LF4 Move src/bootstrap/* → src/cli/commands/bootstrap/; update cli/_shared.ts + cli.ts imports; no top-level src/bootstrap/ remains.
+### task-LF5 Repoint subpaths + build + lint + docs
+- [ ] task-LF5 Update package.json exports (manifest/upstream-layout → cli/bootstrap; ./bootstrap repoint), tsup entries, biome noRestrictedImports, docs-site refs, scripts/smoke/types.ts; build+lint+typecheck+test green.
+### task-LF6 Proper CLI library
+- [ ] task-LF6 Replace hand-rolled cli.ts argv parsing + dispatch table with a real CLI framework (lazy subcommand loading preserved); all subcommands + --help preserved; cli smoke tests pass.
+### task-LF7 Git-clone via optional peer dependency
+- [ ] task-LF7 Add git library as optional peer dep; repo-source bootstrap clones via it with clear missing-peer error; remove raw node:https tarball fetch; zip source unchanged; clone patterns from config.
+### task-LF8 Browser-import-safety verification
+- [ ] task-LF8 Assert src/index.ts transitive graph has no node:fs/path/https/os; react-bindings.test.ts loads under Chromium + emits react.ts coverage. Unblocks E-MergedGate link 3.
+
 ### Phase E9 — visual integration gate (continuation)
 
-- [ ] [WAIT] **E9** — Every renderer-binding (`react.ts`, `three.ts`, `examples/*`) gets a vitest-browser test rendering into Chromium with a committed PNG screenshot snapshot. RB-CI unblocked this 2026-05-27; the visual job now runs by default. Continuation work blocked on PR#10 merge so the visual harness baselines from a stable trunk. Once PR#10 lands: audit `react.ts` + `three.ts` exported behaviors, add per-behavior browser tests with snapshot PNGs.
+- [ ] [WAIT] **E9** — Every renderer-binding (`react.ts`, `three.ts`, `examples/*`) gets a vitest-browser test rendering into Chromium with a committed PNG screenshot snapshot. Blocked on E-MergedGate links 1+3 (browser harness must actually run + load). Once unblocked: audit `react.ts` + `three.ts` exported behaviors, add per-behavior browser tests with snapshot PNGs.
 
 ### Phase F-Site — docs-site continuation
 
