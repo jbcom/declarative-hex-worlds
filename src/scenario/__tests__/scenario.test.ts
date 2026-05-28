@@ -1117,6 +1117,37 @@ describe('gameboard scenarios', () => {
     expect(codes).toContain('scenario.actor_kind');
   });
 
+  it('reports actor uses EXTRA asset without requiresExtra flag (E0b)', () => {
+    // Covers scenario.ts line 1026.
+    const customCatalog = {
+      ...freeManifest,
+      assets: [
+        ...freeManifest.assets,
+        // biome-ignore lint/suspicious/noExplicitAny: minimal extra-edition fixture
+        { ...freeManifest.assets[0], id: 'extra_unit_blue', edition: 'extra' } as any,
+      ],
+      assetsById: {
+        ...freeManifest.assetsById,
+        // biome-ignore lint/suspicious/noExplicitAny: minimal extra-edition fixture
+        extra_unit_blue: { ...freeManifest.assets[0], id: 'extra_unit_blue', edition: 'extra' } as any,
+      },
+    };
+    const board = createGameboardRecipe({
+      seed: 'extra-flag-missing',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:extra-flag-missing', board, {
+      actors: [
+        { actorId: 'forgot-flag', actorKind: 'npc', at: '0,0', assetId: 'extra_unit_blue', kind: 'unit' },
+      ],
+    });
+    const codes = validateGameboardScenario(scenario, {
+      // biome-ignore lint/suspicious/noExplicitAny: spread of manifest fixture
+      plan: { assetCatalog: customCatalog as any },
+    }).map((v) => v.code);
+    expect(codes).toContain('scenario.actor_extra_flag_missing');
+  });
+
   it('reports actor whose assetId is missing from the manifest catalog (E0a)', () => {
     const board = createGameboardRecipe({
       seed: 'bad-actor-asset',
