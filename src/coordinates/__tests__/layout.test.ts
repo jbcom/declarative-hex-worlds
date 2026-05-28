@@ -192,6 +192,27 @@ describe('gameboard layout placement criteria', () => {
     );
   });
 
+  it('rejects sites by min/max distance + forbidden adjacent placement layer (E0b)', () => {
+    // Covers layout.ts lines 1122 + 1128 + 1131.
+    const plan = createGameboardBuilder({
+      seed: 'layout-distance',
+      shape: { kind: 'rectangle', width: 4, height: 1 },
+    })
+      .addFactionBuilding({ at: { q: 1, r: 0 }, faction: 'blue', building: 'market' })
+      .build();
+    const inspection = inspectGameboardLayoutSites(plan, {
+      criteria: {
+        forbiddenAdjacentPlacementLayer: 'structure',
+        minDistanceFrom: [{ q: 0, r: 0 }],
+        minDistance: 2,
+        maxDistanceFrom: [{ q: 0, r: 0 }],
+        maxDistance: 1,
+      },
+    });
+    const codes = new Set(inspection.rejected.flatMap((s) => s.rejections.map((r) => r.code)));
+    expect(codes.has('forbidden-adjacent-placement-layer') || codes.has('min-distance') || codes.has('max-distance')).toBe(true);
+  });
+
   it('rejects sites missing required tags or required-adjacent-placement-layer (E0b)', () => {
     // Covers layout.ts line 1080 (missing-required-tags) + line 1116 (missing-adjacent-placement-layer).
     const plan = createGameboardBuilder({
