@@ -37,14 +37,14 @@ const extraPresent = existsSync(join(referenceExtraRoot, 'Assets', 'gltf'));
 const kenneyPresent = existsSync(kenneyRoot);
 const adventurersPresent = existsSync(adventurersRoot);
 
-const FACTIONS = ['blue', 'green', 'red', 'yellow'] as const;
+const FACTIONS: string[] = ['blue', 'green', 'red', 'yellow'];
 
 function factionAssetIds(kinds: readonly string[], prefix: 'building'): string[] {
   return FACTIONS.flatMap((faction) => kinds.map((kind) => `${prefix}_${kind}_${faction}`));
 }
 
 function factionUnitIds(parts: readonly string[]): string[] {
-  const unitStyles = ['accent', 'full'] as const;
+  const unitStyles: string[] = ['accent', 'full'];
   return FACTIONS.flatMap((faction) =>
     parts.flatMap((part) => unitStyles.map((style) => `${part}_${faction}_${style}`))
   );
@@ -320,7 +320,7 @@ function assertManifestShape(
 
   const errors = validateMedievalHexagonManifest(manifest).filter((i) => i.severity === 'error');
   expect(errors.map((e) => e.code), `${label} validation errors`).toEqual([]);
-  expect(manifest.textureSets.sort(), `${label} textureSets`).toEqual([...expectedTextureSets].sort());
+  expect([...manifest.textureSets].sort(), `${label} textureSets`).toEqual([...expectedTextureSets].sort());
   expect(manifest.assets.map((a) => a.id).sort(), `${label} asset ids`).toEqual([...expectedIds].sort());
   expect(Object.keys(manifest.assetsById).sort(), `${label} assetsById keys`).toEqual(
     [...expectedIds].sort()
