@@ -512,6 +512,19 @@ describe('board-aware navigation and occupancy', () => {
     expect(routes.errors).toContain('guard-loop: Patrol route guard-loop is declared more than once');
   });
 
+  it('reports patrol-route under-selected waypoints when board is too small (E0b)', () => {
+    // Covers navigation.ts line 772 — selected count < requested.
+    const plan = createGameboardBuilder({
+      seed: 'patrol-undersel',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    }).build();
+    const routes = planGameboardPatrolRoutes(plan, {
+      seed: 'route-undersel',
+      routes: [{ id: 'long-walk', count: 5, start: '0,0' }],
+    });
+    expect(routes.errors.some((e) => e.includes('selected') && e.includes('requested waypoint'))).toBe(true);
+  });
+
   it('reports patrol-route empty id + single-waypoint count error (E0b)', () => {
     // Covers navigation.ts lines 744-748: empty id + count < 2.
     const plan = createGameboardBuilder({
