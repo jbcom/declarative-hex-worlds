@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { packageAliases } from './vitest.alias.shared';
 import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
@@ -12,16 +13,10 @@ export default defineConfig({
     include: ['koota'],
   },
   resolve: {
-    alias: [
-      {
-        find: /^@jbcom\/medieval-hexagon-gameboard$/,
-        replacement: resolve(__dirname, 'src/index.ts'),
-      },
-      {
-        find: /^@jbcom\/medieval-hexagon-gameboard\/(.+)$/,
-        replacement: resolve(__dirname, 'src/$1.ts'),
-      },
-    ],
+    // Shared with the unit harness so subpath imports (e.g. `/commands` →
+    // `src/commands/index.ts`) resolve identically. The old `src/$1.ts`
+    // wildcard here broke react-bindings.test.ts at import time.
+    alias: packageAliases(),
   },
   define: {
     __WORKSPACE_ROOT__: JSON.stringify(workspaceRoot),

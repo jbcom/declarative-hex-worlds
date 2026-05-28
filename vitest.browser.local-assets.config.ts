@@ -2,6 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
+import { packageAliases } from './vitest.alias.shared';
 import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
@@ -14,16 +15,7 @@ export default defineConfig({
     include: ['koota'],
   },
   resolve: {
-    alias: [
-      {
-        find: /^@jbcom\/medieval-hexagon-gameboard$/,
-        replacement: resolve(__dirname, 'src/index.ts'),
-      },
-      {
-        find: /^@jbcom\/medieval-hexagon-gameboard\/(.+)$/,
-        replacement: resolve(__dirname, 'src/$1.ts'),
-      },
-    ],
+    alias: packageAliases(),
   },
   define: {
     __KENNEY_CASTLE_ROOT__: JSON.stringify(kenneyCastleRoot),
