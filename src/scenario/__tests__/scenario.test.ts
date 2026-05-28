@@ -627,6 +627,24 @@ describe('gameboard scenarios', () => {
     expect(() => createGameboardWorldFromScenario(scenario)).toThrow(/patrol routes failed/);
   });
 
+  it('createGameboardWorldFromScenario throws when spawnGroups have errors (E0b)', () => {
+    // Covers scenario.ts line 651: spawn groups errors → throw.
+    const board = createGameboardRecipe({
+      seed: 'bad-spawn-groups',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenario = createGameboardScenario('scenario:bad-spawn-groups-runtime', board, {
+      spawnGroups: {
+        // Two groups with same id triggers a planning error.
+        groups: [
+          { id: 'duplicate', count: 1 },
+          { id: 'duplicate', count: 1 },
+        ],
+      },
+    });
+    expect(() => createGameboardWorldFromScenario(scenario)).toThrow(/spawn groups failed/);
+  });
+
   it('reports actors that reference missing scenario spawn groups', () => {
     const board = createGameboardRecipe({
       seed: 'bad-spawn-group',
