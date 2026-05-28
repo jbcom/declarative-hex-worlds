@@ -87,12 +87,13 @@ export function kayKitLayoutForEdition(edition: PackEdition): KayKitUpstreamLayo
 /**
  * Inspect a candidate pack root and return its matching layout descriptor.
  *
- * Detection rule: a candidate matches a layout when the
- * {@link KayKitUpstreamLayout.relativeGltfRoot} directory and all category
- * subdirectories exist. Marker files are checked when present but NOT required
- * — the GitHub archive omits `License.txt`, PDFs, and `contents_*.jpg` but
- * still has the full GLTF tree. EXTRA is tested first (its category set is a
- * superset of FREE's).
+ * Detection rule: a candidate matches a layout when the GLTF category
+ * directories exist AND at least one of two provenance signals is present:
+ *   A) All {@link KayKitUpstreamLayout.markerFiles} exist (itch.io zip).
+ *   B) The primary texture file exists under
+ *      {@link KayKitUpstreamLayout.relativeTextureRoot} (GitHub archive — omits
+ *      `License.txt`, PDFs, and `contents_*.jpg` but includes the texture).
+ * EXTRA is tested before FREE (EXTRA categories are a superset of FREE's).
  */
 export function detectKayKitLayout(rootPath: string): KayKitUpstreamLayout | undefined {
   if (!isDirectory(rootPath)) {
