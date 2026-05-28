@@ -28,8 +28,6 @@ import { request as httpsRequest } from 'node:https';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { createGunzip } from 'node:zlib';
-import * as tar from 'tar';
 import yauzl from 'yauzl';
 import { GameboardIoError, GameboardManifestError } from '../../../errors';
 import {
@@ -184,7 +182,7 @@ export interface BootstrapVerificationReport {
 
 const KAYKIT_FREE_USER_AGENT = '@jbcom/medieval-hexagon-gameboard bootstrap';
 const KAYKIT_INCLUDED_EXTENSIONS = new Set(['.gltf', '.bin', '.png', '.jpg', '.jpeg']);
-const KAYKIT_SOURCE_FORMAT_EXTENSIONS = new Set(['.fbx', '.obj', '.mtl', '.gz']);
+const KAYKIT_SOURCE_FORMAT_EXTENSIONS = new Set(['.fbx', '.obj', '.mtl']);
 const KAYKIT_SIDECAR_SCHEMA_VERSION = '1.0.0' as const;
 
 /**
@@ -312,12 +310,15 @@ export async function verifyBootstrap(outRoot: string): Promise<BootstrapVerific
 }
 
 /**
- * Format the canonical GitHub tarball URL for a given commit (or `main` when
- * unset).
+ * Format the canonical GitHub source-archive **zip** URL for a given ref (or
+ * `main` when unset). GitHub serves a stable, never-changing archive at
+ * `/archive/refs/heads/<ref>.zip`, so bootstrap downloads it and feeds the
+ * exact same local-zip extraction flow as a user-supplied archive — no tarball
+ * decompression and no git dependency.
  */
 export function kayKitFreeGithubTarballUrl(commit?: string): string {
   const ref = commit ?? KAYKIT_FREE_GITHUB_DEFAULT_REF;
-  return `https://codeload.github.com/${KAYKIT_FREE_GITHUB_OWNER}/${KAYKIT_FREE_GITHUB_REPO}/tar.gz/${ref}`;
+  return `https://github.com/${KAYKIT_FREE_GITHUB_OWNER}/${KAYKIT_FREE_GITHUB_REPO}/archive/refs/heads/${ref}.zip`;
 }
 
 function resolveOutAbsolute(value: string, outRoot: string | undefined): string {
@@ -337,24 +338,27 @@ async function stageUpstreamSource(
   layout: KayKitUpstreamLayout,
   edition: PackEdition
 ): Promise<string> {
-  if (source.kind === 'github') {
-    return stageFromGithub(source.commit);
-  }
-  return stageFromZip(source.path, layout, edition);
+  // Both source modes converge on the same local-zip extraction flow: a
+  // GitHub source simply downloads the stable archive .zip first, then runs
+  // the identical `stageFromZip` path (which detects FREE/EXTRA structure).
+  const zipPath =
+    source.kind === 'github' ? await downloadGithubArchiveZip(source.commit) : source.path;
+  return stageFromZip(zipPath, layout, edition);
 }
 
-async function stageFromGithub(commit: string | undefined): Promise<string> {
+async function downloadGithubArchiveZip(commit: string | undefined): Promise<string> {
   const url = kayKitFreeGithubTarballUrl(commit);
-  const stagingRoot = mkStagingRoot('github');
+  const downloadRoot = mkStagingRoot('github-zip');
+  const zipPath = join(downloadRoot, 'kaykit-medieval-hexagon-free.zip');
   try {
     const incoming = await openHttpsStream(url);
-    await pipeline(incoming, createGunzip(), tar.extract({ cwd: stagingRoot }));
+    await pipeline(incoming, createWriteStream(zipPath));
   } catch (error) {
-    rmSync(stagingRoot, { recursive: true, force: true });
+    rmSync(downloadRoot, { recursive: true, force: true });
     const message = error instanceof Error ? error.message : String(error);
-    throw new GameboardIoError(`failed to download KayKit FREE tarball ${url}: ${message}`);
+    throw new GameboardIoError(`failed to download KayKit FREE archive ${url}: ${message}`);
   }
-  return stagingRoot;
+  return zipPath;
 }
 
 async function stageFromZip(
