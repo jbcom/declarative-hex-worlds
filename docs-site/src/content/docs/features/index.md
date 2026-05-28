@@ -1,6 +1,6 @@
 ---
 title: Features
-description: Screenshot-driven feature gallery of @jbcom/medieval-hexagon-gameboard.
+description: Screenshot-driven feature gallery of medieval-hexagon-gameboard.
 sidebar:
   order: 0
 ---

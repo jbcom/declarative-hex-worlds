@@ -763,7 +763,7 @@ before layout generation mutates a board.
 `examples/generated-piece-scenario.recipe.json`
 are the canonical small JSON examples for generated piece declarations and fill
 rules. The package export map exposes JSON examples as
-`@jbcom/medieval-hexagon-gameboard/examples/*.json`; raw TypeScript examples
+`medieval-hexagon-gameboard/examples/*.json`; raw TypeScript examples
 stay in the repo, while npm consumers use explicit compiled exports such as
 `tests/integration/simple-rpg/simple-rpg.ts (test-only post-PRD R4)`.
 
@@ -802,7 +802,7 @@ single blueprint JSON can emit its recipe, concrete plan, generated scenario,
 scenario diagnostics, and `--outInterop` neutral ECS snapshot. Use that path for
 external engines that want board-scale authoring plus spawn/patrol/quest records
 without adopting the Koota runtime.
-`@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage` is the
+`medieval-hexagon-gameboard/examples/blueprint-board-usage` is the
 packaged importable walkthrough for the same contract: it runs
 `examples/blueprint-board.json` through blueprint compilation, scenario
 inspection, Koota runtime creation, runtime facade snapshots, and scenario

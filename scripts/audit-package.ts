@@ -110,7 +110,7 @@ const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp 
 ];
 
 assertEqualSet(packageJson.files ?? [], expectedFiles, 'package files whitelist changed');
-assert(packageJson.name === '@jbcom/medieval-hexagon-gameboard', 'package name changed');
+assert(packageJson.name === 'medieval-hexagon-gameboard', 'package name changed');
 assert(packageJson.type === 'module', 'package must publish as ESM');
 assert(packageJson.sideEffects === false, 'package must remain side-effect-free for bundlers');
 assert(packageJson.license === 'MIT', 'package code license must stay MIT');
@@ -291,7 +291,7 @@ function assertSourceModulesExported(): void {
 }
 
 function assertPackedConsumerSmokeCoversExports(): void {
-  const packageName = '@jbcom/medieval-hexagon-gameboard';
+  const packageName = 'medieval-hexagon-gameboard';
   const coveredSpecifiers = collectConsumerSmokePackageSpecifiers(packageName);
   for (const subpath of Object.keys(packageJson.exports ?? {})) {
     const exportPattern = subpath.slice(2);
@@ -427,7 +427,7 @@ async function assertExportImports(): Promise<void> {
  * it imports, concatenated into a single virtual source. Needed because the
  * D10 refactor split the orchestrator into `pack-install.ts` + `types.ts` +
  * `_shared.ts` — the audit must continue to see the
- * `@jbcom/medieval-hexagon-gameboard/...` import specifiers that moved to
+ * `medieval-hexagon-gameboard/...` import specifiers that moved to
  * those sub-modules.
  */
 function readSmokeOrchestratorSource(entryPath: string): string {

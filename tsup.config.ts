@@ -57,8 +57,8 @@ export default defineConfig({
     options.sourcesContent = false;
   },
   external: [
-    '@jbcom/medieval-hexagon-gameboard',
-    /^@jbcom\/medieval-hexagon-gameboard\//,
+    'medieval-hexagon-gameboard',
+    /^medieval-hexagon-gameboard\//,
     'koota',
     'koota/react',
     'react',

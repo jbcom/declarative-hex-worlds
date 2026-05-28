@@ -1,5 +1,5 @@
 {
-  "name": "@jbcom/medieval-hexagon-gameboard",
+  "name": "medieval-hexagon-gameboard",
   "version": "0.1.0",
   "description": "Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS, first-class React + Three.js bindings, and a CLI bootstrap subcommand that fetches the FREE GLTF assets at install time",
   "type": "module",

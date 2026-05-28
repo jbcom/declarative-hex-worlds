@@ -10,7 +10,7 @@
 
 The library umbrella `src/index.ts` is not browser-safe and the codebase has
 CLI-only concerns living in the runtime surface. A browser file that imports
-`@jbcom/medieval-hexagon-gameboard` crashes with
+`medieval-hexagon-gameboard` crashes with
 `Module "node:fs" has been externalized for browser compatibility`, because the
 umbrella eagerly re-exports `bootstrap` (node:fs + network) and
 `manifest/upstream-layout` (node:fs/node:path). This blocks the merged

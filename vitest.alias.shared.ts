@@ -2,7 +2,7 @@
  * Shared subpath alias map for every vitest harness.
  *
  * Mirrors tsconfig.json `paths` so vitest resolves
- * `@jbcom/medieval-hexagon-gameboard/<sub-package>` the same way TypeScript
+ * `medieval-hexagon-gameboard/<sub-package>` the same way TypeScript
  * does post-R2. The naive `src/$1.ts` wildcard cannot resolve subpaths whose
  * target lives at `src/<dir>/index.ts` (e.g. `/commands` →
  * `src/commands/index.ts`), so the unit AND browser harnesses both need this
@@ -69,7 +69,7 @@ export interface VitestAlias {
 export function packageAliases(): VitestAlias[] {
   return [
     {
-      find: /^@jbcom\/medieval-hexagon-gameboard$/,
+      find: /^medieval-hexagon-gameboard$/,
       replacement: resolve(repoRoot, 'src/index.ts'),
     },
     ...SUBPATH_TARGETS.map(([sub, target]) => ({
@@ -77,7 +77,7 @@ export function packageAliases(): VitestAlias[] {
       // subpath names only contain `[a-z-/]` today, but a future entry with
       // a backslash or another special char would otherwise be silently
       // mis-escaped (CodeQL js/incomplete-sanitization).
-      find: new RegExp(`^@jbcom/medieval-hexagon-gameboard/${sub.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}$`),
+      find: new RegExp(`^medieval-hexagon-gameboard/${sub.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}$`),
       replacement: resolve(repoRoot, target),
     })),
   ];

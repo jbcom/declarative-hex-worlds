@@ -1,6 +1,6 @@
 # SimpleRPG — library coverage driver
 
-A fully-functional, precisely-scoped game whose ONLY purpose is to exercise every `@jbcom/medieval-hexagon-gameboard` public API end-to-end. No real gameplay purpose beyond coverage.
+A fully-functional, precisely-scoped game whose ONLY purpose is to exercise every `medieval-hexagon-gameboard` public API end-to-end. No real gameplay purpose beyond coverage.
 
 ## Layout
 

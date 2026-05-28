@@ -1,11 +1,11 @@
-# @jbcom/medieval-hexagon-gameboard
+# medieval-hexagon-gameboard
 
 Declarative hex worlds. Bootstrap the FREE KayKit pack in one command. First-class React + Three.js bindings.
 
 [![CI](https://github.com/jbcom/medieval-hexagon-gameboard/actions/workflows/ci.yml/badge.svg)](https://github.com/jbcom/medieval-hexagon-gameboard/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/@jbcom/medieval-hexagon-gameboard.svg)](https://www.npmjs.com/package/@jbcom/medieval-hexagon-gameboard)
-[![license](https://img.shields.io/npm/l/@jbcom/medieval-hexagon-gameboard.svg)](./LICENSE)
-[![types](https://img.shields.io/npm/types/@jbcom/medieval-hexagon-gameboard.svg)](https://jbcom.github.io/medieval-hexagon-gameboard/reference/)
+[![npm version](https://img.shields.io/npm/v/medieval-hexagon-gameboard.svg)](https://www.npmjs.com/package/medieval-hexagon-gameboard)
+[![license](https://img.shields.io/npm/l/medieval-hexagon-gameboard.svg)](./LICENSE)
+[![types](https://img.shields.io/npm/types/medieval-hexagon-gameboard.svg)](https://jbcom.github.io/medieval-hexagon-gameboard/reference/)
 
 > A deterministic gameboard runtime for TypeScript games. Declare a harbor, a procedural forest, or a multi-depth cliff once; the library compiles it through recipe → blueprint → scenario into a [koota](https://koota.dev) ECS world your React + Three.js stack renders.
 
@@ -14,7 +14,7 @@ Declarative hex worlds. Bootstrap the FREE KayKit pack in one command. First-cla
 ## Quickstart
 
 ```bash
-pnpm add @jbcom/medieval-hexagon-gameboard
+pnpm add medieval-hexagon-gameboard
 pnpm exec medieval-hexagon-gameboard bootstrap
 ```
 
@@ -24,11 +24,11 @@ import { Canvas } from '@react-three/fiber';
 import {
   MedievalGameboardProvider,
   useGameboardRuntime,
-} from '@jbcom/medieval-hexagon-gameboard/react';
+} from 'medieval-hexagon-gameboard/react';
 import {
   createGameboardBuilder,
   createGameboardRuntimeFromScenario,
-} from '@jbcom/medieval-hexagon-gameboard/runtime';
+} from 'medieval-hexagon-gameboard/runtime';
 
 const plan = createGameboardBuilder({
   seed: 'harbor-village-1',
@@ -70,7 +70,7 @@ That's it. The bootstrap command downloaded 221 KayKit FREE GLTFs into `public/a
 
 | Subpath | What it gives you |
 |---|---|
-| umbrella (`@jbcom/medieval-hexagon-gameboard`) | Everything. Prototyping. |
+| umbrella (`medieval-hexagon-gameboard`) | Everything. Prototyping. |
 | `/gameboard` | Plan builder, tile + placement spec types |
 | `/coordinates` | Hex algebra, axial / world transforms |
 | `/scenario`, `/blueprint`, `/recipe` | Scenario → blueprint → recipe compiler |

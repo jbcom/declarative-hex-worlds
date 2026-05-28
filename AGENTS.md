@@ -1,6 +1,6 @@
 # Medieval Hexagon Gameboard Agent Guide
 
-This repo builds `@jbcom/medieval-hexagon-gameboard`, a Koota-first 2.5D
+This repo builds `medieval-hexagon-gameboard`, a Koota-first 2.5D
 gameboard runtime for KayKit Medieval Hexagon assets.
 
 Use Node 22+ and pnpm 9. The workflow and package audits enforce this runtime
@@ -380,12 +380,12 @@ contract for CI and npm consumers.
   from `node_modules`.
 - Keep `packages/medieval-hexagon-gameboard/examples/blueprint-board-usage.ts`
   as the repo source for the compiled public package subpath exported as
-  `@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage`. It should
+  `medieval-hexagon-gameboard/examples/blueprint-board-usage`. It should
   remain the human-facing example for board-scale blueprint JSON, generated
   scenarios, spawn groups, patrol routes, runtime facade snapshots, and neutral
   ECS interop summaries.
 - Keep packaged JSON scenarios and recipes exposed through
-  `@jbcom/medieval-hexagon-gameboard/examples/*.json`; do not restore a broad
+  `medieval-hexagon-gameboard/examples/*.json`; do not restore a broad
   `./examples/*` export or package raw TypeScript example source. The tarball
   should carry compiled `dist/examples/*` JS/DTS and `examples/*.json` data only.
 - Treat `tests/e2e/local-assets/` as the isolated third-party asset harness. It

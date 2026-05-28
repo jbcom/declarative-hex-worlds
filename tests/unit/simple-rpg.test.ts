@@ -4,7 +4,7 @@ import {
   planGameboardInteractionCommand,
   readGameboardPlacements,
   summarizeGameboardPlan,
-} from '@jbcom/medieval-hexagon-gameboard';
+} from 'medieval-hexagon-gameboard';
 import {
   SIMPLE_RPG_RANDOM_SEED,
   assertSimpleRpgGameValid,

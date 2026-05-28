@@ -32,7 +32,7 @@ The GitHub App alternative (short-lived 1h scoped tokens via `actions/create-git
 `release.yml` publishes with `--provenance`. npm builds an OIDC trust relationship to GitHub's identity issuer; consumers can verify the published tarball was built by THIS exact workflow run:
 
 ```bash
-npm audit signatures @jbcom/medieval-hexagon-gameboard
+npm audit signatures medieval-hexagon-gameboard
 ```
 
 No `NPM_TOKEN` secret needed — the publish auth is OIDC-derived at runtime.

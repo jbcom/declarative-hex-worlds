@@ -117,8 +117,8 @@ requirePinnedActions(cd, files.cd);
 requirePinnedActions(automerge, files.automerge);
 
 const releasePackage = releasePleaseConfig.packages?.['.'];
-if (releasePackage?.component !== '@jbcom/medieval-hexagon-gameboard') {
-  failures.push('release-please config must target @jbcom/medieval-hexagon-gameboard at the root');
+if (releasePackage?.component !== 'medieval-hexagon-gameboard') {
+  failures.push('release-please config must target medieval-hexagon-gameboard at the root');
 }
 if (releasePleaseManifest['.'] !== '0.1.0') {
   failures.push('release-please manifest must start "." at 0.1.0');

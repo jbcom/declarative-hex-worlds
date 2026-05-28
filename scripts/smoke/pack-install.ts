@@ -1,5 +1,5 @@
 /**
- * Runtime smoke for the packed `@jbcom/medieval-hexagon-gameboard` tarball.
+ * Runtime smoke for the packed `medieval-hexagon-gameboard` tarball.
  *
  * Responsibilities (per PRD D10 split):
  *   1. `npm pack` the workspace into a tmpdir.
@@ -66,7 +66,7 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
         private: true,
         type: 'module',
         dependencies: {
-          '@jbcom/medieval-hexagon-gameboard': `file:${tarballPath}`,
+          'medieval-hexagon-gameboard': `file:${tarballPath}`,
           '@types/react': '^19.0.0',
           react: '^19.0.0',
           three: '^0.180.0',
@@ -84,7 +84,7 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
-  const installedPackageRoot = join(appRoot, 'node_modules/@jbcom/medieval-hexagon-gameboard');
+  const installedPackageRoot = join(appRoot, 'node_modules/medieval-hexagon-gameboard');
   const installedCliPath = join(installedPackageRoot, 'dist/cli.js');
   assert(
     existsSync(join(installedPackageRoot, 'dist/examples/blueprint-board-usage.js')),
@@ -312,8 +312,8 @@ import {
   summarizeGameboardCoverage,
   summarizeGameboardPlan,
   summarizeGameboardScenario,
-} from '@jbcom/medieval-hexagon-gameboard';
-import { runBlueprintBoardUsageExample } from '@jbcom/medieval-hexagon-gameboard/examples/blueprint-board-usage';
+} from 'medieval-hexagon-gameboard';
+import { runBlueprintBoardUsageExample } from 'medieval-hexagon-gameboard/examples/blueprint-board-usage';
 // PRD R4: SimpleRPG no longer exports through the package; the smoke
 // consumer only verifies the published surface. SimpleRPG evidence is
 // asserted via the installed CLI \`coverage\` and \`doctor --coverage\`
@@ -323,7 +323,7 @@ import {
   GAMEBOARD_INTERACTION_HANDLER_PRESETS,
   createGameboardInteractionHandlerPreset,
   isGameboardInteractionHandlerPreset,
-} from '@jbcom/medieval-hexagon-gameboard/commands';
+} from 'medieval-hexagon-gameboard/commands';
 import {
   GAMEBOARD_LAYOUT_ARCHETYPES,
   analyzeGameboardLayoutFill,
@@ -332,42 +332,42 @@ import {
   createGameboardLayoutPlacements,
   inspectGameboardLayoutSites,
   spawnGameboardLayoutPlacements,
-} from '@jbcom/medieval-hexagon-gameboard/layout';
-import { freeManifest } from '@jbcom/medieval-hexagon-gameboard/manifest/free';
-import { inspectMedievalHexagonManifest } from '@jbcom/medieval-hexagon-gameboard/manifest/schema';
+} from 'medieval-hexagon-gameboard/layout';
+import { freeManifest } from 'medieval-hexagon-gameboard/manifest/free';
+import { inspectMedievalHexagonManifest } from 'medieval-hexagon-gameboard/manifest/schema';
 import {
   createGameboardNavigation,
   planGameboardSpawnGroups,
-} from '@jbcom/medieval-hexagon-gameboard/navigation';
-import { gameboardPlacementFootprintKeys } from '@jbcom/medieval-hexagon-gameboard/occupancy';
+} from 'medieval-hexagon-gameboard/navigation';
+import { gameboardPlacementFootprintKeys } from 'medieval-hexagon-gameboard/occupancy';
 import {
   createGameboardLayoutPlacementsFromPiece,
   createGameboardLayoutPlacementOptionsFromPiece,
   createGameboardPieceRegistry,
   declareGameboardPiece,
   inspectGameboardPiecePlacement,
-} from '@jbcom/medieval-hexagon-gameboard/pieces';
-import { inspectSeededGameboardPieceFills } from '@jbcom/medieval-hexagon-gameboard/rules';
+} from 'medieval-hexagon-gameboard/pieces';
+import { inspectSeededGameboardPieceFills } from 'medieval-hexagon-gameboard/rules';
 import {
   createGameboardRuntime,
   createGameboardRuntimeFromRecipe,
   createGameboardRuntimeFromScenario,
-} from '@jbcom/medieval-hexagon-gameboard/runtime';
+} from 'medieval-hexagon-gameboard/runtime';
 import {
   GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS as GAMEBOARD_SCENARIO_SIMULATION_SUBPATH_STEP_ACTIONS,
-} from '@jbcom/medieval-hexagon-gameboard/simulation';
+} from 'medieval-hexagon-gameboard/simulation';
 import {
   defaultSourceRoot,
   expectedModelCount,
   validateSourceRoot,
-} from '@jbcom/medieval-hexagon-gameboard/ingest';
-import { validateGameboardPlan } from '@jbcom/medieval-hexagon-gameboard/validation';
-import { readGameboardActors as readGameboardActorsFromActors } from '@jbcom/medieval-hexagon-gameboard/actors';
+} from 'medieval-hexagon-gameboard/ingest';
+import { validateGameboardPlan } from 'medieval-hexagon-gameboard/validation';
+import { readGameboardActors as readGameboardActorsFromActors } from 'medieval-hexagon-gameboard/actors';
 import {
   GAMEBOARD_SCHEMA_VERSION,
   createGameboardBuilder as createGameboardBuilderFromGameboard,
   summarizeGameboardPlan as summarizeGameboardPlanFromGameboard,
-} from '@jbcom/medieval-hexagon-gameboard/gameboard';
+} from 'medieval-hexagon-gameboard/gameboard';
 import {
   FACTION_BUILDING_KINDS,
   NATURE_ASSET_IDS,
@@ -376,85 +376,85 @@ import {
   listKayKitGuideScenarioAssetRenderGroups as listKayKitGuideScenarioAssetRenderGroupsFromCatalog,
   listKayKitGuideScenarioAssetRenderRequests as listKayKitGuideScenarioAssetRenderRequestsFromCatalog,
   listKayKitGuideScenarioAssetUsagesForScenario as listKayKitGuideScenarioAssetUsagesForScenarioFromCatalog,
-} from '@jbcom/medieval-hexagon-gameboard/catalog';
+} from 'medieval-hexagon-gameboard/catalog';
 import {
   findHexPath,
   hexKey as hexKeyFromCoordinates,
   parseHexKey,
-} from '@jbcom/medieval-hexagon-gameboard/coordinates';
+} from 'medieval-hexagon-gameboard/coordinates';
 import {
   analyzeExternalAssetCompatibility,
   externalAssetSpawnOptions,
   recommendExternalAssetFacing,
-} from '@jbcom/medieval-hexagon-gameboard/compatibility';
+} from 'medieval-hexagon-gameboard/compatibility';
 import {
   renderGameboardCoverageMarkdown as renderGameboardCoverageMarkdownFromCoverage,
   summarizeGameboardCoverage as summarizeGameboardCoverageFromCoverage,
-} from '@jbcom/medieval-hexagon-gameboard/coverage';
-import { readGameboardPlacements as readGameboardPlacementsFromKoota } from '@jbcom/medieval-hexagon-gameboard/koota';
+} from 'medieval-hexagon-gameboard/coverage';
+import { readGameboardPlacements as readGameboardPlacementsFromKoota } from 'medieval-hexagon-gameboard/koota';
 import {
   GAMEBOARD_MOVEMENT_PROFILES,
   gameboardMovementActions as gameboardMovementActionsFromMovement,
-} from '@jbcom/medieval-hexagon-gameboard/movement';
+} from 'medieval-hexagon-gameboard/movement';
 import {
   createMedievalGameboardBlueprintPlan,
   inspectMedievalGameboardBlueprint,
-} from '@jbcom/medieval-hexagon-gameboard/blueprint';
-import { gameboardPatrolActions as gameboardPatrolActionsFromPatrol } from '@jbcom/medieval-hexagon-gameboard/patrol';
+} from 'medieval-hexagon-gameboard/blueprint';
+import { gameboardPatrolActions as gameboardPatrolActionsFromPatrol } from 'medieval-hexagon-gameboard/patrol';
 import {
   GAMEBOARD_QUEST_SCHEMA_VERSION,
   readGameboardQuests as readGameboardQuestsFromQuests,
-} from '@jbcom/medieval-hexagon-gameboard/quests';
+} from 'medieval-hexagon-gameboard/quests';
 import {
   projectWorldToGameboardPlan,
   readValidationGameboardPlanFromWorld,
-} from '@jbcom/medieval-hexagon-gameboard/projection';
+} from 'medieval-hexagon-gameboard/projection';
 import {
   GAMEBOARD_RECIPE_SCHEMA_VERSION,
   createGameboardRecipe as createGameboardRecipeFromRecipe,
-} from '@jbcom/medieval-hexagon-gameboard/recipe';
-import { summarizeGameboardScenario as summarizeGameboardScenarioFromScenario } from '@jbcom/medieval-hexagon-gameboard/scenario';
+} from 'medieval-hexagon-gameboard/recipe';
+import { summarizeGameboardScenario as summarizeGameboardScenarioFromScenario } from 'medieval-hexagon-gameboard/scenario';
 import {
   KAYKIT_HEX_WIDTH,
   createGameboardCoordinateSystem,
-} from '@jbcom/medieval-hexagon-gameboard/grid';
-import { createGameboardInteropSnapshot as createGameboardInteropSnapshotFromInterop } from '@jbcom/medieval-hexagon-gameboard/interop';
+} from 'medieval-hexagon-gameboard/grid';
+import { createGameboardInteropSnapshot as createGameboardInteropSnapshotFromInterop } from 'medieval-hexagon-gameboard/interop';
 import {
   analyzeHexTileRegistry,
   createHexTileRegistry,
   createHexTileRegistryFromManifest,
   declareHexTile,
-} from '@jbcom/medieval-hexagon-gameboard/registry';
+} from 'medieval-hexagon-gameboard/registry';
 import {
   HEX_EDGE_COUNT,
   edgeMask,
   selectRoadVariant,
-} from '@jbcom/medieval-hexagon-gameboard/selectors';
-import { runGameboardSystems as runGameboardSystemsFromSystems } from '@jbcom/medieval-hexagon-gameboard/systems';
+} from 'medieval-hexagon-gameboard/selectors';
+import { runGameboardSystems as runGameboardSystemsFromSystems } from 'medieval-hexagon-gameboard/systems';
 import {
   canStackAt,
   validateGameboardRules,
-} from '@jbcom/medieval-hexagon-gameboard/world-rules';
+} from 'medieval-hexagon-gameboard/world-rules';
 import {
   MEDIEVAL_HEXAGON_SCHEMA_VERSION,
   PACK_EDITIONS,
   TEXTURE_SETS,
-} from '@jbcom/medieval-hexagon-gameboard/types';
+} from 'medieval-hexagon-gameboard/types';
 import {
   createGameboardPlacementAssetUrlResolver,
   transformForHex,
-} from '@jbcom/medieval-hexagon-gameboard/three';
+} from 'medieval-hexagon-gameboard/three';
 
-const assetManifestModule = await import('@jbcom/medieval-hexagon-gameboard/assets/free/manifest.json', {
+const assetManifestModule = await import('medieval-hexagon-gameboard/assets/free/manifest.json', {
   with: { type: 'json' },
 });
 const scenarioModule = await import('./simple-rpg-scenario.json', {
   with: { type: 'json' },
 });
-const blueprintBoardModule = await import('@jbcom/medieval-hexagon-gameboard/examples/blueprint-board.json', {
+const blueprintBoardModule = await import('medieval-hexagon-gameboard/examples/blueprint-board.json', {
   with: { type: 'json' },
 });
-const ruleTypesModule = await import('@jbcom/medieval-hexagon-gameboard/rule-types');
+const ruleTypesModule = await import('medieval-hexagon-gameboard/rule-types');
 const manifestInspection = inspectMedievalHexagonManifest(assetManifestModule.default);
 if (manifestInspection.errorCount !== 0 || manifestInspection.warningCount !== 0) {
   throw new Error(\`packed FREE manifest inspection failed: \${JSON.stringify(manifestInspection.issues)}\`);

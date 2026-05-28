@@ -6,8 +6,8 @@
     "types": ["node"],
     "baseUrl": "..",
     "paths": {
-      "@jbcom/medieval-hexagon-gameboard": ["src/index.ts"],
-      "@jbcom/medieval-hexagon-gameboard/*": ["src/*"]
+      "medieval-hexagon-gameboard": ["src/index.ts"],
+      "medieval-hexagon-gameboard/*": ["src/*"]
     }
   },
   "include": ["../src/**/*.ts", "../tests/integration/**/*.ts"],

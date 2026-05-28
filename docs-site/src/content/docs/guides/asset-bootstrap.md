@@ -3,7 +3,7 @@ title: Asset bootstrap
 description: Materialize the KayKit Medieval Hexagon GLTF asset tree under your app's asset root.
 ---
 
-`@jbcom/medieval-hexagon-gameboard` is an **asset-bootstrapping** library, not
+`medieval-hexagon-gameboard` is an **asset-bootstrapping** library, not
 an asset-bundled one. The published npm tarball ships:
 
 - The typed runtime, CLI, React + Three.js bindings.
@@ -26,7 +26,7 @@ programmatic [`bootstrapKayKitAssets`](/reference/bootstrap/) API directly.
 ## Quick start (FREE edition, from GitHub)
 
 ```bash
-pnpm add @jbcom/medieval-hexagon-gameboard
+pnpm add medieval-hexagon-gameboard
 pnpm exec medieval-hexagon-gameboard bootstrap
 ```
 
@@ -82,7 +82,7 @@ For deterministic CI builds, pass `fetchedAt` and `libraryVersion` to the
 programmatic API:
 
 ```ts
-import { bootstrapKayKitAssets } from '@jbcom/medieval-hexagon-gameboard/bootstrap';
+import { bootstrapKayKitAssets } from 'medieval-hexagon-gameboard/bootstrap';
 
 await bootstrapKayKitAssets({
   source: { kind: 'github', commit: 'main' }, // pin to a specific sha for reproducibility
@@ -108,13 +108,13 @@ Three ways to tell the loaders where your bootstrap target lives:
 
 ```ts
 // 1. Per-call (most explicit)
-import { resolveManifestAssetUrl, freeManifest } from '@jbcom/medieval-hexagon-gameboard';
+import { resolveManifestAssetUrl, freeManifest } from 'medieval-hexagon-gameboard';
 const url = resolveManifestAssetUrl(freeManifest.assets[0], {
   bootstrapAssetRoot: '/app/public/assets/models',
 });
 
 // 2. Process-wide (app boot)
-import { setGameboardAssetRoot } from '@jbcom/medieval-hexagon-gameboard';
+import { setGameboardAssetRoot } from 'medieval-hexagon-gameboard';
 setGameboardAssetRoot('/app/public/assets/models');
 
 // 3. Environment variable (Node consumers)

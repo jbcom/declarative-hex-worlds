@@ -21,8 +21,8 @@ game repository, or reviewed in documentation.
 import {
   createGameboardPlanFromRecipe,
   inspectGameboardRecipe,
-} from '@jbcom/medieval-hexagon-gameboard/recipe';
-import { freeManifest } from '@jbcom/medieval-hexagon-gameboard/manifest/free';
+} from 'medieval-hexagon-gameboard/recipe';
+import { freeManifest } from 'medieval-hexagon-gameboard/manifest/free';
 
 const preflight = inspectGameboardRecipe(recipeJson, {
   plan: { assetCatalog: freeManifest },
@@ -61,8 +61,8 @@ expand the selection into deterministic layout rules.
 Run analysis before committing generated placements into a plan or runtime:
 
 ```ts
-import { analyzeGameboardLayoutFill } from '@jbcom/medieval-hexagon-gameboard/layout';
-import { inspectSeededGameboardPieceFills } from '@jbcom/medieval-hexagon-gameboard/rules';
+import { analyzeGameboardLayoutFill } from 'medieval-hexagon-gameboard/layout';
+import { inspectSeededGameboardPieceFills } from 'medieval-hexagon-gameboard/rules';
 
 const layoutReport = analyzeGameboardLayoutFill(plan, layoutFill);
 const pieceReport = inspectSeededGameboardPieceFills(plan, registry, pieceFills, {
@@ -90,8 +90,8 @@ Scenarios are the preferred test fixture for integration and browser coverage
 because they force consumers to use the package the way a game does.
 
 ```ts
-import { createGameboardRuntimeFromScenario } from '@jbcom/medieval-hexagon-gameboard/runtime';
-import { validateGameboardScenario } from '@jbcom/medieval-hexagon-gameboard/scenario';
+import { createGameboardRuntimeFromScenario } from 'medieval-hexagon-gameboard/runtime';
+import { validateGameboardScenario } from 'medieval-hexagon-gameboard/scenario';
 
 const validation = validateGameboardScenario(scenarioJson, {
   plan: { assetCatalog: manifest },
@@ -127,7 +127,7 @@ Simulation scripts are deterministic headless game-loop tests. They can run:
 import {
   runGameboardScenarioSimulationScript,
   validateGameboardScenarioSimulationScript,
-} from '@jbcom/medieval-hexagon-gameboard/simulation';
+} from 'medieval-hexagon-gameboard/simulation';
 
 const scriptValidation = validateGameboardScenarioSimulationScript(scriptJson, {
   scenario: scenarioJson,

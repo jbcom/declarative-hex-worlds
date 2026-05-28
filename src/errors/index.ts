@@ -9,7 +9,7 @@
  * import {
  *   GameboardValidationError,
  *   GameboardError,
- * } from '@jbcom/medieval-hexagon-gameboard';
+ * } from 'medieval-hexagon-gameboard';
  *
  * try {
  *   runSimulation(scenario, script);

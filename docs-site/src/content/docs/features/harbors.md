@@ -18,7 +18,7 @@ You want a hex board where a stretch of coastline opens into a deep-water harbor
 ## Snippet
 
 ```tsx
-import { createGameboardBuilder } from '@jbcom/medieval-hexagon-gameboard/gameboard';
+import { createGameboardBuilder } from 'medieval-hexagon-gameboard/gameboard';
 
 const plan = createGameboardBuilder({
   seed: 'harbor-village-7',

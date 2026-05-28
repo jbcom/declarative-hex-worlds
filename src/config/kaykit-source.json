@@ -5,5 +5,5 @@
     "defaultRef": "main",
     "archiveUrlTemplate": "https://github.com/{owner}/{repo}/archive/refs/heads/{ref}.zip"
   },
-  "userAgent": "@jbcom/medieval-hexagon-gameboard bootstrap"
+  "userAgent": "medieval-hexagon-gameboard bootstrap"
 }

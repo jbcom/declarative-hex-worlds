@@ -45,7 +45,7 @@
   ],
   "packages": {
     ".": {
-      "component": "@jbcom/medieval-hexagon-gameboard",
+      "component": "medieval-hexagon-gameboard",
       "release-as": "1.0.0"
     }
   }

@@ -61,7 +61,7 @@ export default defineConfig({
 	base,
 	integrations: [
 		starlight({
-			title: '@jbcom/medieval-hexagon-gameboard',
+			title: 'medieval-hexagon-gameboard',
 			description:
 				'Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS and first-class React + Three.js bindings.',
 			favicon: '/favicon.svg',
@@ -74,7 +74,7 @@ export default defineConfig({
 				{
 					icon: 'npm',
 					label: 'npm',
-					href: 'https://www.npmjs.com/package/@jbcom/medieval-hexagon-gameboard',
+					href: 'https://www.npmjs.com/package/medieval-hexagon-gameboard',
 				},
 			],
 			editLink: {

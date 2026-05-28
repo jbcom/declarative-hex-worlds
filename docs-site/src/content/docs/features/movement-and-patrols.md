@@ -18,7 +18,7 @@ A guard NPC patrols a fixed route around the village walls. You want the patrol 
 ## Snippet
 
 ```ts
-import { GameboardPatrolAgent } from '@jbcom/medieval-hexagon-gameboard/patrol';
+import { GameboardPatrolAgent } from 'medieval-hexagon-gameboard/patrol';
 
 world.add(guardEntity, GameboardPatrolAgent({
   routeId: 'wall-loop',

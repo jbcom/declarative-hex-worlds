@@ -1,6 +1,6 @@
 # Standards
 
-The non-negotiables for `@jbcom/medieval-hexagon-gameboard`. Pulled from PRD §6. Authoritative source for "what we don't do".
+The non-negotiables for `medieval-hexagon-gameboard`. Pulled from PRD §6. Authoritative source for "what we don't do".
 
 ## Code
 
@@ -49,7 +49,7 @@ The non-negotiables for `@jbcom/medieval-hexagon-gameboard`. Pulled from PRD §6
 Every library-originated throw is a `GameboardError` subclass (PRD D2). Consumers can branch on `instanceof`:
 
 ```ts
-import { GameboardValidationError } from '@jbcom/medieval-hexagon-gameboard/errors';
+import { GameboardValidationError } from 'medieval-hexagon-gameboard/errors';
 
 try {
   validateScenario(input);

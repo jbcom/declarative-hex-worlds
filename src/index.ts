@@ -1,5 +1,5 @@
 /**
- * Root export surface for `@jbcom/medieval-hexagon-gameboard`.
+ * Root export surface for `medieval-hexagon-gameboard`.
  *
  * Forwards every library domain barrel verbatim. Each `src/<domain>/index.ts`
  * barrel is the curated public surface of its domain, so the root re-exports

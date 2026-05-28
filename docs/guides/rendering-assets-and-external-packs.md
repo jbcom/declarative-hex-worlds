@@ -11,19 +11,19 @@ subcategories, factions, texture sets, bounds, material slots, local package
 paths, and KayKit license metadata.
 
 ```ts
-import { freeManifest } from '@jbcom/medieval-hexagon-gameboard/manifest/free';
+import { freeManifest } from 'medieval-hexagon-gameboard/manifest/free';
 import {
   createManifestBundle,
   getManifestAsset,
   resolveManifestAssetUrl,
-} from '@jbcom/medieval-hexagon-gameboard/manifest/schema';
+} from 'medieval-hexagon-gameboard/manifest/schema';
 
 const bundle = createManifestBundle([freeManifest]);
 const asset = getManifestAsset(bundle, 'hex_river_A');
 
 const url = asset
   ? resolveManifestAssetUrl(asset, {
-      baseUrl: '/node_modules/@jbcom/medieval-hexagon-gameboard/assets/free',
+      baseUrl: '/node_modules/medieval-hexagon-gameboard/assets/free',
     })
   : undefined;
 ```
@@ -58,8 +58,8 @@ this package. Apps that own the assets can generate an app-local manifest and
 combine it with the packaged FREE manifest:
 
 ```ts
-import { freeManifest } from '@jbcom/medieval-hexagon-gameboard/manifest/free';
-import { createManifestBundle } from '@jbcom/medieval-hexagon-gameboard/manifest/schema';
+import { freeManifest } from 'medieval-hexagon-gameboard/manifest/free';
+import { createManifestBundle } from 'medieval-hexagon-gameboard/manifest/schema';
 import extraManifest from './generated/kaykit-extra-manifest.json';
 
 const bundle = createManifestBundle([freeManifest, extraManifest]);
@@ -87,7 +87,7 @@ import {
   createGameboardPlacementAssetUrlResolver,
   gameboardInteractionTargetForObject,
   syncGameboardPlacementObjects,
-} from '@jbcom/medieval-hexagon-gameboard/three';
+} from 'medieval-hexagon-gameboard/three';
 
 const sourceAssetUrls = runtime.createScenarioPieceSourceUrlMap({
   sourceRoots: { 'Kenney Castle Kit': '/assets/kenney/castle-kit' },

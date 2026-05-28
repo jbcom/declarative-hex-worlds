@@ -1,6 +1,6 @@
 ---
 title: Design
-description: What @jbcom/medieval-hexagon-gameboard aspires to be and why.
+description: What medieval-hexagon-gameboard aspires to be and why.
 sidebar:
   order: 1
 ---

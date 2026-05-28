@@ -1,9 +1,9 @@
 ---
 title: KayKit Pack Upstream Layout
-description: Authoritative reference for the on-disk shape of the KayKit Medieval Hexagon Pack as bootstrapped by `@jbcom/medieval-hexagon-gameboard`.
+description: Authoritative reference for the on-disk shape of the KayKit Medieval Hexagon Pack as bootstrapped by `medieval-hexagon-gameboard`.
 ---
 
-`@jbcom/medieval-hexagon-gameboard` does not bundle KayKit asset binaries.
+`medieval-hexagon-gameboard` does not bundle KayKit asset binaries.
 The CLI `bootstrap` subcommand (and the equivalent `bootstrapKayKitAssets`
 programmatic API) mirrors the upstream KayKit pack tree into the consumer's
 asset root at install time. This page is the authoritative description of
@@ -97,7 +97,7 @@ in the programmatic API.
 ## Edition detection
 
 The bootstrap step (and the programmatic
-[`detectKayKitLayout`](https://jsr.io/@jbcom/medieval-hexagon-gameboard) helper)
+[`detectKayKitLayout`](https://jsr.io/medieval-hexagon-gameboard) helper)
 identifies an edition by checking marker files plus the presence of the
 `units/` directory:
 
@@ -124,7 +124,7 @@ import {
   kayKitLayoutForEdition,
   expectedTexturePaths,
   type KayKitUpstreamLayout,
-} from '@jbcom/medieval-hexagon-gameboard/bootstrap/upstream-layout';
+} from 'medieval-hexagon-gameboard/bootstrap/upstream-layout';
 ```
 
 Use these to:

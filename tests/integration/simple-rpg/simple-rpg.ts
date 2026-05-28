@@ -5,12 +5,12 @@
  * This module is consumed by the CLI's release-readiness coverage gate
  * (`doctor --coverage`) and by `src/interop/__tests__/coverage.test.ts`.
  * It is intentionally NOT part of the published surface — the npm tarball
- * does not ship a `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage`
+ * does not ship a `medieval-hexagon-gameboard/examples/simple-rpg-usage`
  * subpath (PRD R4 relocation).
  *
  * @module
  */
-import { createGameboardInteractionHandlerPreset } from '@jbcom/medieval-hexagon-gameboard/commands';
+import { createGameboardInteractionHandlerPreset } from 'medieval-hexagon-gameboard/commands';
 import {
   analyzeExternalAssetCompatibility,
   analyzeHexTileRegistry,
@@ -55,27 +55,27 @@ import {
   validateGameboardRecipe,
   validateGameboardRecipeGeneration,
   type GameboardPlan,
-} from '@jbcom/medieval-hexagon-gameboard';
+} from 'medieval-hexagon-gameboard';
 import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
   listKayKitGuidePublicApiCoverages,
   type KayKitGuidePublicApiCoverage,
-} from '@jbcom/medieval-hexagon-gameboard/catalog';
-import { createGameboardScenarioInteropSnapshot } from '@jbcom/medieval-hexagon-gameboard/interop';
-import { selectGameboardSpawnLocations } from '@jbcom/medieval-hexagon-gameboard/navigation';
-import { createGameboardRuntimeFromScenario } from '@jbcom/medieval-hexagon-gameboard/runtime';
+} from 'medieval-hexagon-gameboard/catalog';
+import { createGameboardScenarioInteropSnapshot } from 'medieval-hexagon-gameboard/interop';
+import { selectGameboardSpawnLocations } from 'medieval-hexagon-gameboard/navigation';
+import { createGameboardRuntimeFromScenario } from 'medieval-hexagon-gameboard/runtime';
 import {
   createGameboardWorldFromScenario,
   validateGameboardScenario,
   type GameboardScenario,
-} from '@jbcom/medieval-hexagon-gameboard/scenario';
+} from 'medieval-hexagon-gameboard/scenario';
 import {
   createGameboardScenarioSimulationReport,
   runGameboardScenarioSimulationScript,
   type GameboardScenarioSimulationReport,
   type GameboardScenarioSimulationScript,
-} from '@jbcom/medieval-hexagon-gameboard/simulation';
+} from 'medieval-hexagon-gameboard/simulation';
 import scenarioJson from './fixtures/simple-rpg-scenario.json';
 import simulationScriptJson from './fixtures/simple-rpg-simulation.script.json';
 

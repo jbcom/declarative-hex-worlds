@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for considering a contribution to `@jbcom/medieval-hexagon-gameboard`.
+Thanks for considering a contribution to `medieval-hexagon-gameboard`.
 
 ## Getting set up
 

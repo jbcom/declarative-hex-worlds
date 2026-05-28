@@ -60,7 +60,7 @@ const tsconfigBase = readJson<TsConfigJson>('tsconfig.base.json');
 const typedocJson = readJson<TypeDocJson>('typedoc.json');
 const tsupConfig = readRequired('tsup.config.ts');
 
-assert(packageJson.name === '@jbcom/medieval-hexagon-gameboard', 'package name must be @jbcom/medieval-hexagon-gameboard');
+assert(packageJson.name === 'medieval-hexagon-gameboard', 'package name must be medieval-hexagon-gameboard');
 assert(packageJson.type === 'module', 'package must be ESM');
 assert(packageJson.packageManager === 'pnpm@9.15.9', 'packageManager must pin pnpm@9.15.9');
 assert(packageJson.engines?.node === '>=22', 'engines.node must be >=22');
@@ -140,7 +140,7 @@ assert(tsconfig.extends === './tsconfig.base.json', 'tsconfig must extend ./tsco
 assert(tsconfig.compilerOptions?.rootDir === '.', 'tsconfig rootDir must be repo root');
 assert(tsconfig.compilerOptions?.outDir === 'dist', 'tsconfig outDir must be ./dist');
 assert(
-  tsconfig.compilerOptions?.paths?.['@jbcom/medieval-hexagon-gameboard']?.[0] === 'src/index.ts',
+  tsconfig.compilerOptions?.paths?.['medieval-hexagon-gameboard']?.[0] === 'src/index.ts',
   'tsconfig paths must resolve umbrella to src/index.ts'
 );
 

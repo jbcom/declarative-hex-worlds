@@ -11,12 +11,12 @@ The library publishes ~40 subpaths under `package.json#exports`. Pick the one yo
 
 ```ts
 // Specific subpath — only that domain's symbols + its transitive deps land in your bundle
-import { createGameboardBuilder } from '@jbcom/medieval-hexagon-gameboard/gameboard';
-import { MedievalGameboardProvider, useGameboardRuntime } from '@jbcom/medieval-hexagon-gameboard/react';
-import { loadGameboardPlacementObject } from '@jbcom/medieval-hexagon-gameboard/three';
+import { createGameboardBuilder } from 'medieval-hexagon-gameboard/gameboard';
+import { MedievalGameboardProvider, useGameboardRuntime } from 'medieval-hexagon-gameboard/react';
+import { loadGameboardPlacementObject } from 'medieval-hexagon-gameboard/three';
 
 // Umbrella — everything (use only for prototyping)
-import * as lib from '@jbcom/medieval-hexagon-gameboard';
+import * as lib from 'medieval-hexagon-gameboard';
 ```
 
 The umbrella re-exports everything from every sub-package; consumers prototyping in a sandbox can use it. For production code, prefer subpath imports — they let bundlers tree-shake aggressively because `sideEffects: false` is set on the package.
@@ -28,7 +28,7 @@ PRD invariant §5: `react`, `react-dom`, `three`, `koota`, `honeycomb-grid`, `se
 Why this matters:
 
 1. **No version skew between library code and consumer code.** A common peer-dep failure mode is the library being tested against React 18 while the consumer ships React 19; subtle hook behavior changes. With direct deps, the library pins what it tests against.
-2. **No "did you remember to install React?" footgun.** `npm install @jbcom/medieval-hexagon-gameboard` is enough.
+2. **No "did you remember to install React?" footgun.** `npm install medieval-hexagon-gameboard` is enough.
 3. **The library can ship binding implementations confidently.** `useGameboardRuntime()` knows it's using the same React the library tested against.
 
 If your app uses a different React version than the library, npm's de-duplication generally resolves to your version (your `package.json` wins). For Three.js the same de-dup applies. The library tests against the latest patches of each major; check `package.json` for the current pin.
@@ -48,7 +48,7 @@ For consumers: import traits through whichever subpath is convenient. They're th
 
 ```ts
 import { trait } from 'koota';
-import { type GameboardActor } from '@jbcom/medieval-hexagon-gameboard/actors';
+import { type GameboardActor } from 'medieval-hexagon-gameboard/actors';
 
 // Define a custom trait
 const Inventory = trait<{ items: string[] }>();
