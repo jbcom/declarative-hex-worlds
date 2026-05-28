@@ -52,3 +52,4 @@
 {"ts":"2026-05-27T23:13:51.783Z","sha":"e5cd9d29ed0727514a45d7e86c931eda830de052","subject":"feat: E0 coverage batch-16 (#26)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-27T23:23:08.150Z","sha":"72c129076c434690e83525459153426b3633f52d","subject":"feat: E0 coverage batch-17 (#27)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-27T23:58:22.595Z","sha":"e0d65ea8e35468d4f2a16211b3c8a1dc3eca884e","subject":"feat: E0 coverage batch-19a (layout excludeTerrain + excludeTileTags) (#30)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
+{"ts":"2026-05-28T00:08:25.292Z","sha":"ed10a5cd7713cb984932d8d91be665babc0abe01","subject":"test: add koota world-cleanup vitest setup (#31)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
