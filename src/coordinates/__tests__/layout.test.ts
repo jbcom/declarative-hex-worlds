@@ -192,6 +192,22 @@ describe('gameboard layout placement criteria', () => {
     );
   });
 
+  it('rejects sites with forbiddenAdjacentTerrain (E0b)', () => {
+    // Covers layout.ts line 1094-1096.
+    const plan = createGameboardBuilder({
+      seed: 'layout-forbidden-adj',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    })
+      .setTerrain({ q: 1, r: 0 }, 'water')
+      .build();
+    const inspection = inspectGameboardLayoutSites(plan, {
+      criteria: { forbiddenAdjacentTerrain: 'water' },
+    });
+    // Adjacent to (1,0) water: (0,0) and (2,0) should reject.
+    const rejected = inspection.rejected.find((s) => s.key === '0,0');
+    expect(rejected?.rejections.map((r) => r.code)).toContain('forbidden-adjacent-terrain');
+  });
+
   it('rejects sites by excludeTerrain + excludeTileTags filters (E0b)', () => {
     // Covers layout.ts lines 1073-1075 (excluded-terrain) + 1082-1084 (excluded-tags).
     const plan = createGameboardBuilder({
