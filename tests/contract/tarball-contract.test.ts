@@ -206,7 +206,7 @@ describe('source module export coverage', () => {
       if (typeof target === 'string') return false; // passthrough
       const rel = subpath.replace(/^\.\//, '');
       if (subpath === '.') return false;
-      if (PRIVATE_SUBPATHS.has(rel.split('/')[0] ?? '')) return false;
+      if (PRIVATE_SUBPATHS.has(rel)) return false;
       return true;
     })
     .map(([subpath]) => subpath.replace(/^\.\//, ''));

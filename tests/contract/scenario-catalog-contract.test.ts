@@ -21,8 +21,7 @@ import {
   listKayKitGuideScenarios,
   renderKayKitGuideScenarioCoverageMarkdown,
 } from '../../src/scenario';
-import { freeManifest } from '../../src/manifest/free';
-import { validateMedievalHexagonManifest } from '../../src/manifest/schema';
+import { freeManifest, validateMedievalHexagonManifest } from '../../src/manifest';
 
 const repoRoot = resolve(import.meta.dirname, '..', '..');
 const guideScenarioCoverageDoc = readFileSync(
