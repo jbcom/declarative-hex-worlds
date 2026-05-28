@@ -7,17 +7,20 @@
  * packed consumer smoke) is a release-time check invoked from release.yml
  * and does NOT run in the standard `pnpm test` loop.
  *
- * All assertions here require only a `pnpm install` + the committed files;
- * no `pnpm build` is required.
+ * Most assertions require only a `pnpm install` + the committed files; no
+ * `pnpm build` is required. The "exports map wiring" section checks dist/
+ * paths and is guarded by `distBuilt` — those tests are skipped when dist/
+ * does not exist (i.e. in a fresh checkout before build).
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS } from '../../src/interop';
 import { KAYKIT_ATTRIBUTION } from '../../src/manifest/schema';
 
 const repoRoot = resolve(import.meta.dirname, '..', '..');
+const distBuilt = existsSync(join(repoRoot, 'dist'));
 
 interface ExportTarget {
   import?: string;
@@ -47,34 +50,27 @@ const packageJson = JSON.parse(
   readFileSync(join(repoRoot, 'package.json'), 'utf8')
 ) as PackageJson;
 
-const PRIVATE_ENTRY_MODULES = new Set([
-  'cli',
-  'config',
-  'index',
-  'internal',
-  'manifest',
-]);
+/**
+ * Package.json export subpaths that are NOT expected to have a corresponding
+ * src/ source file (private-by-convention, non-source passthroughs).
+ */
+const PRIVATE_SUBPATHS = new Set(['.', 'cli', 'config', 'internal', 'manifest']);
 
-function collectSourceModules(root: string, prefix = ''): string[] {
-  const modules: string[] = [];
-  const entries = readdirSync(root, { withFileTypes: true });
-  const hasIndex = entries.some((e) => e.isFile() && e.name === 'index.ts');
-  if (hasIndex && prefix) {
-    modules.push(prefix);
-    return modules;
+/**
+ * Parses the tsup.config.ts entry object (plain text extraction) and returns
+ * a map from subpath key (e.g. "manifest/schema") to repo-relative source
+ * path (e.g. "src/manifest/schema.ts"). This is the authoritative mapping
+ * between package.json subpath exports and their source files.
+ */
+function parseTsupEntries(): Map<string, string> {
+  const tsupConfig = readFileSync(join(repoRoot, 'tsup.config.ts'), 'utf8');
+  const entryBlock = tsupConfig.match(/entry:\s*\{([^}]+)\}/s)?.[1] ?? '';
+  const map = new Map<string, string>();
+  for (const line of entryBlock.split('\n')) {
+    const m = line.match(/['"]?([\w/.-]+)['"]?\s*:\s*['"]([^'"]+)['"]/);
+    if (m?.[1] && m?.[2]) map.set(m[1], m[2]);
   }
-  for (const entry of entries) {
-    const childPrefix = prefix ? `${prefix}/${entry.name}` : entry.name;
-    const childPath = join(root, entry.name);
-    if (entry.isDirectory()) {
-      modules.push(...collectSourceModules(childPath, childPrefix));
-      continue;
-    }
-    if (entry.isFile() && entry.name.endsWith('.ts')) {
-      modules.push(childPrefix.replace(/\.ts$/, ''));
-    }
-  }
-  return modules.sort();
+  return map;
 }
 
 // ── package.json metadata ──────────────────────────────────────────────────
@@ -188,22 +184,42 @@ describe('exports map wiring', () => {
       );
     })
   )('%s[%s] = %s resolves to an existing file', (_subpath, _kind, path) => {
+    if (!distBuilt) return; // dist/ not present in a fresh checkout before pnpm build
     const resolved = join(repoRoot, path.replace(/^\.\//, ''));
     expect(existsSync(resolved), `${path} does not exist`).toBe(true);
   });
 });
 
-// ── every src/ domain module is exported ─────────────────────────────────
+// ── every exported subpath has a corresponding source file ────────────────
 
 describe('source module export coverage', () => {
-  const exportKeys = new Set(Object.keys(packageJson.exports ?? {}));
-  const sourceModules = collectSourceModules(join(repoRoot, 'src'));
-  const exported = sourceModules.filter((m) => !PRIVATE_ENTRY_MODULES.has(m));
+  // Cross-check: every package.json object-valued export (not the root `.`,
+  // not string passthroughs, not private-by-convention subpaths) must have a
+  // tsup entry pointing at an existing source file. Using tsup.config.ts as
+  // the authoritative subpath→source mapping avoids the filesystem-traversal
+  // fragility of the old collectSourceModules() which silently skipped
+  // manifest/schema and manifest/free (siblings of manifest/index.ts).
+  const tsupEntries = parseTsupEntries();
 
-  it.each(exported.map((m) => [m] as const))(
-    'src/%s is exported as a package subpath',
-    (moduleId) => {
-      expect(exportKeys.has(`./${moduleId}`), `missing export: ./${moduleId}`).toBe(true);
+  const exportedSubpaths = Object.entries(packageJson.exports ?? {})
+    .filter(([subpath, target]) => {
+      if (typeof target === 'string') return false; // passthrough
+      const rel = subpath.replace(/^\.\//, '');
+      if (subpath === '.') return false;
+      if (PRIVATE_SUBPATHS.has(rel.split('/')[0] ?? '')) return false;
+      return true;
+    })
+    .map(([subpath]) => subpath.replace(/^\.\//, ''));
+
+  it.each(exportedSubpaths.map((s) => [s] as const))(
+    './%s export has a tsup entry + existing source file',
+    (subpathKey) => {
+      const sourcePath = tsupEntries.get(subpathKey);
+      expect(sourcePath, `tsup entry missing for ${subpathKey}`).toBeDefined();
+      if (sourcePath) {
+        const absolute = join(repoRoot, sourcePath);
+        expect(existsSync(absolute), `source file missing: ${sourcePath}`).toBe(true);
+      }
     }
   );
 });
