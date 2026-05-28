@@ -26,7 +26,7 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
@@ -135,8 +135,12 @@ describe('docs/pillars contract', () => {
   describe.each(pillarPaths.map((p) => [basename(p), p] as const))(
     '%s',
     (label, pillarPath) => {
-      const source = readFileSync(pillarPath, 'utf8');
-      const { data, errors } = parseFrontmatter(source, label);
+      let data: PillarFrontmatter = {};
+      let errors: string[] = [];
+      beforeAll(() => {
+        const source = readFileSync(pillarPath, 'utf8');
+        ({ data, errors } = parseFrontmatter(source, label));
+      });
 
       it('parses frontmatter without errors', () => {
         expect(errors, errors.join('\n')).toEqual([]);
@@ -180,14 +184,14 @@ describe('docs/pillars contract', () => {
           (key) => [key] as const
         )
       )('%s path list', (key) => {
-        const paths = data[key];
-
         it('is a non-empty list', () => {
+          const paths = data[key];
           expect(paths).toBeDefined();
           expect(paths?.length, `${key} must list at least one path`).toBeGreaterThan(0);
         });
 
         it('has no duplicate entries', () => {
+          const paths = data[key];
           if (!paths) return;
           const seen = new Set<string>();
           const dups: string[] = [];
@@ -199,6 +203,7 @@ describe('docs/pillars contract', () => {
         });
 
         it('every path is repo-relative + exists + is a file + not in references/', () => {
+          const paths = data[key];
           if (!paths) return;
           const violations: string[] = [];
           for (const path of paths) {
@@ -224,9 +229,8 @@ describe('docs/pillars contract', () => {
       });
 
       describe('when status is implemented/verified', () => {
-        const isImplemented = data.status === 'implemented' || data.status === 'verified';
-
         it('implementation_links references at least one source/docs/script path', () => {
+          const isImplemented = data.status === 'implemented' || data.status === 'verified';
           if (!isImplemented) return;
           const hit = (data.implementation_links ?? []).some(
             (p) => p.startsWith('src/') || p.startsWith('docs/') || p.startsWith('scripts/')
@@ -235,6 +239,7 @@ describe('docs/pillars contract', () => {
         });
 
         it('test_links references at least one tests/ or scripts/ path', () => {
+          const isImplemented = data.status === 'implemented' || data.status === 'verified';
           if (!isImplemented) return;
           const hit = (data.test_links ?? []).some(
             (p) => p.startsWith('tests/') || p.startsWith('scripts/')
@@ -252,26 +257,32 @@ describe('SimpleRPG coverage doc cross-references', () => {
     'docs/guides/recipes-scenarios-and-simulation.md',
   ] as const;
 
-  // Extract const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS from the SimpleRPG fixture
-  const fixtureSource = readFileSync(simpleRpgExamplePath, 'utf8');
-  const arrayMatch = /const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = \[([\s\S]*?)\] as const;/.exec(
-    fixtureSource
-  );
-  const simpleRpgExecutableApiCount = [...(arrayMatch?.[1] ?? '').matchAll(/'[^']+'/g)].length;
-  const kayKitPublicTreatmentCount = listKayKitAssetPublicTreatments().length;
-  const kayKitGuideScenarioCount = listKayKitGuideScenarios().length;
-
-  const expectedSnippets = [
-    `${simpleRpgExecutableApiCount} guide-facing helper APIs`,
-    `${kayKitPublicTreatmentCount} KayKit public treatment`,
-    `${kayKitGuideScenarioCount} decomposed guide pages`,
-  ];
+  let expectedSnippets: string[] = [];
+  beforeAll(() => {
+    // Extract const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS from the SimpleRPG fixture
+    const fixtureSource = readFileSync(simpleRpgExamplePath, 'utf8');
+    const arrayMatch = /const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = \[([\s\S]*?)\] as const;/.exec(
+      fixtureSource
+    );
+    const simpleRpgExecutableApiCount = [...(arrayMatch?.[1] ?? '').matchAll(/'[^']+'/g)].length;
+    const kayKitPublicTreatmentCount = listKayKitAssetPublicTreatments().length;
+    const kayKitGuideScenarioCount = listKayKitGuideScenarios().length;
+    expectedSnippets = [
+      `${simpleRpgExecutableApiCount} guide-facing helper APIs`,
+      `${kayKitPublicTreatmentCount} KayKit public treatment`,
+      `${kayKitGuideScenarioCount} decomposed guide pages`,
+    ];
+  });
 
   describe.each(docPaths.map((d) => [d] as const))('%s', (docPath) => {
-    const source = readFileSync(resolve(repoRoot, docPath), 'utf8').replace(/\s+/g, ' ');
-
-    it.each(expectedSnippets.map((s) => [s] as const))('mentions "%s"', (snippet) => {
-      expect(source).toContain(snippet);
-    });
+    it.each(['guide-facing helper APIs', 'KayKit public treatment', 'decomposed guide pages'])(
+      'mentions the expected "%s" count',
+      (snippetSuffix) => {
+        const source = readFileSync(resolve(repoRoot, docPath), 'utf8').replace(/\s+/g, ' ');
+        const match = expectedSnippets.find((s) => s.endsWith(snippetSuffix));
+        if (!match) throw new Error(`expectedSnippets not populated for "${snippetSuffix}"`);
+        expect(source).toContain(match);
+      }
+    );
   });
 });

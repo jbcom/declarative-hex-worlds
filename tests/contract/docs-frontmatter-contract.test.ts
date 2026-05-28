@@ -16,7 +16,7 @@
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 const repoRoot = resolve(import.meta.dirname, '..', '..');
 const docsRoot = join(repoRoot, 'docs-site/src/content/docs');
@@ -53,9 +53,13 @@ describe('docs-site frontmatter contract', () => {
   describe.each(handWrittenFiles.map((file) => [relative(repoRoot, file), file] as const))(
     '%s',
     (rel, file) => {
-      const source = readFileSync(file, 'utf8');
-      const frontmatterMatch = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n/.exec(source);
-      const frontmatter = frontmatterMatch?.[1] ?? '';
+      let frontmatterMatch: RegExpExecArray | null = null;
+      let frontmatter = '';
+      beforeAll(() => {
+        const source = readFileSync(file, 'utf8');
+        frontmatterMatch = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n/.exec(source);
+        frontmatter = frontmatterMatch?.[1] ?? '';
+      });
 
       it('has a YAML frontmatter block', () => {
         expect(frontmatterMatch, `${rel}: missing YAML frontmatter`).not.toBeNull();
