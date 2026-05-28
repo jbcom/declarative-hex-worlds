@@ -5,12 +5,12 @@
  * This module is consumed by the CLI's release-readiness coverage gate
  * (`doctor --coverage`) and by `src/interop/__tests__/coverage.test.ts`.
  * It is intentionally NOT part of the published surface — the npm tarball
- * does not ship a `medieval-hexagon-gameboard/examples/simple-rpg-usage`
+ * does not ship a `declarative-hex-worlds/examples/simple-rpg-usage`
  * subpath (PRD R4 relocation).
  *
  * @module
  */
-import { createGameboardInteractionHandlerPreset } from 'medieval-hexagon-gameboard/commands';
+import { createGameboardInteractionHandlerPreset } from 'declarative-hex-worlds/commands';
 import {
   analyzeExternalAssetCompatibility,
   analyzeHexTileRegistry,
@@ -23,8 +23,8 @@ import {
   createHexagonGameboardGrid,
   createHexTileRegistry,
   createManifestBundle,
-  createMedievalGameboardBlueprintPlan,
-  createMedievalGameboardBlueprintRecipe,
+  createGameboardBlueprintPlan,
+  createGameboardBlueprintRecipe,
   createMedievalShowcaseBlueprintRecipe,
   createSeededGameboardPlan,
   declareGameboardPiece,
@@ -33,7 +33,7 @@ import {
   factionBuildingAssetId,
   flagAssetId,
   freeManifest,
-  inspectMedievalGameboardBlueprint,
+  inspectGameboardBlueprint,
   listCoastGuidePermutations,
   listPropClusterAssets,
   listRiverCrossingGuidePermutations,
@@ -55,27 +55,27 @@ import {
   validateGameboardRecipe,
   validateGameboardRecipeGeneration,
   type GameboardPlan,
-} from 'medieval-hexagon-gameboard';
+} from 'declarative-hex-worlds';
 import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
   listKayKitGuidePublicApiCoverages,
   type KayKitGuidePublicApiCoverage,
-} from 'medieval-hexagon-gameboard/catalog';
-import { createGameboardScenarioInteropSnapshot } from 'medieval-hexagon-gameboard/interop';
-import { selectGameboardSpawnLocations } from 'medieval-hexagon-gameboard/navigation';
-import { createGameboardRuntimeFromScenario } from 'medieval-hexagon-gameboard/runtime';
+} from 'declarative-hex-worlds/catalog';
+import { createGameboardScenarioInteropSnapshot } from 'declarative-hex-worlds/interop';
+import { selectGameboardSpawnLocations } from 'declarative-hex-worlds/navigation';
+import { createGameboardRuntimeFromScenario } from 'declarative-hex-worlds/runtime';
 import {
   createGameboardWorldFromScenario,
   validateGameboardScenario,
   type GameboardScenario,
-} from 'medieval-hexagon-gameboard/scenario';
+} from 'declarative-hex-worlds/scenario';
 import {
   createGameboardScenarioSimulationReport,
   runGameboardScenarioSimulationScript,
   type GameboardScenarioSimulationReport,
   type GameboardScenarioSimulationScript,
-} from 'medieval-hexagon-gameboard/simulation';
+} from 'declarative-hex-worlds/simulation';
 import scenarioJson from './fixtures/simple-rpg-scenario.json';
 import simulationScriptJson from './fixtures/simple-rpg-simulation.script.json';
 
@@ -142,8 +142,8 @@ const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = [
   'createGameboardPlanFromTiles',
   'createHexagonGameboardGrid',
   'createManifestBundle',
-  'createMedievalGameboardBlueprintPlan',
-  'createMedievalGameboardBlueprintRecipe',
+  'createGameboardBlueprintPlan',
+  'createGameboardBlueprintRecipe',
   'createMedievalShowcaseBlueprintRecipe',
   'createSeededGameboardPlan',
   'declareHexTile',
@@ -151,7 +151,7 @@ const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = [
   'factionBuildingAssetId',
   'flagAssetId',
   'freeManifest',
-  'inspectMedievalGameboardBlueprint',
+  'inspectGameboardBlueprint',
   'listCoastGuidePermutations',
   'listKayKitAssetPublicTreatments',
   'listKayKitGuideScenarios',
@@ -355,12 +355,12 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
     modes: ['manifest-package'],
     evidence: 'Packaged SimpleRPG usage bundles the FREE manifest in executable smoke.',
   },
-  createMedievalGameboardBlueprintPlan: {
+  createGameboardBlueprintPlan: {
     mode: 'executable-smoke',
     modes: ['blueprint-recipe'],
     evidence: 'Packaged SimpleRPG usage compiles a blueprint plan in executable smoke.',
   },
-  createMedievalGameboardBlueprintRecipe: {
+  createGameboardBlueprintRecipe: {
     mode: 'executable-smoke',
     modes: ['blueprint-recipe'],
     evidence: 'Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke.',
@@ -401,7 +401,7 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
     modes: ['manifest-package'],
     evidence: 'Packaged SimpleRPG usage reads the FREE manifest in executable smoke.',
   },
-  inspectMedievalGameboardBlueprint: {
+  inspectGameboardBlueprint: {
     mode: 'executable-smoke',
     modes: ['blueprint-recipe'],
     evidence: 'Packaged SimpleRPG usage inspects a blueprint in executable smoke.',
@@ -438,7 +438,7 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
     mode: 'executable-smoke',
     evidence: 'Packaged SimpleRPG usage lists road permutations in executable smoke.',
   },
-  'medieval-hexagon-gameboard manifest': {
+  'declarative-hex-worlds manifest': {
     mode: 'package-boundary',
     modes: ['manifest-package'],
     evidence: 'Package smoke validates the CLI manifest and packaged SimpleRPG imports together.',
@@ -809,10 +809,10 @@ export function runSimpleRpgExecutableGuideApiSmoke(): SimpleRpgExecutableGuideA
     harbors: 0,
     waterFill: 0.15,
   } as const;
-  const blueprintPlan = createMedievalGameboardBlueprintPlan(blueprintOptions);
-  const blueprintRecipe = createMedievalGameboardBlueprintRecipe(blueprintOptions);
+  const blueprintPlan = createGameboardBlueprintPlan(blueprintOptions);
+  const blueprintRecipe = createGameboardBlueprintRecipe(blueprintOptions);
   const showcaseRecipe = createMedievalShowcaseBlueprintRecipe();
-  const blueprintInspection = inspectMedievalGameboardBlueprint(blueprintOptions);
+  const blueprintInspection = inspectGameboardBlueprint(blueprintOptions);
   const compatibilityReport = analyzeExternalAssetCompatibility({
     id: 'simple-rpg-external-tower',
     sourcePack: 'SimpleRPG executable smoke',

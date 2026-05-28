@@ -7,7 +7,7 @@
 import {
   ASSET_CATEGORIES,
   FACTIONS,
-  MEDIEVAL_HEXAGON_SCHEMA_VERSION,
+  HEX_WORLDS_SCHEMA_VERSION,
   PACK_EDITIONS,
   TEXTURE_SETS,
   UNIT_STYLES,
@@ -26,7 +26,7 @@ export {
   ASSET_CATEGORIES,
   FACTIONS,
   KAYKIT_PACK_VERSION,
-  MEDIEVAL_HEXAGON_SCHEMA_VERSION,
+  HEX_WORLDS_SCHEMA_VERSION,
   PACK_EDITIONS,
   TEXTURE_SETS,
   UNIT_STYLES,
@@ -79,7 +79,7 @@ export const KAYKIT_ATTRIBUTION: Readonly<KayKitAttribution> = {
  */
 export interface MedievalHexagonManifestBundle {
   /** Bundle schema version. */
-  schemaVersion: typeof MEDIEVAL_HEXAGON_SCHEMA_VERSION;
+  schemaVersion: typeof HEX_WORLDS_SCHEMA_VERSION;
   /** Normalized source manifests included in the bundle. */
   manifests: readonly MedievalHexagonManifest[];
   /** Editions present in the bundle. */
@@ -287,7 +287,7 @@ export function createManifestBundle(
   const textureSet = new Set(normalized.flatMap((manifest) => manifest.textureSets));
 
   return {
-    schemaVersion: MEDIEVAL_HEXAGON_SCHEMA_VERSION,
+    schemaVersion: HEX_WORLDS_SCHEMA_VERSION,
     manifests: normalized,
     editions: PACK_EDITIONS.filter((edition) => editionSet.has(edition)),
     textureSets: TEXTURE_SETS.filter((texture) => textureSet.has(texture)),
@@ -429,12 +429,12 @@ function countManifestAssets(assets: readonly MedievalHexagonAsset[]): MedievalH
 }
 
 function validateManifestHeader(manifest: Record<string, unknown>, issues: MedievalHexagonManifestIssue[]): void {
-  if (manifest.schemaVersion !== MEDIEVAL_HEXAGON_SCHEMA_VERSION) {
+  if (manifest.schemaVersion !== HEX_WORLDS_SCHEMA_VERSION) {
     issues.push({
       code: 'manifest.schema_version',
       severity: 'error',
       path: '$.schemaVersion',
-      message: `Manifest schemaVersion must be ${MEDIEVAL_HEXAGON_SCHEMA_VERSION}`,
+      message: `Manifest schemaVersion must be ${HEX_WORLDS_SCHEMA_VERSION}`,
     });
   }
   if (!isPackEdition(manifest.edition)) {

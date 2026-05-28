@@ -36,10 +36,10 @@ The common loop is deterministic:
 ```ts
 import {
   createGameboardRuntimeFromScenario,
-} from 'medieval-hexagon-gameboard/runtime';
+} from 'declarative-hex-worlds/runtime';
 import {
   createGameboardInteractionHandlerPreset,
-} from 'medieval-hexagon-gameboard/commands';
+} from 'declarative-hex-worlds/commands';
 
 const runtime = createGameboardRuntimeFromScenario(scenario);
 const handlers = createGameboardInteractionHandlerPreset('default-rpg');
@@ -181,8 +181,8 @@ the game needs reproducible maps across content edits.
 
 React components can mount a runtime created outside React with
 `GameboardRuntimeProvider`, or load content directly with
-`MedievalGameboardPlanProvider`, `MedievalGameboardRecipeProvider`, and
-`MedievalGameboardScenarioProvider`.
+`GameboardPlanProvider`, `GameboardRecipeProvider`, and
+`GameboardScenarioProvider`.
 
 Use hook families by intent:
 

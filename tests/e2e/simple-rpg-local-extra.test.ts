@@ -1,7 +1,7 @@
 /**
  * SimpleRPG local-zip bootstrap e2e (PRD RS2).
  *
- * Gated behind `MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1`. Designed for local
+ * Gated behind `HEX_WORLDS_LOCAL_REFERENCES=1`. Designed for local
  * developer machines that have the FREE pack zip cached under
  * `references/`. CI never runs this (the zip lives outside the repo and
  * outside the CI image).
@@ -28,7 +28,7 @@ import { join, resolve } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { bootstrapKayKitAssets, verifyBootstrap } from '../../src/cli/commands/bootstrap';
 
-const RUN = process.env.MEDIEVAL_HEXAGON_LOCAL_REFERENCES === '1';
+const RUN = process.env.HEX_WORLDS_LOCAL_REFERENCES === '1';
 const FREE_ZIP_PATH = resolve(
   process.cwd(),
   'references/KayKit_Medieval_Hexagon_Pack_1.0_FREE.zip'

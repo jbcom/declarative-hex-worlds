@@ -61,16 +61,16 @@ export const COVERAGE_THRESHOLDS = {
 /**
  * Build a coverage configuration scoped to a single harness's output
  * directory. The harness name becomes the sub-dir; merging combines them.
- * Thresholds are applied only when `MEDIEVAL_HEXAGON_COVERAGE_ENFORCE=1`
+ * Thresholds are applied only when `HEX_WORLDS_COVERAGE_ENFORCE=1`
  * is set, so the default per-harness run doesn't block on the unit
  * floor (browser/e2e harnesses don't exercise every src/ file on their
  * own — only the merged tree should be threshold-checked).
  */
 export function harnessCoverage(harness: string): CoverageOptions {
-  const enforce = process.env.MEDIEVAL_HEXAGON_COVERAGE_ENFORCE === '1';
+  const enforce = process.env.HEX_WORLDS_COVERAGE_ENFORCE === '1';
   return {
     provider: 'v8',
-    enabled: process.env.MEDIEVAL_HEXAGON_COVERAGE === '1',
+    enabled: process.env.HEX_WORLDS_COVERAGE === '1',
     reporter: ['json', 'lcov', 'text'],
     reportsDirectory: `./coverage/${harness}`,
     include: ['src/**/*.ts', 'scripts/**/*.ts'],

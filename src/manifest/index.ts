@@ -2,7 +2,7 @@
  * `src/manifest/` — asset manifest schema, bundled FREE manifest metadata,
  * and (post-PRD-RB) the lazy loader for bootstrap-target assets.
  *
- * Public surface re-exported from the umbrella `medieval-hexagon-gameboard`.
+ * Public surface re-exported from the umbrella `declarative-hex-worlds`.
  * The published `package.json#exports` map retains `./manifest/schema` and
  * `./manifest/free` as distinct subpaths for consumers that want to depth-pin
  * (e.g. validators that only need the schema), but **internal** sibling

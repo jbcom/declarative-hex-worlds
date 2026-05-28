@@ -7,7 +7,7 @@ domain: technical
 
 # Public API tier table
 
-`medieval-hexagon-gameboard` publishes one umbrella entry plus a wide
+`declarative-hex-worlds` publishes one umbrella entry plus a wide
 set of subpath exports. **Every subpath stays supported through 1.0** — this
 is an asset-bundled library where mod authors, custom-renderer builders, and
 data-inspection tooling all have legitimate reasons to reach internals.
@@ -26,11 +26,11 @@ migration guide.
 | `.` (umbrella) | Default entry. Re-exports the consumer-facing surface from every tier-1 sub-package. |
 | `./react` | React bindings. First-class (NOT peer-gated). Hooks, providers, components. |
 | `./three` | Three.js bindings. First-class (NOT peer-gated). Loaders, disposers, scene helpers. |
-| `./cli` | CLI entry (also installed as the `medieval-hexagon-gameboard` bin). |
+| `./cli` | CLI entry (also installed as the `declarative-hex-worlds` bin). |
 | `./manifest/schema` | `MedievalHexagonManifest` shape + validators. |
 | `./manifest/free` | Pre-baked FREE-edition manifest metadata. |
 | `./scenario` | `GameboardScenario`, blueprint/recipe/catalog/registry. |
-| `./blueprint` | `MedievalGameboardBlueprintOptions` and procedural board generation. |
+| `./blueprint` | `GameboardBlueprintOptions` and procedural board generation. |
 | `./gameboard` | Board lifecycle, occupancy, navigation. |
 | `./recipe` | Recipe DSL. |
 | `./coverage` | Release-readiness coverage ledger surface. |

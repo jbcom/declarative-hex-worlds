@@ -20,7 +20,7 @@ import { GameboardIoError, GameboardManifestError } from '../errors';
 import {
   FACTIONS,
   KAYKIT_PACK_VERSION,
-  MEDIEVAL_HEXAGON_SCHEMA_VERSION,
+  HEX_WORLDS_SCHEMA_VERSION,
   TEXTURE_SETS,
   type AssetBounds,
   type AssetCategory,
@@ -183,7 +183,7 @@ export function generateManifestFromSource(options: GenerateManifestOptions): Me
   const assetsById = Object.fromEntries(assets.map((asset) => [asset.id, asset]));
 
   return {
-    schemaVersion: MEDIEVAL_HEXAGON_SCHEMA_VERSION,
+    schemaVersion: HEX_WORLDS_SCHEMA_VERSION,
     generatedAt: options.generatedAt ?? '2026-05-22T00:00:00.000Z',
     edition: options.edition,
     sourcePack: {

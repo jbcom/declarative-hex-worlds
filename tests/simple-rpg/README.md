@@ -1,6 +1,6 @@
 # SimpleRPG — library coverage driver
 
-A fully-functional, precisely-scoped game whose ONLY purpose is to exercise every `medieval-hexagon-gameboard` public API end-to-end. No real gameplay purpose beyond coverage.
+A fully-functional, precisely-scoped game whose ONLY purpose is to exercise every `declarative-hex-worlds` public API end-to-end. No real gameplay purpose beyond coverage.
 
 ## Layout
 
@@ -20,13 +20,13 @@ The bulk of the implementation today lives at `tests/integration/simple-rpg/simp
 |---|---|---|
 | Node integration | `tests/integration/simple-rpg.test.ts` (in default `pnpm test`) | every PR |
 | Browser e2e — GitHub-bootstrapped | `tests/e2e/simple-rpg-ci.test.ts` (added in RS2) | scheduled CI only |
-| Browser e2e — local EXTRA zip | `tests/e2e/simple-rpg-local-extra.test.ts` (added in RS2) | local with `MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1` |
+| Browser e2e — local EXTRA zip | `tests/e2e/simple-rpg-local-extra.test.ts` (added in RS2) | local with `HEX_WORLDS_LOCAL_REFERENCES=1` |
 
 ## API coverage matrix
 
 Populated by RS3. The matrix maps every public symbol from `src/index.ts` to the SimpleRPG file that exercises it. APIs without a home open a directive item; they're either misplaced on the public surface or the game needs to grow a scenario.
 
-Today's baseline (as of R4): the migrated `simple-rpg.ts` driver exercises 80+ APIs synchronously. `pnpm exec medieval-hexagon-gameboard coverage --json` ledger reports the exact list.
+Today's baseline (as of R4): the migrated `simple-rpg.ts` driver exercises 80+ APIs synchronously. `pnpm exec declarative-hex-worlds coverage --json` ledger reports the exact list.
 
 ## Non-goals
 

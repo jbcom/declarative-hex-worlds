@@ -42,7 +42,7 @@ export {
 /**
  * Current manifest schema emitted by the ingest CLI and bundled FREE manifest.
  */
-export const MEDIEVAL_HEXAGON_SCHEMA_VERSION = '1.0.0';
+export const HEX_WORLDS_SCHEMA_VERSION = '1.0.0';
 
 /**
  * Schema version written to generated gameboard plans.
@@ -198,7 +198,7 @@ export interface MedievalHexagonManifestCounts {
  */
 export interface MedievalHexagonManifest {
   /** Manifest schema version. */
-  schemaVersion: typeof MEDIEVAL_HEXAGON_SCHEMA_VERSION;
+  schemaVersion: typeof HEX_WORLDS_SCHEMA_VERSION;
   /** Stable generation timestamp used by reproducible package assets. */
   generatedAt: string;
   /** Source edition represented by this manifest. */

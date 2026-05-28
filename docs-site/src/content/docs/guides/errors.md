@@ -24,13 +24,13 @@ import {
   GameboardRuntimeError,       // runtime hit unrecoverable state
   GameboardCliError,           // CLI got invalid flags / illegal output paths
   GameboardIoError,            // ingest / bootstrap / filesystem couldn't proceed
-} from 'medieval-hexagon-gameboard/errors';
+} from 'declarative-hex-worlds/errors';
 ```
 
 Or import from the umbrella:
 
 ```ts
-import { GameboardValidationError } from 'medieval-hexagon-gameboard';
+import { GameboardValidationError } from 'declarative-hex-worlds';
 ```
 
 ## Domain → subclass mapping
@@ -50,7 +50,7 @@ import { GameboardValidationError } from 'medieval-hexagon-gameboard';
 **Catch a specific category**:
 
 ```ts
-import { GameboardValidationError, validateGameboardScenario } from 'medieval-hexagon-gameboard';
+import { GameboardValidationError, validateGameboardScenario } from 'declarative-hex-worlds';
 
 try {
   const scenario = validateGameboardScenario(input);
@@ -67,7 +67,7 @@ try {
 **Catch any library error** (separate from genuine bugs like `TypeError`, `ReferenceError`):
 
 ```ts
-import { GameboardError } from 'medieval-hexagon-gameboard';
+import { GameboardError } from 'declarative-hex-worlds';
 
 try {
   await loadAndRun(input);

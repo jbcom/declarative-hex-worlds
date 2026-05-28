@@ -1,6 +1,6 @@
 ---
 title: Features
-description: Screenshot-driven feature gallery of medieval-hexagon-gameboard.
+description: Screenshot-driven feature gallery of declarative-hex-worlds.
 sidebar:
   order: 0
 ---

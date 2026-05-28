@@ -51,7 +51,7 @@ import {
 import type { Faction, GameboardShape, HexCoordinates, HexEdgeIndex, TextureSet } from '../types';
 
 /** Texture-set fill target for authored or generated biome regions. */
-export interface MedievalBiomeFillSpec {
+export interface BiomeFillSpec {
   /** Optional id used in diagnostics and future editor UIs. */
   id?: string;
   /** Texture set applied to the selected tiles. */
@@ -171,7 +171,7 @@ export interface MedievalTransitionPolicy {
 }
 
 /** High-level options for compiling a full 2.5D medieval board. */
-export interface MedievalGameboardBlueprintOptions extends Partial<GameboardPlanOptions> {
+export interface GameboardBlueprintOptions extends Partial<GameboardPlanOptions> {
   /** Board shape to compile. */
   shape?: GameboardShape;
   /** Primary faction used by generated towns, harbors, and units. */
@@ -181,7 +181,7 @@ export interface MedievalGameboardBlueprintOptions extends Partial<GameboardPlan
   /** Highest generated elevation used by default mountain ranges. */
   maxElevation?: number;
   /** Texture-set fill targets for biome regions. */
-  biomeFills?: readonly MedievalBiomeFillSpec[];
+  biomeFills?: readonly BiomeFillSpec[];
   /** Authored mountain ranges. Omit to create one default ridge. */
   mountainRanges?: readonly MedievalMountainRangeSpec[];
   /** Authored towns, or a count for deterministic town placement. */
@@ -203,7 +203,7 @@ export interface MedievalGameboardBlueprintOptions extends Partial<GameboardPlan
 }
 
 /** Diagnostic summary for one compiled blueprint. */
-export interface MedievalGameboardBlueprintInspection {
+export interface GameboardBlueprintInspection {
   /** Generated recipe. */
   recipe: GameboardRecipe;
   /** Compiled concrete plan. */
@@ -215,8 +215,8 @@ export interface MedievalGameboardBlueprintInspection {
 }
 
 /** Scenario-level options for compiling a blueprint into playable content. */
-export interface MedievalGameboardBlueprintScenarioOptions
-  extends MedievalGameboardBlueprintOptions,
+export interface GameboardBlueprintScenarioOptions
+  extends GameboardBlueprintOptions,
     Omit<CreateGameboardScenarioOptions, 'metadata'> {
   /** Stable scenario id. Defaults to `medieval-blueprint:<seed>`. */
   scenarioId?: string;
@@ -225,9 +225,9 @@ export interface MedievalGameboardBlueprintScenarioOptions
 }
 
 /** Combined blueprint and scenario diagnostics for generated playable boards. */
-export interface MedievalGameboardBlueprintScenarioInspection {
+export interface GameboardBlueprintScenarioInspection {
   /** Blueprint inspection, including the generated recipe and compiled plan. */
-  blueprint: MedievalGameboardBlueprintInspection;
+  blueprint: GameboardBlueprintInspection;
   /** Scenario produced from the generated recipe and authored runtime content. */
   scenario: GameboardScenario;
   /** Scenario validation result, including spawn groups and patrol routes. */
@@ -265,24 +265,24 @@ const DEFAULT_TRANSITION_POLICY = {
 const EDGE_INDEXES = [0, 1, 2, 3, 4, 5] as const satisfies readonly HexEdgeIndex[];
 
 /** Compile a high-level 2.5D board blueprint into a serializable recipe. */
-export function createMedievalGameboardBlueprintRecipe(
-  options: MedievalGameboardBlueprintOptions = {}
+export function createGameboardBlueprintRecipe(
+  options: GameboardBlueprintOptions = {}
 ): GameboardRecipe {
-  return buildMedievalGameboardBlueprint(options).recipe;
+  return buildGameboardBlueprint(options).recipe;
 }
 
 /** Compile a high-level 2.5D board blueprint directly into a gameboard plan. */
-export function createMedievalGameboardBlueprintPlan(
-  options: MedievalGameboardBlueprintOptions = {}
+export function createGameboardBlueprintPlan(
+  options: GameboardBlueprintOptions = {}
 ): GameboardPlan {
-  return createGameboardPlanFromRecipe(createMedievalGameboardBlueprintRecipe(options));
+  return createGameboardPlanFromRecipe(createGameboardBlueprintRecipe(options));
 }
 
 /** Compile, build, and summarize a high-level 2.5D board blueprint. */
-export function inspectMedievalGameboardBlueprint(
-  options: MedievalGameboardBlueprintOptions = {}
-): MedievalGameboardBlueprintInspection {
-  const result = buildMedievalGameboardBlueprint(options);
+export function inspectGameboardBlueprint(
+  options: GameboardBlueprintOptions = {}
+): GameboardBlueprintInspection {
+  const result = buildGameboardBlueprint(options);
   return {
     ...result,
     plan: createGameboardPlanFromRecipe(result.recipe),
@@ -290,25 +290,25 @@ export function inspectMedievalGameboardBlueprint(
 }
 
 /** Compile board intent plus spawn groups, actors, patrols, and quests into a scenario. */
-export function createMedievalGameboardBlueprintScenario(
-  options: MedievalGameboardBlueprintScenarioOptions = {}
+export function createGameboardBlueprintScenario(
+  options: GameboardBlueprintScenarioOptions = {}
 ): GameboardScenario {
-  return createScenarioFromBlueprintRecipe(createMedievalGameboardBlueprintRecipe(options), options);
+  return createScenarioFromBlueprintRecipe(createGameboardBlueprintRecipe(options), options);
 }
 
 /** Compile a blueprint scenario and instantiate it into a ready Koota runtime. */
-export function createMedievalGameboardWorldFromBlueprint(
-  options: MedievalGameboardBlueprintScenarioOptions = {}
+export function createGameboardWorldFromBlueprint(
+  options: GameboardBlueprintScenarioOptions = {}
 ): GameboardScenarioRuntime {
-  return createGameboardWorldFromScenario(createMedievalGameboardBlueprintScenario(options));
+  return createGameboardWorldFromScenario(createGameboardBlueprintScenario(options));
 }
 
 /** Inspect both generated board intent and playable scenario wiring. */
-export function inspectMedievalGameboardBlueprintScenario(
-  options: MedievalGameboardBlueprintScenarioOptions = {},
+export function inspectGameboardBlueprintScenario(
+  options: GameboardBlueprintScenarioOptions = {},
   config: GameboardScenarioValidationConfig = {}
-): MedievalGameboardBlueprintScenarioInspection {
-  const blueprint = inspectMedievalGameboardBlueprint(options);
+): GameboardBlueprintScenarioInspection {
+  const blueprint = inspectGameboardBlueprint(options);
   const scenario = createScenarioFromBlueprintRecipe(blueprint.recipe, options);
   return {
     blueprint,
@@ -319,9 +319,9 @@ export function inspectMedievalGameboardBlueprintScenario(
 
 /** Create a comprehensive showcase recipe with mountains, towns, roads, harbors, biomes, and transitions. */
 export function createMedievalShowcaseBlueprintRecipe(
-  options: MedievalGameboardBlueprintOptions = {}
+  options: GameboardBlueprintOptions = {}
 ): GameboardRecipe {
-  return createMedievalGameboardBlueprintRecipe({
+  return createGameboardBlueprintRecipe({
     seed: 'medieval-showcase-blueprint',
     shape: DEFAULT_SHAPE,
     faction: 'blue',
@@ -378,7 +378,7 @@ export function createMedievalShowcaseBlueprintRecipe(
   });
 }
 
-function buildMedievalGameboardBlueprint(options: MedievalGameboardBlueprintOptions): BlueprintBuildResult {
+function buildGameboardBlueprint(options: GameboardBlueprintOptions): BlueprintBuildResult {
   const shape = options.shape ?? DEFAULT_SHAPE;
   const seed = String(options.seed ?? 'medieval-gameboard-blueprint');
   const rng = seedrandom(seed);
@@ -456,7 +456,7 @@ function buildMedievalGameboardBlueprint(options: MedievalGameboardBlueprintOpti
 
 function createScenarioFromBlueprintRecipe(
   recipe: GameboardRecipe,
-  options: MedievalGameboardBlueprintScenarioOptions
+  options: GameboardBlueprintScenarioOptions
 ): GameboardScenario {
   const seed = String(recipe.options.seed ?? options.seed ?? 'medieval-gameboard-blueprint');
   return createGameboardScenario(options.scenarioId ?? `medieval-blueprint:${seed}`, recipe, {
@@ -982,7 +982,7 @@ function applyRivers(
 function applyBiomeFills(
   steps: GameboardRecipeStep[],
   tiles: Map<string, MutableBlueprintTile>,
-  biomeFills: readonly MedievalBiomeFillSpec[],
+  biomeFills: readonly BiomeFillSpec[],
   rng: seedrandom.PRNG,
   counts: Record<string, number>
 ): void {

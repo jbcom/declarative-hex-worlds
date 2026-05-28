@@ -3,7 +3,7 @@ import {
   coordinatesForShape,
   createGameboardBuilder,
   createGameboardPlan,
-  createMedievalHarborBoard,
+  createHarborBoard,
   edgeBetween,
   gameboardPlanIndex,
   getPlacementAsset,
@@ -314,7 +314,7 @@ describe('gameboard plan builder', () => {
   });
 
   it('ships a useful harbor-town board recipe instead of only an asset catalog', () => {
-    const plan = createMedievalHarborBoard({ seed: 'recipe', faction: 'green' });
+    const plan = createHarborBoard({ seed: 'recipe', faction: 'green' });
     const ids = new Set(plan.placements.map((placement) => placement.assetId));
 
     expect(plan.tiles).toHaveLength(48);
@@ -327,7 +327,7 @@ describe('gameboard plan builder', () => {
   });
 
   it('summarizes terrain, placement features, and local-only asset usage for consumers', () => {
-    const plan = createMedievalHarborBoard({ seed: 'summary', faction: 'green' });
+    const plan = createHarborBoard({ seed: 'summary', faction: 'green' });
     const summary = summarizeGameboardPlan(plan, { topAssetLimit: 100 });
     const shipyard = summary.topAssets.find((asset) => asset.assetId === 'building_shipyard_green');
 
@@ -362,7 +362,7 @@ describe('gameboard plan builder', () => {
 
   it('ships the harbor-town board recipe on hexagon shapes', () => {
     const shape = { kind: 'hexagon', radius: 3 } as const;
-    const plan = createMedievalHarborBoard({ seed: 'hex-recipe', faction: 'yellow', shape });
+    const plan = createHarborBoard({ seed: 'hex-recipe', faction: 'yellow', shape });
     const ids = new Set(plan.placements.map((placement) => placement.assetId));
 
     expect(plan.tiles).toHaveLength(coordinatesForShape(shape).length);

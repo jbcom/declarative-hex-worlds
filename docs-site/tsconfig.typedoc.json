@@ -6,8 +6,8 @@
     "types": ["node"],
     "baseUrl": "..",
     "paths": {
-      "medieval-hexagon-gameboard": ["src/index.ts"],
-      "medieval-hexagon-gameboard/*": ["src/*"]
+      "declarative-hex-worlds": ["src/index.ts"],
+      "declarative-hex-worlds/*": ["src/*"]
     }
   },
   "include": ["../src/**/*.ts", "../tests/integration/**/*.ts"],

@@ -34,9 +34,9 @@ import {
   type TileCoordinatesValue,
 } from '../../src';
 import {
-  MedievalGameboardProvider,
-  MedievalGameboardRecipeProvider,
-  MedievalGameboardScenarioProvider,
+  GameboardProvider,
+  GameboardRecipeProvider,
+  GameboardScenarioProvider,
   useCanOccupyGameboardPlacement,
   useGameboardActions,
   useGameboardActor,
@@ -455,7 +455,7 @@ describe('React bindings browser integration', () => {
         React.Fragment,
         null,
         React.createElement(
-          MedievalGameboardRecipeProvider,
+          GameboardRecipeProvider,
           { recipe },
           React.createElement(RecipeRuntimeProviderProbe, {
             onReport: (report) => {
@@ -464,7 +464,7 @@ describe('React bindings browser integration', () => {
           })
         ),
         React.createElement(
-          MedievalGameboardScenarioProvider,
+          GameboardScenarioProvider,
           { scenario },
           React.createElement(ScenarioRuntimeProviderProbe, {
             onReport: (report) => {
@@ -504,7 +504,7 @@ async function renderProbe(
   host = document.createElement('div');
   document.body.replaceChildren(host);
   root = createRoot(host);
-  const Provider = MedievalGameboardProvider as React.ComponentType<{
+  const Provider = GameboardProvider as React.ComponentType<{
     children?: React.ReactNode;
     world: World;
   }>;

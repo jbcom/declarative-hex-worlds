@@ -6,15 +6,15 @@
  * @module
  */
 import {
-  createMedievalGameboardBlueprintScenario,
-  type MedievalGameboardBlueprintScenarioOptions,
-} from 'medieval-hexagon-gameboard/blueprint';
+  createGameboardBlueprintScenario,
+  type GameboardBlueprintScenarioOptions,
+} from 'declarative-hex-worlds/blueprint';
 import {
   createGameboardRuntimeFromScenario,
   type GameboardScenarioGameRuntime,
-} from 'medieval-hexagon-gameboard/runtime';
-import { validateGameboardScenario } from 'medieval-hexagon-gameboard/scenario';
-import { validateGameboardPlan } from 'medieval-hexagon-gameboard/validation';
+} from 'declarative-hex-worlds/runtime';
+import { validateGameboardScenario } from 'declarative-hex-worlds/scenario';
+import { validateGameboardPlan } from 'declarative-hex-worlds/validation';
 import blueprintJson from './blueprint-board.json';
 
 /**
@@ -91,8 +91,8 @@ export interface BlueprintBoardUsageSummary {
  * and interop APIs.
  */
 export function runBlueprintBoardUsageExample(): BlueprintBoardUsageSummary {
-  const blueprint = blueprintJson as MedievalGameboardBlueprintScenarioOptions;
-  const scenario = createMedievalGameboardBlueprintScenario(blueprint);
+  const blueprint = blueprintJson as GameboardBlueprintScenarioOptions;
+  const scenario = createGameboardBlueprintScenario(blueprint);
   let runtime: GameboardScenarioGameRuntime | undefined;
 
   try {

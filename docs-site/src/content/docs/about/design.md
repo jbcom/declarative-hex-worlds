@@ -1,6 +1,6 @@
 ---
 title: Design
-description: What medieval-hexagon-gameboard aspires to be and why.
+description: What declarative-hex-worlds aspires to be and why.
 sidebar:
   order: 1
 ---
@@ -29,7 +29,7 @@ There are hex algebra libraries. There are ECS runtimes. There are gltf loaders.
 
 For consumers:
 
-1. **Working render in 30 lines**. `npm install` + `npx medieval-hexagon-gameboard bootstrap` + a minimal React component should produce a rendered hex board.
+1. **Working render in 30 lines**. `npm install` + `npx declarative-hex-worlds bootstrap` + a minimal React component should produce a rendered hex board.
 2. **Errors say what to fix, not what failed**. The error taxonomy (PRD D2) lets consumers `instanceof`-branch on `GameboardValidationError` / `GameboardManifestError` etc. without regex'ing messages.
 3. **Async-first where I/O happens, sync where it doesn't**. `loadFreeManifest()` is async for shape stability, `freeManifest` is sync for hot paths. Both ship.
 4. **Subpath imports beat barrel-bloat**. Every domain has a subpath in `package.json#exports`. Importing `/coordinates` doesn't pull `/react` into your bundle.

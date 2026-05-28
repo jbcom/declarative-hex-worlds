@@ -3,7 +3,7 @@ title: Asset bootstrap
 description: Materialize the KayKit Medieval Hexagon GLTF asset tree under your app's asset root.
 ---
 
-`medieval-hexagon-gameboard` is an **asset-bootstrapping** library, not
+`declarative-hex-worlds` is an **asset-bootstrapping** library, not
 an asset-bundled one. The published npm tarball ships:
 
 - The typed runtime, CLI, React + Three.js bindings.
@@ -26,8 +26,8 @@ programmatic [`bootstrapKayKitAssets`](/reference/bootstrap/) API directly.
 ## Quick start (FREE edition, from GitHub)
 
 ```bash
-pnpm add medieval-hexagon-gameboard
-pnpm exec medieval-hexagon-gameboard bootstrap
+pnpm add declarative-hex-worlds
+pnpm exec declarative-hex-worlds bootstrap
 ```
 
 The default `--out` heuristic detects:
@@ -57,7 +57,7 @@ and ships extra `units/` GLTFs plus seasonal `hexagons_medieval_{Fall,Summer,
 Winter}.png` textures. Download the zip from itch.io, then:
 
 ```bash
-pnpm exec medieval-hexagon-gameboard bootstrap \
+pnpm exec declarative-hex-worlds bootstrap \
   --source zip \
   --zip ~/Downloads/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA.zip \
   --edition extra \
@@ -82,7 +82,7 @@ For deterministic CI builds, pass `fetchedAt` and `libraryVersion` to the
 programmatic API:
 
 ```ts
-import { bootstrapKayKitAssets } from 'medieval-hexagon-gameboard/bootstrap';
+import { bootstrapKayKitAssets } from 'declarative-hex-worlds/bootstrap';
 
 await bootstrapKayKitAssets({
   source: { kind: 'github', commit: 'main' }, // pin to a specific sha for reproducibility
@@ -95,7 +95,7 @@ await bootstrapKayKitAssets({
 ## Verifying an existing bootstrap
 
 ```bash
-pnpm exec medieval-hexagon-gameboard bootstrap --verify --out public/assets/models
+pnpm exec declarative-hex-worlds bootstrap --verify --out public/assets/models
 ```
 
 Re-hashes every file recorded in `.bootstrap.json` and reports any drift
@@ -108,21 +108,21 @@ Three ways to tell the loaders where your bootstrap target lives:
 
 ```ts
 // 1. Per-call (most explicit)
-import { resolveManifestAssetUrl, freeManifest } from 'medieval-hexagon-gameboard';
+import { resolveManifestAssetUrl, freeManifest } from 'declarative-hex-worlds';
 const url = resolveManifestAssetUrl(freeManifest.assets[0], {
   bootstrapAssetRoot: '/app/public/assets/models',
 });
 
 // 2. Process-wide (app boot)
-import { setGameboardAssetRoot } from 'medieval-hexagon-gameboard';
+import { setGameboardAssetRoot } from 'declarative-hex-worlds';
 setGameboardAssetRoot('/app/public/assets/models');
 
 // 3. Environment variable (Node consumers)
-//    MEDIEVAL_HEXAGON_ASSET_ROOT=/app/public/assets/models
+//    HEX_WORLDS_ASSET_ROOT=/app/public/assets/models
 ```
 
 Resolution priority: explicit `setGameboardAssetRoot` override →
-`globalThis.MEDIEVAL_HEXAGON_ASSET_ROOT` → `process.env.MEDIEVAL_HEXAGON_ASSET_ROOT`
+`globalThis.HEX_WORLDS_ASSET_ROOT` → `process.env.HEX_WORLDS_ASSET_ROOT`
 → default `public/assets/models`.
 
 ## Troubleshooting
@@ -155,7 +155,7 @@ or disk corruption. Re-run `bootstrap --force` to restore.
 
 The runtime falls back to `public/assets/models` if no override is configured.
 If you bootstrapped to `assets/models` or elsewhere, set
-`MEDIEVAL_HEXAGON_ASSET_ROOT` or call `setGameboardAssetRoot(...)` at boot.
+`HEX_WORLDS_ASSET_ROOT` or call `setGameboardAssetRoot(...)` at boot.
 
 ## Programmatic API
 

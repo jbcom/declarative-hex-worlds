@@ -7,7 +7,7 @@ import {
   listKayKitGuideScenarioAssetRenderRequests,
 } from '../../src/scenario/catalog';
 import { createMedievalShowcaseBlueprintRecipe } from '../../src/scenario/blueprint';
-import { createMedievalHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard/index';
+import { createHarborBoard, type GameboardPlacementSpec } from '../../src/gameboard/index';
 import { freeManifest } from '../../src/manifest/free';
 import { createGameboardPlanFromRecipe } from '../../src/scenario/recipe';
 import type { AssetCategory, MedievalHexagonAsset } from '../../src/types/index';
@@ -212,7 +212,7 @@ describe('EXTRA local visual coverage', () => {
 
   it('captures a composed EXTRA harbor board with local-only structures and props', async () => {
     await page.viewport(1600, 1000);
-    const plan = createMedievalHarborBoard({ seed: 'visual-extra-harbor', faction: 'blue' });
+    const plan = createHarborBoard({ seed: 'visual-extra-harbor', faction: 'blue' });
     const canvas = await renderGameboardPlan(plan, {
       title: 'extra-harbor-gameboard',
       width: 1500,

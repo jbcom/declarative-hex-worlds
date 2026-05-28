@@ -45,7 +45,7 @@
   ],
   "packages": {
     ".": {
-      "component": "medieval-hexagon-gameboard",
+      "component": "declarative-hex-worlds",
       "release-as": "1.0.0"
     }
   }

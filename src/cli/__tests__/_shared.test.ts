@@ -50,15 +50,15 @@ describe('relativizePath (PRD E0h)', () => {
 });
 
 describe('defaultOutRoot (PRD E0h)', () => {
-  const originalEnv = process.env.MEDIEVAL_HEXAGON_OUT_ROOT;
+  const originalEnv = process.env.HEX_WORLDS_OUT_ROOT;
 
   beforeEach(() => {
-    delete process.env.MEDIEVAL_HEXAGON_OUT_ROOT;
+    delete process.env.HEX_WORLDS_OUT_ROOT;
   });
 
   afterEach(() => {
     if (originalEnv !== undefined) {
-      process.env.MEDIEVAL_HEXAGON_OUT_ROOT = originalEnv;
+      process.env.HEX_WORLDS_OUT_ROOT = originalEnv;
     }
   });
 
@@ -67,7 +67,7 @@ describe('defaultOutRoot (PRD E0h)', () => {
   });
 
   it('returns the env override resolved to absolute when set', () => {
-    process.env.MEDIEVAL_HEXAGON_OUT_ROOT = '/tmp/widget';
+    process.env.HEX_WORLDS_OUT_ROOT = '/tmp/widget';
     expect(defaultOutRoot()).toBe(resolve('/tmp/widget'));
   });
 });

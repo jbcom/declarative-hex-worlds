@@ -27,7 +27,7 @@ export default mergeConfig(
     resolve: {
       alias: [
         {
-          find: /^medieval-hexagon-gameboard$/,
+          find: /^declarative-hex-worlds$/,
           replacement: resolve(__dirname, 'src/index.ts'),
         },
       ],

@@ -118,8 +118,8 @@ requirePinnedActions(cd, files.cd);
 requirePinnedActions(automerge, files.automerge);
 
 const releasePackage = releasePleaseConfig.packages?.['.'];
-if (releasePackage?.component !== 'medieval-hexagon-gameboard') {
-  failures.push('release-please config must target medieval-hexagon-gameboard at the root');
+if (releasePackage?.component !== 'declarative-hex-worlds') {
+  failures.push('release-please config must target declarative-hex-worlds at the root');
 }
 // The manifest tracks the currently-released version for `.` (root pkg).
 // release-please bumps this in lockstep with `package.json#version` whenever

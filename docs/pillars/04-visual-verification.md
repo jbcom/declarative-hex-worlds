@@ -191,7 +191,7 @@ training props on page 17, raising current guide treatment counts to 474 FREE
 guide-page asset occurrences and 462 mixed/EXTRA occurrences for pages 16-18.
 
 2026-05-24 semantic neutral-structure verification reran
-`pnpm --dir packages/medieval-hexagon-gameboard run test:screenshots:free`
+`pnpm --dir packages/declarative-hex-worlds run test:screenshots:free`
 and `pnpm test:browser:extra` after adding
 `GameboardBuilder.addFortification`, `GameboardBuilder.addConstructionSite`,
 and `GameboardBuilder.addSiegeProjectile`. The reviewed
@@ -204,7 +204,7 @@ counts are 474 FREE guide-page asset occurrences, 462 mixed/EXTRA occurrences
 for pages 16-18, and 791 mixed/EXTRA guide-page occurrences overall.
 
 2026-05-24 focused bridge/ramp verification ran
-`pnpm --dir packages/medieval-hexagon-gameboard exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t "extracted guide pages"`
+`pnpm --dir packages/declarative-hex-worlds exec vitest run tests/browser/free-visual.test.ts --config vitest.browser.free.config.ts -t "extracted guide pages"`
 after adding `GameboardBuilder.addBridge` and `GameboardBuilder.addElevationRamp`; the regenerated
 `free-guide-scenarios-by-extracted-page.png` contact sheet was reviewed for the
 474 FREE guide-page asset occurrences and bridge coverage on pages 02, 07, and

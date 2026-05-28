@@ -726,12 +726,12 @@ export interface ScatterDecorationOptions {
 /**
  * Options for the built-in medieval harbor demo board.
  */
-export interface MedievalHarborBoardOptions extends Partial<GameboardPlanOptions> {
+export interface HarborBoardOptions extends Partial<GameboardPlanOptions> {
   /** Faction color used by settlement and harbor pieces. */
   faction?: Faction;
 }
 
-const DEFAULT_SEED = 'medieval-hexagon-gameboard';
+const DEFAULT_SEED = 'declarative-hex-worlds';
 const EDGE_INDEXES = [0, 1, 2, 3, 4, 5] as const satisfies readonly HexEdgeIndex[];
 const TERRAIN_ASSETS: Record<Extract<GameboardTerrain, 'grass' | 'water'>, string> = {
   grass: 'hex_grass',
@@ -1653,7 +1653,7 @@ export function summarizeGameboardPlan(
 /**
  * Create the built-in medieval harbor sample board used by examples and tests.
  */
-export function createMedievalHarborBoard(options: MedievalHarborBoardOptions = {}): GameboardPlan {
+export function createHarborBoard(options: HarborBoardOptions = {}): GameboardPlan {
   const shape = options.shape ?? { kind: 'rectangle', width: 8, height: 6 };
   const faction = options.faction ?? 'blue';
   const builder = createGameboardBuilder({
@@ -1664,7 +1664,7 @@ export function createMedievalHarborBoard(options: MedievalHarborBoardOptions = 
   });
 
   if (shape.kind === 'hexagon') {
-    return buildHexagonMedievalHarborBoard(builder, shape, faction);
+    return buildHexagonHarborBoard(builder, shape, faction);
   }
 
   const harbor = { q: Math.floor(shape.width / 2), r: shape.height - 2 };
@@ -1712,7 +1712,7 @@ export function createMedievalHarborBoard(options: MedievalHarborBoardOptions = 
   return builder.build();
 }
 
-function buildHexagonMedievalHarborBoard(
+function buildHexagonHarborBoard(
   builder: GameboardBuilder,
   shape: Extract<GameboardShape, { kind: 'hexagon' }>,
   faction: Faction

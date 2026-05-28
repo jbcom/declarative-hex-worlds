@@ -13,10 +13,10 @@ Three vitest harnesses + one perf harness. Coverage from all of them feeds into 
 |---|---|---|---|
 | **Unit** | `vitest.config.ts` | `src/**/__tests__/*.test.ts`, `tests/unit/**/*.test.ts`, `tests/integration/**/*.test.ts` | every PR (`pnpm test`) |
 | **Browser FREE** | `vitest.browser.free.config.ts` | `tests/browser/{free-visual,simple-rpg-visual,react-bindings}.test.ts` | every PR once Phase RB bootstrap step lands in CI |
-| **Browser EXTRA** | `vitest.browser.extra.config.ts` | `tests/browser/extra-visual.test.ts` | local-only with `MEDIEVAL_HEXAGON_ENABLE_EXTRA=1` |
-| **E2E local-assets** | `vitest.browser.local-assets.config.ts` | `tests/e2e/local-assets/**/*.test.ts` | local-only with `MEDIEVAL_HEXAGON_ENABLE_LOCAL_ASSETS=1` |
-| **SimpleRPG e2e (GitHub)** | `vitest.simple-rpg-e2e.config.ts` | `tests/e2e/simple-rpg-ci.test.ts` | scheduled CI with `MEDIEVAL_HEXAGON_E2E_GITHUB=1` |
-| **SimpleRPG e2e (local)** | `vitest.simple-rpg-e2e.config.ts` | `tests/e2e/simple-rpg-local-extra.test.ts` | local with `MEDIEVAL_HEXAGON_LOCAL_REFERENCES=1` |
+| **Browser EXTRA** | `vitest.browser.extra.config.ts` | `tests/browser/extra-visual.test.ts` | local-only with `HEX_WORLDS_ENABLE_EXTRA=1` |
+| **E2E local-assets** | `vitest.browser.local-assets.config.ts` | `tests/e2e/local-assets/**/*.test.ts` | local-only with `HEX_WORLDS_ENABLE_LOCAL_ASSETS=1` |
+| **SimpleRPG e2e (GitHub)** | `vitest.simple-rpg-e2e.config.ts` | `tests/e2e/simple-rpg-ci.test.ts` | scheduled CI with `HEX_WORLDS_E2E_GITHUB=1` |
+| **SimpleRPG e2e (local)** | `vitest.simple-rpg-e2e.config.ts` | `tests/e2e/simple-rpg-local-extra.test.ts` | local with `HEX_WORLDS_LOCAL_REFERENCES=1` |
 | **Perf bench** | n/a — direct vitest bench | `tests/perf/*.bench.ts` | local-only, non-blocking |
 
 ## Coverage gates
@@ -28,13 +28,13 @@ CI runs `pnpm test:coverage:enforce` in the check matrix; regressions block merg
 To merge harness reports locally:
 
 ```bash
-MEDIEVAL_HEXAGON_COVERAGE=1 pnpm coverage:all
+HEX_WORLDS_COVERAGE=1 pnpm coverage:all
 open coverage/merged/lcov-report/index.html
 ```
 
 ## SimpleRPG: the coverage driver
 
-`tests/integration/simple-rpg/simple-rpg.ts` is a 1,005-line driver that exercises 80+ public APIs synchronously. Its purpose isn't gameplay — it's coverage. Read the [SimpleRPG README](https://github.com/jbcom/medieval-hexagon-gameboard/tree/main/tests/simple-rpg/README.md) for the API matrix.
+`tests/integration/simple-rpg/simple-rpg.ts` is a 1,005-line driver that exercises 80+ public APIs synchronously. Its purpose isn't gameplay — it's coverage. Read the [SimpleRPG README](https://github.com/jbcom/declarative-hex-worlds/tree/main/tests/simple-rpg/README.md) for the API matrix.
 
 Three entry-point functions matter:
 

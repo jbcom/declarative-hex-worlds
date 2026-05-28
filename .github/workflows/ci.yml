@@ -147,7 +147,7 @@ jobs:
         # Pulls 221 FREE GLTFs from KayKit's GitHub source into the
         # consumer-shape default tree at public/assets/models/. Sidecar
         # records the SHA256 of each file; verify drift via
-        # `medieval-hexagon-gameboard bootstrap --verify`.
+        # `declarative-hex-worlds bootstrap --verify`.
         run: pnpm exec tsx src/cli/cli.ts bootstrap --source github --out public/assets/models
 
       - name: Run FREE browser visual tests
@@ -220,8 +220,8 @@ jobs:
 
       - name: Build docs site
         env:
-          ASTRO_BASE: /medieval-hexagon-gameboard/
-          ASTRO_SITE: https://jbcom.github.io/medieval-hexagon-gameboard
+          ASTRO_BASE: /declarative-hex-worlds/
+          ASTRO_SITE: https://jbcom.github.io/declarative-hex-worlds
         run: pnpm docs-site:build
 
       - name: Upload docs-site artifact (for cd.yml Pages deploy)

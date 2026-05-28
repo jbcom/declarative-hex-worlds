@@ -71,8 +71,8 @@ jobs:
 
       - name: Build docs site
         env:
-          ASTRO_BASE: /medieval-hexagon-gameboard/
-          ASTRO_SITE: https://jbcom.github.io/medieval-hexagon-gameboard
+          ASTRO_BASE: /declarative-hex-worlds/
+          ASTRO_SITE: https://jbcom.github.io/declarative-hex-worlds
         run: pnpm docs-site:build
 
       - name: Upload Pages artifact

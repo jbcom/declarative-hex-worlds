@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createGameboardBuilder, createMedievalHarborBoard } from '../../gameboard/index';
+import { createGameboardBuilder, createHarborBoard } from '../../gameboard/index';
 import { axialToWorld } from '../../coordinates/grid';
 import {
   ExtraPlacementQuery,
@@ -55,7 +55,7 @@ describe('Koota gameboard runtime', () => {
   });
 
   it('maintains placement-to-tile relations for queries and React hooks', () => {
-    const plan = createMedievalHarborBoard({ seed: 'relations' });
+    const plan = createHarborBoard({ seed: 'relations' });
     const world = createGameboardWorld(plan);
     const tile = findTileEntity(world, { q: 4, r: 4 });
     const placements = readPlacementsForTile(world, '4,4');
@@ -200,7 +200,7 @@ describe('Koota gameboard runtime', () => {
 
   it('can spawn into an existing world without a separate adapter state', () => {
     const world = createGameboardWorld();
-    const plan = createMedievalHarborBoard({ seed: 'spawn-direct' });
+    const plan = createHarborBoard({ seed: 'spawn-direct' });
     const index = spawnGameboardPlan(world, plan);
 
     expect(index.tiles.size).toBe(plan.tiles.length);

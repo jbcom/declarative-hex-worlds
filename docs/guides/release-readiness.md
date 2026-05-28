@@ -65,8 +65,8 @@ pnpm coverage:ledger
 | `createGameboardRuntimeFromScenario` | packaged-scenario | 9, 18 | 0 | Packaged SimpleRPG usage creates a runtime facade directly from the scenario JSON. |
 | `createHexagonGameboardGrid` | executable-smoke | 10 | 0 | Packaged SimpleRPG usage creates a Honeycomb hexagon grid in executable smoke. |
 | `createManifestBundle` | executable-smoke, manifest-package | 12 | 0 | Packaged SimpleRPG usage bundles the FREE manifest in executable smoke. |
-| `createMedievalGameboardBlueprintPlan` | executable-smoke, blueprint-recipe | 6, 10 | 0 | Packaged SimpleRPG usage compiles a blueprint plan in executable smoke. |
-| `createMedievalGameboardBlueprintRecipe` | executable-smoke, blueprint-recipe | 5, 8, 11, 13 | 0 | Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke. |
+| `createGameboardBlueprintPlan` | executable-smoke, blueprint-recipe | 6, 10 | 0 | Packaged SimpleRPG usage compiles a blueprint plan in executable smoke. |
+| `createGameboardBlueprintRecipe` | executable-smoke, blueprint-recipe | 5, 8, 11, 13 | 0 | Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke. |
 | `createMedievalShowcaseBlueprintRecipe` | executable-smoke, blueprint-recipe | 9, 13 | 0 | Packaged SimpleRPG usage compiles the showcase blueprint recipe in executable smoke. |
 | `createSeededGameboardPlan` | executable-smoke, seeded-generation | 9 | 0 | Packaged SimpleRPG usage builds a seeded board in executable smoke. |
 | `declareHexTile` | executable-smoke | 13 | 0 | Packaged SimpleRPG usage declares a tile for registry analysis in executable smoke. |
@@ -101,7 +101,7 @@ pnpm coverage:ledger
 | `GameboardBuilder.setElevation` | fixed-gameplay, visual-coverage | 8, 10 | 0 | Fixed SimpleRPG board raises a tile and then adds an elevation ramp. |
 | `GameboardBuilder.setTerrain` | fixed-gameplay, seeded-generation, visual-coverage | 7, 9 | 2 | Fixed SimpleRPG board authors a full water row and seeded generation fills terrain. |
 | `GameboardBuilder.setTileAsset` | fixed-gameplay, visual-coverage | 7, 8, 9, 10 | 5 | Fixed and packaged SimpleRPG boards override authored tile assets and tags. |
-| `inspectMedievalGameboardBlueprint` | executable-smoke, blueprint-recipe | 6, 11 | 0 | Packaged SimpleRPG usage inspects a blueprint in executable smoke. |
+| `inspectGameboardBlueprint` | executable-smoke, blueprint-recipe | 6, 11 | 0 | Packaged SimpleRPG usage inspects a blueprint in executable smoke. |
 | `listCoastGuidePermutations` | executable-smoke | 7, 15 | 10 | Packaged SimpleRPG usage lists coast guide permutations in executable smoke. |
 | `listKayKitAssetPublicTreatments` | executable-smoke | 1 | 0 | Packaged SimpleRPG usage lists every KayKit asset public treatment in executable smoke. |
 | `listKayKitGuideScenarios` | executable-smoke | 1, 19 | 0 | Packaged SimpleRPG usage lists every decomposed KayKit guide scenario in executable smoke. |
@@ -110,7 +110,7 @@ pnpm coverage:ledger
 | `listRiverCurvyGuidePermutations` | executable-smoke | 4, 7 | 2 | Packaged SimpleRPG usage lists curvy river permutations in executable smoke. |
 | `listRiverGuidePermutations` | executable-smoke | 4, 7 | 24 | Packaged SimpleRPG usage lists river permutations in executable smoke. |
 | `listRoadGuidePermutations` | executable-smoke | 3, 9 | 15 | Packaged SimpleRPG usage lists road permutations in executable smoke. |
-| `medieval-hexagon-gameboard manifest` | package-boundary, manifest-package | 12 | 0 | Package smoke validates the CLI manifest and packaged SimpleRPG imports together. |
+| `declarative-hex-worlds manifest` | package-boundary, manifest-package | 12 | 0 | Package smoke validates the CLI manifest and packaged SimpleRPG imports together. |
 | `neutralUnitAssetId` | executable-smoke | 14, 16, 17, 18 | 25 | Packaged SimpleRPG usage resolves a neutral unit asset id in executable smoke. |
 | `NOTICE.md` | package-boundary, manifest-package | 19 | 0 | Release/package audits keep KayKit attribution with the SimpleRPG packaged smoke. |
 | `package.json files` | package-boundary, manifest-package | 19 | 0 | Package audit verifies exports, files, examples, and SimpleRPG package imports. |

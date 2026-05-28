@@ -1,76 +1,83 @@
-# medieval-hexagon-gameboard
+<div align="center">
 
-Declarative hex worlds. Bootstrap the FREE KayKit pack in one command. First-class React + Three.js bindings.
+<img src="./docs-site/public/hero.png" alt="Declarative Hex Worlds" width="540">
 
-[![CI](https://github.com/jbcom/medieval-hexagon-gameboard/actions/workflows/ci.yml/badge.svg)](https://github.com/jbcom/medieval-hexagon-gameboard/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/medieval-hexagon-gameboard.svg)](https://www.npmjs.com/package/medieval-hexagon-gameboard)
-[![license](https://img.shields.io/npm/l/medieval-hexagon-gameboard.svg)](./LICENSE)
-[![types](https://img.shields.io/npm/types/medieval-hexagon-gameboard.svg)](https://jbcom.github.io/medieval-hexagon-gameboard/reference/)
+# declarative-hex-worlds
 
-> A deterministic gameboard runtime for TypeScript games. Declare a harbor, a procedural forest, or a multi-depth cliff once; the library compiles it through recipe → blueprint → scenario into a [koota](https://koota.dev) ECS world your React + Three.js stack renders.
+**Declarative, deterministic hex worlds for TypeScript games.**
+Bootstrap KayKit assets in one command. First-class React + Three.js bindings.
+
+[![CI](https://github.com/jbcom/declarative-hex-worlds/actions/workflows/ci.yml/badge.svg)](https://github.com/jbcom/declarative-hex-worlds/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/declarative-hex-worlds.svg)](https://www.npmjs.com/package/declarative-hex-worlds)
+[![license](https://img.shields.io/npm/l/declarative-hex-worlds.svg)](./LICENSE)
+[![types](https://img.shields.io/npm/types/declarative-hex-worlds.svg)](https://jonbogaty.com/declarative-hex-worlds/reference/index/)
+
+</div>
+
+A deterministic gameboard runtime for TypeScript games. Declare a harbor, a procedural forest, or a multi-depth cliff once; the library compiles it through recipe → blueprint → scenario into a [koota](https://koota.dev) ECS world your React + Three.js stack renders.
+
+[**Read the docs →**](https://jonbogaty.com/declarative-hex-worlds/) ·  [**Browse features →**](https://jonbogaty.com/declarative-hex-worlds/features/) ·  [**API reference →**](https://jonbogaty.com/declarative-hex-worlds/reference/index/)
 
 ---
 
 ## Quickstart
 
 ```bash
-pnpm add medieval-hexagon-gameboard
-pnpm exec medieval-hexagon-gameboard bootstrap
+pnpm add declarative-hex-worlds
+pnpm exec declarative-hex-worlds bootstrap
 ```
 
 ```tsx
 import { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import {
-  MedievalGameboardProvider,
-  useGameboardRuntime,
-} from 'medieval-hexagon-gameboard/react';
-import {
-  createGameboardBuilder,
-  createGameboardRuntimeFromScenario,
-} from 'medieval-hexagon-gameboard/runtime';
+import * as HexWorld from 'declarative-hex-worlds';
 
-const plan = createGameboardBuilder({
+const plan = HexWorld.createGameboardBuilder({
   seed: 'harbor-village-1',
   shape: { kind: 'rectangle', width: 6, height: 6 },
 }).build();
 
-const runtime = createGameboardRuntimeFromScenario({ plan, scenario: { actors: [], quests: [] } });
+const runtime = HexWorld.createGameboardRuntimeFromScenario({
+  plan,
+  scenario: { actors: [], quests: [] },
+});
 
 export function HarborBoard() {
   return (
-    <MedievalGameboardProvider runtime={runtime}>
+    <HexWorld.GameboardProvider runtime={runtime}>
       <Canvas><Scene /></Canvas>
-    </MedievalGameboardProvider>
+    </HexWorld.GameboardProvider>
   );
 }
 
 function Scene() {
-  const rt = useGameboardRuntime();
+  const rt = HexWorld.useGameboardRuntime();
   useEffect(() => { rt.tick(1 / 60); }, [rt]);
   return null; // your three.js render of rt.snapshot() goes here
 }
 ```
 
-That's it. The bootstrap command downloaded 221 KayKit FREE GLTFs into `public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/`. The plan + runtime are deterministic — same seed, same render, byte-for-byte.
+That's it. The `bootstrap` command downloaded 221 KayKit FREE GLTFs into `public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/`. The plan + runtime are deterministic — same seed, same render, byte-for-byte.
 
-> The snippet uses [`@react-three/fiber`](https://github.com/pmndrs/react-three-fiber) for the Canvas. That's an optional companion (`pnpm add @react-three/fiber`) — it's not a library dependency because consumers might prefer a different react-three layer. The library's own `/three` subpath gives you the raw helpers if you want to skip react-three-fiber.
+> [`@react-three/fiber`](https://github.com/pmndrs/react-three-fiber) is an optional companion (`pnpm add @react-three/fiber`). It's not a hard dep because some consumers prefer a different react-three layer; the library's own `/three` subpath gives you the raw helpers if you'd rather skip it.
 
 ---
 
 ## Why this exists
 
-- **Declarative API for hex worlds.** Describe what you want (a harbor, a forest, a cliff with three depth tiers). The library handles tile selection, connectivity, prop scatter, validation.
-- **Deterministic seed-driven generation.** Same seed produces byte-identical output across processes + platforms. Server-authoritative simulation, save games, cross-process replay — all work out of the box.
+- **Declarative API for hex worlds.** Describe what you want (a harbor, a forest, a cliff with three depth tiers). The library handles tile selection, connectivity, prop scatter, and validation.
+- **Deterministic seed-driven generation.** Same seed produces byte-identical output across processes and platforms. Server-authoritative simulation, save games, cross-process replay — all work out of the box.
 - **First-class React + Three.js bindings.** Not optional peer-deps. The library tests against the versions it ships; install one package and start rendering.
 
 ---
 
 ## Module map
 
+The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-shaking and clearer intent, import from subpaths:
+
 | Subpath | What it gives you |
 |---|---|
-| umbrella (`medieval-hexagon-gameboard`) | Everything. Prototyping. |
+| `declarative-hex-worlds` (umbrella) | Everything. Prototyping. |
 | `/gameboard` | Plan builder, tile + placement spec types |
 | `/coordinates` | Hex algebra, axial / world transforms |
 | `/scenario`, `/blueprint`, `/recipe` | Scenario → blueprint → recipe compiler |
@@ -79,10 +86,10 @@ That's it. The bootstrap command downloaded 221 KayKit FREE GLTFs into `public/a
 | `/react` | React provider + hooks |
 | `/three` | three.js loaders + scene helpers |
 | `/bootstrap` | Programmatic asset bootstrap (CLI alternative) |
-| `/errors` | `GameboardError` + 6 subclasses for `instanceof` catching |
-| `/manifest/free`, `/manifest/schema` | The bundled FREE manifest metadata |
+| `/errors` | `GameboardError` + subclasses for `instanceof` catching |
+| `/manifest/free`, `/manifest/schema` | The FREE manifest metadata + schema |
 
-[Full subpath list with API reference →](https://jbcom.github.io/medieval-hexagon-gameboard/reference/)
+[Full subpath list with API reference →](https://jonbogaty.com/declarative-hex-worlds/reference/index/)
 
 ---
 
@@ -90,10 +97,10 @@ That's it. The bootstrap command downloaded 221 KayKit FREE GLTFs into `public/a
 
 | Get started | Features | Reference |
 |---|---|---|
-| [Quickstart](https://jbcom.github.io/medieval-hexagon-gameboard/guides/getting-started/) | (coming in PRD F-Gallery) | [API (1107 pages)](https://jbcom.github.io/medieval-hexagon-gameboard/reference/) |
-| [Asset bootstrap](https://jbcom.github.io/medieval-hexagon-gameboard/guides/asset-bootstrap/) | [CLI](https://jbcom.github.io/medieval-hexagon-gameboard/guides/cli-reference/) | [Errors](https://jbcom.github.io/medieval-hexagon-gameboard/guides/errors/) |
-| [Bindings + bundling](https://jbcom.github.io/medieval-hexagon-gameboard/guides/bindings/) | [Determinism contract](https://jbcom.github.io/medieval-hexagon-gameboard/guides/determinism/) | [Architecture](https://jbcom.github.io/medieval-hexagon-gameboard/about/architecture/) |
-| [Testing](https://jbcom.github.io/medieval-hexagon-gameboard/guides/testing/) | [Design](https://jbcom.github.io/medieval-hexagon-gameboard/about/design/) | [Deployment](https://jbcom.github.io/medieval-hexagon-gameboard/about/deployment/) |
+| [Quickstart](https://jonbogaty.com/declarative-hex-worlds/guides/getting-started/) | [Feature gallery](https://jonbogaty.com/declarative-hex-worlds/features/) | [API reference](https://jonbogaty.com/declarative-hex-worlds/reference/index/) |
+| [Asset bootstrap](https://jonbogaty.com/declarative-hex-worlds/guides/asset-bootstrap/) | [CLI](https://jonbogaty.com/declarative-hex-worlds/guides/cli-reference/) | [Errors](https://jonbogaty.com/declarative-hex-worlds/guides/errors/) |
+| [Bindings + bundling](https://jonbogaty.com/declarative-hex-worlds/guides/bindings/) | [Determinism contract](https://jonbogaty.com/declarative-hex-worlds/guides/determinism/) | [Architecture](https://jonbogaty.com/declarative-hex-worlds/about/architecture/) |
+| [Testing](https://jonbogaty.com/declarative-hex-worlds/guides/testing/) | [Design rationale](https://jonbogaty.com/declarative-hex-worlds/about/design/) | [Deployment](https://jonbogaty.com/declarative-hex-worlds/about/deployment/) |
 
 ---
 
@@ -102,27 +109,27 @@ That's it. The bootstrap command downloaded 221 KayKit FREE GLTFs into `public/a
 The library ships a Node binary. Common commands:
 
 ```bash
-medieval-hexagon-gameboard bootstrap       # download FREE pack assets (run once)
-medieval-hexagon-gameboard doctor          # check local setup
-medieval-hexagon-gameboard validate-scenario --scenario ./my-scenario.json
-medieval-hexagon-gameboard coverage --json # release-readiness ledger
+declarative-hex-worlds bootstrap       # download FREE pack assets (run once)
+declarative-hex-worlds doctor          # check local setup
+declarative-hex-worlds validate-scenario --scenario ./my-scenario.json
+declarative-hex-worlds coverage --json # release-readiness ledger
 ```
 
-[Full CLI reference →](https://jbcom.github.io/medieval-hexagon-gameboard/guides/cli-reference/)
+[Full CLI reference →](https://jonbogaty.com/declarative-hex-worlds/guides/cli-reference/)
 
 ---
 
 ## What ships
 
-- The npm tarball is small (~2.3 MB; 134 files). It contains the manifest, the compiled JS + DTS, the README, and a handful of curated showcase PNGs.
-- The KayKit FREE GLTF tree (~30 MB; 221 models) is bootstrap-fetched at install time. CC0 license; the bootstrap command also writes a SHA256 integrity sidecar.
-- The EXTRA edition is a paid itch.io purchase. The library supports it via `bootstrap --source zip --zip <your-extra.zip>` but never bundles it.
+- The npm tarball is small (~2.3 MB; ~134 files). It contains the manifest, the compiled JS + DTS, the README, and a handful of curated showcase PNGs.
+- The KayKit FREE GLTF tree (~30 MB; 221 models) is bootstrap-fetched at install time. CC0 license; the bootstrap command also writes a SHA-256 integrity sidecar.
+- The EXTRA edition is a paid [itch.io](https://kaykit.itch.io/medieval-hexagon-pack) purchase. The library supports it via `bootstrap --source zip --zip <your-extra.zip>` but never bundles it.
 
 ---
 
 ## Contributing
 
-`pnpm verify` runs every CI gate locally. See [CONTRIBUTING.md](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/CONTRIBUTING.md). The work queue lives in [`.agent-state/directive.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/.agent-state/directive.md); the PRD in [`docs/PRD/1.0.md`](https://github.com/jbcom/medieval-hexagon-gameboard/blob/main/docs/PRD/1.0.md) explains the why.
+`pnpm verify` runs every CI gate locally. See [CONTRIBUTING.md](https://github.com/jbcom/declarative-hex-worlds/blob/main/CONTRIBUTING.md). The work queue lives in [`.agent-state/directive.md`](https://github.com/jbcom/declarative-hex-worlds/blob/main/.agent-state/directive.md); the PRD in [`docs/PRD/1.0.md`](https://github.com/jbcom/declarative-hex-worlds/blob/main/docs/PRD/1.0.md) explains the why.
 
 Conventional Commits required. PRs are squash-merged. Coverage gate ratchets toward 100 / 100 / 100 / 100 (currently at the measured floor + slack; regressions block merge).
 
@@ -132,4 +139,4 @@ Conventional Commits required. PRs are squash-merged. Coverage gate ratchets tow
 
 [MIT](./LICENSE) for the library code.
 
-KayKit Medieval Hexagon Pack © Kay Lousberg, [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/). Adventurers / EXTRA pack and other KayKit content have their own licenses; see `NOTICE.md`.
+KayKit Medieval Hexagon Pack © [Kay Lousberg](https://kaylousberg.com/), [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/). Adventurers / EXTRA pack and other KayKit content have their own licenses; see [`NOTICE.md`](./NOTICE.md).

@@ -18,8 +18,8 @@ Your game has a "share replay" button. The user records 5 minutes of gameplay; y
 ## Snippet
 
 ```ts
-import { createGameboardRuntimeFromScenario } from 'medieval-hexagon-gameboard/runtime';
-import { runGameboardScenarioSimulationScript } from 'medieval-hexagon-gameboard/simulation';
+import { createGameboardRuntimeFromScenario } from 'declarative-hex-worlds/runtime';
+import { runGameboardScenarioSimulationScript } from 'declarative-hex-worlds/simulation';
 
 const runtime = createGameboardRuntimeFromScenario(scenario);
 const result = runGameboardScenarioSimulationScript(scenario, replayScript, {

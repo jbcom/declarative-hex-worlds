@@ -1,12 +1,13 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightThemeFlexoki from 'starlight-theme-flexoki';
 import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
 
 // GitHub Pages deploys under the repo path. CI sets ASTRO_BASE based on the
 // repo's pages config; locally + on PR builds, base is `/`.
 const base = process.env.ASTRO_BASE ?? '/';
-const site = process.env.ASTRO_SITE ?? 'https://jbcom.github.io/medieval-hexagon-gameboard';
+const site = process.env.ASTRO_SITE ?? 'https://jbcom.github.io/declarative-hex-worlds';
 
 // Mirrors tsup.config.ts `entry` — every entry corresponds to a public subpath
 // in the library's `package.json#exports`. Each generates a Markdown reference
@@ -61,7 +62,7 @@ export default defineConfig({
 	base,
 	integrations: [
 		starlight({
-			title: 'medieval-hexagon-gameboard',
+			title: 'declarative-hex-worlds',
 			description:
 				'Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS and first-class React + Three.js bindings.',
 			favicon: '/favicon.svg',
@@ -69,22 +70,27 @@ export default defineConfig({
 				{
 					icon: 'github',
 					label: 'GitHub',
-					href: 'https://github.com/jbcom/medieval-hexagon-gameboard',
+					href: 'https://github.com/jbcom/declarative-hex-worlds',
 				},
 				{
 					icon: 'npm',
 					label: 'npm',
-					href: 'https://www.npmjs.com/package/medieval-hexagon-gameboard',
+					href: 'https://www.npmjs.com/package/declarative-hex-worlds',
 				},
 			],
 			editLink: {
 				baseUrl:
-					'https://github.com/jbcom/medieval-hexagon-gameboard/edit/main/docs-site/',
+					'https://github.com/jbcom/declarative-hex-worlds/edit/main/docs-site/',
 			},
 			lastUpdated: true,
 			pagination: true,
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
 			plugins: [
+				// Flexoki — warm-paper palette (parchment cream + muted ink).
+				// Matches the project's medieval/parchment subject matter and
+				// gives the bare Starlight chrome a real visual identity for
+				// the 1.0 release. See https://delucis.github.io/starlight-theme-flexoki/
+				starlightThemeFlexoki(),
 				starlightTypeDoc({
 					entryPoints,
 					tsconfig: './tsconfig.typedoc.json',

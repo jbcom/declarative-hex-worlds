@@ -21,8 +21,8 @@ game repository, or reviewed in documentation.
 import {
   createGameboardPlanFromRecipe,
   inspectGameboardRecipe,
-} from 'medieval-hexagon-gameboard/recipe';
-import { freeManifest } from 'medieval-hexagon-gameboard/manifest/free';
+} from 'declarative-hex-worlds/recipe';
+import { freeManifest } from 'declarative-hex-worlds/manifest/free';
 
 const preflight = inspectGameboardRecipe(recipeJson, {
   plan: { assetCatalog: freeManifest },
@@ -61,8 +61,8 @@ expand the selection into deterministic layout rules.
 Run analysis before committing generated placements into a plan or runtime:
 
 ```ts
-import { analyzeGameboardLayoutFill } from 'medieval-hexagon-gameboard/layout';
-import { inspectSeededGameboardPieceFills } from 'medieval-hexagon-gameboard/rules';
+import { analyzeGameboardLayoutFill } from 'declarative-hex-worlds/layout';
+import { inspectSeededGameboardPieceFills } from 'declarative-hex-worlds/rules';
 
 const layoutReport = analyzeGameboardLayoutFill(plan, layoutFill);
 const pieceReport = inspectSeededGameboardPieceFills(plan, registry, pieceFills, {
@@ -90,8 +90,8 @@ Scenarios are the preferred test fixture for integration and browser coverage
 because they force consumers to use the package the way a game does.
 
 ```ts
-import { createGameboardRuntimeFromScenario } from 'medieval-hexagon-gameboard/runtime';
-import { validateGameboardScenario } from 'medieval-hexagon-gameboard/scenario';
+import { createGameboardRuntimeFromScenario } from 'declarative-hex-worlds/runtime';
+import { validateGameboardScenario } from 'declarative-hex-worlds/scenario';
 
 const validation = validateGameboardScenario(scenarioJson, {
   plan: { assetCatalog: manifest },
@@ -127,7 +127,7 @@ Simulation scripts are deterministic headless game-loop tests. They can run:
 import {
   runGameboardScenarioSimulationScript,
   validateGameboardScenarioSimulationScript,
-} from 'medieval-hexagon-gameboard/simulation';
+} from 'declarative-hex-worlds/simulation';
 
 const scriptValidation = validateGameboardScenarioSimulationScript(scriptJson, {
   scenario: scenarioJson,
@@ -160,21 +160,21 @@ through package imports as well as the generated ledger.
 Use the CLI to preflight serialized content outside a test runner:
 
 ```bash
-medieval-hexagon-gameboard validate-recipe \
+declarative-hex-worlds validate-recipe \
   --recipe docs/examples/generated-piece-scenario.recipe.json \
   --outPlan /tmp/generated-piece-scenario.plan.json
 
-medieval-hexagon-gameboard validate-scenario \
+declarative-hex-worlds validate-scenario \
   --scenario <your-scenario.json> \
   --manifest assets/free/manifest.json \
   --outPlan /tmp/simple-rpg-plan.json
 
-medieval-hexagon-gameboard validate-simulation \
+declarative-hex-worlds validate-simulation \
   --scenario <your-scenario.json> \
   --script <your-simulation-script.json> \
   --manifest assets/free/manifest.json
 
-medieval-hexagon-gameboard simulate-scenario \
+declarative-hex-worlds simulate-scenario \
   --scenario <your-scenario.json> \
   --script <your-simulation-script.json> \
   --manifest assets/free/manifest.json \
