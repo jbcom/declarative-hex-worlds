@@ -81,6 +81,31 @@ describe('tile registry and ECS interop', () => {
     expect(snapshot.spawnLocations).toHaveLength(2);
   });
 
+  it('kindForDeclaration covers river/coast/structure/unit/decoration roles (E0b)', () => {
+    // Covers registry.ts lines 552/554/556 (kindForDeclaration switch arms).
+    const registry = createHexTileRegistry([
+      { id: 'r1', assetId: 'r1', role: 'river' },
+      { id: 'c1', assetId: 'c1', role: 'coast' },
+      { id: 's1', assetId: 's1', role: 'structure' },
+      { id: 'u1', assetId: 'u1', role: 'unit' },
+      { id: 'd1', assetId: 'd1', role: 'decoration' },
+    ]);
+    const builder = createGameboardBuilder({
+      seed: 'role-kinds',
+      shape: { kind: 'rectangle', width: 5, height: 1 },
+    });
+    applyTileDeclaration(builder, registry, { at: { q: 0, r: 0 }, declaration: 'r1' });
+    applyTileDeclaration(builder, registry, { at: { q: 1, r: 0 }, declaration: 'c1' });
+    applyTileDeclaration(builder, registry, { at: { q: 2, r: 0 }, declaration: 's1' });
+    applyTileDeclaration(builder, registry, { at: { q: 3, r: 0 }, declaration: 'u1' });
+    applyTileDeclaration(builder, registry, { at: { q: 4, r: 0 }, declaration: 'd1' });
+    const plan = builder.build();
+    const kinds = plan.placements.map((p) => p.kind);
+    expect(kinds).toContain('river');
+    expect(kinds).toContain('coast');
+    expect(kinds).toContain('structure');
+  });
+
   it('analyzeHexTileRegistry warns on no tile-sized declarations + width/depth variance (E0b)', () => {
     // Covers registry.ts lines 378-380 (empty scale set) + 385+388 (variance warnings).
     const emptyRegistry = createHexTileRegistry([]);
