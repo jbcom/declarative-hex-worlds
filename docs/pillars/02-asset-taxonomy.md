@@ -24,8 +24,9 @@ implementation_links:
   - src/scenario/recipe.ts
   - src/ingest/ingest.ts
   - src/koota/koota.ts
-  - scripts/audit-free-assets.ts
-  - scripts/audit-reference-assets.ts
+  - tests/contract/free-manifest-contract.test.ts
+  - tests/contract/reference-tree-contract.test.ts
+  - tests/contract/scenario-catalog-contract.test.ts
 test_links:
   - src/scenario/__tests__/catalog.test.ts
   - src/interop/__tests__/coverage.test.ts
@@ -33,8 +34,9 @@ test_links:
   - src/gameboard/__tests__/gameboard.test.ts
   - src/koota/__tests__/koota.test.ts
   - tests/browser/free-visual.test.ts
-  - scripts/audit-free-assets.ts
-  - scripts/audit-reference-assets.ts
+  - tests/contract/free-manifest-contract.test.ts
+  - tests/contract/reference-tree-contract.test.ts
+  - tests/contract/scenario-catalog-contract.test.ts
 ---
 
 # Asset Taxonomy

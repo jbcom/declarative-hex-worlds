@@ -335,22 +335,20 @@ export async function runBootstrap(parsed: ParsedArgs, edition: PackEdition): Pr
 }
 
 /**
- * Default `--out` heuristic. Prefers existing `public/assets/models` (Vite /
- * Next.js convention), then `assets/models`, then cwd. Cosmetic only: every
- * call still routes through {@link safeResolveOutput}.
+ * Default `--out` heuristic. Prefers existing `models` (flat bootstrap
+ * default), then `public/models` (Vite / Next.js public dir convention), then
+ * falls back to `models`. Cosmetic only: every call still routes through
+ * {@link safeResolveOutput}.
  */
 export function detectDefaultBootstrapOut(): string {
   const cwd = process.cwd();
-  const candidates = ['public/assets/models', 'assets/models'];
+  const candidates = ['models', 'public/models'];
   for (const candidate of candidates) {
     if (existsSync(join(cwd, candidate))) {
       return candidate;
     }
   }
-  if (existsSync(join(cwd, 'public'))) {
-    return 'public/assets/models';
-  }
-  return 'assets/models';
+  return 'models';
 }
 
 export function printBootstrapResult(result: BootstrapResult): void {
@@ -458,7 +456,6 @@ export function validationCatalogFromArgs(
   return generateManifestFromSource({
     sourceRoot,
     edition,
-    assetBasePath: String(parsed.flags.assetBasePath ?? `assets/${edition}`),
   });
 }
 
@@ -496,7 +493,6 @@ export function registryFromArgs(
       : generateManifestFromSource({
           sourceRoot,
           edition,
-          assetBasePath: String(parsed.flags.assetBasePath ?? `assets/${edition}`),
         });
   return createHexTileRegistryFromManifest(manifest);
 }

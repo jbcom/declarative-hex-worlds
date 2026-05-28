@@ -63,8 +63,6 @@ export interface GenerateManifestOptions {
   sourceRoot: string;
   /** Pack edition being scanned. */
   edition: PackEdition;
-  /** Published or app-local asset URL prefix written into manifest paths. */
-  assetBasePath?: string;
   /** Stable timestamp override for reproducible generated manifests. */
   generatedAt?: string;
 }
@@ -165,7 +163,6 @@ export function copyGltfTree(sourceRoot: string, destinationRoot: string): void 
  * metadata are derived from source files and the known KayKit edition.
  */
 export function generateManifestFromSource(options: GenerateManifestOptions): MedievalHexagonManifest {
-  const assetBasePath = trimSlashes(options.assetBasePath ?? `assets/${options.edition}`);
   const gltfRoot = join(options.sourceRoot, 'Assets', 'gltf');
   if (!existsSync(gltfRoot)) {
     throw new GameboardIoError(`Missing GLTF source directory: ${gltfRoot}`);
@@ -178,7 +175,7 @@ export function generateManifestFromSource(options: GenerateManifestOptions): Me
     const baseId = basename(filePath, extname(filePath));
     const assetId = allocateAssetId(filePath, gltfRoot, baseId, duplicateBaseIds, usedIds);
     usedIds.add(assetId);
-    return assetFromGltf(filePath, gltfRoot, options.edition, assetBasePath, assetId, baseId);
+    return assetFromGltf(filePath, gltfRoot, options.edition, assetId, baseId);
   });
   const assetsById = Object.fromEntries(assets.map((asset) => [asset.id, asset]));
 
@@ -269,7 +266,6 @@ function assetFromGltf(
   filePath: string,
   gltfRoot: string,
   edition: PackEdition,
-  assetBasePath: string,
   assetId?: string,
   familyId?: string
 ): MedievalHexagonAsset {
@@ -280,8 +276,10 @@ function assetFromGltf(
   const id = assetId ?? basename(filePath, extname(filePath));
   const sourceId = familyId ?? id;
   const document = JSON.parse(readFileSync(filePath, 'utf8')) as GltfDocument;
-  const modelPath = `${assetBasePath}/${sourcePath}`;
-  const directoryPath = dirname(modelPath);
+  // modelPath equals sourcePath — the runtime resolves against the consumer's
+  // configured asset root (see gameboardAssetUrl in runtime/asset-root.ts).
+  const modelPath = sourcePath;
+  const directoryPath = dirname(sourcePath);
   const bufferPaths = (document.buffers ?? [])
     .map((buffer) => buffer.uri)
     .filter(isDefined)
@@ -534,10 +532,6 @@ function defaultManifestExportName(edition: PackEdition): string {
 
 function isValidIdentifier(value: string): boolean {
   return /^[A-Za-z_$][\w$]*$/.test(value);
-}
-
-function trimSlashes(value: string): string {
-  return value.replace(/^\/+|\/+$/g, '');
 }
 
 function toPosixPath(value: string): string {

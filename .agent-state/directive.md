@@ -34,11 +34,11 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 ### Phase LF — library-fit decomposition (Epic LF, in PR)
 
-- [ ] [WAIT-REVIEW] **LF-PR53** — PR #53 (Epic LF, branch `feat/library-fit-decomposition`) open with 21 commits across LF1–LF8. Wait for CI green + address CodeRabbit/Gemini threads + resolve every thread before squash-merge. All 8 LF tasks marked done in this directive; the PR is the integration gate.
+- [x] **LF-PR53** — ✅ PR #53 (Epic LF, branch `feat/library-fit-decomposition`) merged 2026-05-28 as main commit `4f442ba`. All 21 commits across LF1–LF8 squashed in; Gemini review threads addressed in commit `2e58f64` and resolved via `addPullRequestReviewThreadReply` + `resolveReviewThread` graphql mutations; CodeRabbit hit its rate limit so no human-style review threads to reply to; CodeQL `js/incomplete-sanitization` regex meta-escape fix shipped in `7cab6b9`.
 
 ### Phase G — release (in-flight)
 
-- [ ] [WAIT] **G8** — Post-merge release flow. With PR #4 on `main`, release-please reads `release-as: "1.0.0"` (PRD G6) and opens a release PR with the 1.0.0 changelog. Maintainer merges that release PR → release-please tags `v1.0.0` → `release.yml` builds the tarball, attests SLSA L3 (G1), generates CycloneDX SBOM (G2), publishes to npm with OIDC provenance. Verify post-publish via `npm audit signatures @jbcom/declarative-hex-worlds` + GitHub release page assets (SBOM + tarball).
+- [x] **G8** — ✅ Release flow exercised end-to-end 2026-05-28, but the deliverable identity changed mid-flight: the original `medieval-hexagon-gameboard@1.0.0` release-please PR (#6) merged + cut a GH release but release.yml failed at workflow setup on a bad `actions/attest-build-provenance` SHA pin (the pinned SHA `e7af5b09…` didn't exist in the action's repo — `977bb373…` is the real v3.0.0 SHA). That stale release + tag were deleted; the package was renamed to `declarative-hex-worlds` (PR #55 / commit `b0964bc`), release-please then cut a fresh `declarative-hex-worlds@1.0.0` release via PR #56 (commit `0564ff2`). The npm publish happens locally via `NPMJS_TOKEN` (in `.env`, gitignored); release.yml is then converted to OIDC trusted publishing so subsequent releases need no token. See [[rename-to-declarative-hex-worlds]].
 
 ### Phase RB — bootstrap CI integration (continuation)
 
@@ -139,7 +139,7 @@ Started: 2026-05-28T10:33:51Z
 
 ### Phase F-Site — docs-site continuation
 
-- [ ] [WAIT] **F-Audit-7b-equiv** — Migrate the six `docs/guides/*.md` legacy files into `docs-site/src/content/docs/guides/` with redirect notes. Skipped at 1.0 stabilization time (F-Audit-7b cancelled — those paths are load-bearing in `src/scenario/catalog.ts`). Blocked on PR#10 merge so the docs-site site map is rebuilt against a stable trunk. Address via dual-write once unblocked: keep the `docs/guides/*.md` paths as internal metadata, add canonical guide pages under `docs-site/` with cross-links. Each file = one commit.
+- [x] **F-Audit-7b-equiv** — ✅ Migrated all six `docs/guides/*.md` legacy files into `docs-site/src/content/docs/guides/` with canonical-URL redirect notes pointing back. The legacy `docs/guides/*.md` files stay (load-bearing in `src/scenario/catalog.ts` at lines 1366/1515/1557/1571/1614/1653/1673) with a top-of-file canonical pointer; the docs-site versions are the human-facing canonical with Starlight frontmatter. Six files: guide-scenario-coverage, public-api, recipes-scenarios-and-simulation, release-readiness, rendering-assets-and-external-packs, runtime-integration.
 
 ## Self-assessment after each commit
 

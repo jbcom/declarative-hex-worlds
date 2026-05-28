@@ -1,6 +1,5 @@
 import { resolve } from 'node:path';
 import {
-  copyGltfTree,
   generateManifestFromSource,
   validateSourceRoot,
   writeManifestJson,
@@ -25,19 +24,16 @@ if (!validation.ok) {
   );
 }
 
-const assetRoot = resolve(packageRoot, 'assets', args.edition);
-copyGltfTree(sourceRoot, assetRoot);
 const manifest = generateManifestFromSource({
   sourceRoot,
   edition: args.edition,
-  assetBasePath: `assets/${args.edition}`,
 });
 
 if (args.edition === 'free') {
   writeManifestModule(manifest, resolve(packageRoot, 'src/manifest/free.ts'));
+  writeManifestJson(manifest, resolve(packageRoot, 'assets/free/manifest.json'));
 }
-writeManifestJson(manifest, resolve(assetRoot, 'manifest.json'));
-console.log(`Generated ${manifest.counts.total} ${args.edition} assets in ${assetRoot}`);
+console.log(`Generated manifest for ${manifest.counts.total} ${args.edition} assets`);
 
 function parseArgs(argv: string[]): ParsedArgs {
   const flags: Record<string, string> = {};

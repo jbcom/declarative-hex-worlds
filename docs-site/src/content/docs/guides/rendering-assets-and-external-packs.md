@@ -1,11 +1,7 @@
-<!-- canonical: https://jonbogaty.com/declarative-hex-worlds/guides/rendering-assets-and-external-packs/ -->
-
-> **Canonical version:** [https://jonbogaty.com/declarative-hex-worlds/guides/rendering-assets-and-external-packs/](https://jonbogaty.com/declarative-hex-worlds/guides/rendering-assets-and-external-packs/)
->
-> This file remains as scenario metadata for `src/scenario/catalog.ts`. The docs-site version is the human-facing canonical.
-
-# Rendering, Assets, And External Packs
-
+---
+title: Rendering, assets, and external packs
+description: How the library ships assets, bootstraps FREE, and supports EXTRA + third-party packs.
+---
 The published package ships the FREE KayKit assets and manifest. Purchased EXTRA
 assets and third-party fixtures stay local-only unless an application chooses to
 copy its own generated manifest and source URL map into its codebase.

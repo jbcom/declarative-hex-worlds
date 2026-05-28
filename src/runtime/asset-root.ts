@@ -25,10 +25,13 @@ import {
 } from '../manifest';
 
 /**
- * Default consumer asset root used when no override is configured. Matches
- * the CLI `bootstrap --out` heuristic for Vite / Next.js consumers.
+ * Default consumer asset root when no override is configured. Consumers set
+ * this via `HEX_WORLDS_ASSET_ROOT` env var or `setGameboardAssetRoot` to match
+ * their framework's static-file root (e.g. `public/models` for Vite). The bare
+ * `'models'` default works for CLI/Node consumers where the process CWD is the
+ * project root and bootstrap outputs to `./models`.
  */
-export const DEFAULT_GAMEBOARD_ASSET_ROOT = 'public/assets/models';
+export const DEFAULT_GAMEBOARD_ASSET_ROOT = 'models';
 
 /**
  * Environment variable name read by {@link resolveGameboardAssetRoot} when no

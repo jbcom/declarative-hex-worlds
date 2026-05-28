@@ -38,7 +38,9 @@ describe('free manifest', () => {
 
   it('records browser-loadable paths and bounds for every asset', () => {
     for (const asset of freeManifest.assets) {
-      expect(asset.modelPath).toMatch(/^assets\/free\//);
+      // Flat layout: modelPath is relative to the bootstrap asset root, no assets/free/ prefix.
+      expect(asset.modelPath.startsWith('/')).toBe(false);
+      expect(asset.modelPath.startsWith('assets/')).toBe(false);
       expect(asset.modelPath.endsWith('.gltf')).toBe(true);
       expect(asset.bufferPaths.length).toBeGreaterThan(0);
       expect(asset.texturePaths.length).toBeGreaterThan(0);

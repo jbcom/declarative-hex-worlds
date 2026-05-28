@@ -43,8 +43,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Production audit (high+)
+        # Final blocking security gate before any bytes ship. Per-PR uses
+        # dependency-review-action for CVE intake; this is the last word
+        # before publish.
+        run: pnpm audit --prod --audit-level=high
+
       - name: Verify package
-        run: pnpm test:ci
+        # Full verify chain: lint, typecheck, full vitest suite (incl.
+        # contract specs under tests/contract/), enforced coverage
+        # threshold. Same gates CI ran per-PR; re-run at release to
+        # catch any drift between PR-CI and release time.
+        run: |
+          pnpm lint
+          pnpm typecheck
+          pnpm test:coverage:enforce
 
       - name: Build package
         run: pnpm build
@@ -63,7 +76,7 @@ jobs:
         # PRD G1. Cryptographically attests that this exact tarball was built
         # by this exact workflow run on GitHub-hosted infrastructure.
         # Consumers verify via `npm audit signatures` or `gh attestation verify`.
-        uses: actions/attest-build-provenance@e7af5b09d2d75db5c1bea61edda4ea2c0a8b14eb # v3.0.0
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
         with:
           subject-path: ${{ steps.pack.outputs.tarball }}
 
@@ -84,20 +97,17 @@ jobs:
             ${{ steps.pack.outputs.tarball }}
             sbom.cdx.json
 
-      - name: Publish to npm
-        # Auth strategy:
-        # - **First publish:** `NPM_TOKEN` repo secret (the
-        #   user-generated automation token). The package does not yet
-        #   exist on the registry, so OIDC trusted publishing is not
-        #   configured. The token authenticates the create+publish.
-        # - **Subsequent publishes:** once the user configures OIDC
-        #   trusted publishing on npmjs.com against this workflow path
-        #   + ref, the `NPM_TOKEN` secret can be deleted. With no
-        #   token set, `setup-node` leaves `NODE_AUTH_TOKEN` empty and
-        #   npm falls through to OIDC (`id-token: write` is already
-        #   declared at the job permissions level).
-        # In both modes, `--provenance` attaches the SLSA provenance
-        # statement to the publish.
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish to npm with OIDC trusted publishing
+        # The first `declarative-hex-worlds@1.0.0` publish was issued
+        # locally with an automation token (see PR body) so OIDC trusted
+        # publishing could be configured on npmjs.com against this
+        # workflow path + ref before the second publish.
+        #
+        # From v1.0.1 onward this workflow runs with NO `NODE_AUTH_TOKEN`
+        # — npm sees `id-token: write` at the job's permissions and
+        # exchanges the GitHub Actions OIDC token for a registry
+        # credential automatically. `--provenance` attaches the SLSA
+        # provenance statement to the publish; the `attest-build-provenance`
+        # step above attaches the SLSA L3 build provenance to the tarball
+        # bytes for `npm audit signatures` verification.
         run: npm publish ${{ steps.pack.outputs.tarball }} --access public --provenance

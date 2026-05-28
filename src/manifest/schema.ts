@@ -150,12 +150,9 @@ export interface ManifestAssetUrlOptions {
   /**
    * Consumer's bootstrap asset root (per PRD RB3).
    *
-   * When set, legacy `assets/<edition>/...` model paths from the bundled
-   * manifest are rewritten to point at the bootstrap target tree —
-   * `<bootstrapAssetRoot>/addons/kaykit_medieval_hexagon_pack/Assets/gltf/...`.
-   * Useful when the library's bundled manifest metadata still names paths
-   * under `assets/free/` (the pre-RB layout) but the actual GLTFs live under
-   * the consumer's chosen `--out` directory.
+   * When set, manifest `sourcePath` values (e.g. `buildings/blue/foo.gltf`)
+   * are joined with this root to produce the resolved URL —
+   * `<bootstrapAssetRoot>/<sourcePath>` (flat layout, no subdirectory prefix).
    *
    * Honored only when neither {@link baseUrl} nor a matching
    * {@link editionBaseUrls} entry is set; explicit base URLs always win.
@@ -378,17 +375,13 @@ export function resolveManifestAssetUrl(
 }
 
 /**
- * Translate a legacy `assets/<edition>/...` model path into a URL relative to
- * a bootstrap asset root. Used by {@link resolveManifestAssetUrl} when the
- * consumer has materialized assets via the CLI `bootstrap` subcommand and
- * passes their asset root instead of an explicit `baseUrl`.
+ * Return the asset's path relative to the bootstrap asset root. The manifest's
+ * `modelPath` and `sourcePath` are equal and already asset-root-relative, so
+ * this is an identity pass-through. Consumers resolve the final URL via
+ * `gameboardAssetUrl(asset)` in `declarative-hex-worlds/runtime`.
  */
 export function rewriteToBootstrapPath(asset: MedievalHexagonAsset): string {
-  const editionPrefix = `assets/${asset.edition}/`;
-  const tail = asset.modelPath.startsWith(editionPrefix)
-    ? asset.modelPath.slice(editionPrefix.length)
-    : asset.modelPath;
-  return `addons/kaykit_medieval_hexagon_pack/Assets/gltf/${tail}`;
+  return asset.sourcePath;
 }
 
 function joinBootstrapUrl(bootstrapAssetRoot: string | URL, asset: MedievalHexagonAsset): string {

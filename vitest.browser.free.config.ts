@@ -1,12 +1,11 @@
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
-import { dirname, resolve } from 'node:path';
+import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { packageAliases } from './vitest.alias.shared';
 import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
-const workspaceRoot = resolve(packageRoot, '../..');
 
 export default defineConfig({
   optimizeDeps: {
@@ -19,11 +18,18 @@ export default defineConfig({
     alias: packageAliases(),
   },
   define: {
-    __WORKSPACE_ROOT__: JSON.stringify(workspaceRoot),
+    __WORKSPACE_ROOT__: JSON.stringify(packageRoot),
+    // Tell the runtime asset-root resolver where bootstrapped GLTFs live.
+    // CI bootstraps into <packageRoot>/models/ and publicDir=packageRoot serves
+    // it as a relative URL: models/<sourcePath>.
+    'process.env.HEX_WORLDS_ASSET_ROOT': JSON.stringify(process.env['HEX_WORLDS_ASSET_ROOT'] ?? 'models'),
   },
+  // Serve repo root as static files so browser tests can fetch bootstrapped
+  // GLTFs from models/ (or wherever HEX_WORLDS_ASSET_ROOT points).
+  publicDir: packageRoot,
   server: {
     fs: {
-      allow: [workspaceRoot],
+      allow: [packageRoot],
     },
   },
   test: {

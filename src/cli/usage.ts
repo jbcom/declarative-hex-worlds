@@ -160,7 +160,6 @@ Options:
   --out <path>
   --format json|markdown
   --markdown
-  --assetBasePath <path>
   --force
   --json
 
@@ -168,7 +167,7 @@ Bootstrap subcommand:
   --source github|zip          Source mode (default: github; zip requires --zip)
   --zip <path>                 Path to a user-supplied KayKit zip (FREE or EXTRA)
   --commit <sha>               Pin the GitHub source to a specific commit/ref (default: main)
-  --out <path>                 Consumer asset root (default: ./public/assets/models)
+  --out <path>                 Consumer asset root (default: ./models)
   --edition free|extra         Pack edition (default: free; extra requires --source zip)
   --force                      Wipe existing target before mirroring
   --verify                     Re-hash an existing bootstrap target and report drift

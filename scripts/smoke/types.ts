@@ -141,11 +141,10 @@ import {
   type KayKitUpstreamLayout,
 } from 'declarative-hex-worlds/bootstrap/upstream-layout';
 import {
-  KAYKIT_BOOTSTRAP_ROOT,
   KAYKIT_FREE_GITHUB_OWNER,
   bootstrapKayKitAssets,
   kayKitFreeGithubTarballUrl,
-  resolveBootstrapTargetRoot,
+  resolveBootstrapGltfRoot,
   verifyBootstrap,
   type BootstrapKayKitAssetsOptions,
   type BootstrapResult,
@@ -210,12 +209,10 @@ import {
   type GameboardScenarioSimulationActorTargetsRecord,
 } from 'declarative-hex-worlds/simulation';
 import {
-  copyGltfTree,
   defaultSourceRoot,
   expectedModelCount,
   generateManifestFromSource,
   validateSourceRoot,
-  writeManifestJson,
   writeManifestModule,
   type GenerateManifestOptions,
   type ValidateSourceResult,
@@ -377,16 +374,21 @@ const ingestValidation: ValidateSourceResult = validateSourceRoot('/packed-consu
 const ingestManifestOptions: GenerateManifestOptions = {
   sourceRoot: ingestSourceRoot,
   edition: 'free',
-  assetBasePath: 'assets/free',
 };
 const ingestModuleOptions: WriteManifestModuleOptions = {
   exportName: 'packedManifest',
   typeImportPath: 'declarative-hex-worlds',
 };
-const ingestCopyGltfTree: typeof copyGltfTree = copyGltfTree;
 const ingestGenerateManifestFromSource: typeof generateManifestFromSource = generateManifestFromSource;
-const ingestWriteManifestJson: typeof writeManifestJson = writeManifestJson;
 const ingestWriteManifestModule: typeof writeManifestModule = writeManifestModule;
+const bootstrapGithubOwner: string = KAYKIT_FREE_GITHUB_OWNER;
+const bootstrapTarballUrl: string = kayKitFreeGithubTarballUrl();
+const bootstrapGltfRoot: string = resolveBootstrapGltfRoot('/tmp/packed-consumer-bootstrap');
+const bootstrapOptions: BootstrapKayKitAssetsOptions = { source: { kind: 'zip', path: '/tmp/packed.zip' }, out: '/tmp/out', edition: 'free' };
+const bootstrapFn: typeof bootstrapKayKitAssets = bootstrapKayKitAssets;
+const verifyFn: typeof verifyBootstrap = verifyBootstrap;
+void bootstrapFn;
+void verifyFn;
 const fillAnalysis: GameboardLayoutFillAnalysis = analyzeGameboardLayoutFill(plan, {
   seed: 'packed-consumer-layout-analysis',
   rules: [{ id: 'trees', archetype: 'tree', assetId: 'tree_single_A', count: 1 }],
@@ -923,14 +925,16 @@ void fillAnalysis;
 void handlerCount;
 void handlerPresetCount;
 void handlerPresetIsValid;
-void ingestCopyGltfTree;
+void bootstrapGithubOwner;
+void bootstrapTarballUrl;
+void bootstrapGltfRoot;
+void bootstrapOptions;
 void ingestExpectedCount;
 void ingestGenerateManifestFromSource;
 void ingestManifestOptions;
 void ingestModuleOptions;
 void ingestSourceRoot;
 void ingestValidation;
-void ingestWriteManifestJson;
 void ingestWriteManifestModule;
 void harborCriteria;
 void footprintKeys;

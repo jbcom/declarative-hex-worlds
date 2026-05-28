@@ -43,8 +43,6 @@ describe('CLI', () => {
       'manifest',
       '--source',
       sourceRoot,
-      '--assetBasePath',
-      'assets/free',
       '--out',
       manifestPath,
     ]);
@@ -52,10 +50,11 @@ describe('CLI', () => {
 
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as MedievalHexagonManifest;
     expect(manifest.counts.total).toBe(1);
+    // Flat layout: modelPath is sourcePath-relative (no assets/free/ prefix).
     expect(manifest.assetsById.hex_grass).toMatchObject({
       category: 'tiles',
       subcategory: 'base',
-      modelPath: 'assets/free/tiles/base/hex_grass.gltf',
+      modelPath: 'tiles/base/hex_grass.gltf',
     });
 
     const normalizedManifestPath = resolve(createTempRoot(), 'normalized-manifest.json');
@@ -81,7 +80,7 @@ describe('CLI', () => {
     const sourceRoot = createFixtureSourceRoot();
     const staleManifestPath = resolve(createTempRoot(), 'stale-manifest.json');
     const manifest = JSON.parse(
-      runCli(['manifest', '--source', sourceRoot, '--assetBasePath', 'assets/free'])
+      runCli(['manifest', '--source', sourceRoot])
     ) as MedievalHexagonManifest;
     writeFileSync(
       staleManifestPath,
@@ -605,7 +604,7 @@ describe('CLI', () => {
     expect(markdown).toContain('# Release Readiness Coverage');
     expect(markdown).toContain('## SimpleRPG Public API Evidence');
     expect(markdown).toContain('| Status | Command | Summary |');
-    expect(markdown).toContain('README gallery links');
+    expect(markdown).toContain('Release-time tarball dry run');
     expect(doctorOutput).toContain('guide pages: 19/19');
     expect(doctorOutput).toContain('manifest: 221 asset(s), 221/221 FREE guide asset(s)');
     expect(doctorOutput).toContain('SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)');
@@ -2930,8 +2929,6 @@ describe('CLI', () => {
         'manifest',
         '--source',
         sourceRoot,
-        '--assetBasePath',
-        'assets/free',
         '--out',
         target,
       ]);

@@ -32,7 +32,6 @@ import yauzl from 'yauzl';
 import { BOOTSTRAP_PATHS, KAYKIT_SOURCE, kaykitGithubArchiveUrl } from '../../../config';
 import { GameboardIoError, GameboardManifestError } from '../../../errors';
 import {
-  KAYKIT_MEDIEVAL_FREE_LAYOUT,
   detectKayKitLayout,
   kayKitLayoutForEdition,
   type KayKitUpstreamLayout,
@@ -43,7 +42,6 @@ import {
   KAYKIT_BOOTSTRAP_SIDECAR,
   KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE,
   resolveBootstrapSidecarPath,
-  resolveBootstrapTargetRoot,
 } from './target';
 
 /**
@@ -200,7 +198,7 @@ export async function bootstrapKayKitAssets(
   }
   const layout = kayKitLayoutForEdition(edition);
   const outAbsolute = resolveOutAbsolute(options.out, options.outRoot);
-  const targetRoot = resolveBootstrapTargetRoot(outAbsolute);
+  const targetRoot = outAbsolute;
   const sidecarPath = resolveBootstrapSidecarPath(outAbsolute);
   const fetchedAt = options.fetchedAt ?? new Date().toISOString();
   const libraryVersion = options.libraryVersion ?? resolveLibraryVersion();
@@ -266,9 +264,7 @@ export async function bootstrapKayKitAssets(
  * Re-hash every file recorded in an integrity sidecar and report drift.
  */
 export async function verifyBootstrap(outRoot: string): Promise<BootstrapVerificationReport> {
-  const targetRoot = isBootstrapTargetRoot(outRoot)
-    ? resolve(outRoot)
-    : resolveBootstrapTargetRoot(resolve(outRoot));
+  const targetRoot = resolve(outRoot);
   const sidecarPath = join(targetRoot, KAYKIT_BOOTSTRAP_SIDECAR);
   if (!existsSync(sidecarPath)) {
     return {
@@ -433,29 +429,28 @@ async function resolvePackRoot(
   return detected;
 }
 
-function findPackRoot(stagingRoot: string): string | undefined {
-  if (existsSync(join(stagingRoot, KAYKIT_MEDIEVAL_FREE_LAYOUT.relativeGltfRoot))) {
+function findPackRoot(stagingRoot: string, maxDepth = 4): string | undefined {
+  if (detectKayKitLayout(stagingRoot)) {
     return stagingRoot;
   }
-  const entries = readdirSync(stagingRoot, { withFileTypes: true });
+  if (maxDepth <= 0) {
+    return undefined;
+  }
+  let entries: import('node:fs').Dirent[];
+  try {
+    entries = readdirSync(stagingRoot, { withFileTypes: true });
+  } catch {
+    return undefined;
+  }
   for (const entry of entries) {
     if (!entry.isDirectory()) {
       continue;
     }
-    const candidate = join(stagingRoot, entry.name);
-    if (detectKayKitLayout(candidate)) {
-      return candidate;
-    }
-    // GitHub archives nest the pack under `<repo>-<ref>/`; recurse one level.
-    const innerEntries = readdirSync(candidate, { withFileTypes: true });
-    for (const innerEntry of innerEntries) {
-      if (!innerEntry.isDirectory()) {
-        continue;
-      }
-      const inner = join(candidate, innerEntry.name);
-      if (detectKayKitLayout(inner)) {
-        return inner;
-      }
+    // GitHub archives nest the pack under `<repo>-<ref>/addons/<pack>/`;
+    // recurse up to maxDepth levels to handle varying nesting depths.
+    const found = findPackRoot(join(stagingRoot, entry.name), maxDepth - 1);
+    if (found) {
+      return found;
     }
   }
   return undefined;
@@ -576,9 +571,6 @@ function readSidecar(path: string): BootstrapSidecar {
   return parsed;
 }
 
-function isBootstrapTargetRoot(value: string): boolean {
-  return existsSync(join(value, KAYKIT_BOOTSTRAP_SIDECAR));
-}
 
 function describeSourceUrl(
   source: BootstrapKayKitAssetsSource,

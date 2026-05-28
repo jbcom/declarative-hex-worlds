@@ -41,7 +41,6 @@ describe('source ingestion', () => {
     const manifest = generateManifestFromSource({
       sourceRoot: freeSourceRoot,
       edition: 'free',
-      assetBasePath: 'assets/free',
     });
     expect(manifest.counts.total).toBe(221);
     expect(manifest.assetsById.hex_water?.category).toBe('tiles');
@@ -89,7 +88,6 @@ describe('source ingestion', () => {
     const manifest = generateManifestFromSource({
       sourceRoot: extraSourceRoot,
       edition: 'extra',
-      assetBasePath: 'assets/extra',
     });
     expect(manifest.textureSets).toEqual(['default', 'fall', 'summer', 'winter']);
     expect(manifest.assets).toHaveLength(404);

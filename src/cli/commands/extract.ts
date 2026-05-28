@@ -33,7 +33,6 @@ export async function run(
   const manifest = generateManifestFromSource({
     sourceRoot,
     edition,
-    assetBasePath: 'assets',
   });
   writeManifestJson(manifest, join(outputRoot, 'manifest.json'));
   console.log(`Extracted ${manifest.counts.total} ${edition} assets to ${outputRoot}`);

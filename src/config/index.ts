@@ -32,7 +32,6 @@ interface UpstreamLayoutConfig {
 }
 
 interface BootstrapPathsConfig {
-  readonly root: string;
   readonly gltfRelative: string;
   readonly textureRelative: string;
   readonly sidecarFileName: string;
