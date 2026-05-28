@@ -68,3 +68,4 @@
 {"ts":"2026-05-28T01:52:44.293Z","sha":"e9a01d76e491d98577ef03d41da6b21c85c8b01b","subject":"feat: E0 coverage batch-32 (layout distance + forbidden adjacency) (#44)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T02:00:37.165Z","sha":"b85156bc4ab71e246af81cfbadf61f63430eb790","subject":"feat: E0 coverage batch-33 (layout far-from-terrain preference) (#45)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T02:08:15.298Z","sha":"243cdbfc3948df95dcb952b691103ff09d05e07e","subject":"feat: E0 coverage batch-34 (layout footprint radius shorthand) (#46)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
+{"ts":"2026-05-28T02:15:39.040Z","sha":"391f5bd1ae90118d661fc63f33e89a5deadc230c","subject":"feat: E0 coverage batch-35 (scenario actor spawn + ratchet) (#47)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
