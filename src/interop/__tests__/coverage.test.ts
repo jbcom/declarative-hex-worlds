@@ -143,17 +143,17 @@ describe('release-readiness coverage', () => {
       assetCount: 2,
     });
 
-    const simpleRpgSmoke = runSimpleRpgExecutableGuideApiSmoke();
-    const docsContractSummary =
-      report.packageChecks.find((check) => check.command === 'pnpm test:docs-contract')?.summary ??
-      '';
-    expect(docsContractSummary).toContain(
-      `${simpleRpgSmoke.directPublicApiCount} guide-facing helper APIs`
-    );
-    expect(docsContractSummary).toContain(
-      `${simpleRpgSmoke.publicTreatmentCount} KayKit public treatment`
-    );
-    expect(docsContractSummary).toContain(`${simpleRpgSmoke.guideScenarioCount} guide pages`);
+    // Post-lifecycle cleanup: the per-command summary table no longer
+    // duplicates SimpleRPG cross-reference counts (the original
+    // `pnpm test:docs-contract` command was deleted; its assertions
+    // live in tests/contract/docs-pillars-contract.test.ts under the
+    // "SimpleRPG coverage doc cross-references" describe block).
+    // Sanity-check that every gate command's `summary` is non-empty
+    // here; the substring assertions moved to the contract spec.
+    for (const check of report.packageChecks) {
+      expect(typeof check.summary).toBe('string');
+      expect((check.summary ?? '').length).toBeGreaterThan(0);
+    }
   });
 
   it('keeps each curated showcase wired to both docs and package README destinations', () => {
@@ -216,7 +216,7 @@ describe('release-readiness coverage', () => {
         expect.objectContaining({
           code: 'check.not_run',
           severity: 'warning',
-          subject: 'pnpm test:ci',
+          subject: 'pnpm test',
         }),
       ])
     );
@@ -244,10 +244,12 @@ describe('release-readiness coverage', () => {
     );
     expect(markdown).toContain('| Status | Reference | Path | Purpose |');
     expect(markdown).toContain('| Status | Command | Summary |');
-    expect(markdown).toContain('`pnpm test:docs-contract`');
-    expect(markdown).toContain('`pnpm test:visual`');
-    expect(markdown).toContain('README gallery links');
-    expect(markdown).toContain('`pnpm showcases:promote -- --check`');
+    // Post-cleanup release-gate command list:
+    expect(markdown).toContain('`pnpm test`');
+    expect(markdown).toContain('`pnpm test:coverage:enforce`');
+    expect(markdown).toContain('`pnpm test:browser:free`');
+    expect(markdown).toContain('`pnpm docs-site:build`');
+    expect(markdown).toContain('`npm pack --dry-run`');
     expect(markdown).toContain('`page-15-shipyard-harbors`');
   });
 });

@@ -324,20 +324,24 @@ export const GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS = [
   'docs/showcases/simple-rpg-local-third-party-assets.png',
 ] as const;
 
-/** Canonical final acceptance commands for release closeout. */
+/**
+ * Canonical final acceptance commands for release closeout.
+ *
+ * Mirrors the per-PR CI workflow (lint / typecheck / build / vitest with
+ * contract specs / coverage-enforce / docs site build / browser visual
+ * snapshot diff) plus the release-only `npm pack` step. The bespoke
+ * `audit-*.ts` scripts are gone — their assertions live in
+ * `tests/contract/` and run under `pnpm test`.
+ */
 export const GAMEBOARD_RELEASE_GATE_COMMANDS = [
   'pnpm lint',
   'pnpm typecheck',
   'pnpm build',
-  'pnpm test:ci',
-  'pnpm test:docs-contract',
-  'pnpm expectations',
-  'pnpm docs:build',
-  'pnpm test:consumer',
-  'pnpm test:visual',
-  'pnpm showcases:promote -- --check',
-  'pnpm test:workflows',
-  'pnpm pack:dry-run',
+  'pnpm test',
+  'pnpm test:coverage:enforce',
+  'pnpm test:browser:free',
+  'pnpm docs-site:build',
+  'npm pack --dry-run',
 ] as const;
 
 /**
@@ -347,30 +351,21 @@ export const GAMEBOARD_RELEASE_GATE_COMMANDS = [
 const GAMEBOARD_RELEASE_GATE_SUMMARIES: Readonly<
   Record<(typeof GAMEBOARD_RELEASE_GATE_COMMANDS)[number], string>
 > = {
-  'pnpm lint':
-    'Biome lint over workspace packages, docs scripts, and generated public TypeScript surfaces.',
+  'pnpm lint': 'Biome lint over src/, tests/, scripts/, and docs-site/.',
   'pnpm typecheck':
-    'Strict TypeScript validation for runtime, package tests, docs scripts, and generated examples.',
+    'Strict TypeScript validation for runtime, tests, scripts, and examples.',
   'pnpm build':
-    'Nx package build including tsup ESM chunks, declarations, CLI shebang preservation, and asset copies.',
-  'pnpm test:ci':
-    'Serialized non-browser release gate: docs contracts, API docs, assets, workspace/workflow audits, CLI smoke, expectations, unit tests, package audit, consumer smoke, and dry-run pack.',
-  'pnpm test:docs-contract':
-    'Pillar frontmatter/link audit plus README, pillar, and guide SimpleRPG executable coverage contract for 40 guide-facing helper APIs, 404 KayKit public treatment records, and 19 guide pages.',
-  'pnpm expectations':
-    'Behavior-drift fixtures for seeded generation, SimpleRPG quests, executable guide API smoke, movement, actor targets, patrols, mutations, and final placements.',
-  'pnpm docs:build':
-    'TypeDoc and VitePress documentation build with public JSDoc and guide-link validation.',
-  'pnpm test:consumer':
-    'Packed tarball installed into a temporary app, then compiled and executed through public subpaths, examples, and the CLI bin.',
-  'pnpm test:visual':
-    'FREE, EXTRA, SimpleRPG, Kenney Castle Kit, and KayKit Adventurers browser visual suites with screenshot quality checks.',
-  'pnpm showcases:promote -- --check':
-    'Curated browser screenshots match committed docs/package showcase copies and pass the shared PNG quality analyzer.',
-  'pnpm test:workflows':
-    'CI, Release Please, npm OIDC publish, automerge, and Dependabot workflow contract audit.',
-  'pnpm pack:dry-run':
-    'npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, KayKit attribution/NOTICE, and packaged showcase PNG quality.',
+    'tsup multi-entry ESM build — chunks + DTS + CLI shebang + asset copies.',
+  'pnpm test':
+    'Full vitest suite — unit + integration + contract specs (the migrated former scripts/audit-*.ts checks).',
+  'pnpm test:coverage:enforce':
+    'vitest with v8 coverage gated against the ratchet thresholds in vitest.coverage.shared.ts.',
+  'pnpm test:browser:free':
+    'vitest-browser FREE-pack visual snapshot suite against bootstrap-fetched KayKit GLTFs under Chromium.',
+  'pnpm docs-site:build':
+    'Astro Starlight docs site build — emits 1100+ pages, validates typedoc-generated reference + every hand-written guide.',
+  'npm pack --dry-run':
+    'Release-time tarball dry run — emits the publish whitelist + asset inclusion bounds for the published package contract.',
 };
 
 /**
