@@ -87,10 +87,12 @@ export function kayKitLayoutForEdition(edition: PackEdition): KayKitUpstreamLayo
 /**
  * Inspect a candidate pack root and return its matching layout descriptor.
  *
- * Detection rule: a candidate matches a layout when every {@link
- * KayKitUpstreamLayout.markerFiles} entry is present and the
- * {@link KayKitUpstreamLayout.relativeGltfRoot} directory exists. The EXTRA
- * layout's marker set is a superset of FREE's, so EXTRA is tested first.
+ * Detection rule: a candidate matches a layout when the
+ * {@link KayKitUpstreamLayout.relativeGltfRoot} directory and all category
+ * subdirectories exist. Marker files are checked when present but NOT required
+ * — the GitHub archive omits `License.txt`, PDFs, and `contents_*.jpg` but
+ * still has the full GLTF tree. EXTRA is tested first (its category set is a
+ * superset of FREE's).
  */
 export function detectKayKitLayout(rootPath: string): KayKitUpstreamLayout | undefined {
   if (!isDirectory(rootPath)) {
@@ -122,10 +124,20 @@ function matchesLayout(rootPath: string, layout: KayKitUpstreamLayout): boolean 
   if (!isDirectory(gltfRoot)) {
     return false;
   }
-  for (const marker of layout.markerFiles) {
-    if (!existsSync(join(rootPath, marker))) {
-      return false;
-    }
+  // Two verification strategies:
+  //   A) itch.io zip — includes all marker files (License.txt, PDFs, etc.)
+  //   B) GitHub archive — omits markers but always includes Textures/<textureFile>
+  // Accept a root when it passes at least one of the two strategies.
+  const allMarkersPresent =
+    layout.markerFiles.length > 0 &&
+    layout.markerFiles.every((m) => existsSync(join(rootPath, m)));
+  const primaryTexturePresent =
+    layout.textureFiles.length > 0 &&
+    existsSync(
+      join(rootPath, layout.relativeTextureRoot, layout.textureFiles[0] ?? '')
+    );
+  if (!allMarkersPresent && !primaryTexturePresent) {
+    return false;
   }
   for (const category of layout.assetCategories) {
     if (!isDirectory(join(gltfRoot, category))) {

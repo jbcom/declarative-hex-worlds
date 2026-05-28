@@ -144,6 +144,30 @@ describe('KayKit upstream layouts', () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+
+  it('detects a GitHub-archive layout (no marker files, texture present)', () => {
+    // The GitHub archive omits License.txt / PDFs / contents_*.jpg but ships
+    // the GLTF tree + Textures/hexagons_medieval.png. Detection must succeed.
+    const root = mkdtempSync(join(tmpdir(), 'medieval-hexagon-github-archive-'));
+    try {
+      const gltfRoot = join(root, 'Assets', 'gltf');
+      mkdirSync(gltfRoot, { recursive: true });
+      for (const category of KAYKIT_MEDIEVAL_FREE_LAYOUT.assetCategories) {
+        mkdirSync(join(gltfRoot, category), { recursive: true });
+      }
+      // Texture file present (as in the real GitHub archive zip).
+      const textureDir = join(root, KAYKIT_MEDIEVAL_FREE_LAYOUT.relativeTextureRoot);
+      mkdirSync(textureDir, { recursive: true });
+      writeFileSync(join(textureDir, KAYKIT_MEDIEVAL_FREE_LAYOUT.textureFiles[0] ?? ''), 'png');
+      // No marker files at all.
+      for (const marker of KAYKIT_MEDIEVAL_FREE_LAYOUT.markerFiles) {
+        expect(existsSync(join(root, marker))).toBe(false);
+      }
+      expect(detectKayKitLayout(root)).toBe(KAYKIT_MEDIEVAL_FREE_LAYOUT);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });
 
 function seedLayout(root: string, layout: typeof KAYKIT_MEDIEVAL_FREE_LAYOUT): void {
