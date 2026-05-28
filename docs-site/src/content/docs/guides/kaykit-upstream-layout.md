@@ -124,7 +124,7 @@ import {
   kayKitLayoutForEdition,
   expectedTexturePaths,
   type KayKitUpstreamLayout,
-} from '@jbcom/medieval-hexagon-gameboard/manifest/upstream-layout';
+} from '@jbcom/medieval-hexagon-gameboard/bootstrap/upstream-layout';
 ```
 
 Use these to:
