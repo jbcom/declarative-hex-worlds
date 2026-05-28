@@ -25,7 +25,7 @@ import {
 } from '../../actors/index';
 import { createGameboardBuilder } from '../../gameboard/index';
 import { axialToWorld } from '../../coordinates/grid';
-import { PlacementState, createGameboardWorld, findPlacementEntity } from '../../koota/index';
+import { PlacementState, createGameboardWorld, findPlacementEntity, readPlacementsForTile } from '../../koota/index';
 import { requestGameboardMovement } from '../../movement/index';
 
 describe('gameboard actor semantics', () => {
@@ -319,6 +319,32 @@ describe('gameboard actor semantics', () => {
         terrain: 'water',
       }).tiles.map((tile) => tile.tileKey)
     ).toEqual(['2,0']);
+  });
+
+  it('inspectGameboardInteractionTarget resolves a string placement-id directly (E0b)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'placement-id-resolve',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      })
+        .addPlacement({ at: { q: 0, r: 0 }, assetId: 'flag_yellow', kind: 'prop', layer: 'feature' })
+        .build()
+    );
+    spawnGameboardActor(world, {
+      id: 'hero-placement',
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '1,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const propPlacement = readPlacementsForTile(world, '0,0').find((p) => p.assetId === 'flag_yellow');
+    if (!propPlacement) throw new Error('flag_yellow placement missing');
+    const result = inspectGameboardInteractionTarget(world, propPlacement.id, {
+      sourceActor: 'hero',
+    });
+    expect(result.kind).toBe('placement');
+    expect(result.tileKey).toBe('0,0');
   });
 
   it('throws when neighborhood center string resolves to nothing (E0b)', () => {
