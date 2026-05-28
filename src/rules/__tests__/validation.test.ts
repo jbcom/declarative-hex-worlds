@@ -292,6 +292,33 @@ describe('engine-neutral plan validation', () => {
     expect(violations.map((v) => v.code)).toContain('stack.max_elevation');
   });
 
+  it('reports declaration.stack_support_mismatch when tile.supportAssetId differs (E0b)', () => {
+    // Covers validation.ts line 173.
+    const registry = createHexTileRegistry([
+      {
+        id: 'cliff',
+        assetId: 'cliff',
+        role: 'base',
+        terrain: 'grass',
+        stack: { canStack: true, maxElevation: 3, supportAssetId: 'hex_grass' },
+      },
+    ]);
+    const plan = createGameboardBuilder({
+      seed: 'support-mismatch',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .setTileAsset({
+        at: { q: 0, r: 0 },
+        assetId: 'cliff',
+        terrain: 'grass',
+        elevation: 1,
+        supportAssetId: 'hex_dirt',
+      })
+      .build();
+    const violations = validateGameboardPlan(plan, { registry });
+    expect(violations.map((v) => v.code)).toContain('declaration.stack_support_mismatch');
+  });
+
   it('skips road/river reciprocal validation when both flags disabled (E0b)', () => {
     const plan = createGameboardBuilder({
       seed: 'recip-disabled',

@@ -58,3 +58,4 @@
 {"ts":"2026-05-28T00:35:06.637Z","sha":"b3d19a429680b2a53fcc7b63e90ac7ba7ad0359c","subject":"feat: E0 coverage batch-22 (navigation.neighbors wrapper) (#34)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T00:42:48.910Z","sha":"2ed4d6913130ec714bec06071312711d303133fc","subject":"feat: E0 coverage batch-23 (patrol route validation) (#35)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T00:50:02.358Z","sha":"345ca3dad20c74064fbf939aba50401f6894f11e","subject":"feat: E0 coverage batch-24 (patrol route under-selected waypoints) (#36)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
+{"ts":"2026-05-28T00:57:51.280Z","sha":"86d6ecacaad080733259a94fe3ce1fa5906a7106","subject":"feat: E0 coverage batch-25 (manifest header validation) (#37)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
