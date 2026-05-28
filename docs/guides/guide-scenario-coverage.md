@@ -1,9 +1,3 @@
-<!-- canonical: https://jonbogaty.com/declarative-hex-worlds/guides/guide-scenario-coverage/ -->
-
-> **Canonical version:** [https://jonbogaty.com/declarative-hex-worlds/guides/guide-scenario-coverage/](https://jonbogaty.com/declarative-hex-worlds/guides/guide-scenario-coverage/)
->
-> This file remains as scenario metadata for `src/scenario/catalog.ts`. The docs-site version is the human-facing canonical.
-
 # Guide Scenario Coverage
 
 The KayKit user guide is decomposed into 19 source-page scenarios. This page is
@@ -138,8 +132,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `GameboardBuilder.addProp`,
   `GameboardBuilder.addPropCluster`,
   `GameboardBuilder.scatterDecorations`,
-  `createGameboardLayoutFillRuleFromPiece`,
   `createGameboardBlueprintRecipe`,
+  `createGameboardLayoutFillRuleFromPiece`,
   `flagAssetId`,
   `listPropClusterAssets`
 - Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
@@ -158,9 +152,9 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `GameboardBuilder.addMountainStack`,
   `GameboardBuilder.addNature`,
   `GameboardBuilder.scatterDecorations`,
+  `createGameboardBlueprintPlan`,
   `createGameboardLayoutArchetypeRegistry`,
   `createGameboardLayoutFillRuleFromPiece`,
-  `createGameboardBlueprintPlan`,
   `inspectGameboardBlueprint`
 - Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-generated-piece-recipe.png`
@@ -207,8 +201,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `GameboardBuilder.addMountainStack`,
   `GameboardBuilder.setElevation`,
   `GameboardBuilder.setTileAsset`,
-  `createGameboardPlanFromRecipe`,
-  `createGameboardBlueprintRecipe`
+  `createGameboardBlueprintRecipe`,
+  `createGameboardPlanFromRecipe`
 - Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
   `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-gameboard-recipe.png`,
   `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-blueprint-builder-showcase.png`
@@ -264,10 +258,10 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `GameboardBuilder.scatterDecorations`,
   `GameboardBuilder.setElevation`,
   `GameboardBuilder.setTileAsset`,
+  `createGameboardBlueprintPlan`,
   `createGameboardLayoutFillRuleFromPiece`,
   `createGameboardPlanFromRecipe`,
-  `createHexagonGameboardGrid`,
-  `createGameboardBlueprintPlan`
+  `createHexagonGameboardGrid`
 - Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-seeded-hex-gameboard.png`,
   `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
@@ -280,8 +274,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
 - Asset coverage: 1 unique, 0 FREE, 1 EXTRA, 1 occurrence
 - Roles: `transition-tile`
 - Public API treatment: `GameboardBuilder.addTransition`,
-  `createGameboardPlanFromRecipe`,
   `createGameboardBlueprintRecipe`,
+  `createGameboardPlanFromRecipe`,
   `inspectGameboardBlueprint`,
   `textureFileName`,
   `validateGameboardRecipe`
@@ -319,8 +313,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
 - Roles: `transition-tile`
 - Public API treatment: `GameboardBuilder.addTransition`,
   `analyzeHexTileRegistry`,
-  `createGameboardPlanFromRecipe`,
   `createGameboardBlueprintRecipe`,
+  `createGameboardPlanFromRecipe`,
   `createMedievalShowcaseBlueprintRecipe`,
   `declareHexTile`,
   `validateGameboardRecipe`,
