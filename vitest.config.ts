@@ -13,6 +13,7 @@ export default defineConfig({
       'scripts/**/__tests__/**/*.test.ts',
     ],
     testTimeout: 15_000,
+    setupFiles: ['./tests/setup/koota-cleanup.ts'],
     coverage: harnessCoverage('unit'),
   },
   resolve: {
