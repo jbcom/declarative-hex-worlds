@@ -63,3 +63,4 @@
 {"ts":"2026-05-28T01:13:34.372Z","sha":"715b9b7e9f3681527b6132413efe52175d5a9e5b","subject":"feat: E0 coverage batch-27 (manifest unitStyle enum + ratchet) (#39)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T01:21:33.625Z","sha":"b6cea080526109c73fbf20afdbc1e9d5af3f86de","subject":"feat: E0 coverage batch-28 (resolveManifestAssetUrl URL+http) (#40)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T01:29:34.239Z","sha":"2897279ed207dce0dd4e538900036d4449794906","subject":"feat: E0 coverage batch-29 (scenario spawn groups errors throw) (#41)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
+{"ts":"2026-05-28T01:37:13.436Z","sha":"57223ae93bf969d09ae5c11237f0f15f25b088ee","subject":"feat: E0 coverage batch-30 (layout forbiddenAdjacentTerrain) (#42)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
