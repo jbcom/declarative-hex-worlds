@@ -54,3 +54,4 @@
 {"ts":"2026-05-27T23:58:22.595Z","sha":"e0d65ea8e35468d4f2a16211b3c8a1dc3eca884e","subject":"feat: E0 coverage batch-19a (layout excludeTerrain + excludeTileTags) (#30)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T00:08:25.292Z","sha":"ed10a5cd7713cb984932d8d91be665babc0abe01","subject":"test: add koota world-cleanup vitest setup (#31)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T00:17:24.102Z","sha":"70a90f491924d315b8831bbaa8ed71ff79956980","subject":"feat: E0 coverage batch-20 (readGameboardQuests sort) (#32)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
+{"ts":"2026-05-28T00:26:20.287Z","sha":"9e71fa2c9f74905ec7b8df4192127787d11b18a8","subject":"feat: E0 coverage batch-21 (placement-id interaction target) (#33)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}

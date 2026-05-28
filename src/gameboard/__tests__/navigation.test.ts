@@ -99,6 +99,20 @@ describe('board-aware navigation and occupancy', () => {
     expect(navigation.canEnter('2,0')).toBe(false);
   });
 
+  it('navigation.neighbors returns in-bounds adjacent tiles (E0b)', () => {
+    // Covers navigation.ts line 495-498 (neighbors action wrapper).
+    const plan = createGameboardBuilder({
+      seed: 'neighbors-wrapper',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    }).build();
+    const navigation = createGameboardNavigation(plan);
+    const adjacent = navigation.neighbors({ q: 1, r: 1 });
+    expect(adjacent.length).toBeGreaterThanOrEqual(3);
+    // Corner has fewer in-bounds neighbors than centre.
+    const corner = navigation.neighbors({ q: 0, r: 0 });
+    expect(corner.length).toBeLessThan(adjacent.length);
+  });
+
   it('computes reachable ranges with terrain costs', () => {
     const plan = createGameboardBuilder({
       seed: 'range',
