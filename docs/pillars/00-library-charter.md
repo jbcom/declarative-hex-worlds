@@ -20,12 +20,11 @@ implementation_links:
   - src/rules/rules.ts
   - src/react/react.ts
   - typedoc.json
-  - scripts/audit-docs-contract.ts
-  - scripts/audit-free-assets.ts
-  - scripts/audit-reference-assets.ts
-  - scripts/audit-package.ts
-  - scripts/audit-workspace.ts
-  - scripts/audit-workflows.ts
+  - tests/contract/docs-pillars-contract.test.ts
+  - tests/contract/free-manifest-contract.test.ts
+  - tests/contract/reference-tree-contract.test.ts
+  - tests/contract/tarball-contract.test.ts
+  - tests/contract/workflows-contract.test.ts
   - scripts/smoke-built-cli.ts
   - scripts/smoke-packed-consumer.ts
   - examples/blueprint-board-usage.ts
@@ -37,12 +36,11 @@ test_links:
   - src/gameboard/__tests__/gameboard.test.ts
   - src/koota/__tests__/koota.test.ts
   - src/rules/__tests__/rules.test.ts
-  - scripts/audit-docs-contract.ts
-  - scripts/audit-free-assets.ts
-  - scripts/audit-reference-assets.ts
-  - scripts/audit-package.ts
-  - scripts/audit-workspace.ts
-  - scripts/audit-workflows.ts
+  - tests/contract/docs-pillars-contract.test.ts
+  - tests/contract/free-manifest-contract.test.ts
+  - tests/contract/reference-tree-contract.test.ts
+  - tests/contract/tarball-contract.test.ts
+  - tests/contract/workflows-contract.test.ts
   - scripts/smoke-built-cli.ts
   - scripts/smoke-packed-consumer.ts
 ---

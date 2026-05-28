@@ -39,8 +39,7 @@ implementation_links:
   - docs/examples/blueprint-board.json
   - docs/guides/guide-scenario-coverage.md
   - package.json
-  - scripts/audit-package.ts
-  - scripts/audit-workspace.ts
+  - tests/contract/tarball-contract.test.ts
   - scripts/extract-kaykit-guide.ts
   - scripts/extract-kaykit-guide.swift
   - scripts/promote-showcases.ts

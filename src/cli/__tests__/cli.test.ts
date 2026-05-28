@@ -605,7 +605,7 @@ describe('CLI', () => {
     expect(markdown).toContain('# Release Readiness Coverage');
     expect(markdown).toContain('## SimpleRPG Public API Evidence');
     expect(markdown).toContain('| Status | Command | Summary |');
-    expect(markdown).toContain('README gallery links');
+    expect(markdown).toContain('Release-time tarball dry run');
     expect(doctorOutput).toContain('guide pages: 19/19');
     expect(doctorOutput).toContain('manifest: 221 asset(s), 221/221 FREE guide asset(s)');
     expect(doctorOutput).toContain('SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)');

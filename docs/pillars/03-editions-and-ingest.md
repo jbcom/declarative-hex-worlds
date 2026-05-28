@@ -19,14 +19,16 @@ implementation_links:
   - src/ingest/ingest.ts
   - src/manifest/schema.ts
   - package.json
-  - scripts/audit-reference-assets.ts
+  - tests/contract/reference-tree-contract.test.ts
+  - tests/contract/manifest-drift-contract.test.ts
 test_links:
   - src/cli/__tests__/cli.test.ts
   - src/interop/__tests__/coverage.test.ts
   - src/ingest/__tests__/ingest.test.ts
   - src/manifest/__tests__/manifest.test.ts
   - tests/unit/examples.test.ts
-  - scripts/audit-reference-assets.ts
+  - tests/contract/reference-tree-contract.test.ts
+  - tests/contract/manifest-drift-contract.test.ts
 ---
 
 # Editions And Ingest
