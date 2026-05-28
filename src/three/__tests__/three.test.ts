@@ -29,7 +29,7 @@ describe('three placement asset URL helpers', () => {
     expect(resolveGameboardPlacementAssetUrl(manifestPlacement, {
       catalog: freeManifest,
       baseUrl: '/vendor/kaykit',
-    })).toBe('/vendor/kaykit/assets/free/tiles/base/hex_grass.gltf');
+    })).toBe('/vendor/kaykit/tiles/base/hex_grass.gltf');
     expect(resolveGameboardPlacementAssetUrl(externalPlacement, { catalog: freeManifest })).toBe(
       '/@fs/references/kenney/tower-hexagon-base.glb'
     );
@@ -49,7 +49,7 @@ describe('three placement asset URL helpers', () => {
     });
 
     expect(resolve(placement({ assetId: 'kenney:tree-large' }))).toBe('/@fs/references/kenney/tree-large.glb');
-    expect(resolve(placement({ assetId: 'flag_blue' }))).toBe('assets/free/decoration/props/flag_blue.gltf');
+    expect(resolve(placement({ assetId: 'flag_blue' }))).toBe('decoration/props/flag_blue.gltf');
   });
 
   it('loads transformed placements with external animation clips', async () => {

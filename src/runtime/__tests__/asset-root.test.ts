@@ -37,9 +37,9 @@ describe('runtime asset root resolution (PRD RB3)', () => {
     delete process.env[GAMEBOARD_ASSET_ROOT_ENV_VAR];
   });
 
-  it('defaults to public/assets/models (matches CLI --out heuristic)', () => {
+  it('defaults to models (flat bootstrap layout default)', () => {
     expect(resolveGameboardAssetRoot()).toBe(DEFAULT_GAMEBOARD_ASSET_ROOT);
-    expect(DEFAULT_GAMEBOARD_ASSET_ROOT).toBe('public/assets/models');
+    expect(DEFAULT_GAMEBOARD_ASSET_ROOT).toBe('models');
   });
 
   it('honors a process-wide override set via setGameboardAssetRoot', () => {
@@ -70,20 +70,16 @@ describe('runtime asset root resolution (PRD RB3)', () => {
   });
 });
 
-describe('bootstrap path rewriting (PRD RB3)', () => {
-  it('rewrites a legacy assets/free/... path under the bootstrap target', () => {
-    expect(rewriteToBootstrapPath(PROBE_ASSET)).toBe(
-      `addons/kaykit_medieval_hexagon_pack/Assets/gltf/${PROBE_ASSET.modelPath.slice('assets/free/'.length)}`
-    );
+describe('bootstrap path rewriting (PRD RB3 — flat layout)', () => {
+  it('rewriteToBootstrapPath is identity — returns sourcePath directly', () => {
+    expect(rewriteToBootstrapPath(PROBE_ASSET)).toBe(PROBE_ASSET.sourcePath);
   });
 
-  it('resolveManifestAssetUrl uses bootstrapAssetRoot when no baseUrl is set', () => {
+  it('resolveManifestAssetUrl uses bootstrapAssetRoot + sourcePath (flat layout)', () => {
     const url = resolveManifestAssetUrl(PROBE_ASSET, {
-      bootstrapAssetRoot: '/app/public/assets/models',
+      bootstrapAssetRoot: '/app/public/models',
     });
-    expect(url).toBe(
-      `/app/public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/${PROBE_ASSET.modelPath.slice('assets/free/'.length)}`
-    );
+    expect(url).toBe(`/app/public/models/${PROBE_ASSET.sourcePath}`);
   });
 
   it('resolveManifestAssetUrl prefers baseUrl over bootstrapAssetRoot', () => {
@@ -91,19 +87,17 @@ describe('bootstrap path rewriting (PRD RB3)', () => {
       baseUrl: 'https://cdn.example.com/',
       bootstrapAssetRoot: '/should/be/ignored',
     });
-    expect(url).toBe(`https://cdn.example.com/${PROBE_ASSET.modelPath}`);
+    expect(url).toBe(`https://cdn.example.com/${PROBE_ASSET.sourcePath}`);
   });
 
-  it('gameboardAssetUrl combines the resolved asset root with the rewritten path', () => {
+  it('gameboardAssetUrl combines the resolved asset root with sourcePath', () => {
     setGameboardAssetRoot('/runtime/root');
-    expect(gameboardAssetUrl(PROBE_ASSET)).toBe(
-      `/runtime/root/addons/kaykit_medieval_hexagon_pack/Assets/gltf/${PROBE_ASSET.modelPath.slice('assets/free/'.length)}`
-    );
+    expect(gameboardAssetUrl(PROBE_ASSET)).toBe(`/runtime/root/${PROBE_ASSET.sourcePath}`);
   });
 
   it('gameboardAssetUrl strips a trailing slash on the asset root', () => {
     setGameboardAssetRoot('/runtime/root/');
-    expect(gameboardAssetUrl(PROBE_ASSET).startsWith('/runtime/root/addons/')).toBe(true);
-    expect(gameboardAssetUrl(PROBE_ASSET)).not.toContain('//addons');
+    expect(gameboardAssetUrl(PROBE_ASSET)).not.toContain('//');
+    expect(gameboardAssetUrl(PROBE_ASSET)).toBe(`/runtime/root/${PROBE_ASSET.sourcePath}`);
   });
 });

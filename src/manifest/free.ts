@@ -41,13 +41,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_archeryrange",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_archeryrange_blue.gltf",
+      "modelPath": "buildings/blue/building_archeryrange_blue.gltf",
       "sourcePath": "buildings/blue/building_archeryrange_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_archeryrange_blue.bin"
+        "buildings/blue/building_archeryrange_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -79,13 +79,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_barracks",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_barracks_blue.gltf",
+      "modelPath": "buildings/blue/building_barracks_blue.gltf",
       "sourcePath": "buildings/blue/building_barracks_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_barracks_blue.bin"
+        "buildings/blue/building_barracks_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -117,13 +117,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_blacksmith",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_blacksmith_blue.gltf",
+      "modelPath": "buildings/blue/building_blacksmith_blue.gltf",
       "sourcePath": "buildings/blue/building_blacksmith_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_blacksmith_blue.bin"
+        "buildings/blue/building_blacksmith_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -155,13 +155,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_castle",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_castle_blue.gltf",
+      "modelPath": "buildings/blue/building_castle_blue.gltf",
       "sourcePath": "buildings/blue/building_castle_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_castle_blue.bin"
+        "buildings/blue/building_castle_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -193,13 +193,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_church",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_church_blue.gltf",
+      "modelPath": "buildings/blue/building_church_blue.gltf",
       "sourcePath": "buildings/blue/building_church_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_church_blue.bin"
+        "buildings/blue/building_church_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -231,13 +231,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_A",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_home_A_blue.gltf",
+      "modelPath": "buildings/blue/building_home_A_blue.gltf",
       "sourcePath": "buildings/blue/building_home_A_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_home_A_blue.bin"
+        "buildings/blue/building_home_A_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -269,13 +269,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_B",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_home_B_blue.gltf",
+      "modelPath": "buildings/blue/building_home_B_blue.gltf",
       "sourcePath": "buildings/blue/building_home_B_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_home_B_blue.bin"
+        "buildings/blue/building_home_B_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -307,13 +307,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_lumbermill",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_lumbermill_blue.gltf",
+      "modelPath": "buildings/blue/building_lumbermill_blue.gltf",
       "sourcePath": "buildings/blue/building_lumbermill_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_lumbermill_blue.bin"
+        "buildings/blue/building_lumbermill_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -345,13 +345,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_market",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_market_blue.gltf",
+      "modelPath": "buildings/blue/building_market_blue.gltf",
       "sourcePath": "buildings/blue/building_market_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_market_blue.bin"
+        "buildings/blue/building_market_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -383,13 +383,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_mine",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_mine_blue.gltf",
+      "modelPath": "buildings/blue/building_mine_blue.gltf",
       "sourcePath": "buildings/blue/building_mine_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_mine_blue.bin"
+        "buildings/blue/building_mine_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -421,13 +421,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tavern",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tavern_blue.gltf",
+      "modelPath": "buildings/blue/building_tavern_blue.gltf",
       "sourcePath": "buildings/blue/building_tavern_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tavern_blue.bin"
+        "buildings/blue/building_tavern_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -459,13 +459,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_A",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tower_A_blue.gltf",
+      "modelPath": "buildings/blue/building_tower_A_blue.gltf",
       "sourcePath": "buildings/blue/building_tower_A_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tower_A_blue.bin"
+        "buildings/blue/building_tower_A_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -497,13 +497,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_B",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tower_B_blue.gltf",
+      "modelPath": "buildings/blue/building_tower_B_blue.gltf",
       "sourcePath": "buildings/blue/building_tower_B_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tower_B_blue.bin"
+        "buildings/blue/building_tower_B_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -535,13 +535,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_base",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tower_base_blue.gltf",
+      "modelPath": "buildings/blue/building_tower_base_blue.gltf",
       "sourcePath": "buildings/blue/building_tower_base_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tower_base_blue.bin"
+        "buildings/blue/building_tower_base_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -573,13 +573,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_catapult",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tower_catapult_blue.gltf",
+      "modelPath": "buildings/blue/building_tower_catapult_blue.gltf",
       "sourcePath": "buildings/blue/building_tower_catapult_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tower_catapult_blue.bin"
+        "buildings/blue/building_tower_catapult_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -611,13 +611,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_watermill",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_watermill_blue.gltf",
+      "modelPath": "buildings/blue/building_watermill_blue.gltf",
       "sourcePath": "buildings/blue/building_watermill_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_watermill_blue.bin"
+        "buildings/blue/building_watermill_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -649,13 +649,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_well",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_well_blue.gltf",
+      "modelPath": "buildings/blue/building_well_blue.gltf",
       "sourcePath": "buildings/blue/building_well_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_well_blue.bin"
+        "buildings/blue/building_well_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -687,13 +687,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_windmill",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_windmill_blue.gltf",
+      "modelPath": "buildings/blue/building_windmill_blue.gltf",
       "sourcePath": "buildings/blue/building_windmill_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_windmill_blue.bin"
+        "buildings/blue/building_windmill_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -725,13 +725,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_archeryrange",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_archeryrange_green.gltf",
+      "modelPath": "buildings/green/building_archeryrange_green.gltf",
       "sourcePath": "buildings/green/building_archeryrange_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_archeryrange_green.bin"
+        "buildings/green/building_archeryrange_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -763,13 +763,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_barracks",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_barracks_green.gltf",
+      "modelPath": "buildings/green/building_barracks_green.gltf",
       "sourcePath": "buildings/green/building_barracks_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_barracks_green.bin"
+        "buildings/green/building_barracks_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -801,13 +801,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_blacksmith",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_blacksmith_green.gltf",
+      "modelPath": "buildings/green/building_blacksmith_green.gltf",
       "sourcePath": "buildings/green/building_blacksmith_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_blacksmith_green.bin"
+        "buildings/green/building_blacksmith_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -839,13 +839,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_castle",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_castle_green.gltf",
+      "modelPath": "buildings/green/building_castle_green.gltf",
       "sourcePath": "buildings/green/building_castle_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_castle_green.bin"
+        "buildings/green/building_castle_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -877,13 +877,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_church",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_church_green.gltf",
+      "modelPath": "buildings/green/building_church_green.gltf",
       "sourcePath": "buildings/green/building_church_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_church_green.bin"
+        "buildings/green/building_church_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -915,13 +915,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_A",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_home_A_green.gltf",
+      "modelPath": "buildings/green/building_home_A_green.gltf",
       "sourcePath": "buildings/green/building_home_A_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_home_A_green.bin"
+        "buildings/green/building_home_A_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -953,13 +953,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_B",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_home_B_green.gltf",
+      "modelPath": "buildings/green/building_home_B_green.gltf",
       "sourcePath": "buildings/green/building_home_B_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_home_B_green.bin"
+        "buildings/green/building_home_B_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -991,13 +991,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_lumbermill",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_lumbermill_green.gltf",
+      "modelPath": "buildings/green/building_lumbermill_green.gltf",
       "sourcePath": "buildings/green/building_lumbermill_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_lumbermill_green.bin"
+        "buildings/green/building_lumbermill_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1029,13 +1029,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_market",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_market_green.gltf",
+      "modelPath": "buildings/green/building_market_green.gltf",
       "sourcePath": "buildings/green/building_market_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_market_green.bin"
+        "buildings/green/building_market_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1067,13 +1067,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_mine",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_mine_green.gltf",
+      "modelPath": "buildings/green/building_mine_green.gltf",
       "sourcePath": "buildings/green/building_mine_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_mine_green.bin"
+        "buildings/green/building_mine_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1105,13 +1105,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tavern",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tavern_green.gltf",
+      "modelPath": "buildings/green/building_tavern_green.gltf",
       "sourcePath": "buildings/green/building_tavern_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tavern_green.bin"
+        "buildings/green/building_tavern_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1143,13 +1143,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_A",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tower_A_green.gltf",
+      "modelPath": "buildings/green/building_tower_A_green.gltf",
       "sourcePath": "buildings/green/building_tower_A_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tower_A_green.bin"
+        "buildings/green/building_tower_A_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1181,13 +1181,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_B",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tower_B_green.gltf",
+      "modelPath": "buildings/green/building_tower_B_green.gltf",
       "sourcePath": "buildings/green/building_tower_B_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tower_B_green.bin"
+        "buildings/green/building_tower_B_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1219,13 +1219,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_base",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tower_base_green.gltf",
+      "modelPath": "buildings/green/building_tower_base_green.gltf",
       "sourcePath": "buildings/green/building_tower_base_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tower_base_green.bin"
+        "buildings/green/building_tower_base_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1257,13 +1257,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_catapult",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tower_catapult_green.gltf",
+      "modelPath": "buildings/green/building_tower_catapult_green.gltf",
       "sourcePath": "buildings/green/building_tower_catapult_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tower_catapult_green.bin"
+        "buildings/green/building_tower_catapult_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1295,13 +1295,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_watermill",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_watermill_green.gltf",
+      "modelPath": "buildings/green/building_watermill_green.gltf",
       "sourcePath": "buildings/green/building_watermill_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_watermill_green.bin"
+        "buildings/green/building_watermill_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1333,13 +1333,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_well",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_well_green.gltf",
+      "modelPath": "buildings/green/building_well_green.gltf",
       "sourcePath": "buildings/green/building_well_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_well_green.bin"
+        "buildings/green/building_well_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1371,13 +1371,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_windmill",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_windmill_green.gltf",
+      "modelPath": "buildings/green/building_windmill_green.gltf",
       "sourcePath": "buildings/green/building_windmill_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_windmill_green.bin"
+        "buildings/green/building_windmill_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1408,13 +1408,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_bridge_A",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_bridge_A.gltf",
+      "modelPath": "buildings/neutral/building_bridge_A.gltf",
       "sourcePath": "buildings/neutral/building_bridge_A.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_bridge_A.bin"
+        "buildings/neutral/building_bridge_A.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1445,13 +1445,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_bridge_B",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_bridge_B.gltf",
+      "modelPath": "buildings/neutral/building_bridge_B.gltf",
       "sourcePath": "buildings/neutral/building_bridge_B.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_bridge_B.bin"
+        "buildings/neutral/building_bridge_B.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1482,13 +1482,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_destroyed",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_destroyed.gltf",
+      "modelPath": "buildings/neutral/building_destroyed.gltf",
       "sourcePath": "buildings/neutral/building_destroyed.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_destroyed.bin"
+        "buildings/neutral/building_destroyed.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1519,13 +1519,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_dirt",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_dirt.gltf",
+      "modelPath": "buildings/neutral/building_dirt.gltf",
       "sourcePath": "buildings/neutral/building_dirt.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_dirt.bin"
+        "buildings/neutral/building_dirt.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1556,13 +1556,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_grain",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_grain.gltf",
+      "modelPath": "buildings/neutral/building_grain.gltf",
       "sourcePath": "buildings/neutral/building_grain.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_grain.bin"
+        "buildings/neutral/building_grain.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1593,13 +1593,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_scaffolding",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_scaffolding.gltf",
+      "modelPath": "buildings/neutral/building_scaffolding.gltf",
       "sourcePath": "buildings/neutral/building_scaffolding.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_scaffolding.bin"
+        "buildings/neutral/building_scaffolding.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1630,13 +1630,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_stage_A",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_stage_A.gltf",
+      "modelPath": "buildings/neutral/building_stage_A.gltf",
       "sourcePath": "buildings/neutral/building_stage_A.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_stage_A.bin"
+        "buildings/neutral/building_stage_A.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1667,13 +1667,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_stage_B",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_stage_B.gltf",
+      "modelPath": "buildings/neutral/building_stage_B.gltf",
       "sourcePath": "buildings/neutral/building_stage_B.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_stage_B.bin"
+        "buildings/neutral/building_stage_B.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1704,13 +1704,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_stage_C",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_stage_C.gltf",
+      "modelPath": "buildings/neutral/building_stage_C.gltf",
       "sourcePath": "buildings/neutral/building_stage_C.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_stage_C.bin"
+        "buildings/neutral/building_stage_C.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1741,13 +1741,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "fence_stone_straight_gate",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/fence_stone_straight_gate.gltf",
+      "modelPath": "buildings/neutral/fence_stone_straight_gate.gltf",
       "sourcePath": "buildings/neutral/fence_stone_straight_gate.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/fence_stone_straight_gate.bin"
+        "buildings/neutral/fence_stone_straight_gate.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1778,13 +1778,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "fence_stone_straight",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/fence_stone_straight.gltf",
+      "modelPath": "buildings/neutral/fence_stone_straight.gltf",
       "sourcePath": "buildings/neutral/fence_stone_straight.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/fence_stone_straight.bin"
+        "buildings/neutral/fence_stone_straight.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1815,13 +1815,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "fence_wood_straight_gate",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/fence_wood_straight_gate.gltf",
+      "modelPath": "buildings/neutral/fence_wood_straight_gate.gltf",
       "sourcePath": "buildings/neutral/fence_wood_straight_gate.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/fence_wood_straight_gate.bin"
+        "buildings/neutral/fence_wood_straight_gate.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1852,13 +1852,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "fence_wood_straight",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/fence_wood_straight.gltf",
+      "modelPath": "buildings/neutral/fence_wood_straight.gltf",
       "sourcePath": "buildings/neutral/fence_wood_straight.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/fence_wood_straight.bin"
+        "buildings/neutral/fence_wood_straight.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1889,13 +1889,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "projectile_catapult",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/projectile_catapult.gltf",
+      "modelPath": "buildings/neutral/projectile_catapult.gltf",
       "sourcePath": "buildings/neutral/projectile_catapult.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/projectile_catapult.bin"
+        "buildings/neutral/projectile_catapult.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1926,13 +1926,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_A_gate",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_A_gate.gltf",
+      "modelPath": "buildings/neutral/wall_corner_A_gate.gltf",
       "sourcePath": "buildings/neutral/wall_corner_A_gate.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_A_gate.bin"
+        "buildings/neutral/wall_corner_A_gate.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -1963,13 +1963,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_A_inside",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_A_inside.gltf",
+      "modelPath": "buildings/neutral/wall_corner_A_inside.gltf",
       "sourcePath": "buildings/neutral/wall_corner_A_inside.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_A_inside.bin"
+        "buildings/neutral/wall_corner_A_inside.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2000,13 +2000,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_A_outside",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_A_outside.gltf",
+      "modelPath": "buildings/neutral/wall_corner_A_outside.gltf",
       "sourcePath": "buildings/neutral/wall_corner_A_outside.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_A_outside.bin"
+        "buildings/neutral/wall_corner_A_outside.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2037,13 +2037,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_B_inside",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_B_inside.gltf",
+      "modelPath": "buildings/neutral/wall_corner_B_inside.gltf",
       "sourcePath": "buildings/neutral/wall_corner_B_inside.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_B_inside.bin"
+        "buildings/neutral/wall_corner_B_inside.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2074,13 +2074,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_B_outside",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_B_outside.gltf",
+      "modelPath": "buildings/neutral/wall_corner_B_outside.gltf",
       "sourcePath": "buildings/neutral/wall_corner_B_outside.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_B_outside.bin"
+        "buildings/neutral/wall_corner_B_outside.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2111,13 +2111,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_straight_gate",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_straight_gate.gltf",
+      "modelPath": "buildings/neutral/wall_straight_gate.gltf",
       "sourcePath": "buildings/neutral/wall_straight_gate.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_straight_gate.bin"
+        "buildings/neutral/wall_straight_gate.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2148,13 +2148,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_straight",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_straight.gltf",
+      "modelPath": "buildings/neutral/wall_straight.gltf",
       "sourcePath": "buildings/neutral/wall_straight.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_straight.bin"
+        "buildings/neutral/wall_straight.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2186,13 +2186,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_archeryrange",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_archeryrange_red.gltf",
+      "modelPath": "buildings/red/building_archeryrange_red.gltf",
       "sourcePath": "buildings/red/building_archeryrange_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_archeryrange_red.bin"
+        "buildings/red/building_archeryrange_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2224,13 +2224,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_barracks",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_barracks_red.gltf",
+      "modelPath": "buildings/red/building_barracks_red.gltf",
       "sourcePath": "buildings/red/building_barracks_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_barracks_red.bin"
+        "buildings/red/building_barracks_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2262,13 +2262,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_blacksmith",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_blacksmith_red.gltf",
+      "modelPath": "buildings/red/building_blacksmith_red.gltf",
       "sourcePath": "buildings/red/building_blacksmith_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_blacksmith_red.bin"
+        "buildings/red/building_blacksmith_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2300,13 +2300,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_castle",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_castle_red.gltf",
+      "modelPath": "buildings/red/building_castle_red.gltf",
       "sourcePath": "buildings/red/building_castle_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_castle_red.bin"
+        "buildings/red/building_castle_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2338,13 +2338,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_church",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_church_red.gltf",
+      "modelPath": "buildings/red/building_church_red.gltf",
       "sourcePath": "buildings/red/building_church_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_church_red.bin"
+        "buildings/red/building_church_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2376,13 +2376,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_A",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_home_A_red.gltf",
+      "modelPath": "buildings/red/building_home_A_red.gltf",
       "sourcePath": "buildings/red/building_home_A_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_home_A_red.bin"
+        "buildings/red/building_home_A_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2414,13 +2414,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_B",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_home_B_red.gltf",
+      "modelPath": "buildings/red/building_home_B_red.gltf",
       "sourcePath": "buildings/red/building_home_B_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_home_B_red.bin"
+        "buildings/red/building_home_B_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2452,13 +2452,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_lumbermill",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_lumbermill_red.gltf",
+      "modelPath": "buildings/red/building_lumbermill_red.gltf",
       "sourcePath": "buildings/red/building_lumbermill_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_lumbermill_red.bin"
+        "buildings/red/building_lumbermill_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2490,13 +2490,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_market",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_market_red.gltf",
+      "modelPath": "buildings/red/building_market_red.gltf",
       "sourcePath": "buildings/red/building_market_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_market_red.bin"
+        "buildings/red/building_market_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2528,13 +2528,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_mine",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_mine_red.gltf",
+      "modelPath": "buildings/red/building_mine_red.gltf",
       "sourcePath": "buildings/red/building_mine_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_mine_red.bin"
+        "buildings/red/building_mine_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2566,13 +2566,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tavern",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tavern_red.gltf",
+      "modelPath": "buildings/red/building_tavern_red.gltf",
       "sourcePath": "buildings/red/building_tavern_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tavern_red.bin"
+        "buildings/red/building_tavern_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2604,13 +2604,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_A",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tower_A_red.gltf",
+      "modelPath": "buildings/red/building_tower_A_red.gltf",
       "sourcePath": "buildings/red/building_tower_A_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tower_A_red.bin"
+        "buildings/red/building_tower_A_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2642,13 +2642,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_B",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tower_B_red.gltf",
+      "modelPath": "buildings/red/building_tower_B_red.gltf",
       "sourcePath": "buildings/red/building_tower_B_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tower_B_red.bin"
+        "buildings/red/building_tower_B_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2680,13 +2680,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_base",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tower_base_red.gltf",
+      "modelPath": "buildings/red/building_tower_base_red.gltf",
       "sourcePath": "buildings/red/building_tower_base_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tower_base_red.bin"
+        "buildings/red/building_tower_base_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2718,13 +2718,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_catapult",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tower_catapult_red.gltf",
+      "modelPath": "buildings/red/building_tower_catapult_red.gltf",
       "sourcePath": "buildings/red/building_tower_catapult_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tower_catapult_red.bin"
+        "buildings/red/building_tower_catapult_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2756,13 +2756,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_watermill",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_watermill_red.gltf",
+      "modelPath": "buildings/red/building_watermill_red.gltf",
       "sourcePath": "buildings/red/building_watermill_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_watermill_red.bin"
+        "buildings/red/building_watermill_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2794,13 +2794,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_well",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_well_red.gltf",
+      "modelPath": "buildings/red/building_well_red.gltf",
       "sourcePath": "buildings/red/building_well_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_well_red.bin"
+        "buildings/red/building_well_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2832,13 +2832,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_windmill",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_windmill_red.gltf",
+      "modelPath": "buildings/red/building_windmill_red.gltf",
       "sourcePath": "buildings/red/building_windmill_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_windmill_red.bin"
+        "buildings/red/building_windmill_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2870,13 +2870,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_archeryrange",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_archeryrange_yellow.gltf",
+      "modelPath": "buildings/yellow/building_archeryrange_yellow.gltf",
       "sourcePath": "buildings/yellow/building_archeryrange_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_archeryrange_yellow.bin"
+        "buildings/yellow/building_archeryrange_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2908,13 +2908,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_barracks",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_barracks_yellow.gltf",
+      "modelPath": "buildings/yellow/building_barracks_yellow.gltf",
       "sourcePath": "buildings/yellow/building_barracks_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_barracks_yellow.bin"
+        "buildings/yellow/building_barracks_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2946,13 +2946,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_blacksmith",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_blacksmith_yellow.gltf",
+      "modelPath": "buildings/yellow/building_blacksmith_yellow.gltf",
       "sourcePath": "buildings/yellow/building_blacksmith_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_blacksmith_yellow.bin"
+        "buildings/yellow/building_blacksmith_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -2984,13 +2984,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_castle",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_castle_yellow.gltf",
+      "modelPath": "buildings/yellow/building_castle_yellow.gltf",
       "sourcePath": "buildings/yellow/building_castle_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_castle_yellow.bin"
+        "buildings/yellow/building_castle_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3022,13 +3022,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_church",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_church_yellow.gltf",
+      "modelPath": "buildings/yellow/building_church_yellow.gltf",
       "sourcePath": "buildings/yellow/building_church_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_church_yellow.bin"
+        "buildings/yellow/building_church_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3060,13 +3060,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_A",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_home_A_yellow.gltf",
+      "modelPath": "buildings/yellow/building_home_A_yellow.gltf",
       "sourcePath": "buildings/yellow/building_home_A_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_home_A_yellow.bin"
+        "buildings/yellow/building_home_A_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3098,13 +3098,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_B",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_home_B_yellow.gltf",
+      "modelPath": "buildings/yellow/building_home_B_yellow.gltf",
       "sourcePath": "buildings/yellow/building_home_B_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_home_B_yellow.bin"
+        "buildings/yellow/building_home_B_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3136,13 +3136,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_lumbermill",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_lumbermill_yellow.gltf",
+      "modelPath": "buildings/yellow/building_lumbermill_yellow.gltf",
       "sourcePath": "buildings/yellow/building_lumbermill_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_lumbermill_yellow.bin"
+        "buildings/yellow/building_lumbermill_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3174,13 +3174,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_market",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_market_yellow.gltf",
+      "modelPath": "buildings/yellow/building_market_yellow.gltf",
       "sourcePath": "buildings/yellow/building_market_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_market_yellow.bin"
+        "buildings/yellow/building_market_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3212,13 +3212,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_mine",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_mine_yellow.gltf",
+      "modelPath": "buildings/yellow/building_mine_yellow.gltf",
       "sourcePath": "buildings/yellow/building_mine_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_mine_yellow.bin"
+        "buildings/yellow/building_mine_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3250,13 +3250,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tavern",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tavern_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tavern_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tavern_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tavern_yellow.bin"
+        "buildings/yellow/building_tavern_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3288,13 +3288,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_A",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tower_A_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tower_A_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tower_A_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tower_A_yellow.bin"
+        "buildings/yellow/building_tower_A_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3326,13 +3326,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_B",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tower_B_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tower_B_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tower_B_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tower_B_yellow.bin"
+        "buildings/yellow/building_tower_B_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3364,13 +3364,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_base",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tower_base_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tower_base_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tower_base_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tower_base_yellow.bin"
+        "buildings/yellow/building_tower_base_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3402,13 +3402,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_catapult",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tower_catapult_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tower_catapult_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tower_catapult_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tower_catapult_yellow.bin"
+        "buildings/yellow/building_tower_catapult_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3440,13 +3440,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_watermill",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_watermill_yellow.gltf",
+      "modelPath": "buildings/yellow/building_watermill_yellow.gltf",
       "sourcePath": "buildings/yellow/building_watermill_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_watermill_yellow.bin"
+        "buildings/yellow/building_watermill_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3478,13 +3478,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_well",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_well_yellow.gltf",
+      "modelPath": "buildings/yellow/building_well_yellow.gltf",
       "sourcePath": "buildings/yellow/building_well_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_well_yellow.bin"
+        "buildings/yellow/building_well_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3516,13 +3516,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_windmill",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_windmill_yellow.gltf",
+      "modelPath": "buildings/yellow/building_windmill_yellow.gltf",
       "sourcePath": "buildings/yellow/building_windmill_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_windmill_yellow.bin"
+        "buildings/yellow/building_windmill_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3553,13 +3553,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "cloud_big",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/cloud_big.gltf",
+      "modelPath": "decoration/nature/cloud_big.gltf",
       "sourcePath": "decoration/nature/cloud_big.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/cloud_big.bin"
+        "decoration/nature/cloud_big.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3590,13 +3590,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "cloud_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/cloud_small.gltf",
+      "modelPath": "decoration/nature/cloud_small.gltf",
       "sourcePath": "decoration/nature/cloud_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/cloud_small.bin"
+        "decoration/nature/cloud_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3627,13 +3627,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hill_single_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hill_single_A.gltf",
+      "modelPath": "decoration/nature/hill_single_A.gltf",
       "sourcePath": "decoration/nature/hill_single_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hill_single_A.bin"
+        "decoration/nature/hill_single_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3664,13 +3664,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hill_single_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hill_single_B.gltf",
+      "modelPath": "decoration/nature/hill_single_B.gltf",
       "sourcePath": "decoration/nature/hill_single_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hill_single_B.bin"
+        "decoration/nature/hill_single_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3701,13 +3701,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hill_single_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hill_single_C.gltf",
+      "modelPath": "decoration/nature/hill_single_C.gltf",
       "sourcePath": "decoration/nature/hill_single_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hill_single_C.bin"
+        "decoration/nature/hill_single_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3738,13 +3738,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_A_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_A_trees.gltf",
+      "modelPath": "decoration/nature/hills_A_trees.gltf",
       "sourcePath": "decoration/nature/hills_A_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_A_trees.bin"
+        "decoration/nature/hills_A_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3775,13 +3775,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_A.gltf",
+      "modelPath": "decoration/nature/hills_A.gltf",
       "sourcePath": "decoration/nature/hills_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_A.bin"
+        "decoration/nature/hills_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3812,13 +3812,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_B_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_B_trees.gltf",
+      "modelPath": "decoration/nature/hills_B_trees.gltf",
       "sourcePath": "decoration/nature/hills_B_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_B_trees.bin"
+        "decoration/nature/hills_B_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3849,13 +3849,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_B.gltf",
+      "modelPath": "decoration/nature/hills_B.gltf",
       "sourcePath": "decoration/nature/hills_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_B.bin"
+        "decoration/nature/hills_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3886,13 +3886,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_C_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_C_trees.gltf",
+      "modelPath": "decoration/nature/hills_C_trees.gltf",
       "sourcePath": "decoration/nature/hills_C_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_C_trees.bin"
+        "decoration/nature/hills_C_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3923,13 +3923,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_C.gltf",
+      "modelPath": "decoration/nature/hills_C.gltf",
       "sourcePath": "decoration/nature/hills_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_C.bin"
+        "decoration/nature/hills_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3960,13 +3960,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_A_grass_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_A_grass_trees.gltf",
+      "modelPath": "decoration/nature/mountain_A_grass_trees.gltf",
       "sourcePath": "decoration/nature/mountain_A_grass_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_A_grass_trees.bin"
+        "decoration/nature/mountain_A_grass_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -3997,13 +3997,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_A_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_A_grass.gltf",
+      "modelPath": "decoration/nature/mountain_A_grass.gltf",
       "sourcePath": "decoration/nature/mountain_A_grass.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_A_grass.bin"
+        "decoration/nature/mountain_A_grass.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4034,13 +4034,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_A.gltf",
+      "modelPath": "decoration/nature/mountain_A.gltf",
       "sourcePath": "decoration/nature/mountain_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_A.bin"
+        "decoration/nature/mountain_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4071,13 +4071,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_B_grass_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_B_grass_trees.gltf",
+      "modelPath": "decoration/nature/mountain_B_grass_trees.gltf",
       "sourcePath": "decoration/nature/mountain_B_grass_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_B_grass_trees.bin"
+        "decoration/nature/mountain_B_grass_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4108,13 +4108,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_B_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_B_grass.gltf",
+      "modelPath": "decoration/nature/mountain_B_grass.gltf",
       "sourcePath": "decoration/nature/mountain_B_grass.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_B_grass.bin"
+        "decoration/nature/mountain_B_grass.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4145,13 +4145,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_B.gltf",
+      "modelPath": "decoration/nature/mountain_B.gltf",
       "sourcePath": "decoration/nature/mountain_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_B.bin"
+        "decoration/nature/mountain_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4182,13 +4182,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_C_grass_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_C_grass_trees.gltf",
+      "modelPath": "decoration/nature/mountain_C_grass_trees.gltf",
       "sourcePath": "decoration/nature/mountain_C_grass_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_C_grass_trees.bin"
+        "decoration/nature/mountain_C_grass_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4219,13 +4219,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_C_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_C_grass.gltf",
+      "modelPath": "decoration/nature/mountain_C_grass.gltf",
       "sourcePath": "decoration/nature/mountain_C_grass.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_C_grass.bin"
+        "decoration/nature/mountain_C_grass.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4256,13 +4256,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_C.gltf",
+      "modelPath": "decoration/nature/mountain_C.gltf",
       "sourcePath": "decoration/nature/mountain_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_C.bin"
+        "decoration/nature/mountain_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4293,13 +4293,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_A.gltf",
+      "modelPath": "decoration/nature/rock_single_A.gltf",
       "sourcePath": "decoration/nature/rock_single_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_A.bin"
+        "decoration/nature/rock_single_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4330,13 +4330,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_B.gltf",
+      "modelPath": "decoration/nature/rock_single_B.gltf",
       "sourcePath": "decoration/nature/rock_single_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_B.bin"
+        "decoration/nature/rock_single_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4367,13 +4367,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_C.gltf",
+      "modelPath": "decoration/nature/rock_single_C.gltf",
       "sourcePath": "decoration/nature/rock_single_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_C.bin"
+        "decoration/nature/rock_single_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4404,13 +4404,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_D",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_D.gltf",
+      "modelPath": "decoration/nature/rock_single_D.gltf",
       "sourcePath": "decoration/nature/rock_single_D.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_D.bin"
+        "decoration/nature/rock_single_D.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4441,13 +4441,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_E",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_E.gltf",
+      "modelPath": "decoration/nature/rock_single_E.gltf",
       "sourcePath": "decoration/nature/rock_single_E.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_E.bin"
+        "decoration/nature/rock_single_E.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4478,13 +4478,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "tree_single_A_cut",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/tree_single_A_cut.gltf",
+      "modelPath": "decoration/nature/tree_single_A_cut.gltf",
       "sourcePath": "decoration/nature/tree_single_A_cut.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/tree_single_A_cut.bin"
+        "decoration/nature/tree_single_A_cut.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4515,13 +4515,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "tree_single_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/tree_single_A.gltf",
+      "modelPath": "decoration/nature/tree_single_A.gltf",
       "sourcePath": "decoration/nature/tree_single_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/tree_single_A.bin"
+        "decoration/nature/tree_single_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4552,13 +4552,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "tree_single_B_cut",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/tree_single_B_cut.gltf",
+      "modelPath": "decoration/nature/tree_single_B_cut.gltf",
       "sourcePath": "decoration/nature/tree_single_B_cut.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/tree_single_B_cut.bin"
+        "decoration/nature/tree_single_B_cut.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4589,13 +4589,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "tree_single_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/tree_single_B.gltf",
+      "modelPath": "decoration/nature/tree_single_B.gltf",
       "sourcePath": "decoration/nature/tree_single_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/tree_single_B.bin"
+        "decoration/nature/tree_single_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4626,13 +4626,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_A_cut",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_A_cut.gltf",
+      "modelPath": "decoration/nature/trees_A_cut.gltf",
       "sourcePath": "decoration/nature/trees_A_cut.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_A_cut.bin"
+        "decoration/nature/trees_A_cut.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4663,13 +4663,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_A_large",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_A_large.gltf",
+      "modelPath": "decoration/nature/trees_A_large.gltf",
       "sourcePath": "decoration/nature/trees_A_large.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_A_large.bin"
+        "decoration/nature/trees_A_large.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4700,13 +4700,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_A_medium",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_A_medium.gltf",
+      "modelPath": "decoration/nature/trees_A_medium.gltf",
       "sourcePath": "decoration/nature/trees_A_medium.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_A_medium.bin"
+        "decoration/nature/trees_A_medium.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4737,13 +4737,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_A_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_A_small.gltf",
+      "modelPath": "decoration/nature/trees_A_small.gltf",
       "sourcePath": "decoration/nature/trees_A_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_A_small.bin"
+        "decoration/nature/trees_A_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4774,13 +4774,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_B_cut",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_B_cut.gltf",
+      "modelPath": "decoration/nature/trees_B_cut.gltf",
       "sourcePath": "decoration/nature/trees_B_cut.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_B_cut.bin"
+        "decoration/nature/trees_B_cut.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4811,13 +4811,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_B_large",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_B_large.gltf",
+      "modelPath": "decoration/nature/trees_B_large.gltf",
       "sourcePath": "decoration/nature/trees_B_large.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_B_large.bin"
+        "decoration/nature/trees_B_large.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4848,13 +4848,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_B_medium",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_B_medium.gltf",
+      "modelPath": "decoration/nature/trees_B_medium.gltf",
       "sourcePath": "decoration/nature/trees_B_medium.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_B_medium.bin"
+        "decoration/nature/trees_B_medium.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4885,13 +4885,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_B_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_B_small.gltf",
+      "modelPath": "decoration/nature/trees_B_small.gltf",
       "sourcePath": "decoration/nature/trees_B_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_B_small.bin"
+        "decoration/nature/trees_B_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4922,13 +4922,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterlily_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterlily_A.gltf",
+      "modelPath": "decoration/nature/waterlily_A.gltf",
       "sourcePath": "decoration/nature/waterlily_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterlily_A.bin"
+        "decoration/nature/waterlily_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4959,13 +4959,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterlily_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterlily_B.gltf",
+      "modelPath": "decoration/nature/waterlily_B.gltf",
       "sourcePath": "decoration/nature/waterlily_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterlily_B.bin"
+        "decoration/nature/waterlily_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -4996,13 +4996,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterplant_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterplant_A.gltf",
+      "modelPath": "decoration/nature/waterplant_A.gltf",
       "sourcePath": "decoration/nature/waterplant_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterplant_A.bin"
+        "decoration/nature/waterplant_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5033,13 +5033,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterplant_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterplant_B.gltf",
+      "modelPath": "decoration/nature/waterplant_B.gltf",
       "sourcePath": "decoration/nature/waterplant_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterplant_B.bin"
+        "decoration/nature/waterplant_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5070,13 +5070,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterplant_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterplant_C.gltf",
+      "modelPath": "decoration/nature/waterplant_C.gltf",
       "sourcePath": "decoration/nature/waterplant_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterplant_C.bin"
+        "decoration/nature/waterplant_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5107,13 +5107,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "barrel",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/barrel.gltf",
+      "modelPath": "decoration/props/barrel.gltf",
       "sourcePath": "decoration/props/barrel.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/barrel.bin"
+        "decoration/props/barrel.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5144,13 +5144,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "bucket_arrows",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/bucket_arrows.gltf",
+      "modelPath": "decoration/props/bucket_arrows.gltf",
       "sourcePath": "decoration/props/bucket_arrows.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/bucket_arrows.bin"
+        "decoration/props/bucket_arrows.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5181,13 +5181,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "bucket_empty",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/bucket_empty.gltf",
+      "modelPath": "decoration/props/bucket_empty.gltf",
       "sourcePath": "decoration/props/bucket_empty.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/bucket_empty.bin"
+        "decoration/props/bucket_empty.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5218,13 +5218,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "bucket_water",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/bucket_water.gltf",
+      "modelPath": "decoration/props/bucket_water.gltf",
       "sourcePath": "decoration/props/bucket_water.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/bucket_water.bin"
+        "decoration/props/bucket_water.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5255,13 +5255,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_A_big",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_A_big.gltf",
+      "modelPath": "decoration/props/crate_A_big.gltf",
       "sourcePath": "decoration/props/crate_A_big.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_A_big.bin"
+        "decoration/props/crate_A_big.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5292,13 +5292,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_A_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_A_small.gltf",
+      "modelPath": "decoration/props/crate_A_small.gltf",
       "sourcePath": "decoration/props/crate_A_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_A_small.bin"
+        "decoration/props/crate_A_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5329,13 +5329,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_B_big",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_B_big.gltf",
+      "modelPath": "decoration/props/crate_B_big.gltf",
       "sourcePath": "decoration/props/crate_B_big.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_B_big.bin"
+        "decoration/props/crate_B_big.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5366,13 +5366,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_B_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_B_small.gltf",
+      "modelPath": "decoration/props/crate_B_small.gltf",
       "sourcePath": "decoration/props/crate_B_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_B_small.bin"
+        "decoration/props/crate_B_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5403,13 +5403,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_long_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_long_A.gltf",
+      "modelPath": "decoration/props/crate_long_A.gltf",
       "sourcePath": "decoration/props/crate_long_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_long_A.bin"
+        "decoration/props/crate_long_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5440,13 +5440,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_long_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_long_B.gltf",
+      "modelPath": "decoration/props/crate_long_B.gltf",
       "sourcePath": "decoration/props/crate_long_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_long_B.bin"
+        "decoration/props/crate_long_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5477,13 +5477,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_long_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_long_C.gltf",
+      "modelPath": "decoration/props/crate_long_C.gltf",
       "sourcePath": "decoration/props/crate_long_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_long_C.bin"
+        "decoration/props/crate_long_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5514,13 +5514,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_long_empty",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_long_empty.gltf",
+      "modelPath": "decoration/props/crate_long_empty.gltf",
       "sourcePath": "decoration/props/crate_long_empty.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_long_empty.bin"
+        "decoration/props/crate_long_empty.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5551,13 +5551,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_open",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_open.gltf",
+      "modelPath": "decoration/props/crate_open.gltf",
       "sourcePath": "decoration/props/crate_open.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_open.bin"
+        "decoration/props/crate_open.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5589,13 +5589,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "flag",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/flag_blue.gltf",
+      "modelPath": "decoration/props/flag_blue.gltf",
       "sourcePath": "decoration/props/flag_blue.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/flag_blue.bin"
+        "decoration/props/flag_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5627,13 +5627,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "flag",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/flag_green.gltf",
+      "modelPath": "decoration/props/flag_green.gltf",
       "sourcePath": "decoration/props/flag_green.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/flag_green.bin"
+        "decoration/props/flag_green.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5665,13 +5665,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "flag",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/flag_red.gltf",
+      "modelPath": "decoration/props/flag_red.gltf",
       "sourcePath": "decoration/props/flag_red.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/flag_red.bin"
+        "decoration/props/flag_red.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5703,13 +5703,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "flag",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/flag_yellow.gltf",
+      "modelPath": "decoration/props/flag_yellow.gltf",
       "sourcePath": "decoration/props/flag_yellow.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/flag_yellow.bin"
+        "decoration/props/flag_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5740,13 +5740,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "ladder",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/ladder.gltf",
+      "modelPath": "decoration/props/ladder.gltf",
       "sourcePath": "decoration/props/ladder.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/ladder.bin"
+        "decoration/props/ladder.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5777,13 +5777,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "pallet",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/pallet.gltf",
+      "modelPath": "decoration/props/pallet.gltf",
       "sourcePath": "decoration/props/pallet.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/pallet.bin"
+        "decoration/props/pallet.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5814,13 +5814,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "resource_lumber",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/resource_lumber.gltf",
+      "modelPath": "decoration/props/resource_lumber.gltf",
       "sourcePath": "decoration/props/resource_lumber.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/resource_lumber.bin"
+        "decoration/props/resource_lumber.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5851,13 +5851,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "resource_stone",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/resource_stone.gltf",
+      "modelPath": "decoration/props/resource_stone.gltf",
       "sourcePath": "decoration/props/resource_stone.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/resource_stone.bin"
+        "decoration/props/resource_stone.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5888,13 +5888,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "sack",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/sack.gltf",
+      "modelPath": "decoration/props/sack.gltf",
       "sourcePath": "decoration/props/sack.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/sack.bin"
+        "decoration/props/sack.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5925,13 +5925,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "target",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/target.gltf",
+      "modelPath": "decoration/props/target.gltf",
       "sourcePath": "decoration/props/target.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/target.bin"
+        "decoration/props/target.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5962,13 +5962,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "tent",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/tent.gltf",
+      "modelPath": "decoration/props/tent.gltf",
       "sourcePath": "decoration/props/tent.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/tent.bin"
+        "decoration/props/tent.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -5999,13 +5999,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "weaponrack",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/weaponrack.gltf",
+      "modelPath": "decoration/props/weaponrack.gltf",
       "sourcePath": "decoration/props/weaponrack.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/weaponrack.bin"
+        "decoration/props/weaponrack.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6036,13 +6036,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "wheelbarrow",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/wheelbarrow.gltf",
+      "modelPath": "decoration/props/wheelbarrow.gltf",
       "sourcePath": "decoration/props/wheelbarrow.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/wheelbarrow.bin"
+        "decoration/props/wheelbarrow.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6073,13 +6073,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_grass_bottom",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_grass_bottom.gltf",
+      "modelPath": "tiles/base/hex_grass_bottom.gltf",
       "sourcePath": "tiles/base/hex_grass_bottom.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_grass_bottom.bin"
+        "tiles/base/hex_grass_bottom.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6110,13 +6110,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_grass_sloped_high.gltf",
+      "modelPath": "tiles/base/hex_grass_sloped_high.gltf",
       "sourcePath": "tiles/base/hex_grass_sloped_high.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_grass_sloped_high.bin"
+        "tiles/base/hex_grass_sloped_high.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6147,13 +6147,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_grass_sloped_low.gltf",
+      "modelPath": "tiles/base/hex_grass_sloped_low.gltf",
       "sourcePath": "tiles/base/hex_grass_sloped_low.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_grass_sloped_low.bin"
+        "tiles/base/hex_grass_sloped_low.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6184,13 +6184,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_grass.gltf",
+      "modelPath": "tiles/base/hex_grass.gltf",
       "sourcePath": "tiles/base/hex_grass.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_grass.bin"
+        "tiles/base/hex_grass.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6221,13 +6221,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_water",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_water.gltf",
+      "modelPath": "tiles/base/hex_water.gltf",
       "sourcePath": "tiles/base/hex_water.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_water.bin"
+        "tiles/base/hex_water.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6258,13 +6258,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_A.gltf",
+      "modelPath": "tiles/coast/hex_coast_A.gltf",
       "sourcePath": "tiles/coast/hex_coast_A.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_A.bin"
+        "tiles/coast/hex_coast_A.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6295,13 +6295,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_B.gltf",
+      "modelPath": "tiles/coast/hex_coast_B.gltf",
       "sourcePath": "tiles/coast/hex_coast_B.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_B.bin"
+        "tiles/coast/hex_coast_B.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6332,13 +6332,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_C.gltf",
+      "modelPath": "tiles/coast/hex_coast_C.gltf",
       "sourcePath": "tiles/coast/hex_coast_C.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_C.bin"
+        "tiles/coast/hex_coast_C.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6369,13 +6369,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_D.gltf",
+      "modelPath": "tiles/coast/hex_coast_D.gltf",
       "sourcePath": "tiles/coast/hex_coast_D.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_D.bin"
+        "tiles/coast/hex_coast_D.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6406,13 +6406,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_E.gltf",
+      "modelPath": "tiles/coast/hex_coast_E.gltf",
       "sourcePath": "tiles/coast/hex_coast_E.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_E.bin"
+        "tiles/coast/hex_coast_E.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6443,13 +6443,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_A_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_A_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_A_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_A_waterless.bin"
+        "tiles/coast/waterless/hex_coast_A_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6480,13 +6480,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_B_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_B_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_B_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_B_waterless.bin"
+        "tiles/coast/waterless/hex_coast_B_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6517,13 +6517,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_C_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_C_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_C_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_C_waterless.bin"
+        "tiles/coast/waterless/hex_coast_C_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6554,13 +6554,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_D_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_D_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_D_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_D_waterless.bin"
+        "tiles/coast/waterless/hex_coast_D_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6591,13 +6591,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_E_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_E_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_E_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_E_waterless.bin"
+        "tiles/coast/waterless/hex_coast_E_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6628,13 +6628,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_A_curvy",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_A_curvy.gltf",
+      "modelPath": "tiles/rivers/hex_river_A_curvy.gltf",
       "sourcePath": "tiles/rivers/hex_river_A_curvy.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_A_curvy.bin"
+        "tiles/rivers/hex_river_A_curvy.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6665,13 +6665,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_A.gltf",
+      "modelPath": "tiles/rivers/hex_river_A.gltf",
       "sourcePath": "tiles/rivers/hex_river_A.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_A.bin"
+        "tiles/rivers/hex_river_A.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6702,13 +6702,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_B.gltf",
+      "modelPath": "tiles/rivers/hex_river_B.gltf",
       "sourcePath": "tiles/rivers/hex_river_B.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_B.bin"
+        "tiles/rivers/hex_river_B.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6739,13 +6739,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_C.gltf",
+      "modelPath": "tiles/rivers/hex_river_C.gltf",
       "sourcePath": "tiles/rivers/hex_river_C.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_C.bin"
+        "tiles/rivers/hex_river_C.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6776,13 +6776,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_crossing_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_crossing_A.gltf",
+      "modelPath": "tiles/rivers/hex_river_crossing_A.gltf",
       "sourcePath": "tiles/rivers/hex_river_crossing_A.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_crossing_A.bin"
+        "tiles/rivers/hex_river_crossing_A.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6813,13 +6813,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_crossing_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_crossing_B.gltf",
+      "modelPath": "tiles/rivers/hex_river_crossing_B.gltf",
       "sourcePath": "tiles/rivers/hex_river_crossing_B.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_crossing_B.bin"
+        "tiles/rivers/hex_river_crossing_B.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6850,13 +6850,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_D.gltf",
+      "modelPath": "tiles/rivers/hex_river_D.gltf",
       "sourcePath": "tiles/rivers/hex_river_D.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_D.bin"
+        "tiles/rivers/hex_river_D.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6887,13 +6887,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_E.gltf",
+      "modelPath": "tiles/rivers/hex_river_E.gltf",
       "sourcePath": "tiles/rivers/hex_river_E.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_E.bin"
+        "tiles/rivers/hex_river_E.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6924,13 +6924,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_F",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_F.gltf",
+      "modelPath": "tiles/rivers/hex_river_F.gltf",
       "sourcePath": "tiles/rivers/hex_river_F.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_F.bin"
+        "tiles/rivers/hex_river_F.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6961,13 +6961,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_G",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_G.gltf",
+      "modelPath": "tiles/rivers/hex_river_G.gltf",
       "sourcePath": "tiles/rivers/hex_river_G.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_G.bin"
+        "tiles/rivers/hex_river_G.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -6998,13 +6998,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_H",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_H.gltf",
+      "modelPath": "tiles/rivers/hex_river_H.gltf",
       "sourcePath": "tiles/rivers/hex_river_H.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_H.bin"
+        "tiles/rivers/hex_river_H.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7035,13 +7035,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_I",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_I.gltf",
+      "modelPath": "tiles/rivers/hex_river_I.gltf",
       "sourcePath": "tiles/rivers/hex_river_I.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_I.bin"
+        "tiles/rivers/hex_river_I.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7072,13 +7072,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_J",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_J.gltf",
+      "modelPath": "tiles/rivers/hex_river_J.gltf",
       "sourcePath": "tiles/rivers/hex_river_J.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_J.bin"
+        "tiles/rivers/hex_river_J.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7109,13 +7109,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_K",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_K.gltf",
+      "modelPath": "tiles/rivers/hex_river_K.gltf",
       "sourcePath": "tiles/rivers/hex_river_K.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_K.bin"
+        "tiles/rivers/hex_river_K.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7146,13 +7146,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_L",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_L.gltf",
+      "modelPath": "tiles/rivers/hex_river_L.gltf",
       "sourcePath": "tiles/rivers/hex_river_L.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_L.bin"
+        "tiles/rivers/hex_river_L.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7183,13 +7183,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_A_curvy",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_A_curvy_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_A_curvy_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_A_curvy_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_A_curvy_waterless.bin"
+        "tiles/rivers/waterless/hex_river_A_curvy_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7220,13 +7220,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_A_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_A_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_A_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_A_waterless.bin"
+        "tiles/rivers/waterless/hex_river_A_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7257,13 +7257,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_B_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_B_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_B_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_B_waterless.bin"
+        "tiles/rivers/waterless/hex_river_B_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7294,13 +7294,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_C_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_C_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_C_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_C_waterless.bin"
+        "tiles/rivers/waterless/hex_river_C_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7331,13 +7331,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_crossing_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_crossing_A_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_crossing_A_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_crossing_A_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_crossing_A_waterless.bin"
+        "tiles/rivers/waterless/hex_river_crossing_A_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7368,13 +7368,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_crossing_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_crossing_B_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_crossing_B_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_crossing_B_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_crossing_B_waterless.bin"
+        "tiles/rivers/waterless/hex_river_crossing_B_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7405,13 +7405,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_D_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_D_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_D_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_D_waterless.bin"
+        "tiles/rivers/waterless/hex_river_D_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7442,13 +7442,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_E_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_E_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_E_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_E_waterless.bin"
+        "tiles/rivers/waterless/hex_river_E_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7479,13 +7479,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_F",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_F_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_F_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_F_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_F_waterless.bin"
+        "tiles/rivers/waterless/hex_river_F_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7516,13 +7516,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_G",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_G_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_G_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_G_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_G_waterless.bin"
+        "tiles/rivers/waterless/hex_river_G_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7553,13 +7553,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_H",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_H_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_H_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_H_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_H_waterless.bin"
+        "tiles/rivers/waterless/hex_river_H_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7590,13 +7590,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_I",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_I_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_I_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_I_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_I_waterless.bin"
+        "tiles/rivers/waterless/hex_river_I_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7627,13 +7627,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_J",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_J_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_J_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_J_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_J_waterless.bin"
+        "tiles/rivers/waterless/hex_river_J_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7664,13 +7664,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_K",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_K_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_K_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_K_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_K_waterless.bin"
+        "tiles/rivers/waterless/hex_river_K_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7701,13 +7701,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_L",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_L_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_L_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_L_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_L_waterless.bin"
+        "tiles/rivers/waterless/hex_river_L_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7738,13 +7738,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_A_sloped_high.gltf",
+      "modelPath": "tiles/roads/hex_road_A_sloped_high.gltf",
       "sourcePath": "tiles/roads/hex_road_A_sloped_high.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_A_sloped_high.bin"
+        "tiles/roads/hex_road_A_sloped_high.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7775,13 +7775,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_A_sloped_low.gltf",
+      "modelPath": "tiles/roads/hex_road_A_sloped_low.gltf",
       "sourcePath": "tiles/roads/hex_road_A_sloped_low.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_A_sloped_low.bin"
+        "tiles/roads/hex_road_A_sloped_low.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7812,13 +7812,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_A.gltf",
+      "modelPath": "tiles/roads/hex_road_A.gltf",
       "sourcePath": "tiles/roads/hex_road_A.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_A.bin"
+        "tiles/roads/hex_road_A.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7849,13 +7849,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_B.gltf",
+      "modelPath": "tiles/roads/hex_road_B.gltf",
       "sourcePath": "tiles/roads/hex_road_B.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_B.bin"
+        "tiles/roads/hex_road_B.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7886,13 +7886,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_C.gltf",
+      "modelPath": "tiles/roads/hex_road_C.gltf",
       "sourcePath": "tiles/roads/hex_road_C.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_C.bin"
+        "tiles/roads/hex_road_C.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7923,13 +7923,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_D.gltf",
+      "modelPath": "tiles/roads/hex_road_D.gltf",
       "sourcePath": "tiles/roads/hex_road_D.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_D.bin"
+        "tiles/roads/hex_road_D.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7960,13 +7960,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_E.gltf",
+      "modelPath": "tiles/roads/hex_road_E.gltf",
       "sourcePath": "tiles/roads/hex_road_E.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_E.bin"
+        "tiles/roads/hex_road_E.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -7997,13 +7997,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_F",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_F.gltf",
+      "modelPath": "tiles/roads/hex_road_F.gltf",
       "sourcePath": "tiles/roads/hex_road_F.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_F.bin"
+        "tiles/roads/hex_road_F.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8034,13 +8034,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_G",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_G.gltf",
+      "modelPath": "tiles/roads/hex_road_G.gltf",
       "sourcePath": "tiles/roads/hex_road_G.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_G.bin"
+        "tiles/roads/hex_road_G.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8071,13 +8071,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_H",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_H.gltf",
+      "modelPath": "tiles/roads/hex_road_H.gltf",
       "sourcePath": "tiles/roads/hex_road_H.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_H.bin"
+        "tiles/roads/hex_road_H.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8108,13 +8108,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_I",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_I.gltf",
+      "modelPath": "tiles/roads/hex_road_I.gltf",
       "sourcePath": "tiles/roads/hex_road_I.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_I.bin"
+        "tiles/roads/hex_road_I.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8145,13 +8145,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_J",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_J.gltf",
+      "modelPath": "tiles/roads/hex_road_J.gltf",
       "sourcePath": "tiles/roads/hex_road_J.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_J.bin"
+        "tiles/roads/hex_road_J.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8182,13 +8182,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_K",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_K.gltf",
+      "modelPath": "tiles/roads/hex_road_K.gltf",
       "sourcePath": "tiles/roads/hex_road_K.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_K.bin"
+        "tiles/roads/hex_road_K.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8219,13 +8219,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_L",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_L.gltf",
+      "modelPath": "tiles/roads/hex_road_L.gltf",
       "sourcePath": "tiles/roads/hex_road_L.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_L.bin"
+        "tiles/roads/hex_road_L.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8256,13 +8256,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_M",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_M.gltf",
+      "modelPath": "tiles/roads/hex_road_M.gltf",
       "sourcePath": "tiles/roads/hex_road_M.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_M.bin"
+        "tiles/roads/hex_road_M.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8296,13 +8296,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_archeryrange",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_archeryrange_blue.gltf",
+      "modelPath": "buildings/blue/building_archeryrange_blue.gltf",
       "sourcePath": "buildings/blue/building_archeryrange_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_archeryrange_blue.bin"
+        "buildings/blue/building_archeryrange_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8334,13 +8334,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_barracks",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_barracks_blue.gltf",
+      "modelPath": "buildings/blue/building_barracks_blue.gltf",
       "sourcePath": "buildings/blue/building_barracks_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_barracks_blue.bin"
+        "buildings/blue/building_barracks_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8372,13 +8372,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_blacksmith",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_blacksmith_blue.gltf",
+      "modelPath": "buildings/blue/building_blacksmith_blue.gltf",
       "sourcePath": "buildings/blue/building_blacksmith_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_blacksmith_blue.bin"
+        "buildings/blue/building_blacksmith_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8410,13 +8410,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_castle",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_castle_blue.gltf",
+      "modelPath": "buildings/blue/building_castle_blue.gltf",
       "sourcePath": "buildings/blue/building_castle_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_castle_blue.bin"
+        "buildings/blue/building_castle_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8448,13 +8448,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_church",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_church_blue.gltf",
+      "modelPath": "buildings/blue/building_church_blue.gltf",
       "sourcePath": "buildings/blue/building_church_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_church_blue.bin"
+        "buildings/blue/building_church_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8486,13 +8486,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_A",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_home_A_blue.gltf",
+      "modelPath": "buildings/blue/building_home_A_blue.gltf",
       "sourcePath": "buildings/blue/building_home_A_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_home_A_blue.bin"
+        "buildings/blue/building_home_A_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8524,13 +8524,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_B",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_home_B_blue.gltf",
+      "modelPath": "buildings/blue/building_home_B_blue.gltf",
       "sourcePath": "buildings/blue/building_home_B_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_home_B_blue.bin"
+        "buildings/blue/building_home_B_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8562,13 +8562,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_lumbermill",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_lumbermill_blue.gltf",
+      "modelPath": "buildings/blue/building_lumbermill_blue.gltf",
       "sourcePath": "buildings/blue/building_lumbermill_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_lumbermill_blue.bin"
+        "buildings/blue/building_lumbermill_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8600,13 +8600,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_market",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_market_blue.gltf",
+      "modelPath": "buildings/blue/building_market_blue.gltf",
       "sourcePath": "buildings/blue/building_market_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_market_blue.bin"
+        "buildings/blue/building_market_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8638,13 +8638,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_mine",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_mine_blue.gltf",
+      "modelPath": "buildings/blue/building_mine_blue.gltf",
       "sourcePath": "buildings/blue/building_mine_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_mine_blue.bin"
+        "buildings/blue/building_mine_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8676,13 +8676,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tavern",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tavern_blue.gltf",
+      "modelPath": "buildings/blue/building_tavern_blue.gltf",
       "sourcePath": "buildings/blue/building_tavern_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tavern_blue.bin"
+        "buildings/blue/building_tavern_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8714,13 +8714,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_A",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tower_A_blue.gltf",
+      "modelPath": "buildings/blue/building_tower_A_blue.gltf",
       "sourcePath": "buildings/blue/building_tower_A_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tower_A_blue.bin"
+        "buildings/blue/building_tower_A_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8752,13 +8752,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_B",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tower_B_blue.gltf",
+      "modelPath": "buildings/blue/building_tower_B_blue.gltf",
       "sourcePath": "buildings/blue/building_tower_B_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tower_B_blue.bin"
+        "buildings/blue/building_tower_B_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8790,13 +8790,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_base",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tower_base_blue.gltf",
+      "modelPath": "buildings/blue/building_tower_base_blue.gltf",
       "sourcePath": "buildings/blue/building_tower_base_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tower_base_blue.bin"
+        "buildings/blue/building_tower_base_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8828,13 +8828,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_catapult",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_tower_catapult_blue.gltf",
+      "modelPath": "buildings/blue/building_tower_catapult_blue.gltf",
       "sourcePath": "buildings/blue/building_tower_catapult_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_tower_catapult_blue.bin"
+        "buildings/blue/building_tower_catapult_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8866,13 +8866,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_watermill",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_watermill_blue.gltf",
+      "modelPath": "buildings/blue/building_watermill_blue.gltf",
       "sourcePath": "buildings/blue/building_watermill_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_watermill_blue.bin"
+        "buildings/blue/building_watermill_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8904,13 +8904,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_well",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_well_blue.gltf",
+      "modelPath": "buildings/blue/building_well_blue.gltf",
       "sourcePath": "buildings/blue/building_well_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_well_blue.bin"
+        "buildings/blue/building_well_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8942,13 +8942,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_windmill",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/blue/building_windmill_blue.gltf",
+      "modelPath": "buildings/blue/building_windmill_blue.gltf",
       "sourcePath": "buildings/blue/building_windmill_blue.gltf",
       "bufferPaths": [
-        "assets/free/buildings/blue/building_windmill_blue.bin"
+        "buildings/blue/building_windmill_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/blue/hexagons_medieval.png"
+        "buildings/blue/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -8980,13 +8980,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_archeryrange",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_archeryrange_green.gltf",
+      "modelPath": "buildings/green/building_archeryrange_green.gltf",
       "sourcePath": "buildings/green/building_archeryrange_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_archeryrange_green.bin"
+        "buildings/green/building_archeryrange_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9018,13 +9018,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_barracks",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_barracks_green.gltf",
+      "modelPath": "buildings/green/building_barracks_green.gltf",
       "sourcePath": "buildings/green/building_barracks_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_barracks_green.bin"
+        "buildings/green/building_barracks_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9056,13 +9056,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_blacksmith",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_blacksmith_green.gltf",
+      "modelPath": "buildings/green/building_blacksmith_green.gltf",
       "sourcePath": "buildings/green/building_blacksmith_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_blacksmith_green.bin"
+        "buildings/green/building_blacksmith_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9094,13 +9094,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_castle",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_castle_green.gltf",
+      "modelPath": "buildings/green/building_castle_green.gltf",
       "sourcePath": "buildings/green/building_castle_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_castle_green.bin"
+        "buildings/green/building_castle_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9132,13 +9132,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_church",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_church_green.gltf",
+      "modelPath": "buildings/green/building_church_green.gltf",
       "sourcePath": "buildings/green/building_church_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_church_green.bin"
+        "buildings/green/building_church_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9170,13 +9170,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_A",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_home_A_green.gltf",
+      "modelPath": "buildings/green/building_home_A_green.gltf",
       "sourcePath": "buildings/green/building_home_A_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_home_A_green.bin"
+        "buildings/green/building_home_A_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9208,13 +9208,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_B",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_home_B_green.gltf",
+      "modelPath": "buildings/green/building_home_B_green.gltf",
       "sourcePath": "buildings/green/building_home_B_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_home_B_green.bin"
+        "buildings/green/building_home_B_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9246,13 +9246,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_lumbermill",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_lumbermill_green.gltf",
+      "modelPath": "buildings/green/building_lumbermill_green.gltf",
       "sourcePath": "buildings/green/building_lumbermill_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_lumbermill_green.bin"
+        "buildings/green/building_lumbermill_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9284,13 +9284,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_market",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_market_green.gltf",
+      "modelPath": "buildings/green/building_market_green.gltf",
       "sourcePath": "buildings/green/building_market_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_market_green.bin"
+        "buildings/green/building_market_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9322,13 +9322,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_mine",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_mine_green.gltf",
+      "modelPath": "buildings/green/building_mine_green.gltf",
       "sourcePath": "buildings/green/building_mine_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_mine_green.bin"
+        "buildings/green/building_mine_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9360,13 +9360,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tavern",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tavern_green.gltf",
+      "modelPath": "buildings/green/building_tavern_green.gltf",
       "sourcePath": "buildings/green/building_tavern_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tavern_green.bin"
+        "buildings/green/building_tavern_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9398,13 +9398,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_A",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tower_A_green.gltf",
+      "modelPath": "buildings/green/building_tower_A_green.gltf",
       "sourcePath": "buildings/green/building_tower_A_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tower_A_green.bin"
+        "buildings/green/building_tower_A_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9436,13 +9436,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_B",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tower_B_green.gltf",
+      "modelPath": "buildings/green/building_tower_B_green.gltf",
       "sourcePath": "buildings/green/building_tower_B_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tower_B_green.bin"
+        "buildings/green/building_tower_B_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9474,13 +9474,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_base",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tower_base_green.gltf",
+      "modelPath": "buildings/green/building_tower_base_green.gltf",
       "sourcePath": "buildings/green/building_tower_base_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tower_base_green.bin"
+        "buildings/green/building_tower_base_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9512,13 +9512,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_catapult",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_tower_catapult_green.gltf",
+      "modelPath": "buildings/green/building_tower_catapult_green.gltf",
       "sourcePath": "buildings/green/building_tower_catapult_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_tower_catapult_green.bin"
+        "buildings/green/building_tower_catapult_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9550,13 +9550,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_watermill",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_watermill_green.gltf",
+      "modelPath": "buildings/green/building_watermill_green.gltf",
       "sourcePath": "buildings/green/building_watermill_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_watermill_green.bin"
+        "buildings/green/building_watermill_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9588,13 +9588,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_well",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_well_green.gltf",
+      "modelPath": "buildings/green/building_well_green.gltf",
       "sourcePath": "buildings/green/building_well_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_well_green.bin"
+        "buildings/green/building_well_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9626,13 +9626,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_windmill",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/green/building_windmill_green.gltf",
+      "modelPath": "buildings/green/building_windmill_green.gltf",
       "sourcePath": "buildings/green/building_windmill_green.gltf",
       "bufferPaths": [
-        "assets/free/buildings/green/building_windmill_green.bin"
+        "buildings/green/building_windmill_green.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/green/hexagons_medieval.png"
+        "buildings/green/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9663,13 +9663,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_bridge_A",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_bridge_A.gltf",
+      "modelPath": "buildings/neutral/building_bridge_A.gltf",
       "sourcePath": "buildings/neutral/building_bridge_A.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_bridge_A.bin"
+        "buildings/neutral/building_bridge_A.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9700,13 +9700,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_bridge_B",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_bridge_B.gltf",
+      "modelPath": "buildings/neutral/building_bridge_B.gltf",
       "sourcePath": "buildings/neutral/building_bridge_B.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_bridge_B.bin"
+        "buildings/neutral/building_bridge_B.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9737,13 +9737,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_destroyed",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_destroyed.gltf",
+      "modelPath": "buildings/neutral/building_destroyed.gltf",
       "sourcePath": "buildings/neutral/building_destroyed.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_destroyed.bin"
+        "buildings/neutral/building_destroyed.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9774,13 +9774,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_dirt",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_dirt.gltf",
+      "modelPath": "buildings/neutral/building_dirt.gltf",
       "sourcePath": "buildings/neutral/building_dirt.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_dirt.bin"
+        "buildings/neutral/building_dirt.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9811,13 +9811,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_grain",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_grain.gltf",
+      "modelPath": "buildings/neutral/building_grain.gltf",
       "sourcePath": "buildings/neutral/building_grain.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_grain.bin"
+        "buildings/neutral/building_grain.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9848,13 +9848,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_scaffolding",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_scaffolding.gltf",
+      "modelPath": "buildings/neutral/building_scaffolding.gltf",
       "sourcePath": "buildings/neutral/building_scaffolding.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_scaffolding.bin"
+        "buildings/neutral/building_scaffolding.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9885,13 +9885,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_stage_A",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_stage_A.gltf",
+      "modelPath": "buildings/neutral/building_stage_A.gltf",
       "sourcePath": "buildings/neutral/building_stage_A.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_stage_A.bin"
+        "buildings/neutral/building_stage_A.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9922,13 +9922,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_stage_B",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_stage_B.gltf",
+      "modelPath": "buildings/neutral/building_stage_B.gltf",
       "sourcePath": "buildings/neutral/building_stage_B.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_stage_B.bin"
+        "buildings/neutral/building_stage_B.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9959,13 +9959,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "building_stage_C",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/building_stage_C.gltf",
+      "modelPath": "buildings/neutral/building_stage_C.gltf",
       "sourcePath": "buildings/neutral/building_stage_C.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/building_stage_C.bin"
+        "buildings/neutral/building_stage_C.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -9996,13 +9996,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "fence_stone_straight_gate",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/fence_stone_straight_gate.gltf",
+      "modelPath": "buildings/neutral/fence_stone_straight_gate.gltf",
       "sourcePath": "buildings/neutral/fence_stone_straight_gate.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/fence_stone_straight_gate.bin"
+        "buildings/neutral/fence_stone_straight_gate.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10033,13 +10033,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "fence_stone_straight",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/fence_stone_straight.gltf",
+      "modelPath": "buildings/neutral/fence_stone_straight.gltf",
       "sourcePath": "buildings/neutral/fence_stone_straight.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/fence_stone_straight.bin"
+        "buildings/neutral/fence_stone_straight.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10070,13 +10070,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "fence_wood_straight_gate",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/fence_wood_straight_gate.gltf",
+      "modelPath": "buildings/neutral/fence_wood_straight_gate.gltf",
       "sourcePath": "buildings/neutral/fence_wood_straight_gate.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/fence_wood_straight_gate.bin"
+        "buildings/neutral/fence_wood_straight_gate.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10107,13 +10107,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "fence_wood_straight",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/fence_wood_straight.gltf",
+      "modelPath": "buildings/neutral/fence_wood_straight.gltf",
       "sourcePath": "buildings/neutral/fence_wood_straight.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/fence_wood_straight.bin"
+        "buildings/neutral/fence_wood_straight.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10144,13 +10144,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "projectile_catapult",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/projectile_catapult.gltf",
+      "modelPath": "buildings/neutral/projectile_catapult.gltf",
       "sourcePath": "buildings/neutral/projectile_catapult.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/projectile_catapult.bin"
+        "buildings/neutral/projectile_catapult.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10181,13 +10181,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_A_gate",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_A_gate.gltf",
+      "modelPath": "buildings/neutral/wall_corner_A_gate.gltf",
       "sourcePath": "buildings/neutral/wall_corner_A_gate.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_A_gate.bin"
+        "buildings/neutral/wall_corner_A_gate.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10218,13 +10218,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_A_inside",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_A_inside.gltf",
+      "modelPath": "buildings/neutral/wall_corner_A_inside.gltf",
       "sourcePath": "buildings/neutral/wall_corner_A_inside.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_A_inside.bin"
+        "buildings/neutral/wall_corner_A_inside.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10255,13 +10255,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_A_outside",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_A_outside.gltf",
+      "modelPath": "buildings/neutral/wall_corner_A_outside.gltf",
       "sourcePath": "buildings/neutral/wall_corner_A_outside.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_A_outside.bin"
+        "buildings/neutral/wall_corner_A_outside.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10292,13 +10292,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_B_inside",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_B_inside.gltf",
+      "modelPath": "buildings/neutral/wall_corner_B_inside.gltf",
       "sourcePath": "buildings/neutral/wall_corner_B_inside.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_B_inside.bin"
+        "buildings/neutral/wall_corner_B_inside.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10329,13 +10329,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_corner_B_outside",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_corner_B_outside.gltf",
+      "modelPath": "buildings/neutral/wall_corner_B_outside.gltf",
       "sourcePath": "buildings/neutral/wall_corner_B_outside.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_corner_B_outside.bin"
+        "buildings/neutral/wall_corner_B_outside.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10366,13 +10366,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_straight_gate",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_straight_gate.gltf",
+      "modelPath": "buildings/neutral/wall_straight_gate.gltf",
       "sourcePath": "buildings/neutral/wall_straight_gate.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_straight_gate.bin"
+        "buildings/neutral/wall_straight_gate.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10403,13 +10403,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "neutral",
       "family": "wall_straight",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/neutral/wall_straight.gltf",
+      "modelPath": "buildings/neutral/wall_straight.gltf",
       "sourcePath": "buildings/neutral/wall_straight.gltf",
       "bufferPaths": [
-        "assets/free/buildings/neutral/wall_straight.bin"
+        "buildings/neutral/wall_straight.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/neutral/hexagons_medieval.png"
+        "buildings/neutral/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10441,13 +10441,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_archeryrange",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_archeryrange_red.gltf",
+      "modelPath": "buildings/red/building_archeryrange_red.gltf",
       "sourcePath": "buildings/red/building_archeryrange_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_archeryrange_red.bin"
+        "buildings/red/building_archeryrange_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10479,13 +10479,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_barracks",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_barracks_red.gltf",
+      "modelPath": "buildings/red/building_barracks_red.gltf",
       "sourcePath": "buildings/red/building_barracks_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_barracks_red.bin"
+        "buildings/red/building_barracks_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10517,13 +10517,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_blacksmith",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_blacksmith_red.gltf",
+      "modelPath": "buildings/red/building_blacksmith_red.gltf",
       "sourcePath": "buildings/red/building_blacksmith_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_blacksmith_red.bin"
+        "buildings/red/building_blacksmith_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10555,13 +10555,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_castle",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_castle_red.gltf",
+      "modelPath": "buildings/red/building_castle_red.gltf",
       "sourcePath": "buildings/red/building_castle_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_castle_red.bin"
+        "buildings/red/building_castle_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10593,13 +10593,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_church",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_church_red.gltf",
+      "modelPath": "buildings/red/building_church_red.gltf",
       "sourcePath": "buildings/red/building_church_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_church_red.bin"
+        "buildings/red/building_church_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10631,13 +10631,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_A",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_home_A_red.gltf",
+      "modelPath": "buildings/red/building_home_A_red.gltf",
       "sourcePath": "buildings/red/building_home_A_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_home_A_red.bin"
+        "buildings/red/building_home_A_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10669,13 +10669,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_B",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_home_B_red.gltf",
+      "modelPath": "buildings/red/building_home_B_red.gltf",
       "sourcePath": "buildings/red/building_home_B_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_home_B_red.bin"
+        "buildings/red/building_home_B_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10707,13 +10707,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_lumbermill",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_lumbermill_red.gltf",
+      "modelPath": "buildings/red/building_lumbermill_red.gltf",
       "sourcePath": "buildings/red/building_lumbermill_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_lumbermill_red.bin"
+        "buildings/red/building_lumbermill_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10745,13 +10745,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_market",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_market_red.gltf",
+      "modelPath": "buildings/red/building_market_red.gltf",
       "sourcePath": "buildings/red/building_market_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_market_red.bin"
+        "buildings/red/building_market_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10783,13 +10783,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_mine",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_mine_red.gltf",
+      "modelPath": "buildings/red/building_mine_red.gltf",
       "sourcePath": "buildings/red/building_mine_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_mine_red.bin"
+        "buildings/red/building_mine_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10821,13 +10821,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tavern",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tavern_red.gltf",
+      "modelPath": "buildings/red/building_tavern_red.gltf",
       "sourcePath": "buildings/red/building_tavern_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tavern_red.bin"
+        "buildings/red/building_tavern_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10859,13 +10859,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_A",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tower_A_red.gltf",
+      "modelPath": "buildings/red/building_tower_A_red.gltf",
       "sourcePath": "buildings/red/building_tower_A_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tower_A_red.bin"
+        "buildings/red/building_tower_A_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10897,13 +10897,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_B",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tower_B_red.gltf",
+      "modelPath": "buildings/red/building_tower_B_red.gltf",
       "sourcePath": "buildings/red/building_tower_B_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tower_B_red.bin"
+        "buildings/red/building_tower_B_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10935,13 +10935,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_base",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tower_base_red.gltf",
+      "modelPath": "buildings/red/building_tower_base_red.gltf",
       "sourcePath": "buildings/red/building_tower_base_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tower_base_red.bin"
+        "buildings/red/building_tower_base_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -10973,13 +10973,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_catapult",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_tower_catapult_red.gltf",
+      "modelPath": "buildings/red/building_tower_catapult_red.gltf",
       "sourcePath": "buildings/red/building_tower_catapult_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_tower_catapult_red.bin"
+        "buildings/red/building_tower_catapult_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11011,13 +11011,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_watermill",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_watermill_red.gltf",
+      "modelPath": "buildings/red/building_watermill_red.gltf",
       "sourcePath": "buildings/red/building_watermill_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_watermill_red.bin"
+        "buildings/red/building_watermill_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11049,13 +11049,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_well",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_well_red.gltf",
+      "modelPath": "buildings/red/building_well_red.gltf",
       "sourcePath": "buildings/red/building_well_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_well_red.bin"
+        "buildings/red/building_well_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11087,13 +11087,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_windmill",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/red/building_windmill_red.gltf",
+      "modelPath": "buildings/red/building_windmill_red.gltf",
       "sourcePath": "buildings/red/building_windmill_red.gltf",
       "bufferPaths": [
-        "assets/free/buildings/red/building_windmill_red.bin"
+        "buildings/red/building_windmill_red.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/red/hexagons_medieval.png"
+        "buildings/red/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11125,13 +11125,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_archeryrange",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_archeryrange_yellow.gltf",
+      "modelPath": "buildings/yellow/building_archeryrange_yellow.gltf",
       "sourcePath": "buildings/yellow/building_archeryrange_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_archeryrange_yellow.bin"
+        "buildings/yellow/building_archeryrange_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11163,13 +11163,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_barracks",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_barracks_yellow.gltf",
+      "modelPath": "buildings/yellow/building_barracks_yellow.gltf",
       "sourcePath": "buildings/yellow/building_barracks_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_barracks_yellow.bin"
+        "buildings/yellow/building_barracks_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11201,13 +11201,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_blacksmith",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_blacksmith_yellow.gltf",
+      "modelPath": "buildings/yellow/building_blacksmith_yellow.gltf",
       "sourcePath": "buildings/yellow/building_blacksmith_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_blacksmith_yellow.bin"
+        "buildings/yellow/building_blacksmith_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11239,13 +11239,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_castle",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_castle_yellow.gltf",
+      "modelPath": "buildings/yellow/building_castle_yellow.gltf",
       "sourcePath": "buildings/yellow/building_castle_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_castle_yellow.bin"
+        "buildings/yellow/building_castle_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11277,13 +11277,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_church",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_church_yellow.gltf",
+      "modelPath": "buildings/yellow/building_church_yellow.gltf",
       "sourcePath": "buildings/yellow/building_church_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_church_yellow.bin"
+        "buildings/yellow/building_church_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11315,13 +11315,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_A",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_home_A_yellow.gltf",
+      "modelPath": "buildings/yellow/building_home_A_yellow.gltf",
       "sourcePath": "buildings/yellow/building_home_A_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_home_A_yellow.bin"
+        "buildings/yellow/building_home_A_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11353,13 +11353,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_home_B",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_home_B_yellow.gltf",
+      "modelPath": "buildings/yellow/building_home_B_yellow.gltf",
       "sourcePath": "buildings/yellow/building_home_B_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_home_B_yellow.bin"
+        "buildings/yellow/building_home_B_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11391,13 +11391,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_lumbermill",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_lumbermill_yellow.gltf",
+      "modelPath": "buildings/yellow/building_lumbermill_yellow.gltf",
       "sourcePath": "buildings/yellow/building_lumbermill_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_lumbermill_yellow.bin"
+        "buildings/yellow/building_lumbermill_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11429,13 +11429,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_market",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_market_yellow.gltf",
+      "modelPath": "buildings/yellow/building_market_yellow.gltf",
       "sourcePath": "buildings/yellow/building_market_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_market_yellow.bin"
+        "buildings/yellow/building_market_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11467,13 +11467,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_mine",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_mine_yellow.gltf",
+      "modelPath": "buildings/yellow/building_mine_yellow.gltf",
       "sourcePath": "buildings/yellow/building_mine_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_mine_yellow.bin"
+        "buildings/yellow/building_mine_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11505,13 +11505,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tavern",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tavern_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tavern_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tavern_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tavern_yellow.bin"
+        "buildings/yellow/building_tavern_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11543,13 +11543,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_A",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tower_A_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tower_A_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tower_A_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tower_A_yellow.bin"
+        "buildings/yellow/building_tower_A_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11581,13 +11581,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_B",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tower_B_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tower_B_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tower_B_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tower_B_yellow.bin"
+        "buildings/yellow/building_tower_B_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11619,13 +11619,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_base",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tower_base_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tower_base_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tower_base_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tower_base_yellow.bin"
+        "buildings/yellow/building_tower_base_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11657,13 +11657,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_tower_catapult",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_tower_catapult_yellow.gltf",
+      "modelPath": "buildings/yellow/building_tower_catapult_yellow.gltf",
       "sourcePath": "buildings/yellow/building_tower_catapult_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_tower_catapult_yellow.bin"
+        "buildings/yellow/building_tower_catapult_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11695,13 +11695,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_watermill",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_watermill_yellow.gltf",
+      "modelPath": "buildings/yellow/building_watermill_yellow.gltf",
       "sourcePath": "buildings/yellow/building_watermill_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_watermill_yellow.bin"
+        "buildings/yellow/building_watermill_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11733,13 +11733,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_well",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_well_yellow.gltf",
+      "modelPath": "buildings/yellow/building_well_yellow.gltf",
       "sourcePath": "buildings/yellow/building_well_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_well_yellow.bin"
+        "buildings/yellow/building_well_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11771,13 +11771,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "building_windmill",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/buildings/yellow/building_windmill_yellow.gltf",
+      "modelPath": "buildings/yellow/building_windmill_yellow.gltf",
       "sourcePath": "buildings/yellow/building_windmill_yellow.gltf",
       "bufferPaths": [
-        "assets/free/buildings/yellow/building_windmill_yellow.bin"
+        "buildings/yellow/building_windmill_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/buildings/yellow/hexagons_medieval.png"
+        "buildings/yellow/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11808,13 +11808,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "cloud_big",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/cloud_big.gltf",
+      "modelPath": "decoration/nature/cloud_big.gltf",
       "sourcePath": "decoration/nature/cloud_big.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/cloud_big.bin"
+        "decoration/nature/cloud_big.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11845,13 +11845,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "cloud_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/cloud_small.gltf",
+      "modelPath": "decoration/nature/cloud_small.gltf",
       "sourcePath": "decoration/nature/cloud_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/cloud_small.bin"
+        "decoration/nature/cloud_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11882,13 +11882,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hill_single_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hill_single_A.gltf",
+      "modelPath": "decoration/nature/hill_single_A.gltf",
       "sourcePath": "decoration/nature/hill_single_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hill_single_A.bin"
+        "decoration/nature/hill_single_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11919,13 +11919,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hill_single_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hill_single_B.gltf",
+      "modelPath": "decoration/nature/hill_single_B.gltf",
       "sourcePath": "decoration/nature/hill_single_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hill_single_B.bin"
+        "decoration/nature/hill_single_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11956,13 +11956,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hill_single_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hill_single_C.gltf",
+      "modelPath": "decoration/nature/hill_single_C.gltf",
       "sourcePath": "decoration/nature/hill_single_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hill_single_C.bin"
+        "decoration/nature/hill_single_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -11993,13 +11993,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_A_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_A_trees.gltf",
+      "modelPath": "decoration/nature/hills_A_trees.gltf",
       "sourcePath": "decoration/nature/hills_A_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_A_trees.bin"
+        "decoration/nature/hills_A_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12030,13 +12030,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_A.gltf",
+      "modelPath": "decoration/nature/hills_A.gltf",
       "sourcePath": "decoration/nature/hills_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_A.bin"
+        "decoration/nature/hills_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12067,13 +12067,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_B_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_B_trees.gltf",
+      "modelPath": "decoration/nature/hills_B_trees.gltf",
       "sourcePath": "decoration/nature/hills_B_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_B_trees.bin"
+        "decoration/nature/hills_B_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12104,13 +12104,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_B.gltf",
+      "modelPath": "decoration/nature/hills_B.gltf",
       "sourcePath": "decoration/nature/hills_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_B.bin"
+        "decoration/nature/hills_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12141,13 +12141,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_C_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_C_trees.gltf",
+      "modelPath": "decoration/nature/hills_C_trees.gltf",
       "sourcePath": "decoration/nature/hills_C_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_C_trees.bin"
+        "decoration/nature/hills_C_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12178,13 +12178,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "hills_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/hills_C.gltf",
+      "modelPath": "decoration/nature/hills_C.gltf",
       "sourcePath": "decoration/nature/hills_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/hills_C.bin"
+        "decoration/nature/hills_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12215,13 +12215,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_A_grass_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_A_grass_trees.gltf",
+      "modelPath": "decoration/nature/mountain_A_grass_trees.gltf",
       "sourcePath": "decoration/nature/mountain_A_grass_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_A_grass_trees.bin"
+        "decoration/nature/mountain_A_grass_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12252,13 +12252,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_A_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_A_grass.gltf",
+      "modelPath": "decoration/nature/mountain_A_grass.gltf",
       "sourcePath": "decoration/nature/mountain_A_grass.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_A_grass.bin"
+        "decoration/nature/mountain_A_grass.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12289,13 +12289,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_A.gltf",
+      "modelPath": "decoration/nature/mountain_A.gltf",
       "sourcePath": "decoration/nature/mountain_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_A.bin"
+        "decoration/nature/mountain_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12326,13 +12326,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_B_grass_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_B_grass_trees.gltf",
+      "modelPath": "decoration/nature/mountain_B_grass_trees.gltf",
       "sourcePath": "decoration/nature/mountain_B_grass_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_B_grass_trees.bin"
+        "decoration/nature/mountain_B_grass_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12363,13 +12363,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_B_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_B_grass.gltf",
+      "modelPath": "decoration/nature/mountain_B_grass.gltf",
       "sourcePath": "decoration/nature/mountain_B_grass.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_B_grass.bin"
+        "decoration/nature/mountain_B_grass.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12400,13 +12400,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_B.gltf",
+      "modelPath": "decoration/nature/mountain_B.gltf",
       "sourcePath": "decoration/nature/mountain_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_B.bin"
+        "decoration/nature/mountain_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12437,13 +12437,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_C_grass_trees",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_C_grass_trees.gltf",
+      "modelPath": "decoration/nature/mountain_C_grass_trees.gltf",
       "sourcePath": "decoration/nature/mountain_C_grass_trees.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_C_grass_trees.bin"
+        "decoration/nature/mountain_C_grass_trees.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12474,13 +12474,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_C_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_C_grass.gltf",
+      "modelPath": "decoration/nature/mountain_C_grass.gltf",
       "sourcePath": "decoration/nature/mountain_C_grass.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_C_grass.bin"
+        "decoration/nature/mountain_C_grass.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12511,13 +12511,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "mountain_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/mountain_C.gltf",
+      "modelPath": "decoration/nature/mountain_C.gltf",
       "sourcePath": "decoration/nature/mountain_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/mountain_C.bin"
+        "decoration/nature/mountain_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12548,13 +12548,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_A.gltf",
+      "modelPath": "decoration/nature/rock_single_A.gltf",
       "sourcePath": "decoration/nature/rock_single_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_A.bin"
+        "decoration/nature/rock_single_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12585,13 +12585,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_B.gltf",
+      "modelPath": "decoration/nature/rock_single_B.gltf",
       "sourcePath": "decoration/nature/rock_single_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_B.bin"
+        "decoration/nature/rock_single_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12622,13 +12622,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_C.gltf",
+      "modelPath": "decoration/nature/rock_single_C.gltf",
       "sourcePath": "decoration/nature/rock_single_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_C.bin"
+        "decoration/nature/rock_single_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12659,13 +12659,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_D",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_D.gltf",
+      "modelPath": "decoration/nature/rock_single_D.gltf",
       "sourcePath": "decoration/nature/rock_single_D.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_D.bin"
+        "decoration/nature/rock_single_D.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12696,13 +12696,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "rock_single_E",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/rock_single_E.gltf",
+      "modelPath": "decoration/nature/rock_single_E.gltf",
       "sourcePath": "decoration/nature/rock_single_E.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/rock_single_E.bin"
+        "decoration/nature/rock_single_E.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12733,13 +12733,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "tree_single_A_cut",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/tree_single_A_cut.gltf",
+      "modelPath": "decoration/nature/tree_single_A_cut.gltf",
       "sourcePath": "decoration/nature/tree_single_A_cut.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/tree_single_A_cut.bin"
+        "decoration/nature/tree_single_A_cut.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12770,13 +12770,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "tree_single_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/tree_single_A.gltf",
+      "modelPath": "decoration/nature/tree_single_A.gltf",
       "sourcePath": "decoration/nature/tree_single_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/tree_single_A.bin"
+        "decoration/nature/tree_single_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12807,13 +12807,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "tree_single_B_cut",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/tree_single_B_cut.gltf",
+      "modelPath": "decoration/nature/tree_single_B_cut.gltf",
       "sourcePath": "decoration/nature/tree_single_B_cut.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/tree_single_B_cut.bin"
+        "decoration/nature/tree_single_B_cut.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12844,13 +12844,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "tree_single_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/tree_single_B.gltf",
+      "modelPath": "decoration/nature/tree_single_B.gltf",
       "sourcePath": "decoration/nature/tree_single_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/tree_single_B.bin"
+        "decoration/nature/tree_single_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12881,13 +12881,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_A_cut",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_A_cut.gltf",
+      "modelPath": "decoration/nature/trees_A_cut.gltf",
       "sourcePath": "decoration/nature/trees_A_cut.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_A_cut.bin"
+        "decoration/nature/trees_A_cut.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12918,13 +12918,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_A_large",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_A_large.gltf",
+      "modelPath": "decoration/nature/trees_A_large.gltf",
       "sourcePath": "decoration/nature/trees_A_large.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_A_large.bin"
+        "decoration/nature/trees_A_large.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12955,13 +12955,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_A_medium",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_A_medium.gltf",
+      "modelPath": "decoration/nature/trees_A_medium.gltf",
       "sourcePath": "decoration/nature/trees_A_medium.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_A_medium.bin"
+        "decoration/nature/trees_A_medium.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -12992,13 +12992,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_A_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_A_small.gltf",
+      "modelPath": "decoration/nature/trees_A_small.gltf",
       "sourcePath": "decoration/nature/trees_A_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_A_small.bin"
+        "decoration/nature/trees_A_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13029,13 +13029,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_B_cut",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_B_cut.gltf",
+      "modelPath": "decoration/nature/trees_B_cut.gltf",
       "sourcePath": "decoration/nature/trees_B_cut.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_B_cut.bin"
+        "decoration/nature/trees_B_cut.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13066,13 +13066,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_B_large",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_B_large.gltf",
+      "modelPath": "decoration/nature/trees_B_large.gltf",
       "sourcePath": "decoration/nature/trees_B_large.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_B_large.bin"
+        "decoration/nature/trees_B_large.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13103,13 +13103,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_B_medium",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_B_medium.gltf",
+      "modelPath": "decoration/nature/trees_B_medium.gltf",
       "sourcePath": "decoration/nature/trees_B_medium.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_B_medium.bin"
+        "decoration/nature/trees_B_medium.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13140,13 +13140,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "trees_B_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/trees_B_small.gltf",
+      "modelPath": "decoration/nature/trees_B_small.gltf",
       "sourcePath": "decoration/nature/trees_B_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/trees_B_small.bin"
+        "decoration/nature/trees_B_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13177,13 +13177,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterlily_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterlily_A.gltf",
+      "modelPath": "decoration/nature/waterlily_A.gltf",
       "sourcePath": "decoration/nature/waterlily_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterlily_A.bin"
+        "decoration/nature/waterlily_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13214,13 +13214,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterlily_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterlily_B.gltf",
+      "modelPath": "decoration/nature/waterlily_B.gltf",
       "sourcePath": "decoration/nature/waterlily_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterlily_B.bin"
+        "decoration/nature/waterlily_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13251,13 +13251,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterplant_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterplant_A.gltf",
+      "modelPath": "decoration/nature/waterplant_A.gltf",
       "sourcePath": "decoration/nature/waterplant_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterplant_A.bin"
+        "decoration/nature/waterplant_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13288,13 +13288,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterplant_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterplant_B.gltf",
+      "modelPath": "decoration/nature/waterplant_B.gltf",
       "sourcePath": "decoration/nature/waterplant_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterplant_B.bin"
+        "decoration/nature/waterplant_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13325,13 +13325,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "nature",
       "family": "waterplant_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/nature/waterplant_C.gltf",
+      "modelPath": "decoration/nature/waterplant_C.gltf",
       "sourcePath": "decoration/nature/waterplant_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/nature/waterplant_C.bin"
+        "decoration/nature/waterplant_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/nature/hexagons_medieval.png"
+        "decoration/nature/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13362,13 +13362,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "barrel",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/barrel.gltf",
+      "modelPath": "decoration/props/barrel.gltf",
       "sourcePath": "decoration/props/barrel.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/barrel.bin"
+        "decoration/props/barrel.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13399,13 +13399,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "bucket_arrows",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/bucket_arrows.gltf",
+      "modelPath": "decoration/props/bucket_arrows.gltf",
       "sourcePath": "decoration/props/bucket_arrows.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/bucket_arrows.bin"
+        "decoration/props/bucket_arrows.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13436,13 +13436,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "bucket_empty",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/bucket_empty.gltf",
+      "modelPath": "decoration/props/bucket_empty.gltf",
       "sourcePath": "decoration/props/bucket_empty.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/bucket_empty.bin"
+        "decoration/props/bucket_empty.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13473,13 +13473,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "bucket_water",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/bucket_water.gltf",
+      "modelPath": "decoration/props/bucket_water.gltf",
       "sourcePath": "decoration/props/bucket_water.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/bucket_water.bin"
+        "decoration/props/bucket_water.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13510,13 +13510,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_A_big",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_A_big.gltf",
+      "modelPath": "decoration/props/crate_A_big.gltf",
       "sourcePath": "decoration/props/crate_A_big.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_A_big.bin"
+        "decoration/props/crate_A_big.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13547,13 +13547,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_A_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_A_small.gltf",
+      "modelPath": "decoration/props/crate_A_small.gltf",
       "sourcePath": "decoration/props/crate_A_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_A_small.bin"
+        "decoration/props/crate_A_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13584,13 +13584,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_B_big",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_B_big.gltf",
+      "modelPath": "decoration/props/crate_B_big.gltf",
       "sourcePath": "decoration/props/crate_B_big.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_B_big.bin"
+        "decoration/props/crate_B_big.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13621,13 +13621,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_B_small",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_B_small.gltf",
+      "modelPath": "decoration/props/crate_B_small.gltf",
       "sourcePath": "decoration/props/crate_B_small.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_B_small.bin"
+        "decoration/props/crate_B_small.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13658,13 +13658,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_long_A",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_long_A.gltf",
+      "modelPath": "decoration/props/crate_long_A.gltf",
       "sourcePath": "decoration/props/crate_long_A.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_long_A.bin"
+        "decoration/props/crate_long_A.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13695,13 +13695,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_long_B",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_long_B.gltf",
+      "modelPath": "decoration/props/crate_long_B.gltf",
       "sourcePath": "decoration/props/crate_long_B.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_long_B.bin"
+        "decoration/props/crate_long_B.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13732,13 +13732,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_long_C",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_long_C.gltf",
+      "modelPath": "decoration/props/crate_long_C.gltf",
       "sourcePath": "decoration/props/crate_long_C.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_long_C.bin"
+        "decoration/props/crate_long_C.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13769,13 +13769,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_long_empty",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_long_empty.gltf",
+      "modelPath": "decoration/props/crate_long_empty.gltf",
       "sourcePath": "decoration/props/crate_long_empty.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_long_empty.bin"
+        "decoration/props/crate_long_empty.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13806,13 +13806,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "crate_open",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/crate_open.gltf",
+      "modelPath": "decoration/props/crate_open.gltf",
       "sourcePath": "decoration/props/crate_open.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/crate_open.bin"
+        "decoration/props/crate_open.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13844,13 +13844,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "flag",
       "faction": "blue",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/flag_blue.gltf",
+      "modelPath": "decoration/props/flag_blue.gltf",
       "sourcePath": "decoration/props/flag_blue.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/flag_blue.bin"
+        "decoration/props/flag_blue.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13882,13 +13882,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "flag",
       "faction": "green",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/flag_green.gltf",
+      "modelPath": "decoration/props/flag_green.gltf",
       "sourcePath": "decoration/props/flag_green.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/flag_green.bin"
+        "decoration/props/flag_green.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13920,13 +13920,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "flag",
       "faction": "red",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/flag_red.gltf",
+      "modelPath": "decoration/props/flag_red.gltf",
       "sourcePath": "decoration/props/flag_red.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/flag_red.bin"
+        "decoration/props/flag_red.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13958,13 +13958,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "family": "flag",
       "faction": "yellow",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/flag_yellow.gltf",
+      "modelPath": "decoration/props/flag_yellow.gltf",
       "sourcePath": "decoration/props/flag_yellow.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/flag_yellow.bin"
+        "decoration/props/flag_yellow.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -13995,13 +13995,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "ladder",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/ladder.gltf",
+      "modelPath": "decoration/props/ladder.gltf",
       "sourcePath": "decoration/props/ladder.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/ladder.bin"
+        "decoration/props/ladder.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14032,13 +14032,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "pallet",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/pallet.gltf",
+      "modelPath": "decoration/props/pallet.gltf",
       "sourcePath": "decoration/props/pallet.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/pallet.bin"
+        "decoration/props/pallet.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14069,13 +14069,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "resource_lumber",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/resource_lumber.gltf",
+      "modelPath": "decoration/props/resource_lumber.gltf",
       "sourcePath": "decoration/props/resource_lumber.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/resource_lumber.bin"
+        "decoration/props/resource_lumber.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14106,13 +14106,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "resource_stone",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/resource_stone.gltf",
+      "modelPath": "decoration/props/resource_stone.gltf",
       "sourcePath": "decoration/props/resource_stone.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/resource_stone.bin"
+        "decoration/props/resource_stone.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14143,13 +14143,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "sack",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/sack.gltf",
+      "modelPath": "decoration/props/sack.gltf",
       "sourcePath": "decoration/props/sack.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/sack.bin"
+        "decoration/props/sack.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14180,13 +14180,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "target",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/target.gltf",
+      "modelPath": "decoration/props/target.gltf",
       "sourcePath": "decoration/props/target.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/target.bin"
+        "decoration/props/target.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14217,13 +14217,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "tent",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/tent.gltf",
+      "modelPath": "decoration/props/tent.gltf",
       "sourcePath": "decoration/props/tent.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/tent.bin"
+        "decoration/props/tent.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14254,13 +14254,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "weaponrack",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/weaponrack.gltf",
+      "modelPath": "decoration/props/weaponrack.gltf",
       "sourcePath": "decoration/props/weaponrack.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/weaponrack.bin"
+        "decoration/props/weaponrack.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14291,13 +14291,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "props",
       "family": "wheelbarrow",
       "textureSet": "default",
-      "modelPath": "assets/free/decoration/props/wheelbarrow.gltf",
+      "modelPath": "decoration/props/wheelbarrow.gltf",
       "sourcePath": "decoration/props/wheelbarrow.gltf",
       "bufferPaths": [
-        "assets/free/decoration/props/wheelbarrow.bin"
+        "decoration/props/wheelbarrow.bin"
       ],
       "texturePaths": [
-        "assets/free/decoration/props/hexagons_medieval.png"
+        "decoration/props/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14328,13 +14328,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_grass_bottom",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_grass_bottom.gltf",
+      "modelPath": "tiles/base/hex_grass_bottom.gltf",
       "sourcePath": "tiles/base/hex_grass_bottom.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_grass_bottom.bin"
+        "tiles/base/hex_grass_bottom.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14365,13 +14365,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_grass_sloped_high.gltf",
+      "modelPath": "tiles/base/hex_grass_sloped_high.gltf",
       "sourcePath": "tiles/base/hex_grass_sloped_high.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_grass_sloped_high.bin"
+        "tiles/base/hex_grass_sloped_high.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14402,13 +14402,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_grass_sloped_low.gltf",
+      "modelPath": "tiles/base/hex_grass_sloped_low.gltf",
       "sourcePath": "tiles/base/hex_grass_sloped_low.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_grass_sloped_low.bin"
+        "tiles/base/hex_grass_sloped_low.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14439,13 +14439,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_grass",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_grass.gltf",
+      "modelPath": "tiles/base/hex_grass.gltf",
       "sourcePath": "tiles/base/hex_grass.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_grass.bin"
+        "tiles/base/hex_grass.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14476,13 +14476,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "base",
       "family": "hex_water",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/base/hex_water.gltf",
+      "modelPath": "tiles/base/hex_water.gltf",
       "sourcePath": "tiles/base/hex_water.gltf",
       "bufferPaths": [
-        "assets/free/tiles/base/hex_water.bin"
+        "tiles/base/hex_water.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/base/hexagons_medieval.png"
+        "tiles/base/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14513,13 +14513,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_A.gltf",
+      "modelPath": "tiles/coast/hex_coast_A.gltf",
       "sourcePath": "tiles/coast/hex_coast_A.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_A.bin"
+        "tiles/coast/hex_coast_A.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14550,13 +14550,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_B.gltf",
+      "modelPath": "tiles/coast/hex_coast_B.gltf",
       "sourcePath": "tiles/coast/hex_coast_B.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_B.bin"
+        "tiles/coast/hex_coast_B.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14587,13 +14587,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_C.gltf",
+      "modelPath": "tiles/coast/hex_coast_C.gltf",
       "sourcePath": "tiles/coast/hex_coast_C.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_C.bin"
+        "tiles/coast/hex_coast_C.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14624,13 +14624,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_D.gltf",
+      "modelPath": "tiles/coast/hex_coast_D.gltf",
       "sourcePath": "tiles/coast/hex_coast_D.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_D.bin"
+        "tiles/coast/hex_coast_D.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14661,13 +14661,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/hex_coast_E.gltf",
+      "modelPath": "tiles/coast/hex_coast_E.gltf",
       "sourcePath": "tiles/coast/hex_coast_E.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/hex_coast_E.bin"
+        "tiles/coast/hex_coast_E.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/hexagons_medieval.png"
+        "tiles/coast/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14698,13 +14698,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_A_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_A_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_A_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_A_waterless.bin"
+        "tiles/coast/waterless/hex_coast_A_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14735,13 +14735,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_B_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_B_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_B_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_B_waterless.bin"
+        "tiles/coast/waterless/hex_coast_B_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14772,13 +14772,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_C_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_C_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_C_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_C_waterless.bin"
+        "tiles/coast/waterless/hex_coast_C_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14809,13 +14809,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_D_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_D_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_D_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_D_waterless.bin"
+        "tiles/coast/waterless/hex_coast_D_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14846,13 +14846,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "coast",
       "family": "hex_coast_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/coast/waterless/hex_coast_E_waterless.gltf",
+      "modelPath": "tiles/coast/waterless/hex_coast_E_waterless.gltf",
       "sourcePath": "tiles/coast/waterless/hex_coast_E_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/coast/waterless/hex_coast_E_waterless.bin"
+        "tiles/coast/waterless/hex_coast_E_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/coast/waterless/hexagons_medieval.png"
+        "tiles/coast/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14883,13 +14883,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_A_curvy",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_A_curvy.gltf",
+      "modelPath": "tiles/rivers/hex_river_A_curvy.gltf",
       "sourcePath": "tiles/rivers/hex_river_A_curvy.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_A_curvy.bin"
+        "tiles/rivers/hex_river_A_curvy.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14920,13 +14920,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_A.gltf",
+      "modelPath": "tiles/rivers/hex_river_A.gltf",
       "sourcePath": "tiles/rivers/hex_river_A.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_A.bin"
+        "tiles/rivers/hex_river_A.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14957,13 +14957,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_B.gltf",
+      "modelPath": "tiles/rivers/hex_river_B.gltf",
       "sourcePath": "tiles/rivers/hex_river_B.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_B.bin"
+        "tiles/rivers/hex_river_B.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -14994,13 +14994,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_C.gltf",
+      "modelPath": "tiles/rivers/hex_river_C.gltf",
       "sourcePath": "tiles/rivers/hex_river_C.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_C.bin"
+        "tiles/rivers/hex_river_C.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15031,13 +15031,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_crossing_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_crossing_A.gltf",
+      "modelPath": "tiles/rivers/hex_river_crossing_A.gltf",
       "sourcePath": "tiles/rivers/hex_river_crossing_A.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_crossing_A.bin"
+        "tiles/rivers/hex_river_crossing_A.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15068,13 +15068,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_crossing_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_crossing_B.gltf",
+      "modelPath": "tiles/rivers/hex_river_crossing_B.gltf",
       "sourcePath": "tiles/rivers/hex_river_crossing_B.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_crossing_B.bin"
+        "tiles/rivers/hex_river_crossing_B.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15105,13 +15105,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_D.gltf",
+      "modelPath": "tiles/rivers/hex_river_D.gltf",
       "sourcePath": "tiles/rivers/hex_river_D.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_D.bin"
+        "tiles/rivers/hex_river_D.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15142,13 +15142,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_E.gltf",
+      "modelPath": "tiles/rivers/hex_river_E.gltf",
       "sourcePath": "tiles/rivers/hex_river_E.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_E.bin"
+        "tiles/rivers/hex_river_E.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15179,13 +15179,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_F",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_F.gltf",
+      "modelPath": "tiles/rivers/hex_river_F.gltf",
       "sourcePath": "tiles/rivers/hex_river_F.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_F.bin"
+        "tiles/rivers/hex_river_F.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15216,13 +15216,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_G",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_G.gltf",
+      "modelPath": "tiles/rivers/hex_river_G.gltf",
       "sourcePath": "tiles/rivers/hex_river_G.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_G.bin"
+        "tiles/rivers/hex_river_G.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15253,13 +15253,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_H",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_H.gltf",
+      "modelPath": "tiles/rivers/hex_river_H.gltf",
       "sourcePath": "tiles/rivers/hex_river_H.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_H.bin"
+        "tiles/rivers/hex_river_H.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15290,13 +15290,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_I",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_I.gltf",
+      "modelPath": "tiles/rivers/hex_river_I.gltf",
       "sourcePath": "tiles/rivers/hex_river_I.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_I.bin"
+        "tiles/rivers/hex_river_I.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15327,13 +15327,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_J",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_J.gltf",
+      "modelPath": "tiles/rivers/hex_river_J.gltf",
       "sourcePath": "tiles/rivers/hex_river_J.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_J.bin"
+        "tiles/rivers/hex_river_J.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15364,13 +15364,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_K",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_K.gltf",
+      "modelPath": "tiles/rivers/hex_river_K.gltf",
       "sourcePath": "tiles/rivers/hex_river_K.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_K.bin"
+        "tiles/rivers/hex_river_K.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15401,13 +15401,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_L",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/hex_river_L.gltf",
+      "modelPath": "tiles/rivers/hex_river_L.gltf",
       "sourcePath": "tiles/rivers/hex_river_L.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/hex_river_L.bin"
+        "tiles/rivers/hex_river_L.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/hexagons_medieval.png"
+        "tiles/rivers/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15438,13 +15438,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_A_curvy",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_A_curvy_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_A_curvy_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_A_curvy_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_A_curvy_waterless.bin"
+        "tiles/rivers/waterless/hex_river_A_curvy_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15475,13 +15475,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_A_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_A_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_A_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_A_waterless.bin"
+        "tiles/rivers/waterless/hex_river_A_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15512,13 +15512,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_B_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_B_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_B_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_B_waterless.bin"
+        "tiles/rivers/waterless/hex_river_B_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15549,13 +15549,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_C_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_C_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_C_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_C_waterless.bin"
+        "tiles/rivers/waterless/hex_river_C_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15586,13 +15586,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_crossing_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_crossing_A_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_crossing_A_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_crossing_A_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_crossing_A_waterless.bin"
+        "tiles/rivers/waterless/hex_river_crossing_A_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15623,13 +15623,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_crossing_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_crossing_B_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_crossing_B_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_crossing_B_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_crossing_B_waterless.bin"
+        "tiles/rivers/waterless/hex_river_crossing_B_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15660,13 +15660,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_D_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_D_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_D_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_D_waterless.bin"
+        "tiles/rivers/waterless/hex_river_D_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15697,13 +15697,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_E_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_E_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_E_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_E_waterless.bin"
+        "tiles/rivers/waterless/hex_river_E_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15734,13 +15734,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_F",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_F_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_F_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_F_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_F_waterless.bin"
+        "tiles/rivers/waterless/hex_river_F_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15771,13 +15771,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_G",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_G_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_G_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_G_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_G_waterless.bin"
+        "tiles/rivers/waterless/hex_river_G_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15808,13 +15808,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_H",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_H_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_H_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_H_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_H_waterless.bin"
+        "tiles/rivers/waterless/hex_river_H_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15845,13 +15845,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_I",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_I_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_I_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_I_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_I_waterless.bin"
+        "tiles/rivers/waterless/hex_river_I_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15882,13 +15882,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_J",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_J_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_J_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_J_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_J_waterless.bin"
+        "tiles/rivers/waterless/hex_river_J_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15919,13 +15919,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_K",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_K_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_K_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_K_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_K_waterless.bin"
+        "tiles/rivers/waterless/hex_river_K_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15956,13 +15956,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "rivers",
       "family": "hex_river_L",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/rivers/waterless/hex_river_L_waterless.gltf",
+      "modelPath": "tiles/rivers/waterless/hex_river_L_waterless.gltf",
       "sourcePath": "tiles/rivers/waterless/hex_river_L_waterless.gltf",
       "bufferPaths": [
-        "assets/free/tiles/rivers/waterless/hex_river_L_waterless.bin"
+        "tiles/rivers/waterless/hex_river_L_waterless.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/rivers/waterless/hexagons_medieval.png"
+        "tiles/rivers/waterless/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -15993,13 +15993,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_A_sloped_high.gltf",
+      "modelPath": "tiles/roads/hex_road_A_sloped_high.gltf",
       "sourcePath": "tiles/roads/hex_road_A_sloped_high.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_A_sloped_high.bin"
+        "tiles/roads/hex_road_A_sloped_high.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16030,13 +16030,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_A_sloped_low.gltf",
+      "modelPath": "tiles/roads/hex_road_A_sloped_low.gltf",
       "sourcePath": "tiles/roads/hex_road_A_sloped_low.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_A_sloped_low.bin"
+        "tiles/roads/hex_road_A_sloped_low.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16067,13 +16067,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_A",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_A.gltf",
+      "modelPath": "tiles/roads/hex_road_A.gltf",
       "sourcePath": "tiles/roads/hex_road_A.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_A.bin"
+        "tiles/roads/hex_road_A.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16104,13 +16104,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_B",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_B.gltf",
+      "modelPath": "tiles/roads/hex_road_B.gltf",
       "sourcePath": "tiles/roads/hex_road_B.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_B.bin"
+        "tiles/roads/hex_road_B.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16141,13 +16141,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_C",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_C.gltf",
+      "modelPath": "tiles/roads/hex_road_C.gltf",
       "sourcePath": "tiles/roads/hex_road_C.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_C.bin"
+        "tiles/roads/hex_road_C.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16178,13 +16178,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_D",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_D.gltf",
+      "modelPath": "tiles/roads/hex_road_D.gltf",
       "sourcePath": "tiles/roads/hex_road_D.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_D.bin"
+        "tiles/roads/hex_road_D.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16215,13 +16215,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_E",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_E.gltf",
+      "modelPath": "tiles/roads/hex_road_E.gltf",
       "sourcePath": "tiles/roads/hex_road_E.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_E.bin"
+        "tiles/roads/hex_road_E.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16252,13 +16252,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_F",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_F.gltf",
+      "modelPath": "tiles/roads/hex_road_F.gltf",
       "sourcePath": "tiles/roads/hex_road_F.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_F.bin"
+        "tiles/roads/hex_road_F.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16289,13 +16289,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_G",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_G.gltf",
+      "modelPath": "tiles/roads/hex_road_G.gltf",
       "sourcePath": "tiles/roads/hex_road_G.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_G.bin"
+        "tiles/roads/hex_road_G.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16326,13 +16326,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_H",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_H.gltf",
+      "modelPath": "tiles/roads/hex_road_H.gltf",
       "sourcePath": "tiles/roads/hex_road_H.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_H.bin"
+        "tiles/roads/hex_road_H.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16363,13 +16363,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_I",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_I.gltf",
+      "modelPath": "tiles/roads/hex_road_I.gltf",
       "sourcePath": "tiles/roads/hex_road_I.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_I.bin"
+        "tiles/roads/hex_road_I.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16400,13 +16400,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_J",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_J.gltf",
+      "modelPath": "tiles/roads/hex_road_J.gltf",
       "sourcePath": "tiles/roads/hex_road_J.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_J.bin"
+        "tiles/roads/hex_road_J.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16437,13 +16437,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_K",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_K.gltf",
+      "modelPath": "tiles/roads/hex_road_K.gltf",
       "sourcePath": "tiles/roads/hex_road_K.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_K.bin"
+        "tiles/roads/hex_road_K.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16474,13 +16474,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_L",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_L.gltf",
+      "modelPath": "tiles/roads/hex_road_L.gltf",
       "sourcePath": "tiles/roads/hex_road_L.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_L.bin"
+        "tiles/roads/hex_road_L.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"
@@ -16511,13 +16511,13 @@ export const freeManifest: MedievalHexagonManifest = {
       "subcategory": "roads",
       "family": "hex_road_M",
       "textureSet": "default",
-      "modelPath": "assets/free/tiles/roads/hex_road_M.gltf",
+      "modelPath": "tiles/roads/hex_road_M.gltf",
       "sourcePath": "tiles/roads/hex_road_M.gltf",
       "bufferPaths": [
-        "assets/free/tiles/roads/hex_road_M.bin"
+        "tiles/roads/hex_road_M.bin"
       ],
       "texturePaths": [
-        "assets/free/tiles/roads/hexagons_medieval.png"
+        "tiles/roads/hexagons_medieval.png"
       ],
       "materialSlots": [
         "hexagons_medieval"

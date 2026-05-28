@@ -45,7 +45,7 @@ Most commands operate against a local FREE or EXTRA pack tree. Before any tile /
 pnpm exec declarative-hex-worlds bootstrap
 \`\`\`
 
-This downloads the KayKit FREE pack and mirrors it under \`public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/\`. See the [bootstrap guide](/guides/bootstrap/) for source modes, integrity verification, and customizing the output directory.
+This downloads the KayKit FREE pack and mirrors it flat under \`./models/\` (default). See the [bootstrap guide](/guides/bootstrap/) for source modes, integrity verification, and customizing the output directory.
 
 ## Full usage
 

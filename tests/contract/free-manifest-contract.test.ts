@@ -158,7 +158,9 @@ describe('FREE manifest contract', () => {
       );
       expect(asset.edition).toBe('free');
       expect(asset.textureSet).toBe('default');
-      expect(asset.modelPath.startsWith('assets/free/'), `${id} modelPath wrong root`).toBe(true);
+      // Flat layout: modelPath is sourcePath-relative (no assets/free/ prefix).
+      expect(asset.modelPath.startsWith('/'), `${id} modelPath must not be absolute`).toBe(false);
+      expect(asset.modelPath.startsWith('assets/'), `${id} modelPath must not have assets/ prefix`).toBe(false);
       expect(asset.modelPath.endsWith('.gltf'), `${id} modelPath wrong suffix`).toBe(true);
       expect(asset.modelPath.includes('..'), `${id} modelPath traverses`).toBe(false);
       expect(asset.sourcePath.includes('..'), `${id} sourcePath traverses`).toBe(false);
@@ -168,7 +170,8 @@ describe('FREE manifest contract', () => {
       expect(asset.materialSlots.length, `${id} needs material slots`).toBeGreaterThan(0);
 
       for (const path of [asset.modelPath, ...asset.bufferPaths, ...asset.texturePaths]) {
-        expect(path.startsWith('assets/free/'), `${id}: ${path} outside assets/free`).toBe(true);
+        // Flat layout: paths are relative to the bootstrap asset root, no prefix.
+        expect(path.startsWith('/'), `${id}: ${path} must not be absolute`).toBe(false);
         expect(path.includes('..'), `${id}: ${path} traverses`).toBe(false);
       }
 

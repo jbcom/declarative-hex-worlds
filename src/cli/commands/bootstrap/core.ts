@@ -42,7 +42,6 @@ import {
   KAYKIT_BOOTSTRAP_SIDECAR,
   KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE,
   resolveBootstrapSidecarPath,
-  resolveBootstrapTargetRoot,
 } from './target';
 
 /**
@@ -199,7 +198,7 @@ export async function bootstrapKayKitAssets(
   }
   const layout = kayKitLayoutForEdition(edition);
   const outAbsolute = resolveOutAbsolute(options.out, options.outRoot);
-  const targetRoot = resolveBootstrapTargetRoot(outAbsolute);
+  const targetRoot = outAbsolute;
   const sidecarPath = resolveBootstrapSidecarPath(outAbsolute);
   const fetchedAt = options.fetchedAt ?? new Date().toISOString();
   const libraryVersion = options.libraryVersion ?? resolveLibraryVersion();
@@ -265,9 +264,7 @@ export async function bootstrapKayKitAssets(
  * Re-hash every file recorded in an integrity sidecar and report drift.
  */
 export async function verifyBootstrap(outRoot: string): Promise<BootstrapVerificationReport> {
-  const targetRoot = isBootstrapTargetRoot(outRoot)
-    ? resolve(outRoot)
-    : resolveBootstrapTargetRoot(resolve(outRoot));
+  const targetRoot = resolve(outRoot);
   const sidecarPath = join(targetRoot, KAYKIT_BOOTSTRAP_SIDECAR);
   if (!existsSync(sidecarPath)) {
     return {
@@ -574,9 +571,6 @@ function readSidecar(path: string): BootstrapSidecar {
   return parsed;
 }
 
-function isBootstrapTargetRoot(value: string): boolean {
-  return existsSync(join(value, KAYKIT_BOOTSTRAP_SIDECAR));
-}
 
 function describeSourceUrl(
   source: BootstrapKayKitAssetsSource,

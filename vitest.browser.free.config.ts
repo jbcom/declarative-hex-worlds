@@ -19,9 +19,13 @@ export default defineConfig({
   },
   define: {
     __WORKSPACE_ROOT__: JSON.stringify(packageRoot),
+    // Tell the runtime asset-root resolver where bootstrapped GLTFs live.
+    // CI bootstraps into <packageRoot>/models/ and publicDir=packageRoot serves
+    // it as a relative URL: models/<sourcePath>.
+    'process.env.HEX_WORLDS_ASSET_ROOT': JSON.stringify(process.env['HEX_WORLDS_ASSET_ROOT'] ?? 'models'),
   },
-  // Serve repo root as static files so browser tests can fetch
-  // /assets/free/... GLTFs committed to the repo.
+  // Serve repo root as static files so browser tests can fetch bootstrapped
+  // GLTFs from models/ (or wherever HEX_WORLDS_ASSET_ROOT points).
   publicDir: packageRoot,
   server: {
     fs: {

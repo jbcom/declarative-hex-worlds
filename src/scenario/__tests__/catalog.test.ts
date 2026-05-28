@@ -79,7 +79,6 @@ describe('asset catalog public treatments', () => {
     const manifest = generateManifestFromSource({
       sourceRoot: extraSourceRoot,
       edition: 'extra',
-      assetBasePath: 'assets/extra',
     });
 
     for (const asset of manifest.assets) {

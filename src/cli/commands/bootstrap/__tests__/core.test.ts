@@ -7,7 +7,7 @@
  * archive is present.
  */
 import { createHash } from 'node:crypto';
-import { createWriteStream, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createWriteStream, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import yazl from 'yazl';
@@ -138,9 +138,11 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
       fetchedAt: '2030-01-01T00:00:00.000Z',
     });
     expect(result.edition).toBe('free');
-    expect(result.outRoot).toContain('addons/kaykit_medieval_hexagon_pack');
+    // Flat layout: outRoot IS the consumer asset root, no addons subdir.
+    expect(result.outRoot).toBe(outRoot);
     expect(result.fileCount).toBeGreaterThan(0);
     // gltf + bin + png — not fbx/obj/mtl.
+    // KAYKIT_BOOTSTRAP_GLTF_RELATIVE is "" so gltfRoot === outRoot.
     const gltfRoot = join(result.outRoot, KAYKIT_BOOTSTRAP_GLTF_RELATIVE);
     expect(existsSync(join(gltfRoot, 'tiles/base/hex_grass.gltf'))).toBe(true);
     expect(existsSync(join(gltfRoot, 'tiles/base/hex_grass.bin'))).toBe(true);
@@ -149,12 +151,13 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     const textureRoot = join(result.outRoot, KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE);
     expect(existsSync(join(textureRoot, 'hexagons_medieval.png'))).toBe(true);
     // FBX / OBJ / MTL must not be mirrored.
-    expect(existsSync(join(gltfRoot, '../fbx'))).toBe(false);
-    expect(existsSync(join(gltfRoot, '../obj'))).toBe(false);
+    expect(existsSync(join(result.outRoot, 'fbx'))).toBe(false);
+    expect(existsSync(join(result.outRoot, 'obj'))).toBe(false);
   });
 
   it('writes an integrity sidecar with per-file sha256 + bytes', async () => {
-    const sidecarPath = join(outRoot, 'addons/kaykit_medieval_hexagon_pack', KAYKIT_BOOTSTRAP_SIDECAR);
+    // Flat layout: sidecar is at <outRoot>/.bootstrap.json
+    const sidecarPath = join(outRoot, KAYKIT_BOOTSTRAP_SIDECAR);
     expect(existsSync(sidecarPath)).toBe(true);
     const sidecar = JSON.parse(readFileSync(sidecarPath, 'utf8')) as BootstrapSidecar;
     expect(sidecar.schemaVersion).toBe('1.0.0');
@@ -164,7 +167,8 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     expect(sidecar.sourceUrl.startsWith('file://')).toBe(true);
     expect(sidecar.files.length).toBeGreaterThan(0);
     for (const entry of sidecar.files) {
-      const absolute = join(outRoot, 'addons/kaykit_medieval_hexagon_pack', entry.path);
+      // Flat layout: entry paths are relative to outRoot directly.
+      const absolute = join(outRoot, entry.path);
       // Single read covers existence + size + hash without the
       // existsSync/stat/readFile time-of-check-time-of-use race
       // CodeQL flags as js/file-system-race.
@@ -173,26 +177,21 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
       const actualHash = createHash('sha256').update(contents).digest('hex');
       expect(actualHash).toBe(entry.sha256);
     }
-    // Files list is sorted.
-    const sorted = [...sidecar.files].map((entry) => entry.path).sort();
+    // Files list is sorted (localeCompare — matches mirrorPackTree sort in core.ts).
+    const sorted = [...sidecar.files].map((entry) => entry.path).sort((a, b) => a.localeCompare(b));
     expect(sidecar.files.map((entry) => entry.path)).toEqual(sorted);
   });
 
   it('verifyBootstrap reports OK on a freshly bootstrapped target', async () => {
+    // Flat layout: outRoot directly contains the sidecar at <outRoot>/.bootstrap.json.
     const report = await verifyBootstrap(outRoot);
     expect(report.ok).toBe(true);
     expect(report.drift).toEqual([]);
   });
 
-  it('verifyBootstrap also accepts the bootstrap target root directly', async () => {
-    const targetRoot = join(outRoot, 'addons/kaykit_medieval_hexagon_pack');
-    const report = await verifyBootstrap(targetRoot);
-    expect(report.ok).toBe(true);
-  });
-
   it('verifyBootstrap detects file tampering', async () => {
-    const targetRoot = join(outRoot, 'addons/kaykit_medieval_hexagon_pack');
-    const tamperedPath = join(targetRoot, 'Assets/gltf/tiles/base/hex_grass.gltf');
+    // Flat layout: GLTF is at <outRoot>/tiles/base/hex_grass.gltf.
+    const tamperedPath = join(outRoot, 'tiles/base/hex_grass.gltf');
     const original = readFileSync(tamperedPath);
     writeFileSync(tamperedPath, `${original.toString('utf8')}-tampered`);
     const report = await verifyBootstrap(outRoot);
@@ -210,8 +209,8 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
   });
 
   it('verifyBootstrap flags unsafe sidecar entry paths and missing files (E0a)', async () => {
-    const targetRoot = join(outRoot, 'addons/kaykit_medieval_hexagon_pack');
-    const sidecarPath = join(targetRoot, KAYKIT_BOOTSTRAP_SIDECAR);
+    // Flat layout: sidecar is at <outRoot>/.bootstrap.json.
+    const sidecarPath = join(outRoot, KAYKIT_BOOTSTRAP_SIDECAR);
     const original = readFileSync(sidecarPath, 'utf8');
     const sidecar = JSON.parse(original) as BootstrapSidecar;
     const tamperedSidecar = {
@@ -220,7 +219,7 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
         // Path-traversal escape — rel starts with '..'.
         { path: '../escape.txt', bytes: 0, sha256: '0'.repeat(64) },
         // File that doesn't exist (missing-file branch).
-        { path: 'Assets/gltf/does-not-exist.gltf', bytes: 0, sha256: '0'.repeat(64) },
+        { path: 'tiles/does-not-exist.gltf', bytes: 0, sha256: '0'.repeat(64) },
       ],
     };
     writeFileSync(sidecarPath, JSON.stringify(tamperedSidecar));
@@ -447,8 +446,8 @@ describe('bootstrap edge cases — PRD RB5', () => {
       edition: 'free',
     });
     // Drop a sentinel that should be wiped on force re-run.
-    const sentinel = join(localOut, 'addons/kaykit_medieval_hexagon_pack/sentinel.txt');
-    mkdirSync(join(sentinel, '..'), { recursive: true });
+    // Flat layout: sentinel is directly under outRoot.
+    const sentinel = join(localOut, 'sentinel.txt');
     writeFileSync(sentinel, 'should be cleared');
     expect(existsSync(sentinel)).toBe(true);
     await bootstrapKayKitAssets({
@@ -461,7 +460,7 @@ describe('bootstrap edge cases — PRD RB5', () => {
     expect(existsSync(sentinel)).toBe(false);
   });
 
-  it('preserves the upstream directory shape under Assets/gltf', async () => {
+  it('preserves the upstream directory shape under the flat bootstrap root', async () => {
     const zipPath = join(tmp(), 'shape.zip');
     await buildSyntheticZip(KAYKIT_MEDIEVAL_FREE_LAYOUT, freeFixtureFiles(), zipPath);
     const localOut = tmp();
@@ -471,11 +470,11 @@ describe('bootstrap edge cases — PRD RB5', () => {
       outRoot: '/',
       edition: 'free',
     });
-    const gltfRoot = join(result.outRoot, KAYKIT_BOOTSTRAP_GLTF_RELATIVE);
-    const subdirs = readdirSync(gltfRoot, { withFileTypes: true })
+    // Flat layout: GLTFs land directly in outRoot; textures in Textures/ subdir.
+    const subdirs = readdirSync(result.outRoot, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
-    expect(subdirs).toEqual(['buildings', 'decoration', 'tiles']);
+    expect(subdirs).toEqual(['Textures', 'buildings', 'decoration', 'tiles']);
   });
 });

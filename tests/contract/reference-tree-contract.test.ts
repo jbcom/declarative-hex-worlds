@@ -315,7 +315,6 @@ function assertManifestShape(
   const manifest = generateManifestFromSource({
     sourceRoot,
     edition,
-    assetBasePath: `assets/${edition}`,
   });
 
   const errors = validateMedievalHexagonManifest(manifest).filter((i) => i.severity === 'error');

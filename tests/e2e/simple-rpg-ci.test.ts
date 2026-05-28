@@ -9,7 +9,8 @@
  *
  * 1. `bootstrapKayKitAssets({ source: { kind: 'github' }, out: <target> })`
  *    downloads + extracts the FREE pack successfully.
- * 2. The resulting tree lives at `<target>/addons/kaykit_medieval_hexagon_pack/Assets/gltf/`.
+ * 2. The resulting tree lives flat at `<target>/` (GLTFs directly in the
+ *    asset root, grouped by category/subcategory).
  * 3. `verifyBootstrap(<target>)` reports clean — every file's sha256
  *    matches the integrity sidecar.
  * 4. The bootstrapped file count matches the FREE manifest's asset count.
@@ -25,8 +26,6 @@ import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
   bootstrapKayKitAssets,
-  KAYKIT_BOOTSTRAP_GLTF_RELATIVE,
-  KAYKIT_BOOTSTRAP_ROOT,
   verifyBootstrap,
 } from '../../src/cli/commands/bootstrap';
 import { freeManifest } from '../../src/manifest';
@@ -68,9 +67,7 @@ describe.skipIf(!RUN)('SimpleRPG e2e — bootstrap from GitHub (PRD RS2 / RB7)',
 
     expect(result.edition).toBe('free');
     expect(result.fileCount).toBeGreaterThan(0);
-
-    const gltfRoot = join(tmpRoot, KAYKIT_BOOTSTRAP_ROOT, KAYKIT_BOOTSTRAP_GLTF_RELATIVE);
-    expect(existsSync(gltfRoot)).toBe(true);
+    expect(existsSync(tmpRoot)).toBe(true);
 
     const verification = await verifyBootstrap(tmpRoot);
     expect(verification.ok).toBe(true);
@@ -85,7 +82,6 @@ describe.skipIf(!RUN)('SimpleRPG e2e — bootstrap from GitHub (PRD RS2 / RB7)',
     // Manifest names 221 FREE assets. Count actual files (each .gltf has
     // a .bin companion + textures may be shared) and assert the tree is
     // populous enough to cover every manifest entry.
-    const gltfRoot = join(tmpRoot, KAYKIT_BOOTSTRAP_ROOT, KAYKIT_BOOTSTRAP_GLTF_RELATIVE);
-    expect(walkFileCount(gltfRoot)).toBeGreaterThanOrEqual(freeManifest.counts.total);
+    expect(walkFileCount(tmpRoot)).toBeGreaterThanOrEqual(freeManifest.counts.total);
   });
 });

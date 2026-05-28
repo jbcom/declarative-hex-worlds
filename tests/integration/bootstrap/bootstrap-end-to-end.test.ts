@@ -20,13 +20,11 @@ import {
   KAYKIT_MEDIEVAL_FREE_LAYOUT,
   bootstrapKayKitAssets,
   resolveBootstrapGltfRoot,
-  resolveBootstrapTargetRoot,
   verifyBootstrap,
 } from '../../../src/cli/commands/bootstrap';
 import {
   freeManifest,
   gameboardAssetUrl,
-  rewriteToBootstrapPath,
   setGameboardAssetRoot,
 } from '../../../src';
 
@@ -117,7 +115,7 @@ describe('bootstrap end-to-end against the local FREE reference pack (PRD RB6)',
       });
 
       expect(result.edition).toBe('free');
-      // GLTF + companion BIN + the single shared texture.
+      // With the flat layout, gltfRoot === outRoot.
       const gltfRoot = resolveBootstrapGltfRoot(outRoot);
       expect(existsSync(gltfRoot)).toBe(true);
 
@@ -128,19 +126,17 @@ describe('bootstrap end-to-end against the local FREE reference pack (PRD RB6)',
 
       // Every asset in the bundled FREE manifest resolves to a real file
       // under the bootstrap target via gameboardAssetUrl + the runtime root
-      // override.
+      // override. With the flat layout: <outRoot>/<asset.sourcePath>.
       setGameboardAssetRoot(outRoot);
-      const targetRoot = resolveBootstrapTargetRoot(outRoot);
       const missing: string[] = [];
       for (const asset of freeManifest.assets) {
         const resolved = gameboardAssetUrl(asset);
-        // gameboardAssetUrl prepends the asset root + bootstrap target
-        // segments; the absolute path should live under targetRoot.
-        const expectedAbsolute = join(targetRoot, rewriteToBootstrapPath(asset).replace(/^addons\/kaykit_medieval_hexagon_pack\//, ''));
+        // gameboardAssetUrl = <assetRoot>/<sourcePath>
+        const expectedAbsolute = join(outRoot, asset.sourcePath);
         if (!existsSync(expectedAbsolute)) {
           missing.push(asset.id);
         }
-        expect(resolved).toContain('addons/kaykit_medieval_hexagon_pack/Assets/gltf');
+        expect(resolved).toBe(`${outRoot}/${asset.sourcePath}`);
       }
       expect(missing).toEqual([]);
       // The bootstrap should have produced exactly the manifest's asset count

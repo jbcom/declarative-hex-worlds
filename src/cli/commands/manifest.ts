@@ -10,7 +10,6 @@ export async function run(
   const manifest = generateManifestFromSource({
     sourceRoot,
     edition,
-    assetBasePath: String(parsed.flags.assetBasePath ?? `assets/${edition}`),
   });
   const output = parsed.flags.out;
   if (typeof output === 'string') {

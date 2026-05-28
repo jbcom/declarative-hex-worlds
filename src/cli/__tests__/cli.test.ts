@@ -43,8 +43,6 @@ describe('CLI', () => {
       'manifest',
       '--source',
       sourceRoot,
-      '--assetBasePath',
-      'assets/free',
       '--out',
       manifestPath,
     ]);
@@ -52,10 +50,11 @@ describe('CLI', () => {
 
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as MedievalHexagonManifest;
     expect(manifest.counts.total).toBe(1);
+    // Flat layout: modelPath is sourcePath-relative (no assets/free/ prefix).
     expect(manifest.assetsById.hex_grass).toMatchObject({
       category: 'tiles',
       subcategory: 'base',
-      modelPath: 'assets/free/tiles/base/hex_grass.gltf',
+      modelPath: 'tiles/base/hex_grass.gltf',
     });
 
     const normalizedManifestPath = resolve(createTempRoot(), 'normalized-manifest.json');
@@ -81,7 +80,7 @@ describe('CLI', () => {
     const sourceRoot = createFixtureSourceRoot();
     const staleManifestPath = resolve(createTempRoot(), 'stale-manifest.json');
     const manifest = JSON.parse(
-      runCli(['manifest', '--source', sourceRoot, '--assetBasePath', 'assets/free'])
+      runCli(['manifest', '--source', sourceRoot])
     ) as MedievalHexagonManifest;
     writeFileSync(
       staleManifestPath,
@@ -2930,8 +2929,6 @@ describe('CLI', () => {
         'manifest',
         '--source',
         sourceRoot,
-        '--assetBasePath',
-        'assets/free',
         '--out',
         target,
       ]);

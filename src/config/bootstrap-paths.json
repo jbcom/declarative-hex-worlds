@@ -1,6 +1,5 @@
 {
-  "root": "addons/kaykit_medieval_hexagon_pack",
-  "gltfRelative": "Assets/gltf",
+  "gltfRelative": "",
   "textureRelative": "Textures",
   "sidecarFileName": ".bootstrap.json",
   "sidecarSchemaVersion": "1.0.0",

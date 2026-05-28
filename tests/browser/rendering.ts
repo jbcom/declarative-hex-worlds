@@ -20,6 +20,7 @@ import {
   syncGameboardPlacementObjects,
 } from '../../src/three/index';
 import type { MedievalHexagonAsset } from '../../src/types/index';
+import { gameboardAssetUrl } from '../../src/runtime/asset-root';
 
 declare const __EXTRA_SOURCE_ROOT__: string | undefined;
 
@@ -156,7 +157,7 @@ export async function renderContactSheet(
 }
 
 export function assetUrl(asset: MedievalHexagonAsset): string {
-  return `/${asset.modelPath}`;
+  return gameboardAssetUrl(asset);
 }
 
 export function referenceExtraUrl(sourcePath: string): string {
