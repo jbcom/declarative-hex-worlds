@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `@jbcom/medieval-hexagon-gameboard` are documented in this file.
+All notable changes to `medieval-hexagon-gameboard` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -11,7 +11,7 @@ From version 1.0.0 onward, release-please populates this file from Conventional 
 
 ### Removed
 
-- **BREAKING:** Dropped the `@jbcom/medieval-hexagon-gameboard/examples/simple-rpg-usage` package subpath. SimpleRPG is a test driver, not a published example; its TypeScript source, JSON fixtures, and compiled module no longer ship in the npm tarball. SimpleRPG evidence stays reachable through the bundled CLI (`medieval-hexagon-gameboard coverage --json` / `doctor --coverage`). The in-repo driver moved to `tests/integration/simple-rpg/simple-rpg.ts` with fixtures under `tests/integration/simple-rpg/fixtures/`; e2e harness skeleton at `tests/e2e/simple-rpg/` will be fleshed out by PRD `RS1`-`RS3` (PRD R4).
+- **BREAKING:** Dropped the `medieval-hexagon-gameboard/examples/simple-rpg-usage` package subpath. SimpleRPG is a test driver, not a published example; its TypeScript source, JSON fixtures, and compiled module no longer ship in the npm tarball. SimpleRPG evidence stays reachable through the bundled CLI (`medieval-hexagon-gameboard coverage --json` / `doctor --coverage`). The in-repo driver moved to `tests/integration/simple-rpg/simple-rpg.ts` with fixtures under `tests/integration/simple-rpg/fixtures/`; e2e harness skeleton at `tests/e2e/simple-rpg/` will be fleshed out by PRD `RS1`-`RS3` (PRD R4).
 
 ### Added
 

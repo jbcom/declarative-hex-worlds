@@ -7,7 +7,7 @@ domain: technical
 
 # Public API tier table
 
-`@jbcom/medieval-hexagon-gameboard` publishes one umbrella entry plus a wide
+`medieval-hexagon-gameboard` publishes one umbrella entry plus a wide
 set of subpath exports. **Every subpath stays supported through 1.0** — this
 is an asset-bundled library where mod authors, custom-renderer builders, and
 data-inspection tooling all have legitimate reasons to reach internals.

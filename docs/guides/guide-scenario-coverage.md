@@ -459,7 +459,7 @@ being a passive file reference:
 import {
   describeKayKitGuideAssetCoverage,
   listKayKitGuideAssetCoverages,
-} from '@jbcom/medieval-hexagon-gameboard/catalog';
+} from 'medieval-hexagon-gameboard/catalog';
 
 const roadM = describeKayKitGuideAssetCoverage('hex_road_M');
 const allAssetCoverage = listKayKitGuideAssetCoverages();
@@ -477,7 +477,7 @@ import {
   listKayKitGuideScenarioAssetRenderRequests,
   listKayKitGuideScenarioAssetUsages,
   listKayKitGuideScenarioAssetUsagesForScenario,
-} from '@jbcom/medieval-hexagon-gameboard/catalog';
+} from 'medieval-hexagon-gameboard/catalog';
 
 const freeGuideAssets = listKayKitGuideScenarioAssetUsages({ minimumEdition: "free" });
 const stableWorkshopUnits = listKayKitGuideScenarioAssetUsages({ pages: [16, 17, 18] });
@@ -498,7 +498,7 @@ asset id, public API, doc, and screenshot that exercises that role:
 import {
   describeKayKitGuideRoleCoverage,
   listKayKitGuideRoleCoverages,
-} from '@jbcom/medieval-hexagon-gameboard/catalog';
+} from 'medieval-hexagon-gameboard/catalog';
 
 const props = describeKayKitGuideRoleCoverage('prop');
 const allRoleCoverage = listKayKitGuideRoleCoverages();
@@ -668,7 +668,7 @@ screenshot that exercises it:
 import {
   describeKayKitGuidePublicApiCoverage,
   listKayKitGuidePublicApiCoverages,
-} from '@jbcom/medieval-hexagon-gameboard/catalog';
+} from 'medieval-hexagon-gameboard/catalog';
 
 const harbor = describeKayKitGuidePublicApiCoverage('GameboardBuilder.addHarbor');
 const allApiCoverage = listKayKitGuidePublicApiCoverages();

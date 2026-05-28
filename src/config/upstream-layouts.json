@@ -1,0 +1,45 @@
+{
+  "free": {
+    "editionName": "free",
+    "displayName": "FREE",
+    "packFolderName": "KayKit_Medieval_Hexagon_Pack_1.0_FREE",
+    "relativeGltfRoot": "Assets/gltf",
+    "relativeTextureRoot": "Textures",
+    "assetCategories": ["buildings", "decoration", "tiles"],
+    "markerFiles": [
+      "License.txt",
+      "Medieval_Hexagon_UserGuide_v1.pdf",
+      "contents_buildings.jpg",
+      "contents_nature.jpg",
+      "contents_tiles.jpg"
+    ],
+    "expectedGltfCount": 221,
+    "expectedBinCount": 221,
+    "textureFiles": ["hexagons_medieval.png"]
+  },
+  "extra": {
+    "editionName": "extra",
+    "displayName": "EXTRA",
+    "packFolderName": "KayKit_Medieval_Hexagon_Pack_1.0_EXTRA",
+    "relativeGltfRoot": "Assets/gltf",
+    "relativeTextureRoot": "Textures",
+    "assetCategories": ["buildings", "decoration", "tiles", "units"],
+    "markerFiles": [
+      "License.txt",
+      "Medieval_Hexagon_UserGuide_v1.pdf",
+      "contents_buildings.jpg",
+      "contents_nature.jpg",
+      "contents_tiles.jpg",
+      "contents_units.jpg",
+      "contents_textures.jpg"
+    ],
+    "expectedGltfCount": 404,
+    "expectedBinCount": 404,
+    "textureFiles": [
+      "hexagons_medieval.png",
+      "hexagons_medieval_Fall.png",
+      "hexagons_medieval_Summer.png",
+      "hexagons_medieval_Winter.png"
+    ]
+  }
+}

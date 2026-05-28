@@ -1,5 +1,5 @@
 {
-  "name": "@jbcom/medieval-hexagon-gameboard",
+  "name": "medieval-hexagon-gameboard",
   "version": "0.1.0",
   "description": "Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS, first-class React + Three.js bindings, and a CLI bootstrap subcommand that fetches the FREE GLTF assets at install time",
   "type": "module",
@@ -173,9 +173,9 @@
       "types": "./dist/manifest/schema.d.ts",
       "import": "./dist/manifest/schema.js"
     },
-    "./manifest/upstream-layout": {
-      "types": "./dist/manifest/upstream-layout.d.ts",
-      "import": "./dist/manifest/upstream-layout.js"
+    "./bootstrap/upstream-layout": {
+      "types": "./dist/bootstrap/upstream-layout.d.ts",
+      "import": "./dist/bootstrap/upstream-layout.js"
     },
     "./assets/free/manifest.json": "./assets/free/manifest.json",
     "./examples/blueprint-board-usage": {
@@ -281,12 +281,12 @@
   },
   "dependencies": {
     "@types/react": "^19.0.0",
+    "citty": "^0.2.2",
     "honeycomb-grid": "^4.1.5",
     "koota": "^0.6.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "seedrandom": "^3.0.5",
-    "tar": "^7.5.15",
     "three": "^0.184.0",
     "yauzl": "^3.3.1"
   },

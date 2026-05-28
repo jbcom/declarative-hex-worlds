@@ -28,40 +28,39 @@ import { request as httpsRequest } from 'node:https';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { createGunzip } from 'node:zlib';
-import * as tar from 'tar';
 import yauzl from 'yauzl';
-import { GameboardIoError, GameboardManifestError } from '../errors';
+import { BOOTSTRAP_PATHS, KAYKIT_SOURCE, kaykitGithubArchiveUrl } from '../../../config';
+import { GameboardIoError, GameboardManifestError } from '../../../errors';
 import {
   KAYKIT_MEDIEVAL_FREE_LAYOUT,
   detectKayKitLayout,
   kayKitLayoutForEdition,
   type KayKitUpstreamLayout,
-} from '../manifest/upstream-layout';
-import type { PackEdition } from '../types';
+} from './upstream-layout';
+import type { PackEdition } from '../../../types';
 import {
   KAYKIT_BOOTSTRAP_GLTF_RELATIVE,
   KAYKIT_BOOTSTRAP_SIDECAR,
   KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE,
   resolveBootstrapSidecarPath,
   resolveBootstrapTargetRoot,
-} from './bootstrap-target';
+} from './target';
 
 /**
  * Canonical GitHub organization holding the FREE edition source tree.
  */
-export const KAYKIT_FREE_GITHUB_OWNER = 'KayKit-Game-Assets';
+export const KAYKIT_FREE_GITHUB_OWNER = KAYKIT_SOURCE.github.owner;
 
 /**
  * Canonical GitHub repository name for the FREE edition (the repo at
  * `KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0`).
  */
-export const KAYKIT_FREE_GITHUB_REPO = 'KayKit-Medieval-Hexagon-Pack-1.0';
+export const KAYKIT_FREE_GITHUB_REPO = KAYKIT_SOURCE.github.repo;
 
 /**
  * Default git ref the bootstrap CLI fetches when no `--commit` is supplied.
  */
-export const KAYKIT_FREE_GITHUB_DEFAULT_REF = 'main';
+export const KAYKIT_FREE_GITHUB_DEFAULT_REF = KAYKIT_SOURCE.github.defaultRef;
 
 /**
  * Source descriptor for {@link BootstrapKayKitAssetsOptions}. Discriminates
@@ -182,10 +181,10 @@ export interface BootstrapVerificationReport {
   readonly sidecarPath: string;
 }
 
-const KAYKIT_FREE_USER_AGENT = '@jbcom/medieval-hexagon-gameboard bootstrap';
-const KAYKIT_INCLUDED_EXTENSIONS = new Set(['.gltf', '.bin', '.png', '.jpg', '.jpeg']);
-const KAYKIT_SOURCE_FORMAT_EXTENSIONS = new Set(['.fbx', '.obj', '.mtl', '.gz']);
-const KAYKIT_SIDECAR_SCHEMA_VERSION = '1.0.0' as const;
+const KAYKIT_FREE_USER_AGENT = KAYKIT_SOURCE.userAgent;
+const KAYKIT_INCLUDED_EXTENSIONS = new Set(BOOTSTRAP_PATHS.includedExtensions);
+const KAYKIT_SOURCE_FORMAT_EXTENSIONS = new Set(BOOTSTRAP_PATHS.sourceFormatExtensions);
+const KAYKIT_SIDECAR_SCHEMA_VERSION = BOOTSTRAP_PATHS.sidecarSchemaVersion;
 
 /**
  * Materialize the KayKit asset tree under the consumer's asset root.
@@ -312,12 +311,14 @@ export async function verifyBootstrap(outRoot: string): Promise<BootstrapVerific
 }
 
 /**
- * Format the canonical GitHub tarball URL for a given commit (or `main` when
- * unset).
+ * Format the canonical GitHub source-archive **zip** URL for a given ref (or
+ * `main` when unset). GitHub serves a stable, never-changing archive at
+ * `/archive/refs/heads/<ref>.zip`, so bootstrap downloads it and feeds the
+ * exact same local-zip extraction flow as a user-supplied archive — no tarball
+ * decompression and no git dependency.
  */
 export function kayKitFreeGithubTarballUrl(commit?: string): string {
-  const ref = commit ?? KAYKIT_FREE_GITHUB_DEFAULT_REF;
-  return `https://codeload.github.com/${KAYKIT_FREE_GITHUB_OWNER}/${KAYKIT_FREE_GITHUB_REPO}/tar.gz/${ref}`;
+  return kaykitGithubArchiveUrl(commit);
 }
 
 function resolveOutAbsolute(value: string, outRoot: string | undefined): string {
@@ -337,24 +338,38 @@ async function stageUpstreamSource(
   layout: KayKitUpstreamLayout,
   edition: PackEdition
 ): Promise<string> {
-  if (source.kind === 'github') {
-    return stageFromGithub(source.commit);
-  }
-  return stageFromZip(source.path, layout, edition);
+  // Both source modes converge on the same local-zip extraction flow: a
+  // GitHub source simply downloads the stable archive .zip first, then runs
+  // the identical `stageFromZip` path (which detects FREE/EXTRA structure).
+  const zipPath =
+    source.kind === 'github' ? await downloadGithubArchiveZip(source.commit) : source.path;
+  return stageFromZip(zipPath, layout, edition);
 }
 
-async function stageFromGithub(commit: string | undefined): Promise<string> {
+async function downloadGithubArchiveZip(commit: string | undefined): Promise<string> {
   const url = kayKitFreeGithubTarballUrl(commit);
-  const stagingRoot = mkStagingRoot('github');
+  const downloadRoot = mkStagingRoot('github-zip');
+  const zipPath = join(downloadRoot, 'kaykit-medieval-hexagon-free.zip');
   try {
     const incoming = await openHttpsStream(url);
-    await pipeline(incoming, createGunzip(), tar.extract({ cwd: stagingRoot }));
+    try {
+      await pipeline(incoming, createWriteStream(zipPath));
+    } catch (pipelineError) {
+      // If `pipeline` setup fails (e.g. createWriteStream EACCES), the
+      // upstream https stream is left dangling and would leak the socket
+      // until the connection times out. Force-destroy it here so the network
+      // connection is reclaimed immediately. The runtime object is a
+      // `Readable` (has `.destroy()`); the structural type-only
+      // `NodeJS.ReadableStream` doesn't expose it, hence the cast.
+      (incoming as { destroy?: () => void }).destroy?.();
+      throw pipelineError;
+    }
   } catch (error) {
-    rmSync(stagingRoot, { recursive: true, force: true });
+    rmSync(downloadRoot, { recursive: true, force: true });
     const message = error instanceof Error ? error.message : String(error);
-    throw new GameboardIoError(`failed to download KayKit FREE tarball ${url}: ${message}`);
+    throw new GameboardIoError(`failed to download KayKit FREE archive ${url}: ${message}`);
   }
-  return stagingRoot;
+  return zipPath;
 }
 
 async function stageFromZip(
@@ -431,7 +446,7 @@ function findPackRoot(stagingRoot: string): string | undefined {
     if (detectKayKitLayout(candidate)) {
       return candidate;
     }
-    // GitHub tarballs nest the pack under `<repo>-<sha>/`; recurse one level.
+    // GitHub archives nest the pack under `<repo>-<ref>/`; recurse one level.
     const innerEntries = readdirSync(candidate, { withFileTypes: true });
     for (const innerEntry of innerEntries) {
       if (!innerEntry.isDirectory()) {
@@ -441,9 +456,6 @@ function findPackRoot(stagingRoot: string): string | undefined {
       if (detectKayKitLayout(inner)) {
         return inner;
       }
-    }
-    if (detectKayKitLayout(candidate)) {
-      return candidate;
     }
   }
   return undefined;
@@ -586,7 +598,7 @@ function resolveLibraryVersion(): string {
     const candidate = join(dir, 'package.json');
     if (existsSync(candidate)) {
       const parsed = JSON.parse(readFileSync(candidate, 'utf8')) as { version?: string; name?: string };
-      if (parsed.name === '@jbcom/medieval-hexagon-gameboard' && typeof parsed.version === 'string') {
+      if (parsed.name === 'medieval-hexagon-gameboard' && typeof parsed.version === 'string') {
         return parsed.version;
       }
     }
@@ -605,6 +617,20 @@ function mkStagingRoot(prefix: string): string {
   return root;
 }
 
+/**
+ * Hosts the bootstrap is willing to follow redirects to. The initial URL is a
+ * pinned github.com archive; GitHub's archive endpoint 302s to `codeload` and
+ * then to a signed S3-backed `objects.githubusercontent.com` URL. Anything
+ * outside this allowlist gets rejected so a hostile redirect chain cannot
+ * exfiltrate the User-Agent or trick bootstrap into fetching arbitrary URLs
+ * (CWE-601 / CWE-918).
+ */
+const KAYKIT_FETCH_REDIRECT_ALLOWLIST = new Set([
+  'github.com',
+  'codeload.github.com',
+  'objects.githubusercontent.com',
+]);
+
 async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.ReadableStream> {
   if (redirects > 5) {
     throw new GameboardIoError(`too many redirects fetching ${url}`);
@@ -616,7 +642,7 @@ async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.Reada
         method: 'GET',
         headers: {
           'User-Agent': KAYKIT_FREE_USER_AGENT,
-          Accept: 'application/gzip',
+          Accept: 'application/zip',
         },
       },
       (response) => {
@@ -624,7 +650,16 @@ async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.Reada
         const location = response.headers.location;
         if (status >= 300 && status < 400 && location) {
           response.resume();
-          openHttpsStream(new URL(location, url).toString(), redirects + 1).then(resolveStream, reject);
+          const nextUrl = new URL(location, url);
+          if (!KAYKIT_FETCH_REDIRECT_ALLOWLIST.has(nextUrl.hostname)) {
+            reject(
+              new GameboardIoError(
+                `bootstrap refuses redirect to disallowed host ${nextUrl.hostname} (from ${url})`
+              )
+            );
+            return;
+          }
+          openHttpsStream(nextUrl.toString(), redirects + 1).then(resolveStream, reject);
           return;
         }
         if (status !== 200) {
@@ -639,6 +674,15 @@ async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.Reada
     requestObject.end();
   });
 }
+
+/**
+ * Per-entry decompressed byte ceiling. KayKit's largest GLTF is well under
+ * 1 MB; the upstream pack's total uncompressed size is ~12 MB. 64 MB per entry
+ * is a generous cushion that still defends against zip-bomb decompression
+ * blow-ups (CWE-409): a single malicious entry can no longer fill the disk
+ * via a high compression ratio.
+ */
+const KAYKIT_MAX_ZIP_ENTRY_BYTES = 64 * 1024 * 1024;
 
 async function extractZipTo(zipPath: string, targetRoot: string): Promise<void> {
   await new Promise<void>((resolveExtract, rejectExtract) => {
@@ -663,16 +707,42 @@ async function extractZipTo(zipPath: string, targetRoot: string): Promise<void> 
           zipFile.readEntry();
           return;
         }
+        // Reject obviously oversized entries before opening the read stream
+        // (the central-directory size is advisory but a clear up-front reject
+        // is friendlier than aborting mid-stream).
+        if (entry.uncompressedSize > KAYKIT_MAX_ZIP_ENTRY_BYTES) {
+          rejectExtract(
+            new GameboardIoError(
+              `zip entry ${entryPath} declares ${entry.uncompressedSize} bytes uncompressed; max ${KAYKIT_MAX_ZIP_ENTRY_BYTES}`
+            )
+          );
+          return;
+        }
         mkdirSync(dirname(targetPath), { recursive: true });
         zipFile.openReadStream(entry, (entryErr, readStream) => {
           if (entryErr || !readStream) {
             rejectExtract(entryErr ?? new Error(`failed to read zip entry ${entryPath}`));
             return;
           }
+          // Defense in depth: the central-directory `uncompressedSize` can lie;
+          // count actual decompressed bytes and abort if the cap is breached.
+          let written = 0;
           const writeStream = createWriteStream(targetPath);
           writeStream.on('error', rejectExtract);
           writeStream.on('close', () => zipFile.readEntry());
           readStream.on('error', rejectExtract);
+          readStream.on('data', (chunk: Buffer) => {
+            written += chunk.length;
+            if (written > KAYKIT_MAX_ZIP_ENTRY_BYTES) {
+              readStream.destroy();
+              writeStream.destroy();
+              rejectExtract(
+                new GameboardIoError(
+                  `zip entry ${entryPath} exceeded ${KAYKIT_MAX_ZIP_ENTRY_BYTES} bytes during extraction`
+                )
+              );
+            }
+          });
           readStream.pipe(writeStream);
         });
       });

@@ -2,20 +2,22 @@
 /**
  * `medieval-hexagon-gameboard` CLI entry point.
  *
- * Thin dispatcher (PRD B3 / P-C2). Top-level cost is intentionally tiny:
- * a single argv read, the `parseArgs` helper, and a per-subcommand dynamic
- * import. Headless paths (`--help`, `doctor`, `validate`) never load the
- * heavy helper graph (`_shared.ts`, the freeManifest tree, the blueprint
- * engine, the simulation surface), which keeps cold-start under the PRD E5
- * 80 ms budget.
+ * Built on `citty` for command routing + help formatting; each subcommand is a
+ * lazy `() => import('./commands/<name>')` so the headless paths (`--help`,
+ * `doctor`, `validate`) never load the heavy helper graph (`_shared.ts`, the
+ * freeManifest tree, the blueprint engine, the simulation surface) — keeping
+ * cold-start under the PRD E5 80 ms budget.
  *
- * Each subcommand lives in `./commands/<name>.ts` and exports
- * `run(parsed, sourceRoot, edition)`. `_shared.ts` is loaded only by
- * subcommands that actually need its helpers.
+ * Each subcommand module exports `run(parsed, sourceRoot, edition)` where
+ * `parsed.flags` is a flat string/bool map produced by the local `parseFlags`
+ * helper. citty owns the command name + `--help`; subcommands keep their full
+ * arbitrary flag surface (so we don't need to re-declare ~200 args across 35
+ * commands as a citty arg schema).
  *
  * @module
  */
 import { resolve } from 'node:path';
+import { defineCommand, runMain } from 'citty';
 import { GameboardCliError } from '../errors';
 import { defaultSourceRoot } from '../ingest';
 import type { PackEdition } from '../types';
@@ -29,7 +31,7 @@ type CommandModule = {
   run: (parsed: ParsedArgs, sourceRoot: string, edition: PackEdition) => Promise<void> | void;
 };
 
-const HANDLERS: Record<string, () => Promise<CommandModule>> = {
+const SUBCOMMAND_LOADERS: Record<string, () => Promise<CommandModule>> = {
   doctor: () => import('./commands/doctor'),
   validate: () => import('./commands/validate'),
   manifest: () => import('./commands/manifest'),
@@ -66,8 +68,7 @@ const HANDLERS: Record<string, () => Promise<CommandModule>> = {
   bootstrap: () => import('./commands/bootstrap'),
 };
 
-function parseArgs(argv: string[]): ParsedArgs {
-  const [command = 'help', ...rest] = argv;
+function parseFlags(rest: readonly string[]): Record<string, string | boolean> {
   const flags: Record<string, string | boolean> = {};
   for (let index = 0; index < rest.length; index += 1) {
     const item = rest[index];
@@ -83,7 +84,7 @@ function parseArgs(argv: string[]): ParsedArgs {
       flags[key] = true;
     }
   }
-  return { command, flags };
+  return flags;
 }
 
 function readEdition(value: string | boolean | undefined): PackEdition {
@@ -96,34 +97,68 @@ function readEdition(value: string | boolean | undefined): PackEdition {
   throw new GameboardCliError(`Unsupported edition: ${String(value)}`);
 }
 
-async function main(argv: string[]): Promise<void> {
-  const [rawCommand = 'help'] = argv;
-  if (rawCommand === 'help' || rawCommand === '--help' || rawCommand === '-h') {
+/**
+ * Build the citty subCommands map: each name lazy-loads its module on demand,
+ * adapts citty's `(ctx) => ...` shape back into the existing
+ * `run(parsed, sourceRoot, edition)` contract, and forwards citty's
+ * `ctx.rawArgs` through the local flag parser so subcommands keep their full
+ * arbitrary flag surface unchanged.
+ */
+const subCommands = Object.fromEntries(
+  Object.entries(SUBCOMMAND_LOADERS).map(([name, loader]) => [
+    name,
+    async () => {
+      const mod = await loader();
+      return defineCommand({
+        meta: { name, description: `\`${name}\` subcommand` },
+        async run(ctx) {
+          const flags = parseFlags(ctx.rawArgs ?? []);
+          const edition = readEdition(flags.edition);
+          // `--source` without a value parses as `true`; treating `String(true)`
+          // as a path resolves to `<cwd>/true`. Type-check before coercing.
+          const sourceRoot = resolve(
+            typeof flags.source === 'string' ? flags.source : defaultSourceRoot(edition)
+          );
+          await mod.run({ command: name, flags }, sourceRoot, edition);
+        },
+      });
+    },
+  ])
+);
+
+const main = defineCommand({
+  meta: {
+    name: 'medieval-hexagon-gameboard',
+    description:
+      'KayKit Medieval Hexagon gameboard runtime CLI — manifest, validate, bootstrap, and scenario tools.',
+  },
+  subCommands,
+});
+
+/**
+ * Pre-process argv so the rich hand-curated `./usage` help is preserved for
+ * `--help` / `-h` / `help` / no-args paths. citty's auto-generated help only
+ * lists subcommand names; the existing usage doc carries per-flag reference
+ * (e.g. PRD RB2's `--source github|zip`, `--verify`). Intercepting BEFORE
+ * `runMain` is required because citty handles `--help` itself otherwise.
+ */
+async function runCli(argv: readonly string[]): Promise<void> {
+  const first = argv[0];
+  if (argv.length === 0 || first === '--help' || first === '-h' || first === 'help') {
     const { usage } = await import('./usage');
     usage(0);
     return;
   }
-
-  const handler = HANDLERS[rawCommand];
-  if (!handler) {
-    const { usage } = await import('./usage');
-    usage(1);
-    return;
-  }
-
-  const parsed = parseArgs(argv);
-  const edition = readEdition(parsed.flags.edition);
-  const sourceRoot = resolve(String(parsed.flags.source ?? defaultSourceRoot(edition)));
-
-  const module = await handler();
-  await module.run(parsed, sourceRoot, edition);
+  // Forward the explicit `argv` so programmatic invocations (and tests that
+  // pass a custom array) don't fall back to `process.argv`.
+  await runMain(main, { rawArgs: argv as string[] });
 }
 
-main(process.argv.slice(2)).catch((error) => {
+runCli(process.argv.slice(2)).catch((error: unknown) => {
   // Terse default: only the message. Full stack is gated behind
-  // MEDIEVAL_HEXAGON_DEBUG=1 so failure output in CI / user terminals
-  // stays quiet, but interactive debugging is one env-var away.
-  // Phase 2 security review S-M5.
+  // MEDIEVAL_HEXAGON_DEBUG=1 so failure output in CI / user terminals stays
+  // quiet, but interactive debugging is one env-var away. Phase 2 security
+  // review S-M5.
   const debugEnabled = process.env.MEDIEVAL_HEXAGON_DEBUG === '1';
   if (debugEnabled && error instanceof Error) {
     console.error(error.stack ?? error.message);

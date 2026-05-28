@@ -1,0 +1,9 @@
+{
+  "github": {
+    "owner": "KayKit-Game-Assets",
+    "repo": "KayKit-Medieval-Hexagon-Pack-1.0",
+    "defaultRef": "main",
+    "archiveUrlTemplate": "https://github.com/{owner}/{repo}/archive/refs/heads/{ref}.zip"
+  },
+  "userAgent": "medieval-hexagon-gameboard bootstrap"
+}

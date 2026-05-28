@@ -15,13 +15,13 @@ import {
   type AssetBounds,
   type GameboardPieceDeclaration,
   type GameboardPieceRegistry,
-} from '@jbcom/medieval-hexagon-gameboard';
+} from 'medieval-hexagon-gameboard';
 import {
   findGameboardPlacementObjectUserData,
   findLoadedGameboardPlacementObjectForObject,
   loadGameboardPlacementObject,
   updateGameboardPlacementAnimation,
-} from '@jbcom/medieval-hexagon-gameboard/three';
+} from 'medieval-hexagon-gameboard/three';
 import { createFixedSimpleRpgGame } from '../../simple-rpg/game';
 import { assertCanvasHasRenderableContent, renderGameboardPlan } from '../../browser/rendering';
 

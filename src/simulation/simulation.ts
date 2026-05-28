@@ -19,9 +19,25 @@
  * @module
  */
 export * from './script';
-export * from './report';
 export * from './engine';
 export {
   assertGameboardScenarioSimulationExpectations,
   evaluateGameboardScenarioSimulationExpectations,
 } from './assertions';
+// `./report` is re-exported by its PUBLIC surface only — the `@internal` record
+// builders (actorRecord, placementRecord, simulationResult,
+// actorTargetsRecordFromReport, emptyActorTargetsRecord) stay reachable by
+// sibling modules (engine.ts) via direct `./report` import but are NOT part of
+// the published API, so they are deliberately omitted here.
+export { createGameboardScenarioSimulationReport } from './report';
+export type {
+  GameboardScenarioSimulationActorRecord,
+  GameboardScenarioSimulationCommandRecord,
+  GameboardScenarioSimulationMovementRecord,
+  GameboardScenarioSimulationPatrolRecord,
+  GameboardScenarioSimulationPlacementRecord,
+  GameboardScenarioSimulationQuestRecord,
+  GameboardScenarioSimulationReport,
+  GameboardScenarioSimulationResult,
+  GameboardScenarioSimulationStepReport,
+} from './report';

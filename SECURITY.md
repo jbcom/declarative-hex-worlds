@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-`@jbcom/medieval-hexagon-gameboard` is pre-1.0; only the latest published version receives security updates. Once 1.0 ships, the last two minor versions will receive patches.
+`medieval-hexagon-gameboard` is pre-1.0; only the latest published version receives security updates. Once 1.0 ships, the last two minor versions will receive patches.
 
 ## Reporting a vulnerability
 
@@ -23,7 +23,7 @@ You'll get an acknowledgment within 72 hours. We aim to publish a fix within 30 
 
 In scope:
 
-- The published `@jbcom/medieval-hexagon-gameboard` npm package.
+- The published `medieval-hexagon-gameboard` npm package.
 - The CLI binary (`medieval-hexagon-gameboard`).
 - The asset bootstrap subcommand's downloads + integrity verification.
 - Anything that could let attacker-controlled scenario / manifest / blueprint JSON escalate to filesystem writes, network calls, or code execution outside the intended sandbox.

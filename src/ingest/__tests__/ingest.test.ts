@@ -60,12 +60,12 @@ describe('source ingestion', () => {
           sourcePack: { ...freeManifest.sourcePack, edition: 'extra' },
         },
         extraModulePath,
-        { typeImportPath: '@jbcom/medieval-hexagon-gameboard' }
+        { typeImportPath: 'medieval-hexagon-gameboard' }
       );
 
       expect(readFileSync(freeModulePath, 'utf8')).toContain('export const freeManifest: MedievalHexagonManifest');
       expect(readFileSync(extraModulePath, 'utf8')).toContain('export const extraManifest: MedievalHexagonManifest');
-      expect(readFileSync(extraModulePath, 'utf8')).toContain("from '@jbcom/medieval-hexagon-gameboard'");
+      expect(readFileSync(extraModulePath, 'utf8')).toContain("from 'medieval-hexagon-gameboard'");
     } finally {
       rmSync(tempRoot, { recursive: true, force: true });
     }

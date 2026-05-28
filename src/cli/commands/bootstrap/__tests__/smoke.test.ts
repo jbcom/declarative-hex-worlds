@@ -28,15 +28,15 @@ describe('bootstrap programmatic surface', () => {
     expect(KAYKIT_FREE_GITHUB_DEFAULT_REF).toBe('main');
   });
 
-  it('resolves the tarball URL for the default ref', () => {
+  it('resolves the stable archive zip URL for the default ref', () => {
     expect(kayKitFreeGithubTarballUrl()).toBe(
-      'https://codeload.github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/tar.gz/main'
+      'https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/archive/refs/heads/main.zip'
     );
   });
 
-  it('resolves the tarball URL for a pinned commit', () => {
+  it('resolves the stable archive zip URL for a pinned ref', () => {
     expect(kayKitFreeGithubTarballUrl('deadbeef')).toBe(
-      'https://codeload.github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/tar.gz/deadbeef'
+      'https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/archive/refs/heads/deadbeef.zip'
     );
   });
 

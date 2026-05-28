@@ -18,7 +18,7 @@ A "Clear the harbor" quest has three objectives: defeat 5 bandits, deliver 3 cra
 ## Snippet
 
 ```ts
-import { GameboardQuest } from '@jbcom/medieval-hexagon-gameboard/quests';
+import { GameboardQuest } from 'medieval-hexagon-gameboard/quests';
 
 world.spawn(GameboardQuest({
   id: 'quest:clear-harbor',

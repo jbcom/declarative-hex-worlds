@@ -8,13 +8,13 @@
 import {
   createMedievalGameboardBlueprintScenario,
   type MedievalGameboardBlueprintScenarioOptions,
-} from '@jbcom/medieval-hexagon-gameboard/blueprint';
+} from 'medieval-hexagon-gameboard/blueprint';
 import {
   createGameboardRuntimeFromScenario,
   type GameboardScenarioGameRuntime,
-} from '@jbcom/medieval-hexagon-gameboard/runtime';
-import { validateGameboardScenario } from '@jbcom/medieval-hexagon-gameboard/scenario';
-import { validateGameboardPlan } from '@jbcom/medieval-hexagon-gameboard/validation';
+} from 'medieval-hexagon-gameboard/runtime';
+import { validateGameboardScenario } from 'medieval-hexagon-gameboard/scenario';
+import { validateGameboardPlan } from 'medieval-hexagon-gameboard/validation';
 import blueprintJson from './blueprint-board.json';
 
 /**

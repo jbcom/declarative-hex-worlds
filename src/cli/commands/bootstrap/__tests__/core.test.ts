@@ -16,7 +16,7 @@ import {
   KAYKIT_MEDIEVAL_FREE_LAYOUT,
   KAYKIT_MEDIEVAL_EXTRA_LAYOUT,
   type KayKitUpstreamLayout,
-} from '../../manifest/upstream-layout';
+} from '../upstream-layout';
 import {
   bootstrapKayKitAssets,
   verifyBootstrap,
@@ -26,7 +26,7 @@ import {
   KAYKIT_BOOTSTRAP_GLTF_RELATIVE,
   KAYKIT_BOOTSTRAP_SIDECAR,
   KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE,
-} from '../bootstrap-target';
+} from '../target';
 
 const TMP_ROOTS: string[] = [];
 

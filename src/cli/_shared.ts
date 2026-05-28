@@ -11,7 +11,7 @@ import {
   type BootstrapVerificationReport,
   bootstrapKayKitAssets,
   verifyBootstrap,
-} from '../bootstrap';
+} from './commands/bootstrap/core';
 import {
   analyzeGameboardLayoutFill,
   appendGameboardLayoutPlacementsToPlan,
@@ -44,7 +44,6 @@ import {
   type ExternalAssetForwardAxis,
   type ExternalAssetIntendedRole,
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
-  GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
   type GameboardCoveragePathStatusInput,
   type GameboardCoverageReport,
   type GameboardCoverageSimpleRpgEvidence,
@@ -55,6 +54,7 @@ import {
   renderGameboardCoverageMarkdown,
   summarizeGameboardCoverage,
 } from '../interop';
+import { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS } from '../interop/internal';
 import {
   inspectMedievalHexagonManifest,
   type MedievalHexagonManifestInspection,

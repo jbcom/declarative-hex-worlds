@@ -93,7 +93,13 @@ const packageShowcaseArtifactPrefix = '';
 // the dual subpaths `./manifest/schema` + `./manifest/free` instead of one
 // umbrella, and `traits` ships under `./traits` already (just listed for
 // completeness — the audit's directory-with-index check covers traits).
-const privateEntryModules = new Set(['cli', 'index', 'manifest']);
+const privateEntryModules = new Set([
+  'cli', // CLI entry — published as `bin`, not a runtime subpath
+  'config', // logically-decomposed JSON tunables (Epic LF) — internal
+  'index', // umbrella entry — published as `.`, not a separate subpath
+  'internal', // cross-cutting predicates + shared internals (Epic LF) — never public
+  'manifest', // umbrella; published subpaths are `manifest/free` + `manifest/schema`
+]);
 const textPackFiles = new Set(['LICENSE']);
 const textPackFileSuffixes = ['.d.ts', '.js', '.json', '.map', '.md'];
 const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp }[] = [
@@ -104,7 +110,7 @@ const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp 
 ];
 
 assertEqualSet(packageJson.files ?? [], expectedFiles, 'package files whitelist changed');
-assert(packageJson.name === '@jbcom/medieval-hexagon-gameboard', 'package name changed');
+assert(packageJson.name === 'medieval-hexagon-gameboard', 'package name changed');
 assert(packageJson.type === 'module', 'package must publish as ESM');
 assert(packageJson.sideEffects === false, 'package must remain side-effect-free for bundlers');
 assert(packageJson.license === 'MIT', 'package code license must stay MIT');
@@ -285,7 +291,7 @@ function assertSourceModulesExported(): void {
 }
 
 function assertPackedConsumerSmokeCoversExports(): void {
-  const packageName = '@jbcom/medieval-hexagon-gameboard';
+  const packageName = 'medieval-hexagon-gameboard';
   const coveredSpecifiers = collectConsumerSmokePackageSpecifiers(packageName);
   for (const subpath of Object.keys(packageJson.exports ?? {})) {
     const exportPattern = subpath.slice(2);
@@ -421,7 +427,7 @@ async function assertExportImports(): Promise<void> {
  * it imports, concatenated into a single virtual source. Needed because the
  * D10 refactor split the orchestrator into `pack-install.ts` + `types.ts` +
  * `_shared.ts` — the audit must continue to see the
- * `@jbcom/medieval-hexagon-gameboard/...` import specifiers that moved to
+ * `medieval-hexagon-gameboard/...` import specifiers that moved to
  * those sub-modules.
  */
 function readSmokeOrchestratorSource(entryPath: string): string {

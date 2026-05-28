@@ -24,13 +24,13 @@ import {
   GameboardRuntimeError,       // runtime hit unrecoverable state
   GameboardCliError,           // CLI got invalid flags / illegal output paths
   GameboardIoError,            // ingest / bootstrap / filesystem couldn't proceed
-} from '@jbcom/medieval-hexagon-gameboard/errors';
+} from 'medieval-hexagon-gameboard/errors';
 ```
 
 Or import from the umbrella:
 
 ```ts
-import { GameboardValidationError } from '@jbcom/medieval-hexagon-gameboard';
+import { GameboardValidationError } from 'medieval-hexagon-gameboard';
 ```
 
 ## Domain → subclass mapping
@@ -40,7 +40,7 @@ import { GameboardValidationError } from '@jbcom/medieval-hexagon-gameboard';
 | `src/rules/**` (plan + scenario validation) | `GameboardValidationError` | rule conflict, blocked tile, invalid placement |
 | `src/manifest/**` shape errors | `GameboardManifestError` | unknown asset category, invalid export identifier |
 | `src/ingest/**` filesystem | `GameboardIoError` | missing GLTF source directory |
-| `src/bootstrap/**` | `GameboardIoError` | network failure, zip extract failure |
+| `src/cli/commands/bootstrap/**` | `GameboardIoError` | archive-zip download failure, zip extract failure |
 | `src/scenario/**` (recipe / blueprint / catalog) | `GameboardScenarioError` | scenario did not compile, recipe missing tiles |
 | `src/gameboard/**`, `src/coordinates/**`, `src/simulation/**`, `src/koota/**`, `src/systems/**`, `src/movement/**`, `src/patrol/**`, `src/quests/**`, `src/actors/**`, `src/pieces/**`, `src/interop/**`, `src/commands/**`, `src/selectors/**`, `src/three/**`, `src/react/**` | `GameboardRuntimeError` | unknown entity, broken trait shape, missing tile at coordinates |
 | `src/cli/cli.ts` | `GameboardCliError` | missing required flag, illegal path |
@@ -50,7 +50,7 @@ import { GameboardValidationError } from '@jbcom/medieval-hexagon-gameboard';
 **Catch a specific category**:
 
 ```ts
-import { GameboardValidationError, validateGameboardScenario } from '@jbcom/medieval-hexagon-gameboard';
+import { GameboardValidationError, validateGameboardScenario } from 'medieval-hexagon-gameboard';
 
 try {
   const scenario = validateGameboardScenario(input);
@@ -67,7 +67,7 @@ try {
 **Catch any library error** (separate from genuine bugs like `TypeError`, `ReferenceError`):
 
 ```ts
-import { GameboardError } from '@jbcom/medieval-hexagon-gameboard';
+import { GameboardError } from 'medieval-hexagon-gameboard';
 
 try {
   await loadAndRun(input);

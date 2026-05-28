@@ -18,7 +18,7 @@ You need a player character on the harbor tile, a tavern keeper inside the taver
 ## Snippet
 
 ```ts
-import { registerGameboardActor, spawnGameboardActor } from '@jbcom/medieval-hexagon-gameboard/actors';
+import { registerGameboardActor, spawnGameboardActor } from 'medieval-hexagon-gameboard/actors';
 
 const player = registerGameboardActor(world, {
   id: 'player:you',

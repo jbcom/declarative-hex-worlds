@@ -15,7 +15,7 @@
 import { describe, expect, it } from 'vitest';
 // Import via package name so the test exercises the same alias resolution
 // consumers use. vitest.config.ts aliases this to src/index.ts.
-import * as lib from '@jbcom/medieval-hexagon-gameboard';
+import * as lib from 'medieval-hexagon-gameboard';
 
 describe('public API surface (PRD E2)', () => {
   it('snapshot of every umbrella export name + typeof', () => {

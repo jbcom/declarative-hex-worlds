@@ -18,8 +18,8 @@ A river runs through your board. At runtime a quest objective dams the river ups
 ## Snippet
 
 ```ts
-import { gameboardCommandActions } from '@jbcom/medieval-hexagon-gameboard/commands';
-import { HexTileState } from '@jbcom/medieval-hexagon-gameboard/traits';
+import { gameboardCommandActions } from 'medieval-hexagon-gameboard/commands';
+import { HexTileState } from 'medieval-hexagon-gameboard/traits';
 
 const swap = world.actions(gameboardCommandActions).plan({
   kind: 'inject-tile',

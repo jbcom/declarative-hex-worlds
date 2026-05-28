@@ -23,7 +23,7 @@ import {
   declareGameboardPiecesFromCompatibilityReports,
   createGameboardPieceRegistry,
   createGameboardPieceSourceUrlMap,
-} from '@jbcom/medieval-hexagon-gameboard';
+} from 'medieval-hexagon-gameboard';
 
 const knightReport = await analyzeExternalAssetCompatibility({
   assetUrl: '/assets/adventurers/knight.gltf',

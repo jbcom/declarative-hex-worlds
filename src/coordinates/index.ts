@@ -2,9 +2,9 @@
  * `src/coordinates/` — hex coordinate algebra, world-space projection, grid
  * construction, and board layout.
  *
- * Public surface re-exported from the umbrella `@jbcom/medieval-hexagon-gameboard`.
+ * Public surface re-exported from the umbrella `medieval-hexagon-gameboard`.
  * Cross-domain consumers MUST import from this barrel — never reach into a
- * sibling file via `'@jbcom/medieval-hexagon-gameboard/coordinates/grid'`.
+ * sibling file via `'medieval-hexagon-gameboard/coordinates/grid'`.
  *
  * Sub-modules:
  * - `./coordinates` — pure hex axial-coordinate algebra (parse/normalize/distance/range/neighbor/edges)

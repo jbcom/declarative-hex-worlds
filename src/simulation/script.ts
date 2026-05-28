@@ -12,7 +12,6 @@ import type {
   GameboardActorKind,
   GameboardActorMetadataValue,
   GameboardActorTargetingOptions,
-  GameboardInteractionCommandKind,
   UpdateGameboardActorOptions,
 } from '../actors';
 import {
@@ -23,7 +22,26 @@ import {
   type GameboardInteractionHandlerPreset,
   isGameboardInteractionHandlerPreset,
 } from '../commands';
-import { hexKey, parseHexKey } from '../coordinates';
+import { hexKey } from '../coordinates';
+import {
+  errorMessage,
+  includesString,
+  isHexCoordinatesInput,
+  isNonEmptyString,
+  isRecord,
+} from '../internal';
+import {
+  SIMULATION_ACTOR_TARGET_APPROACH_VALUES,
+  SIMULATION_ACTOR_TARGET_SORT_VALUES,
+  SIMULATION_COMMAND_KIND_VALUES,
+  SIMULATION_EVENT_TYPES,
+  SIMULATION_MOVEMENT_EVENT_TYPES,
+  SIMULATION_MUTATION_TYPES,
+  SIMULATION_PATROL_EVENT_TYPES,
+  SIMULATION_STEP_ACTIONS,
+  isSimulationStepAction,
+  tileKeyFromTargetInput,
+} from './internal';
 import type {
   GameboardPatrolRoutePlan,
   GameboardPatrolRouteSet,
@@ -52,126 +70,11 @@ import type {
 export const GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION = '1.0.0';
 
 /**
- * Supported simulation step action discriminators.
+ * Supported simulation step action discriminators. Canonical table lives in
+ * `./internal` (as `SIMULATION_STEP_ACTIONS`); re-exported here under the public
+ * name so the cycle-prone guards can stay in `./internal`.
  */
-export const GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS = [
-  'actor-target-command',
-  'command',
-  'inspect-actor-targets',
-  'run-systems',
-  'remove-actor',
-  'remove-placement',
-  'spawn-actor',
-  'spawn-placement',
-  'update-actor',
-  'update-placement',
-] as const;
-/**
- * Shorter alias for {@link GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS} — the
- * full set of action discriminators a simulation step can use. Re-exported
- * for ergonomic in-line validation.
- */
-export const SIMULATION_STEP_ACTIONS = GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS;
-
-/**
- * Every interaction-command kind a simulation can dispatch. Subset of
- * {@link GameboardInteractionCommandKind}; pinned here so script validators
- * stay narrow when new command kinds appear upstream.
- */
-export const SIMULATION_COMMAND_KIND_VALUES = [
-  'move',
-  'interact-actor',
-  'interact-placement',
-  'attack-actor',
-  'inspect-actor',
-  'inspect-placement',
-  'inspect-tile',
-  'none',
-] as const satisfies readonly GameboardInteractionCommandKind[];
-
-/**
- * Every world-mutation discriminator the simulation engine can apply to a
- * koota world while executing a script. Used by {@link GameboardScenarioSimulationMutationRecord}.
- */
-export const SIMULATION_MUTATION_TYPES = [
-  'actor-removed',
-  'placement-removed',
-  'actor-spawned',
-  'placement-spawned',
-  'actor-updated',
-  'placement-updated',
-] as const;
-
-/**
- * Every system-event type the simulation can emit. Mirrors the full
- * {@link GameboardSystemEventRecord} union; useful for filter predicates
- * over event-record arrays.
- */
-export const SIMULATION_EVENT_TYPES = [
-  'command-handled',
-  'movement-requested',
-  'command-blocked',
-  'command-ignored',
-  'command-handler-required',
-  'patrol-move-requested',
-  'patrol-waiting',
-  'patrol-completed',
-  'patrol-blocked',
-  'movement-stepped',
-  'movement-completed',
-  'movement-blocked',
-  'quest-advanced',
-  'quest-completed',
-  'quest-blocked',
-] as const satisfies readonly GameboardSystemEventRecord['type'][];
-
-/**
- * The movement-only subset of {@link SIMULATION_EVENT_TYPES}. Useful for
- * narrowing event-record filters when tracking just movement progress.
- */
-export const SIMULATION_MOVEMENT_EVENT_TYPES = [
-  'movement-requested',
-  'movement-stepped',
-  'movement-completed',
-  'movement-blocked',
-] as const satisfies readonly GameboardSystemEventRecord['type'][];
-
-/**
- * The patrol-only subset of {@link SIMULATION_EVENT_TYPES}. Useful for
- * narrowing event-record filters when tracking just patrol activity.
- */
-export const SIMULATION_PATROL_EVENT_TYPES = [
-  'patrol-move-requested',
-  'patrol-waiting',
-  'patrol-completed',
-  'patrol-blocked',
-] as const satisfies readonly GameboardSystemEventRecord['type'][];
-
-/**
- * Every actor-target approach mode accepted by simulation step targeting
- * expectations. Aligns with the `GameboardActorTargetApproach` union exported
- * from `@jbcom/medieval-hexagon-gameboard/actors`.
- */
-export const SIMULATION_ACTOR_TARGET_APPROACH_VALUES = [
-  'target-tile',
-  'adjacent',
-  'nearest',
-  'self',
-  'none',
-] as const;
-
-/**
- * Every actor-target sort key accepted by simulation step targeting
- * expectations. Aligns with the `GameboardActorTargetSort` union exported
- * from `@jbcom/medieval-hexagon-gameboard/actors`.
- */
-export const SIMULATION_ACTOR_TARGET_SORT_VALUES = [
-  'pathCost',
-  'distance',
-  'actorId',
-  'tileKey',
-] as const;
-
+export const GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS = SIMULATION_STEP_ACTIONS;
 /**
  * One executable step in a deterministic scenario simulation script.
  */
@@ -967,86 +870,6 @@ export interface GameboardScenarioSimulationActorTargetRecord {
   commandPlacementId?: string;
   /** Planned command actor id. */
   commandActorId?: string;
-}
-
-// ---------------------------------------------------------------------------
-// Internal shared predicates and helpers
-// ---------------------------------------------------------------------------
-
-/**
- * @internal
- */
-export function includesString<T extends string>(values: readonly T[], value: unknown): value is T {
-  return typeof value === 'string' && (values as readonly string[]).includes(value);
-}
-
-/**
- * @internal
- */
-export function isNonEmptyString(value: unknown): value is string {
-  return typeof value === 'string' && value.trim().length > 0;
-}
-
-/**
- * @internal
- */
-export function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/**
- * @internal
- */
-export function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
-/**
- * @internal
- */
-export function tileKeyFromTargetInput(value: unknown): string | undefined {
-  if (typeof value === 'string') {
-    try {
-      return hexKey(parseHexKey(value));
-    } catch {
-      return undefined;
-    }
-  }
-  return isHexCoordinatesInput(value) ? hexKey(value) : undefined;
-}
-
-/**
- * @internal
- */
-export function isHexCoordinatesInput(value: unknown): value is { q: number; r: number } {
-  return isRecord(value) && Number.isFinite(value.q) && Number.isFinite(value.r);
-}
-
-/**
- * @internal
- */
-export function isSimulationStepAction(
-  value: unknown
-): value is GameboardScenarioSimulationStep['action'] {
-  return includesString(SIMULATION_STEP_ACTIONS, value);
-}
-
-/**
- * @internal
- */
-export function isSimulationMovementEventType(
-  value: unknown
-): value is (typeof SIMULATION_MOVEMENT_EVENT_TYPES)[number] {
-  return includesString(SIMULATION_MOVEMENT_EVENT_TYPES, value);
-}
-
-/**
- * @internal
- */
-export function isSimulationPatrolEventType(
-  value: unknown
-): value is (typeof SIMULATION_PATROL_EVENT_TYPES)[number] {
-  return includesString(SIMULATION_PATROL_EVENT_TYPES, value);
 }
 
 // ---------------------------------------------------------------------------

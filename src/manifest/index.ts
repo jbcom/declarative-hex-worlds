@@ -2,7 +2,7 @@
  * `src/manifest/` — asset manifest schema, bundled FREE manifest metadata,
  * and (post-PRD-RB) the lazy loader for bootstrap-target assets.
  *
- * Public surface re-exported from the umbrella `@jbcom/medieval-hexagon-gameboard`.
+ * Public surface re-exported from the umbrella `medieval-hexagon-gameboard`.
  * The published `package.json#exports` map retains `./manifest/schema` and
  * `./manifest/free` as distinct subpaths for consumers that want to depth-pin
  * (e.g. validators that only need the schema), but **internal** sibling
@@ -19,4 +19,6 @@
 
 export * from './free';
 export * from './schema';
-export * from './upstream-layout';
+// NOTE: `upstream-layout` moved to the bootstrap (CLI) domain in LF3 — it is
+// consumed only by bootstrap, touches node:fs/node:path, and is server-only.
+// Reachable via `./bootstrap` (umbrella does not re-export it).

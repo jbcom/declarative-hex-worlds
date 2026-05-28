@@ -3,7 +3,7 @@ title: Get started
 description: Install, bootstrap the FREE asset pack, and render your first hexagon gameboard.
 ---
 
-`@jbcom/medieval-hexagon-gameboard` is a deterministic, ECS-driven, React +
+`medieval-hexagon-gameboard` is a deterministic, ECS-driven, React +
 Three.js library for building hex-grid games on top of the KayKit Medieval
 Hexagon GLTF pack. This page gets you from `pnpm add` to rendered hexes in
 under five minutes.
@@ -11,7 +11,7 @@ under five minutes.
 ## 1. Install + bootstrap
 
 ```bash
-pnpm add @jbcom/medieval-hexagon-gameboard
+pnpm add medieval-hexagon-gameboard
 pnpm exec medieval-hexagon-gameboard bootstrap
 ```
 
@@ -35,7 +35,7 @@ public/assets/models/addons/kaykit_medieval_hexagon_pack/
 ## 2. Point the runtime at your bootstrap target
 
 ```ts
-import { setGameboardAssetRoot } from '@jbcom/medieval-hexagon-gameboard';
+import { setGameboardAssetRoot } from 'medieval-hexagon-gameboard';
 
 // Call once at app boot:
 setGameboardAssetRoot('/public/assets/models');
@@ -50,7 +50,7 @@ through `override → globalThis → process.env → 'public/assets/models'` def
 import {
   buildMedievalGameboardBlueprint,
   createGameboardWorldFromScenario,
-} from '@jbcom/medieval-hexagon-gameboard';
+} from 'medieval-hexagon-gameboard';
 
 // One-call: shape + seed → fully populated scenario.
 const { scenario } = buildMedievalGameboardBlueprint({
@@ -70,7 +70,7 @@ that the Koota runtime can spawn deterministically from a seed.
 
 ```tsx
 import { Canvas } from '@react-three/fiber';
-import { GameboardScene } from '@jbcom/medieval-hexagon-gameboard/react';
+import { GameboardScene } from 'medieval-hexagon-gameboard/react';
 
 export function App({ runtime }: { runtime: GameboardRuntime }) {
   return (
@@ -93,4 +93,4 @@ so the bindings work without any extra installs.
 - [KayKit upstream layout](/guides/kaykit-upstream-layout/) — the on-disk
   shape the bootstrap step mirrors.
 - [CLI reference](/guides/cli-reference/) — every CLI subcommand and flag.
-- [`@jbcom/medieval-hexagon-gameboard`](/reference/) — typed API reference.
+- [`medieval-hexagon-gameboard`](/reference/) — typed API reference.

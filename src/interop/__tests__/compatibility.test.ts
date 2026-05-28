@@ -4,7 +4,7 @@ import {
   externalAssetSpawnOptions,
   recommendExternalAssetFacing,
   type AssetBounds,
-} from '@jbcom/medieval-hexagon-gameboard';
+} from 'medieval-hexagon-gameboard';
 
 const kenneyTowerBounds: AssetBounds = {
   min: [-0.45, 0, -0.3897],

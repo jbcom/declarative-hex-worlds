@@ -36,10 +36,10 @@ The common loop is deterministic:
 ```ts
 import {
   createGameboardRuntimeFromScenario,
-} from '@jbcom/medieval-hexagon-gameboard/runtime';
+} from 'medieval-hexagon-gameboard/runtime';
 import {
   createGameboardInteractionHandlerPreset,
-} from '@jbcom/medieval-hexagon-gameboard/commands';
+} from 'medieval-hexagon-gameboard/commands';
 
 const runtime = createGameboardRuntimeFromScenario(scenario);
 const handlers = createGameboardInteractionHandlerPreset('default-rpg');
