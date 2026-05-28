@@ -101,7 +101,7 @@ Source: docs/plans/library-fit-decomposition.prq.md (sha256: 42bbb50d5a7041055a2
 Started: 2026-05-28T10:33:51Z
 
 ### task-LF1 Barrel-forwarding umbrella + internal extraction (merged LF1+LF1b)
-- [ ] task-LF1 Rewrite src/index.ts to `export * from './<domain>'` only (18 library barrels); drop bootstrap re-exports. Extract the 28 internal helpers the barrels over-export so they're shareable-but-private:
+- [x] task-LF1 ✅ (commit, 2026-05-28) Rewrite src/index.ts to `export * from './<domain>'` only (18 library barrels); drop bootstrap re-exports. Extract the 28 internal helpers the barrels over-export so they're shareable-but-private:
   - DISCOVERY (2026-05-28): the old hand-list root was NOT pure duplication — it curated OUT 28 internal helpers the domain barrels over-export via `export *`. Barrel-forwarding surfaces them; they must leave the public boundary.
   - **Generic cross-cutting → new `src/internal/` (NOT in package.json#exports):** errorMessage, isNonEmptyString, isRecord (dedupe the cli/_shared.ts copy too), includesString, isHexCoordinatesInput, tryParseHexKey, plus the type-guards/const-arrays that are pure utilities.
   - **Domain-specific internals stay in their domain file but leave the public boundary** (the barrel/shim re-exports only public names; siblings import directly): report.ts internals (actorRecord/…/simulationResult), script.ts SIMULATION_* arrays + isSimulation* guards + tileKeyFromTargetInput, gameboardPlanIndex@gameboard, isTextureSet/isUnitStyle@catalog, readValidationGameboardPlanFromWorld@projection, GAMEBOARD_RELEASE_GATE_SUMMARIES + GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS@coverage, KAYKIT_ATTRIBUTION@schema.
