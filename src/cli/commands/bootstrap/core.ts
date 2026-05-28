@@ -435,7 +435,7 @@ function findPackRoot(stagingRoot: string): string | undefined {
     if (detectKayKitLayout(candidate)) {
       return candidate;
     }
-    // GitHub tarballs nest the pack under `<repo>-<sha>/`; recurse one level.
+    // GitHub archives nest the pack under `<repo>-<ref>/`; recurse one level.
     const innerEntries = readdirSync(candidate, { withFileTypes: true });
     for (const innerEntry of innerEntries) {
       if (!innerEntry.isDirectory()) {
@@ -445,9 +445,6 @@ function findPackRoot(stagingRoot: string): string | undefined {
       if (detectKayKitLayout(inner)) {
         return inner;
       }
-    }
-    if (detectKayKitLayout(candidate)) {
-      return candidate;
     }
   }
   return undefined;
@@ -609,6 +606,20 @@ function mkStagingRoot(prefix: string): string {
   return root;
 }
 
+/**
+ * Hosts the bootstrap is willing to follow redirects to. The initial URL is a
+ * pinned github.com archive; GitHub's archive endpoint 302s to `codeload` and
+ * then to a signed S3-backed `objects.githubusercontent.com` URL. Anything
+ * outside this allowlist gets rejected so a hostile redirect chain cannot
+ * exfiltrate the User-Agent or trick bootstrap into fetching arbitrary URLs
+ * (CWE-601 / CWE-918).
+ */
+const KAYKIT_FETCH_REDIRECT_ALLOWLIST = new Set([
+  'github.com',
+  'codeload.github.com',
+  'objects.githubusercontent.com',
+]);
+
 async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.ReadableStream> {
   if (redirects > 5) {
     throw new GameboardIoError(`too many redirects fetching ${url}`);
@@ -620,7 +631,7 @@ async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.Reada
         method: 'GET',
         headers: {
           'User-Agent': KAYKIT_FREE_USER_AGENT,
-          Accept: 'application/gzip',
+          Accept: 'application/zip',
         },
       },
       (response) => {
@@ -628,7 +639,16 @@ async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.Reada
         const location = response.headers.location;
         if (status >= 300 && status < 400 && location) {
           response.resume();
-          openHttpsStream(new URL(location, url).toString(), redirects + 1).then(resolveStream, reject);
+          const nextUrl = new URL(location, url);
+          if (!KAYKIT_FETCH_REDIRECT_ALLOWLIST.has(nextUrl.hostname)) {
+            reject(
+              new GameboardIoError(
+                `bootstrap refuses redirect to disallowed host ${nextUrl.hostname} (from ${url})`
+              )
+            );
+            return;
+          }
+          openHttpsStream(nextUrl.toString(), redirects + 1).then(resolveStream, reject);
           return;
         }
         if (status !== 200) {
@@ -643,6 +663,15 @@ async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.Reada
     requestObject.end();
   });
 }
+
+/**
+ * Per-entry decompressed byte ceiling. KayKit's largest GLTF is well under
+ * 1 MB; the upstream pack's total uncompressed size is ~12 MB. 64 MB per entry
+ * is a generous cushion that still defends against zip-bomb decompression
+ * blow-ups (CWE-409): a single malicious entry can no longer fill the disk
+ * via a high compression ratio.
+ */
+const KAYKIT_MAX_ZIP_ENTRY_BYTES = 64 * 1024 * 1024;
 
 async function extractZipTo(zipPath: string, targetRoot: string): Promise<void> {
   await new Promise<void>((resolveExtract, rejectExtract) => {
@@ -667,16 +696,42 @@ async function extractZipTo(zipPath: string, targetRoot: string): Promise<void> 
           zipFile.readEntry();
           return;
         }
+        // Reject obviously oversized entries before opening the read stream
+        // (the central-directory size is advisory but a clear up-front reject
+        // is friendlier than aborting mid-stream).
+        if (entry.uncompressedSize > KAYKIT_MAX_ZIP_ENTRY_BYTES) {
+          rejectExtract(
+            new GameboardIoError(
+              `zip entry ${entryPath} declares ${entry.uncompressedSize} bytes uncompressed; max ${KAYKIT_MAX_ZIP_ENTRY_BYTES}`
+            )
+          );
+          return;
+        }
         mkdirSync(dirname(targetPath), { recursive: true });
         zipFile.openReadStream(entry, (entryErr, readStream) => {
           if (entryErr || !readStream) {
             rejectExtract(entryErr ?? new Error(`failed to read zip entry ${entryPath}`));
             return;
           }
+          // Defense in depth: the central-directory `uncompressedSize` can lie;
+          // count actual decompressed bytes and abort if the cap is breached.
+          let written = 0;
           const writeStream = createWriteStream(targetPath);
           writeStream.on('error', rejectExtract);
           writeStream.on('close', () => zipFile.readEntry());
           readStream.on('error', rejectExtract);
+          readStream.on('data', (chunk: Buffer) => {
+            written += chunk.length;
+            if (written > KAYKIT_MAX_ZIP_ENTRY_BYTES) {
+              readStream.destroy();
+              writeStream.destroy();
+              rejectExtract(
+                new GameboardIoError(
+                  `zip entry ${entryPath} exceeded ${KAYKIT_MAX_ZIP_ENTRY_BYTES} bytes during extraction`
+                )
+              );
+            }
+          });
           readStream.pipe(writeStream);
         });
       });
