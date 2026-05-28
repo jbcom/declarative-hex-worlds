@@ -55,3 +55,4 @@
 {"ts":"2026-05-28T00:08:25.292Z","sha":"ed10a5cd7713cb984932d8d91be665babc0abe01","subject":"test: add koota world-cleanup vitest setup (#31)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T00:17:24.102Z","sha":"70a90f491924d315b8831bbaa8ed71ff79956980","subject":"feat: E0 coverage batch-20 (readGameboardQuests sort) (#32)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
 {"ts":"2026-05-28T00:26:20.287Z","sha":"9e71fa2c9f74905ec7b8df4192127787d11b18a8","subject":"feat: E0 coverage batch-21 (placement-id interaction target) (#33)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
+{"ts":"2026-05-28T00:35:06.637Z","sha":"b3d19a429680b2a53fcc7b63e90ac7ba7ad0359c","subject":"feat: E0 coverage batch-22 (navigation.neighbors wrapper) (#34)","decision":null,"why":null,"resolves":[],"overrides":[],"source":"gh-pr-merge"}
