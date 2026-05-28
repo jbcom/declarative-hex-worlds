@@ -32,7 +32,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10-#30 merged. PR#31 (`feat/e0-koota-isolate`) open awaiting CI: vitest setup hook destroys koota worlds after each test, unblocking new koota-using tests.
+- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10-#31 merged. PR#32 (`feat/e0-coverage-batch-20`) open awaiting CI: readGameboardQuests sort.
     - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
     - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
     - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.

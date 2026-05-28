@@ -9,6 +9,7 @@ import {
   advanceGameboardQuest,
   evaluateGameboardQuestObjective,
   gameboardQuestActions,
+  readGameboardQuests,
   spawnGameboardQuest,
   type GameboardQuestDefinition,
 } from '../../quests/index';
@@ -416,6 +417,23 @@ describe('gameboard quests', () => {
     });
     expect(evaluation.progress.status).toBe('blocked');
     expect(evaluation.progress.detail).toMatch(/no resolvable target tile/);
+  });
+
+  it('readGameboardQuests sorts multiple quests by questId (E0b)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, { actorId: 'hero', actorKind: 'player', at: '0,0', assetId: 'flag_blue', kind: 'unit' });
+    spawnGameboardActor(world, { actorId: 'elder', actorKind: 'npc', interactive: true, at: '1,0', assetId: 'flag_green', kind: 'prop' });
+    spawnGameboardQuest(world, {
+      id: 'zeta',
+      objectives: [{ id: 'z1', kind: 'interact-actor', actor: 'hero', targetActor: 'elder' }],
+    });
+    spawnGameboardQuest(world, {
+      id: 'alpha',
+      objectives: [{ id: 'a1', kind: 'interact-actor', actor: 'hero', targetActor: 'elder' }],
+    });
+    const quests = readGameboardQuests(world);
+    // Covers quests.ts line 238 sort callback when there are 2+ quests.
+    expect(quests.map((q) => q.quest.questId)).toEqual(['alpha', 'zeta']);
   });
 });
 
