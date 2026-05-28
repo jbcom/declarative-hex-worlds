@@ -11,7 +11,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 const workspaceRoot = resolve(import.meta.dirname, '..', '..');
 
@@ -52,8 +52,6 @@ describe('workflow contract', () => {
   });
 
   describe('CI workflow shape', () => {
-    const ci = read(files.ci);
-
     it.each([
       ["NODE_VERSION: '22'"],
       ['pnpm/action-setup'],
@@ -70,7 +68,7 @@ describe('workflow contract', () => {
       // dep-review job
       ['fail-on-severity: high'],
     ])('includes %s', (snippet) => {
-      expect(ci).toContain(snippet);
+      expect(read(files.ci)).toContain(snippet);
     });
 
     it.each([
@@ -95,13 +93,11 @@ describe('workflow contract', () => {
       // No silenced failures
       ['continue-on-error: true'],
     ])('excludes %s (post-vitest-migration)', (snippet) => {
-      expect(ci).not.toContain(snippet);
+      expect(read(files.ci)).not.toContain(snippet);
     });
   });
 
   describe('release workflow shape', () => {
-    const release = read(files.release);
-
     it.each([
       ["NODE_VERSION: '22'"],
       ['pnpm/action-setup'],
@@ -120,13 +116,11 @@ describe('workflow contract', () => {
       // CycloneDX SBOM
       ['@cyclonedx/cyclonedx-npm'],
     ])('includes %s', (snippet) => {
-      expect(release).toContain(snippet);
+      expect(read(files.release)).toContain(snippet);
     });
   });
 
   describe('CD workflow shape', () => {
-    const cd = read(files.cd);
-
     it.each([
       ["NODE_VERSION: '22'"],
       ['pnpm/action-setup'],
@@ -135,13 +129,11 @@ describe('workflow contract', () => {
       ['pnpm docs-site:build'],
       ['actions/deploy-pages'],
     ])('includes %s', (snippet) => {
-      expect(cd).toContain(snippet);
+      expect(read(files.cd)).toContain(snippet);
     });
   });
 
   describe('automerge workflow shape', () => {
-    const automerge = read(files.automerge);
-
     it.each([
       ["github.actor == 'dependabot[bot]'"],
       ["github.event.pull_request.user.login == 'dependabot[bot]'"],
@@ -151,13 +143,11 @@ describe('workflow contract', () => {
       ['gh pr review "$PR_URL" --approve'],
       ['gh pr merge "$PR_URL" --auto --squash'],
     ])('includes %s', (snippet) => {
-      expect(automerge).toContain(snippet);
+      expect(read(files.automerge)).toContain(snippet);
     });
   });
 
   describe('dependabot config shape', () => {
-    const dependabot = read(files.dependabot);
-
     it.each([
       ['package-ecosystem: "github-actions"'],
       ['package-ecosystem: "npm"'],
@@ -168,13 +158,13 @@ describe('workflow contract', () => {
       ['update-types: ["minor", "patch"]'],
       ['update-types: ["major"]'],
     ])('includes %s', (snippet) => {
-      expect(dependabot).toContain(snippet);
+      expect(read(files.dependabot)).toContain(snippet);
     });
   });
 
   describe('every `uses:` reference pins a full commit SHA', () => {
     for (const workflow of ['ci', 'cd', 'release', 'automerge'] as const) {
-      describe(workflow, () => {
+      it(`${workflow} has no unpinned action references`, () => {
         const source = read(files[workflow]);
         const lines = source.split(/\r?\n/);
         const unsafe: string[] = [];
@@ -196,9 +186,7 @@ describe('workflow contract', () => {
           }
         }
 
-        it('has no unpinned action references', () => {
-          expect(unsafe, unsafe.join('\n')).toEqual([]);
-        });
+        expect(unsafe, unsafe.join('\n')).toEqual([]);
       });
     }
   });
@@ -207,7 +195,10 @@ describe('workflow contract', () => {
     interface ReleasePleaseConfig {
       packages?: Record<string, { component?: string }>;
     }
-    const config = readJson<ReleasePleaseConfig>(files.releasePleaseConfig);
+    let config: ReleasePleaseConfig;
+    beforeAll(() => {
+      config = readJson<ReleasePleaseConfig>(files.releasePleaseConfig);
+    });
 
     it('targets declarative-hex-worlds at the root package', () => {
       expect(config.packages?.['.']?.component).toBe('declarative-hex-worlds');
@@ -220,8 +211,12 @@ describe('workflow contract', () => {
       engines?: Record<string, string>;
       packageManager?: string;
     }
-    const manifest = readJson<Record<string, string>>(files.releasePleaseManifest);
-    const pkg = readJson<PackageJson>(files.packageJson);
+    let manifest: Record<string, string>;
+    let pkg: PackageJson;
+    beforeAll(() => {
+      manifest = readJson<Record<string, string>>(files.releasePleaseManifest);
+      pkg = readJson<PackageJson>(files.packageJson);
+    });
 
     it('manifest "." matches package.json#version', () => {
       // release-please bumps both in lockstep on each release PR. Drift
