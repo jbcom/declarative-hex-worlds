@@ -212,6 +212,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "GameboardRuntimeProvider",
+  },
+  {
+    "kind": "function",
     "name": "GameboardScenarioError",
   },
   {
@@ -401,6 +405,22 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "string",
     "name": "MEDIEVAL_HEXAGON_SCHEMA_VERSION",
+  },
+  {
+    "kind": "function",
+    "name": "MedievalGameboardPlanProvider",
+  },
+  {
+    "kind": "function",
+    "name": "MedievalGameboardProvider",
+  },
+  {
+    "kind": "function",
+    "name": "MedievalGameboardRecipeProvider",
+  },
+  {
+    "kind": "function",
+    "name": "MedievalGameboardScenarioProvider",
   },
   {
     "kind": "function",
@@ -596,6 +616,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "applyTransform",
+  },
+  {
+    "kind": "function",
     "name": "areGameboardActorsHostile",
   },
   {
@@ -765,6 +789,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "createGameboardPieceSourceUrlMap",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPlacementAssetUrlResolver",
   },
   {
     "kind": "function",
@@ -1004,6 +1032,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "findGameboardPlacementObjectUserData",
+  },
+  {
+    "kind": "function",
     "name": "findGameboardQuest",
   },
   {
@@ -1016,6 +1048,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "findLoadedGameboardPlacementObjectForObject",
+  },
+  {
+    "kind": "function",
     "name": "findPlacementEntity",
   },
   {
@@ -1025,6 +1061,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "flagAssetId",
+  },
+  {
+    "kind": "function",
+    "name": "frameObjectPosition",
   },
   {
     "kind": "object",
@@ -1049,6 +1089,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "gameboardCommandActions",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardInteractionTargetForObject",
   },
   {
     "kind": "function",
@@ -1292,6 +1336,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "loadGameboardPlacementObject",
+  },
+  {
+    "kind": "function",
     "name": "manifestAssetRequiresExtra",
   },
   {
@@ -1344,6 +1392,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "placeObjectOnHex",
+  },
+  {
+    "kind": "function",
     "name": "planGameboardActorTargetCommand",
   },
   {
@@ -1393,6 +1445,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "readGameboardPatrolAgents",
+  },
+  {
+    "kind": "function",
+    "name": "readGameboardPlacementObjectUserData",
   },
   {
     "kind": "function",
@@ -1460,6 +1516,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "resolveAssetUrl",
+  },
+  {
+    "kind": "function",
     "name": "resolveGameboardAssetRoot",
   },
   {
@@ -1477,6 +1537,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "resolveGameboardPieceSourceUrl",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardPlacementAnimationUrl",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardPlacementAssetUrl",
   },
   {
     "kind": "function",
@@ -1652,7 +1720,31 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "syncGameboardPlacementObject",
+  },
+  {
+    "kind": "function",
+    "name": "syncGameboardPlacementObjects",
+  },
+  {
+    "kind": "function",
+    "name": "tagGameboardPlacementObject",
+  },
+  {
+    "kind": "function",
     "name": "textureFileName",
+  },
+  {
+    "kind": "function",
+    "name": "transformForHex",
+  },
+  {
+    "kind": "function",
+    "name": "transformForPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "transformForVariant",
   },
   {
     "kind": "function",
@@ -1665,6 +1757,294 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "updateGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "updateGameboardPlacementAnimation",
+  },
+  {
+    "kind": "function",
+    "name": "useAdjacentTileEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useCanOccupyGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "useDecomposedTileEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardActions",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardActor",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardActorActions",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardActorEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardActorSelection",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardActorSnapshots",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardActorTargetCommand",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardActorTargets",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardActorsForTile",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardCommandActions",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardInteractionCommand",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardInteractionCommandPreview",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardInteractionTarget",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardLayoutFillAnalysis",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardLayoutPlacements",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardLayoutSiteInspection",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardMovementActions",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardNavigation",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardNeighborhoodInspection",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardOccupancyIndex",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPatrolActions",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPatrolAgent",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPatrolAgentEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPatrolRoute",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPatrolRoutes",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPatrolState",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPieceFillInspection",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPiecePlacementInspection",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPieceRegistryAnalysis",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPieceSelection",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPieceSourceUrlMap",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPlacementEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPlacementOccupancy",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPlacementOccupancyInspection",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardPlacementSnapshots",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardQuest",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardQuestActions",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardQuestEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardQuestSnapshots",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardRuleViolations",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardRuntime",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardRuntimeSnapshot",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardSpawnLocations",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardState",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardSystemActions",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardTileEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardTileInspection",
+  },
+  {
+    "kind": "function",
+    "name": "useGameboardWorld",
+  },
+  {
+    "kind": "function",
+    "name": "useHarborPlacementEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useMovementAgent",
+  },
+  {
+    "kind": "function",
+    "name": "useMovementPathState",
+  },
+  {
+    "kind": "function",
+    "name": "useMovingPlacementEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useOriginPlacementEntitiesForTile",
+  },
+  {
+    "kind": "function",
+    "name": "usePlacementEntitiesForTile",
+  },
+  {
+    "kind": "function",
+    "name": "usePlacementOccupancyForTile",
+  },
+  {
+    "kind": "function",
+    "name": "usePlacementState",
+  },
+  {
+    "kind": "function",
+    "name": "useProjectedGameboardPlan",
+  },
+  {
+    "kind": "function",
+    "name": "useRiverPlacementEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useRoadPlacementEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useStackedTerrainEntities",
+  },
+  {
+    "kind": "function",
+    "name": "useTileConnectivity",
+  },
+  {
+    "kind": "function",
+    "name": "useTileCoordinates",
+  },
+  {
+    "kind": "function",
+    "name": "useTileElevation",
+  },
+  {
+    "kind": "function",
+    "name": "useTileEntity",
+  },
+  {
+    "kind": "function",
+    "name": "useTileRenderState",
+  },
+  {
+    "kind": "function",
+    "name": "useTileState",
+  },
+  {
+    "kind": "function",
+    "name": "useTileTagList",
+  },
+  {
+    "kind": "function",
+    "name": "useTileTerrain",
   },
   {
     "kind": "function",
