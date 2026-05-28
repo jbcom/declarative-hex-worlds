@@ -4,11 +4,23 @@
 **Owner:** jonbogaty@gmail.com
 **Goal:** Ship `@jbcom/medieval-hexagon-gameboard@1.0.0` to npm — release-please picks up the merged 1.0 stabilization branch and cuts the release PR.
 
-## Operating loop
+## Operating loop — FULL AUTONOMY (non-negotiable)
 
-while queue has `[ ]` items: implement → verify → commit → dispatch reviewers (background, parallel) → mark `[x]` → next.
+while queue has `[ ]` items: implement → verify (typecheck + unit + coverage green) → commit → dispatch reviewers (background, parallel) → mark `[x]` → next. Do NOT stop between items. Do NOT report progress and wait. Each turn either advances the next `[ ]` item or names a true blocker — there is no third option.
 
-Stop only on: explicit user halt, red CI blocking, or genuine STOP_FAIL.
+**Mechanical work is NEVER a question.** Repointing imports, splitting test files, moving symbols, updating snapshots, fixing type errors, achieving coverage on a now-private function via a public path — these are execution, not decisions. Just do them until green. "This is substantial / long / mechanical" is not a reason to ask how to proceed; the answer is always "do it to green, then commit."
+
+**Self-pacing is NOT a question either.** "Commit a smaller slice vs keep grinding" is the agent's call: keep the queue item whole if splitting would leave a non-compiling intermediate; slice only when a sub-step is independently green + valuable. Never ask the user to choose the cadence.
+
+**The ONLY legitimate stops (true blockers):**
+1. A design decision that flips SCOPE (changes the public API contract in a way not already decided, picks between architectures with different failure modes, or contradicts a captured decision). Ask, then continue.
+2. CI/test failure whose root cause needs user-only knowledge (org secrets, external infra, intent that isn't in the repo).
+3. A destructive op needing per-operation authorization (force-push to main, etc.).
+4. Remote state we cannot progress without (CI completing, review landing) — use Monitor with a 20-30min fallback, never sit idle.
+
+Everything else — context pressure, task size, "is this the right cadence", "should I keep going" — is NOT a stop and NOT a question. The harness auto-compacts; the 1M budget + `.agent-state/` survive it. Resume from the directive and keep going.
+
+**Before asking ANY question, apply this test:** "Could a competent engineer with this directive + the repo answer it themselves without me?" If yes → it's mechanical or a self-paced call → DO IT, don't ask. Only genuine scope/contract forks (test #1 above) reach the user.
 
 ## Forbidden phrases
 
@@ -88,8 +100,18 @@ Investigation (2026-05-28) surfaced a 3-link blocker chain; only link 2 is done:
 Source: docs/plans/library-fit-decomposition.prq.md (sha256: 42bbb50d5a7041055a2a67438c99192629f0f2264f89871989985fdb892d6f96)
 Started: 2026-05-28T10:33:51Z
 
-### task-LF1 Barrel-forwarding umbrella
-- [ ] task-LF1 Rewrite src/index.ts to `export * from './<domain>'` only (18 library barrels); drop bootstrap + upstream-layout re-exports; update public-api snapshot (intentional removals only); typecheck + unit green.
+### task-LF1 Barrel-forwarding umbrella + internal extraction (merged LF1+LF1b)
+- [ ] task-LF1 Rewrite src/index.ts to `export * from './<domain>'` only (18 library barrels); drop bootstrap re-exports. Extract the 28 internal helpers the barrels over-export so they're shareable-but-private:
+  - DISCOVERY (2026-05-28): the old hand-list root was NOT pure duplication — it curated OUT 28 internal helpers the domain barrels over-export via `export *`. Barrel-forwarding surfaces them; they must leave the public boundary.
+  - **Generic cross-cutting → new `src/internal/` (NOT in package.json#exports):** errorMessage, isNonEmptyString, isRecord (dedupe the cli/_shared.ts copy too), includesString, isHexCoordinatesInput, tryParseHexKey, plus the type-guards/const-arrays that are pure utilities.
+  - **Domain-specific internals stay in their domain file but leave the public boundary** (the barrel/shim re-exports only public names; siblings import directly): report.ts internals (actorRecord/…/simulationResult), script.ts SIMULATION_* arrays + isSimulation* guards + tileKeyFromTargetInput, gameboardPlanIndex@gameboard, isTextureSet/isUnitStyle@catalog, readValidationGameboardPlanFromWorld@projection, GAMEBOARD_RELEASE_GATE_SUMMARIES + GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS@coverage, KAYKIT_ATTRIBUTION@schema.
+  - Mechanism: where a shim/barrel does `export *` and must drop internals, either move internals to `src/internal/` (generic) or convert that shim to public-named re-exports (domain-specific). Update all importers + biome noRestrictedImports for `../internal`. typecheck + unit green.
+  - **CONTRACT DECISION (2026-05-28, user: "pick the BEST for the library"):** umbrella = union of legitimately-public subpath symbols; genuinely-internal symbols leave ALL public surfaces. The old hand-list was a curated-subset (umbrella ⊊ subpaths) — that was WRONG for symbols with real external consumers. Classification of the post-barrel-forwarding leaks:
+    - **Move to internal (no external consumer; only cross-file impl detail; auto-typedoc is noise):** `actorRecord`/`placementRecord`/`simulationResult`/`actorTargetsRecordFromReport`/`emptyActorTargetsRecord` (report↔engine) → `src/simulation/internal.ts`; `tryParseHexKey` (coordinates-internal) → `src/internal` or private; `gameboardPlanIndex` (cross-domain layout/interop/gameboard impl) → `src/internal`; `GAMEBOARD_RELEASE_GATE_SUMMARIES` (coverage-internal) + `GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS` (coverage→cli impl) → `src/internal` or interop-internal.
+    - **Keep public — real external consumers, umbrella SHOULD expose (old list wrongly omitted):** `KAYKIT_ATTRIBUTION` (scripts/audit-package.ts) ; `readValidationGameboardPlanFromWorld` (scripts/smoke/*). These were already public on their subpath; accept into umbrella, add to snapshot.
+    - Final snapshot diff = bootstrap (13) + all genuine internals removed; + KAYKIT_ATTRIBUTION + readValidationGameboardPlanFromWorld + any other real-consumer symbols added. Delete stale auto-typedoc pages for the now-internal symbols (docs-site reference regen).
+  - **PROGRESS (2026-05-28):** umbrella → barrel-forwarding DONE. src/internal/predicates.ts (5 generic) DONE. src/simulation/internal.ts (SIMULATION_* arrays + isSimulation* guards + tileKeyFromTargetInput) DONE — cycle broken by owning STEP_ACTIONS in internal.ts. simulation.ts shim curated (report records omitted) DONE. tsc green, 714/715 unit pass, ONLY public-api snapshot red.
+  - **REMAINING 6 leaks + decisions:** KEEP-PUBLIC (real consumers, accept into snapshot): `KAYKIT_ATTRIBUTION` (scripts/audit-package), `readValidationGameboardPlanFromWorld` (scripts/smoke). MOVE-INTERNAL via per-domain shim/barrel curation (same pattern as simulation.ts): `tryParseHexKey` (coordinates.ts-internal, used by parseHexKey), `gameboardPlanIndex` (gameboard.ts, cross-domain → coordinates/interop import it; curate gameboard barrel + give cross-domain callers a path — likely `src/internal` re-home accepting type-only domain imports, OR a gameboard/internal.ts with a biome exception), `GAMEBOARD_RELEASE_GATE_SUMMARIES` (coverage.ts-internal), `GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS` (coverage.ts → cli consumes; cross-domain). Then update snapshot, delete stale typedoc pages, biome rule for any new internal import paths. typecheck + unit + coverage green → commit LF1.
 ### task-LF2 src/config JSON config domain
 - [ ] task-LF2 Create src/config/ with logically-decomposed JSON (kaykit-source, bootstrap-paths, upstream-layouts) + typed loader; migrate hardcoded KAYKIT_* bootstrap/layout constants to derive from config; no behavior change.
 ### task-LF3 Relocate upstream-layout

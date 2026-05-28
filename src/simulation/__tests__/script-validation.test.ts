@@ -12,66 +12,16 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
-  errorMessage,
-  includesString,
-  inspectGameboardScenarioSimulationScript,
-  isHexCoordinatesInput,
-  isNonEmptyString,
-  isRecord,
   isSimulationMovementEventType,
   isSimulationPatrolEventType,
   isSimulationStepAction,
-  tileKeyFromTargetInput,
+} from '../internal';
+import {
+  GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
+  inspectGameboardScenarioSimulationScript,
 } from '../script';
 
-describe('script predicate helpers (PRD E0a)', () => {
-  it('includesString narrows correctly', () => {
-    const set = ['alpha', 'beta', 'gamma'] as const;
-    expect(includesString(set, 'beta')).toBe(true);
-    expect(includesString(set, 'delta')).toBe(false);
-    expect(includesString(set, 17)).toBe(false);
-  });
-
-  it('isNonEmptyString rejects empty/whitespace/non-string inputs', () => {
-    expect(isNonEmptyString('hi')).toBe(true);
-    expect(isNonEmptyString('')).toBe(false);
-    expect(isNonEmptyString(null)).toBe(false);
-    expect(isNonEmptyString(42)).toBe(false);
-  });
-
-  it('isRecord rejects arrays and primitives', () => {
-    expect(isRecord({})).toBe(true);
-    expect(isRecord({ a: 1 })).toBe(true);
-    expect(isRecord([])).toBe(false);
-    expect(isRecord(null)).toBe(false);
-    expect(isRecord('x')).toBe(false);
-  });
-
-  it('errorMessage extracts string from Error and falls back for non-Errors', () => {
-    expect(errorMessage(new Error('boom'))).toBe('boom');
-    expect(errorMessage('plain')).toBe('plain');
-    expect(errorMessage(123)).toBe('123');
-    expect(errorMessage({ foo: 'bar' })).toContain('[object');
-  });
-
-  it('tileKeyFromTargetInput handles axial-string + {q,r} object inputs', () => {
-    // Strings go through parseHexKey/hexKey, so the canonical axial format
-    // round-trips. Invalid strings return undefined (caught from parse).
-    expect(tileKeyFromTargetInput('0,0')).toBe('0,0');
-    expect(tileKeyFromTargetInput({ q: 1, r: 2 })).toBe('1,2');
-    expect(tileKeyFromTargetInput('not-a-hex-coord')).toBeUndefined();
-    expect(tileKeyFromTargetInput(42)).toBeUndefined();
-  });
-
-  it('isHexCoordinatesInput accepts {q, r} numbers and rejects partial inputs', () => {
-    expect(isHexCoordinatesInput({ q: 0, r: 0 })).toBe(true);
-    expect(isHexCoordinatesInput({ q: 1, r: 2 })).toBe(true);
-    expect(isHexCoordinatesInput({ q: 1 })).toBe(false);
-    expect(isHexCoordinatesInput({ q: '1', r: '2' })).toBe(false);
-    expect(isHexCoordinatesInput(null)).toBe(false);
-  });
-
+describe('simulation event-type guards (PRD E0a)', () => {
   it('isSimulationStepAction recognises known action names', () => {
     expect(isSimulationStepAction('command')).toBe(true);
     expect(isSimulationStepAction('spawn-actor')).toBe(true);

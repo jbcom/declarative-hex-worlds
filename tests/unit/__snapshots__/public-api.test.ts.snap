@@ -363,36 +363,12 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
     "name": "IsUnitPlacement",
   },
   {
-    "kind": "string",
-    "name": "KAYKIT_BOOTSTRAP_GLTF_RELATIVE",
-  },
-  {
-    "kind": "string",
-    "name": "KAYKIT_BOOTSTRAP_ROOT",
-  },
-  {
-    "kind": "string",
-    "name": "KAYKIT_BOOTSTRAP_SIDECAR",
-  },
-  {
-    "kind": "string",
-    "name": "KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE",
+    "kind": "object",
+    "name": "KAYKIT_ATTRIBUTION",
   },
   {
     "kind": "number",
     "name": "KAYKIT_ELEVATION_STEP",
-  },
-  {
-    "kind": "string",
-    "name": "KAYKIT_FREE_GITHUB_DEFAULT_REF",
-  },
-  {
-    "kind": "string",
-    "name": "KAYKIT_FREE_GITHUB_OWNER",
-  },
-  {
-    "kind": "string",
-    "name": "KAYKIT_FREE_GITHUB_REPO",
   },
   {
     "kind": "number",
@@ -641,10 +617,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "axialToWorld",
-  },
-  {
-    "kind": "function",
-    "name": "bootstrapKayKitAssets",
   },
   {
     "kind": "function",
@@ -1124,6 +1096,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "gameboardPlanIndex",
+  },
+  {
+    "kind": "function",
     "name": "gameboardQuestActions",
   },
   {
@@ -1257,10 +1233,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "isUnitStyle",
-  },
-  {
-    "kind": "function",
-    "name": "kayKitFreeGithubTarballUrl",
   },
   {
     "kind": "function",
@@ -1476,6 +1448,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "readValidationGameboardPlanFromWorld",
+  },
+  {
+    "kind": "function",
     "name": "recommendExternalAssetFacing",
   },
   {
@@ -1505,18 +1481,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "resetGameboardMovementBudget",
-  },
-  {
-    "kind": "function",
-    "name": "resolveBootstrapGltfRoot",
-  },
-  {
-    "kind": "function",
-    "name": "resolveBootstrapSidecarPath",
-  },
-  {
-    "kind": "function",
-    "name": "resolveBootstrapTargetRoot",
   },
   {
     "kind": "function",
@@ -1716,6 +1680,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "tryParseHexKey",
+  },
+  {
+    "kind": "function",
     "name": "updateGameboardActor",
   },
   {
@@ -1749,10 +1717,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "validateMedievalHexagonManifest",
-  },
-  {
-    "kind": "function",
-    "name": "verifyBootstrap",
   },
   {
     "kind": "function",

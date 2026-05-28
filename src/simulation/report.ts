@@ -40,6 +40,12 @@ import type {
 } from '../systems';
 import { evaluateGameboardScenarioSimulationExpectations } from './assertions';
 import {
+  type SIMULATION_MOVEMENT_EVENT_TYPES,
+  type SIMULATION_PATROL_EVENT_TYPES,
+  isSimulationMovementEventType,
+  isSimulationPatrolEventType,
+} from './internal';
+import {
   GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION,
   type GameboardScenarioSimulationActorTargetRecord,
   type GameboardScenarioSimulationActorTargetsRecord,
@@ -49,10 +55,6 @@ import {
   type GameboardScenarioSimulationStep,
   type GameboardScenarioSimulationStepBase,
   type GameboardScenarioSimulationStepResult,
-  isSimulationMovementEventType,
-  isSimulationPatrolEventType,
-  type SIMULATION_MOVEMENT_EVENT_TYPES,
-  type SIMULATION_PATROL_EVENT_TYPES,
 } from './script';
 
 /**
