@@ -93,7 +93,13 @@ const packageShowcaseArtifactPrefix = '';
 // the dual subpaths `./manifest/schema` + `./manifest/free` instead of one
 // umbrella, and `traits` ships under `./traits` already (just listed for
 // completeness — the audit's directory-with-index check covers traits).
-const privateEntryModules = new Set(['cli', 'index', 'manifest']);
+const privateEntryModules = new Set([
+  'cli', // CLI entry — published as `bin`, not a runtime subpath
+  'config', // logically-decomposed JSON tunables (Epic LF) — internal
+  'index', // umbrella entry — published as `.`, not a separate subpath
+  'internal', // cross-cutting predicates + shared internals (Epic LF) — never public
+  'manifest', // umbrella; published subpaths are `manifest/free` + `manifest/schema`
+]);
 const textPackFiles = new Set(['LICENSE']);
 const textPackFileSuffixes = ['.d.ts', '.js', '.json', '.map', '.md'];
 const forbiddenPackedContentPatterns: readonly { label: string; pattern: RegExp }[] = [

@@ -32,7 +32,12 @@ export * from './core';
 export * from './target';
 export * from './upstream-layout';
 
-/** CLI `bootstrap` subcommand entry point (dispatched by `cli.ts`). */
+/**
+ * CLI `bootstrap` subcommand entry point (dispatched by `cli.ts`).
+ *
+ * @internal — invoked only by the CLI dispatcher; not part of the published
+ * runtime API and intentionally excluded from TypeDoc.
+ */
 export async function run(
   parsed: ParsedArgs,
   _sourceRoot: string,
