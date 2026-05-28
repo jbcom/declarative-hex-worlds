@@ -32,7 +32,6 @@ import yauzl from 'yauzl';
 import { BOOTSTRAP_PATHS, KAYKIT_SOURCE, kaykitGithubArchiveUrl } from '../../../config';
 import { GameboardIoError, GameboardManifestError } from '../../../errors';
 import {
-  KAYKIT_MEDIEVAL_FREE_LAYOUT,
   detectKayKitLayout,
   kayKitLayoutForEdition,
   type KayKitUpstreamLayout,
