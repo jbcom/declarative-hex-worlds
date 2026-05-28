@@ -1,11 +1,7 @@
-<!-- canonical: https://jonbogaty.com/declarative-hex-worlds/guides/guide-scenario-coverage/ -->
-
-> **Canonical version:** [https://jonbogaty.com/declarative-hex-worlds/guides/guide-scenario-coverage/](https://jonbogaty.com/declarative-hex-worlds/guides/guide-scenario-coverage/)
->
-> This file remains as scenario metadata for `src/scenario/catalog.ts`. The docs-site version is the human-facing canonical.
-
-# Guide Scenario Coverage
-
+---
+title: Guide scenario coverage
+description: Per-page KayKit user-guide coverage matrix.
+---
 The KayKit user guide is decomposed into 19 source-page scenarios. This page is
 the human-facing map for those scenarios; the machine-readable source remains
 `listKayKitGuideScenarios()`, `describeKayKitGuideScenarioCoverage()`,

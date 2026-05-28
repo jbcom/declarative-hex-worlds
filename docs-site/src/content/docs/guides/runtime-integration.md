@@ -1,11 +1,7 @@
-<!-- canonical: https://jonbogaty.com/declarative-hex-worlds/guides/runtime-integration/ -->
-
-> **Canonical version:** [https://jonbogaty.com/declarative-hex-worlds/guides/runtime-integration/](https://jonbogaty.com/declarative-hex-worlds/guides/runtime-integration/)
->
-> This file remains as scenario metadata for `src/scenario/catalog.ts`. The docs-site version is the human-facing canonical.
-
-# Runtime Integration Guide
-
+---
+title: Runtime integration
+description: Wire the runtime facade into a React + Three.js app.
+---
 Use the runtime facade as the application boundary for a playable board. The
 lower-level modules remain public, but a game usually wants one object that owns
 the Koota world, exposes safe mutations, projects render plans, runs systems,

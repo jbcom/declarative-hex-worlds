@@ -1,18 +1,7 @@
 ---
 title: Public API tier table
-updated: 2026-05-26
-status: current
-domain: technical
+description: Three-tier export taxonomy (umbrella / domain subpath / internal).
 ---
-
-<!-- canonical: https://jonbogaty.com/declarative-hex-worlds/guides/public-api/ -->
-
-> **Canonical version:** [https://jonbogaty.com/declarative-hex-worlds/guides/public-api/](https://jonbogaty.com/declarative-hex-worlds/guides/public-api/)
->
-> This file remains as scenario metadata for `src/scenario/catalog.ts`. The docs-site version is the human-facing canonical.
-
-# Public API tier table
-
 `declarative-hex-worlds` publishes one umbrella entry plus a wide
 set of subpath exports. **Every subpath stays supported through 1.0** — this
 is an asset-bundled library where mod authors, custom-renderer builders, and

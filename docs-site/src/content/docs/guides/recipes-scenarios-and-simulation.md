@@ -1,11 +1,7 @@
-<!-- canonical: https://jonbogaty.com/declarative-hex-worlds/guides/recipes-scenarios-and-simulation/ -->
-
-> **Canonical version:** [https://jonbogaty.com/declarative-hex-worlds/guides/recipes-scenarios-and-simulation/](https://jonbogaty.com/declarative-hex-worlds/guides/recipes-scenarios-and-simulation/)
->
-> This file remains as scenario metadata for `src/scenario/catalog.ts`. The docs-site version is the human-facing canonical.
-
-# Recipes, Scenarios, And Simulation
-
+---
+title: Recipes, scenarios, and simulation
+description: The recipe → blueprint → scenario → simulation pipeline.
+---
 Recipes describe board intent. Scenarios add game content. Simulation scripts
 exercise the same public API a game loop would use.
 

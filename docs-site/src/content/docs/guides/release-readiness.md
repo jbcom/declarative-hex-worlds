@@ -1,11 +1,7 @@
-<!-- canonical: https://jonbogaty.com/declarative-hex-worlds/guides/release-readiness/ -->
-
-> **Canonical version:** [https://jonbogaty.com/declarative-hex-worlds/guides/release-readiness/](https://jonbogaty.com/declarative-hex-worlds/guides/release-readiness/)
->
-> This file remains as scenario metadata for `src/scenario/catalog.ts`. The docs-site version is the human-facing canonical.
-
-# Release Readiness Coverage
-
+---
+title: Release readiness coverage
+description: Generated ledger of feature + asset coverage at release time.
+---
 This generated ledger combines the decomposed KayKit guide coverage, manifest
 coverage, public API treatment, visual artifacts, local reference packs, and
 package verification gates. Regenerate it with:
