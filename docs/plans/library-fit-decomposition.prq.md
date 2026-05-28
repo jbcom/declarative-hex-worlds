@@ -63,14 +63,14 @@ in `src/cli/` on a real CLI framework, with bootstrap as a command, config in
 
 ## Tasks
 
-- [ ] LF1: Rewrite `src/index.ts` to barrel-forwarding (browser-safe step 1)
-- [ ] LF2: Create `src/config/` JSON config domain + loader; migrate bootstrap/layout constants
-- [ ] LF3: Relocate `upstream-layout` into the bootstrap command area
-- [ ] LF4: Relocate `src/bootstrap/` → `src/cli/commands/bootstrap/`
-- [ ] LF5: Repoint published subpaths + tsup entries + package.json exports + biome rule + docs
-- [ ] LF6: Adopt a proper CLI library for `src/cli/cli.ts`
-- [ ] LF7: Replace raw https GitHub fetch with git-clone via optional peer dependency
-- [ ] LF8: Verify umbrella is browser-import-safe (no node builtins reachable from src/index.ts)
+- [x] LF1: Rewrite `src/index.ts` to barrel-forwarding (browser-safe step 1) — shipped + LF1-fix added react/three per invariant #5
+- [x] LF2: Create `src/config/` JSON config domain + loader; migrate bootstrap/layout constants
+- [x] LF3: Relocate `upstream-layout` into the bootstrap command area
+- [x] LF4: Relocate `src/bootstrap/` → `src/cli/commands/bootstrap/`
+- [x] LF5: Repoint published subpaths + tsup entries + package.json exports + biome rule + docs
+- [x] LF6: Adopt a proper CLI library for `src/cli/cli.ts` (citty)
+- [x] LF7: Unify bootstrap source on the zip flow (download stable archive .zip + reuse stageFromZip; no git/tar) — REVISED from original git-clone approach
+- [x] LF8: Verify umbrella is browser-import-safe (no node builtins reachable from src/index.ts) — static graph test + Chromium load verified
 
 ## Dependencies
 
@@ -142,16 +142,26 @@ in `src/cli/` on a real CLI framework, with bootstrap as a command, config in
 - CLI smoke tests (`scripts/smoke-built-cli.ts`, cli tests) pass.
 - Verification: `command` — `pnpm test && pnpm test:cli`.
 
-### LF7 — Git-clone via optional peer dependency
-- A git library (isomorphic-git or simple-git) added as an **optional**
-  peer dependency. Repo-source bootstrap (`{ kind: 'git' }` or repointed
-  `github`) clones via that library; clear actionable error if the optional peer
-  is absent.
-- Raw `node:https` tarball fetch removed. `{ kind: 'zip' }` source unchanged.
-- Clone/source patterns read from `src/config/` (LF2).
-- Coverage for the new source path; the nightly/e2e github path updated.
-- Verification: `command` — `pnpm typecheck && pnpm test`; `code_contains` — no
-  `node:https` in the bootstrap source module.
+### LF7 — Unify bootstrap source on the zip flow (REVISED 2026-05-28)
+**User revision** (during execution): the isomorphic-git/peer-dep approach was
+rejected as overkill. The GitHub archive URL
+`https://github.com/.../archive/refs/heads/main.zip` is stable and never
+changes, so there's no need for a git library. **Collapse the two source modes
+into ONE flow**: `{ kind: 'zip', path }` extracts the user's local zip;
+`{ kind: 'github' }` downloads the stable archive `.zip` URL first, then runs
+the identical `stageFromZip` extraction. The existing layout detector handles
+both the itch.io (`<pack>/Assets/gltf`) and GitHub
+(`<repo>-main/addons/kaykit_.../Assets/gltf`) structures.
+
+- Raw `node:https` tarball (codeload `tar.gz` + gunzip + tar.extract) replaced
+  with `downloadGithubArchiveZip` (https GET → temp `.zip` → `stageFromZip`).
+- Removed `node:zlib`, `node:stream/promises` tar pipeline, `tar` runtime dep,
+  the `.gz` source-format extension. No git library, no peer dep.
+- URL templating + clone/source patterns read from `src/config/` (LF2).
+- Verification: `command` — `pnpm typecheck && pnpm test`; `code_contains` —
+  `tar` not in `package.json#dependencies`; `code_contains` — no `node:zlib` or
+  `tar.extract` in the bootstrap source module. `node:https` retained for the
+  single archive-zip GET (with hardened redirect allowlist).
 
 ### LF8 — Browser-import-safety verification
 - A test/assertion proves `src/index.ts`'s transitive import graph contains no
