@@ -26,7 +26,7 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
-import { bootstrapKayKitAssets, verifyBootstrap } from '../../src/bootstrap';
+import { bootstrapKayKitAssets, verifyBootstrap } from '../../src/cli/commands/bootstrap';
 
 const RUN = process.env.MEDIEVAL_HEXAGON_LOCAL_REFERENCES === '1';
 const FREE_ZIP_PATH = resolve(

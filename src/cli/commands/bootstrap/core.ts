@@ -31,21 +31,21 @@ import { pipeline } from 'node:stream/promises';
 import { createGunzip } from 'node:zlib';
 import * as tar from 'tar';
 import yauzl from 'yauzl';
-import { GameboardIoError, GameboardManifestError } from '../errors';
+import { GameboardIoError, GameboardManifestError } from '../../../errors';
 import {
   KAYKIT_MEDIEVAL_FREE_LAYOUT,
   detectKayKitLayout,
   kayKitLayoutForEdition,
   type KayKitUpstreamLayout,
 } from './upstream-layout';
-import type { PackEdition } from '../types';
+import type { PackEdition } from '../../../types';
 import {
   KAYKIT_BOOTSTRAP_GLTF_RELATIVE,
   KAYKIT_BOOTSTRAP_SIDECAR,
   KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE,
   resolveBootstrapSidecarPath,
   resolveBootstrapTargetRoot,
-} from './bootstrap-target';
+} from './target';
 
 /**
  * Canonical GitHub organization holding the FREE edition source tree.

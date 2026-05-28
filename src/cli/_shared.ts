@@ -11,7 +11,7 @@ import {
   type BootstrapVerificationReport,
   bootstrapKayKitAssets,
   verifyBootstrap,
-} from '../bootstrap';
+} from './commands/bootstrap/core';
 import {
   analyzeGameboardLayoutFill,
   appendGameboardLayoutPlacementsToPlan,

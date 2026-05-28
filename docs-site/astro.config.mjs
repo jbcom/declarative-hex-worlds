@@ -49,11 +49,11 @@ const entryPoints = [
 	'../src/rules/validation.ts',
 	'../src/systems/world-rules-system.ts',
 	'../src/cli/cli.ts',
-	'../src/bootstrap/index.ts',
+	'../src/cli/commands/bootstrap/index.ts',
 	'../src/ingest/index.ts',
 	'../src/manifest/free.ts',
 	'../src/manifest/schema.ts',
-	'../src/bootstrap/upstream-layout.ts',
+	'../src/cli/commands/bootstrap/upstream-layout.ts',
 ];
 
 export default defineConfig({

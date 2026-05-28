@@ -22,7 +22,7 @@ import {
   resolveBootstrapGltfRoot,
   resolveBootstrapTargetRoot,
   verifyBootstrap,
-} from '../../../src/bootstrap';
+} from '../../../src/cli/commands/bootstrap';
 import {
   freeManifest,
   gameboardAssetUrl,

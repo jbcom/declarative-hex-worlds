@@ -28,7 +28,7 @@ import {
   KAYKIT_BOOTSTRAP_GLTF_RELATIVE,
   KAYKIT_BOOTSTRAP_ROOT,
   verifyBootstrap,
-} from '../../src/bootstrap';
+} from '../../src/cli/commands/bootstrap';
 import { freeManifest } from '../../src/manifest';
 
 function walkFileCount(root: string): number {

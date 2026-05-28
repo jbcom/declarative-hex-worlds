@@ -21,7 +21,7 @@ import {
   statSync,
 } from 'node:fs';
 import { join } from 'node:path';
-import type { PackEdition } from '../types';
+import type { PackEdition } from '../../../types';
 
 /**
  * Structural description of a single KayKit Medieval Hexagon pack edition as
