@@ -281,6 +281,7 @@
   },
   "dependencies": {
     "@types/react": "^19.0.0",
+    "citty": "^0.2.2",
     "honeycomb-grid": "^4.1.5",
     "koota": "^0.6.6",
     "react": "^19.0.0",
