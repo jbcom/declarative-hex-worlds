@@ -9,6 +9,7 @@ export default defineConfig({
     include: [
       'tests/unit/**/*.test.ts',
       'tests/integration/**/*.test.ts',
+      'tests/contract/**/*.test.ts',
       'src/**/__tests__/**/*.test.ts',
       'scripts/**/__tests__/**/*.test.ts',
     ],
