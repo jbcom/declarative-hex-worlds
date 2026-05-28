@@ -69,7 +69,11 @@ export function packageAliases(): VitestAlias[] {
       replacement: resolve(repoRoot, 'src/index.ts'),
     },
     ...SUBPATH_TARGETS.map(([sub, target]) => ({
-      find: new RegExp(`^@jbcom/medieval-hexagon-gameboard/${sub.replace(/\//g, '\\/')}$`),
+      // Escape every regex metacharacter in `sub`, not just `/`. The known
+      // subpath names only contain `[a-z-/]` today, but a future entry with
+      // a backslash or another special char would otherwise be silently
+      // mis-escaped (CodeQL js/incomplete-sanitization).
+      find: new RegExp(`^@jbcom/medieval-hexagon-gameboard/${sub.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}$`),
       replacement: resolve(repoRoot, target),
     })),
   ];
