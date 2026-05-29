@@ -35,7 +35,7 @@ import type {
 import { bootstrapKayKitAssets, verifyBootstrap } from './core';
 import { GameboardCliError } from '../../../errors';
 import type { PackEdition } from '../../../types';
-import { type ParsedArgs, relativizePath, safeResolveOutput } from '../../_shared';
+import { type ParsedArgs, defaultOutRoot, relativizePath, safeResolveOutput } from '../../_shared';
 
 export * from './core';
 export * from './target';
@@ -97,6 +97,7 @@ export async function runBootstrap(parsed: ParsedArgs, edition: PackEdition): Pr
   const result = await bootstrapKayKitAssets({
     source,
     out: outAbsolute,
+    outRoot: defaultOutRoot(),
     edition,
     force: parsed.flags.force === true,
     includeSourceFormats: parsed.flags['include-source-formats'] === true,
