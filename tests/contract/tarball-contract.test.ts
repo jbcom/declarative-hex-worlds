@@ -107,8 +107,8 @@ describe('package.json metadata', () => {
 // ── runtime dependencies ───────────────────────────────────────────────────
 
 describe('runtime dependencies', () => {
-  for (const dep of ['honeycomb-grid', 'seedrandom', 'citty', 'yauzl']) {
-    it(`${dep} is a runtime dependency`, () => {
+  for (const dep of ['react', 'react-dom', 'three', '@types/react', 'honeycomb-grid', 'koota', 'seedrandom']) {
+    it(`${dep} is a runtime dependency (not a peer)`, () => {
       expect(
         typeof packageJson.dependencies?.[dep],
         `${dep} must be in dependencies`
@@ -116,29 +116,11 @@ describe('runtime dependencies', () => {
     });
   }
 
-  for (const dep of ['react', 'react-dom', 'three', 'koota']) {
-    it(`${dep} is a peer dependency (optional) not a hard dep`, () => {
-      expect(
-        typeof (packageJson as { peerDependencies?: Record<string, string> }).peerDependencies?.[dep],
-        `${dep} must be in peerDependencies`
-      ).toBe('string');
-      expect(
-        typeof packageJson.dependencies?.[dep],
-        `${dep} must NOT be in dependencies`
-      ).toBe('undefined');
-    });
-  }
-
-  it('@types/react is in devDependencies not dependencies', () => {
-    expect(
-      typeof packageJson.dependencies?.['@types/react'],
-      '@types/react must not be in dependencies'
-    ).toBe('undefined');
+  it('peerDependencies block is absent (react/three are runtime deps post-R1)', () => {
+    expect(Object.hasOwn(packageJson, 'peerDependencies')).toBe(false);
   });
-
-  it('peerDependencies block is present with optional markers', () => {
-    expect(Object.hasOwn(packageJson, 'peerDependencies')).toBe(true);
-    expect(Object.hasOwn(packageJson, 'peerDependenciesMeta')).toBe(true);
+  it('peerDependenciesMeta block is absent', () => {
+    expect(Object.hasOwn(packageJson, 'peerDependenciesMeta')).toBe(false);
   });
 });
 

@@ -55,11 +55,10 @@ describe('workflow contract', () => {
     it.each([
       ["NODE_VERSION: '22'"],
       ['pnpm/action-setup'],
-      // The matrix-driven check job runs the four per-PR correctness gates.
-      // Coverage enforcement runs in its own dedicated CI job (see below).
-      ['task: [lint, typecheck, build, test]'],
-      // dedicated coverage job runs the ratchet floor check on every PR
-      ['pnpm test:coverage:enforce'],
+      // The matrix-driven check job runs all per-PR correctness gates:
+      // lint, typecheck, build, the full vitest suite (which includes
+      // tests/contract/), and the enforced coverage threshold pass.
+      ["task: [lint, typecheck, build, test, 'test:coverage:enforce']"],
       // browser-free job's vitest invocation
       ['pnpm test:browser:free'],
       // docs-site build (artifact uploaded for cd.yml to deploy)
