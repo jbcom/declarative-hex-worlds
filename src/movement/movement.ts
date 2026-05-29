@@ -386,7 +386,7 @@ export function requestGameboardMovement(
 
   return {
     entity,
-    placement: requirePlacementState(entity),
+    placement: snapshotPlacementState(entity),
     profile,
     path,
     state: nextState,
@@ -628,7 +628,7 @@ function movementAdvanceResult(
 ): GameboardMovementAdvanceResult {
   return {
     entity,
-    placement: requirePlacementState(entity),
+    placement: snapshotPlacementState(entity),
     profile,
     state,
     moved,
@@ -643,7 +643,15 @@ function requirePlacementEntity(world: World, placement: Entity | string): Entit
   return entity;
 }
 
-function requirePlacementState(entity: Entity): PlacementStateValue {
+function requirePlacementState(entity: Entity): Readonly<PlacementStateValue> {
+  const state = entity.get(PlacementState);
+  if (!state) {
+    throw new GameboardRuntimeError(`Placement entity ${entity.id()} is missing PlacementState`);
+  }
+  return state;
+}
+
+function snapshotPlacementState(entity: Entity): PlacementStateValue {
   const state = entity.get(PlacementState);
   if (!state) {
     throw new GameboardRuntimeError(`Placement entity ${entity.id()} is missing PlacementState`);
