@@ -82,33 +82,42 @@ describe('CLI hostile-input safety net (PRD E3)', () => {
   it.skipIf(!HAS_PIECES_FIXTURE)(
     'rejects --pieceSourceRoots payload with __proto__ key (C3 prototype-pollution guard)',
     () => {
-      // Minimal viable registry: a single piece with one source. Inline JSON
-      // to avoid filesystem ceremony.
-      const registryJson = JSON.stringify({
-        pieces: [
-          {
-            pieceId: 'test:piece',
-            label: 'Test',
-            role: 'prop',
-            assetId: 'test:asset',
-            edition: 'free',
-            sourcePack: 'test',
-            sourcePath: 'test.gltf',
-          },
-        ],
-      });
-      const result = runCli([
-        'pieces',
-        '--pieces',
-        registryJson,
-        '--emitSourceUrls',
-        '--pieceSourceRoots',
-        '{"__proto__":{"x":1}}',
-      ]);
-      // Either the guard fires (correct) OR the command errors before reaching
-      // the guard (also correct — we don't want this combination to succeed
-      // silently).
+      const registryDir = mkdtempSync(join(tmpdir(), 'medieval-hexagon-e3-proto-'));
+      const registryPath = join(registryDir, 'registry.json');
+      writeFileSync(
+        registryPath,
+        JSON.stringify({
+          pieces: [
+            {
+              pieceId: 'test:piece',
+              label: 'Test',
+              role: 'prop',
+              assetId: 'test:asset',
+              edition: 'free',
+              sourcePack: 'test',
+              sourcePath: 'test.gltf',
+            },
+          ],
+        }),
+        'utf8'
+      );
+      let result: ReturnType<typeof runCli>;
+      try {
+        result = runCli([
+          'pieces',
+          '--pieces',
+          registryPath,
+          '--emitSourceUrls',
+          '--pieceSourceRoots',
+          '{"__proto__":{"x":1}}',
+        ]);
+      } finally {
+        rmSync(registryDir, { recursive: true, force: true });
+      }
       expect(result.status).not.toBe(0);
+      expect(result.stderr + result.stdout).toMatch(
+        /prototype pollution risk|__proto__.*not allowed|not allowed.*__proto__/i
+      );
     },
     30_000
   );

@@ -169,19 +169,19 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 ### P2 — Medium (plan for next sprint)
 
 - [x] **CR-P2-1** — `_shared.ts` decomposition: per-command files; extract `emitOutput()` helper; fix `commandHandlerMutations` to throw `GameboardRuntimeError` on `never`. [CQ-1, CQ-2]
-- [ ] **CR-P2-2** — `findGameboardPath`/`reachableGameboardTiles` default-arg Map allocations: route through `gameboardPlanIndex` WeakMap. [P-4]
-- [ ] **CR-P2-3** — System tick allocation: remove `[...world.query(...)]` spreads (patrol.ts:227, movement.ts:421); flatten `flatMap`+spread in `runGameboardSystems` event array. [P-5, P-7]
+- [x] **CR-P2-2** — ✅ PR #69 (2026-05-29): `findGameboardPath`/`reachableGameboardTiles` default-arg Map allocations routed through `gameboardPlanIndex` WeakMap.
+- [x] **CR-P2-3** — ✅ PR #69 (2026-05-29): world.query() spreads removed (patrol.ts:227, movement.ts:421); flatMap+spread in runGameboardSystems replaced with nested for-loop push. Koota world.query() verified snapshot via .slice() — gemini live-iterator concern was a false positive.
 - [ ] **CR-P2-4** — `freeManifest` 380 KB eager import in `gameboard.ts`: convert static import to dynamic `import()` inside functions that need it. [P-8]
 - [ ] **CR-P2-5** — `useGameboardDerivedRevision` 30+ subscriptions: domain-split revision counters + microtask coalescing. [P-10]
-- [ ] **CR-P2-6** — `stageFromZip`/`downloadGithubArchiveZip`: restructure cleanup to `try/finally`. [M-3/Sec]
-- [ ] **CR-P2-7** — `readSidecar`: add `statSync` file-size ceiling + `files.length` sanity bound. [L-2/Sec]
-- [ ] **CR-P2-8** — `walkFilesInternal`: add warning + count assertion when symlinks encountered. [L-3/Sec]
+- [x] **CR-P2-6** — ✅ `stageUpstreamSource`: inlined github download path with `try/finally` for `downloadRoot` cleanup; `stageFromZip` restructured to `let succeeded = false; try { ... succeeded = true; } finally { if (!succeeded) rmSync(...) }`.
+- [x] **CR-P2-7** — ✅ `readSidecar`: added `SIDECAR_MAX_BYTES = 4 MiB` + `SIDECAR_MAX_FILES = 100_000` constants; guards throw `GameboardIoError` on oversize or overcount.
+- [x] **CR-P2-8** — ✅ `walkFilesInternal`: added `symlinkCount` ref parameter; warns once on stderr when symlink encountered; passes through recursive calls.
 - [ ] **CR-P2-9** — `koota.ts:16` dependency inversion: move `isKnownExtraAssetId` out of `scenario` domain; require callers to pass `requiresExtra` explicitly or move to `src/types/`. [AR-1]
 - [ ] **CR-P2-10** — `ci.yml` check matrix: unify pnpm/setup-node SHAs across all jobs (or drop artifact-share in favor of per-job pnpm cache — benchmark first). [CI-3]
 - [ ] **CR-P2-11** — Release: add post-publish `npm audit signatures` verify + write `ROLLBACK.md` runbook. [CI-7]
 - [ ] **CR-P2-12** — `automerge.yml`: reassess release-please auto-merge after CR-P0-1 branch protection lands. [CI-6]
 - [ ] **CR-P2-13** — Docs: fix CLI reference rename artifact in `generate-cli-reference.ts` template (H-DOC-1); add rename narrative to CHANGELOG.md 1.0.0 entry + `docs-site/guides/migration.md` (H-DOC-2); add JSON-flag schema/error-contract subsection to CLI reference (H-DOC-3); add `HEX_WORLDS_OUT_ROOT` danger aside (M-DOC-1).
-- [ ] **CR-P2-14** — Remove 3 `it.skip` stubs in `cli.test.ts:219,1426,1922`; tighten `__proto__` prototype-pollution test to assert guard message. [S-6, S-7]
+- [x] **CR-P2-14** — ✅ Removed `it.skip` at cli.test.ts:1922 (fixture key updated to `fixture-castle-kit` to satisfy `[A-Za-z0-9_:-]+` guard); tightened `__proto__` guard message assertion in cli-security.test.ts; fixed `--pieces` arg to use temp file (CLI requires path, not inline JSON). Skips at lines 219 (Phase RB) and 1426 (Phase RS) remain legitimately blocked.
 - [ ] **CR-P2-15** — `requirePlacementState` deep spread: only deep-copy on final result snapshot. [P-6]
 - [ ] **CR-P2-16** — `tsconfig.json`: remove `ignoreDeprecations: "6.0"`; fix surfaced TS-6 warnings. [BP-6]
 - [ ] **CR-P2-17** — tsup: `treeshake: true` explicit; resolve honeycomb-grid/seedrandom/citty/yauzl bundle-vs-external (pick one model, not both); add size-budget test. [BP-7]
