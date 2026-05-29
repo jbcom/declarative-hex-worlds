@@ -11,6 +11,9 @@ import {
   findHexPath,
   hexDistance,
   hexKey,
+  minHeapCreate,
+  minHeapPop,
+  minHeapPush,
   neighbors,
   type SpawnLocation,
   type SpawnLocationOptions,
@@ -585,12 +588,15 @@ export function reachableGameboardTiles(
   }
 
   const costByKey = new Map<string, number>([[startTile.key, 0]]);
-  const heap = navHeapCreate();
-  navHeapPush(heap, [0, startTile.key]);
+  const heap = minHeapCreate<[number, string]>((a, b) => a[0] - b[0]);
+  minHeapPush(heap, [0, startTile.key]);
 
   while (heap.length > 0) {
-    // biome-ignore lint/style/noNonNullAssertion: heap non-empty by loop guard
-    const [heapCost, currentKey] = navHeapPop(heap)!;
+    const popped = minHeapPop(heap);
+    if (popped === undefined) {
+      continue;
+    }
+    const [heapCost, currentKey] = popped;
     const recordedCost = costByKey.get(currentKey);
     if (recordedCost === undefined || heapCost > recordedCost) {
       continue;
@@ -636,7 +642,7 @@ export function reachableGameboardTiles(
         continue;
       }
       costByKey.set(adjacent.key, nextCost);
-      navHeapPush(heap, [nextCost, adjacent.key]);
+      minHeapPush(heap, [nextCost, adjacent.key]);
     }
   }
 
@@ -1226,63 +1232,6 @@ function combinePatrolSegmentPathKeys(segments: readonly GameboardPatrolRouteSeg
   return pathKeys;
 }
 
-type NavHeap = [number, string][] & { _cmp: (a: [number, string], b: [number, string]) => number };
-
-function navHeapCreate(): NavHeap {
-  const h = [] as unknown as NavHeap;
-  h._cmp = (a, b) => a[0] - b[0];
-  return h;
-}
-
-function navHeapPush(heap: NavHeap, value: [number, string]): void {
-  heap.push(value);
-  let i = heap.length - 1;
-  while (i > 0) {
-    const parent = (i - 1) >> 1;
-    const child = heap[i];
-    const par = heap[parent];
-    if (child !== undefined && par !== undefined && heap._cmp(child, par) < 0) {
-      heap[i] = par;
-      heap[parent] = child;
-      i = parent;
-    } else {
-      break;
-    }
-  }
-}
-
-function navHeapPop(heap: NavHeap): [number, string] | undefined {
-  if (heap.length === 0) return undefined;
-  const top = heap[0];
-  if (top === undefined) return undefined;
-  const last = heap.pop();
-  if (heap.length > 0 && last !== undefined) {
-    heap[0] = last;
-    let i = 0;
-    for (;;) {
-      const left = 2 * i + 1;
-      const right = 2 * i + 2;
-      let smallest = i;
-      const lv = heap[left];
-      const sv = heap[smallest];
-      if (left < heap.length && lv !== undefined && sv !== undefined && heap._cmp(lv, sv) < 0)
-        smallest = left;
-      const rv = heap[right];
-      const sv2 = heap[smallest];
-      if (right < heap.length && rv !== undefined && sv2 !== undefined && heap._cmp(rv, sv2) < 0)
-        smallest = right;
-      if (smallest === i) break;
-      const tmp = heap[i];
-      const sm = heap[smallest];
-      if (tmp !== undefined && sm !== undefined) {
-        heap[i] = sm;
-        heap[smallest] = tmp;
-      }
-      i = smallest;
-    }
-  }
-  return top;
-}
 
 function coordinatesFor(coordinates: HexCoordinates | string): HexCoordinates {
   if (typeof coordinates !== 'string') {

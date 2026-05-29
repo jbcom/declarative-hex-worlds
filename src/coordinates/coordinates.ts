@@ -236,11 +236,18 @@ export function findHexPath(
   const h0 = hexDistance(start, goal);
   const heap = minHeapCreate<[number, string]>((a, b) => a[0] - b[0]);
   minHeapPush(heap, [h0, startKey]);
+  const closed = new Set<string>();
   let visited = 0;
 
   while (heap.length > 0) {
-    // biome-ignore lint/style/noNonNullAssertion: heap non-empty by loop guard
-    const [, currentKey] = minHeapPop(heap)!;
+    const popped = minHeapPop(heap);
+    if (popped === undefined) {
+      continue;
+    }
+    const [, currentKey] = popped;
+    if (closed.has(currentKey)) {
+      continue;
+    }
     const currentCost = costByKey.get(currentKey);
     if (currentCost === undefined) {
       continue;
@@ -259,6 +266,7 @@ export function findHexPath(
       };
     }
 
+    closed.add(currentKey);
     visited += 1;
     if (options.maxVisited && visited > options.maxVisited) {
       break;
@@ -320,7 +328,7 @@ export function normalizeHexRotationSteps(steps: number): HexEdgeIndex {
 }
 
 /** Binary min-heap — O(log N) push/pop. */
-function minHeapCreate<T>(
+export function minHeapCreate<T>(
   compare: (a: T, b: T) => number
 ): T[] & { _compare: (a: T, b: T) => number } {
   const heap = [] as unknown as T[] & { _compare: (a: T, b: T) => number };
@@ -328,7 +336,7 @@ function minHeapCreate<T>(
   return heap;
 }
 
-function minHeapPush<T>(heap: T[] & { _compare: (a: T, b: T) => number }, value: T): void {
+export function minHeapPush<T>(heap: T[] & { _compare: (a: T, b: T) => number }, value: T): void {
   heap.push(value);
   let i = heap.length - 1;
   while (i > 0) {
@@ -345,7 +353,7 @@ function minHeapPush<T>(heap: T[] & { _compare: (a: T, b: T) => number }, value:
   }
 }
 
-function minHeapPop<T>(heap: T[] & { _compare: (a: T, b: T) => number }): T | undefined {
+export function minHeapPop<T>(heap: T[] & { _compare: (a: T, b: T) => number }): T | undefined {
   if (heap.length === 0) return undefined;
   const top = heap[0];
   if (top === undefined) return undefined;
