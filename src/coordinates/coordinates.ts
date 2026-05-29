@@ -236,11 +236,18 @@ export function findHexPath(
   const h0 = hexDistance(start, goal);
   const heap = minHeapCreate<[number, string]>((a, b) => a[0] - b[0]);
   minHeapPush(heap, [h0, startKey]);
+  const closed = new Set<string>();
   let visited = 0;
 
   while (heap.length > 0) {
-    // biome-ignore lint/style/noNonNullAssertion: heap non-empty by loop guard
-    const [, currentKey] = minHeapPop(heap)!;
+    const popped = minHeapPop(heap);
+    if (popped === undefined) {
+      continue;
+    }
+    const [, currentKey] = popped;
+    if (closed.has(currentKey)) {
+      continue;
+    }
     const currentCost = costByKey.get(currentKey);
     if (currentCost === undefined) {
       continue;
@@ -259,6 +266,7 @@ export function findHexPath(
       };
     }
 
+    closed.add(currentKey);
     visited += 1;
     if (options.maxVisited && visited > options.maxVisited) {
       break;

@@ -589,8 +589,11 @@ export function reachableGameboardTiles(
   navHeapPush(heap, [0, startTile.key]);
 
   while (heap.length > 0) {
-    // biome-ignore lint/style/noNonNullAssertion: heap non-empty by loop guard
-    const [heapCost, currentKey] = navHeapPop(heap)!;
+    const popped = navHeapPop(heap);
+    if (popped === undefined) {
+      continue;
+    }
+    const [heapCost, currentKey] = popped;
     const recordedCost = costByKey.get(currentKey);
     if (recordedCost === undefined || heapCost > recordedCost) {
       continue;
