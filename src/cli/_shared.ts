@@ -498,7 +498,13 @@ export function registryFromArgs(
 }
 
 export function readRegistry(path: string): HexTileRegistry {
-  const payload = readJson(path) as HexTileDeclarationInput[] | { declarations: HexTileDeclarationInput[] };
+  const raw = readJson(path);
+  if (!Array.isArray(raw) && (typeof raw !== 'object' || raw === null)) {
+    throw new GameboardCliError(
+      `Registry file ${relativizePath(path)} must be a declaration array or { "declarations": [...] }`
+    );
+  }
+  const payload = raw as HexTileDeclarationInput[] | { declarations: HexTileDeclarationInput[] };
   const declarations = Array.isArray(payload) ? payload : payload.declarations;
   if (!Array.isArray(declarations)) {
     throw new GameboardCliError(
@@ -509,7 +515,13 @@ export function readRegistry(path: string): HexTileRegistry {
 }
 
 export function readPieceRegistry(path: string): GameboardPieceRegistry {
-  const payload = readJson(path) as
+  const raw = readJson(path);
+  if (!Array.isArray(raw) && (typeof raw !== 'object' || raw === null)) {
+    throw new GameboardCliError(
+      `Piece registry file ${relativizePath(path)} must be a declaration, an array, { "declaration": ... }, { "pieces": [...] }, or { "declarations": [...] }`
+    );
+  }
+  const payload = raw as
     | GameboardPieceDeclarationInput[]
     | GameboardPieceDeclarationInput
     | {
@@ -544,7 +556,13 @@ export function pieceOverridesFromArgs(
   if (!path) {
     return undefined;
   }
-  const payload = readJson(resolve(path)) as Record<string, GameboardPieceCompatibilityDeclarationOptions> & {
+  const raw = readJson(resolve(path));
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    throw new GameboardCliError(
+      `Piece overrides file ${relativizePath(path)} must be a JSON object`
+    );
+  }
+  const payload = raw as Record<string, GameboardPieceCompatibilityDeclarationOptions> & {
     overrides?: Record<string, GameboardPieceCompatibilityDeclarationOptions>;
   };
   return payload.overrides ?? payload;
