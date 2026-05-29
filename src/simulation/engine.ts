@@ -660,9 +660,11 @@ function resolveSimulationSpawnActor(
   const existingClaims = readGameboardActors(runtime.world)
     .map(simulationActorSpawnClaim)
     .filter((claim): claim is GameboardScenarioActor => claim !== undefined);
-  return resolveGameboardScenarioActors([...existingClaims, actor], runtime.spawnGroups).at(
-    -1
-  ) as SpawnGameboardActorOptions;
+  const resolved = resolveGameboardScenarioActors([...existingClaims, actor], runtime.spawnGroups).at(-1);
+  if (resolved === undefined) {
+    throw new GameboardRuntimeError(`resolveGameboardScenarioActors returned empty array for actor ${actor.actorId} in group ${actor.spawnGroupId ?? '(none)'}`);
+  }
+  return resolved as SpawnGameboardActorOptions;
 }
 
 function simulationActorSpawnClaim(
