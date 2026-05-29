@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { GameboardCliError } from '../errors';
 import {
@@ -747,6 +747,20 @@ export function formatCounts(counts: Readonly<Record<string, number | undefined>
     (entry): entry is [string, number] => typeof entry[1] === 'number'
   );
   return entries.length ? entries.map(([key, value]) => `${key}=${value}`).join(', ') : 'none';
+}
+
+export function emitOutput(
+  flags: Record<string, string | boolean>,
+  payload: unknown,
+  label: string
+): void {
+  if (typeof flags.out === 'string') {
+    const path = safeResolveOutput(String(flags.out));
+    writeFileSync(path, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    console.log(`Wrote ${label} to ${path}`);
+  } else {
+    console.log(JSON.stringify(payload, null, 2));
+  }
 }
 
 export function printViolations(
