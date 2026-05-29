@@ -1,110 +1,95 @@
-# Phase 2: Security & Performance Review — Consolidated
+# Phase 2: Security & Performance Review
 
-See `02a-security.md` and `02b-performance.md` for full detail.
+## Security Findings
 
-## Security — Posture: STRONG, zero Criticals
+### High
 
-Defense-in-depth largely correct: no `eval`/`Function`/shell-true, GH Actions SHA-pinned, OIDC provenance publish, frozen lockfile, dependency-review action, tight `files` allowlist, `--ignore-scripts` on consumer smoke install, `pull_request_target` not used.
+**H-1 — Unvalidated `--commit` / `{ref}` interpolated into GitHub URL** (`src/config/index.ts:64-70`, `src/cli/_shared.ts:313`)
+CWE-601/918. Raw `.replace('{ref}', ref)` with user-supplied `--commit` string; no allowlist or percent-encoding. Risk: log injection, structural URL ambiguity. Fix: `SAFE_REF = /^[a-zA-Z0-9._\-\/]{1,200}$/` guard + `encodeURIComponent` on the `{ref}` slot.
 
-### High (2)
+**H-2 — Production CLI imports from `tests/integration/`** (`src/cli/_shared.ts:3-7`)
+CWE-829. Three symbols imported from `../../tests/integration/simple-rpg/simple-rpg` into production CLI. Test code bundled into published tarball; test-only devDependency compromise becomes production compromise. Fix: move `listSimpleRpgGuidePublicApiExercises`, `runSimpleRpgExecutableGuideApiSmoke`, `summarizeSimpleRpgGuidePublicApiExercises` to `src/` and invert the dependency direction.
 
-- **S-H1** — **Path traversal in 40+ `writeFileSync(resolve(parsed.flags.outX), …))` sites in `cli.ts`** (CWE-22). `extract` (line 679) additionally `rmSync(force: true)` before write. Fix: `safeResolveOutput(value, outRoot=cwd())` helper; require explicit `--force` for destructive paths.
-- **S-H2** — **`listFiles` walker (`ingest.ts:310`) follows directory symlinks blindly** (CWE-59). No `isSymbolicLink()` / `realpath` guard, no cycle detection. Combined with S-H1, hostile `--source` tree can DoS or pull files from outside intended root. Fix: skip symlinks + `realpathSync` boundary check.
+**H-3 — `readJson<T>` is a bare TypeScript cast with no runtime schema validation** (`src/cli/_shared.ts:397-398`, ~25 callers)
+CWE-20. All `--scenario`, `--plan`, `--script`, `--routes`, `--recipe`, `--assignments` paths trust the caller's JSON shape at runtime. Only `readPieceSourceRoots` has a prototype-pollution guard. Fix: introduce `readValidatedJson` with Zod/Valibot schemas for the five user-facing document types; add file-size ceiling before `readFileSync` as immediate interim control.
 
-### Medium (7)
+### Medium
 
-- **S-M1** — `readPieceSourceRoots` (`cli.ts:3777`) parses untrusted JSON without `__proto__`/`constructor`/`prototype` filter. Add reviver + null-prototype output.
-- **S-M2** — `extract-kaykit-guide.ts:129` `sh -c "command -v ${command}"` constant-input today, future foot-gun. Switch to `sh -c 'command -v "$1"' -- "$command"`.
-- **S-M3** — `pnpm audit` reports 2 moderate dev-tree CVEs: `yaml <2.8.3` (CVE-2026-33532), `brace-expansion <5.0.6` (CVE-2026-45149). Clear via `pnpm.overrides`.
-- **S-M4** — CLI errors echo absolute user paths; normalize to `relative(cwd, …)` in messages.
-- **S-M5** — `process.exit` swallows stack traces; gate full stack on `MEDIEVAL_HEXAGON_DEBUG=1`.
-- **S-M6** — `dist/**` source maps published with absolute build paths. Restrict via `files` `"!dist/**/*.map"` or build-time guard.
-- **S-M7** — TOCTOU `existsSync` + read pattern across CLI. Prefer try/catch on ENOENT.
+**M-1 — `resolveSimulationSpawnActor` `.at(-1) as SpawnGameboardActorOptions` unsafe cast** (`src/simulation/engine.ts:663-665`)
+CWE-476. Empty array produces `undefined`; cast silently propagates to `spawnGameboardActor`, corrupting ECS world state. Fix: null-check + `throw new GameboardRuntimeError(...)`.
 
-### Low (6)
+**M-2 — Nightly bootstrap workflow uses mutable version tags (`@v4`) for all 4 actions** (`.github/workflows/bootstrap-nightly.yml:28,30,34,74`)
+CWE-829. Inconsistent with SHA-pinned `ci.yml`/`release.yml`/`cd.yml`; compounded by `HEX_WORLDS_OUT_ROOT='/'` in same workflow. Fix: mechanical SHA substitution matching existing workflows.
 
-- **S-L1** — `JSON.parse(JSON.stringify(…))` (`simulation.ts:5212`) — switch to `structuredClone` (also faster, see P-H5).
-- **S-L2** — Dynamic `RegExp` in `ingest.ts:433-434` — escape `faction` if it ever becomes user-supplied.
-- **S-L3** — `audit-workspace.ts:1138` regex lazy-anchored, safe today.
-- **S-L4** — `Object.assign(merged, generation.layoutArchetypes ?? {})` safe, noted only.
-- **S-L5** — `audit-workflows.ts` should fail closed on missing top-level `permissions:` per workflow.
-- **S-L6** — Unscoped `bin: medieval-hexagon-gameboard` — collision risk; consider scoped alias.
+**M-3 — `stageFromZip` temp-dir cleanup not in `finally`** (`src/cli/commands/bootstrap/core.ts:371-405`)
+CWE-459. Three separate `rmSync` error branches instead of `try/finally`; future code path between detection and `return` will leak staging directories. Fix: `let ok = false; try { ...; ok = true; } finally { if (!ok) rmSync(...) }`.
 
-### Supply chain extras
+**M-4 — `HEX_WORLDS_OUT_ROOT='/'` widens output jail to filesystem root** (`.github/workflows/bootstrap-nightly.yml:53-60`)
+CWE-22. With root `/`, any `--out /etc/...` value passes `safeResolveOutput`. Fix: narrow to `OUT_ROOT='/tmp'` in the nightly workflow.
 
-- Migrate `secrets.CI_GITHUB_TOKEN` (PAT) to GitHub App token for finer scope / rotation.
-- Add `pnpm audit --prod --audit-level=high` to package job (catches prod-tree CVEs before publish).
-- Add `actions/attest-build-provenance@v2` for SLSA L3 attestation.
-- Add `@cyclonedx/cyclonedx-npm` SBOM as release artifact.
-- Group Dependabot security updates into daily `security` channel.
+### Low
 
-### Biome rule additions (recommended set)
+**L-1** — `src/interop/internal` barrel pierced directly from `_shared.ts:57`. Re-export via public barrel.
 
-`noGlobalEval`, `noPrototypeBuiltins`, `noShadowRestrictedNames`, `noUnsafeNegation`, `noControlCharactersInRegex`, `noMisleadingCharacterClass`, `noUnsafeFinally`, `noConstructorReturn`, `noNonNullAssertion`, `noParameterAssign`, `noEvolvingTypes`. Plus semgrep `p/owasp-top-ten` + `p/nodejs` in CI.
+**L-2** — `readSidecar` has no file-size ceiling before `readFileSync` + `JSON.parse` (`core.ts:560-572`). Add `statSync` size check + `files.length` sanity bound.
+
+**L-3** — `walkFilesInternal` silently skips symlinks; a symlink-replaced GLTF produces a valid sidecar recording a 0-byte file. Add warning + count assertion against `expectedGltfCount`.
 
 ---
 
-## Performance — Headline budget snapshot
+## Performance Findings
 
-Measured from existing `dist/`:
+### Critical
 
-| Dimension | Measured | Implication |
-|---|---:|---|
-| `dist/` total | **3,160 KB** | Big for a library; manifest dominates |
-| `chunk-JZVTUPMT.js` (= freeManifest) | **394,754 B raw / 22,468 B gzip** | Forced into every umbrella consumer |
-| `dist/index.js` | umbrella; transitively imports manifest chunk | +22 KB gzip baseline cost |
-| `dist/cli.js` | 137 KB raw / **24.7 KB gzip** | Eager top-level imports |
-| CLI cold start (estimated) | ~150-250 ms | Manifest parse + closure |
-| Per-step simulation | single dispatch (NOT double-dispatch) | Phase 1 H-3 corrected |
+**P-1 — A* open-set `lowestScoreKey` is O(|open|) linear scan per iteration** (`src/coordinates/coordinates.ts`)
+On a 127-tile board, ~7,600 comparisons per path. Ten patrolling agents = 76,000 comparisons/tick. Same issue in `reachableGameboardTiles` (Dijkstra variant). Fix: replace `Set<string>` open list with a binary min-heap. Expected speedup: 3–8x medium boards, 15–30x large boards.
 
-### Important Phase 1 correction
+### High
 
-**`simulation.ts` is NOT double-dispatching at runtime.** Line 1643 is one-shot **validation**, line 3795 is the per-step runtime dispatch. Phase 1's H-3 should be re-scoped to **decomposition only** (5,213 LOC in one file), not runtime cost.
+**P-2 — `findPlacementEntity` / `findTileEntity` O(N) scan on every access** (`src/koota/koota.ts:582-599`)
+O(N) `world.query(...).find(...)` called on every simulation step, patrol advance, spawn. Fix: `WeakMap<World, Map<string, Entity>>` indexes updated on spawn/destroy. O(N) → O(1). Eliminates 120,000 comparisons/second at 10 agents, 60 Hz.
 
-### Critical (2)
+**P-3 — `isKnownExtraAssetId` nested loops on every placement spawn** (`src/scenario/catalog.ts:1221`)
+~136 string operations per call; called twice per `spawnGameboardPlacement`. 200-placement load = ~27,200 string ops. Fix: pre-compute `Set<string>` at module init. O(136) → O(1) per spawn.
 
-- **P-C1** — **`freeManifest` re-exported from umbrella** (`src/index.ts:7`) forces 395 KB / 22 KB-gzip manifest chunk into every consumer. Fix: (1) remove from `src/index.ts`; (2) convert `src/manifest/free.ts` → JSON + thin loader via `import data from './free.json' with { type: 'json' }`. ~5-10× parse speedup, -22 KB gzip umbrella.
-- **P-C2** — **`cli.ts` eagerly loads every subsystem + `examples/simple-rpg-usage` at top level.** Estimated CLI cold start ~150-250 ms; ~30-50 ms achievable with dynamic per-subcommand imports. Refactor to `src/cli/<command>.ts` lazy modules behind `await import(...)`. Move guide-public-api smoke helpers out of `examples/` (e.g. `src/simple-rpg-api-smoke.ts`).
+**P-4 — `findGameboardPath` / `reachableGameboardTiles` rebuild `new Map` in default arguments** (`src/gameboard/navigation.ts:513-514, 562-563`)
+O(N) allocation per call bypassing the `gameboardPlanIndex` WeakMap cache. Fix: route defaults through `gameboardPlanIndex`.
 
-### High (5)
+**P-5 — `[...world.query(...)]` spread allocates fresh array every tick** (`src/patrol/patrol.ts:227`, `src/movement/movement.ts:421`)
+Direct iteration of koota query iterable avoids allocation. Simple: `for (const entity of world.query(...))`.
 
-- **P-H1** — `readGameboardActorTargets` (`actors.ts:940-953`) makes 6 sequential filter/map passes on same array. Convert to single-pass reduce. ~6× speedup on a React-driven hot hook.
-- **P-H2** — `parseHexKey` (`coordinates.ts:68`) throws on missing/invalid keys; used in expected-miss paths. Add `tryParseHexKey(key): HexCoordinates | undefined`; migrate callers. ~100× speedup in expected-miss path.
-- **P-H3** — `layout.ts:1276,1434,1609,1728` rebuild `new Map(plan.tiles.map(…))` per call. Materialize `tilesByKey` (+ `placementsByTile`) once at projection time and attach to `ProjectedGameboardPlan`.
-- **P-H4** — `react.ts` selector hooks lose memoization with inline-object `options`. Either document loudly or hash-stabilize at hook boundary.
-- **P-H5** — `JSON.parse(JSON.stringify(…))` clone in `simulation.ts:5212`. Switch to `structuredClone` (also closes S-L1).
+### Medium
 
-### Medium (4)
+**P-6 — `requirePlacementState` deep spread per entity per tick** (`src/patrol/patrol.ts`)
+4 object allocations per patrol tick per entity = 2,400 allocs/sec at 10 agents, 60 Hz. Fix: only deep-copy on final result snapshot, not every early-return branch.
 
-- **P-M1** — `tsup splitting: true` + 26 chunks: dev waterfall risk. Mitigate with size-limit budgets.
-- **P-M2** — Source maps shipped; ~1.5 MB per install. Add `"!dist/**/*.map"` to `files` or disable for publish.
-- **P-M3** — `react.ts` has 23+ `useTrait`/`useQuery` per render in some hooks; document parent-level query pattern + add efficient example.
-- **P-M4** — `simulation.ts` 5,213 LOC risks V8 long-function deopt. Resolved by decomposition (Phase 1 H-3).
+**P-7 — `runGameboardSystems` event array: three `flatMap` + two spreads per tick** (`src/systems/systems.ts:555-563`)
+Fix: pre-allocate single array, push directly. Lazy `snapshotGameboardSystemEvents` conversion.
 
-### Low (3)
+**P-8 — `freeManifest` 380 KB eager literal loaded at module init** (`src/manifest/free.ts`, `src/gameboard/gameboard.ts`)
+`gameboard.ts` statically imports `freeManifest`; any consumer parsing the `gameboard` entry point pays 380 KB parse on module load. `loadFreeManifest()` async lazy export already exists — promote it; make the static import dynamic inside the functions that need it.
 
-- **P-L1** — Vitest pool tuning; measure first.
-- **P-L2** — `three.ts` missing disposal-pattern docs.
-- **P-L3** — `selectors.ts` no memoization cache; acceptable for now.
+**P-9 — `spawnGameboardPlacement` doesn't receive `tileIndex` during bulk `loadGameboardWorld`** (`src/koota/koota.ts`)
+400 placements × O(200) scan = 80,000 comparisons that should be O(1). Fix: thread `tileIndex` through `spawnGameboardPlacement` as optional parameter.
 
-### Recommended CI gates
+**P-10 — `useGameboardDerivedRevision` mounts 30+ trait subscriptions per component** (`src/react/react.ts:325-400`)
+Any trait write triggers every selector hook to re-run. Fix: domain-split revision counters + microtask coalescing.
 
-1. `size-limit` budgets per entry: index ≤12 KB gzip, cli ≤8 KB gzip, manifest/free ≤25 KB gzip, react ≤4 KB gzip, three ≤3 KB gzip.
-2. CLI cold-start benchmark (Vitest perf test): `node dist/cli.js --help` ≤ 80 ms.
-3. Simulation throughput micro-bench via `tinybench`; warn on >10% regression.
-4. Bundle composition diff per PR (esbuild metafile visualizer).
-5. React render-count assertion for selector hooks.
+### Low
+
+**P-11** — `useStableOptions` JSON.stringify on every render; add empty-options fast-path.
+
+**P-12** — `guidePublicApiCoverage` O(N²) in CLI/report path; pre-index by `publicApi`.
+
+**P-13** — `selectSpawnCoordinates` O(N²) spacing check; negligible at current board sizes.
+
+**P-14** — `manifest/free` chunk not isolated (follows from fixing P-8 static import).
 
 ---
 
 ## Critical Issues for Phase 3 Context
 
-To seed Phase 3 (Testing) and Phase 4 (Best Practices) reviews:
-
-- **Determinism contract** is well-defended at runtime but unverified in tests. Phase 3 should check whether there's a determinism contract test (run scenario N times with same seed, assert byte-identical output).
-- **Public API surface contract** — Phase 1 F8 recommended snapshot test for `index.ts` exports. Phase 3 should verify presence/absence.
-- **No size-limit / perf gates in CI today.** Phase 4 should call this out.
-- **No semgrep / advanced static analysis in CI.** Phase 4 should call this out.
-- **Path traversal + symlink walker findings** mean any tests using `--source` / `--out` flags should add hostile-input cases.
-- **`smoke-packed-consumer.ts` single try/catch** (Phase 1 M-3) means Phase 3 should verify test isolation in smoke harness.
-- **No CHANGELOG.md, STANDARDS.md, docs/{ARCHITECTURE,DESIGN,TESTING,DEPLOYMENT,STATE}.md** at repo root — standard-repo profile gaps Phase 4 must include.
+- **H-2 test import layering** + **H-3 unvalidated readJson**: Both affect testing strategy — H-2 means integration tests currently exercise code that's importing back from them; H-3 means there are no schema-validation tests covering the five user-facing document types.
+- **P-1 A* heap**: No performance regression test exists. Any change to `findGameboardPath` risks silently regressing pathfinding correctness or O-complexity.
+- **P-8 manifest eager import**: Browser visual tests can't currently distinguish "gameboard entry point loaded eagerly" vs "lazily"; test coverage for the `loadFreeManifest` async path is unclear.
+- **H-3 readJson callers**: `--scenario`, `--plan`, `--script`, `--routes`, `--recipe` all lack documented or tested error contracts for malformed input — relevant for both test and doc gaps.

@@ -1,345 +1,526 @@
-# Security Audit — @jbcom/medieval-hexagon-gameboard
+# Security Audit — declarative-hex-worlds
 
-Scope: `packages/medieval-hexagon-gameboard/src/` (38 TS modules) and `scripts/` (12 audit/smoke scripts) on branch `codex/initial-medieval-hexagon-gameboard`.
-
-Date: 2026-05-26.
-
-Overall posture: **strong**. This is a defensively built library. No `eval`, no `Function`, no shell-true child-process invocations, no `pull_request_target` triggers, all third-party GitHub Actions pinned to commit SHAs, OIDC provenance publish flow, frozen-lockfile, dependency-review action. The published surface (`files: [assets/free, docs/showcases, dist, examples/*.json, LICENSE, README.md, NOTICE.md]`) is tight and asserted by `scripts/audit-package.ts`. No `Math.random` in deterministic paths (Phase 1 verified).
-
-Findings below are mostly trust-boundary refinements for a tool that runs locally on developer machines and in CI. **There are no Critical findings.** Two Highs concern path/symlink handling in CLI write paths and the recursive directory walker. Mediums are mostly hardening recommendations.
+Audited: 2026-05-28  
+Scope: `src/` (TypeScript ESM library), `src/cli/`, bootstrap command, config,
+simulation engine, CI/CD workflows.
 
 ---
 
-## Critical
+## Summary
 
-None.
+| Severity | Count |
+|----------|-------|
+| High     | 3     |
+| Medium   | 4     |
+| Low      | 3     |
 
----
-
-## High
-
-### H1. CLI `--out*` flags accept arbitrary paths — write-anywhere if invoked from untrusted argv
-
-**CWE-22 (Path Traversal) / CWE-73 (External Control of File Name or Path).** CVSS-ish: 5.5 (AV:L/AC:L/PR:L/UI:N — local, requires invocation, no integrity boundary inside the user's own filesystem).
-
-**Locations** (`packages/medieval-hexagon-gameboard/src/cli.ts`):
-- Lines 286, 398, 430, 563, 625, 642, 725, 930, 965, 973, 984, 997, 1010, 1028, 1081, 1116, 1121, 1151, 1189, 1195, 1238, 1309, 1338, 1390, 1394, 1732, 1788, 1901, 1913, 2014, 2128, 2183, 2235, 2268, 2311, 2315, 2328, 2669, 2683, 2691 — all `writeFileSync(resolve(parsed.flags.outX), ...)`.
-- Line 679: `resolve(String(parsed.flags.out ?? 'kaykit-medieval-hexagon-...'))` then `copyGltfTree` (rmSync + mkdir + copy) into that path.
-
-Every `--out*` is fed straight through `path.resolve()` and written. `resolve()` happily accepts `/etc/passwd`, `../../etc/cron.d/payload`, or a path under the user's home. `extract` (line 679) **rmSync's the output root with `force: true`** before re-creating it.
-
-**Attack scenario.** A wrapping tool, IDE config, npm script, or shell history that invokes this CLI with attacker-controlled `--out` (e.g. a malicious project that ships an npm `postinstall`-style task list, or a generated CI matrix that templates the flag) can:
-1. Overwrite arbitrary files the invoking user can write (JSON payloads only — limited blast radius).
-2. **Recursively delete and recreate** an attacker-chosen directory via `extract --out /important/path`.
-
-**Why it's "High" not "Critical":** the CLI is a developer/CI tool, not a network-exposed service. The trust boundary is "whoever invokes argv." But for a published `bin`, that boundary is broader than one might think (scripts, AI agents, etc.).
-
-**Remediation.**
-
-1. Add an `--outRoot` (or default to `cwd()`) and enforce all output paths sit beneath it:
-
-   ```ts
-   function safeResolveOutput(value: string, outRoot = process.cwd()): string {
-     const resolved = resolve(outRoot, value);
-     const rootResolved = resolve(outRoot);
-     const rel = relative(rootResolved, resolved);
-     if (rel.startsWith('..') || isAbsolute(rel)) {
-       throw new Error(`Refusing to write outside ${rootResolved}: ${value}`);
-     }
-     return resolved;
-   }
-   ```
-2. For the `extract` `rmSync` (line ~684), require the destination directory either not exist or be empty, OR require explicit `--force` flag. Never `rm -rf` a path the user passed if that path predates the run and contains anything.
-3. Document the trust model in CLI help: "all output paths are resolved relative to `--outRoot` (default: cwd)."
-
-### H2. `listFiles` recursive walker follows symlinks blindly (CLI manifest generation + extract)
-
-**CWE-59 (Link Following) / CWE-61.** CVSS-ish: 5.0.
-
-**Location.** `packages/medieval-hexagon-gameboard/src/ingest.ts:310-324`:
-
-```ts
-function listFiles(root: string, extension?: string): string[] {
-  const entries = readdirSync(root, { withFileTypes: true });
-  ...
-  if (entry.isDirectory()) {
-    files.push(...listFiles(childPath, extension));   // follows directory symlinks
-```
-
-`readdirSync(...).isDirectory()` returns true for symlinks to directories (Dirent semantics: `isDirectory()` only excludes symlinks if `lstat` semantics are used). No `isSymbolicLink()` check, no realpath check, no cycle detection.
-
-Called from `validateSourceRoot`, `copyGltfTree`, and `generateManifestFromSource`. The `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE/` source tree is local-developer input, but `--source` (CLI flag) accepts any path. If a malicious source tree contains a symlink like `Assets/gltf/inner -> /etc`, the walker recurses into it.
-
-**Impact when used by `extract` (the `copyGltfTree` path):** combined with H1, an attacker-controlled `--source` containing a symlink loop or pointing at `/home/$USER/.ssh` results in either an infinite walk (DoS) or copying out-of-tree files into the `--out` directory. (Read primitive via reflection into output JSON; no exfil channel without combining.)
-
-**Remediation.**
-
-```ts
-function listFiles(root: string, extension?: string): string[] {
-  const realRoot = realpathSync(root);
-  const entries = readdirSync(root, { withFileTypes: true });
-  const files: string[] = [];
-  for (const entry of entries) {
-    if (entry.isSymbolicLink()) continue;          // OR: realpath + ensure inside realRoot
-    const childPath = join(root, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...listFiles(childPath, extension));
-      continue;
-    }
-    if (!extension || childPath.endsWith(extension)) files.push(childPath);
-  }
-  return files;
-}
-```
-
-Optionally use `lstatSync(childPath).isSymbolicLink()` for the same effect with classic-stat semantics, and assert `realpathSync(childPath).startsWith(realRoot + sep)` before descending.
+No Critical findings. The codebase demonstrates deliberate security engineering
+in several areas (redirect allowlist, zip-bomb ceiling, path-jail, prototype
+pollution guard, SLSA L3 provenance, SHA-pinned actions in ci/release/cd).
+The remaining findings are genuine gaps, not false positives.
 
 ---
 
-## Medium
+## High Findings
 
-### M1. `--pieceSourceRoots` parses unverified JSON from CLI value or file (no prototype-pollution guard)
+### H-1 — Unvalidated `--commit` / `{ref}` Interpolated into GitHub URL Without Sanitization
 
-**CWE-1321.** `packages/medieval-hexagon-gameboard/src/cli.ts:3777-3792`:
+**Severity:** High  
+**CVSS v3.1:** 7.3 (AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:H/A:N) — estimated  
+**CWE:** CWE-601 Open Redirect / CWE-918 SSRF  
+**File:** `src/config/index.ts:64-70`, `src/cli/_shared.ts:313`,
+`src/cli/commands/bootstrap/core.ts:345-346`
 
-```ts
-const source = existsSync(resolve(value)) ? readJson<unknown>(resolve(value)) : JSON.parse(value);
-const payload = isRecord(source) && isRecord(source.sourceRoots) ? source.sourceRoots : source;
-...
-for (const [key, root] of Object.entries(payload)) {
-  ...
-  roots[key] = root;
+**Description:**  
+`kaykitGithubArchiveUrl` does a raw `.replace('{ref}', ref ?? defaultRef)` with
+the caller-supplied `commit` string. The value flows directly from
+`parsed.flags.commit` at `_shared.ts:313` with no validation beyond a `typeof
+=== 'string'` check.
+
+GitHub archive URLs follow this form:
+```
+https://github.com/{owner}/{repo}/archive/refs/heads/{ref}.zip
+```
+
+A ref value of `../../../foo` does not affect the GitHub download (GitHub
+rejects it), but the generated URL string is passed verbatim to
+`openHttpsStream`, which uses Node's `https.request`. If the redirect allowlist
+were ever bypassed or the template changed, an attacker-controlled ref could
+redirect fetching to an arbitrary host. More concretely:
+
+- The URL is logged in error messages (`failed to download KayKit FREE archive
+  ${url}`) — a crafted ref can inject arbitrary characters into log output
+  (log injection / CWE-117).
+- The `{ref}` slot receives no percent-encoding before insertion. Values
+  containing `@`, `#`, or `?` produce structurally invalid URLs, but
+  structural ambiguity can silently produce a different resource path depending
+  on the URL parser.
+
+**Attack scenario:**  
+```
+hex-worlds bootstrap --commit "main%0d%0aX-Injected-Header: evil" ...
+```
+Or in a script that reads the commit from a user-supplied scenario JSON (not
+current, but the pattern is adjacent to `readJson` flows).
+
+**Remediation:**  
+Add a ref allowlist regex before insertion:
+```typescript
+const SAFE_REF = /^[a-zA-Z0-9._\-\/]{1,200}$/;
+if (ref !== undefined && !SAFE_REF.test(ref)) {
+  throw new GameboardIoError(`unsafe --commit value: ${ref}`);
+}
+```
+Also percent-encode the ref slot:
+```typescript
+.replace('{ref}', encodeURIComponent(ref ?? defaultRef))
+```
+GitHub accepts percent-encoded branch names in archive URLs.
+
+---
+
+### H-2 — Production Code Imports from `tests/integration/` (Layering Inversion)
+
+**Severity:** High  
+**CVSS v3.1:** N/A (supply-chain / build integrity)  
+**CWE:** CWE-829 Inclusion of Functionality from Untrusted Control Sphere  
+**File:** `src/cli/_shared.ts:3-7`
+
+**Description:**  
+`_shared.ts` imports three symbols from
+`../../tests/integration/simple-rpg/simple-rpg`:
+
+```typescript
+import {
+  listSimpleRpgGuidePublicApiExercises,
+  runSimpleRpgExecutableGuideApiSmoke,
+  summarizeSimpleRpgGuidePublicApiExercises,
+} from '../../tests/integration/simple-rpg/simple-rpg';
+```
+
+This is a hard layering inversion: production CLI code depends on integration
+test code. Security consequences:
+
+1. **Published package surface:** `tsup` bundles whatever `_shared.ts` imports.
+   If the integration test file imports test-only devDependencies (e.g. Vitest
+   globals, test fixtures), those could leak into the published tarball or cause
+   runtime failures in consumer environments.
+2. **Privilege escalation surface:** Test files typically have fewer security
+   controls (e.g. they may call internal APIs, disable validation). Any
+   vulnerability in the test file is now also a vulnerability in the production
+   CLI binary.
+3. **Attack surface expansion:** A supply-chain compromise of a test-only
+   transitive dependency now affects production consumers.
+
+**Attack scenario:**  
+A compromised test fixture imported transitively by the integration test leaks
+into the published package. Consumers running `hex-worlds` CLI execute the
+compromised code.
+
+**Remediation:**  
+Move `listSimpleRpgGuidePublicApiExercises`, `runSimpleRpgExecutableGuideApiSmoke`,
+`summarizeSimpleRpgGuidePublicApiExercises` out of `tests/` and into a proper
+source location (e.g. `src/guides/simple-rpg/` or `src/scenario/`). The
+integration test then imports from the source, not the reverse.
+
+---
+
+### H-3 — `readJson<T>` Casts Without Schema Validation (25+ Callers)
+
+**Severity:** High  
+**CVSS v3.1:** 6.5 (AV:L/AC:L/PR:N/UI:R/S:U/C:L/I:H/A:L)  
+**CWE:** CWE-20 Improper Input Validation  
+**File:** `src/cli/_shared.ts:397-398`, and callers at lines 501, 514, 550,
+`validate-plan.ts:21`, `validate-recipe.ts:22`, `validate-scenario.ts:26`, etc.
+
+**Description:**  
+```typescript
+export function readJson<T>(path: string): T {
+  return JSON.parse(readFileSync(path, 'utf8')) as T;
 }
 ```
 
-`Object.entries` skips `__proto__` (it's non-enumerable on prototypes set via JSON.parse), so the **direct** attack `{"__proto__":{"polluted":1}}` is harmless here — JSON.parse on `__proto__` keys produces an own property on the result, not prototype merge. **However**, `{"constructor": {"prototype": {"polluted": 1}}}` becomes part of `roots` and is then handed to downstream consumers. None of the current consumers I checked invoke `Object.assign` on the result, but the contract is fragile.
+This is a pure TypeScript cast — no runtime validation. The callers pass user-
+supplied `--scenario`, `--plan`, `--script`, `--routes`, `--recipe`,
+`--groups`, `--assignments` paths. The parsed object is immediately used as the
+typed interface (e.g. `GameboardScenario`, `GameboardPlan`) without any field
+guards beyond what the consuming function happens to check.
 
-Also, the validation only ensures each value is a string — it does NOT ensure the keys are safe (e.g. `'../etc/passwd'` as a key, while just a lookup key, could later be used as a source root path if any consumer joins it).
+Consequences:
+- **Type confusion:** A crafted JSON file with unexpected types for expected
+  string/number fields causes runtime exceptions with stack traces that may leak
+  internal paths. Some paths (like `actor.at(-1) as SpawnGameboardActorOptions`
+  in engine.ts:663-665) compound this by casting the result of a falsy-producing
+  array operation.
+- **Prototype pollution:** `JSON.parse('{"__proto__": {...}}')` produces an own
+  property named `__proto__`. `readPieceSourceRoots` (lines 3744-3758) has a
+  deliberate guard for this case, but the ~25 other `readJson` call sites do
+  not — they pass the result directly into engine functions that use
+  `Object.assign` and spread operators internally.
+- **Denial of service:** An unterminated very large JSON file will allocate
+  unbounded memory during `readFileSync`.
 
-**Remediation.**
+**Remediation:**  
+Introduce a `readValidatedJson<T>(path, schema)` that applies a schema
+validator (Zod, Valibot, or TypeBox) before returning. Provide schemas for the
+five user-facing document types: `GameboardScenario`, `GameboardPlan`,
+`GameboardRecipe`, `GameboardScenarioSimulationScript`,
+`GameboardPatrolRouteSet`. The existing `inspectGameboardScenario` /
+`inspectMedievalHexagonManifest` paths already do structural inspection; wire
+them into `readJson` rather than doing so after the fact.
 
-```ts
-const SAFE_KEY = /^[a-zA-Z0-9_:-]+$/;
-for (const [key, root] of Object.entries(payload)) {
-  if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-    throw new Error(`Reserved key not allowed: ${key}`);
-  }
-  if (!SAFE_KEY.test(key)) throw new Error(`Invalid source-root key: ${key}`);
-  ...
+Minimum mitigation while full schemas are pending: add a file-size ceiling
+before `readFileSync` (e.g. 10 MB) to prevent OOM on oversized inputs.
+
+---
+
+## Medium Findings
+
+### M-1 — `resolveSimulationSpawnActor` `.at(-1) as SpawnGameboardActorOptions` Unsafe Cast
+
+**Severity:** Medium  
+**CVSS v3.1:** 5.3 (AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:H)  
+**CWE:** CWE-476 NULL Pointer Dereference / CWE-704 Incorrect Type Conversion  
+**File:** `src/simulation/engine.ts:663-665`
+
+**Description:**  
+```typescript
+return resolveGameboardScenarioActors([...existingClaims, actor], runtime.spawnGroups).at(
+  -1
+) as SpawnGameboardActorOptions;
+```
+
+`Array.prototype.at(-1)` returns `undefined` when the array is empty. The cast
+`as SpawnGameboardActorOptions` silently types `undefined` as a valid struct.
+The return value is immediately consumed at line 623:
+```typescript
+const actor = resolveSimulationSpawnActor(runtime, step.actor);
+const entity = spawnGameboardActor(runtime.world, actor); // actor may be undefined
+```
+
+If `resolveGameboardScenarioActors` returns `[]` (e.g. all spawn groups are
+exhausted, or the actor's `spawnGroupId` references a non-existent group), the
+cast succeeds silently and `spawnGameboardActor` receives `undefined`. Depending
+on ECS internals this could produce a corrupt world state, panic, or a
+misleading error attributed to the wrong system.
+
+**Attack scenario:**  
+A crafted `--scenario` JSON references a `spawnGroupId` that does not exist in
+the scenario's `spawnGroups`. The simulation runs without error, but spawns the
+actor at an undefined position, silently corrupting game state.
+
+**Remediation:**  
+```typescript
+const resolved = resolveGameboardScenarioActors([...existingClaims, actor], runtime.spawnGroups).at(-1);
+if (resolved === undefined) {
+  throw new GameboardRuntimeError(
+    `Simulation actor ${actor.actorId} could not be resolved to a spawn location (spawnGroupId: ${actor.spawnGroupId})`
+  );
 }
-return Object.assign(Object.create(null), roots);  // null-prototype output
+return resolved;
 ```
 
-Same pattern applies generically to other JSON-payload flags. Also consider `JSON.parse(value, (k, v) => k === '__proto__' ? undefined : v)`.
+---
 
-### M2. `extract-kaykit-guide.ts` runs `sh -c "command -v ${command}"` with non-untrusted but unquoted variable
+### M-2 — Nightly Bootstrap Workflow Uses Unpinned Action SHAs
 
-**CWE-78 (Command Injection) — defense-in-depth only.** `scripts/extract-kaykit-guide.ts:129`:
+**Severity:** Medium  
+**CVSS v3.1:** 6.3 (AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N)  
+**CWE:** CWE-829 Inclusion of Functionality from Untrusted Control Sphere  
+**File:** `.github/workflows/bootstrap-nightly.yml:28-34,74`
 
-```ts
-const result = spawnSync('sh', ['-c', `command -v ${command}`], { stdio: 'ignore' });
+**Description:**  
+All four actions in the nightly bootstrap workflow reference mutable version
+tags, not immutable commit SHAs:
+
+```yaml
+- uses: actions/checkout@v4          # line 28 — mutable tag
+- uses: pnpm/action-setup@v4         # line 30 — mutable tag
+- uses: actions/setup-node@v4        # line 34 — mutable tag
+- uses: actions/upload-artifact@v4   # line 74 — mutable tag
 ```
 
-`command` is a hardcoded literal from the call sites (`'swift'`, `'pdftoppm'`, `'magick'`) so there is **no** current injection. But the pattern is fragile: if a future change passes a user-controlled value, you get full shell injection. The fix is trivial:
+By contrast, `ci.yml`, `release.yml`, and `cd.yml` all use pinned SHAs with
+version comments (e.g. `actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2`).
 
-```ts
-const result = spawnSync('sh', ['-c', 'command -v "$1"', '--', command], { stdio: 'ignore' });
-// or use execFileSync('which', [command], ...) on POSIX.
+The nightly workflow runs with `HEX_WORLDS_OUT_ROOT: '/'` (line 54/60), which
+intentionally widens the output jail to the filesystem root so bootstrap can
+write to `/tmp`. A supply-chain compromise of any of these mutable-tag actions
+runs in a context with filesystem-root write access — the combination of an
+unpinned third-party action and an open `OUT_ROOT` is more dangerous than
+either alone.
+
+**Remediation:**  
+Pin all four actions to SHA digests matching their current `v4`/`v6` equivalents,
+consistent with the style already used in `ci.yml`:
+```yaml
+- uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+- uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+- uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7372e8dae4041e # v6.4.0
+- uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
 ```
 
-### M3. `pnpm audit` reports 2 moderate transitive vulnerabilities (dev-only)
+---
 
-Both are dev-tree only (not in `packages/medieval-hexagon-gameboard/dependencies`):
+### M-3 — `stageFromZip` Cleanup Not Covered by `finally` in the Edition-Mismatch Branch
 
-1. **`yaml` < 2.8.3** — GHSA-48c2-rrv3-qjmp / CVE-2026-33532. Stack overflow via deeply nested YAML. Severity moderate. Path likely via vitepress/biome devDeps. Upgrade to `>=2.8.3`.
-2. **`brace-expansion` >=5.0.0 <5.0.6** — GHSA-jxxr-4gwj-5jf2 / CVE-2026-45149. DoS via numeric range. Path `.>@nx/js>@nx/devkit>minimatch>brace-expansion`. Upgrade to `>=5.0.6` (or add pnpm overrides).
+**Severity:** Medium  
+**CVSS v3.1:** 3.3 (AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L)  
+**CWE:** CWE-459 Incomplete Cleanup  
+**File:** `src/cli/commands/bootstrap/core.ts:371-405`
 
-**Remediation** — add `pnpm.overrides` to the workspace root `package.json`:
+**Description:**  
+`stageFromZip` creates a `stagingRoot` via `mkStagingRoot('zip')` (line 380),
+then has three separate `rmSync` calls in error branches plus one in
+`bootstrapKayKitAssets`'s `finally` block (line 259). The logic is:
+
+```
+stagingRoot created (line 380)
+├── extractZipTo throws → rmSync(stagingRoot) + throw  ✓ (line 384)
+├── edition mismatch → rmSync(stagingRoot) + throw     ✓ (lines 393, 399)
+└── returns stagingRoot to caller
+    └── caller's finally: rmSync(stagingRoot)          ✓ (line 259)
+```
+
+This is correct for the current code paths, but is fragile: any future code
+path added between `findPackRoot` (line 389) and the `return stagingRoot` that
+throws without an explicit cleanup will leak the temp directory. The pattern
+also calls `rmSync` three times in identical `{ recursive: true, force: true }`
+form (duplication = maintenance risk).
+
+Additionally, `downloadGithubArchiveZip` (lines 363-368) cleans up
+`downloadRoot` on error but not in a `finally`, so a future refactor that
+moves code after the `rmSync` but before `return zipPath` could leak
+`downloadRoot` on success-then-crash.
+
+**Remediation:**  
+Restructure `stageFromZip` to use a single `try/finally`:
+```typescript
+const stagingRoot = mkStagingRoot('zip');
+let ok = false;
+try {
+  await extractZipTo(absoluteZip, stagingRoot);
+  // ... detection + validation ...
+  ok = true;
+  return stagingRoot;
+} finally {
+  if (!ok) rmSync(stagingRoot, { recursive: true, force: true });
+}
+```
+The caller's `finally` in `bootstrapKayKitAssets` handles cleanup of successful
+staging; the inner `finally` handles all error paths.
+
+---
+
+### M-4 — `HEX_WORLDS_OUT_ROOT='/'` in Nightly Workflow Widens Jail to Filesystem Root
+
+**Severity:** Medium  
+**CVSS v3.1:** 4.4 (AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:H/A:N)  
+**CWE:** CWE-22 Path Traversal  
+**File:** `.github/workflows/bootstrap-nightly.yml:53-54,59-60`
+
+**Description:**  
+The nightly workflow sets `HEX_WORLDS_OUT_ROOT: '/'` to allow writing to
+`/tmp/bootstrap-target`. `defaultOutRoot()` in `_shared.ts:250-255` consumes
+this env var and widens the `safeResolveOutput` jail:
+
+```typescript
+const envRoot = process.env.HEX_WORLDS_OUT_ROOT;
+if (typeof envRoot === 'string' && envRoot.length > 0) {
+  return resolve(envRoot);
+}
+```
+
+With `OUT_ROOT='/'`, any `--out /etc/passwd` or `--out /home/runner/.ssh/` value
+would pass the jail check (since `/etc/passwd` is "inside" `/`). The nightly
+workflow hardcodes `--out /tmp/bootstrap-target`, so there is no immediate
+exploit path in the workflow itself. However:
+
+1. Any future step that reads `--out` from an external source (e.g. a
+   workflow_dispatch input) combined with `OUT_ROOT='/'` would be exploitable.
+2. The design of having an env var that defeats the security jail is itself a
+   footgun for future contributors who might set it broadly without understanding
+   the security implication.
+
+**Remediation:**  
+Prefer a narrower `OUT_ROOT`:
+```yaml
+HEX_WORLDS_OUT_ROOT: '/tmp'
+```
+This allows writing to `/tmp/bootstrap-target` while preventing writes to
+`/etc`, `/home`, `/root`, etc. Alternatively, add a warning to the
+`defaultOutRoot` function when `OUT_ROOT` is set to `/` and document the
+footgun explicitly in comments.
+
+---
+
+## Low Findings
+
+### L-1 — `interop/internal` Barrel Pierced Directly from Production CLI Code
+
+**Severity:** Low  
+**CVSS v3.1:** N/A (architecture / encapsulation)  
+**CWE:** CWE-653 Insufficient Compartmentalization  
+**File:** `src/cli/_shared.ts:57`
+
+**Description:**  
+```typescript
+import { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS } from '../interop/internal';
+```
+
+This import bypasses the `interop` public barrel (index.ts) and accesses an
+`@internal` subpath directly. If the `internal` module ever contains security-
+sensitive implementation details (e.g. credential handling, signature keys,
+internal API endpoints), piercing the barrel makes those details transitively
+importable by any code that imports `_shared.ts`.
+
+The same symbol `GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS` is imported from the
+public `../interop` path at line 46, making the inconsistency visible. The
+`internal` symbol should either be promoted to the public barrel or the CLI
+should not reference it directly.
+
+**Remediation:**  
+Re-export `GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS` from the `interop`
+public barrel (`src/interop/index.ts`) and update the import in `_shared.ts` to
+use the public path.
+
+---
+
+### L-2 — `readSidecar` Parses JSON Without Size Limit
+
+**Severity:** Low  
+**CVSS v3.1:** 3.3 (AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L)  
+**CWE:** CWE-770 Allocation of Resources Without Limits or Throttling  
+**File:** `src/cli/commands/bootstrap/core.ts:560-572`
+
+**Description:**  
+`readSidecar` calls `readFileSync(path, 'utf8')` then `JSON.parse(raw)` with no
+file-size ceiling. A crafted `.bootstrap.json` with a `files` array containing
+millions of entries (each with `path`, `sha256`, `bytes`) could cause OOM in
+both the parse phase and the subsequent `verifyBootstrap` hash loop (which opens
+a `createReadStream` for each entry).
+
+Although a sidecar is produced by bootstrap itself (and thus trusted in normal
+use), `verifyBootstrap` is also callable with an arbitrary `outRoot` — a
+directory an attacker might have written to (e.g. via a path confusion during
+bootstrap).
+
+**Remediation:**  
+Add a `statSync(path).size` check before `readFileSync` — reject sidecars
+larger than a reasonable ceiling (e.g. 10 MB, since the total manifest for 400+
+files is well under 1 MB). Additionally add a `parsed.files.length` sanity
+check (e.g. max 10,000) before entering the hash loop.
+
+---
+
+### L-3 — Symlink Traversal Guard in `walkFiles` Skips Symlinks Entirely
+
+**Severity:** Low  
+**CVSS v3.1:** 3.3 (AV:L/AC:H/PR:L/UI:N/S:U/C:L/I:N/A:N)  
+**CWE:** CWE-61 UNIX Symbolic Link Following  
+**File:** `src/cli/commands/bootstrap/core.ts:521-540`
+
+**Description:**  
+`walkFilesInternal` skips symbolic links (`entry.isSymbolicLink() → continue`)
+and validates directory traversal via `realpathSync`. This is correct and safe
+for the nominal case. However, it means a zip archive that uses symlinks in the
+KayKit pack tree (e.g. a future upstream pack revision or a crafted EXTRA-edition
+zip) will silently skip those files, producing an incomplete bootstrap with fewer
+files than `expectedGltfCount`. The edition validation catches large-scale
+mismatches, but a targeted symlink replacement of a single GLTF with a symlink
+to `/dev/null` would produce a valid bootstrap sidecar recording a 0-byte file.
+
+This is a data-integrity issue rather than a direct exploit (the sidecar SHA
+would record a 0-byte hash; `verifyBootstrap` would pass since the symlink
+target is empty). A consumer using the GLTF would get a broken asset, not a
+security breach.
+
+**Remediation:**  
+When `entry.isSymbolicLink()` is encountered during `walkFilesInternal`, log a
+warning rather than silently skipping. In `mirrorPackTree`, assert that the
+expected GLTF count matches the walked count (layout already exposes
+`expectedGltfCount`) and fail bootstrap if the delta is significant.
+
+---
+
+## Positive Security Controls (Non-Findings)
+
+The following controls were explicitly verified and are well-implemented:
+
+- **Redirect allowlist** (`core.ts:620-624`): GitHub, `codeload.github.com`,
+  `objects.githubusercontent.com` only. Correct use of `new URL(location, url)`
+  for relative redirect resolution. Depth-limited to 5 hops.
+
+- **Zip-slip guard** (`core.ts:691-696`): `relative(targetRoot, targetPath)`
+  checked for `..` prefix and absolute paths before each entry is written.
+  Defense in depth with a real-time byte counter (line 727-736) in addition to
+  the advisory `uncompressedSize` check (line 705-712). The 64 MB per-entry
+  ceiling is appropriate.
+
+- **Output path jail** (`_shared.ts:274-282`): `safeResolveOutput` is
+  consistently applied to all `--out*` flags across the CLI surface. The guard
+  using `relative(root, resolved)` with `sep` is correct.
+
+- **Prototype pollution guard** (`_shared.ts:3726-3758`): `readPieceSourceRoots`
+  uses `Object.create(null)`, validates keys against `RESERVED_OBJECT_KEYS` and
+  a strict allowlist regex. This is the only `readJson` callsite with this
+  protection.
+
+- **SLSA L3 / OIDC trusted publishing** (`release.yml`): No `NODE_AUTH_TOKEN`
+  secret; OIDC exchange via `id-token: write`. SHA-pinned `attest-build-
+  provenance` action. SBOM generated via CycloneDX.
+
+- **SHA-pinned actions** in `ci.yml`, `release.yml`, `cd.yml`: All third-party
+  actions are pinned to immutable commit SHAs with version comments. Only
+  `bootstrap-nightly.yml` deviates (H-3 above).
+
+- **`persist-credentials: false`** set on all `checkout` steps in
+  `ci.yml`, `release.yml`, `cd.yml` — prevents GITHUB_TOKEN from leaking into
+  git config on disk.
+
+- **No `exec`/`spawn` with user input**: grep across all `src/` finds no
+  `child_process` usage; the simulation `spawn` references are ECS world spawns,
+  not OS process spawns.
+
+- **`pnpm install --frozen-lockfile`** enforced in all workflow install steps.
+  `pnpm-lock.yaml` present with integrity hashes.
+
+- **`pnpm audit --prod --audit-level=high`** as a blocking release gate in
+  `release.yml`, with `dependency-review-action` in `ci.yml` for per-PR CVE
+  intake.
+
+---
+
+## Dependency Snapshot (Notable)
 
 ```json
-"pnpm": {
-  "overrides": {
-    "yaml": ">=2.8.3",
-    "brace-expansion": ">=5.0.6"
-  }
+"dependencies": {
+  "yauzl": "^3.3.1",      -- zip extraction; no known CVEs in 3.x
+  "citty": "^0.2.2",      -- CLI framework; low attack surface
+  "seedrandom": "^3.0.5", -- deterministic RNG; not security-critical
+  "three": "^0.184.0",    -- rendering only; not in CLI path
+  "koota": "^0.6.6"       -- ECS; not in CLI path
 }
 ```
 
-These don't reach the published tarball but they can DoS local CI runs and reviewers' tooling.
-
-### M4. CLI error messages echo user paths verbatim
-
-`cli.ts` has ~70 `throw new Error('...${parsed.flags.X}...')` sites. Several interpolate the raw user path:
-
-- Line 1460: `` `Recipe ${parsed.flags.recipe} did not compile to a GameboardPlan` ``
-- Line 1475: `` `Scenario ${scenarioPath} did not compile to a GameboardPlan` ``
-- Line 1692: `` `Patrol assignment file ${parsed.flags.assignments} must be an array or ...` ``
-- Line 4120: `` `Unsupported edition: ${String(value)}` ``
-
-When the CLI is invoked in a tool that logs stderr publicly (CI runner with a PR-author-controlled branch, a bug-tracker bot, etc.), absolute filesystem paths and usernames can leak into logs. **Low severity** — but worth normalizing to relative paths in messages.
-
-```ts
-throw new Error(`Recipe ${relative(cwd, resolve(parsed.flags.recipe))} did not compile to a GameboardPlan`);
-```
-
-### M5. `process.exit` after `console.error` may swallow stack traces in dev workflows
-
-`cli.ts:4081, 4295` print only `error.message`. Information-disclosure-positive (good) but **debuggability** suffers. Recommend gating on `DEBUG` env to print full stack in dev:
-
-```ts
-const debug = process.env.MEDIEVAL_HEXAGON_DEBUG === '1';
-console.error(debug && error instanceof Error ? (error.stack ?? error.message) : String(error));
-```
-
-### M6. `dist/**` source maps are published
-
-`tsup.config.ts` sets `sourcemap: true` and `sourcesContent: false`. Good — content isn't embedded. But the maps still include the **absolute build-machine paths** in `sources[]` arrays (e.g. `/home/runner/work/...`). Since the build happens in GitHub-hosted runners (`ubuntu-latest`), this only leaks `/home/runner/work/medieval-hexagon-gameboard/...` which is documented public. **Not a finding for the GitHub Actions release flow** — but **if anyone runs `npm publish` locally**, their home directory leaks.
-
-**Remediation.** Either set `sourcemap: false` for publish, or always publish from CI (which the workflow does — good — but consider adding a guard).
-
-### M7. CLI uses `existsSync` then reads/writes — TOCTOU window
-
-Multiple paths follow the pattern `if (!existsSync(p)) throw; readFileSync(p)`. The window between check and use is small but real on multi-process systems. **Low practical impact** for a local CLI, but the pattern is brittle:
-
-```ts
-// Prefer:
-try { return readFileSync(p, 'utf8'); }
-catch (err) { if (err.code === 'ENOENT') throw new Error(`Missing: ${relativize(p)}`); throw err; }
-```
+`yauzl ^3.3.1` uses a semver range; the next major could introduce breaking
+API changes. Consider pinning to `~3.3.1` in the published dependency to
+prevent unexpected upstream changes from reaching consumers before the team
+has reviewed them.
 
 ---
 
-## Low
+## Recommended Fix Priority
 
-### L1. JSON deep-copy via stringify/parse in `simulation.ts:5212`
-
-```ts
-return JSON.parse(JSON.stringify(value)) as T;
-```
-
-If `value` contains `__proto__` keys (it shouldn't, by upstream typing — but defense in depth), they survive the round-trip as own properties. Replace with `structuredClone(value)` for both safety and ~3x perf. Node ≥17.
-
-### L2. Unbounded regex in `ingest.ts:433-434`
-
-```ts
-family = family.replace(new RegExp(`_${faction}_(accent|full)$`), '');
-family = family.replace(new RegExp(`_${faction}$`), '');
-```
-
-`faction` comes from the constant `FACTIONS` array (controlled, not user input), so **no ReDoS today**. But if `faction` ever becomes user-supplied, regex-special characters in the value would break the pattern. Use `escapeRegExp` like `scripts/audit-workspace.ts:1274` already does.
-
-### L3. `audit-workspace.ts:1138` regex `/entry:\s*{([\s\S]*?)\n\s*},\n\s*format:/m` has nested unbounded matches
-
-`[\s\S]*?` is lazy and bounded by literal `\n  },\n  format:`, so realistic input cannot trigger catastrophic backtracking. Keep an eye on it if file shape changes; ReDoS-safety relies on the lazy quantifier + literal anchor.
-
-### L4. `Object.assign(merged, generation.layoutArchetypes ?? {})` — `src/recipe.ts:915`
-
-`merged` is a fresh object (no prototype leak target) and `layoutArchetypes` is internally typed. No exposure. Noted only because grep flagged it.
-
-### L5. `audit-workflows.ts` permissions check should fail closed
-
-The workflow audit script lives outside the published surface, but as a CI gate it should explicitly assert each workflow has a top-level `permissions:` block with `contents: read` minimum, and that any job that escalates has a justification comment. Currently the workflows do this correctly — the gate doesn't enforce it.
-
-### L6. `medieval-hexagon-gameboard` bin filename does not include scope
-
-The `bin` entry is `medieval-hexagon-gameboard`, which collides with any other package using the same unscoped name in `$PATH`. Low impact but consider scoping: `@jbcom/medieval-hexagon-gameboard` or `mhg`.
-
----
-
-## Recommended Biome / ESLint security rules
-
-`biome.json` enables `recommended` + `noExplicitAny: error` (good). Add these security-relevant rules to harden further:
-
-```json
-{
-  "linter": {
-    "rules": {
-      "recommended": true,
-      "suspicious": {
-        "noExplicitAny": "error",
-        "noGlobalEval": "error",
-        "noDangerouslySetInnerHtml": "error",
-        "noPrototypeBuiltins": "error",
-        "noShadowRestrictedNames": "error",
-        "noUnsafeNegation": "error",
-        "noControlCharactersInRegex": "error",
-        "noMisleadingCharacterClass": "error"
-      },
-      "complexity": {
-        "noForEach": "off"
-      },
-      "correctness": {
-        "noUnusedVariables": "error",
-        "noUndeclaredVariables": "error",
-        "noUnsafeFinally": "error",
-        "noConstructorReturn": "error",
-        "noInnerDeclarations": "error",
-        "useExhaustiveDependencies": "warn"
-      },
-      "style": {
-        "useConst": "error",
-        "useAsConstAssertion": "error",
-        "noNonNullAssertion": "error",
-        "noParameterAssign": "error",
-        "useTemplate": "warn"
-      },
-      "nursery": {
-        "noEvolvingTypes": "error",
-        "noProcessEnv": "off"
-      }
-    }
-  }
-}
-```
-
-Also consider running [`semgrep --config=p/owasp-top-ten`](https://semgrep.dev/p/owasp-top-ten) and [`semgrep --config=p/nodejs`](https://semgrep.dev/p/nodejs) in CI for cross-cutting checks Biome doesn't cover (e.g. path-traversal patterns, shell-true detection across files).
-
-Add a targeted rule (custom Biome plugin or semgrep) for **path-traversal** on CLI flag values: any `writeFileSync(resolve(parsed.flags.X), ...)` should require a sibling `safeResolveOutput()` call.
-
----
-
-## Supply chain notes
-
-**Positives.**
-- All third-party GitHub Actions pinned to commit SHAs (`actions/checkout@de0fac2e...`, `pnpm/action-setup@41ff7265...`, `actions/setup-node@53b83947...`, `release-please@16a9c908...`).
-- `actions/dependency-review-action` runs on every PR with `fail-on-severity: high`.
-- `pnpm install --frozen-lockfile` everywhere.
-- `npm publish --access public --provenance` uses OIDC sigstore provenance.
-- `persist-credentials: false` on checkouts.
-- `permissions: contents: read` defaulted; escalated per job with documented scope.
-- `pull_request` (NOT `pull_request_target`) is used. Forked-PR auto-merge is gated by `head.repo.full_name == github.repository`.
-- `--ignore-scripts --no-audit --fund=false` on the smoke-consumer install — good hardening against `postinstall` malware in the packed tarball's transitive deps during smoke tests.
-- `bin` shebang is `#!/usr/bin/env node` (portable, not `/bin/bash`).
-- `files` allowlist is strict and asserted by `audit-package.ts` against `npm pack --dry-run --json`.
-
-**Risks / improvements.**
-- **`secrets.CI_GITHUB_TOKEN`** is used by `release-please` (cd.yml:42). This is a user-managed PAT, not `GITHUB_TOKEN`. PATs are higher-risk because they have broader scope and don't auto-rotate. Consider migrating to a GitHub App token (`tibdex/github-app-token` or the official GitHub App auth) for finer-grained scoping and per-org revocation.
-- **No `package-lock.json` / no npm `--audit` in CI for the consumer smoke test.** The packed tarball is installed with `--no-audit`, which is correct for speed but means a vulnerable transitive dep in the published tarball wouldn't be caught at smoke time. Add a `pnpm audit --prod --audit-level=high` step in the `package` job after `pnpm install` to catch prod-tree CVEs before publish.
-- **No SLSA-level-3 attestation.** OIDC provenance is good; if you want to go further, generate a SLSA provenance attachment (`actions/attest-build-provenance@v2`) for the tarball.
-- **No SBOM.** Consider `@cyclonedx/cyclonedx-npm` to emit a CycloneDX SBOM as a release asset.
-- **Dependabot covers npm + github-actions, both weekly.** Consider grouping security updates into a separate `security` group with daily cadence: `open-pull-requests-limit: 10` + `applies-to: security-updates`.
-- **Three transitive moderates** (yaml, brace-expansion) — see M3 — should be cleared via pnpm overrides.
-
----
-
-## Top 5 security priorities
-
-1. **H1 — Path traversal in CLI `--out*` flags.** Add `safeResolveOutput()` helper, require all writes to stay under `--outRoot` (default cwd), require explicit `--force` for `extract`'s `rmSync` destination.
-2. **H2 — Symlink-following walker.** Skip `entry.isSymbolicLink()` in `listFiles` (`ingest.ts:310`) or verify with `realpathSync` that descended paths stay inside the source root.
-3. **M3 — Clear the 2 moderate `pnpm audit` findings** via `pnpm.overrides` (`yaml >=2.8.3`, `brace-expansion >=5.0.6`).
-4. **M1 — Prototype-pollution defense in JSON payload flags.** Block `__proto__` / `constructor` / `prototype` keys in `readPieceSourceRoots` and any future JSON-payload CLI flag; return `Object.create(null)`-backed maps.
-5. **Tighten Biome rules + add semgrep CI gate** with `p/owasp-top-ten` + `p/nodejs` rulesets. Wire a custom rule for "writeFileSync(resolve(parsed.flags.X), ...) without safeResolveOutput" as a long-term path-traversal guard.
-
----
-
-## Out-of-scope items verified clean
-
-- No `eval`, `Function()`, `new Function`, dynamic `require` anywhere.
-- No `child_process.exec` (shell-true). All spawns use `execFileSync` / `spawnSync` with array args. One `sh -c` site (M2) is constant-only.
-- No `JSON.parse` with reviver that could be hijacked.
-- No `setTimeout(string, ...)`-style string-eval primitives.
-- No `pull_request_target` workflows.
-- No `secrets.*` echoed into `run:` shells (only `GH_TOKEN` env, which is correct).
-- No `fs.write*` with un-resolved path concatenation in `src/` (only via the `resolve(parsed.flags.X)` pattern noted in H1).
-- No `child_process` in the **published** `src/**` — only in `scripts/**` (build/test tooling).
-- `Math.random()` zero hits; all RNG via `seedrandom` (Phase 1 confirmed).
+| Priority | Finding | Effort |
+|----------|---------|--------|
+| 1 | H-2: Test import layering inversion | Medium — move 3 symbols to src/ |
+| 2 | H-3: readJson schema validation | High — add Zod/Valibot schemas per doc type |
+| 3 | H-1: --commit ref sanitization | Low — add regex guard + encodeURIComponent |
+| 4 | M-1: .at(-1) undefined guard | Low — add null check + throw |
+| 5 | M-2: Nightly unpinned action SHAs | Low — mechanical SHA substitution |
+| 6 | M-3: stageFromZip cleanup pattern | Low — restructure to try/finally |
+| 7 | M-4: OUT_ROOT='/' footgun | Low — narrow to /tmp in nightly workflow |
+| 8 | L-1: interop/internal direct import | Trivial — re-export from public barrel |
+| 9 | L-2: readSidecar size limit | Trivial — statSync check |
+| 10 | L-3: symlink gap warning | Low — add warning + count assertion |

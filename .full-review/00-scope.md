@@ -2,58 +2,29 @@
 
 ## Target
 
-Comprehensive review of the `@jbcom/medieval-hexagon-gameboard` library:
-- **Runtime package source**: `packages/medieval-hexagon-gameboard/src/` (~58,280 LOC across 38 TS modules)
-- **Audit/build scripts**: `scripts/` (~7,491 LOC, 12 audit/smoke scripts)
+Full codebase of `declarative-hex-worlds` — a TypeScript ESM library providing a hex-grid gameboard engine with ECS (koota), movement/patrol/quest systems, simulation scripting, a citty-based CLI, and an Astro Starlight docs site.
 
-Branch: `codex/initial-medieval-hexagon-gameboard` (146 commits ahead of `main`, ~190K insertions).
-This is the initial implementation of a deterministic KayKit Medieval Hexagon gameboard runtime that ships:
-- Koota ECS state primitives
-- Honeycomb-grid coordinates / layout / projection
-- Scenario / simulation / quest / patrol / movement / rule engines
-- Three.js + React bindings
-- A CLI (`medieval-hexagon-gameboard`) with coverage/ingest commands
-- A FREE-edition asset manifest (GLTF/GLB) baked at build time
+Repo root: `/Users/jbogaty/src/jbcom/declarative-hex-worlds`
 
 ## Files
 
-### Runtime sources (packages/medieval-hexagon-gameboard/src)
+- `src/` — ~58 implementation modules across 18 domains:
+  - `actors/`, `commands/`, `config/`, `coordinates/`, `errors/`, `gameboard/`, `ingest/`, `internal/`, `interop/`, `koota/`, `manifest/`, `movement/`, `patrol/`, `pieces/`, `quests/`, `react/`, `rules/`, `runtime/`, `scenario/`, `selectors/`, `simulation/`, `systems/`, `three/`, `traits/`, `types/`
+  - `cli/` — citty CLI with 30+ subcommands; `cli/commands/bootstrap/` — GitHub zip download + yauzl extraction
+- `scripts/` — build helpers
+- `tests/` — contract tests, browser visual tests (Playwright + vitest-browser)
+- `.github/workflows/ci.yml` + `release.yml`
+- `docs-site/src/content/docs/` — Astro Starlight MDX docs
+- Root config: `vitest.*.shared.ts`, `tsup.config.ts`, `biome.json`, `package.json`
 
-Large modules (notable footprints):
-- `manifest/free.ts` (16,561 LOC — generated asset manifest)
-- `simulation.ts` (5,213)
-- `cli.ts` (4,297)
-- `catalog.ts` (2,398)
-- `interop.ts` (2,383)
-- `actors.ts` (2,260)
-- `gameboard.ts` (2,173)
-- `layout.ts` (1,872)
-- `scenario.ts` (1,418)
-- `koota.ts` (1,349)
-
-Other modules: `actors`, `blueprint`, `catalog`, `commands`, `compatibility`, `coordinates`, `coverage`, `gameboard`, `grid`, `index`, `ingest`, `interop`, `koota`, `layout`, `manifest/{schema,free}`, `movement`, `navigation`, `occupancy`, `patrol`, `pieces`, `projection`, `quests`, `react`, `recipe`, `registry`, `rule-types`, `rules`, `runtime`, `scenario`, `selectors`, `simulation`, `systems`, `three`, `types`, `validation`, `world-rules`, `cli`.
-
-### Scripts (scripts/)
-
-- `audit-api-docs.ts`
-- `audit-docs-contract.ts`
-- `audit-free-assets.ts`
-- `audit-package.ts`
-- `audit-reference-assets.ts`
-- `audit-workflows.ts`
-- `audit-workspace.ts`
-- `extract-kaykit-guide.ts` / `.swift`
-- `generate-package-assets.ts`
-- `promote-showcases.ts`
-- `smoke-built-cli.ts`
-- `smoke-packed-consumer.ts`
+Total: ~1,397 tracked files
 
 ## Flags
 
-- **Security Focus**: yes — CLI accepts user input/file paths, asset ingest reads filesystem, manifests are generated from references/
-- **Performance Critical**: yes — game runtime (simulation loops, ECS systems, render bindings)
-- **Strict Mode**: no
-- **Framework**: TypeScript / Vitest / Three.js / React / Koota ECS / honeycomb-grid
+- Security Focus: yes (CLI does GitHub HTTPS fetch + zip extraction with path-traversal guard; config has URL template interpolation)
+- Performance Critical: no (library, not a server)
+- Strict Mode: no
+- Framework: TypeScript ESM, vitest, tsup, biome, koota (ECS), three.js, react-three-fiber, citty, yauzl, Astro Starlight
 
 ## Review Phases
 

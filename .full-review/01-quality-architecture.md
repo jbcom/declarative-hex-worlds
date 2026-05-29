@@ -1,87 +1,53 @@
-# Phase 1: Code Quality & Architecture Review — Consolidated
+# Phase 1: Code Quality & Architecture Review
 
-**Target:** `packages/medieval-hexagon-gameboard/src/` (38 modules, ~58K LOC) + `scripts/` (~7.5K LOC).
-**Branch:** `codex/initial-medieval-hexagon-gameboard` (initial scaffold, 146 commits, ~190K insertions).
+## Code Quality Findings
 
-See `01a-code-quality.md` and `01b-architecture.md` for full detail.
+### High
+1. **`src/cli/_shared.ts` God Module** (4,059 lines) — 20+ command implementations, 18+ formatters, all flag parsers, file readers, GLTF extraction in one file. Individual command files are 7-line delegates with zero logic. Cannot isolate tests per command; every change risks coupling across commands.
 
-## Headline
+### Medium
+2. **Tripled output pattern** (write/JSON/text) repeated verbatim 15+ times across `_shared.ts` — extract `emitOutput()` helper.
+3. **Error-and-exit validation duplication** — `layoutAnalysisPlanFromArgs` exits internally AND callers repeat the exit check; control flow is ambiguous.
+4. **`resolveSimulationSpawnActor` unsafe casts** (`engine.ts:648–666`) — two unsafe `as` casts; `.at(-1)` can return `undefined` silently typed as `SpawnGameboardActorOptions`.
+5. **`commandHandlerMutations` exhaustiveness guard** (`engine.ts:462–501`) — returns `never` silently; should throw `GameboardRuntimeError` so future union variants are caught at runtime.
+6. **`readJson<T>` false type-safety** (`_shared.ts:397`) — no schema validation; 25 callers trust structural cast on user-supplied files. Rename to `parseJsonUnchecked` and add guards on `--scenario`/`--script`/`--routes` entry points.
+7. **`advancePatrolEntity` complexity** (`patrol.ts:230–342`) — 8 early-return branches, 4 mutable state writes interleaved; extract phase-based state machine.
+8. **`_shared.ts` imports from `tests/integration/`** (lines 3–7) — layering inversion; production code depends on test infrastructure; defeats tree-shaking for all `_shared` consumers.
 
-The library is **unusually clean** for its size. Hygiene gates are pristine:
+### Low
+9. **`hashFile` missing `'close'` event** (`bootstrap/core.ts:550`) — use `stream/promises pipeline` as done elsewhere in the same file.
+10. **`stageFromZip` manual `rmSync` in 3 error branches** — use `finally` instead.
+11. **Long lines in hot paths** — `patrol.ts:205` (128 chars), `movement.ts:445,569`.
+12. **`scenario/catalog.ts`** (2,401 lines) — likely mixes taxonomy data, filter logic, summary computation, markdown rendering; warrants targeted follow-up.
+13. **`resolveCurrentWaypointIndex` silent alignment fallback** — returns index 0 without warning when `alignToCurrentTile` finds no match.
 
-- **0** hits for `Math.random` (determinism intact — seedrandom-only)
-- **0** hits for `as any` / `@ts-ignore` / `@ts-expect-error` / `@ts-nocheck`
-- **0** hits for `TODO` / `FIXME` / `XXX` / `HACK`
-- **0** `it.todo` / `describe.skip` / empty bodies
-- **0** non-null assertions
-- **0** untyped exported functions (139/139 annotated)
-- **6** narrow `as unknown as` casts (4 src, 2 smoke)
-- **Zero circular dependencies** across 38 modules (Tarjan SCC empty)
-- Clean fan-in/fan-out layering (foundation: types/gameboard/coordinates/koota; composition: index/runtime/cli/react)
-- ESM-only, sideEffects:false, Node ≥22, modern toolchain
+---
 
-No Critical or High **correctness** findings. All issues are maintainability / scalability concerns.
+## Architecture Findings
 
-## Combined findings (by severity)
+### High
+1. **`koota` imports from `scenario`** (`koota.ts:16` — `isKnownExtraAssetId`) — inverts the dependency hierarchy (`koota` should not depend on `scenario`). Fix: remove auto-derive, require callers to pass `requiresExtra` explicitly, or move function to `src/types/`/`src/manifest/`.
+2. **`cli/_shared.ts` pierces `interop/internal` barrel** (`_shared.ts:57` — `from '../interop/internal'`) — biome `noRestrictedImports` does not list `../interop/internal`, so this violation goes undetected. Fix: add to `noRestrictedImports`; export symbol via `interop/index.ts` barrel.
 
-### High (3)
+### Medium
+3. **`simulation/simulation.ts` dead double-shim** — the D3 split has landed; `index.ts → simulation.ts → engine/script/report/assertions` is two hops for no reason. Collapse `simulation.ts` into `index.ts`.
+4. **`simulation/script.ts` at 3,163 lines** — five distinct responsibilities: step-action types, script validators, scenario index helpers, step payload interfaces, schema constants. Decompose into `script-types.ts`, `script-validators.ts`, `script-index.ts`.
+5. **`systems/systems.ts` at 900 lines** — four distinct tick-loop systems (command dispatch, patrol, movement, quest) plus event types. Decompose into `systems/command.ts`, `systems/tick.ts`, `systems/events.ts`.
+6. **`gameboard/gameboard.ts` at 2,228 lines** — plan schema, spawn-group expansion, procedural generation, terrain decomposition: four clusters. Decompose into `plan.ts`, `spawn-groups.ts`, `terrain.ts`.
+7. **`interop/coverage.ts` cohesion mismatch** — release-readiness tooling (`GameboardCoverageReport`, `SimpleRpgEvidence`) sits inside the schema-migration domain. Either document as deliberate public API or extract to `src/release/`.
+8. **Branded types migration incomplete** (`src/types/brands.ts`) — `HexKey`, `ActorId`, etc. exist but large portions of API accept raw `string`. No per-domain tracking of migration status.
 
-**H-1 — `manifest/free.ts` is hand-authored, not generated** (16,561 LOC / 28% of library / ~395 KB)
-- Frozen `"generatedAt"` timestamp, no AUTOGENERATED banner, ships verbatim as parsed JS.
-- Doubles parse cost for every consumer. Drift between schema and data inevitable.
-- **Fix:** make `assets/free/manifest.json` source of truth; emit `.ts` mechanically at prebuild; CI drift check via `git diff --exit-code`; consider replacing with `import json from '../assets/free/manifest.json' with { type: 'json' }` and lazy loader for size-conscious consumers; remove `freeManifest` from umbrella `index.ts`.
+### Low
+9. **`runtime/asset-root.ts` `process.env` guard** — correct but undocumented for Vite consumers needing `define` config.
+10. **`noRestrictedImports` enforcement gaps** — missing: `../interop/internal`, `../internal/predicates`, `../traits/board`, `../traits/actors`, `../traits/movement`, `../traits/patrol`, `../traits/quests`, all `../config/*` deep paths.
+11. **`config` domain not in `noRestrictedImports`** — modules can import JSON files directly from `../config/`.
 
-**H-2 — `cli.ts` is a 4,297-line monolith** (CC ~854, 362 ifs, 70 throws, 55 `process.exit`, hand-rolled parseArgs)
-- `main()` is a 463-line if/else chain over ~30 commands.
-- `usage()` is a 153-line template literal that drifts from commands.
-- Untestable — every handler depends on top-level `process.exit`.
-- **Fix:** Refactor to `src/cli/` directory with `commands/*.ts` registry pattern. Each command: `{ name, description, flags, run(ctx, flags): Promise<number> }`. Dispatcher = registry lookup. `usage()` derived from registry. Use `node:util.parseArgs`. Introduce `CliError(exitCode, message)`; remove all in-handler `process.exit`.
-
-**H-3 — `simulation.ts` has two parallel `switch(step.action)` blocks** (5,213 LOC, same 10-variant discriminated union dispatched twice)
-- Adding a variant requires updating both switches; no exhaustiveness check.
-- **Fix:** Unify into single `ACTION_HANDLERS` dispatch map; add `assertNever` exhaustiveness; decompose file into `simulation/{engine,script,report,assertions,index}.ts`.
-
-**F1 — Public API over-exposure** (architecture)
-- 37 subpath exports; ~10 leak internals (`koota`, `selectors`, `systems`, `rule-types`, `world-rules`, `commands`, `projection`, `registry`, `coordinates`, `grid`).
-- Permanently cements semver surface.
-- **Fix:** Tier exports — keep ~13 supported subpaths; demote rest to umbrella-only re-exports. Mirror in `tsup.config.ts` entries.
-
-### Medium (8)
-
-- **M-1** — Audit scripts duplicate `readJson`/`readRequired`/`workspaceRoot` boilerplate across 4-10 files with subtle semantic drift. Extract `scripts/_lib.ts`.
-- **M-2** — `audit-workspace.ts` (1,293 LOC, 89 functions) is a god script. Split into `scripts/audits/` directory.
-- **M-3** — `smoke-packed-consumer.ts` (2,489 LOC) single top-level `try` block hides phase context. Split runtime smoke from compile-time API attestation; labelled-phase harness.
-- **M-4** — `catalog.ts:1337 createKayKitGuideScenarios` is a 377-line function. Invert to data table + 5-line iteration.
-- **M-5** — `cli.ts usage()` literal drifts from commands. Resolved by H-2 refactor.
-- **M-6** — Library calls `process.exit(1)` 55 times in `cli.ts`. Introduce `CliError`; resolved by H-2.
-- **F4** — Peer-dep boundary (react/three) lacks runtime guards. `react.ts`/`three.ts` should throw clear errors when peer absent.
-- **F5** — Trait taxonomy spread across 6 modules with no umbrella `traits.ts` index — discoverability problem.
-- **F7** — Large modules: `simulation.ts` 5,213, `catalog.ts` 2,398, `interop.ts` 2,383, `actors.ts` 2,260, `gameboard.ts` 2,173, `layout.ts` 1,872. Decompose by use case.
-- **F10** — No documented barrel-vs-deep-import strategy (trait-identity-across-chunks hazard with `splitting: true` is real but unsurfaced to consumers).
-- **F11** — 130 `throw new Error()` sites with zero custom error classes. Add `errors.ts` with `GameboardError` base + `GameboardValidationError`, `GameboardManifestError`, `GameboardScenarioError`, `GameboardRuntimeError`.
-
-### Low (10)
-
-- **L-1** — 6 `as unknown as` casts; 2 in `cli.ts` (2797, 2920) should be replaced with runtime validators.
-- **L-2** — Bare `catch {}` flow-control via exception in `interop.ts`, `scenario.ts`. Add `tryParseHexKey` non-throwing variant.
-- **L-3** — Terse error messages without input context (e.g., `gameboard.ts:2059 'Expected a single-edge mask'`). Interpolate the failing value.
-- **L-4** — `runtime.ts` (944), `react.ts` (1,215) — second-pass review candidates.
-- **L-5** — **No ESLint/Biome config in repo.** Process gap that would have auto-caught nearly every metric in this review. **Add Biome with @typescript-eslint/strict rules.**
-- **L-6** — `interop.ts` (2,383 LOC) suspiciously large for a translation module — accreted concerns. Audit candidate.
-- **L-7** — `index.ts` (1,057 LOC, 57 explicit re-exports). Add public-API snapshot test for accidental drift.
-- **F6** — Single `Date.now`-class leak at `cli.ts:2296` (cosmetic, overridden by `--generatedAt`).
-- **F9** — Package-scoped scripts live at workspace root. Move to `packages/medieval-hexagon-gameboard/scripts/`.
-- **F12** — Examples shipped as build entry points. Decide intent: runnable refs (keep) or docs-only (remove from `tsup.entry`).
-- **F13** — `createActions` calls scattered across 7 modules with no umbrella `actions.ts` index.
+---
 
 ## Critical Issues for Phase 2 Context
 
-Items to seed into Security + Performance reviews:
-
-- **Determinism intact** (no Math.random, only one cosmetic Date.now). Security/perf agents do NOT need to chase RNG leaks.
-- **`manifest/free.ts` 395KB parse cost** — performance agent should quantify bundle/parse impact.
-- **`cli.ts` 55 process.exit + 70 throws** — security agent should check whether any of those throws leak sensitive paths (file system paths, env values) in error messages.
-- **Asset ingest pipeline** (`ingest.ts`, `audit-free-assets.ts`, `extract-kaykit-guide.ts`) reads filesystem — security agent should audit for path traversal, prototype pollution in JSON parsing, ReDoS in regexes.
-- **`smoke-packed-consumer.ts` does `npm pack` + install** — security agent should verify the spawned shell commands aren't injectable from environment.
-- **No runtime peer-dep guards on react/three** — performance: not a runtime perf issue; security: minor (clearer failure surface).
-- **No Biome/ESLint** — security agent should call out the missing static-analysis gate.
+- **`_shared.ts` imports from `tests/`** (Finding CQ-8): If the test helper does any I/O or network calls, this creates a potential attack surface in the CLI.
+- **`readJson<T>` without validation** (Finding CQ-6): User-supplied files are cast without schema checks — malformed or adversarial JSON produces unclear runtime errors; relevant for security review of CLI entry points (`--scenario`, `--script`, `--routes`, `--plan`).
+- **`koota → scenario` dependency inversion** (Finding AR-1): Performance-relevant — every `spawnGameboardPlacement` call touches `isKnownExtraAssetId` which may traverse the scenario catalog.
+- **`resolveSimulationSpawnActor` `.at(-1)` silent undefined** (Finding CQ-4): Could produce a null-reference equivalent at runtime under edge conditions in simulation; worth verifying in security/robustness review.
+- **`stageFromZip` cleanup** (Finding CQ-10): Temp dir leaks on error paths — relevant to the security/bootstrap review.

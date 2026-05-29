@@ -1,335 +1,370 @@
-# Testing Strategy & Coverage Evaluation
-## `@jbcom/medieval-hexagon-gameboard`
+# Testing Strategy & Coverage Review — `declarative-hex-worlds`
 
-_Evaluated: 2026-05-26_
+Phase 3a. Test automation assessment of the vitest suite, CI gates, and the
+security/performance test surface. Cross-references Phase 1/2 code-quality and
+security findings (H-1, H-2, H-3, P-1, P-8).
 
----
-
-## 1. Coverage Matrix — src module vs test file
-
-37 src modules, 35 test files, 10 modules with no direct test.
-
-| LOC   | Module              | Direct test?  | Notes |
-|------:|---------------------|:--------------|-------|
-| 16562 | `manifest/free`     | NO — CRITICAL | 78 indirect refs in tests; no dedicated unit coverage |
-|  5214 | `simulation`        | YES           | `simulation.test.ts` 1092 LOC, 6 top-level `it` blocks |
-|  4298 | `cli`               | YES           | `cli.test.ts` 3011 LOC, 31 `it` blocks — integration-only |
-|  2399 | `catalog`           | YES           | |
-|  2384 | `interop`           | YES           | |
-|  2261 | `actors`            | YES           | |
-|  2174 | `gameboard`         | YES           | |
-|  1873 | `layout`            | YES           | |
-|  1419 | `scenario`          | YES           | |
-|  1350 | `koota`             | YES           | |
-|  1301 | `blueprint`         | YES           | |
-|  1216 | `react`             | NO — HIGH     | Covered only by browser `react-bindings.test.ts` (789 LOC, 2 `it` blocks) |
-|  1186 | `navigation`        | YES           | |
-|  1045 | `coverage`          | YES           | |
-|  1025 | `recipe`            | YES           | |
-|   945 | `runtime`           | YES           | |
-|   924 | `pieces`            | YES           | |
-|   901 | `systems`           | YES           | |
-|   752 | `commands`          | YES           | |
-|   734 | `manifest/schema`   | NO — HIGH     | `manifest.test.ts` 221 LOC covers schema peripherally, not directly |
-|   715 | `movement`          | YES           | |
-|   712 | `rules`             | YES           | |
-|   692 | `validation`        | YES           | |
-|   634 | `quests`            | YES           | |
-|   627 | `three`             | YES           | |
-|   622 | `registry`          | YES           | |
-|   589 | `patrol`            | NO — HIGH     | 269 indirect refs; no patrol-specific isolation |
-|   473 | `compatibility`     | YES           | |
-|   466 | `ingest`            | YES           | |
-|   397 | `selectors`         | YES           | |
-|   359 | `coordinates`       | NO — MEDIUM   | 25 indirect refs; coordinate math untested in isolation |
-|   308 | `projection`        | NO — MEDIUM   | Only 4 indirect refs — very thin |
-|   252 | `types`             | NO — LOW      | Types-only; runtime behavior N/A |
-|    94 | `occupancy`         | NO — MEDIUM   | 64 indirect refs, footprint tested in smoke but not unit |
-|    73 | `world-rules`       | NO — LOW      | Small; likely covered transitively |
-|    39 | `rule-types`        | NO — LOW      | Types-only |
-
-**Modules ≥500 LOC with no direct test:**
-- `manifest/free` — 16562 LOC (CRITICAL)
-- `react` — 1216 LOC (HIGH)
-- `manifest/schema` — 734 LOC (HIGH)
-- `patrol` — 589 LOC (HIGH)
+Repo: `/Users/jbogaty/src/jbcom/declarative-hex-worlds`
+Framework: TypeScript ESM · vitest (5 configs) · v8 coverage · Semgrep SAST in CI.
 
 ---
 
-## 2. Findings by Severity
+## Executive summary
 
-### CRITICAL
+The suite is **large and behavior-oriented** (897 `it`/`test` blocks across 73
+spec files, ~28.4k LOC of tests) with genuinely good correctness coverage of the
+ECS/simulation/navigation core. The pyramid is healthy in shape. But there are
+**four structural holes that a test engineer must treat as release blockers**:
 
-#### C-1: `manifest/free` (16562 LOC) — zero direct unit coverage
-The largest module in the codebase has no dedicated test file. It is used transitively in ~78 places across the test suite, but no test directly exercises its internal logic (asset lookups, category filters, texture resolution, bundle composition). A regression in `manifest/free` internals would pass all unit tests and only surface in integration.
+1. **The coverage ratchet does not run in CI.** `test:coverage:enforce` is
+   documented as "local-only" in `ci.yml`. PR CI runs `pnpm test` with no
+   threshold check, so the 73/69/80/73 floor is advisory. Coverage can silently
+   regress on any merged PR. (Critical)
+2. **Every network/security guard on the bootstrap fetch path is untested in
+   per-PR CI.** The redirect allowlist (CWE-601/918), the live `extractZipTo`
+   zip-slip guard, and the 64 MB zip-bomb ceiling (CWE-409) have **zero unit
+   tests**. They are only exercised by network-gated e2e (`skipIf` on env vars)
+   that never runs on PRs. (Critical / High)
+3. **H-1 is not just untested — the existing test encodes the vulnerable
+   behavior as correct.** `smoke.test.ts` asserts
+   `kayKitFreeGithubTarballUrl('deadbeef')` interpolates the ref raw, and there
+   is no test for a malicious `--commit` (`../`, `%2f`, CRLF, scheme switch).
+   (High)
+4. **`readJson<T>` error contract is untested at all five user-JSON entry
+   points** (`--scenario/--plan/--script/--routes/--recipe`). The one
+   `readJson` test (`_shared.test.ts:118`) checks the happy path only — no
+   malformed-JSON, no wrong-shape, no missing-file assertion. (High)
 
-**Recommended test:** `tests/unit/manifest-free.test.ts`
+Plus three banned `it.skip` stubs in `cli.test.ts` (per repo rules, stubs are
+bugs), no pathfinding perf regression guard (P-1), and benches that assert
+nothing and run in no workflow.
+
+---
+
+## 1. Test coverage
+
+### Pyramid (repo specs only; node_modules/docs-site excluded)
+
+| Layer | Files | Location |
+|---|---|---|
+| Unit (colocated) | 48 | `src/**/__tests__/*.test.ts(x)` |
+| Unit (top-level) | 7 | `tests/unit/` |
+| Contract | 9 | `tests/contract/` |
+| Integration | 2 | `tests/integration/` |
+| E2E | 3 | `tests/e2e/` (all `skipIf`-gated) |
+| Browser/visual | 4 | `tests/browser/` (separate configs, local-only) |
+| Bench | 3 | `tests/perf/` (no assertions, no CI) |
+
+~897 `it`/`test` blocks total. Shape is correct: heavy unit base, thin
+integration/e2e tip. The concern is **what the tip gates**, not the ratio.
+
+### Well-covered paths (no action)
+- ECS/simulation core: `simulation.test.ts` (1091 LOC), `script-validation.test.ts`
+  (1444 LOC), `scenario.test.ts` (1264), `actors`, `runtime`, `systems`, `pieces`.
+- Navigation correctness: `src/gameboard/__tests__/navigation.test.ts` (604 LOC)
+  covers blocked tiles, footprint occupancy, ship/custom profiles, terrain-cost
+  reachable ranges, deterministic seeded spawn groups, and route-failure
+  diagnostics. This is the strongest file in the suite.
+- Bootstrap happy/idempotent/tamper paths: `core.test.ts` (480 LOC) builds a
+  synthetic zip via `yazl`, asserts mirror tree, sidecar sha256, `verifyBootstrap`
+  OK/tamper/missing-sidecar/unsafe-sidecar-path branches, edition-mismatch and
+  force-clear behavior. Good.
+
+### Critical untested paths
+
+| Code path | File:line | Test status |
+|---|---|---|
+| Redirect allowlist (`openHttpsStream`, disallowed host → reject) | `core.ts:626-668` | **None.** No unit test reaches this; `https.request` is never stubbed. |
+| Live `extractZipTo` zip-slip (`relativeTarget.startsWith('..')`) | `core.ts:691-697` | **None.** Only `verifyBootstrap` sidecar-path rejection is tested — a different guard. |
+| Zip-bomb ceiling (declared `uncompressedSize` reject) | `core.ts:705-712` | **None.** |
+| Zip-bomb ceiling (streamed-bytes abort, defense-in-depth) | `core.ts:722-735` | **None.** |
+| `kaykitGithubArchiveUrl` ref interpolation w/ hostile input | `config/index.ts:65-71` | **None** (smoke test asserts only benign refs). |
+| `readJson` malformed/wrong-shape/missing-file | `_shared.ts:397` | **Happy-path only** (`_shared.test.ts:118`). |
+| Pathfinding large-board perf | `navigation.ts:1157 lowestCostKey` | **None** (P-1). |
+
+CI gate reality (`.github/workflows/ci.yml`): matrix runs `lint typecheck build
+test`. **`test:coverage:enforce`, browser visuals, and all `skipIf` e2e are
+explicitly local-only.** So on a PR, the network/zip security guards above are
+**never executed** — the synthetic-zip `core.test.ts` runs, but it never feeds a
+zip-slip entry, an oversize entry, or a redirect through the live extractor/fetcher.
+
+---
+
+## 2. Test quality
+
+**Behavior vs implementation: good.** Tests assert observable outcomes (path
+keys, sidecar contents, error messages, exit codes) rather than internal calls.
+`cli-security.test.ts` drives the real CLI as a subprocess — true black-box
+behavior testing. `core.test.ts` re-reads files and recomputes sha256 to verify
+integrity rather than trusting return values.
+
+**Assertion quality: mostly strong, with soft spots:**
+- `cli-security.test.ts:111` (symlink hardening) asserts only
+  `result.status not 0` for the `__proto__` case and explicitly comments "we
+  don't want this combination to succeed silently" — a **weak assertion** that
+  passes whether the prototype-pollution guard fired or the command merely
+  errored earlier. It cannot distinguish guard-worked from guard-never-reached.
+  Recommend asserting the specific guard message.
+- `cli-security.test.ts` symlink test regex `found 1|gltfCount: ?1` is
+  format-coupled; if diagnostic wording changes the test silently weakens.
+- Smoke-test `kayKitFreeGithubTarballUrl('deadbeef')` is a **pin-down of a
+  vulnerable contract** — it documents raw interpolation as expected, which will
+  actively resist the H-1 fix unless updated alongside.
+
+**`it.skip` stubs (repo rule: stubs are bugs):**
+- `cli.test.ts:219`, `:1426`, `:1922` — three skipped tests parked on
+  "Phase RB/RS/C3" excuses. Per global directive these are bugs: fix the
+  fixture/guard mismatch and re-enable, or delete.
+
+---
+
+## 3. Test pyramid analysis
+
+Shape is appropriate for a deterministic library + CLI: the heavy unit base is
+correct since most logic is pure (coordinates, navigation, simulation, manifest).
+
+**The problem is gating, not ratio.** Three of the most security-relevant test
+files only run outside PR CI:
+- `tests/e2e/simple-rpg-ci.test.ts` — `skipIf(!HEX_WORLDS_E2E_GITHUB)` →
+  scheduled nightly only.
+- `tests/e2e/simple-rpg-local-extra.test.ts` — `skipIf(!HEX_WORLDS_LOCAL_REFERENCES)`
+  → local only.
+- `tests/browser/*` — separate configs, local-only.
+
+Net effect: the **only** tests that touch real HTTPS fetch + real zip extraction
+are env-gated and absent from the PR signal. The unit/integration tier must
+absorb these guards with synthetic inputs (it already has the `yazl` harness to
+do so — see §6).
+
+---
+
+## 4. Edge cases
+
+**Covered well:** out-of-range paths, blocked start/goal, edition mismatch,
+non-empty-target-without-force, garbage zip, missing zip path, tamper detection,
+duplicate spawn-group ids, unreachable spawn routes.
+
+**Gaps:**
+- **Concurrency:** essentially none. `grep` for `Promise.all`/`concurrent` finds
+  only image-load fan-out in browser tests. `bootstrapKayKitAssets` is async and
+  writes to a target dir — no test for two concurrent bootstraps into the same
+  `out` (idempotency is tested only sequentially). Low severity for a CLI but
+  worth one test.
+- **Boundary on zip ceiling:** an entry at exactly `KAYKIT_MAX_ZIP_ENTRY_BYTES`
+  vs one byte over is untested (the off-by-one on `>` vs `>=`).
+- **Redirect depth:** the `redirects > 5` cap (`core.ts:627`) is untested.
+- **`readJson` on empty file / BOM / trailing comma** — untested.
+
+---
+
+## 5. Test maintainability
+
+**Isolation: good.** `tests/setup/koota-cleanup.ts` is a global setup file;
+temp dirs use `mkdtempSync` + `afterAll` rmSync cleanup consistently.
+
+**Mock usage: notably thin — this is the root cause of the network gap.**
+`vi.mock`/`vi.spyOn` appears in **exactly one file** (`commands.test.ts`, 12
+occurrences). The bootstrap fetch path (`openHttpsStream`, `httpsRequest`) is
+never mocked, which is precisely why the redirect allowlist can't be unit-tested
+today. The fix is to introduce an injectable HTTP layer or `vi.mock('node:https')`.
+
+**Flaky indicators:**
+- `cli-security.test.ts` / `core.test.ts` spawn `pnpm exec tsx` subprocesses
+  with 30s timeouts — slow and CI-load-sensitive, but bounded.
+- Many `skipIf(existsSync(references/...))` tests **silently skip** when the
+  reference tree is absent. On CI the references aren't present, so these
+  produce zero failures AND zero coverage — a "green but didn't run" trap. The
+  coverage thresholds comment even admits CI numbers are ~1-2pp below local
+  *because* these skip. This is acceptable design but must be paired with the
+  synthetic-fixture unit tests so the guards are never fully unverified.
+
+---
+
+## 6. Security test gaps (priority section)
+
+### S-1 — Redirect allowlist untested (Critical)
+`openHttpsStream` (`core.ts:646`) rejects redirects to hosts outside
+`{github.com, codeload.github.com, objects.githubusercontent.com}`. **No test.**
+A regression that drops the allowlist check would ship green.
+
 ```ts
-import { freeManifest } from '../../src/manifest/free';
-describe('freeManifest structure', () => {
-  it('exports non-empty asset array with required fields', () => {
-    expect(freeManifest.assets.length).toBeGreaterThan(0);
-    for (const a of freeManifest.assets) {
-      expect(a).toHaveProperty('id');
-      expect(a).toHaveProperty('category');
-    }
-  });
-  it('all asset ids are unique', () => {
-    const ids = freeManifest.assets.map(a => a.id);
-    expect(new Set(ids).size).toBe(ids.length);
-  });
-  // ... filter/lookup/bundle behavior
-});
-```
+// src/cli/commands/bootstrap/__tests__/fetch-redirect.test.ts
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { EventEmitter } from 'node:events';
 
----
+afterEach(() => vi.restoreAllMocks());
 
-#### C-2: No coverage thresholds configured
-`vitest.config.ts` declares `coverage.provider: 'v8'` with reporters, but has **no `thresholds` block**. Coverage runs but never fails the build. Any new uncovered code is silently accepted.
-
-```ts
-// Missing in vitest.config.ts:
-coverage: {
-  thresholds: {
-    lines: 80,
-    functions: 80,
-    branches: 75,
-    statements: 80,
-  },
+function fakeResponse(status: number, location?: string) {
+  const res: any = new EventEmitter();
+  res.statusCode = status;
+  res.headers = location ? { location } : {};
+  res.resume = () => {};
+  return res;
 }
+
+it('rejects a redirect to a disallowed host (CWE-601/918)', async () => {
+  const https = await import('node:https');
+  vi.spyOn(https, 'request').mockImplementation(((_url: any, _opts: any, cb: any) => {
+    cb(fakeResponse(302, 'https://evil.example.com/leak'));
+    return { on() {}, end() {} } as any;
+  }) as any);
+  // openHttpsStream is module-private; expose it via a test-only export or
+  // drive it through downloadGithubArchiveZip with source.kind === 'github'.
+  await expect(/* invoke fetch */).rejects.toThrow(/disallowed host evil\.example\.com/);
+});
+
+it('follows an allowlisted github.com -> codeload redirect chain', async () => { /* ... */ });
+it('aborts after 5 redirects', async () => { /* loop 6 allowlisted 302s */ });
 ```
+Requires making `openHttpsStream` test-visible (add to a `__test__` export
+barrel) or injecting the `https` module. The latter also resolves the H-2
+layering inversion incentive.
 
----
+### S-2 — Live zip-slip guard untested (Critical)
+`core.test.ts` only tests `verifyBootstrap`'s sidecar-path rejection — a
+**different** guard than `extractZipTo`'s `relativeTarget.startsWith('..')`.
+The `yazl` harness already in the file can author a hostile entry directly:
 
-#### C-3: Determinism contract tested structurally, not byte-identically
-`rules.test.ts:73` calls `createSeededGameboardPlan` twice with the same seed and asserts `first.tiles` toEqual `second.tiles`. This is a _structural_ equality check within the same process run. It does NOT:
-- Verify output is identical across separate process invocations (guards against process-global state contamination)
-- Verify no `Math.random()` call leaks into the call stack
-
-**Gap:** If any module initializes state at import time using `Math.random()` and that state influences generation, the same-process toEqual check would pass while cross-process runs differ.
-
-**Recommended addition:** A process-boundary determinism test in the CLI smoke or a dedicated vitest fixture that forks a child process:
 ```ts
-it('same seed produces byte-identical JSON across independent process invocations', () => {
-  const run = (seed: string) => execSync(
-    `node -e "const {createSeededGameboardPlan}=require('./dist/index.js');
-     process.stdout.write(JSON.stringify(createSeededGameboardPlan({seed:'${seed}',shape:{kind:'rectangle',width:4,height:4}})))"`
-  ).toString();
-  expect(run('test-seed')).toBe(run('test-seed'));
+it('extractZipTo rejects a zip entry that escapes the target root', async () => {
+  const zip = new yazl.ZipFile();
+  zip.addBuffer(Buffer.from('x'), '../../../escape.gltf'); // zip-slip
+  zip.end();
+  const p = join(tmp(), 'slip.zip');
+  await new Promise<void>((r, j) => { const s = createWriteStream(p);
+    s.on('close', r); s.on('error', j); zip.outputStream.pipe(s); });
+  await expect(bootstrapKayKitAssets({
+    source: { kind: 'zip', path: p }, out: tmp(), outRoot: '/', edition: 'free',
+  })).rejects.toThrow(/escapes target root/);
 });
 ```
 
----
+### S-3 — Zip-bomb ceiling untested (High, CWE-409)
+Both the declared-size reject (`core.ts:705`) and the streamed-bytes abort
+(`core.ts:722`) need tests. The declared-size path is testable by crafting a zip
+whose central-directory `uncompressedSize` exceeds 64 MB; the streamed path needs
+a highly-compressible buffer that decompresses past the cap. Also test the
+exact-boundary (`=== KAYKIT_MAX_ZIP_ENTRY_BYTES` should pass, `+1` should fail).
 
-### HIGH
+### S-4 — `--commit` / ref interpolation injection untested (High → H-1)
+`kaykitGithubArchiveUrl` does `template.replace('{ref}', ref)` with no
+validation. Add (1) a unit test that hostile refs are rejected/encoded once a
+sanitizer is added, and (2) **update `smoke.test.ts:36`** which currently asserts
+the vulnerable raw-interpolation contract:
 
-#### H-1: No public API snapshot/export surface test
-41 subpath exports exist. No test asserts the export shape. A removed export breaks consumers silently until `smoke-packed-consumer.ts` catches it — but that script only covers what it happens to import.
-
-**Recommended:** `tests/unit/public-api.test.ts`
 ```ts
-import * as root from '../../src/index';
-const EXPECTED_EXPORTS = ['freeManifest', 'createGameboardBuilder', /* ... */];
-it('umbrella export surface is stable', () => {
-  for (const sym of EXPECTED_EXPORTS) {
-    expect(root).toHaveProperty(sym);
-  }
+it.each([
+  '../../../../etc/passwd',
+  'main%2f..%2f..%2fsecret',
+  'main\r\nHost: evil.com',
+  'https://evil.com/x',
+])('rejects hostile --commit ref %s', (ref) => {
+  expect(() => kaykitGithubArchiveUrl(ref)).toThrow(/invalid ref/i);
 });
-```
-Also add a `check-exports` script using `attw` (Are the Types Wrong?) or `publint` to the CI pipeline.
-
----
-
-#### H-2: No hostile-input tests for CLI path flags (security findings S-H1, S-H2)
-`grep` for `traversal`, `symlink`, `__proto__`, `prototype` in tests returns zero results. CLI flags `--out`, `--outJson`, `--outMarkdown`, `--source` are untested against:
-- Path traversal: `--out ../../etc/crontab`
-- Symlink escape: `--source` pointing to a symlink outside allowed tree
-- JSON prototype pollution: `__proto__` key in manifest JSON input
-
-**Recommended:** Add to `tests/unit/cli.test.ts` (or a new `tests/unit/cli-security.test.ts`):
-```ts
-it('rejects --out paths that escape working directory via traversal', () => {
-  const result = runCli(['plan', '--out', '../../../../tmp/evil']);
-  expect(result.exitCode).not.toBe(0);
-  expect(result.stderr).toMatch(/invalid.*path|forbidden/i);
-});
-it('rejects __proto__ keys in manifest JSON without throwing uncaught exception', () => {
-  const malformed = '{"__proto__":{"polluted":true},"assets":[]}';
-  // write to temp, run validate-manifest
-  expect(runCli(['validate-manifest', '--source', tempManifest]).exitCode).not.toBe(0);
+it('accepts a valid 40-char sha and branch/tag names', () => {
+  expect(() => kaykitGithubArchiveUrl('a'.repeat(40))).not.toThrow();
+  expect(() => kaykitGithubArchiveUrl('v1.0.0')).not.toThrow();
 });
 ```
 
----
-
-#### H-3: `patrol` module (589 LOC) — no direct unit test
-269 indirect references across tests; no `patrol.test.ts`. The CLI tests exercise patrol route planning through command output assertions, but internal patrol logic (route construction, conflict detection, waypoint ordering) is untested in isolation.
-
-**Recommended:** `tests/unit/patrol.test.ts` — unit test route construction, conflict detection, and degenerate cases (empty route, cyclic route, single-waypoint route).
-
----
-
-#### H-4: `manifest/schema` (734 LOC) — peripheral coverage only
-`manifest.test.ts` (221 LOC) references schema functions but `manifest/schema.ts` is the largest schema module. Validation logic, normalization edge cases, and error paths are not directly targeted.
-
----
-
-#### H-5: `smoke-packed-consumer.ts` — single outer try/catch hides phase failures
-One `try` block at line 18 wraps the entire 2,490-line script. The inner try/catch blocks at L2139-L2204 are specific error-guard assertions, not phase isolation. Any assertion failure in phase 1 (type checks) aborts phases 2-N silently with only a stack trace, making failure diagnosis slow.
-
-No phase markers exist in the file. The script grew to 2,490 LOC without any structural sectioning.
-
-**Concrete plan:**
-1. Extract logical phases into named async functions: `smokeTypeSurface()`, `smokeRuntimeBehavior()`, `smokeSimulation()`, `smokeCLIIntegration()`, `smokeOccupancy()`.
-2. Call each with `await phase('type-surface', smokeTypeSurface)` where `phase()` wraps in try/catch, reports timing, and continues to next phase rather than aborting.
-3. Aggregate failures and exit non-zero if any phase failed — same semantics, much better diagnostics.
+### S-5 — `readJson<T>` unvalidated at 5 CLI entry points (High → H-3)
+`readJson` (`_shared.ts:397`) is a bare `JSON.parse(...) as T` — a false
+type-safety cast trusted by 25 callers including `--scenario/--plan/--recipe/
+--routes/--script`. Every entry point needs a tested error contract for: (a)
+malformed JSON, (b) valid JSON of the wrong shape, (c) missing file. Drive each
+through the CLI subprocess so the published binary is what's covered:
 
 ```ts
-async function phase(name: string, fn: () => Promise<void>) {
-  try {
-    await fn();
-    console.log(`[PASS] ${name}`);
-  } catch (e) {
-    console.error(`[FAIL] ${name}:`, e);
-    failures.push(name);
-  }
-}
+it.each(['--scenario','--plan','--recipe','--routes'])(
+  'CLI %s reports a clear error on malformed JSON', (flag) => {
+    const p = join(tmp(), 'bad.json'); writeFileSync(p, '{not json');
+    const r = runCli([subcmdFor(flag), flag, p]);
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/invalid JSON|failed to parse/i); // not a raw SyntaxError stack
+  });
 ```
+The deeper fix (zod/valibot schema in `readJson`) is a code change; the test
+contract above should be written first (Docs→Tests→Code) and will fail until the
+validation lands.
+
+### Existing security tests (keep, strengthen)
+- `cli-security.test.ts` C1 jail (`--outJson`/`--outMarkdown` traversal) — solid.
+- `_shared.test.ts` `safeResolveOutput` `../` + absolute escape — solid.
+- Strengthen the `__proto__` prototype-pollution test (§2) to assert the guard
+  message, not just non-zero exit.
 
 ---
 
-### MEDIUM
+## 7. Performance test gaps
 
-#### M-1: No CLI cold-start performance test
-Prior phase noted ~150-250ms cold start. No assertion enforces this. A dependency addition that increases startup to 2s would pass all tests.
+**Pathfinding correctness: covered.** `navigation.test.ts` exercises the real
+`findGameboardPath` → `findHexPath` path under blockers, profiles, footprints,
+and terrain costs with deterministic key assertions.
 
-**Recommended:** Add to `scripts/smoke-built-cli.ts` or a separate perf fixture:
+**Pathfinding perf regression: none (P-1, High).** The A* open set is a `Set` +
+`lowestCostKey` **linear scan** (`navigation.ts:573-577,1157-1160`) — O(|open|)
+per pop, O(V²) worst case. There is **no test guarding correctness across a heap
+refactor and no complexity regression guard.** Before swapping in a binary heap,
+add:
+1. A **large-board correctness oracle**: generate a 50×50 board with random
+   weighted obstacles under a fixed seed; assert `findGameboardPath` returns the
+   same cost/path as the current implementation (golden snapshot). This catches
+   a heap refactor that breaks tie-breaking (the current sort tie-breaks on
+   `r` then `q` — a heap must preserve that for deterministic output).
+2. A **bounded perf guard** (not a flaky wall-clock): assert `result.visited` (a
+   deterministic counter already returned, `navigation.ts:803-804`) stays at or
+   below a known ceiling for a fixed board. This is deterministic and CI-safe,
+   unlike timing.
+
 ```ts
-const start = performance.now();
-execSync('node dist/cli.js --help');
-const elapsed = performance.now() - start;
-assert(elapsed < 500, `CLI cold start ${elapsed}ms exceeded 500ms threshold`);
+it('large weighted board path is deterministic and bounded (P-1 guard)', () => {
+  const plan = makeSeededWeightedBoard(50, 50, /*seed*/ 1234);
+  const r = findGameboardPath(plan, '0,0', '49,49');
+  expect(r.found).toBe(true);
+  expect(r.cost).toBe(EXPECTED_COST);          // golden — survives heap refactor
+  expect(r.path.map(t => t.key)).toEqual(GOLDEN_PATH);
+  expect(r.visited).toBeLessThanOrEqual(VISITED_CEILING); // node-expansion guard
+});
 ```
 
----
+**Benches assert nothing and run nowhere (Medium).** `tests/perf/*.bench.ts`
+(cli-cold-start, warm-start, simulation) are `vitest bench` trend tools with no
+threshold and no CI workflow (confirmed: no bench in `ci.yml`/`cd.yml`). They
+are documented as "non-blocking until B3 lands." That's a deferred gate, but
+**there is currently no automated perf signal on any merge.** Recommend at
+minimum a nightly bench workflow that uploads results as an artifact (mirror the
+`bootstrap-nightly.yml` pattern) so a regression is at least visible.
 
-#### M-2: No bundle size gate
-No `.size-limit` config, no `bundlesize`, no size check in `pnpm verify`. The dist grows silently. For a library with 41 subpath exports, per-entrypoint size regression is a real risk.
-
-**Recommended:** `size-limit` package with thresholds per export path, wired to `pnpm verify`.
-
----
-
-#### M-3: `coordinates` (359 LOC) and `projection` (308 LOC) lack direct tests
-`coordinates` provides the hex math foundation used everywhere; only 25 test references, all indirect. If coordinate arithmetic regresses, failures appear in downstream tests with no clear root cause. `projection` has only 4 indirect references — nearly untested.
-
-**Recommended:** `tests/unit/coordinates.test.ts` (basic arithmetic, edge/corner coordinates, shape membership) and `tests/unit/projection.test.ts`.
-
----
-
-#### M-4: `occupancy` (94 LOC) tested only via smoke
-The occupancy footprint check in `smoke-packed-consumer.ts` (L2132-L2150) is the only exercise of occupancy logic. It runs at integration level against the packed dist. No unit test catches a regression before the pack step.
+**P-8 — `loadFreeManifest` async path:** the eager `freeManifest` 380 KB literal
+is exercised everywhere; `loadFreeManifest` is tested for identity-stability
+(`manifest.test.ts:24-28`) in Node. It is **not** verified in any browser visual
+test that the async path is what browser bundles actually take — but since
+`loadFreeManifest` just returns the eager export, the runtime risk is the bundle
+*including* the 380 KB literal regardless. That's a bundling/code-split concern
+for the build review, not a test gap per se; one browser test asserting
+`await loadFreeManifest()` resolves would close the functional question.
 
 ---
 
-#### M-5: No test randomization enabled
-`vitest.config.ts` has no `sequence: { shuffle: true }` or `sequence: { seed: <n> }`. Tests run in file-system order. Shared module-level state (if any) would produce order-dependent failures that never surface in CI.
+## Prioritized remediation list
 
-**Recommended:** Add `sequence: { shuffle: true }` to `vitest.config.ts` for unit runs, observe for flakes one CI cycle, then lock in.
+| # | Sev | Action |
+|---|---|---|
+| 1 | Critical | Run the coverage ratchet in CI (`test:coverage:enforce` or `HEX_WORLDS_COVERAGE_ENFORCE=1`) so the floor actually gates PRs. |
+| 2 | Critical | Add unit tests for the redirect allowlist (S-1) via `vi.mock('node:https')`; requires exposing `openHttpsStream` to tests. |
+| 3 | Critical | Add live `extractZipTo` zip-slip test (S-2) using the existing `yazl` harness. |
+| 4 | High | Add zip-bomb ceiling tests — declared-size, streamed-bytes, exact-boundary (S-3). |
+| 5 | High | Add hostile `--commit`/ref tests AND fix `smoke.test.ts:36` which pins the vulnerable contract (S-4 / H-1). |
+| 6 | High | Add `readJson` malformed/wrong-shape/missing-file contract tests at all 5 CLI JSON entry points (S-5 / H-3). |
+| 7 | High | Add pathfinding golden-path + `visited`-ceiling guard before any heap refactor (P-1). |
+| 8 | Medium | Delete or fix-and-re-enable the 3 `it.skip` stubs in `cli.test.ts`. |
+| 9 | Medium | Strengthen the `__proto__` prototype-pollution assertion to match the guard message, not just exit code. |
+| 10 | Medium | Add a nightly bench workflow with artifact upload so perf has automated signal. |
+| 11 | Low | One concurrent-bootstrap test; one redirect-depth-cap test; `readJson` empty/BOM edge tests. |
 
----
-
-#### M-6: `react-bindings.test.ts` — only 2 `it` blocks for 1216 LOC module
-Two integration-level browser tests (`mounts Koota provider`, `mounts saved recipe and scenario runtime providers`). No tests for:
-- Hook return value shapes
-- Error boundaries when world is absent
-- Re-render behavior on Koota mutation
-- TypeScript generic constraints (tested via type-level tests)
-
----
-
-### LOW
-
-#### L-1: `cli.test.ts` at 3011 LOC is a single flat `describe` block
-31 `it` blocks, no nested `describe` grouping by command. Hard to grep for coverage of a specific sub-command. Not a correctness issue, but maintainability degrades as tests are added.
-
-**Recommended:** Group by command: `describe('ingest commands', ...)`, `describe('plan commands', ...)`, etc.
-
----
-
-#### L-2: No snapshot tests for stable output formats
-`grep` for `toMatchSnapshot`/`toMatchInlineSnapshot` returns 0 results. CLI output formats (JSON schemas, Markdown reports) are asserted by substring/structure checks. Snapshot tests would catch silent format drift with less assertion code.
-
-Use sparingly — one snapshot per output format type, not per combination.
-
----
-
-#### L-3: `mock-usage-in-tests` count = 0
-No `vi.mock`, `jest.mock`, or sinon usage found. Tests are integration-level throughout — they use real implementations rather than doubled dependencies. This is appropriate for a library (no external I/O outside CLI FS operations), but the CLI tests writing real temp directories make them slower and environment-sensitive.
-
-The `afterEach` cleanup in `cli.test.ts` mitigates state leakage; confirm it runs on test failure too (use `try/finally` pattern in fixtures rather than bare `afterEach`).
-
----
-
-## 3. Test Pyramid Assessment
-
-| Layer | Count | LOC | % of test LOC |
-|-------|------:|----:|:--------------|
-| Unit (`tests/unit/`) | 29 | 11,783 | 68% |
-| Browser (`tests/browser/`) | 5 | 1,823 | 11% |
-| E2E (`tests/e2e/`) | 1 | 398 | 2% |
-| Smoke/Audit scripts | 9 | ~75,000 est. | — |
-| **Total vitest** | **35** | **17,206** | 100% |
-
-For a library, unit-heavy is correct. The pyramid is appropriate. The gap is not ratio but **completeness**: 4 modules ≥500 LOC lack direct coverage, coverage thresholds are not enforced, and the smoke scripts substitute for a real integration test layer without the isolation benefits of a test framework (no describe/it, no per-test cleanup, single try/catch).
-
----
-
-## 4. CI Gating Analysis (`pnpm test:ci`)
-
-```
-lint → typecheck → test:docs-contract → test:api-docs → docs:build
-→ test:assets → test:workspace → test:workflows → build
-→ test:cli → expectations → test → test:package → test:consumer → pack:dry-run
-```
-
-**Observations:**
-- `pnpm test` runs unit tests only (`vitest.config.ts` includes only `tests/unit/**`).
-- `pnpm test:visual` is NOT in `test:ci`. Browser/visual tests are excluded from the CI gate.
-- `pnpm test:consumer` runs `smoke-packed-consumer.ts` — the 2,490 LOC single try/catch script.
-- No coverage threshold check in the gate (`pnpm test --coverage` not called).
-- `expectations` runs only 3 test files (simulation, examples, simple-rpg) — duplicated subset of `test`.
-- Browser regression failures would not block a merge.
-
----
-
-## 5. Tests to Add for 1.0 — Prioritized List
-
-| Priority | Test | File | Addresses |
-|:--------:|------|------|-----------|
-| 1 | Coverage thresholds in vitest.config.ts | `vitest.config.ts` | C-2 |
-| 2 | `manifest/free` direct unit tests (structure, uniqueness, lookup) | `tests/unit/manifest-free.test.ts` | C-1 |
-| 3 | Cross-process determinism assertion | `scripts/smoke-built-cli.ts` | C-3 |
-| 4 | Public API export surface snapshot | `tests/unit/public-api.test.ts` | H-1 |
-| 5 | CLI path traversal + `__proto__` hostile inputs | `tests/unit/cli-security.test.ts` | H-2, S-H1, S-H2 |
-| 6 | `patrol` unit tests (route construction, conflicts, edge cases) | `tests/unit/patrol.test.ts` | H-3 |
-| 7 | `manifest/schema` validation edge cases and error paths | `tests/unit/manifest-free.test.ts` or new file | H-4 |
-| 8 | Smoke script phase isolation refactor | `scripts/smoke-packed-consumer.ts` | H-5 |
-| 9 | CLI cold-start perf assertion (<500ms) | `scripts/smoke-built-cli.ts` | M-1 |
-| 10 | Bundle size gate | `.size-limit.json` + CI step | M-2 |
-| 11 | `coordinates` unit tests (hex math, edge, shape) | `tests/unit/coordinates.test.ts` | M-3 |
-| 12 | `projection` unit tests | `tests/unit/projection.test.ts` | M-3 |
-| 13 | `occupancy` unit tests (footprint conflict, multi-unit) | `tests/unit/occupancy.test.ts` | M-4 |
-| 14 | Add `test:visual` to `test:ci` gate | `package.json` | implicit |
-| 15 | Enable `sequence: { shuffle: true }` in vitest config | `vitest.config.ts` | M-5 |
-| 16 | React hook unit tests (error boundary, re-render, type constraints) | `tests/browser/react-bindings.test.ts` | M-6 |
-
----
-
-## 6. Top 5 Testing Priorities
-
-1. **Add coverage thresholds** (C-2) — zero cost, immediate gate. Without it, every other gap is invisible to CI.
-2. **`manifest/free` direct unit tests** (C-1) — largest module, zero direct coverage. Any internal regression passes all 35 test files.
-3. **Cross-process determinism test** (C-3) — the determinism guarantee is the seed contract; structural toEqual within one process does not prove it.
-4. **Public API export snapshot** (H-1) — catches removed symbols before they reach consumers; 10-line test, permanent protection.
-5. **CLI security hostile-input tests** (H-2) — path traversal and prototype pollution are identified security findings (S-H1, S-H2) with zero test coverage; must be remediated before 1.0 release.
+## Note for the architecture reviewer
+The mock-injection fix for S-1 is the natural lever to also resolve **H-2**
+(production `_shared.ts:4-7` importing from `tests/integration/`): introduce an
+injectable HTTP/source seam so production code depends on an interface, tests
+supply the fake, and the test→prod import inversion disappears. Test design and
+the layering fix are the same change.

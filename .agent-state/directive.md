@@ -141,6 +141,67 @@ Started: 2026-05-28T10:33:51Z
 
 - [x] **F-Audit-7b-equiv** — ✅ Migrated all six `docs/guides/*.md` legacy files into `docs-site/src/content/docs/guides/` with canonical-URL redirect notes pointing back. The legacy `docs/guides/*.md` files stay (load-bearing in `src/scenario/catalog.ts` at lines 1366/1515/1557/1571/1614/1653/1673) with a top-of-file canonical pointer; the docs-site versions are the human-facing canonical with Starlight frontmatter. Six files: guide-scenario-coverage, public-api, recipes-scenarios-and-simulation, release-readiness, rendering-assets-and-external-packs, runtime-integration.
 
+## Phase CR — Comprehensive Review Action Queue (2026-05-28)
+
+Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered by priority: P0 must ship before next release; P1 before next release but can batch; P2 sprint-level; P3 backlog.
+
+### P0 — Critical (must fix before next release)
+
+- [ ] **CR-P0-1** — Enable `main` branch protection + required status checks: lint/typecheck/build/test/Semgrep/dependency-review/docs-site. Manage as code (`gh api` script). [CI-1]
+- [ ] **CR-P0-2** — Remove `release-as: "1.0.0"` from `release-please-config.json` (one-line; current value freezes ALL future releases at 1.0.0). [CI-2]
+- [ ] **CR-P0-3** — Move `react`/`three`/`koota` to `peerDependencies` + `peerDependenciesMeta` (optional for react/three); remove `react-dom` from deps (unused in src/); move `@types/react` to devDependencies. [BP-1, BP-2]
+- [ ] **CR-P0-4** — Add bootstrap security unit tests: (a) redirect allowlist via `vi.mock('node:https')`, (b) live `extractZipTo` zip-slip via `yazl` hostile entry, (c) zip-bomb ceiling declared-size + streaming abort + exact-boundary. Requires injectable HTTP seam in `openHttpsStream`. [S-2]
+- [ ] **CR-P0-5** — Harden `readJson<T>`: make return type `unknown`; add `readValidatedJson` with schema validation for `--scenario`/`--plan`/`--script`/`--recipe`/`--groups` entry points; add file-size ceiling (10 MB) before `readFileSync`. Add error-contract tests for all 5 flags (malformed/wrong-shape/missing-file). [H-3, BP-3, S-5]
+
+### P1 — High (fix before next release, can batch)
+
+- [ ] **CR-P1-1** — Add pathfinding golden-path oracle + `visited`-ceiling regression guard BEFORE A* heap refactor. Then replace `Set<string>` open list + `lowestScoreKey` linear scan with a binary min-heap in `findHexPath` + `reachableGameboardTiles`. [P-1, S-5]
+- [ ] **CR-P1-2** — Move `listSimpleRpgGuidePublicApiExercises`, `runSimpleRpgExecutableGuideApiSmoke`, `summarizeSimpleRpgGuidePublicApiExercises` from `tests/integration/` to `src/guides/simple-rpg/` — invert the `_shared.ts:3-7` production→test import. [H-2, CQ-8]
+- [ ] **CR-P1-3** — Sanitize `--commit` ref: add `SAFE_REF = /^[a-zA-Z0-9._\-\/]{1,200}$/` guard + `encodeURIComponent` in `src/config/index.ts`; update `smoke.test.ts:36` (currently pins the vulnerable raw-interpolation contract). [H-1, S-4]
+- [ ] **CR-P1-4** — ECS entity lookup O(1): add `WeakMap<World, Map<string, Entity>>` indexes for tile-key and placement-id in `koota.ts`; update spawn/destroy hooks. Thread `tileIndex` through `spawnGameboardPlacement` for bulk load. [P-2, P-9]
+- [ ] **CR-P1-5** — Pre-compute `isKnownExtraAssetId` set at module init (`Set<string>`). [P-3]
+- [ ] **CR-P1-6** — Add `coverage` CI job running `pnpm test:coverage:enforce` as a required status check. [S-1, H-3/CI]
+- [ ] **CR-P1-7** — `bootstrap-nightly.yml`: SHA-pin all 4 actions; set `HEX_WORLDS_OUT_ROOT: /tmp`; add `on: pull_request: paths: ['src/cli/commands/bootstrap/**']`. [CI-4]
+- [ ] **CR-P1-8** — `src/simulation/engine.ts:663-665`: null-check `.at(-1)` result; throw `GameboardRuntimeError` with actor ID + spawnGroupId. [CQ-4, M-1/Sec]
+- [ ] **CR-P1-9** — Guard `release.yml` publish step with `if: github.event_name == 'release'` to prevent accidental `workflow_dispatch` publishes. [CI-8]
+- [ ] **CR-P1-10** — Fix `bootstrap/core.ts:588` `new URL(import.meta.url).pathname` → `import.meta.dirname` (Windows-broken, Node 22 native already used repo-wide). [BP-4]
+
+### P2 — Medium (plan for next sprint)
+
+- [ ] **CR-P2-1** — `_shared.ts` decomposition: per-command files; extract `emitOutput()` helper; fix `commandHandlerMutations` to throw `GameboardRuntimeError` on `never`. [CQ-1, CQ-2]
+- [ ] **CR-P2-2** — `findGameboardPath`/`reachableGameboardTiles` default-arg Map allocations: route through `gameboardPlanIndex` WeakMap. [P-4]
+- [ ] **CR-P2-3** — System tick allocation: remove `[...world.query(...)]` spreads (patrol.ts:227, movement.ts:421); flatten `flatMap`+spread in `runGameboardSystems` event array. [P-5, P-7]
+- [ ] **CR-P2-4** — `freeManifest` 380 KB eager import in `gameboard.ts`: convert static import to dynamic `import()` inside functions that need it. [P-8]
+- [ ] **CR-P2-5** — `useGameboardDerivedRevision` 30+ subscriptions: domain-split revision counters + microtask coalescing. [P-10]
+- [ ] **CR-P2-6** — `stageFromZip`/`downloadGithubArchiveZip`: restructure cleanup to `try/finally`. [M-3/Sec]
+- [ ] **CR-P2-7** — `readSidecar`: add `statSync` file-size ceiling + `files.length` sanity bound. [L-2/Sec]
+- [ ] **CR-P2-8** — `walkFilesInternal`: add warning + count assertion when symlinks encountered. [L-3/Sec]
+- [ ] **CR-P2-9** — `koota.ts:16` dependency inversion: move `isKnownExtraAssetId` out of `scenario` domain; require callers to pass `requiresExtra` explicitly or move to `src/types/`. [AR-1]
+- [ ] **CR-P2-10** — `ci.yml` check matrix: unify pnpm/setup-node SHAs across all jobs (or drop artifact-share in favor of per-job pnpm cache — benchmark first). [CI-3]
+- [ ] **CR-P2-11** — Release: add post-publish `npm audit signatures` verify + write `ROLLBACK.md` runbook. [CI-7]
+- [ ] **CR-P2-12** — `automerge.yml`: reassess release-please auto-merge after CR-P0-1 branch protection lands. [CI-6]
+- [ ] **CR-P2-13** — Docs: fix CLI reference rename artifact in `generate-cli-reference.ts` template (H-DOC-1); add rename narrative to CHANGELOG.md 1.0.0 entry + `docs-site/guides/migration.md` (H-DOC-2); add JSON-flag schema/error-contract subsection to CLI reference (H-DOC-3); add `HEX_WORLDS_OUT_ROOT` danger aside (M-DOC-1).
+- [ ] **CR-P2-14** — Remove 3 `it.skip` stubs in `cli.test.ts:219,1426,1922`; tighten `__proto__` prototype-pollution test to assert guard message. [S-6, S-7]
+- [ ] **CR-P2-15** — `requirePlacementState` deep spread: only deep-copy on final result snapshot. [P-6]
+- [ ] **CR-P2-16** — `tsconfig.json`: remove `ignoreDeprecations: "6.0"`; fix surfaced TS-6 warnings. [BP-6]
+- [ ] **CR-P2-17** — tsup: `treeshake: true` explicit; resolve honeycomb-grid/seedrandom/citty/yauzl bundle-vs-external (pick one model, not both); add size-budget test. [BP-7]
+- [ ] **CR-P2-18** — `release.yml`: pin `npm install -g npm@<version>` (drop `@latest`); add `@cyclonedx/cyclonedx-npm` as pinned devDependency. [CI-10, CI-11]
+
+### P3 — Backlog
+
+- [ ] **CR-P3-1** — Architecture decomposition: `simulation/script.ts` (3,163 lines → script-types/validators/index); `gameboard/gameboard.ts` (2,228 lines → plan/spawn-groups/terrain); `systems/systems.ts` (900 lines → command/tick/events); `scenario/catalog.ts` (2,401 lines). [AR-4, AR-5, AR-6]
+- [ ] **CR-P3-2** — `noRestrictedImports` enforcement gaps: add `../interop/internal`, `../internal/predicates`, `../traits/*` deep paths, `../config/*` deep paths. Add `.js` variants for 35 of 36 restricted paths. [AR-10, BP-8]
+- [ ] **CR-P3-3** — `interop/coverage.ts` cohesion: document release-tooling vs runtime interop distinction in architecture.md; or extract to `src/release/`. [AR-7]
+- [ ] **CR-P3-4** — Branded types: track migration status per domain; add "NOT yet enforced" caveat to `public-api.md`. [AR-8, M-DOC-4]
+- [ ] **CR-P3-5** — `useStableOptions` JSON.stringify: add empty-options fast-path. [P-11]
+- [ ] **CR-P3-6** — Add nightly bench workflow with artifact upload (no perf signal on any merge currently). [T-bench]
+- [ ] **CR-P3-7** — Inline docs: A* algorithm commentary in `findHexPath`; patrol state-machine diagram above `advancePatrolEntity`; simulation/script.ts section map; `docs/` vs `docs-site/` canonical pointer in CONTRIBUTING.md. [L-DOC-1, L-DOC-2, M-DOC-5, L-DOC-3]
+- [ ] **CR-P3-8** — `CI_GITHUB_TOKEN` PAT → repo-scoped GitHub App token. [CI-9]
+- [ ] **CR-P3-9** — `interop/internal` barrel: re-export `GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS` via `interop/index.ts`; fix `_shared.ts:57` direct internal import. [L-1/Sec, AR-2]
+- [ ] **CR-P3-10** — `advancePatrolEntity` state-machine refactor (8 early-return branches, 4 mutable writes). [CQ-7]
+- [ ] **CR-P3-11** — `hashFile` missing `'close'` event: use `stream/promises pipeline`. [CQ-9]
+- [ ] **CR-P3-12** — `simulation/simulation.ts` dead double-shim: collapse into `index.ts`. [AR-3]
+
 ## Self-assessment after each commit
 
 1. What did I just ship? Did the visual / behavior match the spec doc?
