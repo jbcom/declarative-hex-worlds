@@ -4,7 +4,19 @@
  *
  * @module
  */
-import { containsHex, findHexPath, hexDistance, hexKey, neighbors } from '../coordinates';
+import {
+  axialToWorld,
+  containsHex,
+  createSpawnLocations,
+  findHexPath,
+  hexDistance,
+  hexKey,
+  neighbors,
+  type SpawnLocation,
+  type SpawnLocationOptions,
+} from '../coordinates';
+import { GameboardRuntimeError } from '../errors';
+import type { HexCoordinates } from '../types';
 import type {
   GameboardPlacementKind,
   GameboardPlacementLayer,
@@ -13,18 +25,7 @@ import type {
   GameboardTerrain,
   GameboardTileSpec,
 } from './gameboard';
-import {
-  axialToWorld,
-  createSpawnLocations,
-  type SpawnLocation,
-  type SpawnLocationOptions,
-} from '../coordinates';
-import {
-  gameboardPlacementBlocksOccupancy,
-  gameboardPlacementFootprintKeys,
-} from './occupancy';
-import { GameboardRuntimeError } from '../errors';
-import type { HexCoordinates } from '../types';
+import { gameboardPlacementBlocksOccupancy, gameboardPlacementFootprintKeys } from './occupancy';
 
 /**
  * Pathfinding profile for terrain, elevation, occupancy, and custom movement rules.
@@ -105,7 +106,10 @@ export interface GameboardNavigation {
   /** Return neighboring tiles inside the board. */
   neighbors: (coordinates: HexCoordinates | string) => GameboardTileSpec[];
   /** Find a path between two tiles. */
-  findPath: (start: HexCoordinates | string, goal: HexCoordinates | string) => GameboardNavigationPathResult;
+  findPath: (
+    start: HexCoordinates | string,
+    goal: HexCoordinates | string
+  ) => GameboardNavigationPathResult;
   /** Return tiles reachable from a start tile within a movement budget. */
   reachable: (start: HexCoordinates | string, movementBudget: number) => GameboardReachableTile[];
 }
@@ -323,8 +327,7 @@ export interface GameboardPatrolRouteSegment {
 /**
  * Options for planning one patrol route.
  */
-export interface GameboardPatrolRouteOptions
-  extends Omit<GameboardSpawnLocationOptions, 'count'> {
+export interface GameboardPatrolRouteOptions extends Omit<GameboardSpawnLocationOptions, 'count'> {
   /** Route id. */
   id?: string;
   /** Requested waypoint count. */
@@ -348,8 +351,7 @@ export interface GameboardPatrolRouteOptions
 /**
  * Named patrol route rule for route-set planning.
  */
-export interface GameboardPatrolRouteRule
-  extends Omit<GameboardPatrolRouteOptions, 'spawnGroups'> {
+export interface GameboardPatrolRouteRule extends Omit<GameboardPatrolRouteOptions, 'spawnGroups'> {
   /** Stable route id. */
   id: string;
 }
@@ -475,8 +477,10 @@ export function createGameboardNavigation(
   const occupancy = createGameboardOccupancyIndex(plan, normalized);
 
   const tileAt = (coordinates: HexCoordinates | string) => tilesByKey.get(keyFor(coordinates));
-  const placementsAt = (coordinates: HexCoordinates | string) => occupancy.byTileKey.get(keyFor(coordinates)) ?? [];
-  const isBlocked = (coordinates: HexCoordinates | string) => occupancy.blockingTileKeys.has(keyFor(coordinates));
+  const placementsAt = (coordinates: HexCoordinates | string) =>
+    occupancy.byTileKey.get(keyFor(coordinates)) ?? [];
+  const isBlocked = (coordinates: HexCoordinates | string) =>
+    occupancy.blockingTileKeys.has(keyFor(coordinates));
   const canEnter = (coordinates: HexCoordinates | string, from?: HexCoordinates | string) =>
     canEnterTile(plan, normalized, tilesByKey, occupancy, coordinates, from);
   const movementCost = (from: HexCoordinates | string, to: HexCoordinates | string) =>
@@ -496,7 +500,8 @@ export function createGameboardNavigation(
       neighbors(coordinatesFor(coordinates))
         .map((candidate) => tileAt(candidate))
         .filter((tile): tile is GameboardTileSpec => tile !== undefined),
-    findPath: (start, goal) => findGameboardPath(plan, start, goal, normalized, tilesByKey, occupancy),
+    findPath: (start, goal) =>
+      findGameboardPath(plan, start, goal, normalized, tilesByKey, occupancy),
     reachable: (start, movementBudget) =>
       reachableGameboardTiles(plan, start, movementBudget, normalized, tilesByKey, occupancy),
   };
@@ -510,7 +515,9 @@ export function findGameboardPath(
   start: HexCoordinates | string,
   goal: HexCoordinates | string,
   profile: GameboardNavigationProfile = {},
-  tilesByKey: ReadonlyMap<string, GameboardTileSpec> = new Map(plan.tiles.map((tile) => [tile.key, tile])),
+  tilesByKey: ReadonlyMap<string, GameboardTileSpec> = new Map(
+    plan.tiles.map((tile) => [tile.key, tile])
+  ),
   occupancy: GameboardOccupancyIndex = createGameboardOccupancyIndex(plan, profile)
 ): GameboardNavigationPathResult {
   const normalized = normalizeNavigationProfile(profile);
@@ -521,10 +528,16 @@ export function findGameboardPath(
   if (!startTile || !goalTile) {
     return { found: false, path: [], coordinates: [], cost: Number.POSITIVE_INFINITY, visited: 0 };
   }
-  if (!normalized.allowStartBlocked && !canEnterTile(plan, normalized, tilesByKey, occupancy, startCoordinates)) {
+  if (
+    !normalized.allowStartBlocked &&
+    !canEnterTile(plan, normalized, tilesByKey, occupancy, startCoordinates)
+  ) {
     return { found: false, path: [], coordinates: [], cost: Number.POSITIVE_INFINITY, visited: 0 };
   }
-  if (!normalized.allowGoalBlocked && !canEnterTile(plan, normalized, tilesByKey, occupancy, goalCoordinates, startCoordinates)) {
+  if (
+    !normalized.allowGoalBlocked &&
+    !canEnterTile(plan, normalized, tilesByKey, occupancy, goalCoordinates, startCoordinates)
+  ) {
     return { found: false, path: [], coordinates: [], cost: Number.POSITIVE_INFINITY, visited: 0 };
   }
 
@@ -559,7 +572,9 @@ export function reachableGameboardTiles(
   start: HexCoordinates | string,
   movementBudget: number,
   profile: GameboardNavigationProfile = {},
-  tilesByKey: ReadonlyMap<string, GameboardTileSpec> = new Map(plan.tiles.map((tile) => [tile.key, tile])),
+  tilesByKey: ReadonlyMap<string, GameboardTileSpec> = new Map(
+    plan.tiles.map((tile) => [tile.key, tile])
+  ),
   occupancy: GameboardOccupancyIndex = createGameboardOccupancyIndex(plan, profile)
 ): GameboardReachableTile[] {
   const normalized = normalizeNavigationProfile(profile);
@@ -570,11 +585,16 @@ export function reachableGameboardTiles(
   }
 
   const costByKey = new Map<string, number>([[startTile.key, 0]]);
-  const open = new Set<string>([startTile.key]);
+  const heap = navHeapCreate();
+  navHeapPush(heap, [0, startTile.key]);
 
-  while (open.size > 0) {
-    const currentKey = lowestCostKey(open, costByKey);
-    open.delete(currentKey);
+  while (heap.length > 0) {
+    // biome-ignore lint/style/noNonNullAssertion: heap non-empty by loop guard
+    const [heapCost, currentKey] = navHeapPop(heap)!;
+    const recordedCost = costByKey.get(currentKey);
+    if (recordedCost === undefined || heapCost > recordedCost) {
+      continue;
+    }
     const current = tilesByKey.get(currentKey);
     if (!current) {
       continue;
@@ -584,7 +604,16 @@ export function reachableGameboardTiles(
       if (!containsHex(plan.shape, adjacentCoordinates)) {
         continue;
       }
-      if (!canEnterTile(plan, normalized, tilesByKey, occupancy, adjacentCoordinates, current.coordinates)) {
+      if (
+        !canEnterTile(
+          plan,
+          normalized,
+          tilesByKey,
+          occupancy,
+          adjacentCoordinates,
+          current.coordinates
+        )
+      ) {
         continue;
       }
       const adjacent = tilesByKey.get(hexKey(adjacentCoordinates));
@@ -592,13 +621,22 @@ export function reachableGameboardTiles(
         continue;
       }
       const nextCost =
-        (costByKey.get(currentKey) ?? Number.POSITIVE_INFINITY) +
-        movementCostBetween(normalized, tilesByKey, occupancy, current.coordinates, adjacent.coordinates);
-      if (nextCost > movementBudget || nextCost >= (costByKey.get(adjacent.key) ?? Number.POSITIVE_INFINITY)) {
+        recordedCost +
+        movementCostBetween(
+          normalized,
+          tilesByKey,
+          occupancy,
+          current.coordinates,
+          adjacent.coordinates
+        );
+      if (
+        nextCost > movementBudget ||
+        nextCost >= (costByKey.get(adjacent.key) ?? Number.POSITIVE_INFINITY)
+      ) {
         continue;
       }
       costByKey.set(adjacent.key, nextCost);
-      open.add(adjacent.key);
+      navHeapPush(heap, [nextCost, adjacent.key]);
     }
   }
 
@@ -608,7 +646,12 @@ export function reachableGameboardTiles(
       return tile ? { tile, coordinates: tile.coordinates, cost } : undefined;
     })
     .filter((tile): tile is GameboardReachableTile => tile !== undefined)
-    .sort((left, right) => left.cost - right.cost || left.tile.coordinates.r - right.tile.coordinates.r || left.tile.coordinates.q - right.tile.coordinates.q);
+    .sort(
+      (left, right) =>
+        left.cost - right.cost ||
+        left.tile.coordinates.r - right.tile.coordinates.r ||
+        left.tile.coordinates.q - right.tile.coordinates.q
+    );
 }
 
 /**
@@ -656,13 +699,14 @@ export function planGameboardSpawnGroups(
     const navigation = createGameboardNavigation(plan, profile);
     const candidates = spawnCandidateCoordinates(plan, navigation, rule);
     const minDistanceFromGroups = Math.max(0, Math.floor(rule.minDistanceFromGroups ?? 0));
-    const filteredCandidates = minDistanceFromGroups > 0
-      ? candidates.filter((candidate) =>
-          selectedLocations.every(
-            (location) => hexDistance(location.coordinates, candidate) >= minDistanceFromGroups
+    const filteredCandidates =
+      minDistanceFromGroups > 0
+        ? candidates.filter((candidate) =>
+            selectedLocations.every(
+              (location) => hexDistance(location.coordinates, candidate) >= minDistanceFromGroups
+            )
           )
-        )
-      : candidates;
+        : candidates;
     const locations = createSpawnLocations({
       ...rule,
       seed: rule.seed ?? `${seed}:${rule.id}`,
@@ -672,13 +716,17 @@ export function planGameboardSpawnGroups(
     });
 
     if (locations.length < rule.count) {
-      errors.push(`Spawn group ${rule.id} selected ${locations.length}/${rule.count} requested location(s)`);
+      errors.push(
+        `Spawn group ${rule.id} selected ${locations.length}/${rule.count} requested location(s)`
+      );
     }
 
     const routeChecks = (rule.pathToGroups ?? []).map((targetGroupId) => {
       const targetGroup = groupsById.get(targetGroupId);
       if (!targetGroup) {
-        errors.push(`Spawn group ${rule.id} references unknown route target group ${targetGroupId}`);
+        errors.push(
+          `Spawn group ${rule.id} references unknown route target group ${targetGroupId}`
+        );
         return emptySpawnGroupRoute(rule.id, targetGroupId);
       }
       const route = bestSpawnGroupRoute(
@@ -711,7 +759,9 @@ export function planGameboardSpawnGroups(
   }
 
   const routeChecks = groups.flatMap((group) => [...group.routeChecks]);
-  const warnings = groups.flatMap((group) => group.warnings.map((warning) => `${group.id}: ${warning}`));
+  const warnings = groups.flatMap((group) =>
+    group.warnings.map((warning) => `${group.id}: ${warning}`)
+  );
   const errors = groups.flatMap((group) => group.errors.map((error) => `${group.id}: ${error}`));
 
   return {
@@ -753,7 +803,11 @@ export function planGameboardPatrolRoute(
   const startWaypoint = resolvePatrolStartWaypoint(candidateNavigation, id, options, errors);
   const existingWaypoints = startWaypoint ? [startWaypoint] : [];
   const generatedCount = Math.max(0, requestedWaypointCount - existingWaypoints.length);
-  const generatedCandidates = patrolWaypointCandidates(candidateNavigation, options, existingWaypoints);
+  const generatedCandidates = patrolWaypointCandidates(
+    candidateNavigation,
+    options,
+    existingWaypoints
+  );
   const generatedWaypoints = createSpawnLocations({
     ...options,
     count: generatedCount,
@@ -761,11 +815,13 @@ export function planGameboardPatrolRoute(
     idPrefix: options.idPrefix ?? `patrol:${id}`,
     shape: plan.shape,
     candidates: generatedCandidates,
-  }).map((waypoint): GameboardPatrolWaypoint => ({
-    ...waypoint,
-    index: 0,
-    source: 'generated',
-  }));
+  }).map(
+    (waypoint): GameboardPatrolWaypoint => ({
+      ...waypoint,
+      index: 0,
+      source: 'generated',
+    })
+  );
 
   const waypoints = normalizePatrolWaypointIndexes([...existingWaypoints, ...generatedWaypoints]);
   if (waypoints.length < requestedWaypointCount) {
@@ -790,7 +846,9 @@ export function planGameboardPatrolRoute(
     segments.every((segment) => segment.found);
 
   if (!loop && waypoints.length > 1 && segments.length === 0) {
-    warnings.push(`Patrol route ${id} has no segments because loop is disabled and fewer than 2 waypoints were selected`);
+    warnings.push(
+      `Patrol route ${id} has no segments because loop is disabled and fewer than 2 waypoints were selected`
+    );
   }
 
   return {
@@ -848,7 +906,9 @@ export function planGameboardPatrolRoutes(
   };
 }
 
-function normalizeNavigationProfile(profile: GameboardNavigationProfile): RequiredGameboardNavigationProfile {
+function normalizeNavigationProfile(
+  profile: GameboardNavigationProfile
+): RequiredGameboardNavigationProfile {
   return {
     ...DEFAULT_NAVIGATION_PROFILE,
     ...profile,
@@ -860,7 +920,9 @@ function normalizeNavigationProfile(profile: GameboardNavigationProfile): Requir
     blockingPlacementLayers: [
       ...(profile.blockingPlacementLayers ?? DEFAULT_NAVIGATION_PROFILE.blockingPlacementLayers),
     ],
-    ignorePlacementIds: [...(profile.ignorePlacementIds ?? DEFAULT_NAVIGATION_PROFILE.ignorePlacementIds)],
+    ignorePlacementIds: [
+      ...(profile.ignorePlacementIds ?? DEFAULT_NAVIGATION_PROFILE.ignorePlacementIds),
+    ],
   };
 }
 
@@ -889,7 +951,14 @@ function canEnterTile(
   if (occupancy.blockingTileKeys.has(tile.key)) {
     return false;
   }
-  return profile.canEnter?.(tile, { plan, from: fromTile, to: tile, placements: occupancy.byTileKey.get(tile.key) ?? [] }) ?? true;
+  return (
+    profile.canEnter?.(tile, {
+      plan,
+      from: fromTile,
+      to: tile,
+      placements: occupancy.byTileKey.get(tile.key) ?? [],
+    }) ?? true
+  );
 }
 
 function movementCostBetween(
@@ -981,7 +1050,10 @@ function betterSpawnGroupRoute(
   if (candidate.pathKeys.length !== current.pathKeys.length) {
     return candidate.pathKeys.length < current.pathKeys.length;
   }
-  return `${candidate.fromKey ?? ''}:${candidate.toKey ?? ''}` < `${current.fromKey ?? ''}:${current.toKey ?? ''}`;
+  return (
+    `${candidate.fromKey ?? ''}:${candidate.toKey ?? ''}` <
+    `${current.fromKey ?? ''}:${current.toKey ?? ''}`
+  );
 }
 
 function emptySpawnGroupRoute(fromGroupId: string, toGroupId: string): GameboardSpawnGroupRoute {
@@ -1049,7 +1121,9 @@ function resolvePatrolStartWaypoint(
     );
     return undefined;
   }
-  const group = options.spawnGroups.groups.find((candidate) => candidate.id === options.startGroupId);
+  const group = options.spawnGroups.groups.find(
+    (candidate) => candidate.id === options.startGroupId
+  );
   if (!group) {
     errors.push(`Patrol route ${routeId} references unknown spawn group ${options.startGroupId}`);
     return undefined;
@@ -1140,9 +1214,7 @@ function routePatrolWaypoints(
   });
 }
 
-function combinePatrolSegmentPathKeys(
-  segments: readonly GameboardPatrolRouteSegment[]
-): string[] {
+function combinePatrolSegmentPathKeys(segments: readonly GameboardPatrolRouteSegment[]): string[] {
   const pathKeys: string[] = [];
   for (const segment of segments) {
     for (const key of segment.pathKeys) {
@@ -1154,17 +1226,62 @@ function combinePatrolSegmentPathKeys(
   return pathKeys;
 }
 
-function lowestCostKey(open: ReadonlySet<string>, costByKey: ReadonlyMap<string, number>): string {
-  let bestKey = '';
-  let bestCost = Number.POSITIVE_INFINITY;
-  for (const key of open) {
-    const cost = costByKey.get(key) ?? Number.POSITIVE_INFINITY;
-    if (cost < bestCost) {
-      bestCost = cost;
-      bestKey = key;
+type NavHeap = [number, string][] & { _cmp: (a: [number, string], b: [number, string]) => number };
+
+function navHeapCreate(): NavHeap {
+  const h = [] as unknown as NavHeap;
+  h._cmp = (a, b) => a[0] - b[0];
+  return h;
+}
+
+function navHeapPush(heap: NavHeap, value: [number, string]): void {
+  heap.push(value);
+  let i = heap.length - 1;
+  while (i > 0) {
+    const parent = (i - 1) >> 1;
+    const child = heap[i];
+    const par = heap[parent];
+    if (child !== undefined && par !== undefined && heap._cmp(child, par) < 0) {
+      heap[i] = par;
+      heap[parent] = child;
+      i = parent;
+    } else {
+      break;
     }
   }
-  return bestKey;
+}
+
+function navHeapPop(heap: NavHeap): [number, string] | undefined {
+  if (heap.length === 0) return undefined;
+  const top = heap[0];
+  if (top === undefined) return undefined;
+  const last = heap.pop();
+  if (heap.length > 0 && last !== undefined) {
+    heap[0] = last;
+    let i = 0;
+    for (;;) {
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+      let smallest = i;
+      const lv = heap[left];
+      const sv = heap[smallest];
+      if (left < heap.length && lv !== undefined && sv !== undefined && heap._cmp(lv, sv) < 0)
+        smallest = left;
+      const rv = heap[right];
+      const sv2 = heap[smallest];
+      if (right < heap.length && rv !== undefined && sv2 !== undefined && heap._cmp(rv, sv2) < 0)
+        smallest = right;
+      if (smallest === i) break;
+      const tmp = heap[i];
+      const sm = heap[smallest];
+      if (tmp !== undefined && sm !== undefined) {
+        heap[i] = sm;
+        heap[smallest] = tmp;
+      }
+      i = smallest;
+    }
+  }
+  return top;
 }
 
 function coordinatesFor(coordinates: HexCoordinates | string): HexCoordinates {
@@ -1189,11 +1306,17 @@ function matchesTerrain(
   return !allowed || (typeof allowed === 'string' ? [allowed] : [...allowed]).includes(terrain);
 }
 
-function containsRequiredTags(tags: readonly string[], required: readonly string[] | undefined): boolean {
+function containsRequiredTags(
+  tags: readonly string[],
+  required: readonly string[] | undefined
+): boolean {
   return !required || required.every((tag) => tags.includes(tag));
 }
 
-function containsExcludedTags(tags: readonly string[], excluded: readonly string[] | undefined): boolean {
+function containsExcludedTags(
+  tags: readonly string[],
+  excluded: readonly string[] | undefined
+): boolean {
   return Boolean(excluded?.some((tag) => tags.includes(tag)));
 }
 
