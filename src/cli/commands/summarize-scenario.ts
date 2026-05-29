@@ -9,6 +9,7 @@ import {
 import { GameboardCliError } from '../../errors';
 import {
   readJson,
+  relativizePath,
   validationConfigFromArgs,
   summaryOptionsFromFlags,
   printViolations,
@@ -31,7 +32,13 @@ function runSummarizeScenario(
     throw new GameboardCliError('summarize-scenario requires --scenario <path>');
   }
   const scenarioPath = resolve(parsed.flags.scenario);
-  const scenario = readJson(scenarioPath) as GameboardScenario;
+  const scenarioRaw = readJson(scenarioPath);
+  if (typeof scenarioRaw !== 'object' || scenarioRaw === null || Array.isArray(scenarioRaw)) {
+    throw new GameboardCliError(
+      `Scenario file ${relativizePath(scenarioPath)} must be a JSON object`
+    );
+  }
+  const scenario = scenarioRaw as GameboardScenario;
   const summary = summarizeGameboardScenario(scenario, {
     plan: validationConfigFromArgs(parsed, sourceRoot, edition),
     topAssetLimit: summaryOptionsFromFlags(parsed.flags).topAssetLimit,

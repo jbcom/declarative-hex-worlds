@@ -70,6 +70,14 @@ function pieceOverridesFromArgs(
   const payload = raw as Record<string, GameboardPieceCompatibilityDeclarationOptions> & {
     overrides?: Record<string, GameboardPieceCompatibilityDeclarationOptions>;
   };
+  if (
+    payload.overrides !== undefined &&
+    (typeof payload.overrides !== 'object' || payload.overrides === null || Array.isArray(payload.overrides))
+  ) {
+    throw new GameboardCliError(
+      `Piece overrides file ${relativizePath(path)} "overrides" property must be a JSON object`
+    );
+  }
   return payload.overrides ?? payload;
 }
 

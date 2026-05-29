@@ -7,6 +7,7 @@ import { GameboardCliError } from '../../errors';
 import {
   readJson,
   readSimulationScript,
+  relativizePath,
   validationConfigFromArgs,
   printViolations,
   safeResolveOutput,
@@ -29,7 +30,13 @@ function runValidateSimulation(
     throw new GameboardCliError('validate-simulation requires --script <path>');
   }
 
-  const scenario = readJson(resolve(parsed.flags.scenario)) as GameboardScenario;
+  const scenarioRaw = readJson(resolve(parsed.flags.scenario));
+  if (typeof scenarioRaw !== 'object' || scenarioRaw === null || Array.isArray(scenarioRaw)) {
+    throw new GameboardCliError(
+      `Scenario file ${relativizePath(String(parsed.flags.scenario))} must be a JSON object`
+    );
+  }
+  const scenario = scenarioRaw as GameboardScenario;
   const scenarioInspection = inspectGameboardScenario(scenario, {
     plan: validationConfigFromArgs(parsed, sourceRoot, edition),
   });

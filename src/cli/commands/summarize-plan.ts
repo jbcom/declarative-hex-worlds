@@ -132,7 +132,11 @@ function summaryPlanFromArgs(
 
   if (typeof parsed.flags.plan === 'string') {
     const path = resolve(parsed.flags.plan);
-    const plan = readJson(path) as GameboardPlan;
+    const planRaw = readJson(path);
+    if (typeof planRaw !== 'object' || planRaw === null || Array.isArray(planRaw)) {
+      throw new GameboardCliError(`Plan file ${relativizePath(path)} must be a JSON object`);
+    }
+    const plan = planRaw as GameboardPlan;
     return {
       source: { kind: 'plan', path },
       plan,
@@ -142,7 +146,11 @@ function summaryPlanFromArgs(
 
   if (typeof parsed.flags.recipe === 'string') {
     const path = resolve(parsed.flags.recipe);
-    const inspection = inspectGameboardRecipe(readJson(path) as GameboardRecipe, {
+    const recipeRaw = readJson(path);
+    if (typeof recipeRaw !== 'object' || recipeRaw === null || Array.isArray(recipeRaw)) {
+      throw new GameboardCliError(`Recipe file ${relativizePath(path)} must be a JSON object`);
+    }
+    const inspection = inspectGameboardRecipe(recipeRaw as GameboardRecipe, {
       plan: validationConfig,
     });
     if (!inspection.plan) {
@@ -163,7 +171,11 @@ function summaryPlanFromArgs(
 
   if (typeof parsed.flags.scenario === 'string') {
     const path = resolve(parsed.flags.scenario);
-    const inspection = inspectGameboardScenario(readJson(path) as GameboardScenario, {
+    const scenarioRaw = readJson(path);
+    if (typeof scenarioRaw !== 'object' || scenarioRaw === null || Array.isArray(scenarioRaw)) {
+      throw new GameboardCliError(`Scenario file ${relativizePath(path)} must be a JSON object`);
+    }
+    const inspection = inspectGameboardScenario(scenarioRaw as GameboardScenario, {
       plan: validationConfig,
     });
     if (!inspection.plan) {

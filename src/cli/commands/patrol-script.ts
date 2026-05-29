@@ -74,10 +74,19 @@ export function runPatrolScript(
   sourceRoot: string,
   edition: PackEdition
 ): void {
-  const scenario =
+  const scenarioPayload =
     typeof parsed.flags.scenario === 'string'
-      ? readJson(resolve(parsed.flags.scenario)) as GameboardScenario
+      ? readJson(resolve(parsed.flags.scenario))
       : undefined;
+  if (
+    scenarioPayload !== undefined &&
+    (typeof scenarioPayload !== 'object' || scenarioPayload === null || Array.isArray(scenarioPayload))
+  ) {
+    throw new GameboardCliError(
+      `Scenario file ${relativizePath(String(parsed.flags.scenario))} must be a JSON object`
+    );
+  }
+  const scenario = scenarioPayload as GameboardScenario | undefined;
   const routeSet = patrolRouteSetFromArgs(parsed, sourceRoot, edition, scenario);
   const scriptPlan = createGameboardPatrolSimulationScript({
     routes: routeSet,
