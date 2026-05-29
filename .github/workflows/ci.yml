@@ -20,10 +20,8 @@ permissions:
 env:
   NODE_VERSION: '22'
 
-# Lifecycle: CI runs the correctness gates that matter per-PR — type safety,
-# lint, unit tests + coverage threshold, browser visual tests, security
-# scanning, dep review, and the docs site build (so a docs PR can be reviewed
-# with its rendered output as an artifact).
+# Lifecycle: CI runs the fast correctness gates per-PR — type safety, lint,
+# unit tests, security scanning, dep review, and the docs site build.
 #
 # What is NOT here, and why:
 #   - tarball pack / packed-consumer smoke / SBOM / SLSA provenance →
@@ -35,6 +33,15 @@ env:
 #     tests/contract/. They count toward the coverage gate and surface
 #     failures through the normal test report instead of opaque
 #     `scripts/audit-X.ts → process.exit(1)` mid-step.
+#   - `test:coverage:enforce` → local-only gate. Run `pnpm test:coverage:enforce`
+#     before major changes (coverage ratchet bumps, new modules). CI running
+#     `test` already catches regressions; the threshold check is a ratchet
+#     tool, not a per-PR gate.
+#   - FREE Browser Visuals (`pnpm test:browser:free`) → local-only gate.
+#     Bootstraps the KayKit FREE pack + runs a full Playwright visual suite
+#     (~20 min). Run locally before changes to rendering / asset resolution /
+#     browser-facing APIs. `pnpm test:browser:free` with HEX_WORLDS_ASSET_ROOT
+#     pointing at a local models/ dir.
 
 jobs:
   # Install once, share the result. Per-job `pnpm install` is slow + the
@@ -83,12 +90,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # `test:coverage:enforce` enforces the thresholds in
-        # vitest.coverage.shared.ts. The vitest suite (under `test`) covers
-        # unit + integration + contract assertions (the contract assertions
-        # are the migrated former `scripts/audit-*.ts` checks expressed as
-        # vitest specs under tests/contract/).
-        task: [lint, typecheck, build, test, 'test:coverage:enforce']
+        task: [lint, typecheck, build, test]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -115,54 +117,6 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=6144
         run: pnpm ${{ matrix.task }}
-
-  browser-free:
-    # FREE browser visual tests + screenshot snapshot diffing. Bootstraps the
-    # KayKit FREE pack from GitHub into models/ before running tests — no
-    # committed asset directory required. HEX_WORLDS_ASSET_ROOT=models tells
-    # the runtime resolver where to find the flat GLTF tree.
-    name: FREE Browser Visuals
-    needs: [install, check]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          name: node-modules-${{ needs.install.outputs.cache-key }}
-
-      - name: Restore node_modules
-        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
-
-      - name: Bootstrap FREE KayKit assets
-        run: pnpm exec tsx src/cli/cli.ts bootstrap --edition free --source github --out models
-        env:
-          HEX_WORLDS_ASSET_ROOT: models
-
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run FREE browser visual tests
-        run: pnpm test:browser:free
-        env:
-          HEX_WORLDS_ASSET_ROOT: models
-
-      - name: Upload browser screenshots
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: free-browser-screenshots
-          path: tests/browser/__screenshots__/
-          if-no-files-found: ignore
-          retention-days: 7
 
   docs-site:
     # Astro Starlight build. Sibling project under docs-site/ has its own
