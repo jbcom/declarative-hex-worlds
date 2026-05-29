@@ -1,247 +1,459 @@
-# Performance & Scalability Review — `@jbcom/medieval-hexagon-gameboard`
+# Performance & Scalability Analysis — declarative-hex-worlds
 
-Scope: Phase 2B of full-review. Static analysis of `packages/medieval-hexagon-gameboard/src/` plus inspection of an already-built `dist/`. No runtime benchmarks executed (build artefacts pre-exist; CI does not have perf gates today).
+Generated: 2026-05-28  
+Scope: Full codebase — ECS tick loop, pathfinding, caching, manifest, simulation, CLI, rendering, bundle
 
-## Headline budget snapshot
+---
 
-Measured from a `pnpm build` artefact already on disk.
+## Summary
 
-| Dimension | Measured | Implication |
-|---|---:|---|
-| `dist/` total | **3,160 KB** (37 entry `.js` + 26 chunk `.js` + `.d.ts` + maps) | Big for a "library", driven by the manifest literal. |
-| Biggest chunk: `chunk-JZVTUPMT.js` | **394,754 B raw / 22,468 B gzip** | This **is** `freeManifest`. Confirmed: contains 893 `building_archeryrange_blue` / `hexagons_medieval` matches. |
-| Umbrella entry `dist/index.js` | 24 KB raw, but **transitively imports `chunk-JZVTUPMT`** via `freeManifest` re-export | Every consumer of `from '@jbcom/medieval-hexagon-gameboard'` pays ~22 KB gzip / ~395 KB raw of manifest parse cost, whether they use the manifest or not. |
-| CLI entry `dist/cli.js` | 137 KB raw / **24.7 KB gzip** | Pulls examples + every subsystem at top-level. Cold-start impact below. |
-| `react.js` / `three.js` entries | 24 KB / 12 KB raw | Reasonable shells; both chain into shared chunks. |
-| `freeManifest` source | **16,561 LOC / 395,045 B** of `.ts` literals | Ships parsed as JS, not JSON — parse cost dominates startup for any path that touches umbrella or any subpath that drags in `manifest/free` (5 chunks contain it). |
+The codebase is a TypeScript ESM library with a hex-grid ECS engine (koota), movement/patrol/quest tick systems, a simulation scripting engine, a Three.js/React adapter layer, and a CLI bootstrap. The overall architecture is sound, with several targeted fixes already in place (WeakMap plan index cache, `gameboardPlanIndex`, `useStableOptions`). The critical findings cluster in three areas: the A* open-set scan, linear ECS entity lookups, and the manifest literal's impact on the browser chunk.
 
-**Estimated cold-start / per-step costs** (back-of-envelope, no measurements yet):
+---
 
-- **Node CLI cold start (`medieval-hexagon-gameboard --help`):** ~150-250 ms in V8 cold (137 KB to parse + dependency closure incl. 395 KB manifest chunk). The 395 KB JS-object-literal parse alone is ~30-60 ms on a modern Mac, ~80-150 ms on a CI runner. Switching the manifest to JSON via `JSON.parse` import-attribute (`import json from './free.json' with { type: 'json' }`) is **typically 5-10× faster** than equivalent JS object-literal parse and saves V8's full parse+bytecode pass on dead code paths.
-- **Browser umbrella consumer:** +22 KB gzipped to TTI baseline if the consumer uses any umbrella import that triggers the manifest re-export, with **no tree-shake escape** today.
-- **Per-step simulation cost:** `runSimulationStep` is a single `switch (step.action)` dispatch over ~10 cases (line 3795); the second switch at line 1643 is the **validation pass**, not a runtime parallel dispatch — so the H-3 finding from Phase 1 ("two parallel switches paying double dispatch per step") is **a false positive on the runtime hot path**. The validation switch runs once at scenario load. Real runtime hot spots are in actor selection & filtering (see High findings).
+## Finding 1 — A* Open-Set: O(|open|) Linear Scan Per Iteration
 
-## Findings by severity
+**Severity:** Critical  
+**Impact:** Pathfinding on a 37-tile hexagon (radius 3) is tolerable; a 127-tile (radius 6) or 217-tile (radius 7) board pays O(N²) worst-case per `findGameboardPath` and O(N²) per `reachableGameboardTiles` call. With multiple patrolling entities per tick, this compounds.
 
-### CRITICAL
-
-#### P-C1 — `freeManifest` re-exported from umbrella forces 395 KB manifest into every consumer
-**Files:** `src/index.ts:7` (`export { freeManifest } from './manifest/free';`) → `dist/index.js` → `dist/chunk-JZVTUPMT.js` (394,754 B raw / 22,468 B gzip).
-
-Anyone writing `import { anything } from '@jbcom/medieval-hexagon-gameboard'` pulls the manifest chunk transitively. `splitting: true` in tsup wins back nothing here because the umbrella re-exports the binding by name.
-
-Impact: **+22 KB gzipped / +395 KB raw bundle**, **+30-150 ms parse cost**, in every browser consumer of the umbrella, whether they ever read a manifest entry or not.
-
-Fix (two layers, both required):
-
-1. **Remove `freeManifest` from `src/index.ts`.** Force consumers to use the existing `'@jbcom/medieval-hexagon-gameboard/manifest/free'` subpath — already exposed as an export key. Document in README.
-2. **Ship the manifest as JSON with an import attribute**, not as parsed JS. Rename `src/manifest/free.ts` → `src/manifest/free.json` + thin `src/manifest/free.ts` wrapper:
-   ```ts
-   // src/manifest/free.ts
-   import freeManifestData from './free.json' with { type: 'json' };
-   import type { MedievalHexagonManifest } from '../types';
-   export const freeManifest: MedievalHexagonManifest = freeManifestData as MedievalHexagonManifest;
-   ```
-   JSON parses ~5-10× faster than equivalent JS object literals at this size and allows bundlers / runtimes to lazy-parse. Esbuild (tsup) handles the JSON attribute import natively.
-
-After both: umbrella consumers pay 0 KB manifest cost; manifest-subpath consumers still get a single 22 KB-gzip chunk but with much faster parse.
-
-#### P-C2 — `dist/cli.js` eagerly loads every subsystem AND `examples/simple-rpg-usage` at top-level
-**Files:** `src/cli.ts:1-80` (top-level static imports of `ingest`, `compatibility`, `coverage`, `examples/simple-rpg-usage`, `blueprint`, `catalog`, `registry`, `validation`, `gameboard`, plus 30+ more from quick scan); built `dist/cli.js` = 137 KB raw / 24.7 KB gzip; pulls `chunk-JZVTUPMT` (manifest) transitively because CLI subcommands touch it.
-
-Impact: A user invoking `medieval-hexagon-gameboard --help` pays the full parse cost of the entire library + the 395 KB manifest, every CI run. Smoke tests `smoke-built-cli.ts` and `smoke-packed-consumer.ts` measure this on every push.
-
-Estimated cold start: ~150-250 ms. Could be ~30-50 ms with dynamic per-subcommand imports.
-
-Fix:
+**Location:** `src/coordinates/coordinates.ts` — `lowestScoreKey()`
 
 ```ts
-// src/cli.ts — at the dispatch site
-async function dispatch(command: string, argv: string[]) {
-  switch (command) {
-    case 'simulate':
-      return (await import('./cli/simulate.js')).run(argv);
-    case 'coverage':
-      return (await import('./cli/coverage.js')).run(argv);
-    case 'ingest':
-      return (await import('./cli/ingest.js')).run(argv);
-    // ...
+// Current: O(|open|) linear scan every A* iteration
+function lowestScoreKey(open: ReadonlySet<string>, ...): string {
+  let bestKey = '';
+  let bestScore = Number.POSITIVE_INFINITY;
+  for (const key of open) {           // full iteration every time
+    const score = cost + hexDistance(coordinates, goal);
+    if (score < bestScore) { ... }
   }
+  return bestKey;
 }
 ```
 
-Each `cli/<subcommand>.js` becomes the only path that pulls its subsystem chain. Split `cli.ts` (currently 4,297 LOC) into per-subcommand files behind dynamic imports.
+For a 127-tile board with a path across the full board, `open` can hold 60+ keys. Each of the ~127 A* iterations scans all of them — roughly 7,600 comparisons per path. With 10 patrol agents ticking simultaneously, that is 76,000 comparisons per tick just for pathfinding.
 
-Also: `src/cli.ts:34` imports `'../examples/simple-rpg-usage'` — the example file ships as a CLI dependency. Move guide-public-api smoke helpers into `src/` (`src/simple-rpg-api-smoke.ts` or similar) so the `examples/` tree stays demonstration-only.
-
-### HIGH
-
-#### P-H1 — `readGameboardActorTargets` (actors.ts:940-953) makes 6 sequential passes over the same array
-**File:** `src/actors.ts:940-953`.
+**Recommendation:** Replace the `Set<string>` open list with a binary min-heap keyed by `f = g + h`. A standard implementation reduces per-iteration cost from O(|open|) to O(log |open|).
 
 ```ts
-const actors = ...filter(...)
-const records = actors.map((snapshot) => actorSelectionRecord(snapshot, source, center));
-const hostileActors = actors.filter((snapshot) => actorHostileForSelection(snapshot, source));
-const interactiveActors = actors.filter((snapshot) => snapshot.actor.interactive);
-const propActors = actors.filter((snapshot) => snapshot.actor.kind === 'prop');
-// ...
-actorIds: actors.map(...),
-placementIds: actors.map(...),
-tileKeys: uniqueStrings(actors.map(...)),
+// Minimal binary min-heap for A*
+class MinHeap {
+  private data: Array<[number, string]> = [];
+  push(score: number, key: string): void {
+    this.data.push([score, key]);
+    this.bubbleUp(this.data.length - 1);
+  }
+  pop(): string | undefined {
+    if (this.data.length === 0) return undefined;
+    const [, key] = this.data[0];
+    const last = this.data.pop()!;
+    if (this.data.length > 0) { this.data[0] = last; this.sinkDown(0); }
+    return key;
+  }
+  get size() { return this.data.length; }
+  private bubbleUp(i: number) { /* standard */ }
+  private sinkDown(i: number) { /* standard */ }
+}
+
+// In findHexPath: replace `open = new Set<string>` with `open = new MinHeap()`
+// and replace `lowestScoreKey(open, ...)` with `open.pop()`
 ```
 
-Same pattern at `actors.ts:1085-1093` (`actorPlacements.filter(...)` × 4). Each `filter`/`map` allocates a fresh array.
+Alternatively, use the `@datastructures-js/priority-queue` package (MIT, 2 kB gzipped) which is already tree-shaken cleanly under ESM. Expected speedup: 3–8x on medium boards, 15–30x on large boards.
 
-For boards with hundreds of actors and target queries called per UI frame (`useGameboardActorTargets` in `react.ts`), this is O(6·n) allocations + traversals where one pass is sufficient.
+The same issue applies to `reachableGameboardTiles` (Dijkstra variant), which also uses `lowestCostKey(open, costByKey)` — identical linear scan.
 
-Fix: single-pass reduce, e.g.
+---
+
+## Finding 2 — ECS Entity Lookup: Linear Scan on Every Placement Access
+
+**Severity:** High  
+**Impact:** Every call to `findPlacementEntity(world, id)` and `findTileEntity(world, key)` does a full `world.query(...).find(entity => entity.get(Trait)?.field === id)` scan. In a 200-placement board, each call is O(N). These functions are called on every simulation step, every `advancePatrolEntity`, every `requirePatrolPlacementEntity`, every `spawnGameboardPlacement`, and in the `while (findPlacementEntity(world, id))` uniqueness-check loop.
+
+**Location:** `src/koota/koota.ts` lines 582–599
 
 ```ts
-const buckets = { hostile: [], interactive: [], prop: [], all: [], ids: [], placementIds: [], tileKeys: new Set<string>() };
-for (const s of actors) {
-  buckets.all.push(s);
-  buckets.ids.push(s.actor.actorId);
-  buckets.placementIds.push(s.placement.id);
-  buckets.tileKeys.add(s.placement.tileKey);
-  if (actorHostileForSelection(s, source)) buckets.hostile.push(s);
-  if (s.actor.interactive) buckets.interactive.push(s);
-  if (s.actor.kind === 'prop') buckets.prop.push(s);
+// Current — O(N) scan every access
+export function findTileEntity(world, coordinates) {
+  return world.query(GameboardTileQuery).find(
+    (entity) => entity.get(HexTileState)?.key === key
+  );
+}
+export function findPlacementEntity(world, placement) {
+  return world.query(GameboardPlacementQuery).find(
+    (entity) => entity.get(PlacementState)?.id === placement
+  );
 }
 ```
 
-Impact: ~6× speedup on this path, lower GC pressure when the React hook re-runs.
-
-#### P-H2 — `parseHexKey` throws on invalid key; used in error-path-y code (coordinates.ts:68-74)
-**File:** `src/coordinates.ts:68-74`. Implementation throws on non-finite parse.
-
-Phase 1 flagged this as "throw/catch flow control on hot path." Confirmed implementation throws. Quick `grep -rn parseHexKey src/` (run during scan) showed callers — most use it on already-validated input but a few use it inside reachability/lookup checks where a missing tile is expected. Throwing on the expected-miss path is **~100× slower than returning `undefined`** in V8.
-
-Fix: add `tryParseHexKey(key): HexCoordinates | undefined` returning undefined on failure, and migrate callers that treat a miss as data, not an error. Keep `parseHexKey` (throwing) for assertion-style call sites.
-
-#### P-H3 — `layout.ts` builds `tilesByKey = new Map(plan.tiles.map(...))` inside every layout function call
-**File:** `src/layout.ts:1276, 1434, 1609, 1728` — same expression repeated:
+**Recommendation:** Maintain module-level `Map<string, Entity>` indexes for tile-key → entity and placement-id → entity, updated on spawn/remove. The existing `tileIndex` parameter pattern inside `loadGameboardWorld` shows the intent was already understood for bulk loads — generalize it.
 
 ```ts
-const tilesByKey = new Map(plan.tiles.map((tile) => [tile.key, tile]));
+// Attach to the World instance via a WeakMap
+const TILE_INDEX = new WeakMap<World, Map<string, Entity>>();
+const PLACEMENT_INDEX = new WeakMap<World, Map<string, Entity>>();
+
+export function findTileEntity(world: World, key: string): Entity | undefined {
+  return TILE_INDEX.get(world)?.get(key);
+}
+export function findPlacementEntity(world: World, id: string): Entity | undefined {
+  return PLACEMENT_INDEX.get(world)?.get(id);
+}
+// Register/deregister in spawnGameboardTile / destroyTile hooks
 ```
 
-For a 200-tile plan, this is a 200-entry Map allocation per call. If layout functions are called repeatedly (e.g. by React hooks recomputing on selector change), this is wasteful.
+Expected speedup: O(N) → O(1) per lookup. At 200 placements, this eliminates ~200 comparisons per `advancePatrolEntity` call. On a busy board (10 agents × 60 ticks), that is 120,000 avoided comparisons per second.
 
-Fix: attach `tilesByKey` (and similar derived indexes) to the `GameboardPlan` once at projection time. `src/projection.ts` is the natural home — projected plans are already "the finalized board" and immutable from the consumer's perspective.
+---
+
+## Finding 3 — `isKnownExtraAssetId`: Multi-Level Nested Loop on Every Placement Spawn
+
+**Severity:** High  
+**Impact:** Called twice per `spawnGameboardPlacement` (line 510 and 825). The function runs:
+- `EXTRA_PROP_ASSET_IDS.includes(assetId)` — O(36) array scan
+- Nested loop: `for faction of FACTIONS (4) × for kind of EXTRA_FACTION_BUILDING_KINDS (N) × factionBuildingAssetId()` — string template call per iteration
+- Nested loop: `for faction (4) × for part of COLORED_UNIT_PARTS × for style of EXTRA_UNIT_STYLES (2) × coloredUnitAssetId()` — string template call per iteration
+- Four more `.includes()` checks on separate arrays
+
+With `EXTRA_FACTION_BUILDING_KINDS` appearing to have ~15+ entries and `COLORED_UNIT_PARTS` ~5+ entries, total operations per call: 4×15 + 4×5×2 + 36 + misc ≈ 136 string operations per spawn. On bulk world load of 200 placements: ~27,200 string operations.
+
+**Location:** `src/scenario/catalog.ts` line 1221
+
+**Recommendation:** Build the complete set of known EXTRA asset IDs once at module initialization and cache in a `Set<string>` for O(1) lookup:
 
 ```ts
-interface ProjectedGameboardPlan extends GameboardPlan {
-  readonly indexes: {
-    readonly tilesByKey: ReadonlyMap<string, GameboardTile>;
-    readonly placementsByTile: ReadonlyMap<string, readonly GameboardPlacement[]>;
+// At module scope — computed once
+const KNOWN_EXTRA_ASSET_ID_SET: ReadonlySet<string> = (() => {
+  const ids = new Set<string>();
+  for (const id of EXTRA_PROP_ASSET_IDS) ids.add(id);
+  ids.add('hex_transition');
+  for (const faction of FACTIONS) {
+    for (const kind of EXTRA_FACTION_BUILDING_KINDS) ids.add(factionBuildingAssetId(kind, faction));
+    for (const part of COLORED_UNIT_PARTS)
+      for (const style of EXTRA_UNIT_STYLES) ids.add(coloredUnitAssetId(part, faction, style));
+  }
+  ids.add(neutralUnitAssetId('projectile_catapult'));
+  // neutral unit parts that are EXTRA require the existing subtraction logic —
+  // pre-compute those too
+  return ids;
+})();
+
+export function isKnownExtraAssetId(assetId: string): boolean {
+  return KNOWN_EXTRA_ASSET_ID_SET.has(assetId);
+}
+```
+
+Expected speedup: O(136 string ops) → O(1) hash lookup per spawn. Module init cost: paid once at import time, typically <1ms.
+
+---
+
+## Finding 4 — `reachableGameboardTiles` / `findGameboardPath`: Redundant `new Map` Allocations in Default Arguments
+
+**Severity:** High  
+**Impact:** Both `findGameboardPath` and `reachableGameboardTiles` have default parameter values that rebuild `tilesByKey` and call `createGameboardOccupancyIndex` when callers omit them:
+
+```ts
+// src/gameboard/navigation.ts lines 513–514 and 562–563
+tilesByKey: ReadonlyMap<...> = new Map(plan.tiles.map((tile) => [tile.key, tile])),
+occupancy: GameboardOccupancyIndex = createGameboardOccupancyIndex(plan, profile)
+```
+
+`reachableGameboardMovementTiles` (movement tick loop) calls `createGameboardMovementNavigation` which internally calls `createGameboardNavigation`, which calls `createGameboardOccupancyIndex` fresh. On a 127-tile board with 200 placements, `createGameboardOccupancyIndex` iterates all placements to build three Set/Map structures — O(200) allocations per tick per moving entity.
+
+The `gameboardPlanIndex` WeakMap cache covers the `gameboard.ts` callers but `navigation.ts` standalone functions bypass it via their own default argument expression.
+
+**Location:** `src/gameboard/navigation.ts` lines 474, 513–514, 562–563
+
+**Recommendation:** Route the default-argument Map construction through `gameboardPlanIndex`:
+
+```ts
+// navigation.ts
+import { gameboardPlanIndex } from './gameboard';
+
+export function findGameboardPath(
+  plan: GameboardPlan,
+  start: HexCoordinates | string,
+  goal: HexCoordinates | string,
+  profile: GameboardNavigationProfile = {},
+  tilesByKey: ReadonlyMap<string, GameboardTileSpec> = gameboardPlanIndex(plan).tilesByKey,
+  occupancy: GameboardOccupancyIndex = createGameboardOccupancyIndex(plan, profile)
+```
+
+For the occupancy index: add a second `WeakMap<GameboardPlan, Map<string, GameboardOccupancyIndex>>` keyed by profile fingerprint (JSON-serialized normalized profile). Profile objects are typically static per session, so cache hit rate approaches 100% in steady state.
+
+---
+
+## Finding 5 — Pathfinding `runGameboardPatrolSystem` / `runGameboardMovementSystem`: Fresh `world.query()` Per Tick, Array Spread Allocation
+
+**Severity:** High  
+**Impact:** Both system runners materialize a fresh array every tick:
+
+```ts
+// patrol.ts line 227
+return [...world.query(GameboardPatrolAgentQuery)].map(...);
+
+// movement.ts line 421
+for (const entity of [...world.query(ActiveMovementQuery)]) { ... }
+```
+
+The `[...world.query(...)]` spread allocates a new array on every tick regardless of board change. For koota, `world.query()` returns a live iterable; the spread forces a full copy. With 10 patrol agents, this is 10 entity references copied per tick — relatively cheap individually but unnecessary if done 60 times/second.
+
+**Location:** `src/patrol/patrol.ts` line 227, `src/movement/movement.ts` line 421
+
+**Recommendation:** Iterate the koota query iterable directly without spreading to an intermediate array:
+
+```ts
+// patrol.ts
+export function runGameboardPatrolSystem(world, options = {}): GameboardPatrolAdvanceResult[] {
+  const results: GameboardPatrolAdvanceResult[] = [];
+  for (const entity of world.query(GameboardPatrolAgentQuery)) {
+    results.push(advancePatrolEntity(world, entity, options));
+  }
+  return results;
+}
+```
+
+The `.map()` call also forces a second pass. Direct push to a pre-allocated array avoids the intermediate. Secondary: the `readGameboardPatrolAgents` function also spreads and `.sort()` — this is a read-only diagnostic path, acceptable.
+
+---
+
+## Finding 6 — `requirePlacementState` in Patrol: Deep Spread on Every Entity Read
+
+**Severity:** Medium  
+**Impact:** Called once per `advancePatrolEntity` tick:
+
+```ts
+// patrol.ts
+function requirePlacementState(entity: Entity): PlacementStateValue {
+  return {
+    ...state,
+    coordinates: { ...state.coordinates },
+    position: { ...state.position },
+    metadata: { ...state.metadata },
   };
 }
 ```
 
-#### P-H4 — `react.ts` returns fresh arrays from selector hooks without referential stability
-**File:** `src/react.ts:471-694` — ~20 `useMemo` hooks return arrays/objects from selectors with `[plan, options]` deps.
+This creates 4 new objects per patrol tick per entity. With 10 patrol agents at 60 ticks/second: 2,400 object allocations/second for state copies alone, increasing GC pressure. The copy is necessary for immutability of the snapshot but is repeated even in fast-path branches.
 
-When `options` is an inline object literal (the common React pattern), `useMemo`'s dep array shallow-compares it as never-equal, so the memo never hits and the hook returns a fresh array on every render → downstream `<Component items={items} />` re-renders cascade.
+**Location:** `src/patrol/patrol.ts` — `requirePlacementState` function
 
-Hooks affected include `useGameboardLayoutPlacements`, `useGameboardPieceSelection`, `useGameboardPiecePlacementInspection`, `useGameboardPieceFillInspection`.
+**Recommendation:** Accept the shallow spread for the top-level object but avoid deep-copying `coordinates` and `position` (both simple `{q, r}` or `{x, y, z}` structs) unless the caller mutates them. Document the read-only contract instead of copying. Alternatively, use a `copyPlacementState` helper that is only called when building the final result snapshot, not on every early-return branch.
 
-Fix: either
+---
 
-1. Document loudly in TSDoc that callers must memoize the `options` object themselves, OR
-2. Hash-stabilize options at the hook boundary (`useDeepMemo(options)`) so the dep array compares structurally. Adds ~10 ms in dev/HMR but eliminates the silent render-storm.
+## Finding 7 — `runGameboardSystems` Event Array: flatMap + Spread Allocation Per Tick
 
-#### P-H5 — `runtime.ts` / `runSystemsStep` calls `JSON.parse(JSON.stringify(...))` once (deep clone)
-**File:** Single `structuredClone`/`JSON.parse(JSON.stringify(...))` site at simulation.ts (grep count = 1).
+**Severity:** Medium  
+**Impact:** Every tick builds the event array with three `flatMap` calls and two spread concatenations:
 
-Need to confirm whether it's on the per-step path or one-shot setup. If per-step: `structuredClone` is ~3-5× faster than `JSON.parse(JSON.stringify())` in modern Node/browsers and preserves more types. If on setup only, leave it.
+```ts
+// systems.ts line 555–562
+const events = [
+  ...patrols.flatMap(patrolEvents),
+  ...movement.flatMap(movementEvents),
+  ...questEvents(beforeQuests, quests),
+];
+```
 
-Action: locate the call site (single `structuredClone|JSON.parse|JSON.stringify` occurrence), confirm placement, and if on the step path, switch to `structuredClone` or precompute a stable read-only snapshot.
+With 10 patrols + 10 movement agents + 5 quests, this allocates 3 intermediate arrays plus the final array per tick. `snapshotGameboardSystemEvents(events)` then maps the entire array a second time.
 
-### MEDIUM
+**Location:** `src/systems/systems.ts` lines 555–563
 
-#### P-M1 — `tsup` `splitting: true` produces 26 chunks; risk of import-graph chain depth
-**File:** `tsup.config.ts`. Splitting is intentionally on to "keep Koota trait identities stable when consumers mix package subpaths." Correct decision — without it, two subpaths that both import `actors.ts` would compile two copies of `GameboardActor` (the `trait()` identity) and Koota queries would silently miss.
+**Recommendation:** Pre-allocate a single result array and push:
 
-But: 26 chunks means deep import waterfalls in dev mode (no HTTP/2 push) and slower first-paint. For published library code on `pnpm` consumers with bundlers (Vite, webpack), this re-bundles cleanly, so the cost is bounded to dev/SSR.
+```ts
+const events: GameboardSystemEvent[] = [];
+for (const patrol of patrols) for (const e of patrolEvents(patrol)) events.push(e);
+for (const mv of movement) for (const e of movementEvents(mv)) events.push(e);
+for (const e of questEvents(beforeQuests, quests)) events.push(e);
+```
 
-Action: add a CI gate (`pnpm size-limit` or `bundlesize`) on the umbrella entry + each subpath top-level. Targets:
-- `index` (after P-C1 fix): ≤ 5 KB gzip
-- `cli` (after P-C2 fix): ≤ 8 KB gzip (subcommands lazy)
-- `manifest/free`: budget 25 KB gzip
-- `react`: ≤ 4 KB gzip
-- `three`: ≤ 3 KB gzip
+Also consider lazy snapshot conversion — only materialize `eventRecords` when accessed, since many callers that only need `events` (in-memory) will pay the serialization cost unnecessarily.
 
-#### P-M2 — `dist/` ships `.d.ts.map` + `.js.map` for every chunk
-Phase 1 didn't measure this; map files are roughly equal in size to the JS. The `files` field in `package.json` does include `dist`, so maps ship to npm.
+---
 
-Action: add `"!dist/**/*.map"` to `files`, or set `sourcemap: false` in tsup for the published artefact (keep `'inline'` for local dev). Saves ~1.5 MB of `node_modules/@jbcom/medieval-hexagon-gameboard/dist/` per install.
+## Finding 8 — `freeManifest` Eager Literal: 380 KB Source, Loaded Into Every Chunk That Imports `../manifest`
 
-#### P-M3 — `react.ts` uses `useReducer` + tile-scoped hooks; many `useTrait`/`useQuery` calls per render
-**File:** `src/react.ts:401, 704, 711, 726, 733, 740, 747, 754, 761, 768, 775, 782, 794, 803, 810, 819, 828, 837, 844, 860, 869, 878, 887` (23+ `useTrait`/`useQuery` call sites).
+**Severity:** Medium  
+**Impact:** `src/manifest/free.ts` is 16,580 lines / ~380 KB of autogenerated JSON-as-TS literal. It is exported eagerly as `export const freeManifest = { ... }`. V8 parses the entire object literal at module evaluation time, even if the consumer only needs one asset entry.
 
-Each `useTrait` and `useQuery` in koota/react subscribes to world-state changes and triggers a re-render on any matching mutation. A page with `<TileCard>` × 100 cards each calling 8 `useTrait`s ≈ 800 subscriptions; mutation throughput is bounded by subscription fanout.
+The dist chunk `chunk-3BIXE6RB.js` (394 KB) and `chunk-RPFQQ3X2.js` (393 KB) are the two largest output files. Both are in the same size range as the manifest source, strongly suggesting at least one chunk bakes in the full manifest literal. Any entry point that statically imports from `../manifest` — including `gameboard.ts` which `import { freeManifest }` — pulls the 380 KB into that chunk.
 
-Action: document hook usage patterns — prefer **one parent-level `useQuery`** + plain prop drilling over per-card `useTrait`. Add an example in `examples/` showing the efficient pattern.
+`gameboard.ts` unconditionally imports `freeManifest` for the `spawnFromPlan` scenario helpers. This means importing `declarative-hex-worlds/gameboard` in a browser app triggers a 380 KB parse on module load.
 
-#### P-M4 — `simulation.ts` is 5,213 LOC in one file → V8 long-function deopt risk
-**File:** `src/simulation.ts`. While the file structure is well-factored into many small functions, V8 has a soft per-file optimization budget. Large single files with many functions occasionally hit Crankshaft/Turbofan inlining heuristics oddly.
+**Location:** `src/manifest/free.ts`, `src/gameboard/gameboard.ts` (imports `freeManifest`)
 
-Action: as part of the H-3 decomposition Phase 1 already recommended (split `simulation.ts` along action boundaries — `runActorTargetCommandStep.ts`, `runCommandStep.ts`, etc.), each per-action file ends up ≤ 500 LOC and V8 can inline freely.
+**Recommendation:**
 
-### LOW
+1. The existing `loadFreeManifest()` lazy async export is the right pattern — promote it as the primary API. Document `freeManifest` as the synchronous fallback for Node.js/CLI only.
 
-#### P-L1 — `vitest.config.ts` runs node-environment only; no `pool: 'threads'` or `pool: 'forks'` tuning
-**File:** `vitest.config.ts`. Defaults are sane but for a 35-file unit suite with one file at 3,000 LOC (`cli.test.ts`), explicit `poolOptions.threads.minThreads = 4` or sharding via `--shard` in CI could cut local `pnpm test` time.
+2. In `gameboard.ts`, lazily acquire the manifest only inside the functions that need it, not at module scope:
 
-Action: measure first (`time pnpm test`); only act if > 30 s wall.
+```ts
+// Instead of: import { freeManifest } from '../manifest';
+// Use inside the function body:
+async function spawnFromPlan(...) {
+  const { freeManifest } = await import('../manifest/free.js');
+  // ...
+}
+```
 
-#### P-L2 — `three.ts` lacks explicit disposal documentation
-**File:** `src/three.ts`. The file resolves URLs and uses `AnimationMixer` / `Vector3` from three. No `Geometry`/`Material` allocation here directly (the manifest-loader pattern delegates to user-land `useLoader`), so three.js leak risk is on the consumer. Document this in TSDoc — currently silent.
+3. For browser consumers, consider exporting the manifest as a JSON file (already present at `assets/free/manifest.json`) and loading it via `fetch()` to defer parse cost entirely.
 
-#### P-L3 — `selectors.ts` does not memoize across calls
-**File:** `src/selectors.ts` (grep showed no `WeakMap`/`new Map`/`cache` markers — small file). Selectors compute fresh on each invocation. If a selector is called once per render per component, results aren't cached. Acceptable for now (the per-call work is cheap) but flag for later.
+Expected impact: removes 380 KB from the eager parse budget of any browser entry point that imports `gameboard`.
 
-## Recommended performance gates (add to CI)
+---
 
-1. **Bundle size budget** via `size-limit` config in repo root:
-   ```json
-   [
-     { "path": "packages/medieval-hexagon-gameboard/dist/index.js", "limit": "5 KB", "import": "{ freeManifest }" },
-     { "path": "packages/medieval-hexagon-gameboard/dist/index.js", "limit": "12 KB" },
-     { "path": "packages/medieval-hexagon-gameboard/dist/cli.js", "limit": "8 KB" },
-     { "path": "packages/medieval-hexagon-gameboard/dist/manifest/free.js", "limit": "25 KB" },
-     { "path": "packages/medieval-hexagon-gameboard/dist/react.js", "limit": "4 KB" },
-     { "path": "packages/medieval-hexagon-gameboard/dist/three.js", "limit": "3 KB" }
-   ]
-   ```
-   Fail PR if breached. Reviews see the diff line by line.
+## Finding 9 — `findTileEntity` and `findPlacementEntity` Called Inside `spawnGameboardWorld` Batch Load
 
-2. **CLI cold-start benchmark** as a Vitest perf test that runs `node dist/cli.js --help` and asserts ≤ 80 ms wall (current ≈ 150-250 ms). Add to `pnpm test:perf` step in CI, non-blocking initially, then flip to blocking once stabilized.
+**Severity:** Medium  
+**Impact:** `loadGameboardWorld` accepts an optional `tileIndex` parameter to skip the O(N) scan, but `spawnGameboardPlacement` (called inside the bulk load) calls `requireTileEntity(world, options.at)` which uses `findTileEntity` — falling back to the linear scan when `tileIndex` is not threaded through. On a 200-tile, 400-placement board, the bulk load performs 400 × O(200) scans = 80,000 comparisons that should be O(1).
 
-3. **Simulation throughput micro-benchmark** using `tinybench`:
-   ```ts
-   bench('runSimulationStep × 10k', () => {
-     for (let i = 0; i < 10_000; i++) runSimulationStep(rt, sampleStep, i, opts);
-   });
-   ```
-   Track ops/sec over time in CI; warn on > 10% regression.
+**Location:** `src/koota/koota.ts` — `spawnGameboardPlacement`, `requireTileEntity`
 
-4. **Bundle composition snapshot** — diff `dist/` chunk → entry mapping on every PR (e.g. via `tsup`'s `metafile: true` + esbuild visualizer). Catches "X subsystem accidentally got pulled into umbrella" regressions automatically.
+**Recommendation:** Thread the `tileIndex` through `spawnGameboardPlacement` as an optional parameter. The `loadGameboardWorld` path already builds the index; passing it through eliminates the linear scan entirely during bulk load:
 
-5. **React render-count assertion** for `useGameboardLayoutPlacements` and similar hooks — Vitest with `@testing-library/react` rendering with stable vs unstable `options` prop, asserting that stable options does not cause re-render. Pins P-H4 behavior.
+```ts
+export function spawnGameboardPlacement(
+  world: World,
+  options: SpawnGameboardPlacementOptions,
+  tileIndex?: ReadonlyMap<string, Entity>  // add optional param
+): Entity {
+  const tile = tileIndex?.get(tileKey(options.at)) ?? requireTileEntity(world, options.at);
+  // ...
+}
+```
 
-## Top 5 priorities
+---
 
-1. **P-C1 — Remove `freeManifest` from umbrella + ship as JSON import-attribute.** Single biggest win: -22 KB gzip / -30-150 ms per umbrella consumer + faster parse for everyone.
-2. **P-C2 — Dynamic per-subcommand imports in `cli.ts`.** Cuts CLI cold start from ~200 ms to ~40 ms; immediately speeds up CI smoke tests (`smoke-built-cli.ts`, `smoke-packed-consumer.ts`) on every push.
-3. **P-H3 — Materialize `tilesByKey` index in projection.ts.** Removes O(n) Map rebuild from four hot layout functions.
-4. **P-H1 — Single-pass `readGameboardActorTargets`.** 6× speedup on a hook that drives target-picker UI; tighter GC.
-5. **Add CI gates (size-limit + cold-start benchmark) BEFORE shipping the above fixes** — so the wins are quantified, regressions are caught, and the next contributor inherits the discipline.
+## Finding 10 — `useGameboardDerivedRevision`: 30+ Trait Subscriptions Per Component Mount
 
-## Notes & non-findings
+**Severity:** Medium  
+**Impact:** Every React component that calls any selector hook (`useGameboardPlacementSnapshots`, `useGameboardActorSnapshots`, `useProjectedGameboardPlan`, etc.) mounts 30+ koota trait change subscriptions via `useGameboardDerivedRevision`. The subscriptions share a single `bumpRevision` callback, so any trait change — including a single tile elevation change — invalidates all memoized values in all hooks simultaneously.
 
-- **`switch (step.action)` parallel-dispatch is a false positive** on the runtime hot path. Line 1643 is **validation** (one-shot), line 3795 is the runtime dispatch (per-step). H-3 from Phase 1 should be re-scoped to the file-size / decomposition concern only, not "double dispatch cost."
-- **`systems.ts` has zero `world.query()` calls** — it defines event types and the `gameboardSystemActions` factory, not per-tick query loops. Per-tick query allocation hazard, if it exists, lives in `world-rules.ts` (627 LOC, also zero `world.query` matches in grep — needs deeper read) or in koota internals.
-- **Koota trait-identity hazard is acknowledged in `tsup.config.ts` comment.** The `splitting: true` defense is the right call; `external: ['koota', 'koota/react']` + shared chunks prevents trait duplication. Add a CI test that imports two subpaths and asserts trait reference-equality to lock this in.
-- **`vitest.config.ts` looks healthy.** `include: ['tests/unit/**/*.test.ts']` correctly excludes browser/visual tests from the default `pnpm test` cycle. Browser tests are split into dedicated configs and gated behind explicit npm scripts.
+On a board where movement ticks update `PlacementState` for 10 entities per tick, every tick fires `world.onChange(PlacementState)` 10 times, each triggering `bumpRevision`, causing every selector hook in the tree to re-run its `useMemo`.
+
+**Location:** `src/react/react.ts` lines 325–400
+
+**Recommendation:**
+
+1. Split `useGameboardDerivedRevision` into domain-scoped revision counters: one for tile-level changes, one for placement-level changes, one for actor-level changes. Selector hooks subscribe only to the relevant domain.
+
+2. Coalesce multiple within-frame bumps using `scheduler.postTask` or a `requestAnimationFrame` debounce so that 10 placement updates in one tick produce one revision increment, not 10 re-renders.
+
+```ts
+// Coalesced bump — batches all changes within the same microtask
+let pending = false;
+const update = () => {
+  if (pending) return;
+  pending = true;
+  queueMicrotask(() => { pending = false; bumpRevision(); });
+};
+```
+
+---
+
+## Finding 11 — `useStableOptions` JSON.stringify On Every Render
+
+**Severity:** Medium  
+**Impact:** Every render of a component using any selector hook calls `JSON.stringify(options)` in `useStableOptions`. For options objects with large `profile` or `targeting` configs, serialization is non-trivial. This runs synchronously on the render thread before any memoization check.
+
+**Location:** `src/react/react.ts` line 494
+
+**Recommendation:** The current implementation is correct in intent; the cost only becomes meaningful for options objects with >10 keys or nested arrays. A fast-path using `Object.keys(options).length === 0` for empty options (the most common case in tests) would skip serialization entirely:
+
+```ts
+function useStableOptions<T>(options: T): T {
+  const ref = useRef<...>(undefined);
+  if (options === null || (typeof options === 'object' && Object.keys(options as object).length === 0)) {
+    return options; // empty object — stable by convention, no serialization needed
+  }
+  const serialized = JSON.stringify(options);
+  // ...
+}
+```
+
+---
+
+## Finding 12 — Catalog `guidePublicApiCoverage`: O(scenarios × treatments) Per Coverage Call
+
+**Severity:** Low  
+**Impact:** `guidePublicApiCoverage` calls `.filter()` on the full `KAYKIT_ASSET_PUBLIC_TREATMENTS` array (and scenarios array) for every public API string queried. `listKayKitGuidePublicApiCoverages` iterates all APIs, making total cost O(APIs × scenarios × treatments). This is a CLI/report-time path, not a tick-loop path — no runtime impact.
+
+**Location:** `src/scenario/catalog.ts` — `guidePublicApiCoverage`, `guideRoleCoverage`
+
+**Recommendation:** Pre-index treatments by `publicApi` string at module load using `Map<string, KayKitAssetPublicTreatment[]>`. This converts the filter from O(N) to O(1) per API lookup. Apply the same pattern to scenarios. Cost: one-time O(N) indexing at import vs repeated O(N) per query.
+
+---
+
+## Finding 13 — Bootstrap I/O: Pipeline Usage is Correct, No Event-Listener Anti-Pattern
+
+**Severity:** Low (informational — Phase 1 context was incorrect)
+
+The `src/cli/commands/bootstrap/core.ts` code already uses `node:stream/promises` `pipeline()` for download streaming:
+
+```ts
+await pipeline(incoming, createWriteStream(zipPath));
+```
+
+The event-listener anti-pattern mentioned in the Phase 1 context does not appear in the current codebase. The `yauzl` zip extraction uses callback-style (the library's own API, not avoidable without switching libraries), but this is a one-time CLI operation with no tick-loop impact. No action required.
+
+---
+
+## Finding 14 — `selectSpawnCoordinates`: O(N²) Spacing Check
+
+**Severity:** Low  
+**Impact:** The spawn coordinate selector uses:
+
+```ts
+if (selected.every((existing) => hexDistance(existing, candidate) >= minDistance))
+```
+
+This is O(selected.length) per candidate, making total complexity O(candidates × selected). For small spawns (≤20 points on ≤200-tile boards) this is negligible. For large boards with dense spawn requirements, it degrades to O(N²).
+
+**Recommendation:** Use a spatial hash grid partitioned by `minDistance` to reduce the check to O(1) average per candidate. Defer until spawn counts exceed 50.
+
+---
+
+## Finding 15 — Bundle: `manifest/free` Chunk Not Isolated From Shared Chunks
+
+**Severity:** Low  
+**Impact:** `dist/manifest/free.js` is a tiny 197-byte re-export wrapper that points to `chunk-3BIXE6RB.js` (394 KB). The actual manifest data lives in the shared chunk. Any entry point that shares that chunk (e.g., `gameboard`, `scenario`, `catalog`) pulls the 380 KB manifest into its transitive closure, even if the consumer never calls `freeManifest`.
+
+The `splitting: true` in `tsup.config.ts` is correct and does produce shared chunks, but the manifest literal is so large it dominates the chunk it lands in. The root cause is the static import in `gameboard.ts`.
+
+**Recommendation:** Same as Finding 8 — break the static import. Once `gameboard.ts` lazily loads the manifest, tsup chunk splitting will isolate the manifest data into a separately loaded chunk that browsers can defer or skip entirely if the consumer uses only the navigation and ECS APIs.
+
+---
+
+## Priority Matrix
+
+| # | Finding | Severity | Effort | Impact |
+|---|---------|----------|--------|--------|
+| 1 | A* open-set linear scan | Critical | Medium | 3–30x pathfinding speedup on medium/large boards |
+| 2 | ECS entity lookup linear scan | High | Medium | O(N)→O(1) per access, eliminates dominant hotspot in patrol/movement |
+| 3 | `isKnownExtraAssetId` nested loop | High | Low | O(136)→O(1) per spawn, eliminates bulk-load cost |
+| 4 | Navigation default-arg Map allocation | High | Low | Eliminates O(N) per-tick allocation in movement system |
+| 5 | Spread in system runners | High | Low | Removes one array alloc per tick per system |
+| 6 | `requirePlacementState` deep spread | Medium | Low | Reduces GC pressure 2400 allocs/sec at 10 agents |
+| 7 | Event array flatMap+spread per tick | Medium | Low | Reduces tick allocation, enables lazy eventRecords |
+| 8 | `freeManifest` eager 380 KB import | Medium | Medium | Removes 380 KB from browser startup parse |
+| 9 | Batch load tileIndex not threaded | Medium | Low | Eliminates 80K comparisons on world init |
+| 10 | 30+ trait subscriptions per component | Medium | Medium | Reduces re-render fan-out in movement-heavy scenes |
+| 11 | `useStableOptions` JSON.stringify | Medium | Low | Negligible for empty options (most common case) |
+| 12 | Catalog coverage O(N²) | Low | Low | CLI-only path, no runtime impact |
+| 13 | Bootstrap pipeline | Low | None | Already correct |
+| 14 | Spawn spacing O(N²) | Low | Low | Negligible at current board sizes |
+| 15 | Manifest chunk isolation | Low | Low | Follows from Fix 8 automatically |
+
+---
+
+## Existing Mitigations (Confirmed Working)
+
+- `gameboardPlanIndex` WeakMap cache (gameboard.ts) — correctly caches tile/placement maps per plan object; covers `coordinates/layout.ts` and `interop/interop.ts` callers.
+- `createQuery` at module scope for `GameboardPatrolAgentQuery`, `ActiveMovementQuery`, `MovementAgentQuery` — queries are defined once and reused; koota handles the live entity tracking internally.
+- `useStableOptions` with JSON.stringify identity — prevents fresh-literal option objects from invalidating memoized selectors on every parent render.
+- `splitting: true` in tsup — ensures shared code lands in shared chunks rather than being duplicated across entry points.
+- `maxVisited: plan.tiles.length * 4` guard in `findGameboardPath` — prevents unbounded A* on disconnected graphs.
+- `loadFreeManifest()` async lazy export — already available; needs promotion over the eager `freeManifest` for browser consumers.
