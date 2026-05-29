@@ -89,7 +89,6 @@ import {
   createHexTileRegistry,
   createHexTileRegistryFromManifest,
   describeKayKitGuideAssetCoverage,
-  describeKayKitGuidePublicApiCoverage,
   describeKayKitGuideRoleCoverage,
   describeKayKitGuideScenarioCoverage,
   type GameboardRecipe,
@@ -104,7 +103,6 @@ import {
   type KayKitAssetPublicRole,
   type KayKitAssetPublicTreatment,
   type KayKitGuideAssetCoverage,
-  type KayKitGuidePublicApiCoverage,
   type KayKitGuideRoleCoverage,
   type KayKitGuideScenario,
   type KayKitGuideScenarioAssetRenderGroup,
@@ -113,7 +111,6 @@ import {
   type KayKitGuideScenarioCoverage,
   listKayKitAssetPublicTreatments,
   listKayKitGuideAssetCoverages,
-  listKayKitGuidePublicApiCoverages,
   listKayKitGuideRoleCoverages,
   listKayKitGuideScenarioAssetRenderGroups,
   listKayKitGuideScenarioAssetRenderRequests,
@@ -1983,51 +1980,6 @@ export function runGuideRenderRequests(
   }
 }
 
-export function runGuidePublicApis(parsed: ParsedArgs): void {
-  const publicApiFilter = readCsv(parsed.flags.publicApi);
-  const coverages = filterGuidePublicApiCoverages(
-    listKayKitGuidePublicApiCoverages(),
-    publicApiFilter
-  );
-  if (coverages.length === 0) {
-    throw new GameboardCliError(
-      'guide-apis selection did not match any public API coverage records'
-    );
-  }
-  const payload = {
-    schemaVersion: '1.0.0',
-    count: coverages.length,
-    selection: { publicApis: publicApiFilter },
-    publicApis: coverages.map((coverage) => coverage.publicApi),
-    coverage: coverages,
-    ...(publicApiFilter.length === 1
-      ? { selected: describeKayKitGuidePublicApiCoverage(publicApiFilter[0] ?? '') }
-      : {}),
-  };
-
-  if (typeof parsed.flags.out === 'string') {
-    writeFileSync(
-      safeResolveOutput(String(parsed.flags.out)),
-      `${JSON.stringify(payload, null, 2)}\n`,
-      'utf8'
-    );
-    console.log(
-      `Wrote ${coverages.length} guide public API coverages to ${safeResolveOutput(String(parsed.flags.out))}`
-    );
-  } else if (parsed.flags.json === true || parsed.flags.format === 'json') {
-    console.log(JSON.stringify(payload, null, 2));
-  } else {
-    console.log(`guide public APIs: ${coverages.length}`);
-    for (const coverage of coverages.slice(0, 20)) {
-      console.log(
-        `${coverage.publicApi}: pages ${formatGuideScenarioPages(coverage.pages)}, assets ${coverage.assetCounts.unique}`
-      );
-    }
-    if (coverages.length > 20) {
-      console.log(`...${coverages.length - 20} more`);
-    }
-  }
-}
 
 export function runGuideAssets(parsed: ParsedArgs): void {
   const assetIdFilter = readGuideAssetIdFilter(parsed);
@@ -2466,15 +2418,6 @@ export function filterGuideAssetCoverages(
   });
 }
 
-export function filterGuidePublicApiCoverages(
-  coverages: readonly KayKitGuidePublicApiCoverage[],
-  publicApis: readonly string[]
-): KayKitGuidePublicApiCoverage[] {
-  const publicApiSet = new Set(publicApis);
-  return coverages.filter(
-    (coverage) => publicApiSet.size === 0 || publicApiSet.has(coverage.publicApi)
-  );
-}
 
 export function filterGuideRoleCoverages(
   coverages: readonly KayKitGuideRoleCoverage[],
