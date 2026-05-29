@@ -45,8 +45,7 @@
   ],
   "packages": {
     ".": {
-      "component": "declarative-hex-worlds",
-      "release-as": "1.0.0"
+      "component": "declarative-hex-worlds"
     }
   }
 }

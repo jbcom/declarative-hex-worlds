@@ -233,7 +233,7 @@
     "cli": "node dist/cli.js",
     "coverage:ledger": "pnpm build && node dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md",
     "docs": "typedoc --options typedoc.json",
-    "//docs-site": "docs-site/ is a sibling Astro Starlight project — NOT a pnpm workspace member. We dropped workspaces in R1 (see PRD Epic R), so docs-site keeps its own package.json + lockfile and these scripts delegate via `cd docs-site && pnpm ...`. This keeps the library's tarball devDependencies focused on the runtime; the docs site's Astro/Starlight chain lives in its own dependency tree.",
+    "//docs-site": "docs-site/ is a sibling Astro Starlight project \u2014 NOT a pnpm workspace member. We dropped workspaces in R1 (see PRD Epic R), so docs-site keeps its own package.json + lockfile and these scripts delegate via `cd docs-site && pnpm ...`. This keeps the library's tarball devDependencies focused on the runtime; the docs site's Astro/Starlight chain lives in its own dependency tree.",
     "docs-site:install": "cd docs-site && pnpm install",
     "docs-site:dev": "cd docs-site && pnpm dev",
     "docs-site:build": "tsx scripts/generate-cli-reference.ts && cd docs-site && pnpm build",
@@ -267,20 +267,16 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/react": "^19.0.0",
     "citty": "^0.2.2",
     "honeycomb-grid": "^4.1.5",
-    "koota": "^0.6.6",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "seedrandom": "^3.0.5",
-    "three": "^0.184.0",
     "yauzl": "^3.3.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.9.1",
+    "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/seedrandom": "^3.0.8",
     "@types/three": "^0.184.1",
@@ -290,9 +286,13 @@
     "@vitest/browser-playwright": "^4.1.7",
     "@vitest/coverage-v8": "4.1.7",
     "jsdom": "^29.1.1",
+    "koota": "^0.6.6",
     "nyc": "^18.0.0",
     "playwright": "^1.60.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "rimraf": "^6.1.3",
+    "three": "^0.184.0",
     "tsup": "^8.5.1",
     "tsx": "^4.22.3",
     "typedoc": "^0.28.19",
@@ -305,6 +305,26 @@
     "overrides": {
       "yaml": ">=2.8.3",
       "brace-expansion": ">=5.0.6"
+    }
+  },
+  "peerDependencies": {
+    "koota": "^0.6.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "three": "^0.184.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "three": {
+      "optional": true
+    },
+    "koota": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
     }
   }
 }

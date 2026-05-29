@@ -19,7 +19,7 @@ export async function run(
   if (typeof parsed.flags.recipe !== 'string') {
     throw new GameboardCliError('validate-recipe requires --recipe <path>');
   }
-  const recipe = readJson<GameboardRecipe>(resolve(parsed.flags.recipe));
+  const recipe = readJson(resolve(parsed.flags.recipe)) as GameboardRecipe;
   const inspection = inspectGameboardRecipe(recipe, {
     plan: validationConfigFromArgs(parsed, sourceRoot, edition),
   });

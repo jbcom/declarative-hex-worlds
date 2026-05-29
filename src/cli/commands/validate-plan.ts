@@ -18,7 +18,7 @@ export async function run(
   if (typeof parsed.flags.plan !== 'string') {
     throw new GameboardCliError('validate-plan requires --plan <path>');
   }
-  const plan = readJson<GameboardPlan>(resolve(parsed.flags.plan));
+  const plan = readJson(resolve(parsed.flags.plan)) as GameboardPlan;
   const violations = validateGameboardPlan(
     plan,
     validationConfigFromArgs(parsed, sourceRoot, edition)
