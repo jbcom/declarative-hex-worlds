@@ -13,13 +13,16 @@
  */
 import { createHash } from 'node:crypto';
 import {
+  closeSync,
   createReadStream,
   createWriteStream,
   existsSync,
+  fstatSync,
   mkdirSync,
-  readFileSync,
+  openSync,
   readdirSync,
   realpathSync,
+  readFileSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -585,13 +588,21 @@ function readSidecar(path: string, expectedDir: string): BootstrapSidecar {
       `bootstrap sidecar path escapes expected directory: ${path}`
     );
   }
-  const { size } = statSync(realPath);
-  if (size > SIDECAR_MAX_BYTES) {
-    throw new GameboardManifestError(
-      `bootstrap sidecar at ${path} is suspiciously large (${size} bytes); refusing to parse`
-    );
+  // Open once and keep the fd for both size check and read — eliminates the
+  // TOCTOU window between a statSync confinement check and a separate readFileSync.
+  const fd = openSync(realPath, 'r');
+  let raw: string;
+  try {
+    const { size } = fstatSync(fd);
+    if (size > SIDECAR_MAX_BYTES) {
+      throw new GameboardManifestError(
+        `bootstrap sidecar at ${path} is suspiciously large (${size} bytes); refusing to parse`
+      );
+    }
+    raw = readFileSync(fd, 'utf8');
+  } finally {
+    closeSync(fd);
   }
-  const raw = readFileSync(realPath, 'utf8');
   const parsed = JSON.parse(raw) as BootstrapSidecar;
   if (parsed.schemaVersion !== KAYKIT_SIDECAR_SCHEMA_VERSION) {
     throw new GameboardManifestError(
