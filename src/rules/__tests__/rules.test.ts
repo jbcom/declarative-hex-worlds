@@ -474,4 +474,45 @@ describe('Koota rules and seeded generation', () => {
     // Default profile is permissive — no errors for off-board edges.
     expect(violations.filter((v) => v.severity === 'error')).toEqual([]);
   });
+
+  it('withLayoutArchetypes merges rule.archetypes with option-level layoutArchetypes (PRD E0a)', () => {
+    // Exercises rules.ts line 588: when a layoutFills rule already has its own
+    // `archetypes` field AND a `layoutArchetypes` option is provided, the two
+    // registries are merged — option-level first, rule-level overrides second.
+    const plan = createSeededGameboardPlan({
+      seed: 'layout-archetypes-merge',
+      shape: { kind: 'rectangle', width: 4, height: 4 },
+      layoutFillSeed: 'layout-archetypes-merge:fill',
+      layoutArchetypes: {
+        'custom-base': {
+          id: 'custom-base',
+          label: 'Custom Base',
+          kind: 'prop',
+          layer: 'surface',
+          criteria: {},
+        },
+      },
+      layoutFills: [
+        {
+          id: 'rule-with-archetypes',
+          // Rule-level archetypes override/extend the option-level registry.
+          archetypes: {
+            'rule-rock': {
+              id: 'rule-rock',
+              label: 'Rule Rock',
+              kind: 'prop',
+              layer: 'surface',
+              criteria: {},
+            },
+          },
+          archetype: 'rule-rock',
+          assetId: 'rock_single_A',
+          count: 1,
+        },
+      ],
+    });
+    expect(plan).toBeDefined();
+    // Verify the merged rule-level archetype actually drove placement selection.
+    expect(plan.placements.some((p) => p.metadata.layoutArchetype === 'rule-rock')).toBe(true);
+  });
 });

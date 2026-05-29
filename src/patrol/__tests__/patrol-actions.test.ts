@@ -253,4 +253,39 @@ describe('gameboardPatrolActions bundle (PRD E0b)', () => {
     expect(result.state.status).toBe('blocked');
     expect(result.state.reason).toMatch(/requires at least two waypoints/);
   });
+
+  it('clampWaypointIndex returns 0 when route has no waypoints (PRD E0a)', () => {
+    // Exercises patrol.ts line 415-416: clampWaypointIndex(n, 0) returns 0
+    // when waypointCount <= 0. Triggered by set() with currentWaypointIndex
+    // provided alongside an empty waypointKeys array.
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'patrol-empty-waypoints',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    const guard = spawnGameboardActor(world, {
+      id: 'empty-route-placement',
+      actorId: 'empty-route-guard',
+      actorKind: 'npc',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const actions = gameboardPatrolActions(world);
+    actions.set(guard, {
+      route: {
+        id: 'empty-route',
+        waypointKeys: [],
+        loop: false,
+        segmentCosts: [],
+      },
+      currentWaypointIndex: 5,
+      movement: { profile: 'ground' },
+    });
+    const snapshots = actions.read();
+    const snapshot = snapshots[0];
+    // clamped to 0 because waypointCount is 0.
+    expect(snapshot?.agent.currentWaypointIndex).toBe(0);
+  });
 });

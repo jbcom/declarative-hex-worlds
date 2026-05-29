@@ -215,3 +215,122 @@ describe('resolveSimulationSpawnActor missing spawn target (PRD E0a)', () => {
     ).toThrow(/has no spawn tile or spawn group/);
   });
 });
+
+describe('commandHandlerMutations mutation records (PRD E0a)', () => {
+  it('commandHandlerMutations records actor-removed from remove-target-actor handler on hostile actor', () => {
+    // Exercises commandHandlerMutations (engine.ts) with an actor-removed effect.
+    // The `remove-target-actor` handler fires for attack-actor commands (hostile target).
+    // Spawns hero (player/blue) + enemy (hostile/red), hero attacks enemy.
+    const result = runGameboardScenarioSimulation(minimalScenario, [
+      {
+        action: 'spawn-actor',
+        id: 'spawn-hero',
+        actor: {
+          actorId: 'hero',
+          assetId: 'flag_blue',
+          kind: 'unit',
+          at: '0,0',
+          faction: 'blue',
+        },
+        systems: false,
+      },
+      {
+        action: 'spawn-actor',
+        id: 'spawn-enemy',
+        actor: {
+          actorId: 'enemy',
+          assetId: 'flag_red',
+          kind: 'unit',
+          at: '1,0',
+          faction: 'red',
+          hostile: true,
+        },
+        systems: false,
+      },
+      {
+        action: 'command',
+        id: 'cmd-attack',
+        sourceActor: 'hero',
+        target: { actorId: 'enemy' },
+        handler: 'remove-target-actor',
+        systems: false,
+      },
+    ]);
+    const mutation = result.steps[2]?.mutations?.[0];
+    expect(mutation?.type).toBe('actor-removed');
+  });
+
+  it('commandHandlerMutations records placement-removed with removed=true from remove-target-placement handler', () => {
+    // Exercises commandHandlerMutations (engine.ts) with a placement-removed effect.
+    // Target by placementId → intent=inspect → kind=inspect-placement. Override
+    // commandKinds via handlerOptions to accept inspect-placement so the handler fires.
+    const result = runGameboardScenarioSimulation(minimalScenario, [
+      {
+        action: 'spawn-placement',
+        id: 'spawn-marker',
+        placement: { id: 'marker-1', at: '1,0', assetId: 'flag_yellow', kind: 'prop' },
+        systems: false,
+      },
+      {
+        action: 'command',
+        id: 'cmd-remove-real',
+        target: { placementId: 'marker-1' },
+        handler: 'remove-target-placement',
+        handlerOptions: { removeTargetPlacement: { commandKinds: ['inspect-placement', 'interact-placement'] } },
+        systems: false,
+      },
+    ]);
+    const mutation = result.steps[1]?.mutations?.[0];
+    expect(mutation?.type).toBe('placement-removed');
+    // biome-ignore lint/suspicious/noExplicitAny: discriminated union
+    expect((mutation as any)?.removed).toBe(true);
+    // biome-ignore lint/suspicious/noExplicitAny: discriminated union — no reason when removed=true
+    expect((mutation as any)?.reason).toBeUndefined();
+  });
+});
+
+describe('simulationActorSpawnClaim returns undefined for actors without group metadata (PRD E0a)', () => {
+  it('spawn-actor with spawnGroupId when existing actors have no scenario metadata returns undefined from simulationActorSpawnClaim', () => {
+    // simulationActorSpawnClaim (engine.ts line 673-674) returns undefined when
+    // the existing actor's metadata lacks scenarioSpawnGroupId / scenarioSpawnLocationIndex.
+    // Spawn a plain actor first (no group metadata), then spawn a second actor
+    // with a spawnGroupId — the first actor's claim is undefined, which is filtered
+    // out by the `.filter(claim => claim !== undefined)` guard.
+    const scenario = {
+      ...minimalScenario,
+      spawnGroups: {
+        seed: 'sg-test',
+        groups: [
+          {
+            id: 'sg-1',
+          },
+        ],
+      },
+    };
+    const result = runGameboardScenarioSimulation(
+      // biome-ignore lint/suspicious/noExplicitAny: extended scenario fixture for spawnGroups
+      scenario as any,
+      [
+        {
+          action: 'spawn-actor',
+          id: 'spawn-base-actor',
+          // Regular actor without group metadata
+          actor: { actorId: 'hero', assetId: 'flag_blue', kind: 'unit', at: '2,0' },
+          systems: false,
+        },
+        {
+          action: 'spawn-actor',
+          id: 'spawn-group-actor',
+          // This actor uses a spawnGroupId, so simulationActorSpawnClaim runs
+          // on the existing 'hero' actor and returns undefined (no group metadata).
+          actor: { actorId: 'sidekick', assetId: 'flag_green', kind: 'unit', spawnGroupId: 'sg-1' },
+          systems: false,
+        },
+      ]
+    );
+    // Both spawns succeed; the second actor gets assigned to sg-1 location 0.
+    expect(result.steps[1]?.action).toBe('spawn-actor');
+    // biome-ignore lint/suspicious/noExplicitAny: step mutation record
+    expect((result.steps[1]?.mutations?.[0] as any)?.spawned).toBe(true);
+  });
+});
