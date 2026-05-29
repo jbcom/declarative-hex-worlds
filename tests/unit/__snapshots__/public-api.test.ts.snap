@@ -1348,6 +1348,18 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "minHeapCreate",
+  },
+  {
+    "kind": "function",
+    "name": "minHeapPop",
+  },
+  {
+    "kind": "function",
+    "name": "minHeapPush",
+  },
+  {
+    "kind": "function",
     "name": "mountGameboardInteropSnapshot",
   },
   {
