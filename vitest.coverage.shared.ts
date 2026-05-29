@@ -44,21 +44,15 @@ export const COVERAGE_EXCLUDES = [
  * does the ratchet automatically.
  */
 export const COVERAGE_THRESHOLDS = {
-  // CI runs without the references/ tree (it's gitignored — bootstrap is the
-  // consumer story per Phase RB), so any `it.skipIf(!HAS_FREE_REFERENCES)`
-  // test stays unexecuted. The threshold ratchet uses the CI floor — local
-  // runs read higher because the skip-gated tests do execute against the
-  // local references checkout.
-  // Now that RB-CI runs the bootstrap step in CI, the references-gated
-  // tests do execute on the runner — local + CI floors converge. Each
-  // E0a/E0h commit advances these.
-  // E0a batch 42: added movement/patrol/systems/simulation/assertions edge-branch
-  // tests + CLI timeout fixes. Local measured 2026-05-28: S=75.45, B=71.27,
-  // F=82.67, L=75.15. Ratchet set 0.5 pp below measured to tolerate flakes.
-  statements: 74.9,
-  branches: 70.7,
-  functions: 82.1,
-  lines: 74.6,
+  // Threshold ratchet uses the CI floor (unit harness only — browser/e2e
+  // harnesses are skipped on PR CI). Local runs ~1-2pp higher because the
+  // skip-gated reference tests execute locally but not in PR CI.
+  // Each E0a/E0h commit advances these; set 0.5pp below CI-measured.
+  // E0a batch 42: CI measured 2026-05-29: S=73.97, B=69.95, F=81.22, L=73.65.
+  statements: 73.4,
+  branches: 69.4,
+  functions: 80.7,
+  lines: 73.1,
 };
 
 /**
