@@ -60,11 +60,21 @@ export const BOOTSTRAP_PATHS: BootstrapPathsConfig = bootstrapPathsJson as Boots
 export const UPSTREAM_LAYOUTS: Readonly<Record<PackEdition, UpstreamLayoutConfig>> =
   upstreamLayoutsJson as Readonly<Record<PackEdition, UpstreamLayoutConfig>>;
 
+/**
+ * Allowed characters for a git ref passed via `--commit`. Keeps the set tight
+ * (alphanumeric + `.` `_` `-` `/`) to prevent URL injection (CWE-74/CWE-918).
+ */
+const SAFE_REF = /^(?!.*\.\.)(?!\.)(?!.*\/$)[a-zA-Z0-9._\-/]{1,200}$/;
+
 /** Resolve the stable GitHub archive-zip URL for a ref (defaults to `main`). */
 export function kaykitGithubArchiveUrl(ref?: string): string {
   const { owner, repo, defaultRef, archiveUrlTemplate } = KAYKIT_SOURCE.github;
+  const resolvedRef = ref ?? defaultRef;
+  if (!SAFE_REF.test(resolvedRef)) {
+    throw new Error(`unsafe git ref rejected: "${resolvedRef}"`);
+  }
   return archiveUrlTemplate
-    .replace('{owner}', owner)
-    .replace('{repo}', repo)
-    .replace('{ref}', ref ?? defaultRef);
+    .replace('{owner}', encodeURIComponent(owner))
+    .replace('{repo}', encodeURIComponent(repo))
+    .replace('{ref}', encodeURIComponent(resolvedRef));
 }

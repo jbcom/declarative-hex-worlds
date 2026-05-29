@@ -54,4 +54,10 @@ describe('bootstrap programmatic surface', () => {
     expect(typeof bootstrapKayKitAssets).toBe('function');
     expect(typeof verifyBootstrap).toBe('function');
   });
+
+  it('rejects a ref with unsafe characters (CWE-74 guard)', () => {
+    expect(() => kayKitFreeGithubTarballUrl('../../etc/passwd')).toThrow(/unsafe git ref rejected/);
+    expect(() => kayKitFreeGithubTarballUrl('main; rm -rf /')).toThrow(/unsafe git ref rejected/);
+    expect(() => kayKitFreeGithubTarballUrl('a'.repeat(201))).toThrow(/unsafe git ref rejected/);
+  });
 });

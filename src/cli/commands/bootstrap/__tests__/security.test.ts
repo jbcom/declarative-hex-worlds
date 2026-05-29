@@ -153,7 +153,7 @@ describe('bootstrap security — redirect allowlist (CWE-601)', () => {
         end() {
           return undefined;
         },
-      }) as ReturnType<typeof request>;
+      }) as unknown as ReturnType<typeof request>;
     });
 
     const localOut = tmp();
@@ -179,8 +179,9 @@ describe('bootstrap security — redirect allowlist (CWE-601)', () => {
       ) => void;
       const res = Object.assign(new EventEmitter(), {
         statusCode: callCount === 1 ? 302 : 503,
-        headers:
-          callCount === 1 ? { location: 'https://objects.githubusercontent.com/asset.zip' } : {},
+        headers: (callCount === 1
+          ? { location: 'https://objects.githubusercontent.com/asset.zip' }
+          : {}) as Record<string, string>,
         resume() {
           return undefined;
         },
@@ -190,7 +191,7 @@ describe('bootstrap security — redirect allowlist (CWE-601)', () => {
         end() {
           return undefined;
         },
-      }) as ReturnType<typeof request>;
+      }) as unknown as ReturnType<typeof request>;
     });
 
     const localOut = tmp();
@@ -229,7 +230,7 @@ describe('bootstrap security — redirect allowlist (CWE-601)', () => {
         end() {
           return undefined;
         },
-      }) as ReturnType<typeof request>;
+      }) as unknown as ReturnType<typeof request>;
     });
 
     const localOut = tmp();
