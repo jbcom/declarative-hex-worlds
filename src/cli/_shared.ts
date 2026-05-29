@@ -1457,68 +1457,6 @@ export function readPatrolSimulationAssignments(
   );
 }
 
-export function runValidateSimulation(
-  parsed: ParsedArgs,
-  sourceRoot: string,
-  edition: PackEdition
-): void {
-  if (typeof parsed.flags.scenario !== 'string') {
-    throw new GameboardCliError('validate-simulation requires --scenario <path>');
-  }
-  if (typeof parsed.flags.script !== 'string') {
-    throw new GameboardCliError('validate-simulation requires --script <path>');
-  }
-
-  const scenario = readJson(resolve(parsed.flags.scenario)) as GameboardScenario;
-  const scenarioInspection = inspectGameboardScenario(scenario, {
-    plan: validationConfigFromArgs(parsed, sourceRoot, edition),
-  });
-  const script = readSimulationScript(resolve(parsed.flags.script));
-  const scriptInspection = inspectGameboardScenarioSimulationScript(script, {
-    scenario,
-    plan: scenarioInspection.plan,
-  });
-  const violations = [...scenarioInspection.violations, ...scriptInspection.violations];
-
-  if (typeof parsed.flags.outPlan === 'string' && scenarioInspection.plan) {
-    writeFileSync(
-      safeResolveOutput(String(parsed.flags.outPlan)),
-      `${JSON.stringify(scenarioInspection.plan, null, 2)}\n`,
-      'utf8'
-    );
-    console.log(
-      `Wrote compiled GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`
-    );
-  }
-
-  if (parsed.flags.json === true) {
-    console.log(
-      JSON.stringify(
-        {
-          scenario: scenario.id,
-          steps: Array.isArray(script.steps) ? script.steps.length : 0,
-          actors: scenario.actors?.map((actor) => actor.actorId) ?? [],
-          quests: scenario.quests?.map((quest) => quest.id) ?? [],
-          violations,
-        },
-        null,
-        2
-      )
-    );
-  } else {
-    console.log(`scenario: ${scenario.id}`);
-    console.log(`steps: ${Array.isArray(script.steps) ? script.steps.length : 0}`);
-    console.log(`actors: ${scenario.actors?.length ?? 0}`);
-    console.log(`quests: ${scenario.quests?.length ?? 0}`);
-    printViolations(violations);
-  }
-
-  if (violations.some((violation) => violation.severity === 'error')) {
-    process.exit(1);
-  }
-}
-
-
 export function runCoverage(parsed: ParsedArgs): void {
   const manifest =
     typeof parsed.flags.manifest === 'string'
