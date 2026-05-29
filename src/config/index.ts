@@ -76,5 +76,5 @@ export function kaykitGithubArchiveUrl(ref?: string): string {
   return archiveUrlTemplate
     .replace('{owner}', encodeURIComponent(owner))
     .replace('{repo}', encodeURIComponent(repo))
-    .replace('{ref}', encodeURIComponent(resolvedRef));
+    .replace('{ref}', resolvedRef.split('/').map(encodeURIComponent).join('/'));
 }

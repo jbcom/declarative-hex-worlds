@@ -242,6 +242,8 @@ describe('bootstrap security — redirect allowlist (CWE-601)', () => {
         edition: 'free',
       })
     ).rejects.toThrow(/too many redirects|failed to download/i);
+
+    expect(mockRequest.mock.calls.length).toBeGreaterThan(5);
   });
 });
 
