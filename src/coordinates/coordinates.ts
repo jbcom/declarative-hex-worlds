@@ -328,7 +328,7 @@ export function normalizeHexRotationSteps(steps: number): HexEdgeIndex {
 }
 
 /** Binary min-heap — O(log N) push/pop. */
-function minHeapCreate<T>(
+export function minHeapCreate<T>(
   compare: (a: T, b: T) => number
 ): T[] & { _compare: (a: T, b: T) => number } {
   const heap = [] as unknown as T[] & { _compare: (a: T, b: T) => number };
@@ -336,7 +336,7 @@ function minHeapCreate<T>(
   return heap;
 }
 
-function minHeapPush<T>(heap: T[] & { _compare: (a: T, b: T) => number }, value: T): void {
+export function minHeapPush<T>(heap: T[] & { _compare: (a: T, b: T) => number }, value: T): void {
   heap.push(value);
   let i = heap.length - 1;
   while (i > 0) {
@@ -353,7 +353,7 @@ function minHeapPush<T>(heap: T[] & { _compare: (a: T, b: T) => number }, value:
   }
 }
 
-function minHeapPop<T>(heap: T[] & { _compare: (a: T, b: T) => number }): T | undefined {
+export function minHeapPop<T>(heap: T[] & { _compare: (a: T, b: T) => number }): T | undefined {
   if (heap.length === 0) return undefined;
   const top = heap[0];
   if (top === undefined) return undefined;
