@@ -52,10 +52,13 @@ export const COVERAGE_THRESHOLDS = {
   // Now that RB-CI runs the bootstrap step in CI, the references-gated
   // tests do execute on the runner — local + CI floors converge. Each
   // E0a/E0h commit advances these.
-  statements: 70.0,
-  branches: 66.5,
-  functions: 78.0,
-  lines: 70.0,
+  // E0a batch 42: added movement/patrol/systems/simulation/assertions edge-branch
+  // tests + CLI timeout fixes. Local measured 2026-05-28: S=75.45, B=71.27,
+  // F=82.67, L=75.15. Ratchet set 0.5 pp below measured to tolerate flakes.
+  statements: 74.9,
+  branches: 70.7,
+  functions: 82.1,
+  lines: 74.6,
 };
 
 /**
