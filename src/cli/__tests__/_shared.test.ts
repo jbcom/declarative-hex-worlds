@@ -17,12 +17,11 @@ import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   defaultOutRoot,
-  detectDefaultBootstrapOut,
-  formatBytes,
   readJson,
   relativizePath,
   safeResolveOutput,
 } from '../_shared';
+import { detectDefaultBootstrapOut, formatBytes } from '../commands/bootstrap';
 
 describe('relativizePath (PRD E0h)', () => {
   it('returns "." when the path is the cwd itself', () => {

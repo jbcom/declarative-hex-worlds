@@ -25,8 +25,17 @@
  *
  * @module
  */
-import { runBootstrap, type ParsedArgs } from '../../_shared';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import type {
+  BootstrapKayKitAssetsSource,
+  BootstrapResult,
+  BootstrapVerificationReport,
+} from './core';
+import { bootstrapKayKitAssets, verifyBootstrap } from './core';
+import { GameboardCliError } from '../../../errors';
 import type { PackEdition } from '../../../types';
+import { type ParsedArgs, relativizePath, safeResolveOutput } from '../../_shared';
 
 export * from './core';
 export * from './target';
@@ -44,4 +53,103 @@ export async function run(
   edition: PackEdition
 ): Promise<void> {
   await runBootstrap(parsed, edition);
+}
+
+export async function runBootstrap(parsed: ParsedArgs, edition: PackEdition): Promise<void> {
+  const verifyOnly = parsed.flags.verify === true;
+  const outFlag =
+    typeof parsed.flags.out === 'string' ? parsed.flags.out : detectDefaultBootstrapOut();
+  const outAbsolute = safeResolveOutput(outFlag);
+  const jsonMode = parsed.flags.json === true;
+
+  if (verifyOnly) {
+    const report = await verifyBootstrap(outAbsolute);
+    if (jsonMode) {
+      console.log(JSON.stringify(report, null, 2));
+    } else {
+      printBootstrapVerifyReport(report);
+    }
+    if (!report.ok) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  const sourceFlag = typeof parsed.flags.source === 'string' ? parsed.flags.source : 'github';
+  if (sourceFlag !== 'github' && sourceFlag !== 'zip') {
+    throw new GameboardCliError(
+      `bootstrap --source must be 'github' or 'zip' (got: ${sourceFlag})`
+    );
+  }
+  const source: BootstrapKayKitAssetsSource =
+    sourceFlag === 'github'
+      ? {
+          kind: 'github',
+          ...(typeof parsed.flags.commit === 'string' ? { commit: parsed.flags.commit } : {}),
+        }
+      : (() => {
+          if (typeof parsed.flags.zip !== 'string') {
+            throw new GameboardCliError('bootstrap --source zip requires --zip <path>');
+          }
+          return { kind: 'zip', path: parsed.flags.zip } as const;
+        })();
+
+  const result = await bootstrapKayKitAssets({
+    source,
+    out: outAbsolute,
+    edition,
+    force: parsed.flags.force === true,
+    includeSourceFormats: parsed.flags['include-source-formats'] === true,
+  });
+
+  if (jsonMode) {
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    printBootstrapResult(result);
+  }
+}
+
+/**
+ * Default `--out` heuristic. Prefers existing `models` (flat bootstrap
+ * default), then `public/models` (Vite / Next.js public dir convention), then
+ * falls back to `models`. Cosmetic only: every call still routes through
+ * {@link safeResolveOutput}.
+ */
+export function detectDefaultBootstrapOut(): string {
+  const cwd = process.cwd();
+  const candidates = ['models', 'public/models'];
+  for (const candidate of candidates) {
+    if (existsSync(join(cwd, candidate))) {
+      return candidate;
+    }
+  }
+  return 'models';
+}
+
+export function printBootstrapResult(result: BootstrapResult): void {
+  console.log(`bootstrapped ${result.edition.toUpperCase()} edition`);
+  console.log(`  ${result.fileCount} file(s), ${formatBytes(result.totalBytes)}`);
+  console.log(`  root: ${relativizePath(result.outRoot)}`);
+  console.log(`  sidecar: ${relativizePath(result.integritySidecar)}`);
+}
+
+export function printBootstrapVerifyReport(report: BootstrapVerificationReport): void {
+  if (report.ok) {
+    console.log(`bootstrap verify OK (${relativizePath(report.sidecarPath)})`);
+    return;
+  }
+  console.error(`bootstrap verify FAILED for ${relativizePath(report.sidecarPath)}`);
+  for (const drift of report.drift) {
+    console.error(`  ${drift}`);
+  }
+}
+
+export function formatBytes(value: number): string {
+  if (value < 1024) {
+    return `${value} B`;
+  }
+  if (value < 1024 * 1024) {
+    return `${(value / 1024).toFixed(1)} KiB`;
+  }
+  return `${(value / 1024 / 1024).toFixed(2)} MiB`;
 }
