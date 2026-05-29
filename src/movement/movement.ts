@@ -418,7 +418,7 @@ export function runGameboardMovementSystem(
   options: AdvanceGameboardMovementOptions = {}
 ): GameboardMovementAdvanceResult[] {
   const results: GameboardMovementAdvanceResult[] = [];
-  for (const entity of [...world.query(ActiveMovementQuery)]) {
+  for (const entity of world.query(ActiveMovementQuery)) {
     results.push(advanceGameboardMovement(world, entity, options));
   }
   return results;
@@ -441,8 +441,8 @@ export function resetGameboardMovementBudget(
   world: World,
   placement?: Entity | string,
   options: GameboardMovementOptions = {}
-): Entity[] {
-  const entities = placement === undefined ? [...world.query(MovementAgentQuery)] : [requirePlacementEntity(world, placement)];
+): readonly Entity[] {
+  const entities = placement === undefined ? world.query(MovementAgentQuery) : [requirePlacementEntity(world, placement)];
   for (const entity of entities) {
     const profile = resolveProfileForEntity(entity, options);
     const current = entity.get(MovementAgent);
