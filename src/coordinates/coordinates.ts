@@ -153,7 +153,12 @@ export function coordinatesForShape(shape: GameboardShape): HexCoordinates[] {
 /** Checks whether an axial coordinate is inside a supported board shape. */
 export function containsHex(shape: GameboardShape, coordinates: HexCoordinates): boolean {
   if (shape.kind === 'rectangle') {
-    return coordinates.q >= 0 && coordinates.r >= 0 && coordinates.q < shape.width && coordinates.r < shape.height;
+    return (
+      coordinates.q >= 0 &&
+      coordinates.r >= 0 &&
+      coordinates.q < shape.width &&
+      coordinates.r < shape.height
+    );
   }
   const s = -coordinates.q - coordinates.r;
   return Math.max(Math.abs(coordinates.q), Math.abs(coordinates.r), Math.abs(s)) <= shape.radius;
@@ -173,7 +178,9 @@ export function hexLine(start: HexCoordinates, end: HexCoordinates): HexCoordina
   if (distance === 0) {
     return [{ ...start }];
   }
-  return Array.from({ length: distance + 1 }, (_value, index) => cubeRound(cubeLerp(start, end, index / distance)));
+  return Array.from({ length: distance + 1 }, (_value, index) =>
+    cubeRound(cubeLerp(start, end, index / distance))
+  );
 }
 
 /** Returns coordinates exactly one radius away from a center. */
@@ -212,34 +219,46 @@ export function hexRange(center: HexCoordinates, radius: number): HexCoordinates
 }
 
 /** Finds a weighted shortest path across axial neighbors. */
-export function findHexPath(start: HexCoordinates, goal: HexCoordinates, options: HexPathOptions = {}): HexPathResult {
+export function findHexPath(
+  start: HexCoordinates,
+  goal: HexCoordinates,
+  options: HexPathOptions = {}
+): HexPathResult {
   if (hexKey(start) === hexKey(goal)) {
     return { found: true, path: [{ ...start }], cost: 0, visited: 1 };
   }
 
-  const open = new Set<string>([hexKey(start)]);
+  const startKey = hexKey(start);
+  const goalKey = hexKey(goal);
   const cameFrom = new Map<string, string>();
-  const coordinatesByKey = new Map<string, HexCoordinates>([[hexKey(start), start]]);
-  const costByKey = new Map<string, number>([[hexKey(start), 0]]);
+  const coordinatesByKey = new Map<string, HexCoordinates>([[startKey, start]]);
+  const costByKey = new Map<string, number>([[startKey, 0]]);
+  const h0 = hexDistance(start, goal);
+  const heap = minHeapCreate<[number, string]>((a, b) => a[0] - b[0]);
+  minHeapPush(heap, [h0, startKey]);
   let visited = 0;
 
-  while (open.size > 0) {
-    const currentKey = lowestScoreKey(open, costByKey, coordinatesByKey, goal);
+  while (heap.length > 0) {
+    // biome-ignore lint/style/noNonNullAssertion: heap non-empty by loop guard
+    const [, currentKey] = minHeapPop(heap)!;
+    const currentCost = costByKey.get(currentKey);
+    if (currentCost === undefined) {
+      continue;
+    }
     const current = coordinatesByKey.get(currentKey);
     if (!current) {
-      break;
+      continue;
     }
 
-    if (currentKey === hexKey(goal)) {
+    if (currentKey === goalKey) {
       return {
         found: true,
         path: reconstructPath(cameFrom, coordinatesByKey, currentKey),
-        cost: costByKey.get(currentKey) ?? 0,
+        cost: currentCost,
         visited,
       };
     }
 
-    open.delete(currentKey);
     visited += 1;
     if (options.maxVisited && visited > options.maxVisited) {
       break;
@@ -254,7 +273,7 @@ export function findHexPath(start: HexCoordinates, goal: HexCoordinates, options
       }
 
       const adjacentKey = hexKey(adjacent);
-      const nextCost = (costByKey.get(currentKey) ?? 0) + (options.cost?.(current, adjacent) ?? 1);
+      const nextCost = currentCost + (options.cost?.(current, adjacent) ?? 1);
       if (nextCost >= (costByKey.get(adjacentKey) ?? Number.POSITIVE_INFINITY)) {
         continue;
       }
@@ -262,7 +281,8 @@ export function findHexPath(start: HexCoordinates, goal: HexCoordinates, options
       cameFrom.set(adjacentKey, currentKey);
       coordinatesByKey.set(adjacentKey, adjacent);
       costByKey.set(adjacentKey, nextCost);
-      open.add(adjacentKey);
+      const fScore = nextCost + hexDistance(adjacent, goal);
+      minHeapPush(heap, [fScore, adjacentKey]);
     }
   }
 
@@ -276,7 +296,9 @@ export function selectSpawnCoordinates(options: SpawnCoordinateOptions): HexCoor
   const candidates = (options.candidates ?? coordinatesForShape(options.shape))
     .filter((coordinates) => containsHex(options.shape, coordinates))
     .filter((coordinates) => !options.passable || options.passable(coordinates))
-    .filter((coordinates) => outsideEdgePadding(options.shape, coordinates, options.edgePadding ?? 0));
+    .filter((coordinates) =>
+      outsideEdgePadding(options.shape, coordinates, options.edgePadding ?? 0)
+    );
   const pool = shuffle(candidates, rng);
   const selected: HexCoordinates[] = [];
 
@@ -297,26 +319,68 @@ export function normalizeHexRotationSteps(steps: number): HexEdgeIndex {
   return (((Math.floor(steps) % 6) + 6) % 6) as HexEdgeIndex;
 }
 
-function lowestScoreKey(
-  open: ReadonlySet<string>,
-  costByKey: ReadonlyMap<string, number>,
-  coordinatesByKey: ReadonlyMap<string, HexCoordinates>,
-  goal: HexCoordinates
-): string {
-  let bestKey = '';
-  let bestScore = Number.POSITIVE_INFINITY;
-  for (const key of open) {
-    const coordinates = coordinatesByKey.get(key);
-    if (!coordinates) {
-      continue;
-    }
-    const score = (costByKey.get(key) ?? Number.POSITIVE_INFINITY) + hexDistance(coordinates, goal);
-    if (score < bestScore) {
-      bestScore = score;
-      bestKey = key;
+/** Binary min-heap — O(log N) push/pop. */
+function minHeapCreate<T>(
+  compare: (a: T, b: T) => number
+): T[] & { _compare: (a: T, b: T) => number } {
+  const heap = [] as unknown as T[] & { _compare: (a: T, b: T) => number };
+  heap._compare = compare;
+  return heap;
+}
+
+function minHeapPush<T>(heap: T[] & { _compare: (a: T, b: T) => number }, value: T): void {
+  heap.push(value);
+  let i = heap.length - 1;
+  while (i > 0) {
+    const parent = (i - 1) >> 1;
+    const child = heap[i];
+    const par = heap[parent];
+    if (child !== undefined && par !== undefined && heap._compare(child, par) < 0) {
+      heap[i] = par;
+      heap[parent] = child;
+      i = parent;
+    } else {
+      break;
     }
   }
-  return bestKey;
+}
+
+function minHeapPop<T>(heap: T[] & { _compare: (a: T, b: T) => number }): T | undefined {
+  if (heap.length === 0) return undefined;
+  const top = heap[0];
+  if (top === undefined) return undefined;
+  const last = heap.pop();
+  if (heap.length > 0 && last !== undefined) {
+    heap[0] = last;
+    let i = 0;
+    for (;;) {
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+      let smallest = i;
+      const lv = heap[left];
+      const sv = heap[smallest];
+      if (left < heap.length && lv !== undefined && sv !== undefined && heap._compare(lv, sv) < 0)
+        smallest = left;
+      const rv = heap[right];
+      const sv2 = heap[smallest];
+      if (
+        right < heap.length &&
+        rv !== undefined &&
+        sv2 !== undefined &&
+        heap._compare(rv, sv2) < 0
+      )
+        smallest = right;
+      if (smallest === i) break;
+      const tmp = heap[i];
+      const sm = heap[smallest];
+      if (tmp !== undefined && sm !== undefined) {
+        heap[i] = sm;
+        heap[smallest] = tmp;
+      }
+      i = smallest;
+    }
+  }
+  return top;
 }
 
 function reconstructPath(
@@ -366,7 +430,11 @@ function cubeRound(coordinates: HexCoordinates): HexCoordinates {
   return { q: roundedQ, r: roundedR };
 }
 
-function outsideEdgePadding(shape: GameboardShape, coordinates: HexCoordinates, padding: number): boolean {
+function outsideEdgePadding(
+  shape: GameboardShape,
+  coordinates: HexCoordinates,
+  padding: number
+): boolean {
   if (padding <= 0) {
     return true;
   }
