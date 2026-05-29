@@ -4,7 +4,8 @@ import {
   listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,
   summarizeSimpleRpgGuidePublicApiExercises,
-} from '../../tests/integration/simple-rpg/simple-rpg';
+} from '../guides/simple-rpg';
+import scenarioJson from '../../tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json';
 import {
   type BootstrapKayKitAssetsSource,
   type BootstrapResult,
@@ -2231,7 +2232,7 @@ export function runCoverage(parsed: ParsedArgs): void {
 
 export function createCliSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence {
   const exerciseCoverage = summarizeSimpleRpgGuidePublicApiExercises();
-  const executableSmoke = runSimpleRpgExecutableGuideApiSmoke();
+  const executableSmoke = runSimpleRpgExecutableGuideApiSmoke(scenarioJson as GameboardScenario);
   const evidenceModeCounts = exerciseCoverage.exerciseModeCounts;
   const evidenceModeEntries = Object.entries(evidenceModeCounts) as Array<
     [GameboardCoverageSimpleRpgEvidenceMode, number]
