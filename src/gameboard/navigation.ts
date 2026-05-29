@@ -28,6 +28,7 @@ import type {
   GameboardTerrain,
   GameboardTileSpec,
 } from './gameboard';
+import { gameboardPlanIndex } from './gameboard';
 import { gameboardPlacementBlocksOccupancy, gameboardPlacementFootprintKeys } from './occupancy';
 
 /**
@@ -518,9 +519,7 @@ export function findGameboardPath(
   start: HexCoordinates | string,
   goal: HexCoordinates | string,
   profile: GameboardNavigationProfile = {},
-  tilesByKey: ReadonlyMap<string, GameboardTileSpec> = new Map(
-    plan.tiles.map((tile) => [tile.key, tile])
-  ),
+  tilesByKey: ReadonlyMap<string, GameboardTileSpec> = gameboardPlanIndex(plan).tilesByKey,
   occupancy: GameboardOccupancyIndex = createGameboardOccupancyIndex(plan, profile)
 ): GameboardNavigationPathResult {
   const normalized = normalizeNavigationProfile(profile);
@@ -575,9 +574,7 @@ export function reachableGameboardTiles(
   start: HexCoordinates | string,
   movementBudget: number,
   profile: GameboardNavigationProfile = {},
-  tilesByKey: ReadonlyMap<string, GameboardTileSpec> = new Map(
-    plan.tiles.map((tile) => [tile.key, tile])
-  ),
+  tilesByKey: ReadonlyMap<string, GameboardTileSpec> = gameboardPlanIndex(plan).tilesByKey,
   occupancy: GameboardOccupancyIndex = createGameboardOccupancyIndex(plan, profile)
 ): GameboardReachableTile[] {
   const normalized = normalizeNavigationProfile(profile);

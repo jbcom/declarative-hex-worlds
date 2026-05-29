@@ -168,7 +168,7 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 
 ### P2 — Medium (plan for next sprint)
 
-- [ ] **CR-P2-1** — `_shared.ts` decomposition: per-command files; extract `emitOutput()` helper; fix `commandHandlerMutations` to throw `GameboardRuntimeError` on `never`. [CQ-1, CQ-2]
+- [x] **CR-P2-1** — `_shared.ts` decomposition: per-command files; extract `emitOutput()` helper; fix `commandHandlerMutations` to throw `GameboardRuntimeError` on `never`. [CQ-1, CQ-2]
 - [ ] **CR-P2-2** — `findGameboardPath`/`reachableGameboardTiles` default-arg Map allocations: route through `gameboardPlanIndex` WeakMap. [P-4]
 - [ ] **CR-P2-3** — System tick allocation: remove `[...world.query(...)]` spreads (patrol.ts:227, movement.ts:421); flatten `flatMap`+spread in `runGameboardSystems` event array. [P-5, P-7]
 - [ ] **CR-P2-4** — `freeManifest` 380 KB eager import in `gameboard.ts`: convert static import to dynamic `import()` inside functions that need it. [P-8]

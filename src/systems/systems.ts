@@ -550,11 +550,20 @@ export function runGameboardSystems(
   const movement = options.movement === false ? [] : runGameboardMovementSystem(world, options.movement ?? {});
   const beforeQuests = options.quests === false ? [] : readGameboardQuests(world);
   const quests = options.quests === false ? [] : advanceAllGameboardQuests(world, options.quests ?? {});
-  const events = [
-    ...patrols.flatMap(patrolEvents),
-    ...movement.flatMap(movementEvents),
-    ...questEvents(beforeQuests, quests),
-  ];
+  const events: GameboardSystemEvent[] = [];
+  for (const patrol of patrols) {
+    for (const event of patrolEvents(patrol)) {
+      events.push(event);
+    }
+  }
+  for (const move of movement) {
+    for (const event of movementEvents(move)) {
+      events.push(event);
+    }
+  }
+  for (const event of questEvents(beforeQuests, quests)) {
+    events.push(event);
+  }
   return {
     patrols,
     movement,

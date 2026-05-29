@@ -224,7 +224,7 @@ export function runGameboardPatrolSystem(
   world: World,
   options: AdvanceGameboardPatrolOptions = {}
 ): GameboardPatrolAdvanceResult[] {
-  return [...world.query(GameboardPatrolAgentQuery)].map((entity) => advancePatrolEntity(world, entity, options));
+  return world.query(GameboardPatrolAgentQuery).map((entity) => advancePatrolEntity(world, entity, options));
 }
 
 function advancePatrolEntity(
