@@ -9,6 +9,11 @@ From version 1.0.0 onward, release-please populates this file from Conventional 
 
 ## 1.0.0 (2026-05-28)
 
+### Package rename
+
+The package was published under the name **`declarative-hex-worlds`** starting with this release.
+Previous development builds used a scoped internal name (`@jbcom/medieval-hexagon-gameboard`).
+See the [migration guide](/guides/migration/) for rename impact and upgrade steps.
 
 ### Features
 

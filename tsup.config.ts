@@ -53,9 +53,16 @@ export default defineConfig({
   target: 'es2022',
   // Shared chunks keep Koota trait identities stable when consumers mix package subpaths.
   splitting: true,
+  // Explicit: esbuild tree-shakes ESM by default but treeshake:true enables Rollup-level
+  // tree-shaking for the bundled dependencies (honeycomb-grid, seedrandom, citty, yauzl).
+  treeshake: true,
   esbuildOptions(options) {
     options.sourcesContent = false;
   },
+  // Bundling model: dependencies are BUNDLED, peerDependencies are EXTERNAL.
+  // - honeycomb-grid, seedrandom, citty, yauzl: runtime dependencies → bundled (no `external` entry)
+  // - koota, koota/react, react, three: peerDependencies → external (consumers supply these)
+  // - declarative-hex-worlds/* self-references: external to avoid duplication across subpath chunks
   external: [
     'declarative-hex-worlds',
     /^declarative-hex-worlds\//,

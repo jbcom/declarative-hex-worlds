@@ -177,15 +177,15 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 - [x] **CR-P2-7** — ✅ `readSidecar`: added `SIDECAR_MAX_BYTES = 4 MiB` + `SIDECAR_MAX_FILES = 100_000` constants; guards throw `GameboardIoError` on oversize or overcount.
 - [x] **CR-P2-8** — ✅ `walkFilesInternal`: added `symlinkCount` ref parameter; warns once on stderr when symlink encountered; passes through recursive calls.
 - [ ] **CR-P2-9** — `koota.ts:16` dependency inversion: move `isKnownExtraAssetId` out of `scenario` domain; require callers to pass `requiresExtra` explicitly or move to `src/types/`. [AR-1]
-- [ ] **CR-P2-10** — `ci.yml` check matrix: unify pnpm/setup-node SHAs across all jobs (or drop artifact-share in favor of per-job pnpm cache — benchmark first). [CI-3]
-- [ ] **CR-P2-11** — Release: add post-publish `npm audit signatures` verify + write `ROLLBACK.md` runbook. [CI-7]
+- [x] **CR-P2-10** — ✅ `ci.yml`: unified pnpm/action-setup and actions/setup-node SHAs across all 4 jobs to `v6.0.8` / `v6.4.0` (docs job was on v4.2.0/v6.3.0).
+- [x] **CR-P2-11** — ✅ `release.yml`: added post-publish `npm audit signatures` verify step; wrote `ROLLBACK.md` runbook covering deprecate, unpublish, patch-release, and signature failure scenarios.
 - [ ] **CR-P2-12** — `automerge.yml`: reassess release-please auto-merge after CR-P0-1 branch protection lands. [CI-6]
-- [ ] **CR-P2-13** — Docs: fix CLI reference rename artifact in `generate-cli-reference.ts` template (H-DOC-1); add rename narrative to CHANGELOG.md 1.0.0 entry + `docs-site/guides/migration.md` (H-DOC-2); add JSON-flag schema/error-contract subsection to CLI reference (H-DOC-3); add `HEX_WORLDS_OUT_ROOT` danger aside (M-DOC-1).
+- [x] **CR-P2-13** — ✅ H-DOC-1: fixed CLI reference redundant binary mention; H-DOC-2: added package rename narrative to CHANGELOG.md 1.0.0 + created `docs-site/guides/migration.md`; H-DOC-3: added JSON flag schema/error-contract subsection; M-DOC-1: added `HEX_WORLDS_OUT_ROOT` danger aside.
 - [x] **CR-P2-14** — ✅ Removed `it.skip` at cli.test.ts:1922 (fixture key updated to `fixture-castle-kit` to satisfy `[A-Za-z0-9_:-]+` guard); tightened `__proto__` guard message assertion in cli-security.test.ts; fixed `--pieces` arg to use temp file (CLI requires path, not inline JSON). Skips at lines 219 (Phase RB) and 1426 (Phase RS) remain legitimately blocked.
 - [x] **CR-P2-15** — ✅ `requirePlacementState` now returns `Readonly<PlacementStateValue>` (live ECS value, no copy) for internal reads; `snapshotPlacementState` does the deep-spread and is used only at the two external-result callsites (requestGameboardMovement and movementAdvanceResult).
 - [x] **CR-P2-16** — ✅ `tsconfig.json`: removed `ignoreDeprecations: "6.0"`; migrated all `paths` values from bare relative (`src/...`) to `./`-prefixed relative (`./src/...`) and removed `baseUrl: "."` — TS 6 requires explicit relative paths in `paths` when `baseUrl` is absent. tsc clean, all 68 test files pass.
-- [ ] **CR-P2-17** — tsup: `treeshake: true` explicit; resolve honeycomb-grid/seedrandom/citty/yauzl bundle-vs-external (pick one model, not both); add size-budget test. [BP-7]
-- [ ] **CR-P2-18** — `release.yml`: pin `npm install -g npm@<version>` (drop `@latest`); add `@cyclonedx/cyclonedx-npm` as pinned devDependency. [CI-10, CI-11]
+- [x] **CR-P2-17** — ✅ `tsup.config.ts`: added `treeshake: true` explicit; documented bundle model (honeycomb-grid/seedrandom/citty/yauzl bundled as deps; koota/react/three external as peerDeps); added `tests/unit/bundle-size.test.ts` with 60KB ceiling on index.js + 100KB ceiling on cli.js (skips when dist/ absent).
+- [x] **CR-P2-18** — ✅ `release.yml`: pinned `npm@11.11.0` (was `@latest`); added `@cyclonedx/cyclonedx-npm@4.2.1` as pinned devDependency; switched from `npx --yes @cyclonedx/cyclonedx-npm@latest` to `pnpm exec cyclonedx-npm`; updated contract test assertion to match.
 
 ### P3 — Backlog
 
