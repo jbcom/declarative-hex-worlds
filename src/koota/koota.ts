@@ -12,25 +12,23 @@ import {
   type TraitRecord,
   type World,
 } from 'koota';
+import { axialToWorld } from '../coordinates';
 import { GameboardRuntimeError } from '../errors';
-import { isKnownExtraAssetId } from '../scenario';
 import {
-  hexKey,
-  neighbor,
-  type GameboardPlan,
   type GameboardPlacementKind,
   type GameboardPlacementLayer,
+  type GameboardPlacementOccupancyLike,
   type GameboardPlacementSpec,
+  type GameboardPlan,
   type GameboardTileSpec,
-} from '../gameboard';
-import { axialToWorld } from '../coordinates';
-import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
-  type GameboardPlacementOccupancyLike,
   gameboardPlacementOccupancyGroup,
   gameboardPlacementOccupiesTile,
+  hexKey,
+  neighbor,
 } from '../gameboard';
+import { isKnownExtraAssetId } from '../scenario';
 import type { HexCoordinates, TextureSet, WorldPosition } from '../types';
 
 // Board / tile / placement traits + relations live in `src/traits/board.ts`
@@ -66,6 +64,7 @@ export {
   TileTagList,
   TileTerrain,
 } from '../traits/board';
+
 import {
   AdjacentTo,
   GameboardState,
@@ -93,6 +92,29 @@ import {
   TileTagList,
   TileTerrain,
 } from '../traits/board';
+
+/** O(1) tile-key→entity indexes keyed by World (GC-safe via WeakMap). */
+const tileIndexByWorld = new WeakMap<World, Map<string, Entity>>();
+/** O(1) placement-id→entity indexes keyed by World (GC-safe via WeakMap). */
+const placementIndexByWorld = new WeakMap<World, Map<string, Entity>>();
+
+function getTileIndex(world: World): Map<string, Entity> {
+  let index = tileIndexByWorld.get(world);
+  if (!index) {
+    index = new Map<string, Entity>();
+    tileIndexByWorld.set(world, index);
+  }
+  return index;
+}
+
+function getPlacementIndex(world: World): Map<string, Entity> {
+  let index = placementIndexByWorld.get(world);
+  if (!index) {
+    index = new Map<string, Entity>();
+    placementIndexByWorld.set(world, index);
+  }
+  return index;
+}
 
 /** Query for full tile state. */
 export const GameboardTileQuery = createQuery(IsGameboardTile, HexTileState);
@@ -401,6 +423,8 @@ export function spawnGameboardPlan(world: World, plan: GameboardPlan): Gameboard
 
   const tiles = new Map<string, Entity>();
   const placements = new Map<string, Entity>();
+  const tileIndex = getTileIndex(world);
+  const placementIndex = getPlacementIndex(world);
 
   for (const tile of plan.tiles) {
     const entity = world.spawn(
@@ -412,6 +436,7 @@ export function spawnGameboardPlan(world: World, plan: GameboardPlan): Gameboard
       entity.add(IsStackedTerrain);
     }
     tiles.set(tile.key, entity);
+    tileIndex.set(tile.key, entity);
   }
 
   linkAdjacentTiles(tiles);
@@ -419,7 +444,9 @@ export function spawnGameboardPlan(world: World, plan: GameboardPlan): Gameboard
   for (const placement of plan.placements) {
     const tile = tiles.get(placement.tileKey);
     if (!tile) {
-      throw new GameboardRuntimeError(`Placement ${placement.id} references missing tile ${placement.tileKey}`);
+      throw new GameboardRuntimeError(
+        `Placement ${placement.id} references missing tile ${placement.tileKey}`
+      );
     }
     const entity = world.spawn(
       IsGameboardPlacement,
@@ -429,6 +456,7 @@ export function spawnGameboardPlan(world: World, plan: GameboardPlan): Gameboard
     );
     syncPlacementOccupancyRelations(world, entity, placement, tiles);
     placements.set(placement.id, entity);
+    placementIndex.set(placement.id, entity);
   }
 
   return { tiles, placements };
@@ -456,6 +484,7 @@ export function spawnGameboardPlacement(
     ...tagsForPlacement(placement)
   );
   syncPlacementOccupancyRelations(world, entity, placement);
+  getPlacementIndex(world).set(placement.id, entity);
   syncGameboardPlacementCount(world);
   return entity;
 }
@@ -473,12 +502,16 @@ export function updateGameboardPlacement(
   const entity = requirePlacementEntity(world, placement);
   const current = entity.get(PlacementState);
   if (!current) {
-    throw new GameboardRuntimeError(`Placement ${placementId(placement)} is missing PlacementState`);
+    throw new GameboardRuntimeError(
+      `Placement ${placementId(placement)} is missing PlacementState`
+    );
   }
   const tile = requireTileEntity(world, options.at ?? current.tileKey);
   const tileState = tile.get(HexTileState);
   if (!tileState) {
-    throw new GameboardRuntimeError(`Tile ${tileKey(options.at ?? current.tileKey)} is missing HexTileState`);
+    throw new GameboardRuntimeError(
+      `Tile ${tileKey(options.at ?? current.tileKey)} is missing HexTileState`
+    );
   }
 
   const rotationSteps = normalizeRotationSteps(options.rotationSteps ?? current.rotationSteps);
@@ -540,6 +573,10 @@ export function removeGameboardPlacement(world: World, placement: Entity | strin
   if (!entity) {
     return false;
   }
+  const id = entity.get(PlacementState)?.id;
+  if (id !== undefined) {
+    getPlacementIndex(world).delete(id);
+  }
   entity.destroy();
   syncGameboardPlacementCount(world);
   return true;
@@ -574,29 +611,31 @@ export function clearGameboardWorld(world: World): void {
   if (world.has(GameboardState)) {
     world.remove(GameboardState);
   }
+  getTileIndex(world).clear();
+  getPlacementIndex(world).clear();
 }
 
 /**
  * Find a tile entity by axial coordinates or tile key.
+ * O(1) via per-world index maintained by spawnGameboardPlan / clearGameboardWorld.
  */
 export function findTileEntity(
   world: World,
   coordinates: HexCoordinates | string
 ): Entity | undefined {
   const key = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
-  return world.query(GameboardTileQuery).find((entity) => entity.get(HexTileState)?.key === key);
+  return getTileIndex(world).get(key);
 }
 
 /**
  * Find a placement entity by entity reference or placement id.
+ * O(1) via per-world index maintained by spawn / remove helpers.
  */
 export function findPlacementEntity(world: World, placement: Entity | string): Entity | undefined {
   if (typeof placement !== 'string') {
     return placement;
   }
-  return world
-    .query(GameboardPlacementQuery)
-    .find((entity) => entity.get(PlacementState)?.id === placement);
+  return getPlacementIndex(world).get(placement);
 }
 
 /**

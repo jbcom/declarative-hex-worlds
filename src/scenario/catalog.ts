@@ -4,8 +4,9 @@
  *
  * @module
  */
-import { FACTIONS, TEXTURE_SETS, UNIT_STYLES } from '../types';
+
 import type { AssetCategory, Faction, PackEdition, TextureSet, UnitStyle } from '../types';
+import { FACTIONS, TEXTURE_SETS, UNIT_STYLES } from '../types';
 
 /** Base and support tile asset ids used by terrain helpers. */
 export const BASE_TILE_ASSET_IDS = [
@@ -420,7 +421,16 @@ export interface KayKitAssetPublicTreatment {
   /** Intent-level role used by docs, selectors, and gameplay placement helpers. */
   role: KayKitAssetPublicRole;
   /** Placement kind produced by the public board/runtime APIs. */
-  placementKind: 'terrain' | 'road' | 'river' | 'coast' | 'transition' | 'decoration' | 'structure' | 'unit' | 'prop';
+  placementKind:
+    | 'terrain'
+    | 'road'
+    | 'river'
+    | 'coast'
+    | 'transition'
+    | 'decoration'
+    | 'structure'
+    | 'unit'
+    | 'prop';
   /** Placement layer produced by the public board/runtime APIs. */
   placementLayer: 'terrain' | 'surface' | 'feature' | 'structure' | 'unit';
   /** Public helpers or selectors that intentionally exercise this asset. */
@@ -778,7 +788,11 @@ export function factionBuildingAssetId(kind: FactionBuildingKind, faction: Facti
 }
 
 /** Builds a faction-colored unit part asset id. */
-export function coloredUnitAssetId(part: ColoredUnitPart, faction: Faction, style: ColoredUnitStyle): string {
+export function coloredUnitAssetId(
+  part: ColoredUnitPart,
+  faction: Faction,
+  style: ColoredUnitStyle
+): string {
   return `${part}_${faction}_${style}`;
 }
 
@@ -801,7 +815,9 @@ export function listKayKitGuideScenarios(): KayKitGuideScenario[] {
 }
 
 /** Returns the public treatment contract for one asset id, if the id is KayKit-owned. */
-export function describeKayKitAssetTreatment(assetId: string): KayKitAssetPublicTreatment | undefined {
+export function describeKayKitAssetTreatment(
+  assetId: string
+): KayKitAssetPublicTreatment | undefined {
   return KAYKIT_ASSET_PUBLIC_TREATMENT_BY_ID[assetId];
 }
 
@@ -924,7 +940,9 @@ export function listKayKitGuideScenarioAssetRenderGroups(
 }
 
 /** Returns the scenario, page counts, and public treatment join for one guide page scenario. */
-export function describeKayKitGuideScenarioCoverage(id: string): KayKitGuideScenarioCoverage | undefined {
+export function describeKayKitGuideScenarioCoverage(
+  id: string
+): KayKitGuideScenarioCoverage | undefined {
   const scenario = describeKayKitGuideScenario(id);
   if (!scenario) {
     return undefined;
@@ -978,7 +996,9 @@ export function listKayKitGuideAssetCoverages(): KayKitGuideAssetCoverage[] {
 }
 
 /** Returns guide-page, API, docs, and visual coverage for one asset id. */
-export function describeKayKitGuideAssetCoverage(assetId: string): KayKitGuideAssetCoverage | undefined {
+export function describeKayKitGuideAssetCoverage(
+  assetId: string
+): KayKitGuideAssetCoverage | undefined {
   const treatment = describeKayKitAssetTreatment(assetId);
   if (!treatment) {
     return undefined;
@@ -993,7 +1013,9 @@ export function summarizeKayKitGuideCoverage(): KayKitGuideCoverageSummary {
   const treatmentByAssetId = new Map(treatments.map((treatment) => [treatment.assetId, treatment]));
   const uniqueAssetIds = uniqueSortedStrings(scenarios.flatMap((scenario) => scenario.assetIds));
   const sourceImages = uniqueSortedStrings(scenarios.map((scenario) => scenario.sourceImage));
-  const visualArtifacts = uniqueSortedStrings(scenarios.flatMap((scenario) => scenario.visualArtifacts));
+  const visualArtifacts = uniqueSortedStrings(
+    scenarios.flatMap((scenario) => scenario.visualArtifacts)
+  );
   const docs = uniqueSortedStrings(scenarios.flatMap((scenario) => scenario.docs));
   const occurrenceTreatments = scenarios
     .flatMap((scenario) => scenario.assetIds)
@@ -1011,8 +1033,12 @@ export function summarizeKayKitGuideCoverage(): KayKitGuideCoverageSummary {
       free: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'free'),
       extra: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'extra'),
       occurrences: occurrenceTreatments.length,
-      freeOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'free').length,
-      extraOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'extra').length,
+      freeOccurrences: occurrenceTreatments.filter(
+        (treatment) => treatment.minimumEdition === 'free'
+      ).length,
+      extraOccurrences: occurrenceTreatments.filter(
+        (treatment) => treatment.minimumEdition === 'extra'
+      ).length,
     },
     scenariosByEdition: countScenariosByEdition(scenarios),
     uniqueAssetsByRole: countUniqueAssetsByRole(uniqueAssetIds, treatmentByAssetId),
@@ -1026,7 +1052,8 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
 ): string {
   const scenarios = options.scenarios ? [...options.scenarios] : listKayKitGuideScenarios();
   const includeRoleCoverage = options.includeRoleCoverage ?? options.scenarios === undefined;
-  const includePublicApiInversion = options.includePublicApiInversion ?? options.scenarios === undefined;
+  const includePublicApiInversion =
+    options.includePublicApiInversion ?? options.scenarios === undefined;
   const lines = [
     `# ${options.title ?? 'Guide Scenario Coverage'}`,
     '',
@@ -1217,39 +1244,30 @@ export function hasKayKitAssetTreatment(assetId: string): boolean {
   return describeKayKitAssetTreatment(assetId) !== undefined;
 }
 
+const KNOWN_EXTRA_ASSET_IDS: Set<string> = (() => {
+  const freeSet = new Set<string>([
+    ...(FREE_PROP_ASSET_IDS as readonly string[]),
+    ...(NEUTRAL_STRUCTURE_KINDS as readonly string[]),
+    ...(NATURE_ASSET_IDS as readonly string[]),
+  ]);
+  const ids = new Set<string>([
+    ...(EXTRA_PROP_ASSET_IDS as readonly string[]),
+    'hex_transition',
+    neutralUnitAssetId('projectile_catapult'),
+    ...FACTIONS.flatMap((faction) => [
+      ...EXTRA_FACTION_BUILDING_KINDS.map((kind) => factionBuildingAssetId(kind, faction)),
+      ...COLORED_UNIT_PARTS.flatMap((part) =>
+        EXTRA_UNIT_STYLES.map((style) => coloredUnitAssetId(part, faction, style))
+      ),
+    ]),
+    ...(NEUTRAL_UNIT_PARTS as readonly string[]).filter((id) => !freeSet.has(id)),
+  ]);
+  return ids;
+})();
+
 /** Checks whether an asset id belongs to known local-only EXTRA content. */
 export function isKnownExtraAssetId(assetId: string): boolean {
-  if ((EXTRA_PROP_ASSET_IDS as readonly string[]).includes(assetId)) {
-    return true;
-  }
-  if (assetId === 'hex_transition') {
-    return true;
-  }
-  for (const faction of FACTIONS) {
-    for (const kind of EXTRA_FACTION_BUILDING_KINDS) {
-      if (assetId === factionBuildingAssetId(kind, faction)) {
-        return true;
-      }
-    }
-    for (const part of COLORED_UNIT_PARTS) {
-      for (const style of EXTRA_UNIT_STYLES) {
-        if (assetId === coloredUnitAssetId(part, faction, style)) {
-          return true;
-        }
-      }
-    }
-  }
-  if (assetId === neutralUnitAssetId('projectile_catapult')) {
-    return true;
-  }
-  if ((NEUTRAL_UNIT_PARTS as readonly string[]).includes(assetId)) {
-    return !(
-      (FREE_PROP_ASSET_IDS as readonly string[]).includes(assetId) ||
-      (NEUTRAL_STRUCTURE_KINDS as readonly string[]).includes(assetId) ||
-      (NATURE_ASSET_IDS as readonly string[]).includes(assetId)
-    );
-  }
-  return false;
+  return KNOWN_EXTRA_ASSET_IDS.has(assetId);
 }
 
 /** Builds a faction flag prop asset id. */
@@ -1310,7 +1328,9 @@ const GUIDE_IMAGE = {
 
 const KAYKIT_ASSET_PUBLIC_TREATMENTS = createKayKitAssetPublicTreatments();
 const KAYKIT_ASSET_PUBLIC_TREATMENT_BY_ID: Readonly<Record<string, KayKitAssetPublicTreatment>> =
-  Object.fromEntries(KAYKIT_ASSET_PUBLIC_TREATMENTS.map((treatment) => [treatment.assetId, treatment]));
+  Object.fromEntries(
+    KAYKIT_ASSET_PUBLIC_TREATMENTS.map((treatment) => [treatment.assetId, treatment])
+  );
 
 function createKayKitAssetPublicTreatments(): KayKitAssetPublicTreatment[] {
   return [
@@ -1327,7 +1347,10 @@ function createKayKitAssetPublicTreatments(): KayKitAssetPublicTreatment[] {
     ...EXTRA_PROP_ASSET_IDS.map((assetId) => propTreatment(assetId, 'extra')),
     ...coloredUnitTreatments(),
     ...NEUTRAL_UNIT_PARTS.map(neutralUnitTreatment),
-  ].sort((left, right) => left.sourcePath.localeCompare(right.sourcePath) || left.assetId.localeCompare(right.assetId));
+  ].sort(
+    (left, right) =>
+      left.sourcePath.localeCompare(right.sourcePath) || left.assetId.localeCompare(right.assetId)
+  );
 }
 
 const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
@@ -1337,7 +1360,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Overview and license contract',
     sourceImage: GUIDE_IMAGE.cover,
     edition: 'reference',
-    summary: 'Defines the KayKit pack identity, library scope, package attribution, and source-of-truth guide extraction.',
+    summary:
+      'Defines the KayKit pack identity, library scope, package attribution, and source-of-truth guide extraction.',
     assetIds: [],
     publicApi: ['freeManifest', 'listKayKitGuideScenarios', 'listKayKitAssetPublicTreatments'],
     treatmentRoles: [],
@@ -1350,7 +1374,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Buildings, props, and factions',
     sourceImage: GUIDE_IMAGE.buildings,
     edition: 'mixed',
-    summary: 'Covers faction building ids, neutral structures, props, flags, settlement composition, and source path naming.',
+    summary:
+      'Covers faction building ids, neutral structures, props, flags, settlement composition, and source path naming.',
     publicApi: [
       'factionBuildingAssetId',
       'flagAssetId',
@@ -1371,7 +1396,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Road variations',
     sourceImage: GUIDE_IMAGE.roads,
     edition: 'free',
-    summary: 'Maps road labels A-M and sloped variants to canonical edge masks, rotations, and path builder output.',
+    summary:
+      'Maps road labels A-M and sloped variants to canonical edge masks, rotations, and path builder output.',
     publicApi: [
       'selectRoadVariant',
       'selectRoadVariantByLabel',
@@ -1389,7 +1415,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'River variations',
     sourceImage: GUIDE_IMAGE.rivers,
     edition: 'free',
-    summary: 'Maps river labels A-L, curvy rivers, crossings, and waterless variants to edge masks and rotation selectors.',
+    summary:
+      'Maps river labels A-L, curvy rivers, crossings, and waterless variants to edge masks and rotation selectors.',
     publicApi: [
       'selectRiverVariant',
       'selectRiverVariantByLabel',
@@ -1411,7 +1438,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Nature and decoration contents',
     sourceImage: GUIDE_IMAGE.natureContents,
     edition: 'free',
-    summary: 'Covers mountains, hills, trees, rocks, water plants, clouds, props, resources, flags, and scatterable pieces.',
+    summary:
+      'Covers mountains, hills, trees, rocks, water plants, clouds, props, resources, flags, and scatterable pieces.',
     publicApi: [
       'GameboardBuilder.addNature',
       'GameboardBuilder.addHill',
@@ -1432,7 +1460,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Nature usage guide',
     sourceImage: GUIDE_IMAGE.natureUsage,
     edition: 'free',
-    summary: 'Expresses stacking, scatter, forest, hill, mountain, and visual-slot placement rules for terrain dressing.',
+    summary:
+      'Expresses stacking, scatter, forest, hill, mountain, and visual-slot placement rules for terrain dressing.',
     publicApi: [
       'GameboardBuilder.addForest',
       'GameboardBuilder.addHill',
@@ -1454,7 +1483,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Water usage guide',
     sourceImage: GUIDE_IMAGE.waterUsage,
     edition: 'free',
-    summary: 'Covers water terrain, coasts, rivers, waterless overlays, harbor-compatible edges, and water decoration placement.',
+    summary:
+      'Covers water terrain, coasts, rivers, waterless overlays, harbor-compatible edges, and water decoration placement.',
     publicApi: [
       'selectCoastVariant',
       'selectRiverVariant',
@@ -1476,7 +1506,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Taller hex tiles',
     sourceImage: GUIDE_IMAGE.tallerTiles,
     edition: 'free',
-    summary: 'Covers bottom, sloped, elevated, and stacked terrain compositions for mountains and cliff-like boards.',
+    summary:
+      'Covers bottom, sloped, elevated, and stacked terrain compositions for mountains and cliff-like boards.',
     publicApi: [
       'GameboardBuilder.addMountainStack',
       'GameboardBuilder.setElevation',
@@ -1496,7 +1527,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'World design example',
     sourceImage: GUIDE_IMAGE.worldDesign,
     edition: 'free',
-    summary: 'Combines base tiles, roads, rivers, buildings, nature, scatter, spawn locations, and pathable board layout.',
+    summary:
+      'Combines base tiles, roads, rivers, buildings, nature, scatter, spawn locations, and pathable board layout.',
     publicApi: [
       'createGameboardBuilder',
       'createGameboardPlanFromRecipe',
@@ -1512,7 +1544,10 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
       'packages/declarative-hex-worlds/tests/browser/__screenshots__/simple-rpg-fixed-completed.png',
       'packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png',
     ],
-    docs: ['docs/guides/recipes-scenarios-and-simulation.md', 'docs/pillars/05-koota-runtime-rules.md'],
+    docs: [
+      'docs/guides/recipes-scenarios-and-simulation.md',
+      'docs/pillars/05-koota-runtime-rules.md',
+    ],
   },
   {
     id: 'page-10-floating-islands',
@@ -1520,7 +1555,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Floating islands',
     sourceImage: GUIDE_IMAGE.floatingIslands,
     edition: 'free',
-    summary: 'Covers elevated support tiles, sloped terrain, mountain stacks, forests, and non-rectangular Honeycomb boards.',
+    summary:
+      'Covers elevated support tiles, sloped terrain, mountain stacks, forests, and non-rectangular Honeycomb boards.',
     publicApi: [
       'createHexagonGameboardGrid',
       'GameboardBuilder.addMountainStack',
@@ -1540,7 +1576,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Biomes',
     sourceImage: GUIDE_IMAGE.biomes,
     edition: 'extra',
-    summary: 'Covers local EXTRA transition tiles and texture-set selection for biome blends without publishing EXTRA binaries.',
+    summary:
+      'Covers local EXTRA transition tiles and texture-set selection for biome blends without publishing EXTRA binaries.',
     publicApi: [
       'textureFileName',
       'GameboardBuilder.addTransition',
@@ -1554,7 +1591,10 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
       'packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-seasonal-textures.png',
       'packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png',
     ],
-    docs: ['docs/pillars/03-editions-and-ingest.md', 'docs/guides/rendering-assets-and-external-packs.md'],
+    docs: [
+      'docs/pillars/03-editions-and-ingest.md',
+      'docs/guides/rendering-assets-and-external-packs.md',
+    ],
   },
   {
     id: 'page-12-alternate-textures',
@@ -1562,13 +1602,22 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Alternate textures',
     sourceImage: GUIDE_IMAGE.alternateTextures,
     edition: 'extra',
-    summary: 'Covers default, fall, summer, and winter texture sets generated through local EXTRA ingestion.',
-    publicApi: ['textureFileName', 'createManifestBundle', 'selectManifestAssets', 'declarative-hex-worlds manifest'],
+    summary:
+      'Covers default, fall, summer, and winter texture sets generated through local EXTRA ingestion.',
+    publicApi: [
+      'textureFileName',
+      'createManifestBundle',
+      'selectManifestAssets',
+      'declarative-hex-worlds manifest',
+    ],
     visualArtifacts: [
       'packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-seasonal-textures.png',
       'packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png',
     ],
-    docs: ['docs/pillars/03-editions-and-ingest.md', 'docs/guides/rendering-assets-and-external-packs.md'],
+    docs: [
+      'docs/pillars/03-editions-and-ingest.md',
+      'docs/guides/rendering-assets-and-external-packs.md',
+    ],
   },
   {
     id: 'page-13-transition-tiles',
@@ -1576,7 +1625,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Transition tiles',
     sourceImage: GUIDE_IMAGE.transition,
     edition: 'extra',
-    summary: 'Covers EXTRA transition tile declarations, biome adjacency, and recipe/build-time validation for blends.',
+    summary:
+      'Covers EXTRA transition tile declarations, biome adjacency, and recipe/build-time validation for blends.',
     publicApi: [
       'GameboardBuilder.addTransition',
       'createGameboardBlueprintRecipe',
@@ -1599,7 +1649,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Units',
     sourceImage: GUIDE_IMAGE.units,
     edition: 'extra',
-    summary: 'Covers local EXTRA unit bodies, weapons, mounts, vehicles, ships, accent/full styles, and actor spawning.',
+    summary:
+      'Covers local EXTRA unit bodies, weapons, mounts, vehicles, ships, accent/full styles, and actor spawning.',
     publicApi: [
       'coloredUnitAssetId',
       'neutralUnitAssetId',
@@ -1619,7 +1670,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Shipyard, harbors, and ports',
     sourceImage: GUIDE_IMAGE.shipyard,
     edition: 'mixed',
-    summary: 'Covers harbor buildings, ships, boats, anchors, coast tiles, water tiles, and port placement constraints.',
+    summary:
+      'Covers harbor buildings, ships, boats, anchors, coast tiles, water tiles, and port placement constraints.',
     publicApi: [
       'GameboardBuilder.addHarbor',
       'GameboardBuilder.setCoastEdges',
@@ -1638,7 +1690,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Stables and horses',
     sourceImage: GUIDE_IMAGE.stables,
     edition: 'extra',
-    summary: 'Covers stables, fenced paddocks, hay/trough props, horse parts, mount presets, and movement-facing metadata.',
+    summary:
+      'Covers stables, fenced paddocks, hay/trough props, horse parts, mount presets, and movement-facing metadata.',
     publicApi: [
       'GameboardBuilder.addFactionBuilding',
       'GameboardBuilder.addNeutralStructure',
@@ -1650,7 +1703,10 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
       'packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png',
       'packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png',
     ],
-    docs: ['docs/pillars/02-asset-taxonomy.md', 'docs/guides/rendering-assets-and-external-packs.md'],
+    docs: [
+      'docs/pillars/02-asset-taxonomy.md',
+      'docs/guides/rendering-assets-and-external-packs.md',
+    ],
   },
   {
     id: 'page-17-workshop-and-siege',
@@ -1658,7 +1714,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Workshop and siege units',
     sourceImage: GUIDE_IMAGE.workshop,
     edition: 'extra',
-    summary: 'Covers workshops, tower cannons, siege equipment, projectiles, wall/fence contexts, and combat markers.',
+    summary:
+      'Covers workshops, tower cannons, siege equipment, projectiles, wall/fence contexts, and combat markers.',
     publicApi: [
       'GameboardBuilder.addFactionBuilding',
       'GameboardBuilder.addUnitPreset',
@@ -1678,7 +1735,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Unit combinations',
     sourceImage: GUIDE_IMAGE.unitCombinations,
     edition: 'extra',
-    summary: 'Covers composed unit presets, colored/neutral part layering, equipment combinations, and actor registration.',
+    summary:
+      'Covers composed unit presets, colored/neutral part layering, equipment combinations, and actor registration.',
     publicApi: [
       'coloredUnitAssetId',
       'neutralUnitAssetId',
@@ -1698,7 +1756,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     title: 'Supporters and attribution',
     sourceImage: GUIDE_IMAGE.attribution,
     edition: 'reference',
-    summary: 'Keeps KayKit credit, CC0 asset attribution, MIT code licensing, and publishable package notices visible.',
+    summary:
+      'Keeps KayKit credit, CC0 asset attribution, MIT code licensing, and publishable package notices visible.',
     assetIds: [],
     publicApi: ['NOTICE.md', 'package.json files', 'listKayKitGuideScenarios'],
     treatmentRoles: [],
@@ -1712,9 +1771,8 @@ function createKayKitGuideScenarios(): KayKitGuideScenario[] {
 }
 
 const KAYKIT_GUIDE_SCENARIOS = createKayKitGuideScenarios();
-const KAYKIT_GUIDE_SCENARIO_BY_ID: Readonly<Record<string, KayKitGuideScenario>> = Object.fromEntries(
-  KAYKIT_GUIDE_SCENARIOS.map((scenario) => [scenario.id, scenario])
-);
+const KAYKIT_GUIDE_SCENARIO_BY_ID: Readonly<Record<string, KayKitGuideScenario>> =
+  Object.fromEntries(KAYKIT_GUIDE_SCENARIOS.map((scenario) => [scenario.id, scenario]));
 
 function baseTileTreatment(assetId: BaseTileAssetId): KayKitAssetPublicTreatment {
   const isSupport = assetId === 'hex_grass_bottom';
@@ -1728,18 +1786,28 @@ function baseTileTreatment(assetId: BaseTileAssetId): KayKitAssetPublicTreatment
     role: isSupport ? 'support-tile' : 'base-tile',
     placementKind: 'terrain',
     placementLayer: 'terrain',
-    publicApi: isSupport || isSloped
-      ? [
-          'GameboardBuilder.addMountainStack',
-          ...(isSloped ? ['GameboardBuilder.addElevationRamp'] : []),
-          'GameboardBuilder.setTileAsset',
-          'createGameboardPlanFromRecipe',
-        ]
-      : ['GameboardBuilder.setTerrain', 'GameboardBuilder.setTileAsset', 'createGameboardPlanFromTiles'],
-    sourceImages: isSupport || isSloped
-      ? [GUIDE_IMAGE.tallerTiles, GUIDE_IMAGE.floatingIslands]
-      : [GUIDE_IMAGE.waterUsage, GUIDE_IMAGE.worldDesign],
-    scenario: isSupport ? 'tall support tiles' : isSloped ? 'sloped terrain tiles' : 'base terrain tiles',
+    publicApi:
+      isSupport || isSloped
+        ? [
+            'GameboardBuilder.addMountainStack',
+            ...(isSloped ? ['GameboardBuilder.addElevationRamp'] : []),
+            'GameboardBuilder.setTileAsset',
+            'createGameboardPlanFromRecipe',
+          ]
+        : [
+            'GameboardBuilder.setTerrain',
+            'GameboardBuilder.setTileAsset',
+            'createGameboardPlanFromTiles',
+          ],
+    sourceImages:
+      isSupport || isSloped
+        ? [GUIDE_IMAGE.tallerTiles, GUIDE_IMAGE.floatingIslands]
+        : [GUIDE_IMAGE.waterUsage, GUIDE_IMAGE.worldDesign],
+    scenario: isSupport
+      ? 'tall support tiles'
+      : isSloped
+        ? 'sloped terrain tiles'
+        : 'base terrain tiles',
   });
 }
 
@@ -1753,7 +1821,11 @@ function transitionTileTreatment(assetId: ExtraTransitionTileAssetId): KayKitAss
     role: 'transition-tile',
     placementKind: 'transition',
     placementLayer: 'surface',
-    publicApi: ['GameboardBuilder.addTransition', 'createGameboardPlanFromRecipe', 'validateGameboardRecipe'],
+    publicApi: [
+      'GameboardBuilder.addTransition',
+      'createGameboardPlanFromRecipe',
+      'validateGameboardRecipe',
+    ],
     sourceImages: [GUIDE_IMAGE.transition, GUIDE_IMAGE.biomes, GUIDE_IMAGE.alternateTextures],
     scenario: 'biome transition tiles',
   });
@@ -1769,7 +1841,12 @@ function roadTileTreatment(assetId: RoadTileAssetId): KayKitAssetPublicTreatment
     role: 'road-tile',
     placementKind: 'road',
     placementLayer: 'surface',
-    publicApi: ['selectRoadVariant', 'selectRoadVariantByLabel', 'listRoadGuidePermutations', 'GameboardBuilder.addRoadPath'],
+    publicApi: [
+      'selectRoadVariant',
+      'selectRoadVariantByLabel',
+      'listRoadGuidePermutations',
+      'GameboardBuilder.addRoadPath',
+    ],
     sourceImages: [GUIDE_IMAGE.roads, GUIDE_IMAGE.worldDesign],
     scenario: assetId.includes('_sloped_') ? 'sloped road tiles' : 'road connectivity permutations',
   });
@@ -1781,13 +1858,23 @@ function coastTileTreatment(assetId: CoastTileAssetId): KayKitAssetPublicTreatme
     minimumEdition: 'free',
     category: 'tiles',
     subcategory: 'coast',
-    sourcePath: assetId.endsWith('_waterless') ? `tiles/coast/waterless/${assetId}.gltf` : `tiles/coast/${assetId}.gltf`,
+    sourcePath: assetId.endsWith('_waterless')
+      ? `tiles/coast/waterless/${assetId}.gltf`
+      : `tiles/coast/${assetId}.gltf`,
     role: 'coast-tile',
     placementKind: 'coast',
     placementLayer: 'surface',
-    publicApi: ['selectCoastVariant', 'selectCoastVariantByLabel', 'listCoastGuidePermutations', 'GameboardBuilder.setCoastEdges', 'GameboardBuilder.addHarbor'],
+    publicApi: [
+      'selectCoastVariant',
+      'selectCoastVariantByLabel',
+      'listCoastGuidePermutations',
+      'GameboardBuilder.setCoastEdges',
+      'GameboardBuilder.addHarbor',
+    ],
     sourceImages: [GUIDE_IMAGE.waterUsage, GUIDE_IMAGE.shipyard],
-    scenario: assetId.endsWith('_waterless') ? 'waterless coast permutations' : 'coast and water-edge permutations',
+    scenario: assetId.endsWith('_waterless')
+      ? 'waterless coast permutations'
+      : 'coast and water-edge permutations',
   });
 }
 
@@ -1797,7 +1884,9 @@ function riverTileTreatment(assetId: RiverTileAssetId): KayKitAssetPublicTreatme
     minimumEdition: 'free',
     category: 'tiles',
     subcategory: 'rivers',
-    sourcePath: assetId.endsWith('_waterless') ? `tiles/rivers/waterless/${assetId}.gltf` : `tiles/rivers/${assetId}.gltf`,
+    sourcePath: assetId.endsWith('_waterless')
+      ? `tiles/rivers/waterless/${assetId}.gltf`
+      : `tiles/rivers/${assetId}.gltf`,
     role: 'river-tile',
     placementKind: 'river',
     placementLayer: 'surface',
@@ -1833,15 +1922,29 @@ function factionBuildingTreatments(
         placementKind: 'structure',
         placementLayer: 'structure',
         publicApi: isHarbor
-          ? ['factionBuildingAssetId', 'GameboardBuilder.addHarbor', 'GameboardBuilder.addFactionBuilding']
-          : ['factionBuildingAssetId', 'GameboardBuilder.addFactionBuilding', 'GameboardBuilder.addSettlement'],
+          ? [
+              'factionBuildingAssetId',
+              'GameboardBuilder.addHarbor',
+              'GameboardBuilder.addFactionBuilding',
+            ]
+          : [
+              'factionBuildingAssetId',
+              'GameboardBuilder.addFactionBuilding',
+              'GameboardBuilder.addSettlement',
+            ],
         sourceImages: [
           GUIDE_IMAGE.buildings,
           ...(isHarbor ? [GUIDE_IMAGE.shipyard] : []),
           ...(isStables ? [GUIDE_IMAGE.stables] : []),
           ...(isWorkshop ? [GUIDE_IMAGE.workshop] : []),
         ],
-        scenario: isHarbor ? 'harbors and ports' : isStables ? 'stables and horses' : isWorkshop ? 'workshops and siege' : 'faction settlements',
+        scenario: isHarbor
+          ? 'harbors and ports'
+          : isStables
+            ? 'stables and horses'
+            : isWorkshop
+              ? 'workshops and siege'
+              : 'faction settlements',
       });
     })
   );
@@ -1891,7 +1994,7 @@ function neutralStructureTreatment(assetId: NeutralStructureKind): KayKitAssetPu
           ? 'construction sites, worksites, and ruins'
           : isSiegeProjectile
             ? 'siege projectile structures'
-        : 'neutral structures and construction',
+            : 'neutral structures and construction',
   });
 }
 
@@ -1912,19 +2015,42 @@ function natureTreatment(assetId: NatureAssetId): KayKitAssetPublicTreatment {
       'GameboardBuilder.addNature',
       ...(isMountain ? ['GameboardBuilder.addMountainStack'] : []),
       ...(isHill ? ['GameboardBuilder.addHill'] : []),
-      ...(isTree ? ['GameboardBuilder.addForest', 'GameboardBuilder.scatterDecorations'] : ['GameboardBuilder.scatterDecorations']),
+      ...(isTree
+        ? ['GameboardBuilder.addForest', 'GameboardBuilder.scatterDecorations']
+        : ['GameboardBuilder.scatterDecorations']),
       'createGameboardLayoutFillRuleFromPiece',
     ],
-    sourceImages: [GUIDE_IMAGE.natureContents, GUIDE_IMAGE.natureUsage, GUIDE_IMAGE.worldDesign, GUIDE_IMAGE.floatingIslands],
-    scenario: isMountain ? 'mountain stacks' : isHill ? 'hills and padding' : isTree ? 'forests and scatter' : 'nature decoration scatter',
+    sourceImages: [
+      GUIDE_IMAGE.natureContents,
+      GUIDE_IMAGE.natureUsage,
+      GUIDE_IMAGE.worldDesign,
+      GUIDE_IMAGE.floatingIslands,
+    ],
+    scenario: isMountain
+      ? 'mountain stacks'
+      : isHill
+        ? 'hills and padding'
+        : isTree
+          ? 'forests and scatter'
+          : 'nature decoration scatter',
   });
 }
 
-function propTreatment(assetId: PropAssetId, minimumEdition: PackEdition): KayKitAssetPublicTreatment {
+function propTreatment(
+  assetId: PropAssetId,
+  minimumEdition: PackEdition
+): KayKitAssetPublicTreatment {
   const isFlag = assetId.startsWith('flag_');
   const isHarborProp = ['anchor', 'boat', 'boatrack'].includes(assetId);
   const isStableProp = assetId === 'haybale' || assetId.startsWith('trough');
-  const isTrainingProp = ['target', 'weaponrack', 'bucket_arrows', 'cannonball_pallet', 'icon_combat', 'icon_range'].includes(assetId);
+  const isTrainingProp = [
+    'target',
+    'weaponrack',
+    'bucket_arrows',
+    'cannonball_pallet',
+    'icon_combat',
+    'icon_range',
+  ].includes(assetId);
   const isWorksiteProp = [
     'ladder',
     'pallet',
@@ -1994,8 +2120,18 @@ function coloredUnitTreatments(): KayKitAssetPublicTreatment[] {
           role: 'colored-unit-part',
           placementKind: 'unit',
           placementLayer: 'unit',
-          publicApi: ['coloredUnitAssetId', 'GameboardBuilder.addUnit', 'GameboardBuilder.addUnitPreset', 'spawnGameboardActor'],
-          sourceImages: [GUIDE_IMAGE.units, GUIDE_IMAGE.stables, GUIDE_IMAGE.workshop, GUIDE_IMAGE.unitCombinations],
+          publicApi: [
+            'coloredUnitAssetId',
+            'GameboardBuilder.addUnit',
+            'GameboardBuilder.addUnitPreset',
+            'spawnGameboardActor',
+          ],
+          sourceImages: [
+            GUIDE_IMAGE.units,
+            GUIDE_IMAGE.stables,
+            GUIDE_IMAGE.workshop,
+            GUIDE_IMAGE.unitCombinations,
+          ],
           scenario: style === 'full' ? 'full-color unit parts' : 'accent-color unit parts',
         });
       })
@@ -2014,13 +2150,30 @@ function neutralUnitTreatment(part: NeutralUnitPart): KayKitAssetPublicTreatment
     role: 'neutral-unit-part',
     placementKind: 'unit',
     placementLayer: 'unit',
-    publicApi: ['neutralUnitAssetId', 'GameboardBuilder.addUnit', 'GameboardBuilder.addUnitPreset', 'spawnGameboardActor'],
-    sourceImages: [GUIDE_IMAGE.units, GUIDE_IMAGE.stables, GUIDE_IMAGE.workshop, GUIDE_IMAGE.unitCombinations],
-    scenario: part.startsWith('horse') ? 'neutral horses and mounts' : part.includes('projectile') || part === 'catapult' || part === 'cannon' ? 'siege and projectiles' : 'neutral unit accessories',
+    publicApi: [
+      'neutralUnitAssetId',
+      'GameboardBuilder.addUnit',
+      'GameboardBuilder.addUnitPreset',
+      'spawnGameboardActor',
+    ],
+    sourceImages: [
+      GUIDE_IMAGE.units,
+      GUIDE_IMAGE.stables,
+      GUIDE_IMAGE.workshop,
+      GUIDE_IMAGE.unitCombinations,
+    ],
+    scenario: part.startsWith('horse')
+      ? 'neutral horses and mounts'
+      : part.includes('projectile') || part === 'catapult' || part === 'cannon'
+        ? 'siege and projectiles'
+        : 'neutral unit accessories',
   });
 }
 
-type KayKitGuideScenarioInput = Omit<KayKitGuideScenario, 'assetIds' | 'publicApi' | 'treatmentRoles'> & {
+type KayKitGuideScenarioInput = Omit<
+  KayKitGuideScenario,
+  'assetIds' | 'publicApi' | 'treatmentRoles'
+> & {
   assetIds?: readonly string[];
   publicApi?: readonly string[];
   treatmentRoles?: readonly KayKitAssetPublicRole[];
@@ -2047,9 +2200,9 @@ function guideScenario(input: KayKitGuideScenarioInput): KayKitGuideScenario {
 
 function assetIdsForGuideImage(sourceImage: string): string[] {
   return uniqueSortedStrings(
-    KAYKIT_ASSET_PUBLIC_TREATMENTS.filter((treatment) => treatment.sourceImages.includes(sourceImage)).map(
-      (treatment) => treatment.assetId
-    )
+    KAYKIT_ASSET_PUBLIC_TREATMENTS.filter((treatment) =>
+      treatment.sourceImages.includes(sourceImage)
+    ).map((treatment) => treatment.assetId)
   );
 }
 
@@ -2079,11 +2232,15 @@ function guideScenarioEditionSet(
   return entries.length > 0 ? new Set(entries) : undefined;
 }
 
-function roleSet(values: readonly KayKitAssetPublicRole[] | undefined): ReadonlySet<KayKitAssetPublicRole> | undefined {
+function roleSet(
+  values: readonly KayKitAssetPublicRole[] | undefined
+): ReadonlySet<KayKitAssetPublicRole> | undefined {
   return values && values.length > 0 ? new Set(values) : undefined;
 }
 
-function assetCategorySet(values: readonly AssetCategory[] | undefined): ReadonlySet<AssetCategory> | undefined {
+function assetCategorySet(
+  values: readonly AssetCategory[] | undefined
+): ReadonlySet<AssetCategory> | undefined {
   return values && values.length > 0 ? new Set(values) : undefined;
 }
 
@@ -2141,7 +2298,8 @@ function countUniqueAssetsByEdition(
   treatmentByAssetId: ReadonlyMap<string, KayKitAssetPublicTreatment>,
   edition: PackEdition
 ): number {
-  return assetIds.filter((assetId) => treatmentByAssetId.get(assetId)?.minimumEdition === edition).length;
+  return assetIds.filter((assetId) => treatmentByAssetId.get(assetId)?.minimumEdition === edition)
+    .length;
 }
 
 function countScenariosByEdition(
@@ -2176,7 +2334,9 @@ function guidePublicApiCoverage(
   treatments: readonly KayKitAssetPublicTreatment[]
 ): KayKitGuidePublicApiCoverage {
   const scenarioMatches = scenarios.filter((scenario) => scenario.publicApi.includes(publicApi));
-  const treatmentMatches = treatments.filter((treatment) => treatment.publicApi.includes(publicApi));
+  const treatmentMatches = treatments.filter((treatment) =>
+    treatment.publicApi.includes(publicApi)
+  );
   const treatmentByAssetId = new Map(treatments.map((treatment) => [treatment.assetId, treatment]));
   const assetIds = uniqueSortedStrings(treatmentMatches.map((treatment) => treatment.assetId));
   const assetIdSet = new Set(assetIds);
@@ -2198,11 +2358,17 @@ function guidePublicApiCoverage(
       free: countUniqueAssetsByEdition(assetIds, treatmentByAssetId, 'free'),
       extra: countUniqueAssetsByEdition(assetIds, treatmentByAssetId, 'extra'),
       occurrences: occurrenceTreatments.length,
-      freeOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'free').length,
-      extraOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'extra').length,
+      freeOccurrences: occurrenceTreatments.filter(
+        (treatment) => treatment.minimumEdition === 'free'
+      ).length,
+      extraOccurrences: occurrenceTreatments.filter(
+        (treatment) => treatment.minimumEdition === 'extra'
+      ).length,
     },
     docs: uniqueSortedStrings(scenarioMatches.flatMap((scenario) => scenario.docs)),
-    visualArtifacts: uniqueSortedStrings(scenarioMatches.flatMap((scenario) => scenario.visualArtifacts)),
+    visualArtifacts: uniqueSortedStrings(
+      scenarioMatches.flatMap((scenario) => scenario.visualArtifacts)
+    ),
   };
 }
 
@@ -2234,11 +2400,17 @@ function guideRoleCoverage(
       free: countUniqueAssetsByEdition(assetIds, treatmentByAssetId, 'free'),
       extra: countUniqueAssetsByEdition(assetIds, treatmentByAssetId, 'extra'),
       occurrences: occurrenceTreatments.length,
-      freeOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'free').length,
-      extraOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'extra').length,
+      freeOccurrences: occurrenceTreatments.filter(
+        (treatment) => treatment.minimumEdition === 'free'
+      ).length,
+      extraOccurrences: occurrenceTreatments.filter(
+        (treatment) => treatment.minimumEdition === 'extra'
+      ).length,
     },
     docs: uniqueSortedStrings(scenarioMatches.flatMap((scenario) => scenario.docs)),
-    visualArtifacts: uniqueSortedStrings(scenarioMatches.flatMap((scenario) => scenario.visualArtifacts)),
+    visualArtifacts: uniqueSortedStrings(
+      scenarioMatches.flatMap((scenario) => scenario.visualArtifacts)
+    ),
   };
 }
 
@@ -2246,7 +2418,9 @@ function guideAssetCoverage(
   treatment: KayKitAssetPublicTreatment,
   scenarios: readonly KayKitGuideScenario[]
 ): KayKitGuideAssetCoverage {
-  const scenarioMatches = scenarios.filter((scenario) => scenario.assetIds.includes(treatment.assetId));
+  const scenarioMatches = scenarios.filter((scenario) =>
+    scenario.assetIds.includes(treatment.assetId)
+  );
   return {
     assetId: treatment.assetId,
     minimumEdition: treatment.minimumEdition,
@@ -2266,9 +2440,12 @@ function guideAssetCoverage(
     ]),
     publicApi: uniqueSortedStrings(treatment.publicApi),
     docs: uniqueSortedStrings(scenarioMatches.flatMap((scenario) => scenario.docs)),
-    visualArtifacts: uniqueSortedStrings(scenarioMatches.flatMap((scenario) => scenario.visualArtifacts)),
+    visualArtifacts: uniqueSortedStrings(
+      scenarioMatches.flatMap((scenario) => scenario.visualArtifacts)
+    ),
     occurrences: scenarioMatches.reduce(
-      (total, scenario) => total + scenario.assetIds.filter((assetId) => assetId === treatment.assetId).length,
+      (total, scenario) =>
+        total + scenario.assetIds.filter((assetId) => assetId === treatment.assetId).length,
       0
     ),
   };
@@ -2306,7 +2483,8 @@ function guideScenarioAssetRenderRequest(
   usage: KayKitGuideScenarioAssetUsage,
   options: Pick<KayKitGuideScenarioAssetRenderRequestOptions, 'assetBaseUrl' | 'urlResolver'>
 ): KayKitGuideScenarioAssetRenderRequest {
-  const resolvedUrl = options.urlResolver?.(usage) ?? guideScenarioAssetUrlFromBase(usage, options.assetBaseUrl);
+  const resolvedUrl =
+    options.urlResolver?.(usage) ?? guideScenarioAssetUrlFromBase(usage, options.assetBaseUrl);
   return {
     scenarioId: usage.scenarioId,
     page: usage.page,
@@ -2356,8 +2534,12 @@ function guideScenarioCoverage(
       free: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'free'),
       extra: countUniqueAssetsByEdition(uniqueAssetIds, treatmentByAssetId, 'extra'),
       occurrences: occurrenceTreatments.length,
-      freeOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'free').length,
-      extraOccurrences: occurrenceTreatments.filter((treatment) => treatment.minimumEdition === 'extra').length,
+      freeOccurrences: occurrenceTreatments.filter(
+        (treatment) => treatment.minimumEdition === 'free'
+      ).length,
+      extraOccurrences: occurrenceTreatments.filter(
+        (treatment) => treatment.minimumEdition === 'extra'
+      ).length,
     },
     treatments,
     missingTreatmentAssetIds: uniqueAssetIds.filter((assetId) => !treatmentByAssetId.has(assetId)),
@@ -2385,15 +2567,30 @@ function guidePageCoverage(
 
 function riverPublicApi(assetId: string): readonly string[] {
   if (assetId.includes('crossing')) {
-    return ['selectRiverCrossingVariant', 'listRiverCrossingGuidePermutations', 'GameboardBuilder.addRiverPath'];
+    return [
+      'selectRiverCrossingVariant',
+      'listRiverCrossingGuidePermutations',
+      'GameboardBuilder.addRiverPath',
+    ];
   }
   if (assetId.includes('curvy')) {
-    return ['selectRiverVariant', 'listRiverCurvyGuidePermutations', 'GameboardBuilder.addRiverPath'];
+    return [
+      'selectRiverVariant',
+      'listRiverCurvyGuidePermutations',
+      'GameboardBuilder.addRiverPath',
+    ];
   }
-  return ['selectRiverVariant', 'selectRiverVariantByLabel', 'listRiverGuidePermutations', 'GameboardBuilder.addRiverPath'];
+  return [
+    'selectRiverVariant',
+    'selectRiverVariantByLabel',
+    'listRiverGuidePermutations',
+    'GameboardBuilder.addRiverPath',
+  ];
 }
 
-function treatment(input: Omit<KayKitAssetPublicTreatment, 'requiresExtra'>): KayKitAssetPublicTreatment {
+function treatment(
+  input: Omit<KayKitAssetPublicTreatment, 'requiresExtra'>
+): KayKitAssetPublicTreatment {
   return {
     ...input,
     requiresExtra: input.minimumEdition === 'extra',
