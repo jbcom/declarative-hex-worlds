@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.0.1](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.0.0...declarative-hex-worlds@1.0.1) (2026-05-29)
+
+
+### Bug Fixes
+
+* CR-P0 critical blockers — peer deps, release pin, readJson safety, coverage CI ([#62](https://github.com/jbcom/declarative-hex-worlds/issues/62)) ([038d850](https://github.com/jbcom/declarative-hex-worlds/commit/038d8501476b20fbe1ba92ea7986d162b0f08c46))
+* **security,ci:** CR-P0-4 bootstrap security tests + CR-P1-3/7/8/9/10 hardening batch ([#64](https://github.com/jbcom/declarative-hex-worlds/issues/64)) ([dcfba17](https://github.com/jbcom/declarative-hex-worlds/commit/dcfba17e1475a53cb054fb218e6a2bd7c42035bd))
+
+
+### Performance
+
+* **gameboard/systems:** eliminate query spreads + Map default-arg allocations (CR-P2-2, CR-P2-3) ([#69](https://github.com/jbcom/declarative-hex-worlds/issues/69)) ([c416c09](https://github.com/jbcom/declarative-hex-worlds/commit/c416c09444051e9cba9946c470729a6e0cf17332))
+* **koota+catalog:** O(1) entity lookup + isKnownExtraAssetId set (CR-P1-4, CR-P1-5) ([#67](https://github.com/jbcom/declarative-hex-worlds/issues/67)) ([7a6c2a5](https://github.com/jbcom/declarative-hex-worlds/commit/7a6c2a5f70b832d00209a2487be7dc0f2b56c7d8))
+* **pathfinding:** O(log N) binary min-heap A* + Dijkstra (CR-P1-1) ([#65](https://github.com/jbcom/declarative-hex-worlds/issues/65)) ([f12210c](https://github.com/jbcom/declarative-hex-worlds/commit/f12210ce590c68c8254913f66f1634c49fe5505e))
+
+
+### Refactoring
+
+* **cli:** decompose _shared.ts into per-command files (CR-P2-1) ([#68](https://github.com/jbcom/declarative-hex-worlds/issues/68)) ([86444aa](https://github.com/jbcom/declarative-hex-worlds/commit/86444aa3bd4add14303c03a7439c59893c07ecdd))
+* **guides:** invert simple-rpg guide production→test import (CR-P1-2) ([#66](https://github.com/jbcom/declarative-hex-worlds/issues/66)) ([1340074](https://github.com/jbcom/declarative-hex-worlds/commit/134007451d2e15182b3ef538d76ae414c2ab9c5c))
+
 ## 1.0.0 (2026-05-28)
 
 
