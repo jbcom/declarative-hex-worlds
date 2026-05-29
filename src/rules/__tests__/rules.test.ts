@@ -511,7 +511,8 @@ describe('Koota rules and seeded generation', () => {
         },
       ],
     });
-    // The plan runs without error and produces at least zero placements.
     expect(plan).toBeDefined();
+    // Verify the merged rule-level archetype actually drove placement selection.
+    expect(plan.placements.some((p) => p.metadata.layoutArchetype === 'rule-rock')).toBe(true);
   });
 });

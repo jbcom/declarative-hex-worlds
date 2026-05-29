@@ -583,6 +583,7 @@ describe('gameboard systems', () => {
       assetId: 'flag_green',
       kind: 'prop',
     });
+    const originalTargetTile = { q: 1, r: 0 };
     spawnGameboardQuest(world, {
       id: 'collision-targetTile-quest',
       objectives: [
@@ -590,7 +591,7 @@ describe('gameboard systems', () => {
           id: 'collision-obj',
           kind: 'collision',
           actor: 'copy-hero',
-          targetTile: { q: 1, r: 0 },
+          targetTile: originalTargetTile,
           expect: 'can-enter',
         },
       ],
@@ -598,10 +599,15 @@ describe('gameboard systems', () => {
     setGameboardMovementAgent(world, hero, { profile: 'ground', movementBudget: 2 });
     const dispatch = dispatchGameboardInteractionCommand(world, '1,0', { sourceActor: 'copy-hero' });
     const systems = runGameboardSystems(world, { movement: { steps: 5 }, quests: { step: 1 } });
-    // The snapshot path calls copyQuestObjective which must copy the targetTile object.
+    // The snapshot path calls copyQuestObjective which must deep-copy the targetTile object.
     const snapshot = snapshotGameboardSystemEvents([...dispatch.events, ...systems.events]);
     const questEvent = snapshot.find((e) => e.type === 'quest-advanced' || e.type === 'quest-blocked');
     expect(questEvent).toBeDefined();
+    // biome-ignore lint/suspicious/noExplicitAny: snapshot discriminated union
+    const copiedObjective = (questEvent as any)?.quest?.objectives?.[0];
+    expect(copiedObjective).toBeDefined();
+    expect(copiedObjective.targetTile).toEqual(originalTargetTile);
+    expect(copiedObjective.targetTile).not.toBe(originalTargetTile);
   });
 
   it('snapshotGameboardSystemEvents with no movement covers questRecord undefined + movementRequestRecord undefined branches (E0a)', () => {
