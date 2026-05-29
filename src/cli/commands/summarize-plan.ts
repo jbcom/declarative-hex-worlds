@@ -13,7 +13,6 @@ import {
 import { validateGameboardPlan, type GameboardPlanValidationConfig } from '../../rules';
 import { GameboardCliError } from '../../errors';
 import {
-  readBlueprintOptions,
   readJson,
   relativizePath,
   validationConfigFromArgs,
@@ -24,6 +23,7 @@ import {
   formatCounts,
   type ParsedArgs,
 } from '../_shared';
+import { readBlueprintOptions } from './blueprint';
 
 export type GameboardPlanInputKind = 'plan' | 'recipe' | 'scenario' | 'blueprint';
 export type GameboardPlanValidationViolation = ReturnType<typeof validateGameboardPlan>[number];
