@@ -23,6 +23,7 @@ permissions:
 env:
   NODE_VERSION: '22'
   HEX_WORLDS_OUT_ROOT: /tmp
+  NODE_OPTIONS: --max-old-space-size=6144
 
 jobs:
   bootstrap-github-source:

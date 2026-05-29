@@ -212,7 +212,7 @@ export async function bootstrapKayKitAssets(
     // for genuine destination conflicts.
     if (existsSync(sidecarPath)) {
       try {
-        const existing = readSidecar(sidecarPath);
+        const existing = readSidecar(sidecarPath, targetRoot);
         if (existing.edition === edition) {
           const totalBytes = existing.files.reduce((sum, file) => sum + file.bytes, 0);
           return {
@@ -273,7 +273,7 @@ export async function verifyBootstrap(outRoot: string): Promise<BootstrapVerific
       sidecarPath,
     };
   }
-  const sidecar = readSidecar(sidecarPath);
+  const sidecar = readSidecar(sidecarPath, targetRoot);
   const drift: string[] = [];
   for (const entry of sidecar.files) {
     const absolute = join(targetRoot, entry.path);
@@ -575,14 +575,23 @@ async function hashFile(path: string): Promise<string> {
 const SIDECAR_MAX_BYTES = 4 * 1024 * 1024; // 4 MB ceiling — a legitimate sidecar is <100 KB
 const SIDECAR_MAX_FILES = 100_000; // sanity bound: free pack has ~700 assets
 
-function readSidecar(path: string): BootstrapSidecar {
-  const { size } = statSync(path);
+function readSidecar(path: string, expectedDir: string): BootstrapSidecar {
+  // Resolve symlinks before the confinement check so a symlink attack cannot
+  // redirect the read outside the expected bootstrap output directory.
+  const realPath = realpathSync(path);
+  const realDir = realpathSync(expectedDir);
+  if (!realPath.startsWith(realDir + sep) && realPath !== realDir) {
+    throw new GameboardManifestError(
+      `bootstrap sidecar path escapes expected directory: ${path}`
+    );
+  }
+  const { size } = statSync(realPath);
   if (size > SIDECAR_MAX_BYTES) {
     throw new GameboardManifestError(
       `bootstrap sidecar at ${path} is suspiciously large (${size} bytes); refusing to parse`
     );
   }
-  const raw = readFileSync(path, 'utf8');
+  const raw = readFileSync(realPath, 'utf8');
   const parsed = JSON.parse(raw) as BootstrapSidecar;
   if (parsed.schemaVersion !== KAYKIT_SIDECAR_SCHEMA_VERSION) {
     throw new GameboardManifestError(

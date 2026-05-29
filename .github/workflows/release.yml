@@ -119,11 +119,13 @@ jobs:
         # that the package's signatures are valid via npm audit signatures.
         # Failure here is a signal that provenance attestation was not attached
         # by the registry — the package is still published but this notifies us.
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           TMPDIR=$(mktemp -d)
           cd "$TMPDIR"
           npm init -y
-          npm install declarative-hex-worlds@${{ github.ref_name }}
+          npm install "declarative-hex-worlds@$RELEASE_TAG"
           npm audit signatures
           cd -
           rm -rf "$TMPDIR"
