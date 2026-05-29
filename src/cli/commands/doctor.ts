@@ -10,7 +10,7 @@ export async function run(
   edition: PackEdition
 ): Promise<void> {
   if (parsed.flags.coverage === true) {
-    const { runCoverage } = await import('../_shared');
+    const { runCoverage } = await import('./coverage');
     runCoverage(parsed);
     return;
   }

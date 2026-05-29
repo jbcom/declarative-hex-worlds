@@ -496,7 +496,7 @@ function commandHandlerMutations(
         };
     }
     const exhaustive: never = effect;
-    return exhaustive;
+    throw new GameboardRuntimeError(`commandHandlerMutations: unhandled effect type: ${JSON.stringify(exhaustive)}`);
   });
 }
 
