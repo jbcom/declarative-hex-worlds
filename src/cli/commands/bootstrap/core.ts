@@ -13,13 +13,16 @@
  */
 import { createHash } from 'node:crypto';
 import {
+  closeSync,
   createReadStream,
   createWriteStream,
   existsSync,
+  fstatSync,
   mkdirSync,
-  readFileSync,
+  openSync,
   readdirSync,
   realpathSync,
+  readFileSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -212,7 +215,7 @@ export async function bootstrapKayKitAssets(
     // for genuine destination conflicts.
     if (existsSync(sidecarPath)) {
       try {
-        const existing = readSidecar(sidecarPath);
+        const existing = readSidecar(sidecarPath, targetRoot);
         if (existing.edition === edition) {
           const totalBytes = existing.files.reduce((sum, file) => sum + file.bytes, 0);
           return {
@@ -273,7 +276,7 @@ export async function verifyBootstrap(outRoot: string): Promise<BootstrapVerific
       sidecarPath,
     };
   }
-  const sidecar = readSidecar(sidecarPath);
+  const sidecar = readSidecar(sidecarPath, targetRoot);
   const drift: string[] = [];
   for (const entry of sidecar.files) {
     const absolute = join(targetRoot, entry.path);
@@ -334,16 +337,13 @@ async function stageUpstreamSource(
   layout: KayKitUpstreamLayout,
   edition: PackEdition
 ): Promise<string> {
-  // Both source modes converge on the same local-zip extraction flow: a
-  // GitHub source simply downloads the stable archive .zip first, then runs
-  // the identical `stageFromZip` path (which detects FREE/EXTRA structure).
-  const zipPath =
-    source.kind === 'github' ? await downloadGithubArchiveZip(source.commit) : source.path;
-  return stageFromZip(zipPath, layout, edition);
-}
-
-async function downloadGithubArchiveZip(commit: string | undefined): Promise<string> {
-  const url = kayKitFreeGithubTarballUrl(commit);
+  if (source.kind !== 'github') {
+    return stageFromZip(source.path, layout, edition);
+  }
+  // GitHub source: download the stable archive zip into a temp dir, extract
+  // via the shared stageFromZip path, then unconditionally clean up the temp
+  // download dir (the staging root from stageFromZip is cleaned by the caller).
+  const url = kayKitFreeGithubTarballUrl(source.commit);
   const downloadRoot = mkStagingRoot('github-zip');
   const zipPath = join(downloadRoot, 'kaykit-medieval-hexagon-free.zip');
   try {
@@ -360,12 +360,13 @@ async function downloadGithubArchiveZip(commit: string | undefined): Promise<str
       (incoming as { destroy?: () => void }).destroy?.();
       throw pipelineError;
     }
+    return await stageFromZip(zipPath, layout, edition);
   } catch (error) {
-    rmSync(downloadRoot, { recursive: true, force: true });
     const message = error instanceof Error ? error.message : String(error);
     throw new GameboardIoError(`failed to download KayKit FREE archive ${url}: ${message}`);
+  } finally {
+    rmSync(downloadRoot, { recursive: true, force: true });
   }
-  return zipPath;
 }
 
 async function stageFromZip(
@@ -378,31 +379,36 @@ async function stageFromZip(
     throw new GameboardIoError(`zip source does not exist: ${absoluteZip}`);
   }
   const stagingRoot = mkStagingRoot('zip');
+  let succeeded = false;
   try {
     await extractZipTo(absoluteZip, stagingRoot);
+    // Reject obvious edition mismatches early.
+    const detectedRoot = findPackRoot(stagingRoot);
+    if (detectedRoot) {
+      const detectedLayout = detectKayKitLayout(detectedRoot);
+      if (detectedLayout && detectedLayout.editionName !== edition) {
+        throw new GameboardIoError(
+          `zip contains the ${detectedLayout.editionName.toUpperCase()} edition but bootstrap was asked for ${edition.toUpperCase()}.`
+        );
+      }
+      if (!detectedLayout) {
+        throw new GameboardIoError(
+          `zip ${absoluteZip} does not look like a KayKit Medieval Hexagon Pack root (expected ${layout.packFolderName}/).`
+        );
+      }
+    }
+    succeeded = true;
+    return stagingRoot;
   } catch (error) {
-    rmSync(stagingRoot, { recursive: true, force: true });
     const message = error instanceof Error ? error.message : String(error);
-    throw new GameboardIoError(`failed to extract zip ${absoluteZip}: ${message}`);
-  }
-  // Reject obvious edition mismatches early.
-  const detectedRoot = findPackRoot(stagingRoot);
-  if (detectedRoot) {
-    const detectedLayout = detectKayKitLayout(detectedRoot);
-    if (detectedLayout && detectedLayout.editionName !== edition) {
+    throw error instanceof GameboardIoError
+      ? error
+      : new GameboardIoError(`failed to extract zip ${absoluteZip}: ${message}`);
+  } finally {
+    if (!succeeded) {
       rmSync(stagingRoot, { recursive: true, force: true });
-      throw new GameboardIoError(
-        `zip contains the ${detectedLayout.editionName.toUpperCase()} edition but bootstrap was asked for ${edition.toUpperCase()}.`
-      );
-    }
-    if (!detectedLayout) {
-      rmSync(stagingRoot, { recursive: true, force: true });
-      throw new GameboardIoError(
-        `zip ${absoluteZip} does not look like a KayKit Medieval Hexagon Pack root (expected ${layout.packFolderName}/).`
-      );
     }
   }
-  return stagingRoot;
 }
 
 async function resolvePackRoot(
@@ -518,10 +524,22 @@ function walkFiles(root: string): string[] {
   return walkFilesInternal(root, real);
 }
 
-function walkFilesInternal(dir: string, rootReal: string): string[] {
+function walkFilesInternal(
+  dir: string,
+  rootReal: string,
+  symlinkCount = { n: 0 }
+): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.isSymbolicLink()) {
+      symlinkCount.n += 1;
+      if (symlinkCount.n === 1) {
+        // Warn once — symlinks in an upstream asset pack are unexpected and
+        // can indicate a malformed zip or a zip-slip that bypassed extraction guards.
+        process.stderr.write(
+          `[declarative-hex-worlds] warning: symlink skipped during asset walk: ${join(dir, entry.name)}\n`
+        );
+      }
       continue;
     }
     const childPath = join(dir, entry.name);
@@ -530,7 +548,7 @@ function walkFilesInternal(dir: string, rootReal: string): string[] {
       if (childReal !== rootReal && !childReal.startsWith(`${rootReal}${sep}`)) {
         continue;
       }
-      out.push(...walkFilesInternal(childPath, rootReal));
+      out.push(...walkFilesInternal(childPath, rootReal, symlinkCount));
       continue;
     }
     if (entry.isFile()) {
@@ -557,8 +575,34 @@ async function hashFile(path: string): Promise<string> {
   });
 }
 
-function readSidecar(path: string): BootstrapSidecar {
-  const raw = readFileSync(path, 'utf8');
+const SIDECAR_MAX_BYTES = 4 * 1024 * 1024; // 4 MB ceiling — a legitimate sidecar is <100 KB
+const SIDECAR_MAX_FILES = 100_000; // sanity bound: free pack has ~700 assets
+
+function readSidecar(path: string, expectedDir: string): BootstrapSidecar {
+  // Resolve symlinks before the confinement check so a symlink attack cannot
+  // redirect the read outside the expected bootstrap output directory.
+  const realPath = realpathSync(path);
+  const realDir = realpathSync(expectedDir);
+  if (!realPath.startsWith(realDir + sep) && realPath !== realDir) {
+    throw new GameboardManifestError(
+      `bootstrap sidecar path escapes expected directory: ${path}`
+    );
+  }
+  // Open once and keep the fd for both size check and read — eliminates the
+  // TOCTOU window between a statSync confinement check and a separate readFileSync.
+  const fd = openSync(realPath, 'r');
+  let raw: string;
+  try {
+    const { size } = fstatSync(fd);
+    if (size > SIDECAR_MAX_BYTES) {
+      throw new GameboardManifestError(
+        `bootstrap sidecar at ${path} is suspiciously large (${size} bytes); refusing to parse`
+      );
+    }
+    raw = readFileSync(fd, 'utf8');
+  } finally {
+    closeSync(fd);
+  }
   const parsed = JSON.parse(raw) as BootstrapSidecar;
   if (parsed.schemaVersion !== KAYKIT_SIDECAR_SCHEMA_VERSION) {
     throw new GameboardManifestError(
@@ -567,6 +611,11 @@ function readSidecar(path: string): BootstrapSidecar {
   }
   if (!Array.isArray(parsed.files)) {
     throw new GameboardManifestError(`malformed bootstrap sidecar at ${path}`);
+  }
+  if (parsed.files.length > SIDECAR_MAX_FILES) {
+    throw new GameboardManifestError(
+      `bootstrap sidecar at ${path} lists ${parsed.files.length} files (max ${SIDECAR_MAX_FILES}); refusing to load`
+    );
   }
   return parsed;
 }

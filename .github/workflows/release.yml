@@ -38,7 +38,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Upgrade npm for trusted publishing
-        run: npm install -g npm@latest
+        run: npm install -g npm@11.11.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -84,7 +84,7 @@ jobs:
         # PRD G2. CycloneDX 1.6 SBOM listing the full prod-dep tree of the
         # published package. Attached as a release asset by the next step.
         run: |
-          npx --yes @cyclonedx/cyclonedx-npm@latest \
+          pnpm exec cyclonedx-npm \
             --output-format json \
             --output-file sbom.cdx.json \
             --omit dev
@@ -112,3 +112,20 @@ jobs:
         # step above attaches the SLSA L3 build provenance to the tarball
         # bytes for `npm audit signatures` verification.
         run: npm publish ${{ steps.pack.outputs.tarball }} --access public --provenance
+
+      - name: Verify published package signatures
+        if: github.event_name == 'release'
+        # Install the just-published version into a temp directory and verify
+        # that the package's signatures are valid via npm audit signatures.
+        # Failure here is a signal that provenance attestation was not attached
+        # by the registry — the package is still published but this notifies us.
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          TMPDIR=$(mktemp -d)
+          cd "$TMPDIR"
+          npm init -y
+          npm install "declarative-hex-worlds@$RELEASE_TAG"
+          npm audit signatures
+          cd -
+          rm -rf "$TMPDIR"

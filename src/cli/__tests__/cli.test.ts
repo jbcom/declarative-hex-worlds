@@ -1919,7 +1919,7 @@ describe('CLI', () => {
     expect(scenarioPayload).toMatchObject({ count: 4, pages: [14, 16, 17, 18] });
   });
 
-  it.skip('scans local GLTF folders into compatibility-backed piece registries [PR1: relies on bundled references/ test fixture key shape, Phase C3 proto-pollution guard now stricter]', () => {
+  it('scans local GLTF folders into compatibility-backed piece registries', () => {
     const assetRoot = createExternalPackFixtureRoot();
     const registryPath = resolve(createTempRoot(), 'pieces.json');
     const overridesPath = resolve(createTempRoot(), 'piece-overrides.json');
@@ -1950,7 +1950,7 @@ describe('CLI', () => {
     );
     writeFileSync(
       sourceRootsPath,
-      `${JSON.stringify({ sourceRoots: { 'Fixture Castle Kit': '/fixture-assets' } }, null, 2)}\n`,
+      `${JSON.stringify({ sourceRoots: { 'fixture-castle-kit': '/fixture-assets' } }, null, 2)}\n`,
       'utf8'
     );
 
@@ -1959,7 +1959,7 @@ describe('CLI', () => {
       '--assets',
       assetRoot,
       '--sourcePack',
-      'Fixture Castle Kit',
+      'fixture-castle-kit',
       '--intendedRole',
       'tile',
       '--assetIdPrefix',
@@ -2040,7 +2040,7 @@ describe('CLI', () => {
     const tower = payload.pieces.find((piece) => piece.id === 'fixture-piece:tower-hexagon-base');
     expect(tower).toMatchObject({
       assetId: 'fixture:tower-hexagon-base',
-      source: 'Fixture Castle Kit',
+      source: 'fixture-castle-kit',
       role: 'landmark',
       requiresExtra: true,
       tags: ['castle', 'test'],

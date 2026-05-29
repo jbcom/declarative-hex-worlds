@@ -114,8 +114,8 @@ describe('workflow contract', () => {
       ['--access public --provenance'],
       // SLSA L3 build provenance
       ['actions/attest-build-provenance'],
-      // CycloneDX SBOM
-      ['@cyclonedx/cyclonedx-npm'],
+      // CycloneDX SBOM (pinned devDependency, invoked via pnpm exec)
+      ['cyclonedx-npm'],
     ])('includes %s', (snippet) => {
       expect(read(files.release)).toContain(snippet);
     });

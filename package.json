@@ -233,7 +233,7 @@
     "cli": "node dist/cli.js",
     "coverage:ledger": "pnpm build && node dist/cli.js coverage --checksPassed --generatedAt 2026-05-24T00:00:00.000Z --outJson docs/release-readiness.json --outMarkdown docs/guides/release-readiness.md",
     "docs": "typedoc --options typedoc.json",
-    "//docs-site": "docs-site/ is a sibling Astro Starlight project \u2014 NOT a pnpm workspace member. We dropped workspaces in R1 (see PRD Epic R), so docs-site keeps its own package.json + lockfile and these scripts delegate via `cd docs-site && pnpm ...`. This keeps the library's tarball devDependencies focused on the runtime; the docs site's Astro/Starlight chain lives in its own dependency tree.",
+    "//docs-site": "docs-site/ is a sibling Astro Starlight project — NOT a pnpm workspace member. We dropped workspaces in R1 (see PRD Epic R), so docs-site keeps its own package.json + lockfile and these scripts delegate via `cd docs-site && pnpm ...`. This keeps the library's tarball devDependencies focused on the runtime; the docs site's Astro/Starlight chain lives in its own dependency tree.",
     "docs-site:install": "cd docs-site && pnpm install",
     "docs-site:dev": "cd docs-site && pnpm dev",
     "docs-site:build": "tsx scripts/generate-cli-reference.ts && cd docs-site && pnpm build",
@@ -274,6 +274,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
+    "@cyclonedx/cyclonedx-npm": "4.2.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.9.1",
     "@types/react": "^19.0.0",
