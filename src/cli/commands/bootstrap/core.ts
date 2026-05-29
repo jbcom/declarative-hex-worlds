@@ -585,7 +585,7 @@ function describeSourceUrl(
 function resolveLibraryVersion(): string {
   // Walk up from this module's URL until we find a package.json that names
   // this library. Falls back to '0.0.0' so tests can override.
-  let dir = dirname(new URL(import.meta.url).pathname);
+  let dir = import.meta.dirname;
   for (let depth = 0; depth < 8; depth += 1) {
     const candidate = join(dir, 'package.json');
     if (existsSync(candidate)) {

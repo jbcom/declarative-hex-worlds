@@ -98,6 +98,7 @@ jobs:
             sbom.cdx.json
 
       - name: Publish to npm with OIDC trusted publishing
+        if: github.event_name == 'release'
         # The first `declarative-hex-worlds@1.0.0` publish was issued
         # locally with an automation token (see PR body) so OIDC trusted
         # publishing could be configured on npmjs.com against this
