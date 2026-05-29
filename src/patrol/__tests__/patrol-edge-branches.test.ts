@@ -17,7 +17,7 @@ import {
   advanceGameboardPatrol,
   setGameboardPatrolAgent,
 } from '../../patrol/index';
-import { advanceGameboardMovement, requestGameboardMovement, setGameboardMovementAgent } from '../../movement/index';
+import { advanceGameboardMovement } from '../../movement/index';
 
 function makePatrolWorld(seed: string) {
   const world = createGameboardWorld(

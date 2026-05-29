@@ -137,7 +137,7 @@ describe('systems quest event branches (PRD E0a)', () => {
         shape: { kind: 'rectangle', width: 2, height: 1 },
       }).build()
     );
-    const hero = spawnGameboardActor(world, {
+    spawnGameboardActor(world, {
       id: 'quest-hero-placement',
       actorId: 'quest-hero',
       actorKind: 'player',
