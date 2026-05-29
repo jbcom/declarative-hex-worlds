@@ -381,13 +381,8 @@ describe('assertions.ts no-candidates failure paths (PRD E0a)', () => {
     const result = runGameboardScenarioSimulationScript(patrolScenario, script);
     const report = createGameboardScenarioSimulationReport(result, script.expectations);
     const failures = evaluateGameboardScenarioSimulationExpectations(report, script.expectations ?? {});
-    if (report.patrols.length > 0) {
-      // Patrol events found; mismatch → failure expected.
-      expect(failures.some((f) => f.message.includes('No patrol record matched'))).toBe(true);
-    } else {
-      // Patrol didn't fire in this env — zero candidates → different failure message.
-      expect(failures.some((f) => f.message.includes('No patrol event matched'))).toBe(true);
-    }
+    expect(report.patrols.length).toBeGreaterThan(0);
+    expect(failures.some((f) => f.message.includes('No patrol record matched'))).toBe(true);
   });
 
   it('map step-accessor arrow executes when steps exist (lines 118/153)', () => {

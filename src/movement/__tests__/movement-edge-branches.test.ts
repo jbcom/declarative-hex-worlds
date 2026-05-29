@@ -55,18 +55,13 @@ describe('advanceOneGameboardMovement branch coverage (PRD E0a)', () => {
     const world = createGameboardWorld(plan);
     const unitId = plan.placements.find((p) => p.assetId === 'unit_blue_full')?.id ?? '';
 
-    // Budget of 0 → no step affordable
+    // Budget of 0 → no step affordable; allowOutOfRangePath ensures request succeeds
     setGameboardMovementAgent(world, unitId, { profile: 'ground', movementBudget: 0 });
 
-    const req = requestGameboardMovement(world, unitId, '2,0');
-    if (req.state.status === 'ready') {
-      // Path found but budget too low → out-of-range on advance
-      const advanced = advanceGameboardMovement(world, unitId);
-      expect(advanced.state.status).toBe('out-of-range');
-    } else {
-      // budget=0 causes out-of-range at request time
-      expect(req.state.status).toBe('out-of-range');
-    }
+    const req = requestGameboardMovement(world, unitId, '2,0', { allowOutOfRangePath: true });
+    expect(req.state.status).toBe('ready');
+    const advanced = advanceGameboardMovement(world, unitId);
+    expect(advanced.state.status).toBe('out-of-range');
   });
 });
 

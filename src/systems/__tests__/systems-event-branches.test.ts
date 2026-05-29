@@ -52,19 +52,14 @@ describe('systems patrol event branches (PRD E0a)', () => {
 
     // Step 1: advance patrol to request movement toward waypoint 1.
     const step1 = advanceGameboardPatrol(world, guard);
-    if (step1.state.status !== 'requested') {
-      // Patrol blocked immediately — can't exercise waiting branch in this env
-      return;
-    }
+    expect(step1.state.status).toBe('requested');
 
     // Advance movement until it completes.
     let mov = advanceGameboardMovement(world, guard);
     while (mov.state.status === 'moving') {
       mov = advanceGameboardMovement(world, guard);
     }
-    if (mov.state.status !== 'completed') {
-      return; // Environment-specific limitation
-    }
+    expect(mov.state.status).toBe('completed');
 
     // Step 2: runGameboardSystems sees completed movement → patrol advances waypoint
     // → waitTicksRemaining=1 → patrol-waiting event fires.
@@ -106,16 +101,12 @@ describe('systems patrol event branches (PRD E0a)', () => {
 
     // Request movement and complete it.
     const step1 = advanceGameboardPatrol(world, guard);
-    if (step1.state.status !== 'requested') {
-      return;
-    }
+    expect(step1.state.status).toBe('requested');
     let mov = advanceGameboardMovement(world, guard);
     while (mov.state.status === 'moving') {
       mov = advanceGameboardMovement(world, guard);
     }
-    if (mov.state.status !== 'completed') {
-      return;
-    }
+    expect(mov.state.status).toBe('completed');
 
     // runGameboardSystems: patrol advances through completePatrolWaypointIfNeeded,
     // sets active=false (route end) → !nextAgent.active → completed branch.

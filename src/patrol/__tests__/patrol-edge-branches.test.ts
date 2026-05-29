@@ -55,21 +55,19 @@ describe('patrol edge branches (PRD E0a)', () => {
 
     // First patrol advance: targetWaypointIndex=1 is selected, movement to 1,0 is requested.
     const step1 = advanceGameboardPatrol(world, guard);
-    expect(['requested', 'blocked', 'moving']).toContain(step1.state.status);
+    expect(step1.state.status).toBe('requested');
 
-    if (step1.state.status === 'requested') {
-      // Advance movement until the unit arrives at 1,0 (completes the move).
-      let movResult = advanceGameboardMovement(world, guard);
-      while (movResult.state.status === 'moving') {
-        movResult = advanceGameboardMovement(world, guard);
-      }
-      expect(movResult.state.status).toBe('completed');
-
-      // Now advance patrol: completePatrolWaypointIfNeeded fires → waitTicksRemaining=1.
-      // waitTicksRemaining > 0 branch executes → state becomes 'waiting'.
-      const step2 = advanceGameboardPatrol(world, guard);
-      expect(step2.state.status).toBe('waiting');
+    // Advance movement until the unit arrives at 1,0 (completes the move).
+    let movResult = advanceGameboardMovement(world, guard);
+    while (movResult.state.status === 'moving') {
+      movResult = advanceGameboardMovement(world, guard);
     }
+    expect(movResult.state.status).toBe('completed');
+
+    // Now advance patrol: completePatrolWaypointIfNeeded fires → waitTicksRemaining=1.
+    // waitTicksRemaining > 0 branch executes → state becomes 'waiting'.
+    const step2 = advanceGameboardPatrol(world, guard);
+    expect(step2.state.status).toBe('waiting');
   });
 
   it('deactivateOnBlocked:false keeps agent active after blocked movement', () => {
@@ -108,15 +106,11 @@ describe('patrol edge branches (PRD E0a)', () => {
       movement: { profile: 'ground' },
     });
 
-    // Advance with deactivateOnBlocked:false — if blocked, agent stays active.
+    // Advance with deactivateOnBlocked:false — blocker at 1,0 is statically placed,
+    // so patrol is always blocked and the agent stays active.
     const result = advanceGameboardPatrol(world, guard, { deactivateOnBlocked: false });
-    if (result.state.status === 'blocked') {
-      // With deactivateOnBlocked:false the agent should remain active.
-      expect(result.agent.active).toBe(true);
-    } else {
-      // Movement was not blocked on this platform — still exercises the code path.
-      expect(['requested', 'moving', 'completed', 'waiting', 'paused']).toContain(result.state.status);
-    }
+    expect(result.state.status).toBe('blocked');
+    expect(result.agent.active).toBe(true);
   });
 
   it('!nextAgent.active after route end yields completed status', () => {
@@ -135,17 +129,18 @@ describe('patrol edge branches (PRD E0a)', () => {
 
     // Advance patrol to request movement.
     const step1 = advanceGameboardPatrol(world, guard);
-    if (step1.state.status === 'requested') {
-      // Advance movement until arrived.
-      let mov = advanceGameboardMovement(world, guard);
-      while (mov.state.status === 'moving') {
-        mov = advanceGameboardMovement(world, guard);
-      }
+    expect(step1.state.status).toBe('requested');
 
-      // Patrol advance: completePatrolWaypointIfNeeded fires; since it's route end,
-      // active is set to false → !nextAgent.active → completed branch executes.
-      const step2 = advanceGameboardPatrol(world, guard);
-      expect(['completed', 'paused']).toContain(step2.state.status);
+    // Advance movement until arrived.
+    let mov = advanceGameboardMovement(world, guard);
+    while (mov.state.status === 'moving') {
+      mov = advanceGameboardMovement(world, guard);
     }
+    expect(mov.state.status).toBe('completed');
+
+    // Patrol advance: completePatrolWaypointIfNeeded fires; since it's route end,
+    // active is set to false → !nextAgent.active → completed branch executes.
+    const step2 = advanceGameboardPatrol(world, guard);
+    expect(step2.state.status).toBe('completed');
   });
 });
