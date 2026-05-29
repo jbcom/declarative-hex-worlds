@@ -155,6 +155,33 @@ jobs:
         with:
           path: docs-site/dist
 
+  coverage:
+    name: Coverage
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0e279bb1f58a83bbf5ca3e12d4d5f73c00cbb0fd # v6.0.8
+
+      - uses: actions/setup-node@48b55a0bc7e9ec8c3ffa44d77df0a4aedd4f32a2 # v6.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: node-modules-${{ needs.install.outputs.cache-key }}
+
+      - name: Unpack node_modules
+        run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
+
+      - name: Enforce coverage floor
+        run: pnpm test:coverage:enforce
+
   dependency-review:
     name: Dependency Review
     if: github.event_name == 'pull_request'

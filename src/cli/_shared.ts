@@ -394,12 +394,12 @@ export function readManifest(path: string): MedievalHexagonManifest {
   return inspection.manifest;
 }
 
-export function readJson<T>(path: string): T {
-  return JSON.parse(readFileSync(path, 'utf8')) as T;
+export function readJson(path: string): unknown {
+  return JSON.parse(readFileSync(path, 'utf8'));
 }
 
 export function inspectManifestPath(path: string): MedievalHexagonManifestInspection {
-  return inspectMedievalHexagonManifest(readJson<unknown>(path));
+  return inspectMedievalHexagonManifest(readJson(path));
 }
 
 export function runValidateManifest(parsed: ParsedArgs): void {
@@ -498,9 +498,7 @@ export function registryFromArgs(
 }
 
 export function readRegistry(path: string): HexTileRegistry {
-  const payload = readJson<HexTileDeclarationInput[] | { declarations: HexTileDeclarationInput[] }>(
-    path
-  );
+  const payload = readJson(path) as HexTileDeclarationInput[] | { declarations: HexTileDeclarationInput[] };
   const declarations = Array.isArray(payload) ? payload : payload.declarations;
   if (!Array.isArray(declarations)) {
     throw new GameboardCliError(
@@ -511,15 +509,14 @@ export function readRegistry(path: string): HexTileRegistry {
 }
 
 export function readPieceRegistry(path: string): GameboardPieceRegistry {
-  const payload = readJson<
+  const payload = readJson(path) as
     | GameboardPieceDeclarationInput[]
     | GameboardPieceDeclarationInput
     | {
         pieces?: GameboardPieceDeclarationInput[];
         declarations?: GameboardPieceDeclarationInput[];
         declaration?: GameboardPieceDeclarationInput;
-      }
-  >(path);
+      };
   const declarations = Array.isArray(payload)
     ? payload
     : 'id' in payload
@@ -547,11 +544,9 @@ export function pieceOverridesFromArgs(
   if (!path) {
     return undefined;
   }
-  const payload = readJson<
-    Record<string, GameboardPieceCompatibilityDeclarationOptions> & {
-      overrides?: Record<string, GameboardPieceCompatibilityDeclarationOptions>;
-    }
-  >(resolve(path));
+  const payload = readJson(resolve(path)) as Record<string, GameboardPieceCompatibilityDeclarationOptions> & {
+    overrides?: Record<string, GameboardPieceCompatibilityDeclarationOptions>;
+  };
   return payload.overrides ?? payload;
 }
 
@@ -863,7 +858,7 @@ export function runSummarizeScenario(
     throw new GameboardCliError('summarize-scenario requires --scenario <path>');
   }
   const scenarioPath = resolve(parsed.flags.scenario);
-  const scenario = readJson<GameboardScenario>(scenarioPath);
+  const scenario = readJson(scenarioPath) as GameboardScenario;
   const summary = summarizeGameboardScenario(scenario, {
     plan: validationConfigFromArgs(parsed, sourceRoot, edition),
     topAssetLimit: summaryOptionsFromFlags(parsed.flags).topAssetLimit,
@@ -1014,7 +1009,7 @@ export function runPatrolRoutes(
   }
   const scenario =
     typeof parsed.flags.scenario === 'string'
-      ? readJson<GameboardScenario>(resolve(parsed.flags.scenario))
+      ? readJson(resolve(parsed.flags.scenario)) as GameboardScenario
       : undefined;
   if (typeof parsed.flags.routes !== 'string' && !scenario?.patrolRoutes?.length) {
     throw new GameboardCliError(
@@ -1084,7 +1079,7 @@ export function runPatrolScript(
 ): void {
   const scenario =
     typeof parsed.flags.scenario === 'string'
-      ? readJson<GameboardScenario>(resolve(parsed.flags.scenario))
+      ? readJson(resolve(parsed.flags.scenario)) as GameboardScenario
       : undefined;
   const routeSet = patrolRouteSetFromArgs(parsed, sourceRoot, edition, scenario);
   const scriptPlan = createGameboardPatrolSimulationScript({
@@ -1218,13 +1213,14 @@ export function layoutAnalysisPlanFromArgs(
   violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>;
 } {
   if (typeof parsed.flags.plan === 'string') {
+    const plan = readJson(resolve(parsed.flags.plan)) as GameboardPlan;
     return {
-      plan: readJson<GameboardPlan>(resolve(parsed.flags.plan)),
-      violations: [],
+      plan,
+      violations: validateGameboardPlan(plan, validationConfig),
     };
   }
   if (typeof parsed.flags.recipe === 'string') {
-    const recipe = readJson<GameboardRecipe>(resolve(parsed.flags.recipe));
+    const recipe = readJson(resolve(parsed.flags.recipe)) as GameboardRecipe;
     const inspection = inspectGameboardRecipe(recipe, { plan: validationConfig });
     if (!inspection.plan) {
       if (!allowInvalid) {
@@ -1241,7 +1237,7 @@ export function layoutAnalysisPlanFromArgs(
     };
   }
   const scenarioPath = String(parsed.flags.scenario);
-  const scenario = readJson<GameboardScenario>(resolve(scenarioPath));
+  const scenario = readJson(resolve(scenarioPath)) as GameboardScenario;
   const inspection = inspectGameboardScenario(scenario, { plan: validationConfig });
   if (!inspection.plan) {
     if (!allowInvalid) {
@@ -1281,7 +1277,7 @@ export function summaryPlanFromArgs(
 
   if (typeof parsed.flags.plan === 'string') {
     const path = resolve(parsed.flags.plan);
-    const plan = readJson<GameboardPlan>(path);
+    const plan = readJson(path) as GameboardPlan;
     return {
       source: { kind: 'plan', path },
       plan,
@@ -1291,7 +1287,7 @@ export function summaryPlanFromArgs(
 
   if (typeof parsed.flags.recipe === 'string') {
     const path = resolve(parsed.flags.recipe);
-    const inspection = inspectGameboardRecipe(readJson<GameboardRecipe>(path), {
+    const inspection = inspectGameboardRecipe(readJson(path) as GameboardRecipe, {
       plan: validationConfig,
     });
     if (!inspection.plan) {
@@ -1312,7 +1308,7 @@ export function summaryPlanFromArgs(
 
   if (typeof parsed.flags.scenario === 'string') {
     const path = resolve(parsed.flags.scenario);
-    const inspection = inspectGameboardScenario(readJson<GameboardScenario>(path), {
+    const inspection = inspectGameboardScenario(readJson(path) as GameboardScenario, {
       plan: validationConfig,
     });
     if (!inspection.plan) {
@@ -1357,15 +1353,16 @@ export function routePlanningPlanFromArgs(
   violations: ReadonlyArray<ReturnType<typeof validateGameboardPlan>[number]>;
 } {
   if (typeof parsed.flags.plan === 'string') {
+    const plan = readJson(resolve(parsed.flags.plan)) as GameboardPlan;
     return {
-      plan: readJson<GameboardPlan>(resolve(parsed.flags.plan)),
-      violations: [],
+      plan,
+      violations: validateGameboardPlan(plan, validationConfig),
     };
   }
   const recipe =
     scenario?.board ??
     (typeof parsed.flags.recipe === 'string'
-      ? readJson<GameboardRecipe>(resolve(parsed.flags.recipe))
+      ? readJson(resolve(parsed.flags.recipe)) as GameboardRecipe
       : undefined);
   if (!recipe) {
     throw new GameboardCliError(
@@ -1405,7 +1402,7 @@ export function patrolRouteSetFromArgs(
   scenario: GameboardScenario | undefined
 ): GameboardPatrolRouteSet {
   if (typeof parsed.flags.routes === 'string') {
-    const payload = readJson<unknown>(resolve(parsed.flags.routes));
+    const payload = readJson(resolve(parsed.flags.routes));
     if (isPatrolRouteSet(payload)) {
       return payload;
     }
@@ -1465,7 +1462,7 @@ export function readPatrolSimulationAssignments(
 ): readonly GameboardPatrolSimulationActorAssignment[] {
   const rounds = readNumberFlag(parsed.flags.rounds);
   if (typeof parsed.flags.assignments === 'string') {
-    const payload = readJson<unknown>(resolve(parsed.flags.assignments));
+    const payload = readJson(resolve(parsed.flags.assignments));
     const assignments = Array.isArray(payload)
       ? (payload as readonly GameboardPatrolSimulationActorAssignment[])
       : isRecord(payload) && Array.isArray(payload.assignments)
@@ -1508,7 +1505,7 @@ export function runValidateSimulation(
     throw new GameboardCliError('validate-simulation requires --script <path>');
   }
 
-  const scenario = readJson<GameboardScenario>(resolve(parsed.flags.scenario));
+  const scenario = readJson(resolve(parsed.flags.scenario)) as GameboardScenario;
   const scenarioInspection = inspectGameboardScenario(scenario, {
     plan: validationConfigFromArgs(parsed, sourceRoot, edition),
   });
@@ -2553,7 +2550,7 @@ export function runSimulateScenario(
     throw new GameboardCliError('simulate-scenario requires --script <path>');
   }
 
-  const scenario = readJson<GameboardScenario>(resolve(parsed.flags.scenario));
+  const scenario = readJson(resolve(parsed.flags.scenario)) as GameboardScenario;
   const inspection = inspectGameboardScenario(scenario, {
     plan: validationConfigFromArgs(parsed, sourceRoot, edition),
   });
@@ -2701,7 +2698,7 @@ export function readBlueprintOptions(
 }
 
 export function readBlueprintOptionsFile(path: string): GameboardBlueprintScenarioOptions {
-  const payload = readJson<unknown>(path);
+  const payload = readJson(path);
   const options =
     isRecord(payload) && isRecord(payload.blueprint)
       ? payload.blueprint
@@ -2828,7 +2825,7 @@ export function hasBlueprintScenarioContent(
 }
 
 export function readSimulationScript(path: string): GameboardScenarioSimulationScript {
-  const payload = readJson<unknown>(path);
+  const payload = readJson(path);
   if (Array.isArray(payload)) {
     return {
       schemaVersion: '1.0.0',
@@ -2847,7 +2844,7 @@ export function readLayoutFillOptions(
   path: string,
   seedOverride: string | boolean | undefined
 ): GameboardLayoutFillOptions {
-  const payload = readJson<unknown>(path);
+  const payload = readJson(path);
   const rules = Array.isArray(payload)
     ? (payload as readonly GameboardLayoutFillRule[])
     : isRecord(payload) && Array.isArray(payload.rules)
@@ -2869,7 +2866,7 @@ export function readSpawnGroupOptions(
   path: string,
   seedOverride: string | boolean | undefined
 ): GameboardSpawnGroupOptions {
-  const payload = readJson<unknown>(path);
+  const payload = readJson(path);
   const groups = Array.isArray(payload)
     ? (payload as GameboardSpawnGroupOptions['groups'])
     : isRecord(payload) && Array.isArray(payload.groups)
@@ -2896,7 +2893,7 @@ export function readPatrolRouteOptions(
   path: string,
   seedOverride: string | boolean | undefined
 ): Omit<GameboardPatrolRouteSetOptions, 'spawnGroups'> {
-  const payload = readJson<unknown>(path);
+  const payload = readJson(path);
   const routes = Array.isArray(payload)
     ? (payload as readonly GameboardPatrolRouteRule[])
     : isRecord(payload) && Array.isArray(payload.routes)
@@ -3010,7 +3007,7 @@ export function snapshotFromPlan(
   options: GameboardScenarioInteropOptions,
   allowInvalid: boolean
 ) {
-  const plan = readJson<GameboardPlan>(resolve(path));
+  const plan = readJson(resolve(path)) as GameboardPlan;
   const violations = validateGameboardPlan(plan, validationConfig);
   failOnSnapshotViolations(violations, allowInvalid);
   return createGameboardInteropSnapshot(plan, options);
@@ -3022,7 +3019,7 @@ export function snapshotFromRecipe(
   options: GameboardScenarioInteropOptions,
   allowInvalid: boolean
 ) {
-  const recipe = readJson<GameboardRecipe>(resolve(path));
+  const recipe = readJson(resolve(path)) as GameboardRecipe;
   const inspection = inspectGameboardRecipe(recipe, { plan: validationConfig });
   failOnSnapshotViolations(inspection.violations, allowInvalid);
   if (!inspection.plan) {
@@ -3039,7 +3036,7 @@ export function snapshotFromScenario(
   options: GameboardScenarioInteropOptions,
   allowInvalid: boolean
 ) {
-  const scenario = readJson<GameboardScenario>(resolve(path));
+  const scenario = readJson(resolve(path)) as GameboardScenario;
   const inspection = inspectGameboardScenario(scenario, { plan: validationConfig });
   failOnSnapshotViolations(inspection.violations, allowInvalid);
   return createGameboardScenarioInteropSnapshot(scenario, options);
@@ -3732,7 +3729,7 @@ export const RESERVED_OBJECT_KEYS = new Set(['__proto__', 'constructor', 'protot
 export const SAFE_PIECE_SOURCE_ROOT_KEY = /^[a-zA-Z0-9_:-]+$/u;
 
 export function readPieceSourceRoots(value: string): Readonly<Record<string, string>> {
-  const source = existsSync(resolve(value)) ? readJson<unknown>(resolve(value)) : JSON.parse(value);
+  const source = existsSync(resolve(value)) ? readJson(resolve(value)) : JSON.parse(value);
   const payload = isRecord(source) && isRecord(source.sourceRoots) ? source.sourceRoots : source;
   if (!isRecord(payload)) {
     throw new GameboardCliError(

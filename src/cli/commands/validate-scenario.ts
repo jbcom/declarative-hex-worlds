@@ -23,7 +23,7 @@ export async function run(
   if (typeof parsed.flags.scenario !== 'string') {
     throw new GameboardCliError('validate-scenario requires --scenario <path>');
   }
-  const scenario = readJson<GameboardScenario>(resolve(parsed.flags.scenario));
+  const scenario = readJson(resolve(parsed.flags.scenario)) as GameboardScenario;
   const inspection = inspectGameboardScenario(scenario, {
     plan: validationConfigFromArgs(parsed, sourceRoot, edition),
   });

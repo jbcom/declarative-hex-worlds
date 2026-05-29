@@ -121,7 +121,7 @@ describe('readJson (PRD E0h)', () => {
     const path = join(dir, 'fixture.json');
     writeFileSync(path, JSON.stringify({ hello: 'world', n: 42 }), 'utf8');
     try {
-      const obj = readJson<{ hello: string; n: number }>(path);
+      const obj = readJson(path) as { hello: string; n: number };
       expect(obj.hello).toBe('world');
       expect(obj.n).toBe(42);
     } finally {
