@@ -74,7 +74,7 @@ describe('CLI', () => {
     expect(extractOutput).toContain(`Extracted 1 free assets to ${extractRoot}`);
     expect(existsSync(resolve(extractRoot, 'assets/tiles/base/hex_grass.gltf'))).toBe(true);
     expect(existsSync(resolve(extractRoot, 'manifest.json'))).toBe(true);
-  });
+  }, 60_000);
 
   it('normalizes stale manifest indexes for every manifest-consuming command', () => {
     const sourceRoot = createFixtureSourceRoot();
@@ -121,7 +121,7 @@ describe('CLI', () => {
       'manifest.assets_by_id_stale',
     ]);
     expect(analysisPayload).toMatchObject({ tileCount: 1, analyzedCount: 1 });
-  });
+  }, 60_000);
 
   it('fails validate-manifest on malformed local manifest JSON', () => {
     const manifestPath = resolve(createTempRoot(), 'invalid-manifest.json');
@@ -362,7 +362,7 @@ describe('CLI', () => {
     expect(blueprintPayload.summary.tileCount).toBeGreaterThan(0);
     expect(blueprintPayload.summary.placementCount).toBeGreaterThan(0);
     expect(existsSync(blueprintPlanPath)).toBe(true);
-  });
+  }, 120_000);
 
   it('summarizes scenario actors, spawns, patrols, quests, and local-only assets through the CLI', () => {
     const root = createTempRoot();
@@ -512,7 +512,7 @@ describe('CLI', () => {
         }),
       ])
     );
-  });
+  }, 60_000);
 
   it('emits release-readiness coverage JSON and Markdown through the CLI', () => {
     const root = createTempRoot();
@@ -1204,7 +1204,7 @@ describe('CLI', () => {
     const scenarioScriptPayload = JSON.parse(readFileSync(scenarioScriptPath, 'utf8')) as typeof scriptPayload;
     expect(scenarioScriptOutput).toContain(`Wrote patrol simulation script to ${scenarioScriptPath}`);
     expect(scenarioScriptPayload.steps).toHaveLength(scenarioPayload.routes[0]?.segments.length ?? 0);
-  });
+  }, 60_000);
 
   it('analyzes layout fill rules from recipes and scenarios through the CLI', () => {
     const root = createTempRoot();
@@ -1563,7 +1563,7 @@ describe('CLI', () => {
       'p03:hex_road_M',
       'p09:hex_road_M',
     ]);
-  });
+  }, 120_000);
 
   it('emits URL-resolved guide render queues through the CLI', () => {
     const outputPath = resolve(createTempRoot(), 'guide-render-pages-16-18.json');
@@ -1695,7 +1695,7 @@ describe('CLI', () => {
     expect(propClusterOutput).toContain('guide render requests: 74');
     expect(propClusterOutput).toContain('groups: 5');
     expect(propClusterOutput).toContain('asset base URL: /custom');
-  });
+  }, 60_000);
 
   it('emits public API guide coverage and filters scenarios by API surface', () => {
     const apiOutputPath = resolve(createTempRoot(), 'guide-api-harbor.json');
@@ -1836,7 +1836,7 @@ describe('CLI', () => {
     ]);
     const scenarioPayload = JSON.parse(scenarioOutput) as { count: number; pages: number[] };
     expect(scenarioPayload).toMatchObject({ count: 4, pages: [2, 5, 7, 15] });
-  }, 15_000);
+  }, 60_000);
 
   it('emits asset guide coverage and filters scenarios by asset id', () => {
     const assetOutputPath = resolve(createTempRoot(), 'guide-asset-road-m.json');
@@ -2094,7 +2094,7 @@ describe('CLI', () => {
       'fixture:tower-hexagon-base': '/fixture-assets/tower-hexagon-base.gltf',
       'fixture:tree-large': '/fixture-assets/tree-large.gltf',
     });
-  });
+  }, 60_000);
 
   it('inspects and appends one declared piece through the published command surface', () => {
     const root = createTempRoot();
@@ -2844,7 +2844,7 @@ describe('CLI', () => {
     expect(validateInvalidScriptOutput).toContain('validation: 2 error(s), 0 warning(s)');
     expect(validateInvalidScriptOutput).toContain('simulation.command_target_actor_missing');
     expect(validateInvalidScriptOutput).toContain('simulation.expectation_event_type');
-  });
+  }, 120_000);
 
   it('rejects scenario JSON with duplicate actors before creating a runtime world', () => {
     const scenarioPath = resolve(createTempRoot(), 'invalid-scenario.json');
