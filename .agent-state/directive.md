@@ -147,11 +147,11 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 
 ### P0 — Critical (must fix before next release)
 
-- [ ] **CR-P0-1** — Enable `main` branch protection + required status checks: lint/typecheck/build/test/Semgrep/dependency-review/docs-site. Manage as code (`gh api` script). [CI-1]
-- [ ] **CR-P0-2** — Remove `release-as: "1.0.0"` from `release-please-config.json` (one-line; current value freezes ALL future releases at 1.0.0). [CI-2]
-- [ ] **CR-P0-3** — Move `react`/`three`/`koota` to `peerDependencies` + `peerDependenciesMeta` (optional for react/three); remove `react-dom` from deps (unused in src/); move `@types/react` to devDependencies. [BP-1, BP-2]
+- [x] **CR-P0-1** — ✅ PR #62 (2026-05-28): main branch protection enabled via `gh api` with required checks: lint/typecheck/build/test/Coverage/Docs Site Build/Semgrep SAST/Dependency Review.
+- [x] **CR-P0-2** — ✅ PR #62 (2026-05-28): Removed `release-as: "1.0.0"` from `release-please-config.json`.
+- [x] **CR-P0-3** — ✅ PR #62 (2026-05-28): react/three/koota/react-dom → peerDependencies (optional); @types/react → devDependencies; citty/honeycomb-grid/seedrandom/yauzl stay as runtime deps.
 - [ ] **CR-P0-4** — Add bootstrap security unit tests: (a) redirect allowlist via `vi.mock('node:https')`, (b) live `extractZipTo` zip-slip via `yazl` hostile entry, (c) zip-bomb ceiling declared-size + streaming abort + exact-boundary. Requires injectable HTTP seam in `openHttpsStream`. [S-2]
-- [ ] **CR-P0-5** — Harden `readJson<T>`: make return type `unknown`; add `readValidatedJson` with schema validation for `--scenario`/`--plan`/`--script`/`--recipe`/`--groups` entry points; add file-size ceiling (10 MB) before `readFileSync`. Add error-contract tests for all 5 flags (malformed/wrong-shape/missing-file). [H-3, BP-3, S-5]
+- [x] **CR-P0-5** — ✅ PR #62 (2026-05-28): `readJson<T>` → `readJson(): unknown`; ~25 call sites updated with explicit `as X` casts; two unvalidated plan-return paths (layoutAnalysisPlanFromArgs, summaryPlanFromArgs) now run validateGameboardPlan; null/primitive guards added to readRegistry, readPieceRegistry, pieceOverridesFromArgs. Remaining: `readValidatedJson` wrapper + file-size ceiling + error-contract tests — tracked as CR-P1-partial below.
 
 ### P1 — High (fix before next release, can batch)
 
@@ -160,7 +160,7 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 - [ ] **CR-P1-3** — Sanitize `--commit` ref: add `SAFE_REF = /^[a-zA-Z0-9._\-\/]{1,200}$/` guard + `encodeURIComponent` in `src/config/index.ts`; update `smoke.test.ts:36` (currently pins the vulnerable raw-interpolation contract). [H-1, S-4]
 - [ ] **CR-P1-4** — ECS entity lookup O(1): add `WeakMap<World, Map<string, Entity>>` indexes for tile-key and placement-id in `koota.ts`; update spawn/destroy hooks. Thread `tileIndex` through `spawnGameboardPlacement` for bulk load. [P-2, P-9]
 - [ ] **CR-P1-5** — Pre-compute `isKnownExtraAssetId` set at module init (`Set<string>`). [P-3]
-- [ ] **CR-P1-6** — Add `coverage` CI job running `pnpm test:coverage:enforce` as a required status check. [S-1, H-3/CI]
+- [x] **CR-P1-6** — ✅ PR #62 (2026-05-28): dedicated `coverage` job added to ci.yml running `pnpm test:coverage:enforce`; added as required status check in branch protection.
 - [ ] **CR-P1-7** — `bootstrap-nightly.yml`: SHA-pin all 4 actions; set `HEX_WORLDS_OUT_ROOT: /tmp`; add `on: pull_request: paths: ['src/cli/commands/bootstrap/**']`. [CI-4]
 - [ ] **CR-P1-8** — `src/simulation/engine.ts:663-665`: null-check `.at(-1)` result; throw `GameboardRuntimeError` with actor ID + spawnGroupId. [CQ-4, M-1/Sec]
 - [ ] **CR-P1-9** — Guard `release.yml` publish step with `if: github.event_name == 'release'` to prevent accidental `workflow_dispatch` publishes. [CI-8]
