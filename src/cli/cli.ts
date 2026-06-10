@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   copyGltfTree,
   defaultSourceRoot,
@@ -22,6 +23,7 @@ import {
   renderGameboardCoverageMarkdown,
   summarizeGameboardCoverage,
   type GameboardCoveragePathStatusInput,
+  type GameboardCoverageReferenceInput,
   type GameboardCoverageReport,
   type GameboardCoverageSimpleRpgEvidence,
   type GameboardCoverageSimpleRpgEvidenceMode,
@@ -173,9 +175,18 @@ interface GltfDocumentMetadata {
   skins?: unknown[];
 }
 
+const LEGACY_PACKAGE_PATH_PREFIX = 'packages/medieval-hexagon-gameboard/';
+
 interface ParsedArgs {
   command: string;
   flags: Record<string, string | boolean>;
+}
+
+type CoverageCliMode = 'source-workspace' | 'packaged-install';
+
+interface CoverageCliContext {
+  packageRoot: string;
+  mode: CoverageCliMode;
 }
 
 type GuideScenarioAssetScope = PackEdition | 'all';
@@ -2283,6 +2294,7 @@ function runGuideRoles(parsed: ParsedArgs): void {
 }
 
 function runCoverage(parsed: ParsedArgs): void {
+  const coverageContext = createCoverageCliContext();
   const manifest =
     typeof parsed.flags.manifest === 'string'
       ? readManifest(resolve(parsed.flags.manifest))
@@ -2294,11 +2306,8 @@ function runCoverage(parsed: ParsedArgs): void {
       typeof parsed.flags.generatedAt === 'string'
         ? parsed.flags.generatedAt
         : new Date().toISOString(),
-    pathStatus: coveragePathStatuses(),
-    references: createDefaultGameboardCoverageReferences().map((reference) => ({
-      ...reference,
-      status: existsSync(resolve(reference.path)) ? 'available' : 'missing',
-    })),
+    pathStatus: coveragePathStatuses(coverageContext),
+    references: coverageReferenceStatuses(coverageContext),
     packageChecks: createDefaultGameboardCoveragePackageChecks(
       checksPassed ? 'passed' : 'not-run'
     ),
@@ -2368,7 +2377,37 @@ function createCliSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence {
   };
 }
 
-function coveragePathStatuses(): GameboardCoveragePathStatusInput {
+function createCoverageCliContext(): CoverageCliContext {
+  const packageRoot = findCliPackageRoot(dirname(fileURLToPath(import.meta.url)));
+  return {
+    packageRoot,
+    mode: existsSync(join(packageRoot, 'src/cli/cli.ts')) ? 'source-workspace' : 'packaged-install',
+  };
+}
+
+function findCliPackageRoot(startDirectory: string): string {
+  let current = startDirectory;
+  while (true) {
+    const packageJsonPath = join(current, 'package.json');
+    if (existsSync(packageJsonPath)) {
+      try {
+        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { name?: string };
+        if (packageJson.name === '@jbcom/medieval-hexagon-gameboard') {
+          return current;
+        }
+      } catch {
+        // Keep walking; malformed package.json should not make coverage scan cwd-relative.
+      }
+    }
+    const parent = dirname(current);
+    if (parent === current) {
+      return process.cwd();
+    }
+    current = parent;
+  }
+}
+
+function coveragePathStatuses(context: CoverageCliContext): GameboardCoveragePathStatusInput {
   const scenarios = listKayKitGuideScenarios();
   const sourceImages = uniqueStrings(scenarios.map((scenario) => scenario.sourceImage));
   const docs = uniqueStrings(scenarios.flatMap((scenario) => scenario.docs));
@@ -2379,16 +2418,70 @@ function coveragePathStatuses(): GameboardCoveragePathStatusInput {
     ...GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
   ]);
   return {
-    sourceImages: statusMapForPaths(sourceImages),
-    docs: statusMapForPaths(docs),
-    visualArtifacts: statusMapForPaths(visualArtifacts),
+    sourceImages: statusMapForPaths(sourceImages, context, 'source-image'),
+    docs: statusMapForPaths(docs, context, 'doc'),
+    visualArtifacts: statusMapForPaths(visualArtifacts, context, 'visual-artifact'),
   };
 }
 
-function statusMapForPaths(paths: readonly string[]): Record<string, GameboardCoverageStatus> {
+function coverageReferenceStatuses(context: CoverageCliContext): GameboardCoverageReferenceInput[] {
+  return createDefaultGameboardCoverageReferences(
+    context.mode === 'packaged-install' ? 'skipped' : 'missing'
+  ).map((reference) => ({
+    ...reference,
+    status:
+      context.mode === 'packaged-install'
+        ? 'skipped'
+        : existsSync(join(context.packageRoot, reference.path))
+          ? 'available'
+          : 'missing',
+  }));
+}
+
+function statusMapForPaths(
+  paths: readonly string[],
+  context: CoverageCliContext,
+  kind: 'source-image' | 'doc' | 'visual-artifact'
+): Record<string, GameboardCoverageStatus> {
   return Object.fromEntries(
-    paths.map((path) => [path, existsSync(resolve(path)) ? 'available' : 'missing'])
+    paths.map((path) => [path, coverageStatusForPath(path, context, kind)])
   );
+}
+
+function coverageStatusForPath(
+  path: string,
+  context: CoverageCliContext,
+  kind: 'source-image' | 'doc' | 'visual-artifact'
+): GameboardCoverageStatus {
+  if (context.mode === 'source-workspace') {
+    return coveragePathExists(context.packageRoot, path) ? 'available' : 'missing';
+  }
+
+  const packagePath = normalizeCoveragePackagePath(path);
+  if (kind === 'doc' && (packagePath === 'README.md' || packagePath === 'NOTICE.md')) {
+    return existsSync(join(context.packageRoot, packagePath)) ? 'available' : 'missing';
+  }
+  if (kind === 'visual-artifact' && packagePath.startsWith('docs/showcases/')) {
+    return existsSync(join(context.packageRoot, packagePath)) ? 'available' : 'missing';
+  }
+  return 'skipped';
+}
+
+function coveragePathExists(packageRoot: string, path: string): boolean {
+  return coveragePackagePathCandidates(path).some((candidate) =>
+    existsSync(join(packageRoot, candidate))
+  );
+}
+
+function coveragePackagePathCandidates(path: string): readonly string[] {
+  const normalized = normalizeCoveragePackagePath(path);
+  return normalized === path ? [path] : [path, normalized];
+}
+
+function normalizeCoveragePackagePath(path: string): string {
+  return path.startsWith(LEGACY_PACKAGE_PATH_PREFIX)
+    ? path.slice(LEGACY_PACKAGE_PATH_PREFIX.length)
+    : path;
 }
 
 function printCoverageSummary(report: GameboardCoverageReport): void {

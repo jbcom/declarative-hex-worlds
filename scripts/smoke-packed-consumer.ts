@@ -2472,13 +2472,17 @@ console.log(JSON.stringify({
     'installed CLI doctor did not report the missing source'
   );
   assert(
-    binCoverageDoctorOutput.includes('guide pages: 19/19') &&
+    binCoverageDoctorOutput.includes('coverage status: passed') &&
+      binCoverageDoctorOutput.includes('guide pages: 19/19') &&
       binCoverageDoctorOutput.includes('public APIs: 74') &&
       binCoverageDoctorOutput.includes('manifest: 221 asset(s), 221/221 FREE guide asset(s)') &&
+      binCoverageDoctorOutput.includes('visual artifacts: 10 available, 0 missing, 70 skipped') &&
+      binCoverageDoctorOutput.includes('local references: 0 available, 0 missing, 4 skipped') &&
       binCoverageDoctorOutput.includes(
         'SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)'
-      ),
-    'installed CLI doctor --coverage did not emit release-readiness and SimpleRPG evidence'
+      ) &&
+      binCoverageDoctorOutput.includes('gaps: 0'),
+    'installed CLI doctor --coverage did not emit passing package-aware release-readiness and SimpleRPG evidence'
   );
 
   console.log(

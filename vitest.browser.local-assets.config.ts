@@ -2,27 +2,19 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
+import { createMedievalHexagonBrowserAliases } from './vitest.browser.aliases';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
-const workspaceRoot = resolve(packageRoot, '../..');
+const workspaceRoot = packageRoot;
 const kenneyCastleRoot = resolve(workspaceRoot, 'references/kenney_castle-kit/Models/GLB format');
 const adventurersRoot = resolve(workspaceRoot, 'references/KayKit_Adventurers_2.0_FREE');
 
 export default defineConfig({
   optimizeDeps: {
-    include: ['koota'],
+    include: ['koota', 'koota/react', 'react', 'react-dom/client'],
   },
   resolve: {
-    alias: [
-      {
-        find: /^@jbcom\/medieval-hexagon-gameboard$/,
-        replacement: resolve(__dirname, 'src/index.ts'),
-      },
-      {
-        find: /^@jbcom\/medieval-hexagon-gameboard\/(.+)$/,
-        replacement: resolve(__dirname, 'src/$1.ts'),
-      },
-    ],
+    alias: createMedievalHexagonBrowserAliases(packageRoot),
   },
   define: {
     __KENNEY_CASTLE_ROOT__: JSON.stringify(kenneyCastleRoot),
@@ -30,7 +22,7 @@ export default defineConfig({
   },
   server: {
     fs: {
-      allow: [workspaceRoot],
+      allow: [workspaceRoot, kenneyCastleRoot, adventurersRoot],
     },
   },
   test: {
