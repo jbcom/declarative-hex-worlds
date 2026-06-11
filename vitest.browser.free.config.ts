@@ -9,7 +9,7 @@ const packageRoot = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   optimizeDeps: {
-    include: ['koota'],
+    include: ['koota', 'koota/react', 'react', 'react-dom/client'],
   },
   resolve: {
     // Shared with the unit harness so subpath imports (e.g. `/commands` →
