@@ -1,5 +1,6 @@
-import { existsSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,
@@ -11,6 +12,7 @@ import {
   createDefaultGameboardCoverageReferences,
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   type GameboardCoveragePathStatusInput,
+  type GameboardCoverageReferenceInput,
   type GameboardCoverageReport,
   type GameboardCoverageSimpleRpgEvidence,
   type GameboardCoverageSimpleRpgEvidenceMode,
@@ -23,6 +25,16 @@ import { listKayKitGuideScenarios, type GameboardScenario } from '../../scenario
 import type { PackEdition } from '../../types';
 import { type ParsedArgs, readManifest, safeResolveOutput, uniqueStrings } from '../_shared';
 
+const PACKAGE_NAME = 'declarative-hex-worlds';
+const LEGACY_PACKAGE_PATH_PREFIX = `packages/${PACKAGE_NAME}/`;
+
+type CoverageCliMode = 'source-workspace' | 'packaged-install';
+
+interface CoverageCliContext {
+  packageRoot: string;
+  mode: CoverageCliMode;
+}
+
 export async function run(
   parsed: ParsedArgs,
   _sourceRoot: string,
@@ -32,6 +44,7 @@ export async function run(
 }
 
 export function runCoverage(parsed: ParsedArgs): void {
+  const coverageContext = createCoverageCliContext();
   const manifest =
     typeof parsed.flags.manifest === 'string'
       ? readManifest(resolve(parsed.flags.manifest))
@@ -43,11 +56,8 @@ export function runCoverage(parsed: ParsedArgs): void {
       typeof parsed.flags.generatedAt === 'string'
         ? parsed.flags.generatedAt
         : new Date().toISOString(),
-    pathStatus: coveragePathStatuses(),
-    references: createDefaultGameboardCoverageReferences().map((reference) => ({
-      ...reference,
-      status: existsSync(resolve(reference.path)) ? 'available' : 'missing',
-    })),
+    pathStatus: coveragePathStatuses(coverageContext),
+    references: coverageReferenceStatuses(coverageContext),
     packageChecks: createDefaultGameboardCoveragePackageChecks(checksPassed ? 'passed' : 'not-run'),
     simpleRpgEvidence: createCliSimpleRpgEvidence(),
   });
@@ -119,7 +129,41 @@ export function createCliSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence
   };
 }
 
-export function coveragePathStatuses(): GameboardCoveragePathStatusInput {
+export function createCoverageCliContext(): CoverageCliContext {
+  const packageRoot = findCliPackageRoot(dirname(fileURLToPath(import.meta.url)));
+  return {
+    packageRoot,
+    mode: existsSync(join(packageRoot, 'src/cli/commands/coverage.ts'))
+      ? 'source-workspace'
+      : 'packaged-install',
+  };
+}
+
+export function findCliPackageRoot(startDirectory: string): string {
+  let current = startDirectory;
+  while (true) {
+    const packageJsonPath = join(current, 'package.json');
+    if (existsSync(packageJsonPath)) {
+      try {
+        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { name?: string };
+        if (packageJson.name === PACKAGE_NAME) {
+          return current;
+        }
+      } catch {
+        // Keep walking; malformed package.json should not make coverage scan cwd-relative.
+      }
+    }
+    const parent = dirname(current);
+    if (parent === current) {
+      return process.cwd();
+    }
+    current = parent;
+  }
+}
+
+export function coveragePathStatuses(
+  context: CoverageCliContext = createCoverageCliContext()
+): GameboardCoveragePathStatusInput {
   const scenarios = listKayKitGuideScenarios();
   const sourceImages = uniqueStrings(scenarios.map((scenario) => scenario.sourceImage));
   const docs = uniqueStrings(scenarios.flatMap((scenario) => scenario.docs));
@@ -130,18 +174,72 @@ export function coveragePathStatuses(): GameboardCoveragePathStatusInput {
     ...GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
   ]);
   return {
-    sourceImages: statusMapForPaths(sourceImages),
-    docs: statusMapForPaths(docs),
-    visualArtifacts: statusMapForPaths(visualArtifacts),
+    sourceImages: statusMapForPaths(sourceImages, context, 'source-image'),
+    docs: statusMapForPaths(docs, context, 'doc'),
+    visualArtifacts: statusMapForPaths(visualArtifacts, context, 'visual-artifact'),
   };
 }
 
+export function coverageReferenceStatuses(
+  context: CoverageCliContext
+): GameboardCoverageReferenceInput[] {
+  return createDefaultGameboardCoverageReferences(
+    context.mode === 'packaged-install' ? 'skipped' : 'missing'
+  ).map((reference) => ({
+    ...reference,
+    status:
+      context.mode === 'packaged-install'
+        ? 'skipped'
+        : existsSync(join(context.packageRoot, reference.path))
+          ? 'available'
+          : 'missing',
+  }));
+}
+
 export function statusMapForPaths(
-  paths: readonly string[]
+  paths: readonly string[],
+  context: CoverageCliContext = createCoverageCliContext(),
+  kind: 'source-image' | 'doc' | 'visual-artifact' = 'visual-artifact'
 ): Record<string, GameboardCoverageStatus> {
   return Object.fromEntries(
-    paths.map((path) => [path, existsSync(resolve(path)) ? 'available' : 'missing'])
+    paths.map((path) => [path, coverageStatusForPath(path, context, kind)])
   );
+}
+
+export function coverageStatusForPath(
+  path: string,
+  context: CoverageCliContext,
+  kind: 'source-image' | 'doc' | 'visual-artifact'
+): GameboardCoverageStatus {
+  if (context.mode === 'source-workspace') {
+    return coveragePathExists(context.packageRoot, path) ? 'available' : 'missing';
+  }
+
+  const packagePath = normalizeCoveragePackagePath(path);
+  if (kind === 'doc' && (packagePath === 'README.md' || packagePath === 'NOTICE.md')) {
+    return existsSync(join(context.packageRoot, packagePath)) ? 'available' : 'missing';
+  }
+  if (kind === 'visual-artifact' && packagePath.startsWith('docs/showcases/')) {
+    return existsSync(join(context.packageRoot, packagePath)) ? 'available' : 'missing';
+  }
+  return 'skipped';
+}
+
+function coveragePathExists(packageRoot: string, path: string): boolean {
+  return coveragePackagePathCandidates(path).some((candidate) =>
+    existsSync(join(packageRoot, candidate))
+  );
+}
+
+function coveragePackagePathCandidates(path: string): readonly string[] {
+  const normalized = normalizeCoveragePackagePath(path);
+  return normalized === path ? [path] : [path, normalized];
+}
+
+export function normalizeCoveragePackagePath(path: string): string {
+  return path.startsWith(LEGACY_PACKAGE_PATH_PREFIX)
+    ? path.slice(LEGACY_PACKAGE_PATH_PREFIX.length)
+    : path;
 }
 
 export function printCoverageSummary(report: GameboardCoverageReport): void {

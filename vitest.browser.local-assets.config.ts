@@ -6,13 +6,13 @@ import { packageAliases } from './vitest.alias.shared';
 import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
-const workspaceRoot = resolve(packageRoot, '../..');
+const workspaceRoot = packageRoot;
 const kenneyCastleRoot = resolve(workspaceRoot, 'references/kenney_castle-kit/Models/GLB format');
 const adventurersRoot = resolve(workspaceRoot, 'references/KayKit_Adventurers_2.0_FREE');
 
 export default defineConfig({
   optimizeDeps: {
-    include: ['koota'],
+    include: ['koota', 'koota/react', 'react', 'react-dom/client'],
   },
   resolve: {
     alias: packageAliases(),
@@ -23,7 +23,7 @@ export default defineConfig({
   },
   server: {
     fs: {
-      allow: [workspaceRoot],
+      allow: [workspaceRoot, kenneyCastleRoot, adventurersRoot],
     },
   },
   test: {
