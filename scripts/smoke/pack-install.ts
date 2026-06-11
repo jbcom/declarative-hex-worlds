@@ -68,8 +68,9 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
         dependencies: {
           'declarative-hex-worlds': `file:${tarballPath}`,
           '@types/react': '^19.0.0',
+          koota: '^0.6.6',
           react: '^19.0.0',
-          three: '^0.180.0',
+          three: '^0.184.0',
         },
       },
       null,
@@ -651,7 +652,8 @@ if (
   subpathSystemsResult.eventRecords.length !== 0 ||
   subpathRuleErrors.length !== 0 ||
   typeof canStackAt(subpathWorld, '0,0', 0) !== 'boolean' ||
-  !subpathPlacementUrl?.includes('https://example.test/pkg/assets/free/') ||
+  !subpathPlacementUrl?.startsWith('https://example.test/pkg/') ||
+  !subpathPlacementUrl?.endsWith('.gltf') ||
   subpathTransform.position.x !== KAYKIT_HEX_WIDTH
 ) {
   throw new Error('packed public subpath imports failed');
@@ -1402,13 +1404,17 @@ console.log(JSON.stringify({
     'installed CLI doctor did not report the missing source'
   );
   assert(
-    binCoverageDoctorOutput.includes('guide pages: 19/19') &&
+    binCoverageDoctorOutput.includes('coverage status: passed') &&
+      binCoverageDoctorOutput.includes('guide pages: 19/19') &&
       binCoverageDoctorOutput.includes('public APIs: 74') &&
       binCoverageDoctorOutput.includes('manifest: 221 asset(s), 221/221 FREE guide asset(s)') &&
+      binCoverageDoctorOutput.includes('visual artifacts: 10 available, 0 missing,') &&
+      binCoverageDoctorOutput.includes('local references: 0 available, 0 missing,') &&
       binCoverageDoctorOutput.includes(
         'SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)'
-      ),
-    'installed CLI doctor --coverage did not emit release-readiness and SimpleRPG evidence'
+      ) &&
+      binCoverageDoctorOutput.includes('gaps: 0'),
+    'installed CLI doctor --coverage did not emit passing package-aware release-readiness and SimpleRPG evidence'
   );
 
   console.log(
