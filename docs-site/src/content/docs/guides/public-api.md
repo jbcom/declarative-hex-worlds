@@ -28,7 +28,7 @@ migration guide.
 | `./blueprint` | `GameboardBlueprintOptions` and procedural board generation. |
 | `./gameboard` | Board lifecycle, occupancy, navigation. |
 | `./recipe` | Recipe DSL. |
-| `./coverage` | Release-readiness coverage ledger surface. |
+| `./coverage` | Release-readiness coverage ledger surface for build/review tooling, not runtime ECS adapter glue. |
 | `./compatibility` | Manifest/version compatibility helpers. |
 | `./errors` | `GameboardError` + typed subclasses (Epic D2). |
 | `./traits` | Single trait umbrella (all `trait()` declarations). |
@@ -95,7 +95,7 @@ or hook the implementation.
 | `./systems` | Tickable system functions. |
 | `./world-rules` | Runtime rule-evaluation system. |
 | `./rule-types` | Rule typed shapes (re-exported from `./rules` — prefer that). |
-| `./interop` | Schema migrations + ECS adapter glue. |
+| `./interop` | Runtime ECS adapter glue and schema migrations; release-readiness coverage is the separate stable `./coverage` surface. |
 | `./ingest` | Source-tree walker + manifest emission (precursor to bootstrap). |
 | `./registry` | Tile/piece registries (re-exported from `./scenario`). |
 | `./catalog` | KayKit asset catalog (re-exported from `./scenario`). |
