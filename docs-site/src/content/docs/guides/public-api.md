@@ -37,6 +37,23 @@ migration guide.
 
 TSDoc tag: `@public`.
 
+## Branded ID migration status
+
+The `./types` subpath exports branded ID aliases and `brand*` helpers, but
+branded IDs are **NOT yet enforced** across the runtime. Public JSON, manifest,
+CLI, and ECS-facing shapes still use plain strings unless a domain row below
+states that enforcement has landed. Treat the aliases as opt-in compile-time
+helpers until the relevant domain moves to `enforced`.
+
+| Domain(s) | Brands tracked | Current status |
+|---|---|---|
+| `./types` | `HexKey`, `ActorId`, `TileId`, `PieceId`, `PlacementId`, `ScenarioId`, `QuestId`, `ObjectiveId`, `PatrolRouteId`, `AssetId` | Registry exported; `brand*` helpers are stable and available to consumers. |
+| `./coordinates`, `./grid`, `./layout`, `./gameboard` | `HexKey`, `TileId` | Not yet enforced; public APIs still accept coordinate objects and plain string IDs. |
+| `./scenario`, `./recipe`, `./blueprint`, `./simulation`, `./pieces` | `ScenarioId`, `PieceId`, `PlacementId`, `TileId`, `AssetId` | Not yet enforced; scenario JSON and generated plans keep wire-compatible string fields. |
+| `./actors`, `./movement`, `./patrol`, `./quests` | `ActorId`, `PatrolRouteId`, `QuestId`, `ObjectiveId` | Not yet enforced; ECS traits, commands, and query helpers still expose string-compatible IDs. |
+| `./manifest/schema`, `./manifest/free`, `./ingest`, `./runtime`, `./react`, `./three` | `AssetId` | Not yet enforced; asset IDs remain manifest and URL-facing strings. |
+| `./cli`, `./interop`, `./compatibility`, `./coverage` | Pass-through IDs only | Not yet enforced; these surfaces preserve external wire formats and report existing domain values. |
+
 ## Tier 2 — Supported-for-extension
 
 Semver-strict for what's documented, but the surface contract is smaller
