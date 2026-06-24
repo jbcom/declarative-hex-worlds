@@ -62,7 +62,7 @@ export {
   TileRenderState,
   TileTagList,
   TileTerrain,
-} from '../traits/board';
+} from '../traits';
 
 import {
   AdjacentTo,
@@ -90,7 +90,7 @@ import {
   TileRenderState,
   TileTagList,
   TileTerrain,
-} from '../traits/board';
+} from '../traits';
 
 /** O(1) tile-key→entity indexes keyed by World (GC-safe via WeakMap). */
 const tileIndexByWorld = new WeakMap<World, Map<string, Entity>>();
