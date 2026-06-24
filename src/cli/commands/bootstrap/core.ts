@@ -30,6 +30,7 @@ import {
 import { request as httpsRequest } from 'node:https';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import yauzl from 'yauzl';
 import { BOOTSTRAP_PATHS, KAYKIT_SOURCE, kaykitGithubArchiveUrl } from '../../../config';
@@ -566,13 +567,17 @@ function copyAndHash(source: string, target: string): { sha256: string; size: nu
 }
 
 async function hashFile(path: string): Promise<string> {
-  return new Promise<string>((resolveHash, reject) => {
-    const stream = createReadStream(path);
-    const hash = createHash('sha256');
-    stream.on('error', reject);
-    stream.on('data', (chunk) => hash.update(chunk));
-    stream.on('end', () => resolveHash(hash.digest('hex')));
-  });
+  const hash = createHash('sha256');
+  await pipeline(
+    createReadStream(path),
+    new Writable({
+      write(chunk: Buffer | string, _encoding: BufferEncoding, callback) {
+        hash.update(chunk);
+        callback();
+      },
+    })
+  );
+  return hash.digest('hex');
 }
 
 const SIDECAR_MAX_BYTES = 4 * 1024 * 1024; // 4 MB ceiling — a legitimate sidecar is <100 KB
