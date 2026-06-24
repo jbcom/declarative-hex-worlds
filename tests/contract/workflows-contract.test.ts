@@ -124,6 +124,12 @@ describe('workflow contract', () => {
   });
 
   describe('benchmark workflow shape', () => {
+    let source = '';
+
+    beforeAll(() => {
+      source = read(files.benchmarks);
+    });
+
     it.each([
       ["NODE_VERSION: '22'"],
       ['schedule:'],
@@ -138,7 +144,7 @@ describe('workflow contract', () => {
       [`benchmark-results-${GITHUB_RUN_ID_EXPRESSION}`],
       ['retention-days: 30'],
     ])('includes %s', (snippet) => {
-      expect(read(files.benchmarks)).toContain(snippet);
+      expect(source).toContain(snippet);
     });
   });
 
