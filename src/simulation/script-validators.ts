@@ -146,9 +146,9 @@ function createSimulationScenarioIndex(
 
   const actorIds = new Set<string>();
   const actorOrPlacementIds = new Set<string>();
-  const placementIds = new Set<string>(plan?.placements.map((placement) => placement.id) ?? []);
+  const placementIds = new Set<string>(plan?.placements?.map((placement) => placement.id) ?? []);
   const spawnGroupIds = new Set<string>(
-    config.scenario?.spawnGroups?.groups.map((group) => group.id).filter(isNonEmptyString) ?? []
+    config.scenario?.spawnGroups?.groups?.map((group) => group.id).filter(isNonEmptyString) ?? []
   );
   const questIds = new Set<string>();
   const objectiveIdsByQuest = new Map<string, Set<string>>();
@@ -183,7 +183,7 @@ function createSimulationScenarioIndex(
     actorOrPlacementIds,
     placementIds,
     spawnGroupIds,
-    tileKeys: new Set(plan?.tiles.map((tile) => tile.key) ?? []),
+    tileKeys: new Set(plan?.tiles?.map((tile) => tile.key) ?? []),
     questIds,
     objectiveIdsByQuest,
   };
