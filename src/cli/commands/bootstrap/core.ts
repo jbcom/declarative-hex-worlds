@@ -30,7 +30,6 @@ import {
 import { request as httpsRequest } from 'node:https';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import yauzl from 'yauzl';
 import { BOOTSTRAP_PATHS, KAYKIT_SOURCE, kaykitGithubArchiveUrl } from '../../../config';
@@ -568,15 +567,7 @@ function copyAndHash(source: string, target: string): { sha256: string; size: nu
 
 async function hashFile(path: string): Promise<string> {
   const hash = createHash('sha256');
-  await pipeline(
-    createReadStream(path),
-    new Writable({
-      write(chunk: Buffer | string, _encoding: BufferEncoding, callback) {
-        hash.update(chunk);
-        callback();
-      },
-    })
-  );
+  await pipeline(createReadStream(path), hash);
   return hash.digest('hex');
 }
 
