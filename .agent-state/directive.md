@@ -176,7 +176,7 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 - [x] **CR-P2-6** — ✅ `stageUpstreamSource`: inlined github download path with `try/finally` for `downloadRoot` cleanup; `stageFromZip` restructured to `let succeeded = false; try { ... succeeded = true; } finally { if (!succeeded) rmSync(...) }`.
 - [x] **CR-P2-7** — ✅ `readSidecar`: added `SIDECAR_MAX_BYTES = 4 MiB` + `SIDECAR_MAX_FILES = 100_000` constants; guards throw `GameboardIoError` on oversize or overcount.
 - [x] **CR-P2-8** — ✅ `walkFilesInternal`: added `symlinkCount` ref parameter; warns once on stderr when symlink encountered; passes through recursive calls.
-- [ ] **CR-P2-9** — `koota.ts:16` dependency inversion: move `isKnownExtraAssetId` out of `scenario` domain; require callers to pass `requiresExtra` explicitly or move to `src/types/`. [AR-1]
+- [x] **CR-P2-9** — ✅ `koota.ts` no longer imports `isKnownExtraAssetId` from `scenario`; runtime placement spawn/update now require callers to set or preserve `requiresExtra` explicitly. Added Koota regression coverage for explicit EXTRA tagging. `pnpm verify` green. [AR-1]
 - [x] **CR-P2-10** — ✅ `ci.yml`: unified pnpm/action-setup and actions/setup-node SHAs across all 4 jobs to `v6.0.8` / `v6.4.0` (docs job was on v4.2.0/v6.3.0).
 - [x] **CR-P2-11** — ✅ `release.yml`: added post-publish `npm audit signatures` verify step; wrote `ROLLBACK.md` runbook covering deprecate, unpublish, patch-release, and signature failure scenarios.
 - [ ] **CR-P2-12** — `automerge.yml`: reassess release-please auto-merge after CR-P0-1 branch protection lands. [CI-6]

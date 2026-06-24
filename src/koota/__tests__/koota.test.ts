@@ -9,6 +9,7 @@ import {
   PlacementOccupiesTile,
   PlacementOnTile,
   PlacementState,
+  RequiresExtraAsset,
   StackedTerrainQuery,
   canOccupyGameboardPlacement,
   clearGameboardWorld,
@@ -259,6 +260,7 @@ describe('Koota gameboard runtime', () => {
       assetId: 'building_shipyard_blue',
       kind: 'structure',
       layer: 'structure',
+      requiresExtra: true,
       metadata: { feature: 'harbor', facing: 1 },
     });
 
@@ -273,6 +275,43 @@ describe('Koota gameboard runtime', () => {
     expect(removeGameboardPlacement(world, moved)).toBe(true);
     expect(removeGameboardPlacement(world, 'missing')).toBe(false);
     expect(readGameboardSnapshot(world).board?.placementCount).toBe(plan.placements.length);
+  });
+
+  it('requires runtime placement callers to set requiresExtra explicitly', () => {
+    const plan = createGameboardBuilder({
+      seed: 'runtime-extra-explicit',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    }).build();
+    const world = createGameboardWorld(plan);
+    const inferredExtra = spawnGameboardPlacement(world, {
+      id: 'runtime-extra-default',
+      at: '0,0',
+      assetId: 'building_shipyard_blue',
+      kind: 'structure',
+    });
+
+    expect(inferredExtra.get(PlacementState)).toMatchObject({
+      assetId: 'building_shipyard_blue',
+      requiresExtra: false,
+    });
+    expect(inferredExtra.has(RequiresExtraAsset)).toBe(false);
+
+    const explicitExtra = updateGameboardPlacement(world, inferredExtra, {
+      requiresExtra: true,
+    });
+    expect(explicitExtra.get(PlacementState)?.requiresExtra).toBe(true);
+    expect(explicitExtra.has(RequiresExtraAsset)).toBe(true);
+
+    updateGameboardPlacement(world, explicitExtra, {
+      assetId: 'flag_blue',
+    });
+    expect(explicitExtra.get(PlacementState)?.requiresExtra).toBe(true);
+
+    updateGameboardPlacement(world, explicitExtra, {
+      requiresExtra: false,
+    });
+    expect(explicitExtra.get(PlacementState)?.requiresExtra).toBe(false);
+    expect(explicitExtra.has(RequiresExtraAsset)).toBe(false);
   });
 
   it('preflights runtime placement occupancy before spawn or move mutations', () => {

@@ -28,7 +28,6 @@ import {
   hexKey,
   neighbor,
 } from '../gameboard';
-import { isKnownExtraAssetId } from '../scenario';
 import type { HexCoordinates, TextureSet, WorldPosition } from '../types';
 
 // Board / tile / placement traits + relations live in `src/traits/board.ts`
@@ -538,9 +537,7 @@ export function updateGameboardPlacement(
     scale: options.scale ?? current.scale,
     order: options.order ?? current.order,
     stackIndex: options.stackIndex ?? current.stackIndex,
-    requiresExtra:
-      options.requiresExtra ??
-      (options.assetId ? isKnownExtraAssetId(options.assetId) : current.requiresExtra),
+    requiresExtra: options.requiresExtra ?? current.requiresExtra,
     metadata: options.metadata ? { ...options.metadata } : { ...current.metadata },
   };
 
@@ -861,7 +858,7 @@ function runtimePlacementSpec(
     scale: options.scale ?? 1,
     order: options.order ?? nextRuntimePlacementOrder(world),
     stackIndex: options.stackIndex,
-    requiresExtra: options.requiresExtra ?? isKnownExtraAssetId(options.assetId),
+    requiresExtra: options.requiresExtra ?? false,
     metadata: { ...(options.metadata ?? {}) },
   };
 }
