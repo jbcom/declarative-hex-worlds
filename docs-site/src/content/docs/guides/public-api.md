@@ -37,6 +37,25 @@ migration guide.
 
 TSDoc tag: `@public`.
 
+## Branded ID migration status
+
+`./types` exports branded string primitives (`HexKey`, `ActorId`, `TileId`,
+`PieceId`, `PlacementId`, `ScenarioId`, `QuestId`, `ObjectiveId`,
+`PatrolRouteId`, `AssetId`) plus `brand*` helpers. These exports are stable,
+but branded IDs are **not yet enforced across the codebase**. Current domain
+APIs still accept and return plain strings for compatibility with existing JSON
+documents, manifests, reports, and consumer code. Treat the helpers as opt-in
+compile-time guards until the per-domain migration below moves to "enforced".
+
+| Domain / subpath | Branded IDs involved | Current migration state |
+|---|---|---|
+| `./types` | All branded primitives + `brand*` helpers | Central registry is exported and stable. Helpers cast caller-validated strings; no runtime boxing or validation is added. |
+| `./coordinates`, `./grid`, `./gameboard` | `HexKey`, `TileId`, `PlacementId`, `AssetId` | Not yet enforced. Hex utilities, board specs, and placement records still use plain strings. |
+| `./scenario`, `./blueprint`, `./recipe` | `ScenarioId`, `ActorId`, `PatrolRouteId`, `AssetId`, `PieceId`, `TileId` | Not yet enforced. Authored JSON and recipe/schema surfaces remain string-compatible. |
+| `./actors`, `./movement`, `./patrol`, `./quests` | `ActorId`, `PlacementId`, `QuestId`, `ObjectiveId`, `PatrolRouteId`, `HexKey` | Not yet enforced. Runtime traits and action options still preserve existing string contracts. |
+| `./pieces`, `./manifest/*`, `./catalog`, `./registry` | `PieceId`, `AssetId`, `TileId` | Not yet enforced. Catalog helpers also expose literal asset-id unions that are separate from branded `AssetId`. |
+| `./commands`, `./systems`, `./simulation`, `./interop`, `./selectors`, `./runtime`, `./react`, `./three` | Cross-domain IDs from the rows above | Not yet enforced. These packages forward IDs from lower-level DTOs and will migrate after the owning domains do. |
+
 ## Tier 2 — Supported-for-extension
 
 Semver-strict for what's documented, but the surface contract is smaller

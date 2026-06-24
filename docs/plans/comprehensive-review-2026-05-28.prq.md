@@ -61,7 +61,7 @@ The dominant themes:
 - [ ] **CR-P3-1** Architecture decomposition: script.ts/gameboard.ts/systems.ts/catalog.ts
 - [ ] **CR-P3-2** noRestrictedImports enforcement gaps + .js suffix variants
 - [ ] **CR-P3-3** interop/coverage.ts cohesion documentation
-- [ ] **CR-P3-4** Branded types migration tracking
+- [x] **CR-P3-4** Branded types migration tracking
 - [ ] **CR-P3-5** useStableOptions JSON.stringify empty fast-path
 - [ ] **CR-P3-6** Nightly bench workflow with artifact upload
 - [ ] **CR-P3-7** Inline docs: A*, patrol state machine, script.ts section map, docs/ canonical pointer

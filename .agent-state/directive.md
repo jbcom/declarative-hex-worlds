@@ -192,7 +192,7 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 - [ ] **CR-P3-1** — Architecture decomposition: `simulation/script.ts` (3,163 lines → script-types/validators/index); `gameboard/gameboard.ts` (2,228 lines → plan/spawn-groups/terrain); `systems/systems.ts` (900 lines → command/tick/events); `scenario/catalog.ts` (2,401 lines). [AR-4, AR-5, AR-6]
 - [ ] **CR-P3-2** — `noRestrictedImports` enforcement gaps: add `../interop/internal`, `../internal/predicates`, `../traits/*` deep paths, `../config/*` deep paths. Add `.js` variants for 35 of 36 restricted paths. [AR-10, BP-8]
 - [ ] **CR-P3-3** — `interop/coverage.ts` cohesion: document release-tooling vs runtime interop distinction in architecture.md; or extract to `src/release/`. [AR-7]
-- [ ] **CR-P3-4** — Branded types: track migration status per domain; add "NOT yet enforced" caveat to `public-api.md`. [AR-8, M-DOC-4]
+- [x] **CR-P3-4** — ✅ Public API docs now state that branded IDs are stable exported helpers but are NOT yet enforced across domain APIs; added a per-domain migration-status table covering `./types`, board/coordinates, scenario/recipe, runtime domains, asset/catalog domains, and forwarding surfaces. Docs-site build, lint, and typecheck pass locally. [AR-8, M-DOC-4]
 - [ ] **CR-P3-5** — `useStableOptions` JSON.stringify: add empty-options fast-path. [P-11]
 - [ ] **CR-P3-6** — Add nightly bench workflow with artifact upload (no perf signal on any merge currently). [T-bench]
 - [ ] **CR-P3-7** — Inline docs: A* algorithm commentary in `findHexPath`; patrol state-machine diagram above `advancePatrolEntity`; simulation/script.ts section map; `docs/` vs `docs-site/` canonical pointer in CONTRIBUTING.md. [L-DOC-1, L-DOC-2, M-DOC-5, L-DOC-3]
