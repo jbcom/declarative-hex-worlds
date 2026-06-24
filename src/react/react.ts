@@ -562,13 +562,28 @@ export function useGameboardRuntime<TRuntime extends GameboardRuntime = Gameboar
  * objects are plain data — no functions, no refs). The returned reference
  * stays stable as long as the JSON serialization matches.
  */
+function isPlainEmptyOptions(options: unknown): options is Record<string, never> {
+  if (options === null || typeof options !== 'object') {
+    return false;
+  }
+  if (Object.getPrototypeOf(options) !== Object.prototype) {
+    return false;
+  }
+  for (const key in options) {
+    if (Object.hasOwn(options, key)) {
+      return false;
+    }
+  }
+  return !('toJSON' in options);
+}
+
 function useStableOptions<T>(options: T): T {
   const ref = useRef<{ key: string; value: T; tick: number } | undefined>(undefined);
   // JSON.stringify returns undefined for `T = undefined` and for values
   // whose only enumerable members are functions/symbols. Use the option
   // value itself as the cache discriminator when the serialization fails
   // — Object.is identity is the correct semantic for non-serializable T.
-  const serialized = JSON.stringify(options);
+  const serialized = isPlainEmptyOptions(options) ? '{}' : JSON.stringify(options);
   const nextKey = serialized ?? '__unserializable__';
   const useIdentity = serialized === undefined;
   const tick = (ref.current?.tick ?? 0) + 1;

@@ -193,7 +193,7 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 - [ ] **CR-P3-2** — `noRestrictedImports` enforcement gaps: add `../interop/internal`, `../internal/predicates`, `../traits/*` deep paths, `../config/*` deep paths. Add `.js` variants for 35 of 36 restricted paths. [AR-10, BP-8]
 - [ ] **CR-P3-3** — `interop/coverage.ts` cohesion: document release-tooling vs runtime interop distinction in architecture.md; or extract to `src/release/`. [AR-7]
 - [ ] **CR-P3-4** — Branded types: track migration status per domain; add "NOT yet enforced" caveat to `public-api.md`. [AR-8, M-DOC-4]
-- [ ] **CR-P3-5** — `useStableOptions` JSON.stringify: add empty-options fast-path. [P-11]
+- [x] **CR-P3-5** — ✅ `useStableOptions` JSON.stringify: added a plain-empty-options fast-path before serialization; the React memoization test is now included in the main Vitest config and pins that fresh `{}` selector options do not call `JSON.stringify`. Local proof: `pnpm exec vitest run src/react/__tests__/memoization.test.tsx --config vitest.config.ts`. [P-11]
 - [ ] **CR-P3-6** — Add nightly bench workflow with artifact upload (no perf signal on any merge currently). [T-bench]
 - [ ] **CR-P3-7** — Inline docs: A* algorithm commentary in `findHexPath`; patrol state-machine diagram above `advancePatrolEntity`; simulation/script.ts section map; `docs/` vs `docs-site/` canonical pointer in CONTRIBUTING.md. [L-DOC-1, L-DOC-2, M-DOC-5, L-DOC-3]
 - [ ] **CR-P3-8** — `CI_GITHUB_TOKEN` PAT → repo-scoped GitHub App token. [CI-9]

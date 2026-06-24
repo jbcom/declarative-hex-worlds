@@ -11,6 +11,7 @@ export default defineConfig({
       'tests/integration/**/*.test.ts',
       'tests/contract/**/*.test.ts',
       'src/**/__tests__/**/*.test.ts',
+      'src/**/__tests__/**/*.test.tsx',
       'scripts/**/__tests__/**/*.test.ts',
     ],
     testTimeout: 15_000,
