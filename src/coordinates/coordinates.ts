@@ -218,7 +218,16 @@ export function hexRange(center: HexCoordinates, radius: number): HexCoordinates
   return results;
 }
 
-/** Finds a weighted shortest path across axial neighbors. */
+/**
+ * Finds a weighted shortest path across axial neighbors.
+ *
+ * This is A*: `costByKey` is the known g-score from `start`, the heap priority
+ * is `g + hexDistance(node, goal)`, and `closed` lets older duplicate heap
+ * entries fall out cheaply after a better route to the same key was queued.
+ * The hex-distance heuristic is admissible for the default unit-cost graph and
+ * custom costs >= 1. Callers that provide cheaper or negative step costs may
+ * still get a path, but they are opting out of the shortest-path guarantee.
+ */
 export function findHexPath(
   start: HexCoordinates,
   goal: HexCoordinates,

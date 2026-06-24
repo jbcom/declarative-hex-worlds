@@ -227,6 +227,29 @@ export function runGameboardPatrolSystem(
   return world.query(GameboardPatrolAgentQuery).map((entity) => advancePatrolEntity(world, entity, options));
 }
 
+/**
+ * Patrol state machine for one tick:
+ *
+ *   inactive agent
+ *     -> paused
+ *   invalid route
+ *     -> blocked
+ *   completed movement segment
+ *     -> update waypoint/round counters, then continue evaluating this tick
+ *   blocked movement state
+ *     -> blocked, optionally deactivate
+ *   ready/moving movement state
+ *     -> moving
+ *   inactive after waypoint completion or no next waypoint
+ *     -> completed
+ *   wait ticks remaining
+ *     -> waiting
+ *   otherwise
+ *     -> request movement to next waypoint, then requested or blocked
+ *
+ * The order is part of the contract: completion is consumed before new waits or
+ * requests, while an in-flight movement state always wins over a fresh request.
+ */
 function advancePatrolEntity(
   world: World,
   entity: Entity,

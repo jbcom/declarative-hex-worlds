@@ -1,6 +1,13 @@
 /**
  * Authored simulation-script validators and scenario-reference indexing.
  *
+ * Section map:
+ *
+ * - The public inspection entry point validates the script shell first.
+ * - Scenario index helpers resolve authored scenario/plan references once.
+ * - Validator families then follow the script shape: source actors, command
+ *   handlers, individual steps, expectations, and shared field/reference guards.
+ *
  * @module
  */
 
