@@ -8,7 +8,7 @@ import type {
   GameboardPlacementKind,
   GameboardPlacementLayer,
   GameboardPlacementSpec,
-} from './gameboard';
+} from './plan';
 
 /** Minimal placement shape required by occupancy helpers. */
 export interface GameboardPlacementOccupancyLike {
