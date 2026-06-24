@@ -205,6 +205,56 @@ const EMPTY_PLACEMENT_OPTIONS = [] as const satisfies readonly SpawnGameboardPla
 const EMPTY_PIECE_SELECTION = [] as const satisfies readonly GameboardPieceDeclaration[];
 const EMPTY_SOURCE_URL_MAP = {} as const satisfies Readonly<Record<string, string>>;
 const GameboardRuntimeContext = createContext<GameboardRuntime | undefined>(undefined);
+type GameboardDerivedRevisionDomain =
+  | 'state'
+  | 'tiles'
+  | 'placements'
+  | 'actors'
+  | 'movement'
+  | 'quests'
+  | 'patrols';
+type GameboardDerivedRevisionDomains = readonly GameboardDerivedRevisionDomain[];
+type GameboardRevisionInput = Parameters<World['onAdd']>[0];
+
+const RUNTIME_REVISION_DOMAINS = [
+  'state',
+  'tiles',
+  'placements',
+  'actors',
+  'movement',
+  'quests',
+  'patrols',
+] as const satisfies GameboardDerivedRevisionDomains;
+const PROJECTED_PLAN_REVISION_DOMAINS = [
+  'state',
+  'tiles',
+  'placements',
+] as const satisfies GameboardDerivedRevisionDomains;
+const PLACEMENT_REVISION_DOMAINS = ['placements'] as const satisfies GameboardDerivedRevisionDomains;
+const ACTOR_REVISION_DOMAINS = [
+  'placements',
+  'actors',
+] as const satisfies GameboardDerivedRevisionDomains;
+const QUEST_REVISION_DOMAINS = [
+  'placements',
+  'actors',
+  'movement',
+  'quests',
+] as const satisfies GameboardDerivedRevisionDomains;
+const TILE_INSPECTION_REVISION_DOMAINS = [
+  'tiles',
+  'placements',
+  'actors',
+] as const satisfies GameboardDerivedRevisionDomains;
+const ACTOR_TARGET_REVISION_DOMAINS = [
+  'tiles',
+  'placements',
+  'actors',
+] as const satisfies GameboardDerivedRevisionDomains;
+const OCCUPANCY_REVISION_DOMAINS = [
+  'tiles',
+  'placements',
+] as const satisfies GameboardDerivedRevisionDomains;
 
 /**
  * Props for mounting an already-created runtime in React.
@@ -322,7 +372,60 @@ export function GameboardScenarioProvider({
   return createElement(GameboardRuntimeProvider<GameboardScenarioGameRuntime>, { runtime }, children);
 }
 
-function useGameboardDerivedRevision(): number {
+function subscribeGameboardRevisionInput(
+  world: World,
+  input: GameboardRevisionInput,
+  update: () => void
+): (() => void)[] {
+  return [
+    world.onAdd(input, update),
+    world.onRemove(input, update),
+    world.onChange(input, update),
+  ];
+}
+
+function subscribeGameboardRevisionDomain(
+  world: World,
+  domain: GameboardDerivedRevisionDomain,
+  update: () => void
+): (() => void)[] {
+  switch (domain) {
+    case 'state':
+      return subscribeGameboardRevisionInput(world, GameboardState, update);
+    case 'tiles':
+      return [
+        ...subscribeGameboardRevisionInput(world, HexTileState, update),
+        ...subscribeGameboardRevisionInput(world, TileCoordinates, update),
+        ...subscribeGameboardRevisionInput(world, TileTerrain, update),
+        ...subscribeGameboardRevisionInput(world, TileElevation, update),
+        ...subscribeGameboardRevisionInput(world, TileConnectivity, update),
+        ...subscribeGameboardRevisionInput(world, TileRenderState, update),
+        ...subscribeGameboardRevisionInput(world, TileTagList, update),
+      ];
+    case 'placements':
+      return [
+        ...subscribeGameboardRevisionInput(world, PlacementState, update),
+        ...subscribeGameboardRevisionInput(world, PlacementOnTile, update),
+        ...subscribeGameboardRevisionInput(world, PlacementOccupiesTile, update),
+      ];
+    case 'actors':
+      return subscribeGameboardRevisionInput(world, GameboardActor, update);
+    case 'movement':
+      return [
+        ...subscribeGameboardRevisionInput(world, MovementAgent, update),
+        ...subscribeGameboardRevisionInput(world, MovementPathState, update),
+      ];
+    case 'quests':
+      return subscribeGameboardRevisionInput(world, GameboardQuest, update);
+    case 'patrols':
+      return [
+        ...subscribeGameboardRevisionInput(world, GameboardPatrolAgent, update),
+        ...subscribeGameboardRevisionInput(world, GameboardPatrolState, update),
+      ];
+  }
+}
+
+function useGameboardDerivedRevision(domains: GameboardDerivedRevisionDomains): number {
   const world = useWorld();
   const [revision, bumpRevision] = useReducer(
     (value: number) => (value + 1) % Number.MAX_SAFE_INTEGER,
@@ -330,67 +433,31 @@ function useGameboardDerivedRevision(): number {
   );
 
   useEffect(() => {
-    const update = () => bumpRevision();
-    const unsubscribers = [
-      world.onAdd(GameboardState, update),
-      world.onRemove(GameboardState, update),
-      world.onChange(GameboardState, update),
-      world.onAdd(HexTileState, update),
-      world.onRemove(HexTileState, update),
-      world.onChange(HexTileState, update),
-      world.onAdd(TileCoordinates, update),
-      world.onRemove(TileCoordinates, update),
-      world.onChange(TileCoordinates, update),
-      world.onAdd(TileTerrain, update),
-      world.onRemove(TileTerrain, update),
-      world.onChange(TileTerrain, update),
-      world.onAdd(TileElevation, update),
-      world.onRemove(TileElevation, update),
-      world.onChange(TileElevation, update),
-      world.onAdd(TileConnectivity, update),
-      world.onRemove(TileConnectivity, update),
-      world.onChange(TileConnectivity, update),
-      world.onAdd(TileRenderState, update),
-      world.onRemove(TileRenderState, update),
-      world.onChange(TileRenderState, update),
-      world.onAdd(TileTagList, update),
-      world.onRemove(TileTagList, update),
-      world.onChange(TileTagList, update),
-      world.onAdd(PlacementState, update),
-      world.onRemove(PlacementState, update),
-      world.onChange(PlacementState, update),
-      world.onAdd(PlacementOnTile, update),
-      world.onRemove(PlacementOnTile, update),
-      world.onChange(PlacementOnTile, update),
-      world.onAdd(PlacementOccupiesTile, update),
-      world.onRemove(PlacementOccupiesTile, update),
-      world.onChange(PlacementOccupiesTile, update),
-      world.onAdd(GameboardActor, update),
-      world.onRemove(GameboardActor, update),
-      world.onChange(GameboardActor, update),
-      world.onAdd(MovementAgent, update),
-      world.onRemove(MovementAgent, update),
-      world.onChange(MovementAgent, update),
-      world.onAdd(MovementPathState, update),
-      world.onRemove(MovementPathState, update),
-      world.onChange(MovementPathState, update),
-      world.onAdd(GameboardQuest, update),
-      world.onRemove(GameboardQuest, update),
-      world.onChange(GameboardQuest, update),
-      world.onAdd(GameboardPatrolAgent, update),
-      world.onRemove(GameboardPatrolAgent, update),
-      world.onChange(GameboardPatrolAgent, update),
-      world.onAdd(GameboardPatrolState, update),
-      world.onRemove(GameboardPatrolState, update),
-      world.onChange(GameboardPatrolState, update),
-    ];
+    let disposed = false;
+    let pending = false;
+    const update = () => {
+      if (disposed || pending) {
+        return;
+      }
+      pending = true;
+      queueMicrotask(() => {
+        pending = false;
+        if (!disposed) {
+          bumpRevision();
+        }
+      });
+    };
+    const unsubscribers = domains.flatMap((domain) =>
+      subscribeGameboardRevisionDomain(world, domain, update)
+    );
 
     return () => {
+      disposed = true;
       for (const unsubscribe of unsubscribers) {
         unsubscribe();
       }
     };
-  }, [world]);
+  }, [world, domains]);
 
   return revision;
 }
@@ -517,7 +584,7 @@ export function useGameboardRuntimeSnapshot(
   options: GameboardRuntimeSnapshotOptions = DEFAULT_RUNTIME_SNAPSHOT_OPTIONS
 ): GameboardRuntimeSnapshot {
   const runtime = useGameboardRuntime();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(RUNTIME_REVISION_DOMAINS);
   const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
@@ -534,7 +601,7 @@ export function useGameboardRuntimeSnapshot(
 export function useGameboardPlacementSnapshots(): readonly PlacementStateValue[] {
   const world = useWorld();
   const placements = useGameboardPlacementEntities();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(PLACEMENT_REVISION_DOMAINS);
   return useMemo(() => {
     void revision;
     void placements.length;
@@ -551,7 +618,7 @@ export function useGameboardPlacementSnapshots(): readonly PlacementStateValue[]
 export function useGameboardActorSnapshots(): readonly GameboardActorSnapshot[] {
   const world = useWorld();
   const actors = useGameboardActorEntities();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(ACTOR_REVISION_DOMAINS);
   return useMemo(() => {
     void revision;
     void actors.length;
@@ -571,7 +638,7 @@ export function useGameboardActorsForTile(
 ): readonly GameboardActorSnapshot[] {
   const world = useWorld();
   const actors = useGameboardActorEntities();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(ACTOR_REVISION_DOMAINS);
   const key = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
   return useMemo(() => {
     void revision;
@@ -589,7 +656,7 @@ export function useGameboardActorsForTile(
 export function useGameboardQuestSnapshots(): readonly GameboardQuestSnapshot[] {
   const world = useWorld();
   const quests = useGameboardQuestEntities();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(QUEST_REVISION_DOMAINS);
   return useMemo(() => {
     void revision;
     void quests.length;
@@ -667,7 +734,7 @@ export function useGameboardTileInspection(
   options: GameboardTileInspectionOptions = {}
 ): GameboardTileInspection {
   const world = useWorld();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(TILE_INSPECTION_REVISION_DOMAINS);
   const tileKey = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
   const stableOptions = useStableOptions(options);
   return useMemo(() => {
@@ -684,7 +751,7 @@ export function useGameboardNeighborhoodInspection(
   options: GameboardNeighborhoodInspectionOptions = {}
 ): GameboardNeighborhoodInspection {
   const world = useWorld();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(TILE_INSPECTION_REVISION_DOMAINS);
   const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
@@ -699,7 +766,7 @@ export function useGameboardActorSelection(
   options: GameboardActorSelectionOptions = {}
 ): GameboardActorSelection {
   const world = useWorld();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(ACTOR_REVISION_DOMAINS);
   const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
@@ -714,7 +781,7 @@ export function useGameboardActorTargets(
   options: GameboardActorTargetingOptions | undefined
 ): GameboardActorTargetingReport | undefined {
   const world = useWorld();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(ACTOR_TARGET_REVISION_DOMAINS);
   const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
@@ -729,7 +796,7 @@ export function useGameboardActorTargetCommand(
   options: GameboardActorTargetCommandOptions | undefined
 ): GameboardActorTargetCommandPlan | undefined {
   const world = useWorld();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(ACTOR_TARGET_REVISION_DOMAINS);
   const stableOptions = useStableOptions(options);
   return useMemo(() => {
     void revision;
@@ -962,7 +1029,7 @@ export function useProjectedGameboardPlan(): GameboardPlan | undefined {
   const state = useGameboardState();
   const tiles = useDecomposedTileEntities();
   const placements = useGameboardPlacementEntities();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(PROJECTED_PLAN_REVISION_DOMAINS);
   return useMemo(() => {
     void revision;
     void tiles.length;
@@ -1171,7 +1238,7 @@ export function usePlacementOccupancyForTile(
   const key = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
   const tile = useTileEntity(key);
   const placements = useGameboardPlacementEntities();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(OCCUPANCY_REVISION_DOMAINS);
   return useMemo(() => {
     void revision;
     void tile;
@@ -1187,7 +1254,7 @@ export function useGameboardPlacementOccupancy(): readonly PlacementOccupancySna
   const world = useWorld();
   const tiles = useGameboardTileEntities();
   const placements = useGameboardPlacementEntities();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(OCCUPANCY_REVISION_DOMAINS);
   return useMemo(() => {
     void revision;
     void tiles.length;
@@ -1205,7 +1272,7 @@ export function useGameboardPlacementOccupancyInspection(
   const world = useWorld();
   const tiles = useGameboardTileEntities();
   const placements = useGameboardPlacementEntities();
-  const revision = useGameboardDerivedRevision();
+  const revision = useGameboardDerivedRevision(OCCUPANCY_REVISION_DOMAINS);
   return useMemo(() => {
     void revision;
     void tiles.length;
