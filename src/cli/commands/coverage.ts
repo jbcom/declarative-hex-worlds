@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { GameboardCliError } from '../../errors';
 import {
   listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,
@@ -145,12 +146,15 @@ export function findCliPackageRoot(startDirectory: string): string {
     const packageJsonPath = join(current, 'package.json');
     if (existsSync(packageJsonPath)) {
       try {
-        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { name?: string };
+        const packageJson = parsePackageJsonObject(packageJsonPath);
         if (packageJson.name === PACKAGE_NAME) {
           return current;
         }
-      } catch {
-        // Keep walking; malformed package.json should not make coverage scan cwd-relative.
+      } catch (error) {
+        if (error instanceof GameboardCliError) {
+          throw error;
+        }
+        // Keep walking on transient filesystem errors instead of scanning cwd-relative.
       }
     }
     const parent = dirname(current);
@@ -159,6 +163,26 @@ export function findCliPackageRoot(startDirectory: string): string {
     }
     current = parent;
   }
+}
+
+function parsePackageJsonObject(packageJsonPath: string): Record<string, unknown> {
+  const raw = readFileSync(packageJsonPath, 'utf8');
+  let packageJson: unknown;
+  try {
+    packageJson = JSON.parse(raw);
+  } catch (error) {
+    throw new GameboardCliError(
+      `Failed to parse package.json at ${packageJsonPath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+  if (typeof packageJson !== 'object' || packageJson === null || Array.isArray(packageJson)) {
+    throw new GameboardCliError(
+      `Malformed package.json at ${packageJsonPath}: expected a JSON object`
+    );
+  }
+  return packageJson as Record<string, unknown>;
 }
 
 export function coveragePathStatuses(

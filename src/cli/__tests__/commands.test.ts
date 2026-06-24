@@ -13,12 +13,21 @@
  * @module
  */
 
-import { existsSync, readFileSync, rmSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { GameboardCliError } from '../../errors';
 import type { ParsedArgs } from '../_shared';
 import { run as runAnalyze } from '../commands/analyze';
-import { run as runCoverageCmd } from '../commands/coverage';
+import { findCliPackageRoot, run as runCoverageCmd } from '../commands/coverage';
 import { run as runDoctor } from '../commands/doctor';
 import { run as runGuideApis } from '../commands/guide-apis';
 import { run as runGuideAssets } from '../commands/guide-assets';
@@ -81,6 +90,21 @@ describe('CLI doctor subcommand (PRD E0h)', () => {
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const referenceFreeRoot = join(repoRoot, 'references/KayKit_Medieval_Hexagon_Pack_1.0_FREE');
 const HAS_FREE_REFERENCES = existsSync(referenceFreeRoot);
+
+function createPackageSearchRoot(packageSearchRoots: string[]): string {
+  const root = mkdtempSync(join(tmpdir(), 'hex-worlds-coverage-'));
+  packageSearchRoots.push(root);
+  return root;
+}
+
+function captureError(action: () => unknown): unknown {
+  try {
+    action();
+  } catch (error) {
+    return error;
+  }
+  throw new Error('Expected action to throw');
+}
 
 describe.skipIf(!HAS_FREE_REFERENCES)('CLI validate subcommand (PRD E0h)', () => {
   let logs: string[];
@@ -161,6 +185,7 @@ describe.skipIf(!HAS_FREE_REFERENCES)('CLI analyze subcommand (PRD E0h)', () => 
 describe('CLI coverage subcommand (PRD E0h)', () => {
   let logs: string[];
   let logSpy: ReturnType<typeof vi.spyOn>;
+  const packageSearchRoots: string[] = [];
 
   beforeEach(() => {
     logs = [];
@@ -171,6 +196,9 @@ describe('CLI coverage subcommand (PRD E0h)', () => {
 
   afterEach(() => {
     logSpy.mockRestore();
+    for (const root of packageSearchRoots.splice(0)) {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it('emits coverage JSON when --json is supplied', async () => {
@@ -186,6 +214,48 @@ describe('CLI coverage subcommand (PRD E0h)', () => {
     const joined = logs.join('\n');
     expect(joined).toContain('schemaVersion');
     expect(joined).toContain('"status"');
+  });
+
+  it('finds the package root through valid non-matching package.json ancestors', () => {
+    const root = createPackageSearchRoot(packageSearchRoots);
+    writeFileSync(
+      join(root, 'package.json'),
+      `${JSON.stringify({ name: 'declarative-hex-worlds' })}\n`
+    );
+    const nested = join(root, 'examples/nested/leaf');
+    mkdirSync(nested, { recursive: true });
+    writeFileSync(
+      join(root, 'examples/package.json'),
+      `${JSON.stringify({ name: 'fixture-package' })}\n`
+    );
+
+    expect(findCliPackageRoot(nested)).toBe(root);
+  });
+
+  it('throws GameboardCliError for malformed package.json syntax during root search', () => {
+    const root = createPackageSearchRoot(packageSearchRoots);
+    const packageJsonPath = join(root, 'package.json');
+    writeFileSync(packageJsonPath, '{not valid json\n');
+
+    const error = captureError(() => findCliPackageRoot(root));
+
+    expect(error).toBeInstanceOf(GameboardCliError);
+    expect(error).toMatchObject({
+      message: expect.stringContaining(`Failed to parse package.json at ${packageJsonPath}`),
+    });
+  });
+
+  it('throws GameboardCliError for non-object package.json payloads during root search', () => {
+    const root = createPackageSearchRoot(packageSearchRoots);
+    const packageJsonPath = join(root, 'package.json');
+    writeFileSync(packageJsonPath, '[]\n');
+
+    const error = captureError(() => findCliPackageRoot(root));
+
+    expect(error).toBeInstanceOf(GameboardCliError);
+    expect(error).toMatchObject({
+      message: `Malformed package.json at ${packageJsonPath}: expected a JSON object`,
+    });
   });
 });
 
