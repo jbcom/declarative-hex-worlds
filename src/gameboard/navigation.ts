@@ -27,8 +27,8 @@ import type {
   GameboardPlan,
   GameboardTerrain,
   GameboardTileSpec,
-} from './gameboard';
-import { gameboardPlanIndex } from './gameboard';
+} from './plan';
+import { gameboardPlanIndex } from './plan';
 import { gameboardPlacementBlocksOccupancy, gameboardPlacementFootprintKeys } from './occupancy';
 
 /**

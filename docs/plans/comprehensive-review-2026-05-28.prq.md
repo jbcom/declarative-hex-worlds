@@ -58,7 +58,7 @@ The dominant themes:
 
 ## P3 — Backlog
 
-- [ ] **CR-P3-1** Architecture decomposition: script.ts/gameboard.ts/systems.ts/catalog.ts
+- [ ] **CR-P3-1** Architecture decomposition: script.ts/gameboard.ts/systems.ts/catalog.ts; simulation script contracts split to `src/simulation/script-types.ts` + `src/simulation/script-validators.ts`; gameboard plan contracts split to `src/gameboard/plan.ts`
 - [ ] **CR-P3-2** noRestrictedImports enforcement gaps + .js suffix variants
 - [ ] **CR-P3-3** interop/coverage.ts cohesion documentation
 - [ ] **CR-P3-4** Branded types migration tracking
