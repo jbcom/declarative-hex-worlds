@@ -59,14 +59,14 @@ The dominant themes:
 ## P3 — Backlog
 
 - [ ] **CR-P3-1** Architecture decomposition: script.ts/gameboard.ts/systems.ts/catalog.ts; simulation script contracts split to `src/simulation/script-types.ts` + `src/simulation/script-validators.ts`; gameboard plan contracts split to `src/gameboard/plan.ts`; systems event contracts split to `src/systems/events.ts`
-- [ ] **CR-P3-2** noRestrictedImports enforcement gaps + .js suffix variants
+- [x] **CR-P3-2** noRestrictedImports enforcement gaps + .js suffix variants
 - [x] **CR-P3-3** interop/coverage.ts cohesion documentation
 - [x] **CR-P3-4** Branded types migration tracking
 - [x] **CR-P3-5** useStableOptions JSON.stringify empty fast-path
 - [x] **CR-P3-6** Nightly bench workflow with artifact upload
 - [x] **CR-P3-7** Inline docs: A*, patrol state machine, script.ts section map, docs/ canonical pointer
 - [x] **CR-P3-8** CI_GITHUB_TOKEN → repo-scoped GitHub App
-- [ ] **CR-P3-9** interop/internal barrel direct import fix
+- [x] **CR-P3-9** interop/internal barrel direct import fix
 - [ ] **CR-P3-10** advancePatrolEntity state-machine refactor
 - [ ] **CR-P3-11** hashFile missing 'close' event
 - [ ] **CR-P3-12** simulation/simulation.ts double-shim collapse
