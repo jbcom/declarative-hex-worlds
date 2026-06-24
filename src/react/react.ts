@@ -569,7 +569,12 @@ function isPlainEmptyOptions(options: unknown): options is Record<string, never>
   if (Object.getPrototypeOf(options) !== Object.prototype) {
     return false;
   }
-  return Object.keys(options).length === 0 && !Object.hasOwn(options, 'toJSON');
+  for (const key in options) {
+    if (Object.hasOwn(options, key)) {
+      return false;
+    }
+  }
+  return !('toJSON' in options);
 }
 
 function useStableOptions<T>(options: T): T {
