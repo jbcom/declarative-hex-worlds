@@ -14,9 +14,11 @@ import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 const workspaceRoot = resolve(import.meta.dirname, '..', '..');
+const GITHUB_RUN_ID_EXPRESSION = '$' + '{{ github.run_id }}';
 
 const files = {
   automerge: '.github/workflows/automerge.yml',
+  benchmarks: '.github/workflows/benchmarks.yml',
   cd: '.github/workflows/cd.yml',
   ci: '.github/workflows/ci.yml',
   dependabot: '.github/dependabot.yml',
@@ -121,6 +123,31 @@ describe('workflow contract', () => {
     });
   });
 
+  describe('benchmark workflow shape', () => {
+    let source = '';
+
+    beforeAll(() => {
+      source = read(files.benchmarks);
+    });
+
+    it.each([
+      ["NODE_VERSION: '22'"],
+      ['schedule:'],
+      ["cron: '0 5 * * *'"],
+      ['workflow_dispatch:'],
+      ['branches: [main]'],
+      ['pnpm/action-setup'],
+      ['pnpm install --frozen-lockfile'],
+      ['pnpm build'],
+      ['pnpm bench'],
+      ['actions/upload-artifact'],
+      [`benchmark-results-${GITHUB_RUN_ID_EXPRESSION}`],
+      ['retention-days: 30'],
+    ])('includes %s', (snippet) => {
+      expect(source).toContain(snippet);
+    });
+  });
+
   describe('CD workflow shape', () => {
     it.each([
       ["NODE_VERSION: '22'"],
@@ -177,7 +204,7 @@ describe('workflow contract', () => {
   });
 
   describe('every `uses:` reference pins a full commit SHA', () => {
-    for (const workflow of ['ci', 'cd', 'release', 'automerge'] as const) {
+    for (const workflow of ['ci', 'cd', 'release', 'automerge', 'benchmarks'] as const) {
       it(`${workflow} has no unpinned action references`, () => {
         const source = read(files[workflow]);
         const lines = source.split(/\r?\n/);

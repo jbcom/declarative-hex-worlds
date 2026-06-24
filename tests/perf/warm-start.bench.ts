@@ -7,8 +7,8 @@
  * can watch the trend, and so future B/C/D-series perf work has a ledger to
  * cite when claiming a win.
  *
- * Run with `pnpm bench` (does NOT block CI). Add a CI workflow later that
- * tracks the trend across commits.
+ * Run with `pnpm bench` (does NOT block CI). The benchmarks workflow uploads
+ * trend artifacts on main pushes, nightly schedules, and manual dispatches.
  */
 
 import { bench, describe } from 'vitest';
