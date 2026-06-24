@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.0.1](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.0.0...declarative-hex-worlds@1.0.1) (2026-06-24)
+
+
+### Bug Fixes
+
+* CR-P0 critical blockers — peer deps, release pin, readJson safety, coverage CI ([#62](https://github.com/jbcom/declarative-hex-worlds/issues/62)) ([038d850](https://github.com/jbcom/declarative-hex-worlds/commit/038d8501476b20fbe1ba92ea7986d162b0f08c46))
+* hash bootstrap files through pipeline ([#95](https://github.com/jbcom/declarative-hex-worlds/issues/95)) ([2d52fc5](https://github.com/jbcom/declarative-hex-worlds/commit/2d52fc51f61ef250ca58c8c7718768f00ec94eeb))
+* **security,ci:** CR-P0-4 bootstrap security tests + CR-P1-3/7/8/9/10 hardening batch ([#64](https://github.com/jbcom/declarative-hex-worlds/issues/64)) ([dcfba17](https://github.com/jbcom/declarative-hex-worlds/commit/dcfba17e1475a53cb054fb218e6a2bd7c42035bd))
+
+
+### Performance
+
+* **gameboard/systems:** eliminate query spreads + Map default-arg allocations (CR-P2-2, CR-P2-3) ([#69](https://github.com/jbcom/declarative-hex-worlds/issues/69)) ([c416c09](https://github.com/jbcom/declarative-hex-worlds/commit/c416c09444051e9cba9946c470729a6e0cf17332))
+* **koota+catalog:** O(1) entity lookup + isKnownExtraAssetId set (CR-P1-4, CR-P1-5) ([#67](https://github.com/jbcom/declarative-hex-worlds/issues/67)) ([7a6c2a5](https://github.com/jbcom/declarative-hex-worlds/commit/7a6c2a5f70b832d00209a2487be7dc0f2b56c7d8))
+* **pathfinding:** O(log N) binary min-heap A* + Dijkstra (CR-P1-1) ([#65](https://github.com/jbcom/declarative-hex-worlds/issues/65)) ([f12210c](https://github.com/jbcom/declarative-hex-worlds/commit/f12210ce590c68c8254913f66f1634c49fe5505e))
+* **react:** fast path empty selector options ([#86](https://github.com/jbcom/declarative-hex-worlds/issues/86)) ([1ffcb76](https://github.com/jbcom/declarative-hex-worlds/commit/1ffcb76467f3060a8b4e155c0f498371e7f3773a))
+
+
+### Refactoring
+
+* **cli:** decompose _shared.ts into per-command files (CR-P2-1) ([#68](https://github.com/jbcom/declarative-hex-worlds/issues/68)) ([86444aa](https://github.com/jbcom/declarative-hex-worlds/commit/86444aa3bd4add14303c03a7439c59893c07ecdd))
+* **gameboard:** split plan contracts ([#99](https://github.com/jbcom/declarative-hex-worlds/issues/99)) ([65b735c](https://github.com/jbcom/declarative-hex-worlds/commit/65b735cfeceff64a9ed3970ffed6aa1ba2fb9978))
+* **guides:** invert simple-rpg guide production→test import (CR-P1-2) ([#66](https://github.com/jbcom/declarative-hex-worlds/issues/66)) ([1340074](https://github.com/jbcom/declarative-hex-worlds/commit/134007451d2e15182b3ef538d76ae414c2ab9c5c))
+* expose screenshot artifacts via interop barrel ([#93](https://github.com/jbcom/declarative-hex-worlds/issues/93)) ([bd4d484](https://github.com/jbcom/declarative-hex-worlds/commit/bd4d484c8c2c32c93278afc7a9f133204ff4fa3b))
+* split patrol advance state machine ([#94](https://github.com/jbcom/declarative-hex-worlds/issues/94)) ([2634fe4](https://github.com/jbcom/declarative-hex-worlds/commit/2634fe44defd69c36e954f0937c948426e3719a2))
+* collapse simulation barrel shim ([#96](https://github.com/jbcom/declarative-hex-worlds/issues/96)) ([339d0d6](https://github.com/jbcom/declarative-hex-worlds/commit/339d0d614e7d0f80d2792f7adc950e072ca8cd8))
+* **koota:** require explicit extra asset flags ([#83](https://github.com/jbcom/declarative-hex-worlds/issues/83)) ([e98c14e](https://github.com/jbcom/declarative-hex-worlds/commit/e98c14ec520bee910a13403cd319c8faaa6a5f0e))
+* **simulation:** split script types and validators ([#85](https://github.com/jbcom/declarative-hex-worlds/issues/85)) ([7d93e17](https://github.com/jbcom/declarative-hex-worlds/commit/7d93e1786c0d05c391995d566d84aeeb3ebb0092))
+* **systems:** split event snapshots ([#100](https://github.com/jbcom/declarative-hex-worlds/issues/100)) ([2c48ba6](https://github.com/jbcom/declarative-hex-worlds/commit/2c48ba673486a70e282578a351f4b6c34f4b1525))
+
 ## 1.0.0 (2026-05-28)
 
 ### Package rename
