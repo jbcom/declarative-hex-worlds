@@ -653,7 +653,7 @@ if (
   subpathRuleErrors.length !== 0 ||
   typeof canStackAt(subpathWorld, '0,0', 0) !== 'boolean' ||
   !subpathPlacementUrl?.startsWith('https://example.test/pkg/') ||
-  !subpathPlacementUrl.endsWith('.gltf') ||
+  !subpathPlacementUrl?.endsWith('.gltf') ||
   subpathTransform.position.x !== KAYKIT_HEX_WIDTH
 ) {
   throw new Error('packed public subpath imports failed');
