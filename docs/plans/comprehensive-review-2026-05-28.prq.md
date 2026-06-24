@@ -67,7 +67,7 @@ The dominant themes:
 - [x] **CR-P3-7** Inline docs: A*, patrol state machine, script.ts section map, docs/ canonical pointer
 - [x] **CR-P3-8** CI_GITHUB_TOKEN → repo-scoped GitHub App
 - [x] **CR-P3-9** interop/internal barrel direct import fix
-- [ ] **CR-P3-10** advancePatrolEntity state-machine refactor
+- [x] **CR-P3-10** advancePatrolEntity state-machine refactor
 - [ ] **CR-P3-11** hashFile missing 'close' event
 - [ ] **CR-P3-12** simulation/simulation.ts double-shim collapse
 
