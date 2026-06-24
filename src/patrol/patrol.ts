@@ -449,12 +449,12 @@ function requestPatrolMovementTransition(
     setGameboardMovementAgent(world, entity, movementOptions);
   }
   const movement = requestGameboardMovement(world, entity, targetKey, movementOptions);
-  const targetingAgent = setPatrolAgent(entity, { ...agent, targetWaypointIndex: targetIndex });
   const requestBlocked = movement.state.status === 'blocked' || movement.state.status === 'out-of-range';
-  const nextAgent =
-    requestBlocked && (options.deactivateOnBlocked ?? true)
-      ? setPatrolAgent(entity, { ...targetingAgent, active: false })
-      : targetingAgent;
+  const nextAgent = setPatrolAgent(entity, {
+    ...agent,
+    targetWaypointIndex: targetIndex,
+    active: requestBlocked && (options.deactivateOnBlocked ?? true) ? false : agent.active,
+  });
   return {
     agent: nextAgent,
     state: setPatrolState(entity, {
