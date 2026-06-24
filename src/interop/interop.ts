@@ -44,14 +44,16 @@ import {
   type GameboardSpawnGroupRoute,
 } from '../gameboard';
 import type {
-  GameboardScenarioSimulationActorTargetsRecord,
   GameboardScenarioSimulationCommandRecord,
   GameboardScenarioSimulationMovementRecord,
-  GameboardScenarioSimulationMutationRecord,
   GameboardScenarioSimulationPatrolRecord,
   GameboardScenarioSimulationReport,
   GameboardScenarioSimulationStepReport,
-} from '../simulation';
+} from '../simulation/report';
+import type {
+  GameboardScenarioSimulationActorTargetsRecord,
+  GameboardScenarioSimulationMutationRecord,
+} from '../simulation/script-types';
 import type { HexCoordinates, HexEdgeIndex, WorldPosition } from '../types';
 
 /**

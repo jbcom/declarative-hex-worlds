@@ -200,7 +200,7 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 - [x] **CR-P3-9** — ✅ `GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS` now re-exports through `src/interop/coverage.ts` and the `src/interop/index.ts` barrel. The CLI coverage command imports it from `../../interop` instead of `../../interop/internal`, coverage tests pin the barrel path, and the public API snapshot records the intentional release-tooling export. [L-1/Sec, AR-2]
 - [x] **CR-P3-10** — ✅ `advancePatrolEntity` split into explicit transition helpers for inactive, invalid-route, existing-movement, idle/wait/completed, and request-next-segment branches. Trait writes stay in the same behavior points, but the monolithic early-return ladder and mutable `nextAgent` flow are replaced with `PatrolAdvanceTransition` objects. Patrol edge tests, simulation patrol tests, lint, typecheck, and full verify pass locally. [CQ-7]
 - [x] **CR-P3-11** — ✅ `hashFile` now hashes through `stream/promises.pipeline` into a hashing `Writable`, so verification waits for stream cleanup instead of resolving on the read stream `end` event. Bootstrap core tests, lint, typecheck, and full verify pass locally. [CQ-9]
-- [ ] **CR-P3-12** — `simulation/simulation.ts` dead double-shim: collapse into `index.ts`. [AR-3]
+- [x] **CR-P3-12** — ✅ Removed the dead `src/simulation/simulation.ts` double-shim and moved the public simulation barrel directly into `src/simulation/index.ts`. Source docs now point at `src/simulation/index.ts`; focused simulation/public API tests, lint, typecheck, and full verify pass locally. [AR-3]
 
 ## Self-assessment after each commit
 
