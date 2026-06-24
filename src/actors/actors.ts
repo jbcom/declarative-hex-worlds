@@ -46,11 +46,11 @@ import { projectWorldToGameboardPlan } from '../coordinates';
 import type { HexCoordinates } from '../types';
 
 // `GameboardActorKind`, `GameboardActorMetadataValue`, the `GameboardActor`
-// trait, and the IsX actor markers all live in `../traits/actors` so trait
+// trait, and the IsX actor markers all live in `src/traits` so trait
 // declarations stay free of sibling-sub-package runtime dependencies. The
 // re-exports below preserve the historical public surface.
-export type { GameboardActorKind, GameboardActorMetadataValue } from '../traits/actors';
-import type { GameboardActorKind, GameboardActorMetadataValue } from '../traits/actors';
+export type { GameboardActorKind, GameboardActorMetadataValue } from '../traits';
+import type { GameboardActorKind, GameboardActorMetadataValue } from '../traits';
 
 /**
  * Options for attaching gameplay actor state to an existing placement.
@@ -605,7 +605,7 @@ export interface GameboardInteractionCommand {
   reason?: string;
 }
 
-// Trait declarations live in `../traits/actors`; re-export verbatim.
+// Trait declarations live in `src/traits`; re-export verbatim.
 export {
   GameboardActor,
   IsBlockingActor,
@@ -616,7 +616,7 @@ export {
   IsNpcActor,
   IsPlayerActor,
   IsPropActor,
-} from '../traits/actors';
+} from '../traits';
 import {
   GameboardActor,
   IsBlockingActor,
@@ -627,7 +627,7 @@ import {
   IsNpcActor,
   IsPlayerActor,
   IsPropActor,
-} from '../traits/actors';
+} from '../traits';
 
 /** Query for every gameplay actor placement. */
 export const GameboardActorQuery = createQuery(

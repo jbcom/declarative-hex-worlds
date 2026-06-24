@@ -31,9 +31,9 @@ import type { GameboardPatrolRoutePlan } from '../gameboard';
 /**
  * Runtime patrol status for a patrol agent.
  *
- * Lives in `../traits/patrol`; re-exported here for backward compatibility.
+ * Lives in `src/traits`; re-exported here for backward compatibility.
  */
-export type { GameboardPatrolStatus } from '../traits/patrol';
+export type { GameboardPatrolStatus } from '../traits';
 
 /**
  * Lightweight patrol route input accepted by patrol agents.
@@ -109,9 +109,9 @@ export interface GameboardPatrolAdvanceResult extends GameboardPatrolSnapshot {
   advanced: boolean;
 }
 
-// Trait declarations live in `../traits/patrol`; re-export here.
-export { GameboardPatrolAgent, GameboardPatrolState, IsGameboardPatrolAgent } from '../traits/patrol';
-import { GameboardPatrolAgent, GameboardPatrolState, IsGameboardPatrolAgent } from '../traits/patrol';
+// Trait declarations live in `src/traits`; re-export here.
+export { GameboardPatrolAgent, GameboardPatrolState, IsGameboardPatrolAgent } from '../traits';
+import { GameboardPatrolAgent, GameboardPatrolState, IsGameboardPatrolAgent } from '../traits';
 
 /** Query for every patrol agent placement. */
 export const GameboardPatrolAgentQuery = createQuery(

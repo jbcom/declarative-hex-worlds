@@ -24,22 +24,22 @@ import type { HexCoordinates } from '../types';
 /**
  * Schema version written to quest trait state.
  *
- * Lives in `../traits/quests`; re-exported here for backward compatibility.
+ * Lives in `src/traits`; re-exported here for backward compatibility.
  */
 export {
   GAMEBOARD_QUEST_SCHEMA_VERSION,
-} from '../traits/quests';
+} from '../traits';
 export type {
   GameboardQuestCollisionExpectation,
   GameboardQuestMetadataValue,
   GameboardQuestObjectiveStatus,
   GameboardQuestStatus,
-} from '../traits/quests';
-import { GAMEBOARD_QUEST_SCHEMA_VERSION } from '../traits/quests';
+} from '../traits';
+import { GAMEBOARD_QUEST_SCHEMA_VERSION } from '../traits';
 import type {
   GameboardQuestMetadataValue,
   GameboardQuestStatus,
-} from '../traits/quests';
+} from '../traits';
 
 /**
  * Serializable quest definition.
@@ -55,7 +55,7 @@ export interface GameboardQuestDefinition {
   metadata?: Readonly<Record<string, GameboardQuestMetadataValue>>;
 }
 
-// Objective + progress shapes live in `../traits/quests`; re-export so the
+// Objective + progress shapes live in `src/traits`; re-export so the
 // historical surface still works.
 export type {
   CollisionQuestObjective,
@@ -66,7 +66,7 @@ export type {
   InteractActorQuestObjective,
   ReachActorQuestObjective,
   ReachTileQuestObjective,
-} from '../traits/quests';
+} from '../traits';
 import type {
   CollisionQuestObjective,
   DefeatActorQuestObjective,
@@ -76,7 +76,7 @@ import type {
   InteractActorQuestObjective,
   ReachActorQuestObjective,
   ReachTileQuestObjective,
-} from '../traits/quests';
+} from '../traits';
 
 /**
  * Joined quest entity and quest trait state.
@@ -122,21 +122,21 @@ export interface GameboardQuestObjectiveEvaluation {
   collision?: GameboardActorCollisionReport;
 }
 
-// Trait declarations live in `../traits/quests`; re-export here.
+// Trait declarations live in `src/traits`; re-export here.
 export {
   GameboardQuest,
   IsActiveGameboardQuest,
   IsBlockedGameboardQuest,
   IsCompletedGameboardQuest,
   IsGameboardQuest,
-} from '../traits/quests';
+} from '../traits';
 import {
   GameboardQuest,
   IsActiveGameboardQuest,
   IsBlockedGameboardQuest,
   IsCompletedGameboardQuest,
   IsGameboardQuest,
-} from '../traits/quests';
+} from '../traits';
 
 /** Query for all quest entities. */
 export const GameboardQuestQuery = createQuery(IsGameboardQuest, GameboardQuest);

@@ -31,18 +31,18 @@ import {
 } from '../gameboard';
 import type { HexCoordinates } from '../types';
 
-// Movement profile types live in `../traits/movement` so the trait
+// Movement profile types live in `src/traits` so the trait
 // declarations they support evaluate without sibling-package runtime
 // dependencies. Re-exported here for backward compatibility.
 export type {
   BuiltInGameboardMovementProfileId,
   GameboardMovementProfileId,
   GameboardMovementStatus,
-} from '../traits/movement';
+} from '../traits';
 import type {
   GameboardMovementProfileId,
   GameboardMovementStatus,
-} from '../traits/movement';
+} from '../traits';
 
 /**
  * Movement profile combining a movement budget with a navigation profile.
@@ -203,11 +203,11 @@ export const GAMEBOARD_MOVEMENT_PROFILES: GameboardMovementProfileRegistry = {
   },
 } as const;
 
-// Trait declarations + supporting types live in `../traits/movement` for
+// Trait declarations + supporting types live in `src/traits` for
 // runtime-cycle safety. Re-export here so callers that historically reached
 // for `MovementAgent` etc. via `'../movement'` keep working.
-export { IsMoving, MovementAgent, MovementPathState } from '../traits/movement';
-import { IsMoving, MovementAgent, MovementPathState } from '../traits/movement';
+export { IsMoving, MovementAgent, MovementPathState } from '../traits';
+import { IsMoving, MovementAgent, MovementPathState } from '../traits';
 
 /** Query for placements with movement agents. */
 export const MovementAgentQuery = createQuery(IsGameboardPlacement, PlacementState, MovementAgent);
