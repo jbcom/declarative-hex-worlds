@@ -5,8 +5,11 @@
  * This file is a thin re-export shim. The implementation lives in the
  * per-concern sibling modules:
  *
- * - `./script` — script + step types, schema constants, authored-script
- *   validators, and shared scenario-index helpers.
+ * - `./script` — stable public script re-export path.
+ * - `./script-types` — script + step types, schema constants, runtime result
+ *   records, and patrol script planning DTOs.
+ * - `./script-validators` — authored-script validators and shared
+ *   scenario-index helpers.
  * - `./engine` — runtime step dispatch, the `runGameboardScenarioSimulation*`
  *   entry points, and patrol route-to-step helpers.
  * - `./report` — report DTOs, result/record shapes, and the
