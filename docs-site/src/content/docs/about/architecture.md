@@ -37,6 +37,15 @@ The library is one published npm package (`declarative-hex-worlds`) that interna
 | `cli/` | The `declarative-hex-worlds` Node binary | `/cli` |
 | `errors/` | 7-class taxonomy: `GameboardError` + 6 subclasses | `/errors` |
 
+## Interop and release coverage
+
+`interop/` has two deliberately separate jobs:
+
+- Runtime interop lives in `interop.ts` and `compatibility.ts`. These modules normalize live ECS state into neutral snapshots and adapt external assets so games can inspect, serialize, and bridge runtime data.
+- Release-readiness interop lives in `coverage.ts`. It aggregates guide-page coverage, manifest compatibility, required screenshot artifacts, local reference-pack status, and package/CI gate results into the `/coverage` maintainer-facing report.
+
+Keeping release coverage beside runtime interop is intentional: the release ledger exists to prove that the public interop promises are backed by docs, assets, visuals, and package checks. Runtime consumers should reach for `/interop` or `/compatibility`; maintainers and CI use `/coverage` to audit release evidence.
+
 ## ECS layering
 
 The runtime is built on [koota](https://koota.dev). koota's discipline:
