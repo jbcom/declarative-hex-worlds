@@ -65,7 +65,7 @@ The dominant themes:
 - [x] **CR-P3-5** useStableOptions JSON.stringify empty fast-path
 - [x] **CR-P3-6** Nightly bench workflow with artifact upload
 - [x] **CR-P3-7** Inline docs: A*, patrol state machine, script.ts section map, docs/ canonical pointer
-- [ ] **CR-P3-8** CI_GITHUB_TOKEN → repo-scoped GitHub App
+- [x] **CR-P3-8** CI_GITHUB_TOKEN → repo-scoped GitHub App
 - [ ] **CR-P3-9** interop/internal barrel direct import fix
 - [ ] **CR-P3-10** advancePatrolEntity state-machine refactor
 - [ ] **CR-P3-11** hashFile missing 'close' event

@@ -21,16 +21,22 @@ jobs:
     if: "!contains(github.event.head_commit.message || '', '[skip actions]')"
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
-      # Uses CI_GITHUB_TOKEN — an org-level secret available across @jbcom
-      # repos. The GitHub App alternative (short-lived 1h scoped token) was
-      # considered (PRD A5) but rejected: provisioning the App per-repo is
-      # operational toil; the org PAT is already in place + works.
+      - name: Create release-please GitHub App token
+        id: release-please-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_PLEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          token: ${{ secrets.CI_GITHUB_TOKEN }}
+          token: ${{ steps.release-please-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
