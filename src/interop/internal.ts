@@ -1,10 +1,10 @@
 /**
  * Interop-domain internal release/CI metadata.
  *
- * NOT public API — release-gate + visual-artifact tables consumed by the
- * coverage report builder and the CLI's `coverage`/`doctor` surfaces. Lives here
- * (not in `./coverage`) so the `../interop` barrel re-exports only the public
- * coverage surface; in-package callers import this sibling directly.
+ * Release-gate + visual-artifact tables consumed by the coverage report builder
+ * and the CLI's `coverage`/`doctor` surfaces. This file remains the
+ * implementation home; coverage-owned constants that are part of the CLI/report
+ * contract are re-exported from `./coverage` and the `../interop` barrel.
  *
  * @module
  * @internal

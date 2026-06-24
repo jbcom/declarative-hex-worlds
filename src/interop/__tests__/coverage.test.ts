@@ -19,7 +19,7 @@ import {
   type GameboardCoverageSimpleRpgEvidence,
   type GameboardCoverageSimpleRpgEvidenceMode,
 } from '../../interop/coverage';
-import { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS } from '../../interop/internal';
+import { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS } from '../../interop';
 
 describe('release-readiness coverage', () => {
   it('summarizes every guide page, public API, visual artifact, and manifest boundary', () => {

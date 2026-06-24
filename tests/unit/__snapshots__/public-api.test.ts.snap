@@ -139,6 +139,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
     "name": "GAMEBOARD_RELEASE_GATE_COMMANDS",
   },
   {
+    "kind": "object",
+    "name": "GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS",
+  },
+  {
     "kind": "string",
     "name": "GAMEBOARD_SCENARIO_SCHEMA_VERSION",
   },
