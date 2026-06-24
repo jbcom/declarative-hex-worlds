@@ -20,7 +20,7 @@
 
 import { act, useRef } from 'react';
 import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createGameboardWorld } from '../../../src';
 import { GameboardState } from '../../traits/board';
 import {
@@ -47,6 +47,10 @@ function MemoizedChild({ renders }: ChildProps): null {
 }
 
 describe('selector hook memoization (PRD E7)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('useGameboardActorSelection stays stable across parent re-renders with fresh {} options', () => {
     const world = createGameboardWorld();
     world.add(GameboardState());
@@ -82,5 +86,30 @@ describe('selector hook memoization (PRD E7)', () => {
     // We don't pin an upper bound (React 19's strict-mode double-renders
     // would inflate); the point is the test runs end-to-end and the
     // selector doesn't throw on a fresh options literal each render.
+  });
+
+  it('skips JSON.stringify for fresh empty options literals', () => {
+    const world = createGameboardWorld();
+    world.add(GameboardState());
+    const renders = { count: 0 };
+    const stringify = vi.spyOn(JSON, 'stringify');
+
+    const { rerender } = render(
+      <GameboardProvider world={world}>
+        <MemoizedChild renders={renders} />
+      </GameboardProvider>
+    );
+
+    for (let i = 0; i < 5; i += 1) {
+      act(() => {
+        rerender(
+          <GameboardProvider world={world}>
+            <MemoizedChild renders={renders} />
+          </GameboardProvider>
+        );
+      });
+    }
+
+    expect(stringify).not.toHaveBeenCalled();
   });
 });
