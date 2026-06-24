@@ -11,7 +11,7 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 
 1. Contributor lands a PR on `main` with a Conventional Commits message (`feat:`, `fix:`, `chore:`, etc.).
 2. `.github/workflows/cd.yml`'s `release-please` job opens (or updates) a release PR that bumps the version + writes the changelog entry.
-3. Maintainer merges the release PR.
+3. Maintainer reviews the computed version and changelog, waits for required checks, then merges the release PR.
 4. release-please tags the commit + creates a GitHub Release.
 5. `.github/workflows/release.yml` fires on the release-published event and:
    - Builds the package.
@@ -20,6 +20,8 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
    - Generates a CycloneDX SBOM.
    - Attaches both as GitHub release assets.
    - Publishes to npm with OIDC provenance.
+
+Release PRs are intentionally not auto-approved or auto-merged. `.github/workflows/automerge.yml` only enables same-repository Dependabot PRs to merge after branch-protection checks pass; release-please PRs remain the human checkpoint for the version and changelog.
 
 ## release-please auth (PRD A5)
 
