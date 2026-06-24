@@ -68,7 +68,7 @@ The dominant themes:
 - [x] **CR-P3-8** CI_GITHUB_TOKEN → repo-scoped GitHub App
 - [x] **CR-P3-9** interop/internal barrel direct import fix
 - [x] **CR-P3-10** advancePatrolEntity state-machine refactor
-- [ ] **CR-P3-11** hashFile missing 'close' event
+- [x] **CR-P3-11** hashFile missing 'close' event
 - [ ] **CR-P3-12** simulation/simulation.ts double-shim collapse
 
 ## Acceptance Criteria

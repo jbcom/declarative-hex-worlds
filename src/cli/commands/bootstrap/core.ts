@@ -566,13 +566,9 @@ function copyAndHash(source: string, target: string): { sha256: string; size: nu
 }
 
 async function hashFile(path: string): Promise<string> {
-  return new Promise<string>((resolveHash, reject) => {
-    const stream = createReadStream(path);
-    const hash = createHash('sha256');
-    stream.on('error', reject);
-    stream.on('data', (chunk) => hash.update(chunk));
-    stream.on('end', () => resolveHash(hash.digest('hex')));
-  });
+  const hash = createHash('sha256');
+  await pipeline(createReadStream(path), hash);
+  return hash.digest('hex');
 }
 
 const SIDECAR_MAX_BYTES = 4 * 1024 * 1024; // 4 MB ceiling — a legitimate sidecar is <100 KB
