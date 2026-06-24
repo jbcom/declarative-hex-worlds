@@ -422,11 +422,21 @@ function subscribeGameboardRevisionDomain(
         ...subscribeGameboardRevisionInput(world, GameboardPatrolAgent, update),
         ...subscribeGameboardRevisionInput(world, GameboardPatrolState, update),
       ];
+    default:
+      return [];
   }
 }
 
 function useGameboardDerivedRevision(domains: GameboardDerivedRevisionDomains): number {
   const world = useWorld();
+  const domainsKey = domains.join('|');
+  const stableDomainsRef = useRef<
+    { key: string; value: GameboardDerivedRevisionDomains } | undefined
+  >(undefined);
+  if (stableDomainsRef.current?.key !== domainsKey) {
+    stableDomainsRef.current = { key: domainsKey, value: [...domains] };
+  }
+  const stableDomains = stableDomainsRef.current.value;
   const [revision, bumpRevision] = useReducer(
     (value: number) => (value + 1) % Number.MAX_SAFE_INTEGER,
     0
@@ -447,7 +457,7 @@ function useGameboardDerivedRevision(domains: GameboardDerivedRevisionDomains): 
         }
       });
     };
-    const unsubscribers = domains.flatMap((domain) =>
+    const unsubscribers = stableDomains.flatMap((domain) =>
       subscribeGameboardRevisionDomain(world, domain, update)
     );
 
@@ -457,7 +467,7 @@ function useGameboardDerivedRevision(domains: GameboardDerivedRevisionDomains): 
         unsubscribe();
       }
     };
-  }, [world, domains]);
+  }, [world, stableDomains]);
 
   return revision;
 }
