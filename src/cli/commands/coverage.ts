@@ -10,6 +10,7 @@ import {
   createDefaultGameboardCoveragePackageChecks,
   createDefaultGameboardCoverageReferences,
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
+  GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS,
   type GameboardCoveragePathStatusInput,
   type GameboardCoverageReport,
   type GameboardCoverageSimpleRpgEvidence,
@@ -18,7 +19,6 @@ import {
   renderGameboardCoverageMarkdown,
   summarizeGameboardCoverage,
 } from '../../interop';
-import { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS } from '../../interop/internal';
 import { listKayKitGuideScenarios, type GameboardScenario } from '../../scenario';
 import type { PackEdition } from '../../types';
 import { type ParsedArgs, readManifest, safeResolveOutput, uniqueStrings } from '../_shared';
