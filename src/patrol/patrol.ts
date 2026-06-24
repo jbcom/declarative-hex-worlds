@@ -127,6 +127,14 @@ export type GameboardPatrolAgentValue = TraitRecord<typeof GameboardPatrolAgent>
 /** Patrol state trait value. */
 export type GameboardPatrolStateValue = TraitRecord<typeof GameboardPatrolState>;
 
+interface PatrolAdvanceTransition {
+  agent?: GameboardPatrolAgentValue;
+  state: GameboardPatrolStateValue;
+  movement?: GameboardMovementRequestResult;
+  requested: boolean;
+  advanced: boolean;
+}
+
 /**
  * Koota action bundle for patrol setup, clearing, advancement, and reads.
  */
@@ -258,110 +266,237 @@ function advancePatrolEntity(
   const previousState = readPatrolState(entity);
   const agent = readPatrolAgent(entity);
 
-  if (!agent.active) {
-    const nextState = setPatrolState(entity, { ...previousState, status: 'paused', reason: undefined });
-    return patrolResult(world, entity, previousState, nextState, false, false);
-  }
+  const transition =
+    inactivePatrolTransition(entity, previousState, agent) ??
+    invalidRoutePatrolTransition(entity, agent) ??
+    activePatrolTransition(world, entity, previousState, agent, options);
 
-  if (agent.waypointKeys.length < 2) {
-    const nextAgent = setPatrolAgent(entity, { ...agent, active: false });
-    const nextState = setPatrolState(entity, {
+  return patrolAdvanceResult(world, entity, previousState, transition);
+}
+
+function inactivePatrolTransition(
+  entity: Entity,
+  previousState: GameboardPatrolStateValue,
+  agent: GameboardPatrolAgentValue
+): PatrolAdvanceTransition | undefined {
+  if (agent.active) {
+    return undefined;
+  }
+  return {
+    state: setPatrolState(entity, { ...previousState, status: 'paused', reason: undefined }),
+    requested: false,
+    advanced: false,
+  };
+}
+
+function invalidRoutePatrolTransition(
+  entity: Entity,
+  agent: GameboardPatrolAgentValue
+): PatrolAdvanceTransition | undefined {
+  if (agent.waypointKeys.length >= 2) {
+    return undefined;
+  }
+  return {
+    agent: setPatrolAgent(entity, { ...agent, active: false }),
+    state: setPatrolState(entity, {
       status: 'blocked',
       targetKey: '',
       reason: `Patrol route ${agent.routeId} requires at least two waypoints`,
       lastPathKeys: [],
-    });
-    return patrolResult(world, entity, previousState, nextState, false, false, undefined, nextAgent);
-  }
+    }),
+    requested: false,
+    advanced: false,
+  };
+}
 
+function activePatrolTransition(
+  world: World,
+  entity: Entity,
+  previousState: GameboardPatrolStateValue,
+  agent: GameboardPatrolAgentValue,
+  options: AdvanceGameboardPatrolOptions
+): PatrolAdvanceTransition {
   const movementState = entity.get(MovementPathState);
   const completedWaypoint = completePatrolWaypointIfNeeded(entity, agent, movementState);
-  let nextAgent = completedWaypoint.agent;
-  const advanced = completedWaypoint.advanced;
+  const movementTransition = existingMovementPatrolTransition(
+    entity,
+    previousState,
+    completedWaypoint.agent,
+    completedWaypoint.advanced,
+    movementState,
+    options
+  );
+  if (movementTransition) {
+    return movementTransition;
+  }
+  const idleTransition = idlePatrolTransition(
+    entity,
+    previousState,
+    completedWaypoint.agent,
+    completedWaypoint.advanced
+  );
+  return (
+    idleTransition ??
+    requestPatrolMovementTransition(
+      world,
+      entity,
+      previousState,
+      completedWaypoint.agent,
+      completedWaypoint.advanced,
+      options
+    )
+  );
+}
 
+function existingMovementPatrolTransition(
+  entity: Entity,
+  previousState: GameboardPatrolStateValue,
+  agent: GameboardPatrolAgentValue,
+  advanced: boolean,
+  movementState: MovementPathStateValue | undefined,
+  options: AdvanceGameboardPatrolOptions
+): PatrolAdvanceTransition | undefined {
   if (isMovementBlocked(movementState)) {
     const deactivateOnBlocked = options.deactivateOnBlocked ?? true;
-    nextAgent = setPatrolAgent(entity, {
-      ...nextAgent,
-      active: deactivateOnBlocked ? false : nextAgent.active,
-    });
-    const nextState = setPatrolState(entity, {
-      status: 'blocked',
-      targetKey: movementState?.destinationKey ?? previousState.targetKey,
-      reason: movementState?.reason ?? 'Patrol movement was blocked',
-      lastPathKeys: movementState?.pathKeys ?? previousState.lastPathKeys,
-    });
-    return patrolResult(world, entity, previousState, nextState, false, advanced, undefined, nextAgent);
+    return {
+      agent: setPatrolAgent(entity, {
+        ...agent,
+        active: deactivateOnBlocked ? false : agent.active,
+      }),
+      state: setPatrolState(entity, {
+        status: 'blocked',
+        targetKey: movementState?.destinationKey ?? previousState.targetKey,
+        reason: movementState?.reason ?? 'Patrol movement was blocked',
+        lastPathKeys: movementState?.pathKeys ?? previousState.lastPathKeys,
+      }),
+      requested: false,
+      advanced,
+    };
   }
-
-  if (movementState?.status === 'ready' || movementState?.status === 'moving') {
-    const nextState = setPatrolState(entity, {
+  if (movementState?.status !== 'ready' && movementState?.status !== 'moving') {
+    return undefined;
+  }
+  return {
+    agent,
+    state: setPatrolState(entity, {
       status: 'moving',
       targetKey: movementState.destinationKey,
       reason: undefined,
       lastPathKeys: movementState.pathKeys,
-    });
-    return patrolResult(world, entity, previousState, nextState, false, advanced, undefined, nextAgent);
-  }
+    }),
+    requested: false,
+    advanced,
+  };
+}
 
-  if (!nextAgent.active) {
-    const nextState = setPatrolState(entity, {
-      status: 'completed',
-      targetKey: '',
-      reason: undefined,
-      lastPathKeys: previousState.lastPathKeys,
-    });
-    return patrolResult(world, entity, previousState, nextState, false, advanced, undefined, nextAgent);
+function idlePatrolTransition(
+  entity: Entity,
+  previousState: GameboardPatrolStateValue,
+  agent: GameboardPatrolAgentValue,
+  advanced: boolean
+): PatrolAdvanceTransition | undefined {
+  if (!agent.active) {
+    return {
+      agent,
+      state: completedPatrolState(entity, previousState),
+      requested: false,
+      advanced,
+    };
   }
-
-  if (nextAgent.waitTicksRemaining > 0) {
-    nextAgent = setPatrolAgent(entity, {
-      ...nextAgent,
-      waitTicksRemaining: nextAgent.waitTicksRemaining - 1,
-    });
-    const nextState = setPatrolState(entity, {
+  if (agent.waitTicksRemaining <= 0) {
+    return undefined;
+  }
+  return {
+    agent: setPatrolAgent(entity, {
+      ...agent,
+      waitTicksRemaining: agent.waitTicksRemaining - 1,
+    }),
+    state: setPatrolState(entity, {
       status: 'waiting',
       targetKey: '',
       reason: undefined,
       lastPathKeys: previousState.lastPathKeys,
-    });
-    return patrolResult(world, entity, previousState, nextState, false, advanced, undefined, nextAgent);
-  }
+    }),
+    requested: false,
+    advanced,
+  };
+}
 
-  const targetIndex = nextPatrolWaypointIndex(nextAgent);
+function requestPatrolMovementTransition(
+  world: World,
+  entity: Entity,
+  previousState: GameboardPatrolStateValue,
+  agent: GameboardPatrolAgentValue,
+  advanced: boolean,
+  options: AdvanceGameboardPatrolOptions
+): PatrolAdvanceTransition {
+  const targetIndex = nextPatrolWaypointIndex(agent);
   if (targetIndex === undefined) {
-    nextAgent = setPatrolAgent(entity, { ...nextAgent, active: false });
-    const nextState = setPatrolState(entity, {
-      status: 'completed',
-      targetKey: '',
-      reason: undefined,
-      lastPathKeys: previousState.lastPathKeys,
-    });
-    return patrolResult(world, entity, previousState, nextState, false, advanced, undefined, nextAgent);
+    return {
+      agent: setPatrolAgent(entity, { ...agent, active: false }),
+      state: completedPatrolState(entity, previousState),
+      requested: false,
+      advanced,
+    };
   }
 
-  const targetKey = nextAgent.waypointKeys[targetIndex];
+  const targetKey = agent.waypointKeys[targetIndex];
   if (targetKey === undefined) {
     throw new GameboardRuntimeError(`Patrol waypoint index ${targetIndex} out of range`);
   }
-  const movementOptions = movementOptionsForPatrol(nextAgent, targetIndex, options);
+  const movementOptions = movementOptionsForPatrol(agent, targetIndex, options);
   if (options.resetMovementBudget ?? true) {
     setGameboardMovementAgent(world, entity, movementOptions);
   }
   const movement = requestGameboardMovement(world, entity, targetKey, movementOptions);
-  nextAgent = setPatrolAgent(entity, { ...nextAgent, targetWaypointIndex: targetIndex });
+  const targetingAgent = setPatrolAgent(entity, { ...agent, targetWaypointIndex: targetIndex });
   const requestBlocked = movement.state.status === 'blocked' || movement.state.status === 'out-of-range';
-  if (requestBlocked && (options.deactivateOnBlocked ?? true)) {
-    nextAgent = setPatrolAgent(entity, { ...nextAgent, active: false });
-  }
-  const nextState = setPatrolState(entity, {
-    status: requestBlocked ? 'blocked' : 'requested',
-    targetKey,
-    reason: movement.state.reason,
-    lastPathKeys: movement.state.pathKeys,
-  });
+  const nextAgent =
+    requestBlocked && (options.deactivateOnBlocked ?? true)
+      ? setPatrolAgent(entity, { ...targetingAgent, active: false })
+      : targetingAgent;
+  return {
+    agent: nextAgent,
+    state: setPatrolState(entity, {
+      status: requestBlocked ? 'blocked' : 'requested',
+      targetKey,
+      reason: movement.state.reason,
+      lastPathKeys: movement.state.pathKeys,
+    }),
+    movement,
+    requested: true,
+    advanced,
+  };
+}
 
-  return patrolResult(world, entity, previousState, nextState, true, advanced, movement, nextAgent);
+function completedPatrolState(
+  entity: Entity,
+  previousState: GameboardPatrolStateValue
+): GameboardPatrolStateValue {
+  return setPatrolState(entity, {
+    status: 'completed',
+    targetKey: '',
+    reason: undefined,
+    lastPathKeys: previousState.lastPathKeys,
+  });
+}
+
+function patrolAdvanceResult(
+  world: World,
+  entity: Entity,
+  previousState: GameboardPatrolStateValue,
+  transition: PatrolAdvanceTransition
+): GameboardPatrolAdvanceResult {
+  return patrolResult(
+    world,
+    entity,
+    previousState,
+    transition.state,
+    transition.requested,
+    transition.advanced,
+    transition.movement,
+    transition.agent
+  );
 }
 
 function completePatrolWaypointIfNeeded(
