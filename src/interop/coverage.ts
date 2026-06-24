@@ -2,6 +2,11 @@
  * Release-readiness coverage reporting for guide pages, manifests, screenshots,
  * local reference packs, and package verification gates.
  *
+ * This is release-tooling interop, not the runtime ECS snapshot adapter. It
+ * lives beside the runtime interop modules because the generated report proves
+ * that documented asset, manifest, visual, and package evidence covers the
+ * public interop contract.
+ *
  * @module
  */
 import { GameboardRuntimeError } from '../errors';
