@@ -68,8 +68,9 @@ export function runPackInstallSmoke(ctx: SmokeContext): void {
         dependencies: {
           'declarative-hex-worlds': `file:${tarballPath}`,
           '@types/react': '^19.0.0',
+          koota: '^0.6.6',
           react: '^19.0.0',
-          three: '^0.180.0',
+          three: '^0.184.0',
         },
       },
       null,
@@ -651,7 +652,8 @@ if (
   subpathSystemsResult.eventRecords.length !== 0 ||
   subpathRuleErrors.length !== 0 ||
   typeof canStackAt(subpathWorld, '0,0', 0) !== 'boolean' ||
-  !subpathPlacementUrl?.includes('https://example.test/pkg/assets/free/') ||
+  !subpathPlacementUrl?.startsWith('https://example.test/pkg/') ||
+  !subpathPlacementUrl?.endsWith('.gltf') ||
   subpathTransform.position.x !== KAYKIT_HEX_WIDTH
 ) {
   throw new Error('packed public subpath imports failed');

@@ -8,6 +8,7 @@ import seedrandom from 'seedrandom';
 import { GameboardRuntimeError } from '../errors';
 import {
   coloredUnitAssetId,
+  describeKayKitAssetTreatment,
   factionBuildingAssetId,
   flagAssetId,
   neutralUnitAssetId,
@@ -30,7 +31,6 @@ import {
   parseHexKey,
 } from '../coordinates';
 import { axialToWorld } from '../coordinates';
-import { freeManifest } from '../manifest';
 import {
   edgeMask,
   selectCoastVariant,
@@ -45,6 +45,7 @@ import type {
   HexEdgeInput,
   HexEdgeIndex,
   MedievalHexagonAsset,
+  MedievalHexagonManifest,
   TextureSet,
   WorldPosition,
 } from '../types';
@@ -1801,16 +1802,27 @@ export type { GameboardShape, HexagonGameboardShape, RectangleGameboardShape } f
  */
 export function getPlacementAsset(
   placement: Pick<GameboardPlacementSpec, 'assetId'>,
-  manifest = freeManifest
+  manifest: MedievalHexagonManifest
 ): MedievalHexagonAsset | undefined {
   return manifest.assetsById[placement.assetId];
 }
 
 /**
- * Return whether an asset id is absent from the packaged FREE manifest.
+ * Resolve a placement's asset from the packaged FREE manifest.
+ */
+export async function loadPlacementAsset(
+  placement: Pick<GameboardPlacementSpec, 'assetId'>
+): Promise<MedievalHexagonAsset | undefined> {
+  // biome-ignore lint/style/noRestrictedImports: the manifest barrel statically pulls the FREE manifest into dist/gameboard.js.
+  const { loadFreeManifest } = await import('../manifest/free');
+  return getPlacementAsset(placement, await loadFreeManifest());
+}
+
+/**
+ * Return whether an asset id requires a local EXTRA edition asset.
  */
 export function requiresExtraAsset(assetId: string): boolean {
-  return !freeManifest.assetsById[assetId];
+  return describeKayKitAssetTreatment(assetId)?.requiresExtra ?? true;
 }
 
 /**
