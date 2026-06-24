@@ -2,6 +2,14 @@
  * Simulation script DTOs, schema constants, runtime result records, and patrol
  * simulation planning types.
  *
+ * Section map:
+ *
+ * - Schema constants and supported step-action discriminators live first.
+ * - Authored simulation step DTOs and shared step fields follow.
+ * - Script, expectation, and serializable report DTOs define the JSON contract.
+ * - Patrol-route-to-script generation DTOs close the file because they compose
+ *   the earlier script shapes with gameboard navigation plans.
+ *
  * @module
  */
 
