@@ -9,11 +9,13 @@ import {
   getPlacementAsset,
   hexKey,
   listPropClusterAssets,
+  loadPlacementAsset,
   neighbor,
   oppositeEdge,
   requiresExtraAsset,
   summarizeGameboardPlan,
 } from '../../gameboard/index';
+import { freeManifest } from '../../manifest/free';
 
 describe('gameboardPlanIndex memoization (PRD B4)', () => {
   it('returns the same index reference for the same plan instance', () => {
@@ -382,6 +384,7 @@ describe('gameboard plan builder', () => {
     expect(coordinatesForShape({ kind: 'hexagon', radius: 2 })).toHaveLength(19);
     expect(requiresExtraAsset('building_shipyard_blue')).toBe(true);
     expect(requiresExtraAsset('building_castle_blue')).toBe(false);
+    expect(requiresExtraAsset('definitely-not-an-asset')).toBe(true);
   });
 
   it('createGameboardPlan builds a plan with an optional builder callback (E0h)', () => {
@@ -405,14 +408,21 @@ describe('gameboard plan builder', () => {
     expect(planWithCallback.tiles.length).toBe(3);
   });
 
-  it('getPlacementAsset resolves bundled FREE manifest asset records (E0h)', () => {
-    // Pick a known FREE asset id (hex_grass) — present in the freeManifest.
-    const asset = getPlacementAsset({ assetId: 'hex_grass' });
+  it('getPlacementAsset resolves explicit manifest asset records (E0h)', () => {
+    const asset = getPlacementAsset({ assetId: 'hex_grass' }, freeManifest);
     expect(asset?.id).toBe('hex_grass');
     expect(asset?.edition).toBe('free');
 
     // Unknown id returns undefined.
-    expect(getPlacementAsset({ assetId: 'definitely-not-an-asset' })).toBeUndefined();
+    expect(getPlacementAsset({ assetId: 'definitely-not-an-asset' }, freeManifest)).toBeUndefined();
+  });
+
+  it('loadPlacementAsset lazy-loads packaged FREE manifest records (CR-P2-4)', async () => {
+    const asset = await loadPlacementAsset({ assetId: 'hex_grass' });
+    expect(asset?.id).toBe('hex_grass');
+    expect(asset?.edition).toBe('free');
+
+    await expect(loadPlacementAsset({ assetId: 'definitely-not-an-asset' })).resolves.toBeUndefined();
   });
 
   it('gameboardPlacementBlocksOccupancy honors ignorePlacementIds (E0h)', async () => {
