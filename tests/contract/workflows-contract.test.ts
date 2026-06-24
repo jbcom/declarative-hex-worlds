@@ -135,16 +135,29 @@ describe('workflow contract', () => {
   });
 
   describe('automerge workflow shape', () => {
+    let automergeContent: string;
+
+    beforeAll(() => {
+      automergeContent = read(files.automerge);
+    });
+
     it.each([
       ["github.actor == 'dependabot[bot]'"],
       ["github.event.pull_request.user.login == 'dependabot[bot]'"],
-      ["github.event.pull_request.user.type == 'Bot'"],
       ['github.event.pull_request.head.repo.full_name == github.repository'],
-      ["startsWith(github.head_ref, 'release-please--')"],
       ['gh pr review "$PR_URL" --approve'],
       ['gh pr merge "$PR_URL" --auto --squash'],
     ])('includes %s', (snippet) => {
-      expect(read(files.automerge)).toContain(snippet);
+      expect(automergeContent).toContain(snippet);
+    });
+
+    it.each([
+      ['Release Please Auto-merge'],
+      ['release-please:'],
+      ["startsWith(github.head_ref, 'release-please--')"],
+      ["github.event.pull_request.user.type == 'Bot'"],
+    ])('excludes %s so release PRs stay a maintainer checkpoint', (snippet) => {
+      expect(automergeContent).not.toContain(snippet);
     });
   });
 
