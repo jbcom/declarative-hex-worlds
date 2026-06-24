@@ -43,7 +43,7 @@ implementation_links:
   - src/rules/rules.ts
   - src/runtime/runtime.ts
   - src/scenario/scenario.ts
-  - src/simulation/simulation.ts
+  - src/simulation/index.ts
   - src/react/react.ts
   - src/systems/systems.ts
   - src/three/three.ts

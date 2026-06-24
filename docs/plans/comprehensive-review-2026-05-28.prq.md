@@ -69,7 +69,7 @@ The dominant themes:
 - [x] **CR-P3-9** interop/internal barrel direct import fix
 - [x] **CR-P3-10** advancePatrolEntity state-machine refactor
 - [x] **CR-P3-11** hashFile missing 'close' event
-- [ ] **CR-P3-12** simulation/simulation.ts double-shim collapse
+- [x] **CR-P3-12** simulation/simulation.ts double-shim collapse
 
 ## Acceptance Criteria
 

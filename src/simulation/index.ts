@@ -1,17 +1,46 @@
 /**
- * `src/simulation/` — scenario simulation engine.
+ * Headless scenario simulation scripts and deterministic reports for movement,
+ * patrols, commands, quest progression, and integration-test evidence.
  *
- * The public `./simulation` shim composes the concern-specific implementation
- * modules:
+ * The public `./simulation` barrel composes the concern-specific modules:
  *
- * - `./engine.ts` — runtime step dispatch
- * - `./script.ts` — stable public script re-export path
- * - `./script-types.ts` — script DTOs, schema constants, and result records
- * - `./script-validators.ts` — authored-script validators
- * - `./report.ts` — report DTO + renderers
- * - `./assertions.ts` — expectation checks
+ * - `./script` — stable public script re-export path.
+ * - `./script-types` — script + step types, schema constants, runtime result
+ *   records, and patrol script planning DTOs.
+ * - `./script-validators` — authored-script validators and shared
+ *   scenario-index helpers.
+ * - `./engine` — runtime step dispatch, the `runGameboardScenarioSimulation*`
+ *   entry points, and patrol route-to-step helpers.
+ * - `./report` — report DTOs, result/record shapes, and the
+ *   `createGameboardScenarioSimulationReport` renderer.
+ * - `./assertions` — expectation primitives and the evaluate/assert helpers
+ *   consumed by the report layer.
+ *
+ * The split landed in PRD D3 (H-3). Public surface is unchanged.
  *
  * @module
  */
 
-export * from './simulation';
+export * from './script';
+export * from './engine';
+export {
+  assertGameboardScenarioSimulationExpectations,
+  evaluateGameboardScenarioSimulationExpectations,
+} from './assertions';
+// `./report` is re-exported by its PUBLIC surface only — the `@internal` record
+// builders (actorRecord, placementRecord, simulationResult,
+// actorTargetsRecordFromReport, emptyActorTargetsRecord) stay reachable by
+// sibling modules (engine.ts) via direct `./report` import but are NOT part of
+// the published API, so they are deliberately omitted here.
+export { createGameboardScenarioSimulationReport } from './report';
+export type {
+  GameboardScenarioSimulationActorRecord,
+  GameboardScenarioSimulationCommandRecord,
+  GameboardScenarioSimulationMovementRecord,
+  GameboardScenarioSimulationPatrolRecord,
+  GameboardScenarioSimulationPlacementRecord,
+  GameboardScenarioSimulationQuestRecord,
+  GameboardScenarioSimulationReport,
+  GameboardScenarioSimulationResult,
+  GameboardScenarioSimulationStepReport,
+} from './report';
