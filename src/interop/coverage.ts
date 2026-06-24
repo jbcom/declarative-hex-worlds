@@ -11,7 +11,7 @@
  */
 import { GameboardRuntimeError } from '../errors';
 import { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS } from './internal';
-export { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS } from './internal';
+export { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS };
 import {
   listKayKitGuideAssetCoverages,
   listKayKitGuidePublicApiCoverages,
