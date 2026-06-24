@@ -62,13 +62,16 @@ function walkSource(root: string): string[] {
   for (const entry of readdirSync(root, { withFileTypes: true })) {
     const child = join(root, entry.name);
     if (entry.isDirectory()) {
-      if (entry.name === 'types') continue;
       out.push(...walkSource(child));
     } else if (entry.isFile() && (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx'))) {
       out.push(child);
     }
   }
   return out;
+}
+
+function stripTsComments(source: string): string {
+  return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 }
 
 describe('branded type public API docs', () => {
@@ -99,14 +102,16 @@ describe('branded type public API docs', () => {
   );
 
   it('matches the current implementation boundary: only src/types uses branded aliases', () => {
-    const brandPattern = new RegExp(`\\b(?:${BRAND_NAMES.join('|')})\\b`);
-    const violations = walkSource(resolve(repoRoot, 'src'))
-      .flatMap((file) => {
-        const source = readFileSync(file, 'utf8');
-        return brandPattern.test(source) ? [relative(repoRoot, file)] : [];
-      })
+    const brandPattern = new RegExp(String.raw`\b(?:${BRAND_NAMES.join('|')})\b`);
+    const matchingFiles = walkSource(resolve(repoRoot, 'src'))
+      .filter((file) => brandPattern.test(stripTsComments(readFileSync(file, 'utf8'))))
+      .map((file) => relative(repoRoot, file))
       .sort();
+    const violations = matchingFiles.filter((file) => !file.startsWith('src/types/'));
 
+    expect(matchingFiles).toEqual(
+      expect.arrayContaining(['src/types/brands.ts', 'src/types/index.ts'])
+    );
     expect(violations).toEqual([]);
   });
 });
