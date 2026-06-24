@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 interface BiomeRestrictedImportsConfig {
   readonly linter?: {
@@ -29,13 +29,29 @@ const REQUIRED_DEEP_IMPORT_RESTRICTIONS = [
   '../config/upstream-layouts.json',
 ] as const;
 
-function readRestrictedImportPaths(): Record<string, string> {
-  const config = JSON.parse(
+let restrictedImportPaths: Record<string, string>;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object';
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return isRecord(value) && Object.values(value).every((entry) => typeof entry === 'string');
+}
+
+function loadRestrictedImportPaths(): Record<string, string> {
+  const parsed = JSON.parse(
     readFileSync(resolve(process.cwd(), 'biome.json'), 'utf8')
-  ) as BiomeRestrictedImportsConfig;
+  ) as unknown;
+  if (!isRecord(parsed)) {
+    throw new Error('Invalid biome.json: expected root JSON object');
+  }
+  const config = parsed as BiomeRestrictedImportsConfig;
   const paths = config.linter?.rules?.style?.noRestrictedImports?.options?.paths;
-  if (!paths) {
-    throw new Error('biome.json is missing linter.rules.style.noRestrictedImports.options.paths');
+  if (!isStringRecord(paths)) {
+    throw new Error(
+      'Invalid biome.json: expected linter.rules.style.noRestrictedImports.options.paths to be a string map'
+    );
   }
   return paths;
 }
@@ -45,19 +61,24 @@ function hasFileExtension(importPath: string): boolean {
 }
 
 describe('Biome restricted import contract', () => {
-  it('covers known deep internal import gaps', () => {
-    const paths = readRestrictedImportPaths();
+  beforeAll(() => {
+    restrictedImportPaths = loadRestrictedImportPaths();
+  });
 
+  it('covers known deep internal import gaps', () => {
     for (const importPath of REQUIRED_DEEP_IMPORT_RESTRICTIONS) {
-      expect(paths[importPath], `${importPath} must be restricted`).toEqual(expect.any(String));
+      expect(restrictedImportPaths[importPath], `${importPath} must be restricted`).toEqual(
+        expect.any(String)
+      );
     }
   });
 
   it('mirrors extensionless restrictions with .js import specifiers', () => {
-    const paths = readRestrictedImportPaths();
-    const extensionlessPaths = Object.keys(paths).filter((importPath) => !hasFileExtension(importPath));
+    const extensionlessPaths = Object.keys(restrictedImportPaths).filter(
+      (importPath) => !hasFileExtension(importPath)
+    );
     const missingJsVariants = extensionlessPaths.filter(
-      (importPath) => paths[`${importPath}.js`] === undefined
+      (importPath) => restrictedImportPaths[`${importPath}.js`] === undefined
     );
 
     expect(missingJsVariants).toEqual([]);
