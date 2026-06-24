@@ -15,6 +15,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 const workspaceRoot = resolve(import.meta.dirname, '..', '..');
 const GITHUB_RUN_ID_EXPRESSION = '$' + '{{ github.run_id }}';
+const CURRENT_REPOSITORY_EXPRESSION = '$' + '{{ github.event.repository.name }}';
 
 const files = {
   automerge: '.github/workflows/automerge.yml',
@@ -152,12 +153,22 @@ describe('workflow contract', () => {
     it.each([
       ["NODE_VERSION: '22'"],
       ['pnpm/action-setup'],
+      ['actions/create-github-app-token'],
+      ['vars.RELEASE_PLEASE_APP_CLIENT_ID'],
+      ['secrets.RELEASE_PLEASE_APP_PRIVATE_KEY'],
+      [`repositories: ${CURRENT_REPOSITORY_EXPRESSION}`],
+      ['permission-contents: write'],
+      ['permission-pull-requests: write'],
       ['googleapis/release-please-action'],
-      ['secrets.CI_GITHUB_TOKEN'],
+      ['steps.release-please-token.outputs.token'],
       ['pnpm docs-site:build'],
       ['actions/deploy-pages'],
     ])('includes %s', (snippet) => {
       expect(read(files.cd)).toContain(snippet);
+    });
+
+    it('does not use the org-level CI_GITHUB_TOKEN PAT for release-please', () => {
+      expect(read(files.cd)).not.toContain('secrets.CI_GITHUB_TOKEN');
     });
   });
 

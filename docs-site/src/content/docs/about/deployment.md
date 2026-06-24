@@ -1,6 +1,6 @@
 ---
 title: Deployment
-description: Release flow, OIDC publish, CI_GITHUB_TOKEN auth, SBOM, SLSA L3 attestation.
+description: Release flow, OIDC publish, GitHub App auth, SBOM, SLSA L3 attestation.
 sidebar:
   order: 3
 ---
@@ -23,11 +23,17 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 
 Release PRs are intentionally not auto-approved or auto-merged. `.github/workflows/automerge.yml` only enables same-repository Dependabot PRs to merge after branch-protection checks pass; release-please PRs remain the human checkpoint for the version and changelog.
 
-## release-please auth (PRD A5)
+## release-please auth (CR-P3-8)
 
-The `release-please` job uses `secrets.CI_GITHUB_TOKEN` — an org-level secret available across `@jbcom` repos. No per-repo setup required; the secret is already in place.
+The `release-please` job uses a short-lived, repo-scoped GitHub App installation token. `.github/workflows/cd.yml` creates that token with `actions/create-github-app-token`, scoped to `${{ github.event.repository.name }}`, then passes `steps.release-please-token.outputs.token` to `googleapis/release-please-action`.
 
-The GitHub App alternative (short-lived 1h scoped tokens via `actions/create-github-app-token`) was considered but rejected — provisioning the App per-repo is operational toil for a marginal scope-narrowing win, and the org PAT already covers the needed permissions (`contents:write`, `pull_requests:write`, `metadata:read`).
+Required repository or organization configuration:
+
+- `vars.RELEASE_PLEASE_APP_CLIENT_ID` — the GitHub App client id.
+- `secrets.RELEASE_PLEASE_APP_PRIVATE_KEY` — a private key for the same App.
+- App installation access to this repository only, with `Contents: read/write`, `Pull requests: read/write`, and `Metadata: read`.
+
+The CD job's own `GITHUB_TOKEN` is read-only; release PR writes flow through the App token instead of an org-level PAT.
 
 ## npm OIDC publish
 
@@ -91,7 +97,7 @@ Security PRs carry the `security` label so filters / auto-merge rules can pick t
 
 ## Disaster recovery
 
-If the App token + PAT both fail:
+If the release-please App token fails:
 
 1. Maintainer can manually tag + publish from a clean checkout: `npm pack && npm publish --provenance jbcom-declarative-hex-worlds-X.Y.Z.tgz`.
 2. Attestation step needs `gh attestation` CLI locally.
