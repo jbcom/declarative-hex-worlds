@@ -561,6 +561,62 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       '/nonexistent-source-root',
       'free'
     );
+    const layoutRulesPath = writeCommandOutput('blueprint-derived.layout-rules.json', {
+      seed: 'blueprint-derived-layout',
+      rules: [{ id: 'tree-fill', archetype: 'tree', assetId: 'tree_single_A', count: 1 }],
+    });
+    const piecesPath = writeCommandOutput('blueprint-derived.pieces.json', {
+      pieces: [
+        {
+          id: 'local-tree',
+          assetId: 'tree_single_A',
+          source: 'local fixtures',
+          role: 'tree',
+          criteria: { terrain: ['grass', 'forest', 'hill'], allowOccupied: true },
+        },
+      ],
+    });
+    await runValidateManifest(
+      {
+        command: 'validate-manifest',
+        flags: {
+          manifest: freeManifestPath,
+          outManifest: commandOutputPath('blueprint-derived.normalized-manifest.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runAnalyzeLayout(
+      {
+        command: 'analyze-layout',
+        flags: {
+          plan: resolve(commandOutputRoot, paths.plan),
+          rules: resolve(commandOutputRoot, layoutRulesPath),
+          allowUnknownAssets: true,
+          out: commandOutputPath('blueprint-derived.layout-analysis.json'),
+          outPlan: commandOutputPath('blueprint-derived.layout-plan.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runPlacePiece(
+      {
+        command: 'place-piece',
+        flags: {
+          plan: resolve(commandOutputRoot, paths.plan),
+          pieces: resolve(commandOutputRoot, piecesPath),
+          pieceId: 'local-tree',
+          allowUnknownAssets: true,
+          count: '1',
+          out: commandOutputPath('blueprint-derived.place-piece.json'),
+          outPlan: commandOutputPath('blueprint-derived.place-piece-plan.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
 
     const summary = readCommandOutput<{
       source: { kind: string };
@@ -600,6 +656,14 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       validation: { errorCount: number };
       topActorAssets: unknown[];
     }>(`${prefix}.scenario-summary.json`);
+    const layoutAnalysis = readCommandOutput<{
+      errorCount: number;
+      rules: Array<{ id: string; selectedCount: number }>;
+    }>(`${prefix}.layout-analysis.json`);
+    const piecePlacement = readCommandOutput<{
+      pieceId: string;
+      placements: unknown[];
+    }>(`${prefix}.place-piece.json`);
 
     expect(plan.tiles.length).toBeGreaterThan(0);
     expect(plan.placements.length).toBeGreaterThan(0);
@@ -612,6 +676,9 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
     expect(existsSync(resolve(commandOutputRoot, paths.interop))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.simulation-final-plan.json'))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.simulation-interop.json'))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.normalized-manifest.json'))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.layout-plan.json'))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.place-piece-plan.json'))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.validate-recipe-plan.json'))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.validate-scenario-plan.json'))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.validate-simulation-plan.json'))).toBe(true);
@@ -647,6 +714,12 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
     expect(simulationReport.steps.length).toBeGreaterThan(0);
     expect(simulationReport.actors.length).toBeGreaterThan(0);
     expect(simulationReport.quests.length).toBeGreaterThan(0);
+    expect(layoutAnalysis).toMatchObject({
+      errorCount: 0,
+      rules: [{ id: 'tree-fill', selectedCount: 1 }],
+    });
+    expect(piecePlacement.pieceId).toBe('local-tree');
+    expect(piecePlacement.placements).toHaveLength(1);
     expect(scenarioSummary).toMatchObject({
       scenarioId: 'docs-simple-rpg-scenario',
       validation: { errorCount: 0 },
