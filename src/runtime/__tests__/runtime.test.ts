@@ -4,6 +4,7 @@ import {
   createInMemoryGameboardEcs,
   selectGameboardInteropRelations,
 } from '../../interop/index';
+import { createGameboardWorld } from '../../koota/index';
 import { createGameboardPieceRegistry, declareGameboardPiece } from '../../pieces/index';
 import { createGameboardRecipe } from '../../scenario/recipe';
 import { createGameboardScenario } from '../../scenario/index';
@@ -858,6 +859,39 @@ describe('gameboard runtime facade', () => {
     expect(runtime.snapshot({ includeInterop: false }).interop).toBeUndefined();
   });
 
+  it('returns empty source maps for runtimes without local piece registries', () => {
+    const recipe = createGameboardRecipe({
+      seed: 'runtime-empty-recipe',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const recipeRuntime = createGameboardRuntimeFromRecipe(recipe);
+    expect(recipeRuntime.recipePieceRegistry).toBeUndefined();
+    expect(recipeRuntime.createRecipePieceSourceUrlMap()).toEqual({});
+
+    const scenario = createGameboardScenario('runtime-empty-scenario', recipe, {
+      title: 'Runtime Empty Scenario',
+    });
+    const scenarioRuntime = createGameboardRuntimeFromScenario(scenario);
+    expect(scenarioRuntime.scenarioPieceRegistry).toBeUndefined();
+    expect(scenarioRuntime.createScenarioPieceSourceUrlMap()).toEqual({});
+    expect(scenarioRuntime.summarizeScenario().scenarioId).toBe('runtime-empty-scenario');
+    expect(scenarioRuntime.createInteropSnapshot().scenario).toEqual({
+      id: 'runtime-empty-scenario',
+      title: 'Runtime Empty Scenario',
+      metadata: {},
+    });
+
+    const rawScenario = {
+      ...scenario,
+      metadata: undefined,
+    };
+    expect(createGameboardRuntimeFromScenario(rawScenario).createInteropSnapshot().scenario).toEqual({
+      id: 'runtime-empty-scenario',
+      title: 'Runtime Empty Scenario',
+      metadata: {},
+    });
+  });
+
   it('createGameboardRuntime accepts a plan-bearing options object (E0h)', () => {
     const plan = createGameboardBuilder({
       seed: 'options-plan',
@@ -865,6 +899,23 @@ describe('gameboard runtime facade', () => {
     }).build();
     const runtime = createGameboardRuntime({ plan });
     expect(runtime.plan().tiles.length).toBe(3);
+  });
+
+  it('createGameboardRuntime accepts an existing world without loading a plan', () => {
+    const world = createGameboardWorld();
+    const runtime = createGameboardRuntime({ world });
+    expect(runtime.world).toBe(world);
+  });
+
+  it('createGameboardRuntime binds a raw existing world input', () => {
+    const plan = createGameboardBuilder({
+      seed: 'runtime-raw-world',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    }).build();
+    const world = createGameboardWorld(plan);
+    const runtime = createGameboardRuntime(world);
+    expect(runtime.world).toBe(world);
+    expect(runtime.plan().tiles.length).toBe(2);
   });
 
   it('runtime loadPlan + validationPlan wrappers (E0a)', () => {

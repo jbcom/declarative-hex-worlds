@@ -146,7 +146,7 @@ export function runGameboardActorTargetInteraction(
       targetCommand,
       events: [],
       eventRecords: [],
-      reason: targetCommand.reason ?? 'No executable actor target command',
+      reason: targetCommand.reason,
     };
   }
 
