@@ -9,9 +9,11 @@ import { run as runExtract } from '../commands/extract';
 import { run as runGuideApis } from '../commands/guide-apis';
 import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideUsages } from '../commands/guide-usages';
+import { run as runPatrolRoutes } from '../commands/patrol-routes';
 import { run as runValidateManifest } from '../commands/validate-manifest';
 import { run as runValidatePlan } from '../commands/validate-plan';
 import { run as runValidateRecipe } from '../commands/validate-recipe';
+import type { GameboardPlan } from '../../gameboard';
 
 describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
   let root: string;
@@ -128,6 +130,110 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     expect(logs.join('\n')).toContain('Extracted 1 free assets to');
   });
 
+  it('covers patrol-routes validation, spawn, JSON, scenario, and error exits', async () => {
+    const planPath = writeJson('patrol.plan.json', patrolPlan());
+    const routesPath = writeJson('patrol.routes.json', {
+      seed: 'file-seed',
+      routes: [{ id: 'watch', count: 2, start: '0,0', loop: false }],
+    });
+
+    await expect(
+      runPatrolRoutes({ command: 'patrol-routes', flags: { plan: planPath } }, '/missing-source', 'free')
+    ).rejects.toThrow(/requires --routes/);
+    await expect(
+      runPatrolRoutes(
+        { command: 'patrol-routes', flags: { scenario: writeJson('patrol.bad-scenario.json', []) } },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/must be a JSON object/);
+
+    logs.length = 0;
+    await runPatrolRoutes(
+      { command: 'patrol-routes', flags: { plan: planPath, routes: routesPath, json: true } },
+      '/missing-source',
+      'free'
+    );
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      seed: 'file-seed',
+      routeCount: 1,
+      errors: [],
+    });
+    logs.length = 0;
+    await runPatrolRoutes(
+      { command: 'patrol-routes', flags: { plan: planPath, routes: routesPath, out: 'patrol.out.json' } },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote patrol route plan to');
+
+    const scenarioPath = writeJson('patrol.scenario.json', {
+      schemaVersion: '1.0.0',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'scenario-plan-seed', shape: { kind: 'rectangle', width: 2, height: 1 } },
+        steps: [],
+      },
+      patrolRoutes: [{ id: 'scenario-watch', count: 2, start: '0,0', loop: false }],
+    });
+    logs.length = 0;
+    await runPatrolRoutes(
+      { command: 'patrol-routes', flags: { scenario: scenarioPath, json: true } },
+      '/missing-source',
+      'free'
+    );
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      seed: 'scenario-plan-seed:patrol-routes',
+    });
+    logs.length = 0;
+    await runPatrolRoutes(
+      { command: 'patrol-routes', flags: { scenario: scenarioPath, seed: 'override-seed', json: true } },
+      '/missing-source',
+      'free'
+    );
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({ seed: 'override-seed' });
+
+    const invalidPlanPath = writeJson('patrol.invalid-plan.json', invalidPlan());
+    const badGroupsPath = writeJson('patrol.bad-groups.json', [{ id: 'party', count: 3 }]);
+    const badRoutesPath = writeJson('patrol.bad-routes.json', {
+      routes: [{ id: 'bad-watch', count: 1, start: '0,0' }],
+    });
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      await expect(
+        runPatrolRoutes(
+          { command: 'patrol-routes', flags: { plan: invalidPlanPath, routes: routesPath } },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      await expect(
+        runPatrolRoutes(
+          { command: 'patrol-routes', flags: { plan: planPath, routes: routesPath, groups: badGroupsPath } },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      await expect(
+        runPatrolRoutes(
+          { command: 'patrol-routes', flags: { plan: planPath, routes: badRoutesPath } },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    const joined = logs.join('\n');
+    expect(joined).toContain('validation: 1 error(s), 0 warning(s)');
+    expect(joined).toContain('groups: 1');
+    expect(joined).toContain('error: Spawn group party selected 2/3 requested location(s)');
+    expect(joined).toContain('error: Patrol route bad-watch requires at least 2 waypoints');
+  });
+
   function writeSyntheticSourceRoot(name: string): string {
     writeGltf(`${name}/Assets/gltf/tiles/hex_fixture.gltf`, [-0.5, 0, -0.5], [0.5, 0.25, 0.5]);
     return resolve(root, name);
@@ -192,6 +298,52 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
       schemaVersion: '1.0.0',
       options: { seed: 'bad-recipe', shape: { kind: 'rectangle', width: 1, height: 1 } },
       steps: [{ action: 'setTerrain', at: { q: 3, r: 0 }, terrain: 'water' }],
+    };
+  }
+
+  function patrolPlan(): GameboardPlan {
+    const tiles: GameboardPlan['tiles'] = [
+      {
+        key: '0,0',
+        coordinates: { q: 0, r: 0 },
+        terrain: 'grass',
+        textureSet: 'default',
+        elevation: 0,
+        baseAssetId: 'hex_grass',
+        supportAssetId: 'hex_grass',
+        roadEdges: 0,
+        riverEdges: 0,
+        coastEdges: 0,
+        riverWaterless: false,
+        riverCurvy: false,
+        coastWaterless: false,
+        tags: [],
+      },
+      {
+        key: '1,0',
+        coordinates: { q: 1, r: 0 },
+        terrain: 'grass',
+        textureSet: 'default',
+        elevation: 0,
+        baseAssetId: 'hex_grass',
+        supportAssetId: 'hex_grass',
+        roadEdges: 0,
+        riverEdges: 0,
+        coastEdges: 0,
+        riverWaterless: false,
+        riverCurvy: false,
+        coastWaterless: false,
+        tags: [],
+      },
+    ];
+    return {
+      schemaVersion: '1.0.0',
+      seed: 'patrol-command',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+      textureSet: 'default',
+      tiles,
+      placements: [],
+      warnings: [],
     };
   }
 });
