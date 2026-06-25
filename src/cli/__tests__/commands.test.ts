@@ -28,7 +28,18 @@ import { GameboardCliError } from '../../errors';
 import type { GameboardPlan } from '../../gameboard';
 import type { ParsedArgs } from '../_shared';
 import { run as runAnalyze } from '../commands/analyze';
-import { run as runBlueprint } from '../commands/blueprint';
+import {
+  blueprintPayloadFromInspection,
+  createBlueprintScenarioInteropSnapshot,
+  hasBlueprintScenarioContent,
+  printBlueprintInspection,
+  printBlueprintScenarioInspection,
+  readBlueprintOptions,
+  readBlueprintOptionsFile,
+  run as runBlueprint,
+  shouldEmitBlueprintInterop,
+  shouldInspectBlueprintScenario,
+} from '../commands/blueprint';
 import { findCliPackageRoot, run as runCoverageCmd } from '../commands/coverage';
 import { run as runDoctor } from '../commands/doctor';
 import { run as runGuideApis } from '../commands/guide-apis';
@@ -857,6 +868,193 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
     expect(joined).toContain('guide permutations: 298');
     expect(joined).toContain('missing assets:');
     expect(joined).toContain('  - hex_road_A');
+  });
+});
+
+describe('CLI blueprint command branch coverage (PRD E0h)', () => {
+  type BlueprintInspectionArg = Parameters<typeof blueprintPayloadFromInspection>[0];
+  type ScenarioInspectionArg = NonNullable<Parameters<typeof blueprintPayloadFromInspection>[3]>;
+  const asBlueprintOptions = (value: unknown): Parameters<typeof hasBlueprintScenarioContent>[0] =>
+    value as Parameters<typeof hasBlueprintScenarioContent>[0];
+  const blueprintInspectionFixture = (warnings = ['Fixture warning']): BlueprintInspectionArg =>
+    ({
+      plan: spawnGroupsCommandPlan({ seed: 'blueprint-fixture' }),
+      recipe: { schemaVersion: '1.0.0', options: {}, steps: [{}] },
+      counts: { towns: 1, harbors: 0 },
+      warnings,
+    }) as unknown as BlueprintInspectionArg;
+  const scenarioInspectionFixture = (): ScenarioInspectionArg =>
+    ({
+      scenario: { id: 'fixture-scenario' },
+      scenarioInspection: {
+        violations: [
+          { severity: 'error', code: 'scenario.error', message: 'error' },
+          { severity: 'warning', code: 'scenario.warning', message: 'warning' },
+        ],
+      },
+    }) as unknown as ScenarioInspectionArg;
+
+  function captureConsoleLog(): { logs: string[]; restore: () => void } {
+    const logs: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(String(message));
+    });
+    return { logs, restore: () => spy.mockRestore() };
+  }
+
+  it('reads blueprint config variants and CLI overrides', () => {
+    const wrapped = resolve(commandOutputRoot, writeCommandOutput('bp-options.json', { options: { seed: 'wrapped' } }));
+    const nested = resolve(commandOutputRoot, writeCommandOutput('bp-blueprint.json', { blueprint: { seed: 'nested' } }));
+    const invalid = resolve(commandOutputRoot, writeCommandOutput('bp-invalid.json', ['bad']));
+    expect(readBlueprintOptionsFile(wrapped)).toMatchObject({ seed: 'wrapped' });
+    expect(() => readBlueprintOptionsFile(invalid)).toThrow(/must be an options object/);
+    expect(
+      readBlueprintOptions({
+        config: nested,
+        seed: 'cli',
+        faction: 'red',
+        textureSet: 'winter',
+        defaultTerrain: 'water',
+        waterFill: '0.25',
+        maxElevation: '3',
+        towns: '2',
+        harbors: '1',
+        shape: 'hexagon',
+        radius: '0',
+      })
+    ).toMatchObject({
+      seed: 'cli',
+      faction: 'red',
+      textureSet: 'winter',
+      defaultTerrain: 'water',
+      waterFill: 0.25,
+      maxElevation: 3,
+      towns: 2,
+      harbors: 1,
+      shape: { kind: 'hexagon', radius: 1 },
+    });
+    expect(readBlueprintOptions({ shape: 'rectangle', width: '0', height: '2.9' })).toMatchObject({
+      shape: { kind: 'rectangle', width: 1, height: 2 },
+    });
+  });
+
+  it('detects scenario and interop emission triggers', () => {
+    expect(hasBlueprintScenarioContent(asBlueprintOptions({}))).toBe(false);
+    for (const options of [
+      { scenarioId: 'scenario' },
+      { title: 'Title' },
+      { spawnGroups: { groups: [] } },
+      { patrolRoutes: [{}] },
+      { actors: [{}] },
+      { quests: [{}] },
+      { scenarioMetadata: { source: 'fixture' } },
+    ]) {
+      expect(hasBlueprintScenarioContent(asBlueprintOptions(options))).toBe(true);
+    }
+    expect(shouldInspectBlueprintScenario(asBlueprintOptions({}), {})).toBe(false);
+    for (const flags of [
+      { outScenario: 'scenario.json' },
+      { outScenarioInspection: 'scenario-inspection.json' },
+      { outInterop: 'interop.json' },
+      { includeScenario: true },
+      { includeScenarioInspection: true },
+      { includeInterop: true },
+    ] satisfies Array<Record<string, string | boolean>>) {
+      expect(shouldInspectBlueprintScenario(asBlueprintOptions({}), flags as unknown as Record<string, string | boolean>)).toBe(true);
+    }
+    expect(shouldEmitBlueprintInterop({})).toBe(false);
+    expect(shouldEmitBlueprintInterop({ outInterop: 'interop.json' })).toBe(true);
+    expect(shouldEmitBlueprintInterop({ includeInterop: true })).toBe(true);
+  });
+
+  it('summarizes payload, readable output, and missing interop guards', () => {
+    const payload = blueprintPayloadFromInspection(
+      blueprintInspectionFixture(),
+      [
+        { severity: 'error', code: 'plan.error', message: 'error' },
+        { severity: 'warning', code: 'plan.warning', message: 'warning' },
+      ] as unknown as Parameters<typeof blueprintPayloadFromInspection>[1],
+      { includeRecipe: true, includePlan: true, includeScenario: true, includeScenarioInspection: true, includeInterop: true },
+      scenarioInspectionFixture(),
+      {
+        entities: [{ kind: 'actor' }, { kind: 'quest' }, { kind: 'spawn-group' }, { kind: 'patrol-route' }],
+        relations: [{ kind: 'rel' }],
+        spawnLocations: [{ id: 'spawn:0' }],
+      } as unknown as NonNullable<Parameters<typeof blueprintPayloadFromInspection>[4]>
+    );
+    expect(payload).toMatchObject({
+      validation: { errorCount: 1, warningCount: 1 },
+      scenarioValidation: { errorCount: 1, warningCount: 1 },
+      interopSummary: { actorCount: 1, questCount: 1, spawnGroupCount: 1, patrolRouteCount: 1 },
+    });
+    const { logs, restore } = captureConsoleLog();
+    try {
+      printBlueprintInspection(blueprintInspectionFixture(), []);
+      printBlueprintInspection(blueprintInspectionFixture([]), []);
+      printBlueprintScenarioInspection(scenarioInspectionFixture());
+    } finally {
+      restore();
+    }
+    expect(logs.join('\n')).toContain('blueprint warnings: none');
+    expect(() =>
+      createBlueprintScenarioInteropSnapshot({ command: 'blueprint', flags: {} }, undefined)
+    ).toThrow(/requires a generated blueprint scenario/);
+  });
+
+  it('prints JSON and exits for warning/error command outcomes', async () => {
+    let capture = captureConsoleLog();
+    try {
+      await runBlueprint(
+        { command: 'blueprint', flags: { seed: 'blueprint-json', shape: 'rectangle', width: '1', height: '1', json: true } },
+        '/nonexistent-source-root',
+        'free'
+      );
+      expect(JSON.parse(capture.logs.join('\n'))).toMatchObject({ seed: 'blueprint-json' });
+    } finally {
+      capture.restore();
+    }
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    capture = captureConsoleLog();
+    try {
+      await expect(
+        runBlueprint(
+          { command: 'blueprint', flags: { shape: 'rectangle', width: '1', height: '1', harbors: '1', failOnWarning: true } },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(capture.logs.join('\n')).toContain('No harbor could be placed');
+    } finally {
+      capture.restore();
+      exitSpy.mockRestore();
+    }
+
+    const configPath = resolve(
+      commandOutputRoot,
+      writeCommandOutput('blueprint-scenario-error.json', {
+        blueprint: {
+          seed: 'blueprint-scenario-error',
+          shape: { kind: 'rectangle', width: 1, height: 1 },
+          spawnGroups: { groups: [{ id: 'party', count: 999 }] },
+        },
+      })
+    );
+    const secondExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    capture = captureConsoleLog();
+    try {
+      await expect(
+        runBlueprint({ command: 'blueprint', flags: { blueprint: configPath } }, '/nonexistent-source-root', 'free')
+      ).rejects.toThrow('process.exit 1');
+      expect(capture.logs.join('\n')).toContain('scenario.spawn_group');
+    } finally {
+      capture.restore();
+      secondExitSpy.mockRestore();
+    }
   });
 });
 
