@@ -41,7 +41,7 @@ export async function run(parsed: ParsedArgs, _sourceRoot: string, _edition: Pac
     publicApis: coverages.map((coverage) => coverage.publicApi),
     coverage: coverages,
     ...(publicApiFilter.length === 1
-      ? { selected: describeKayKitGuidePublicApiCoverage(publicApiFilter[0] ?? '') }
+      ? { selected: describeKayKitGuidePublicApiCoverage(publicApiFilter.join()) }
       : {}),
   };
 
