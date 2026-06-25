@@ -23,7 +23,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameboardCliError } from '../../errors';
 import type { ParsedArgs } from '../_shared';
 import { run as runAnalyze } from '../commands/analyze';
@@ -91,26 +91,23 @@ describe('CLI doctor subcommand (PRD E0h)', () => {
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const referenceFreeRoot = join(repoRoot, 'references/KayKit_Medieval_Hexagon_Pack_1.0_FREE');
 const HAS_FREE_REFERENCES = existsSync(referenceFreeRoot);
-const commandOutputRoot = `.test-tmp/commands-${process.pid}`;
+const commandOutputRoot = mkdtempSync(join(tmpdir(), 'hex-worlds-commands-'));
+let previousOutRoot: string | undefined;
 
 function commandOutputPath(name: string): string {
-  mkdirSync(resolve(repoRoot, commandOutputRoot), { recursive: true });
-  return `${commandOutputRoot}/${name}`;
+  mkdirSync(commandOutputRoot, { recursive: true });
+  return name;
 }
 
 function readCommandOutput<T>(name: string): T {
-  return JSON.parse(readFileSync(resolve(repoRoot, commandOutputRoot, name), 'utf8')) as T;
+  return JSON.parse(readFileSync(resolve(commandOutputRoot, name), 'utf8')) as T;
 }
 
 function writeCommandOutput(name: string, payload: unknown): string {
   const path = commandOutputPath(name);
-  writeFileSync(resolve(repoRoot, path), `${JSON.stringify(payload, null, 2)}\n`);
+  writeFileSync(resolve(commandOutputRoot, path), `${JSON.stringify(payload, null, 2)}\n`);
   return path;
 }
-
-afterAll(() => {
-  rmSync(resolve(repoRoot, commandOutputRoot), { recursive: true, force: true });
-});
 
 function createPackageSearchRoot(packageSearchRoots: string[]): string {
   const root = mkdtempSync(join(tmpdir(), 'hex-worlds-coverage-'));
@@ -345,12 +342,26 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
   const blueprintPath = resolve(repoRoot, 'examples/blueprint-board.json');
   let logSpy: ReturnType<typeof vi.spyOn>;
 
+  beforeAll(() => {
+    previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+  });
+
   beforeEach(() => {
     logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
     logSpy.mockRestore();
+  });
+
+  afterAll(() => {
+    if (previousOutRoot === undefined) {
+      delete process.env.HEX_WORLDS_OUT_ROOT;
+    } else {
+      process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+    }
+    rmSync(commandOutputRoot, { recursive: true, force: true });
   });
 
   it('summarizes, snapshots, spawn-plans, and patrol-plans blueprint artifacts', async () => {
@@ -399,7 +410,7 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       {
         command: 'summarize-plan',
         flags: {
-          plan: paths.plan,
+          plan: resolve(commandOutputRoot, paths.plan),
           outPlan: commandOutputPath('blueprint-derived.summary-plan.json'),
           out: commandOutputPath('blueprint-derived.summary.json'),
           topAssets: '3',
@@ -412,7 +423,7 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       {
         command: 'snapshot',
         flags: {
-          scenario: paths.scenario,
+          scenario: resolve(commandOutputRoot, paths.scenario),
           out: commandOutputPath('blueprint-derived.snapshot.json'),
           spawnCount: '3',
         },
@@ -424,8 +435,8 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       {
         command: 'spawn-groups',
         flags: {
-          plan: paths.plan,
-          groups: groupsPath,
+          plan: resolve(commandOutputRoot, paths.plan),
+          groups: resolve(commandOutputRoot, groupsPath),
           out: commandOutputPath('blueprint-derived.spawn-groups.json'),
         },
       },
@@ -436,9 +447,9 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       {
         command: 'patrol-routes',
         flags: {
-          plan: paths.plan,
-          groups: groupsPath,
-          routes: routesPath,
+          plan: resolve(commandOutputRoot, paths.plan),
+          groups: resolve(commandOutputRoot, groupsPath),
+          routes: resolve(commandOutputRoot, routesPath),
           out: commandOutputPath('blueprint-derived.patrol-routes.json'),
         },
       },
@@ -475,9 +486,9 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       id: 'docs-blueprint-board:intro',
       actors: expect.any(Array),
     });
-    expect(existsSync(resolve(repoRoot, paths.recipe))).toBe(true);
-    expect(existsSync(resolve(repoRoot, paths.scenarioInspection))).toBe(true);
-    expect(existsSync(resolve(repoRoot, paths.interop))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, paths.recipe))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, paths.scenarioInspection))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, paths.interop))).toBe(true);
     expect(readCommandOutput<{ validation: { errorCount: number } }>(`${prefix}.inspection.json`))
       .toMatchObject({ validation: { errorCount: 0 } });
     expect(summary).toMatchObject({
