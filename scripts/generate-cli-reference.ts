@@ -12,16 +12,39 @@
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = resolve(import.meta.dirname, '..');
-const outputPath = resolve(repoRoot, 'docs-site/src/content/docs/guides/cli-reference.md');
+type ExecHelp = (
+  file: string,
+  args: string[],
+  options: { cwd: string; encoding: BufferEncoding }
+) => string;
 
-const helpOutput = execFileSync('pnpm', ['exec', 'tsx', 'src/cli/cli.ts', '--help'], {
-  cwd: repoRoot,
-  encoding: 'utf8',
-});
+type WriteTextFile = (path: string, contents: string, encoding: BufferEncoding) => void;
 
-const banner = `---
+interface GenerateCliReferenceOptions {
+  repoRoot?: string;
+  outputPath?: string;
+  execFileSyncImpl?: ExecHelp;
+  writeFileSyncImpl?: WriteTextFile;
+  log?: (message: string) => void;
+}
+
+interface GenerateCliReferenceResult {
+  outputPath: string;
+  contents: string;
+}
+
+export function defaultRepoRoot(): string {
+  return resolve(import.meta.dirname, '..');
+}
+
+export function cliReferenceOutputPath(repoRoot = defaultRepoRoot()): string {
+  return resolve(repoRoot, 'docs-site/src/content/docs/guides/cli-reference.md');
+}
+
+export function buildCliReference(helpOutput: string): string {
+  return `---
 title: CLI Reference
 description: Every command, flag, and option accepted by the declarative-hex-worlds CLI binary.
 sidebar:
@@ -118,6 +141,36 @@ All JSON parsing errors surface as \`GameboardCliError\` with a descriptive mess
 
 CLI errors are \`GameboardCliError\` instances ([PRD D2](https://github.com/jbcom/declarative-hex-worlds/blob/main/docs/PRD/1.0.md#d2)). The library's error taxonomy is documented in the [errors reference](/reference/errors/).
 `;
+}
 
-writeFileSync(outputPath, banner, 'utf8');
-console.log(`Wrote ${outputPath}`);
+export function generateCliReference(
+  options: GenerateCliReferenceOptions = {}
+): GenerateCliReferenceResult {
+  const repoRoot = options.repoRoot ?? defaultRepoRoot();
+  const outputPath = options.outputPath ?? cliReferenceOutputPath(repoRoot);
+  const execHelp = options.execFileSyncImpl ?? (execFileSync as ExecHelp);
+  const writeTextFile = options.writeFileSyncImpl ?? writeFileSync;
+  const helpOutput = execHelp(
+    'pnpm',
+    ['exec', 'tsx', 'src/cli/cli.ts', '--help'],
+    {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    }
+  );
+  const contents = buildCliReference(helpOutput);
+  writeTextFile(outputPath, contents, 'utf8');
+  (options.log ?? console.log)(`Wrote ${outputPath}`);
+
+  return { outputPath, contents };
+}
+
+function isDirectRun(): boolean {
+  return process.argv[1]
+    ? resolve(process.argv[1]).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase()
+    : false;
+}
+
+if (isDirectRun()) {
+  generateCliReference();
+}
