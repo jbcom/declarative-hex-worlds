@@ -1,10 +1,13 @@
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { MedievalHexagonManifest } from '../../src/types';
 import {
   defaultPackageRoot,
   generatePackageAssets,
+  isDirectRun,
   parsePackageAssetsArgs,
+  resolveGeneratePackageAssetsDependencies,
   runGeneratePackageAssets,
 } from '../generate-package-assets';
 
@@ -29,6 +32,33 @@ describe('scripts/generate-package-assets', () => {
       '--edition must be free or extra'
     );
     expect(() => parsePackageAssetsArgs(['--edition'])).toThrow('Missing value for --edition');
+  });
+
+  it('resolves default dependency implementations without executing generation', () => {
+    const resolved = resolveGeneratePackageAssetsDependencies();
+
+    expect(resolved.validateSourceRoot).toEqual(expect.any(Function));
+    expect(resolved.generateManifestFromSource).toEqual(expect.any(Function));
+    expect(resolved.writeManifestModule).toEqual(expect.any(Function));
+    expect(resolved.writeManifestJson).toEqual(expect.any(Function));
+    expect(resolved.log).toBe(console.log);
+  });
+
+  it('resolves injected dependency implementations', () => {
+    const injected = {
+      validateSourceRootImpl: () => ({ ok: true, expectedCount: 0, gltfCount: 0 }),
+      generateManifestFromSourceImpl: () => manifest,
+      writeManifestModuleImpl: () => undefined,
+      writeManifestJsonImpl: () => undefined,
+      log: () => undefined,
+    };
+    const resolved = resolveGeneratePackageAssetsDependencies(injected);
+
+    expect(resolved.validateSourceRoot).toBe(injected.validateSourceRootImpl);
+    expect(resolved.generateManifestFromSource).toBe(injected.generateManifestFromSourceImpl);
+    expect(resolved.writeManifestModule).toBe(injected.writeManifestModuleImpl);
+    expect(resolved.writeManifestJson).toBe(injected.writeManifestJsonImpl);
+    expect(resolved.log).toBe(injected.log);
   });
 
   it('generates and writes the packaged FREE manifest outputs', () => {
@@ -104,5 +134,22 @@ describe('scripts/generate-package-assets', () => {
         }
       )
     ).toThrow('Expected 221 free GLTF files, found 1.');
+  });
+
+  it('detects direct script execution through resolved real paths', () => {
+    const scriptPath = '/repo/scripts/generate-package-assets.ts';
+    const moduleUrl = pathToFileURL(scriptPath).href;
+    const realpath = (path: string) => path.replace('/symlink/', '/repo/');
+
+    expect(isDirectRun('/symlink/scripts/generate-package-assets.ts', moduleUrl, realpath)).toBe(
+      true
+    );
+    expect(isDirectRun('/repo/scripts/other.ts', moduleUrl, realpath)).toBe(false);
+    expect(isDirectRun('', moduleUrl, realpath)).toBe(false);
+    expect(
+      isDirectRun('/repo/scripts/generate-package-assets.ts', moduleUrl, () => {
+        throw new Error('unreadable path');
+      })
+    ).toBe(false);
   });
 });

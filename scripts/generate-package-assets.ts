@@ -42,8 +42,29 @@ export interface GeneratePackageAssetsResult {
   manifest: MedievalHexagonManifest;
 }
 
+interface ResolvedGeneratePackageAssetsDependencies {
+  validateSourceRoot: ValidateSourceRoot;
+  generateManifestFromSource: GenerateManifest;
+  writeManifestModule: WriteManifest;
+  writeManifestJson: WriteManifest;
+  log: (message: string) => void;
+}
+
 export function defaultPackageRoot(): string {
   return resolve(import.meta.dirname, '..');
+}
+
+export function resolveGeneratePackageAssetsDependencies(
+  dependencies: GeneratePackageAssetsDependencies = {}
+): ResolvedGeneratePackageAssetsDependencies {
+  return {
+    validateSourceRoot: dependencies.validateSourceRootImpl ?? validateSourceRoot,
+    generateManifestFromSource:
+      dependencies.generateManifestFromSourceImpl ?? generateManifestFromSource,
+    writeManifestModule: dependencies.writeManifestModuleImpl ?? writeManifestModule,
+    writeManifestJson: dependencies.writeManifestJsonImpl ?? writeManifestJson,
+    log: dependencies.log ?? console.log,
+  };
 }
 
 export function parsePackageAssetsArgs(
@@ -84,9 +105,8 @@ export function generatePackageAssets(
 ): GeneratePackageAssetsResult {
   const sourceRoot = resolve(args.source);
   const packageRoot = resolve(args.packageRoot);
-  const validate = dependencies.validateSourceRootImpl ?? validateSourceRoot;
-  const generate = dependencies.generateManifestFromSourceImpl ?? generateManifestFromSource;
-  const validation = validate(sourceRoot, args.edition);
+  const resolved = resolveGeneratePackageAssetsDependencies(dependencies);
+  const validation = resolved.validateSourceRoot(sourceRoot, args.edition);
 
   if (!validation.ok) {
     throw new Error(
@@ -94,24 +114,16 @@ export function generatePackageAssets(
     );
   }
 
-  const manifest = generate({
+  const manifest = resolved.generateManifestFromSource({
     sourceRoot,
     edition: args.edition,
   });
 
   if (args.edition === 'free') {
-    (dependencies.writeManifestModuleImpl ?? writeManifestModule)(
-      manifest,
-      resolve(packageRoot, 'src/manifest/free.ts')
-    );
-    (dependencies.writeManifestJsonImpl ?? writeManifestJson)(
-      manifest,
-      resolve(packageRoot, 'assets/free/manifest.json')
-    );
+    resolved.writeManifestModule(manifest, resolve(packageRoot, 'src/manifest/free.ts'));
+    resolved.writeManifestJson(manifest, resolve(packageRoot, 'assets/free/manifest.json'));
   }
-  (dependencies.log ?? console.log)(
-    `Generated manifest for ${manifest.counts.total} ${args.edition} assets`
-  );
+  resolved.log(`Generated manifest for ${manifest.counts.total} ${args.edition} assets`);
 
   return { sourceRoot, packageRoot, manifest };
 }
@@ -123,20 +135,24 @@ export function runGeneratePackageAssets(
   return generatePackageAssets(parsePackageAssetsArgs(argv), dependencies);
 }
 
-function isDirectRun(): boolean {
-  if (!process.argv[1]) {
+export function isDirectRun(
+  argvEntry = process.argv[1],
+  moduleUrl = import.meta.url,
+  realpath: (path: string) => string = realpathSync
+): boolean {
+  if (!argvEntry) {
     return false;
   }
   try {
     return (
-      realpathSync(resolve(process.argv[1])).toLowerCase() ===
-      realpathSync(fileURLToPath(import.meta.url)).toLowerCase()
+      realpath(resolve(argvEntry)).toLowerCase() === realpath(fileURLToPath(moduleUrl)).toLowerCase()
     );
   } catch {
     return false;
   }
 }
 
+/* v8 ignore next 3 -- thin executable entrypoint; predicate and generator are unit-tested. */
 if (isDirectRun()) {
   runGeneratePackageAssets();
 }
