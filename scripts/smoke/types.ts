@@ -23,15 +23,31 @@ import { join } from 'node:path';
 
 import type { SmokeContext } from './_shared.js';
 
+type ExecFile = (
+  file: string,
+  args: string[],
+  options: {
+    cwd: string;
+    encoding: 'utf8';
+    stdio: ['ignore', 'pipe', 'pipe'];
+  }
+) => unknown;
+type WriteFile = (path: string, data: string, encoding: 'utf8') => void;
+type Log = (message: string) => void;
+
+export interface TypesAttestationDependencies {
+  execFileSyncImpl?: ExecFile;
+  writeFileSyncImpl?: WriteFile;
+  log?: Log;
+}
+
 /**
- * Write a type-only smoke source into the consumer fixture app and run
- * `tsc --noEmit --strict` against it. Throws if `tsc` exits non-zero.
+ * Build the type-only smoke source used by the packed consumer attestation.
+ * Kept as a function so unit coverage can exercise the published API surface
+ * string without invoking a real consumer install.
  */
-export function runTypesAttestation(ctx: SmokeContext): void {
-  const { workspaceRoot, appRoot } = ctx;
-  writeFileSync(
-    join(appRoot, 'smoke-types.ts'),
-    `
+export function createTypesAttestationSource(): string {
+  return `
 import {
   createGameboardInteropSnapshot,
   createGameboardInteropSnapshotIndex,
@@ -1019,11 +1035,25 @@ void siteInspection;
 void totalAssets;
 void blueprintScenarioId;
 void blueprintUsage;
-`,
-    'utf8'
-  );
+`;
+}
 
-  execFileSync(
+/**
+ * Write a type-only smoke source into the consumer fixture app and run
+ * `tsc --noEmit --strict` against it. Throws if `tsc` exits non-zero.
+ */
+export function runTypesAttestation(
+  ctx: SmokeContext,
+  dependencies: TypesAttestationDependencies = {}
+): void {
+  const { workspaceRoot, appRoot } = ctx;
+  const writeFile = dependencies.writeFileSyncImpl ?? writeFileSync;
+  const execFile = dependencies.execFileSyncImpl ?? execFileSync;
+  const log = dependencies.log ?? console.log;
+
+  writeFile(join(appRoot, 'smoke-types.ts'), createTypesAttestationSource(), 'utf8');
+
+  execFile(
     process.execPath,
     [
       join(workspaceRoot, 'node_modules/typescript/bin/tsc'),
@@ -1046,5 +1076,5 @@ void blueprintUsage;
     }
   );
 
-  console.log('packed consumer types attestation passed');
+  log('packed consumer types attestation passed');
 }
