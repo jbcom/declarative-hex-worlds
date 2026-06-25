@@ -26,6 +26,7 @@ import { dirname, join, resolve } from 'node:path';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameboardCliError } from '../../errors';
 import type { GameboardPlan } from '../../gameboard';
+import { listKayKitGuideScenarios } from '../../scenario';
 import type { ParsedArgs } from '../_shared';
 import { run as runAnalyze } from '../commands/analyze';
 import {
@@ -643,6 +644,138 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
     const parsed: ParsedArgs = { command: 'guide-scenarios', flags: { json: true } };
     await runGuideScenarios(parsed, '/nonexistent', 'free');
     expect(logs.length).toBeGreaterThan(0);
+  });
+
+  it('covers guide scenario filters, missing assets, markdown stdout, and error exits', async () => {
+    const previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    const stdoutChunks: string[] = [];
+    let stdoutSpy: ReturnType<typeof vi.spyOn> | undefined;
+    let exitSpy: ReturnType<typeof vi.spyOn> | undefined;
+    let mutableAssetIds: string[] | undefined;
+    let originalAssetIds: string[] | undefined;
+
+    try {
+      process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+      stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation((chunk: string | Uint8Array) => {
+        stdoutChunks.push(String(chunk));
+        return true;
+      });
+      exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+        throw new Error(`process.exit ${code}`);
+      });
+      const roadScenario = listKayKitGuideScenarios().find(
+        (scenario) => scenario.id === 'page-03-road-variations'
+      );
+      expect(roadScenario).toBeDefined();
+      mutableAssetIds = roadScenario?.assetIds as unknown as string[];
+      originalAssetIds = [...mutableAssetIds];
+      mutableAssetIds.push('fixture_missing_treatment');
+
+      logs = [];
+      await runGuideScenarios(
+        {
+          command: 'guide-scenarios',
+          flags: {
+            scenarioId: 'page-03-road-variations',
+            includeTreatments: true,
+            json: true,
+          },
+        },
+        '/nonexistent',
+        'free'
+      );
+      const scenarioPayload = JSON.parse(logs.at(-1) ?? '{}') as {
+        count: number;
+        assetCounts: { checked: number };
+        scenarioCoverage: unknown[];
+      };
+      expect(scenarioPayload).toMatchObject({ count: 1 });
+      expect(scenarioPayload.assetCounts.checked).toBeGreaterThan(0);
+      expect(scenarioPayload.scenarioCoverage).toHaveLength(1);
+
+      const filterFlagSets: Array<Record<string, string | boolean>> = [
+        { page: '3', json: true },
+        { editionScope: 'free', json: true },
+        { publicApi: 'GameboardBuilder.addRoadPath', json: true },
+        { role: 'road-tile', json: true },
+        { assetId: 'hex_road_A', json: true },
+      ];
+      for (const flags of filterFlagSets) {
+        await runGuideScenarios({ command: 'guide-scenarios', flags }, '/nonexistent', 'free');
+      }
+
+      await runGuideScenarios(
+        { command: 'guide-scenarios', flags: { page: '3', markdown: true } },
+        '/nonexistent',
+        'free'
+      );
+      expect(stdoutChunks.join('')).toContain('# Guide Scenario Coverage');
+
+      await runGuideScenarios(
+        {
+          command: 'guide-scenarios',
+          flags: { page: '3', out: commandOutputPath('guide-scenarios.page3.json') },
+        },
+        '/nonexistent',
+        'free'
+      );
+      expect(readCommandOutput<{ count: number }>('guide-scenarios.page3.json')).toMatchObject({
+        count: 1,
+      });
+
+      const manifestPath = resolve(
+        commandOutputRoot,
+        writeEmptyManifest('guide-scenarios-empty-manifest.json')
+      );
+      logs = [];
+      await expect(
+        runGuideScenarios(
+          { command: 'guide-scenarios', flags: { page: '3', manifest: manifestPath } },
+          '/nonexistent',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(logs.join('\n')).toContain('asset scope: free');
+      expect(logs.join('\n')).toContain('missing assets:');
+      expect(logs.join('\n')).toContain('  - hex_road_A');
+
+      await expect(
+        runGuideScenarios(
+          {
+            command: 'guide-scenarios',
+            flags: { page: '3', manifest: manifestPath, markdown: true },
+          },
+          '/nonexistent',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+
+      await expect(
+        runGuideScenarios(
+          { command: 'guide-scenarios', flags: { scenarioId: 'missing-scenario' } },
+          '/nonexistent',
+          'free'
+        )
+      ).rejects.toThrow(/guide-scenarios selection did not match/);
+      await expect(
+        runGuideScenarios(
+          { command: 'guide-scenarios', flags: { assetScope: 'invalid' } },
+          '/nonexistent',
+          'free'
+        )
+      ).rejects.toThrow(/Unsupported guide scenario asset scope/);
+    } finally {
+      if (mutableAssetIds && originalAssetIds) {
+        mutableAssetIds.splice(0, mutableAssetIds.length, ...originalAssetIds);
+      }
+      stdoutSpy?.mockRestore();
+      exitSpy?.mockRestore();
+      if (previousOutRoot === undefined) {
+        delete process.env.HEX_WORLDS_OUT_ROOT;
+      } else {
+        process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+      }
+    }
   });
 
   it('guide-render-requests run() delegates to runGuideRenderRequests', async () => {
