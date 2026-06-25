@@ -8,13 +8,13 @@ import { harnessCoverage } from './vitest.coverage.shared';
 const packageRoot = dirname(fileURLToPath(import.meta.url));
 const extraSourceRoot = resolve(
   packageRoot,
-  '../../references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA/Assets/gltf'
+  'references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA/Assets/gltf'
 );
-const extraTextureRoot = resolve(packageRoot, '../../references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA/Textures');
+const extraTextureRoot = resolve(packageRoot, 'references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA/Textures');
 
 export default defineConfig({
   optimizeDeps: {
-    include: ['koota'],
+    include: ['koota', 'koota/react', 'react', 'react-dom/client'],
   },
   resolve: {
     alias: packageAliases(),
@@ -25,7 +25,7 @@ export default defineConfig({
   },
   server: {
     fs: {
-      allow: ['../..'],
+      allow: [packageRoot, extraSourceRoot, extraTextureRoot],
     },
   },
   test: {
