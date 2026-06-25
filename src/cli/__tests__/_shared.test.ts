@@ -14,28 +14,45 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   assetIdFromPath,
   defaultOutRoot,
+  emitOutput,
+  formatCounts,
   formatGuideScenarioPages,
+  formatShape,
   hasPieceFillFlags,
   isPatrolRouteSet,
   isRecord,
   normalizePieceId,
+  pieceFillFromFlags,
+  pieceSelectionFromFlags,
+  pieceSourceUrlOptionsFromFlags,
+  printAnalysis,
+  printCompatibility,
+  printPieceRegistryAnalysis,
+  printSpawnGroupPlan,
   readBoardForwardEdge,
   readCsv,
+  readGlbJson,
+  readGltfMetadata,
   readGuideAssetIdFilter,
   readGuideScenarioEditionFilter,
   readGuideScenarioPageFilter,
   readGuideUsageCategoryFilter,
   readGuideUsageMinimumEdition,
   readGuideUsageRoleFilter,
+  readIntendedRole,
   readJson,
   readModelForward,
   readNumberFlag,
   readPatrolRouteOptions,
+  readPieceFillMode,
+  readPieceRegistry,
+  readPieceRole,
   readPieceSourceRoots,
+  readRegistry,
   readSimulationScript,
   readSpawnGroupOptions,
   relativizePath,
@@ -291,5 +308,184 @@ describe('scalar CLI helpers (PRD E0h)', () => {
     expect(() => readNumberFlag('nope')).toThrow(/numeric flag/);
     expect(() => readModelForward('north')).toThrow(/modelForward/);
     expect(() => readBoardForwardEdge('6')).toThrow(/boardForwardEdge/);
+  });
+});
+
+describe('shared registry, output, metadata, and print helpers (PRD E0h)', () => {
+  it('covers registry validation, output emission, GLTF metadata, and piece flags', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'shared-helper-branches-'));
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(String(message));
+    });
+    const previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = dir;
+    try {
+      const registryPath = join(dir, 'registry.json');
+      const invalidRegistryPath = join(dir, 'invalid-registry.json');
+      const pieceRegistryPath = join(dir, 'pieces.json');
+      const invalidPieceRegistryPath = join(dir, 'invalid-pieces.json');
+      const missingPieceRegistryPath = join(dir, 'missing-pieces.json');
+      writeFileSync(registryPath, JSON.stringify([]), 'utf8');
+      writeFileSync(invalidRegistryPath, JSON.stringify({ declarations: 'bad' }), 'utf8');
+      writeFileSync(pieceRegistryPath, JSON.stringify({ declaration: { id: 'piece-1', assetId: 'asset-1' } }), 'utf8');
+      writeFileSync(invalidPieceRegistryPath, JSON.stringify(null), 'utf8');
+      writeFileSync(missingPieceRegistryPath, JSON.stringify({ nope: [] }), 'utf8');
+
+      expect(readRegistry(registryPath).declarations).toEqual([]);
+      expect(() => readRegistry(invalidRegistryPath)).toThrow(/Registry file/);
+      expect(readPieceRegistry(pieceRegistryPath).pieces).toHaveLength(1);
+      expect(() => readPieceRegistry(invalidPieceRegistryPath)).toThrow(/Piece registry file/);
+      expect(() => readPieceRegistry(missingPieceRegistryPath)).toThrow(/Piece registry file/);
+
+      emitOutput({ out: 'payload.json' }, { ok: true }, 'payload');
+      emitOutput({}, { ok: false }, 'payload');
+      expect(readJson(join(dir, 'payload.json'))).toEqual({ ok: true });
+      expect(logs.join('\n')).toContain('"ok": false');
+
+      const gltfPath = join(dir, 'asset.gltf');
+      writeFileSync(
+        gltfPath,
+        JSON.stringify({ accessors: [{ min: [-1, -2, -3], max: [1, 2, 3] }], animations: [{}, { name: 'walk' }], materials: [{}, { name: 'mat' }], meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }], nodes: [{ skin: 0 }], skins: [{}] }),
+        'utf8'
+      );
+      expect(readGltfMetadata(gltfPath)).toMatchObject({
+        bounds: { min: [-1, -2, -3], max: [1, 2, 3], size: [2, 4, 6] },
+        hasRig: true,
+        animationNames: ['animation_0', 'walk'],
+        materialSlots: ['material_0', 'mat'],
+      });
+      expect(() => readGlbJson(gltfPath)).toThrow(/Invalid GLB header/);
+
+      expect(formatCounts({})).toBe('none');
+      expect(formatCounts({ a: 2, b: undefined })).toBe('a=2');
+      expect(formatShape({ kind: 'hexagon', radius: 3 })).toBe('hexagon radius 3');
+      expect(readIntendedRole('tile')).toBe('tile');
+      expect(readIntendedRole('other')).toBeUndefined();
+      expect(readPieceRole('tree')).toBe('tree');
+      expect(readPieceRole('other')).toBeUndefined();
+      expect(readPieceFillMode('pool')).toBe('pool');
+      expect(readPieceFillMode('other')).toBeUndefined();
+      expect(
+        pieceSelectionFromFlags({
+          ids: 'piece-1,piece-2',
+          assetIds: 'asset-1',
+          role: 'building',
+          roles: 'tree,prop,other',
+          sourcePack: 'fixture-pack',
+          tags: 'forest',
+          excludeTags: 'dead',
+          requiresExtra: true,
+          freeOnly: true,
+        })
+      ).toMatchObject({
+        ids: ['piece-1', 'piece-2'],
+        assetIds: ['asset-1'],
+        roles: ['building', 'tree', 'prop'],
+        sources: ['fixture-pack'],
+        tags: ['forest'],
+        excludeTags: ['dead'],
+        requiresExtra: false,
+      });
+      expect(
+        pieceFillFromFlags({
+          ids: 'piece-1',
+          mode: 'pool',
+          id: 'fill-1',
+          ruleIdPrefix: 'rule',
+          count: '2',
+          fill: '0.5',
+          minCount: '1',
+          maxCount: '4',
+        })
+      ).toMatchObject({
+        id: 'fill-1',
+        ruleIdPrefix: 'rule',
+        mode: 'pool',
+        count: 2,
+        fill: 0.5,
+        minCount: 1,
+        maxCount: 4,
+      });
+      expect(
+        pieceSourceUrlOptionsFromFlags({
+          pieceSourceRoot: '/assets/default',
+          pieceSourceRoots: '{"fixture":"/assets/fixture"}',
+          unencodedSourceUrls: true,
+        })
+      ).toMatchObject({
+        sourceRoot: '/assets/default',
+        sourceRoots: { fixture: '/assets/fixture' },
+        encode: false,
+      });
+    } finally {
+      logSpy.mockRestore();
+      if (previousOutRoot === undefined) {
+        delete process.env.HEX_WORLDS_OUT_ROOT;
+      } else {
+        process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+      }
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('covers readable helper reports with warnings, checks, routes, and compatibility errors', () => {
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(String(message));
+    });
+    try {
+      printAnalysis({
+        tileCount: 1, analyzedCount: 1, recommendedScale: 1.25, medianWidth: 2, medianDepth: 3, medianHeight: 4, rowSpacing: 5,
+        warnings: ['analysis warning'],
+      } as never);
+      printPieceRegistryAnalysis({
+        pieceCount: 1,
+        localOnlyCount: 1,
+        roleCounts: { tree: 1 },
+        sourceCounts: { local: 1 },
+        tagCounts: { forest: 1 },
+        checks: [{ id: 'check-1', selectedCount: 1, mode: 'all', selectedIds: ['piece-1'] }],
+        warnings: ['piece warning'],
+        errors: ['piece error'],
+      } as never);
+      printSpawnGroupPlan({
+        seed: 'seed',
+        groupCount: 1,
+        selectedLocationCount: 1,
+        routeChecks: [{ found: true }, { found: false }],
+        groups: [
+          {
+            id: 'group-1',
+            selectedCount: 1,
+            requestedCount: 2,
+            rejectedByGroupDistanceCount: 1,
+            locations: [{ key: '0,0' }],
+            routeChecks: [
+              { toGroupId: 'group-2', found: true, fromKey: '0,0', toKey: '1,0', cost: 1.2345 },
+              { toGroupId: 'group-3', found: false },
+            ],
+            warnings: ['group warning'],
+            errors: ['group error'],
+          },
+        ],
+      } as never);
+      printCompatibility({
+        id: 'asset-1', sourcePack: 'fixture', compatibleAsTile: false, suggestedRole: 'prop',
+        placement: { footprint: 'single', scale: 1, modelForward: '+z', boardForwardEdge: 0, rotationSteps: 0, facingErrorRadians: 0 },
+        tile: { widthScale: 1, depthScale: 1 },
+        warnings: [],
+        errors: ['compat error'],
+      } as never);
+    } finally {
+      logSpy.mockRestore();
+    }
+
+    const output = logs.join('\n');
+    expect(output).toContain('analysis warning');
+    expect(output).toContain('pieces: piece-1');
+    expect(output).toContain('warning: group warning');
+    expect(output).toContain('errors:');
+    expect(output).toContain('compat error');
   });
 });
