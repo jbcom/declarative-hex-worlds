@@ -429,12 +429,11 @@ describe('gameboard plan builder', () => {
     const { gameboardPlacementBlocksOccupancy, gameboardPlacementFootprintKeys } = await import(
       '../../gameboard/occupancy'
     );
-    // biome-ignore lint/suspicious/noExplicitAny: minimal fixture matching GameboardPlacementOccupancyLike
-    const placement: any = {
+    const placement = {
       id: 'wall-1',
       tileKey: '0,0',
-      kind: 'structure',
-      layer: 'structure',
+      kind: 'structure' as const,
+      layer: 'structure' as const,
       metadata: { layoutFootprintTiles: '1,0|0,1' },
     };
     // Default blocks.
