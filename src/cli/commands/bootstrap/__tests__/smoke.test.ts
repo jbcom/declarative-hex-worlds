@@ -5,7 +5,7 @@
  * pure helpers (URL formatting, target path resolution) behave as documented.
  * Full extraction / mirroring coverage lives in `bootstrap.test.ts` (RB5).
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   KAYKIT_BOOTSTRAP_GLTF_RELATIVE,
   KAYKIT_BOOTSTRAP_SIDECAR,
@@ -48,6 +48,30 @@ describe('bootstrap programmatic surface', () => {
     // With flat layout, gltfRoot === assetRoot
     expect(resolveBootstrapGltfRoot(assetRoot)).toBe('/example/app/public/models');
     expect(resolveBootstrapSidecarPath(assetRoot)).toBe('/example/app/public/models/.bootstrap.json');
+  });
+
+  it('resolves bootstrap target paths for nested GLTF layouts', async () => {
+    vi.resetModules();
+    vi.doMock('../../../../config', () => ({
+      BOOTSTRAP_PATHS: {
+        gltfRelative: 'addons/kaykit/Assets/gltf',
+        textureRelative: 'addons/kaykit/Textures',
+        sidecarFileName: '.nested-bootstrap.json',
+      },
+    }));
+    try {
+      const target = await import('../target');
+      expect(target.KAYKIT_BOOTSTRAP_GLTF_RELATIVE).toBe('addons/kaykit/Assets/gltf');
+      expect(target.resolveBootstrapGltfRoot('/example/app/public/models')).toBe(
+        '/example/app/public/models/addons/kaykit/Assets/gltf'
+      );
+      expect(target.resolveBootstrapSidecarPath('/example/app/public/models')).toBe(
+        '/example/app/public/models/.nested-bootstrap.json'
+      );
+    } finally {
+      vi.doUnmock('../../../../config');
+      vi.resetModules();
+    }
   });
 
   it('exposes bootstrapKayKitAssets + verifyBootstrap as async functions', () => {

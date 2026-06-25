@@ -1,4 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   createTypesAttestationSource,
@@ -83,6 +86,35 @@ describe('scripts/smoke/types', () => {
         hasReactHook: true,
       },
     ]);
+  });
+
+  it('uses filesystem, compiler, and logger defaults when dependencies are omitted', () => {
+    const root = mkdtempSync(join(tmpdir(), 'hex-worlds-types-defaults-'));
+    const appRoot = join(root, 'app');
+    const tscBin = join(root, 'node_modules/typescript/bin');
+    mkdirSync(appRoot, { recursive: true });
+    mkdirSync(tscBin, { recursive: true });
+    writeFileSync(join(tscBin, 'tsc'), 'process.exit(0);\n');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    try {
+      runTypesAttestation({
+        workspaceRoot: root,
+        packageRoot: root,
+        tempRoot: root,
+        packRoot: join(root, 'pack'),
+        appRoot,
+        keepTemp: false,
+      });
+
+      expect(readFileSync(join(appRoot, 'smoke-types.ts'), 'utf8')).toContain(
+        "from 'declarative-hex-worlds';"
+      );
+      expect(logSpy).toHaveBeenCalledWith('packed consumer types attestation passed');
+    } finally {
+      logSpy.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
 
