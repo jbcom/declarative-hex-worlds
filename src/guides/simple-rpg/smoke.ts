@@ -58,6 +58,36 @@ import { createGameboardWorldFromScenario, type GameboardScenario } from 'declar
 import { SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS } from './exercises';
 import type { SimpleRpgExecutableGuideApiSmokeSummary } from './types';
 
+type SmokePlanTile = GameboardPlan['tiles'][number];
+
+interface SmokeViolation {
+  readonly severity?: string;
+}
+
+interface SmokeRuleLike {
+  readonly id?: string;
+}
+
+interface SmokePieceLike {
+  readonly id: string;
+}
+
+export function selectSimpleRpgSmokePlanTile(plan: Pick<GameboardPlan, 'tiles'>): SmokePlanTile {
+  const firstTile = plan.tiles.find((tile) => tile.key === '0,0') ?? plan.tiles[0];
+  if (!firstTile) {
+    throw new Error('SimpleRPG executable smoke requires at least one plan tile');
+  }
+  return firstTile;
+}
+
+export function countSimpleRpgErrorViolations(violations: readonly SmokeViolation[]): number {
+  return violations.filter((violation) => violation.severity === 'error').length;
+}
+
+export function simpleRpgLayoutFillRuleId(rule: SmokeRuleLike, piece: SmokePieceLike): string {
+  return rule.id ?? piece.id;
+}
+
 /**
  * Runs direct public helper calls that are useful to games but too low-level to
  * prove only through the playable scenario path.
@@ -97,10 +127,7 @@ export function runSimpleRpgExecutableGuideApiSmoke(
     minDistance: 2,
   });
   const hexagonGridCellCount = [...createHexagonGameboardGrid({ radius: 2 })].length;
-  const firstTile = runtime.plan.tiles.find((tile) => tile.key === '0,0') ?? runtime.plan.tiles[0];
-  if (!firstTile) {
-    throw new Error('SimpleRPG executable smoke requires at least one plan tile');
-  }
+  const firstTile = selectSimpleRpgSmokePlanTile(runtime.plan);
   const planFromTiles: GameboardPlan = createGameboardPlanFromTiles({
     seed: 'simple-rpg-plan-from-tiles-smoke',
     shape: { kind: 'rectangle', width: 1, height: 1 },
@@ -117,7 +144,7 @@ export function runSimpleRpgExecutableGuideApiSmoke(
     assetId: 'hex_grass',
     role: 'base',
     terrain: 'grass',
-    bounds: freeManifest.assetsById['hex_grass']?.bounds,
+    bounds: freeManifest.assetsById.hex_grass?.bounds,
   } as const;
   const declaredGrassTile = declareHexTile(grassTileDeclaration);
   const registry = createHexTileRegistry([grassTileDeclaration]);
@@ -209,17 +236,13 @@ export function runSimpleRpgExecutableGuideApiSmoke(
     hexagonGridCellCount,
     planFromTilesPlacementCount: planFromTiles.placements.length,
     recipePlanPlacementCount: recipePlan.placements.length,
-    recipeValidationErrorCount: validateGameboardRecipe(recipe).filter(
-      (violation) => violation.severity === 'error'
-    ).length,
-    recipeGenerationErrorCount: validateGameboardRecipeGeneration(recipe).filter(
-      (violation) => violation.severity === 'error'
-    ).length,
+    recipeValidationErrorCount: countSimpleRpgErrorViolations(validateGameboardRecipe(recipe)),
+    recipeGenerationErrorCount: countSimpleRpgErrorViolations(validateGameboardRecipeGeneration(recipe)),
     registryTileCount: registryAnalysis.tileCount,
     declaredTileAssetId: declaredGrassTile.assetId,
     registryWarningCount: registryAnalysis.warnings.length,
     layoutArchetypeIds: Object.keys(archetypes).sort(),
-    layoutFillRuleId: layoutFillRule.id ?? piece.id,
+    layoutFillRuleId: simpleRpgLayoutFillRuleId(layoutFillRule, piece),
     seededPlanTileCount: seededPlan.tiles.length,
     blueprintPlanTileCount: blueprintPlan.tiles.length,
     blueprintRecipeStepCount: blueprintRecipe.steps.length,
