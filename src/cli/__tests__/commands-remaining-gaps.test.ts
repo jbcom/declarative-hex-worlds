@@ -11,6 +11,7 @@ import { run as runGuideAssets } from '../commands/guide-assets';
 import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runPatrolRoutes } from '../commands/patrol-routes';
+import { run as runPlacePiece } from '../commands/place-piece';
 import { run as runValidateManifest } from '../commands/validate-manifest';
 import { run as runValidatePlan } from '../commands/validate-plan';
 import { run as runValidateRecipe } from '../commands/validate-recipe';
@@ -294,6 +295,150 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     expect(joined).toContain('error: Patrol route bad-watch requires at least 2 waypoints');
   });
 
+  it('covers place-piece validation, selection, output, and readable exits', async () => {
+    const planPath = writeJson('piece.plan.json', patrolPlan());
+    const registryPath = writeJson('pieces.json', pieceRegistry());
+
+    await expect(
+      runPlacePiece(
+        { command: 'place-piece', flags: { pieces: registryPath } },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/requires exactly one/);
+    await expect(
+      runPlacePiece(
+        {
+          command: 'place-piece',
+          flags: {
+            plan: planPath,
+            recipe: writeJson('piece.recipe.json', invalidRecipe()),
+            pieces: registryPath,
+          },
+        },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/requires exactly one/);
+    await expect(
+      runPlacePiece(
+        { command: 'place-piece', flags: { plan: planPath } },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/requires --pieces/);
+    await expect(
+      runPlacePiece(
+        {
+          command: 'place-piece',
+          flags: { plan: planPath, pieces: registryPath, pieceId: 'missing-piece' },
+        },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/matched no pieces/);
+    await expect(
+      runPlacePiece(
+        { command: 'place-piece', flags: { plan: planPath, pieces: registryPath } },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/matched 3 pieces/);
+
+    await runPlacePiece(
+      {
+        command: 'place-piece',
+        flags: {
+          plan: planPath,
+          pieces: registryPath,
+          pieceId: 'prop-crate',
+          count: '2',
+          seed: 'crate-seed',
+          idPrefix: 'placed-crate',
+          json: true,
+        },
+      },
+      '/missing-source',
+      'free'
+    );
+    const payload = JSON.parse(logs.at(-1) ?? '{}') as {
+      pieceId: string;
+      placements: Array<{ id: string }>;
+    };
+    expect(payload.pieceId).toBe('prop-crate');
+    expect(payload.placements.map((placement) => placement.id)).toEqual([
+      'placed-crate:0',
+      'placed-crate:1',
+    ]);
+
+    logs.length = 0;
+    await runPlacePiece(
+      {
+        command: 'place-piece',
+        flags: {
+          plan: planPath,
+          pieces: registryPath,
+          assetId: 'fixture:crate',
+          out: 'piece-inspection.json',
+          outPlan: 'piece-plan.json',
+        },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote placed GameboardPlan to');
+    expect(logs.join('\n')).toContain('Wrote piece placement inspection to');
+
+    logs.length = 0;
+    await runPlacePiece(
+      {
+        command: 'place-piece',
+        flags: { plan: planPath, pieces: registryPath, id: 'prop-crate', minCount: '1' },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('piece: prop-crate');
+    expect(logs.join('\n')).toContain('placement tiles:');
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      await expect(
+        runPlacePiece(
+          {
+            command: 'place-piece',
+            flags: {
+              plan: writeJson('piece.invalid-plan.json', invalidPlan()),
+              pieces: registryPath,
+              pieceId: 'prop-crate',
+            },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      await expect(
+        runPlacePiece(
+          {
+            command: 'place-piece',
+            flags: {
+              plan: planPath,
+              pieces: registryPath,
+              pieceId: 'blocked-crate',
+              minCount: '1',
+            },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
   function writeSyntheticSourceRoot(name: string): string {
     writeGltf(`${name}/Assets/gltf/tiles/hex_fixture.gltf`, [-0.5, 0, -0.5], [0.5, 0.25, 0.5]);
     return resolve(root, name);
@@ -404,6 +549,31 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
       tiles,
       placements: [],
       warnings: [],
+    };
+  }
+
+  function pieceRegistry(): unknown {
+    return {
+      pieces: [
+        {
+          id: 'prop-crate',
+          assetId: 'fixture:crate',
+          role: 'prop',
+          criteria: { terrain: ['grass'], edgePadding: 0 },
+        },
+        {
+          id: 'prop-barrel',
+          assetId: 'fixture:barrel',
+          role: 'prop',
+          criteria: { terrain: ['grass'], edgePadding: 0 },
+        },
+        {
+          id: 'blocked-crate',
+          assetId: 'fixture:blocked',
+          role: 'prop',
+          criteria: { terrain: ['water'], edgePadding: 0 },
+        },
+      ],
     };
   }
 });
