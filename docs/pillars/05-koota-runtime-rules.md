@@ -34,6 +34,8 @@ implementation_links:
   - src/coordinates/layout.ts
   - src/movement/movement.ts
   - src/gameboard/navigation.ts
+  - src/gameboard/spawn-groups.ts
+  - src/gameboard/patrol-routes.ts
   - src/gameboard/occupancy.ts
   - src/patrol/patrol.ts
   - src/pieces/pieces.ts
@@ -536,14 +538,17 @@ tile occupancy indexes from `GameboardPlan`, expands `layoutFootprintTiles` into
 tile occupancy, marks structures/units or custom placement metadata/kinds as
 blockers, applies terrain costs and elevation-step limits, and exposes
 plan-aware path, reachable-range, spawn-location, spawn-group, and patrol-route
-planning helpers. `planGameboardSpawnGroups` layers deterministic player/NPC/enemy
-spawn selection on top of board-aware passability, inter-group separation, and
-route checks so generated boards can fail before gameplay when required starts
-cannot reach each other. `planGameboardPatrolRoute` and
-`planGameboardPatrolRoutes` use the same passability layer for NPC schedules,
-guard loops, enemy patrols, and encounter waypoints; they can start from a named
-spawn group or explicit tile and return route segments plus errors before those
-routes are attached to Koota movement or an external ECS. The CLI commands
+planning helpers. Its implementation is split across core navigation,
+`spawn-groups.ts`, and `patrol-routes.ts`, with the public `./navigation`
+subpath re-exporting the complete board-aware planning surface.
+`planGameboardSpawnGroups` layers deterministic player/NPC/enemy spawn selection
+on top of board-aware passability, inter-group separation, and route checks so
+generated boards can fail before gameplay when required starts cannot reach each
+other. `planGameboardPatrolRoute` and `planGameboardPatrolRoutes` use the same
+passability layer for NPC schedules, guard loops, enemy patrols, and encounter
+waypoints; they can start from a named spawn group or explicit tile and return
+route segments plus errors before those routes are attached to Koota movement or
+an external ECS. The CLI commands
 `spawn-groups --plan|--recipe|--scenario` and
 `patrol-routes --plan|--recipe|--scenario` use the same functions for
 build/editor preflight. `createGameboardPatrolSimulationScript` and the
