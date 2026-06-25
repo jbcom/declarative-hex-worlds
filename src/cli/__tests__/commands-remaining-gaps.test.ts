@@ -7,6 +7,7 @@ import { run as runDeclarations } from '../commands/declarations';
 import { run as runDoctor } from '../commands/doctor';
 import { run as runExtract } from '../commands/extract';
 import { run as runGuideApis } from '../commands/guide-apis';
+import { run as runGuideAssets } from '../commands/guide-assets';
 import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runPatrolRoutes } from '../commands/patrol-routes';
@@ -74,6 +75,65 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     expect(joined).toMatch(/\.\.\.[0-9]+ more/);
     expect(joined).toContain('missing assets:');
     expect(joined).toContain('  - ');
+  });
+
+  it('covers guide-assets selected payload and empty filter branches', async () => {
+    await runGuideAssets(
+      {
+        command: 'guide-assets',
+        flags: {
+          assetId: 'barrel',
+          scenarioId: 'page-02-buildings-props-and-factions',
+          page: '2',
+          editionScope: 'free',
+          publicApi: 'GameboardBuilder.addProp',
+          role: 'prop',
+          json: true,
+        },
+      },
+      '/missing-source',
+      'free'
+    );
+    const payload = JSON.parse(logs.at(-1) ?? '{}') as {
+      count: number;
+      selected?: { assetId: string };
+      selection: { assetIds: string[]; pages: number[]; roles: string[] };
+    };
+    expect(payload.count).toBe(1);
+    expect(payload.selected?.assetId).toBe('barrel');
+    expect(payload.selection).toMatchObject({
+      assetIds: ['barrel'],
+      pages: [2],
+      roles: ['prop'],
+    });
+
+    logs.length = 0;
+    await runGuideAssets(
+      { command: 'guide-assets', flags: { assetId: 'barrel', out: 'guide-assets.json' } },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote 1 guide asset coverages to');
+
+    logs.length = 0;
+    await runGuideAssets({ command: 'guide-assets', flags: { role: 'prop' } }, '/missing-source', 'free');
+    expect(logs.join('\n')).toContain('guide assets:');
+    expect(logs.join('\n')).toMatch(/\.\.\.[0-9]+ more/);
+    logs.length = 0;
+    await runGuideAssets({ command: 'guide-assets', flags: { assetId: 'barrel' } }, '/missing-source', 'free');
+    expect(logs.join('\n')).toContain('barrel: prop');
+
+    const expectNoGuideAssetMatch = async (flags: Record<string, string>): Promise<void> => {
+      await expect(
+        runGuideAssets({ command: 'guide-assets', flags }, '/missing-source', 'free')
+      ).rejects.toThrow(/guide-assets selection did not match/);
+    };
+    await expectNoGuideAssetMatch({ assetId: 'missing-asset' });
+    await expectNoGuideAssetMatch({ scenarioId: 'missing-scenario' });
+    await expectNoGuideAssetMatch({ page: '9999' });
+    await expectNoGuideAssetMatch({ editionScope: 'reference' });
+    await expectNoGuideAssetMatch({ publicApi: 'missingApi' });
+    await expectNoGuideAssetMatch({ role: 'missing-role' });
   });
 
   it('covers source-root success and validation exit paths', async () => {
