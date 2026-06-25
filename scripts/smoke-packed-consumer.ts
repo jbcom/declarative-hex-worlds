@@ -17,63 +17,131 @@
  * status 1; later phases are skipped, but `cleanup` always runs via the
  * outer try/finally.
  */
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { runPackInstallSmoke } from './smoke/pack-install.js';
 import { runTypesAttestation } from './smoke/types.js';
 import type { SmokeContext } from './smoke/_shared.js';
+
+type Log = (message: string) => void;
+type ErrorLog = (message: string) => void;
+type Mkdir = (path: string) => void;
+type Mkdtemp = (prefix: string) => string;
+type Rm = (path: string, options: { recursive: true; force: true }) => void;
+type SmokePhase = (ctx: SmokeContext) => void;
+
+export interface PackedConsumerSmokeDependencies {
+  workspaceRoot?: string;
+  env?: NodeJS.ProcessEnv;
+  tmpdirImpl?: () => string;
+  mkdtempSyncImpl?: Mkdtemp;
+  mkdirSyncImpl?: Mkdir;
+  rmSyncImpl?: Rm;
+  runPackInstallSmokeImpl?: SmokePhase;
+  runTypesAttestationImpl?: SmokePhase;
+  log?: Log;
+  error?: ErrorLog;
+}
 
 /**
  * Run `fn` inside a labelled-phase wrapper. Prints a delimiter before the
  * phase, then either `phase <name> PASSED` or `phase <name> FAILED: ...`.
  * Re-throws on failure so the caller can decide whether to continue.
  */
-function phase(name: string, fn: () => void): void {
-  console.log(`========== phase: ${name} ==========`);
+export function phase(
+  name: string,
+  fn: () => void,
+  log: Log = console.log,
+  errorLog: ErrorLog = console.error
+): void {
+  log(`========== phase: ${name} ==========`);
   try {
     fn();
-    console.log(`phase ${name} PASSED`);
+    log(`phase ${name} PASSED`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(`phase ${name} FAILED: ${message}`);
+    errorLog(`phase ${name} FAILED: ${message}`);
     throw error;
   }
 }
 
-const workspaceRoot = resolve(import.meta.dirname, '..');
-const packageRoot = workspaceRoot;
-const tempRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-consumer-'));
-const packRoot = join(tempRoot, 'pack');
-const appRoot = join(tempRoot, 'app');
-const keepTemp = process.env.HEX_WORLDS_KEEP_CONSUMER_SMOKE === '1';
+export function createPackedConsumerSmokeContext(
+  dependencies: PackedConsumerSmokeDependencies = {}
+): SmokeContext {
+  const workspaceRoot = dependencies.workspaceRoot ?? resolve(import.meta.dirname, '..');
+  const tempRoot = (dependencies.mkdtempSyncImpl ?? mkdtempSync)(
+    join((dependencies.tmpdirImpl ?? tmpdir)(), 'medieval-hexagon-consumer-')
+  );
+  return {
+    workspaceRoot,
+    packageRoot: workspaceRoot,
+    tempRoot,
+    packRoot: join(tempRoot, 'pack'),
+    appRoot: join(tempRoot, 'app'),
+    keepTemp: (dependencies.env ?? process.env).HEX_WORLDS_KEEP_CONSUMER_SMOKE === '1',
+  };
+}
 
-const ctx: SmokeContext = {
-  workspaceRoot,
-  packageRoot,
-  tempRoot,
-  packRoot,
-  appRoot,
-  keepTemp,
-};
+export function runPackedConsumerSmoke(dependencies: PackedConsumerSmokeDependencies = {}): number {
+  const ctx = createPackedConsumerSmokeContext(dependencies);
+  const log = dependencies.log ?? console.log;
+  const errorLog = dependencies.error ?? console.error;
+  const mkdir = dependencies.mkdirSyncImpl ?? mkdirSync;
+  const rm = dependencies.rmSyncImpl ?? rmSync;
+  const packInstall = dependencies.runPackInstallSmokeImpl ?? runPackInstallSmoke;
+  const typesAttestation = dependencies.runTypesAttestationImpl ?? runTypesAttestation;
+  let exitCode = 0;
 
-try {
-  phase('setup', () => {
-    mkdirSync(packRoot);
-    mkdirSync(appRoot);
-  });
-  phase('pack-install', () => runPackInstallSmoke(ctx));
-  phase('types-attestation', () => runTypesAttestation(ctx));
-  console.log('ALL PHASES PASSED');
-} catch {
-  process.exitCode = 1;
-} finally {
-  phase('cleanup', () => {
-    if (!keepTemp) {
-      rmSync(tempRoot, { recursive: true, force: true });
-    } else {
-      console.log(`tempdir preserved at ${tempRoot}`);
-    }
-  });
+  try {
+    phase(
+      'setup',
+      () => {
+        mkdir(ctx.packRoot);
+        mkdir(ctx.appRoot);
+      },
+      log,
+      errorLog
+    );
+    phase('pack-install', () => packInstall(ctx), log, errorLog);
+    phase('types-attestation', () => typesAttestation(ctx), log, errorLog);
+    log('ALL PHASES PASSED');
+  } catch {
+    exitCode = 1;
+  } finally {
+    phase(
+      'cleanup',
+      () => {
+        if (!ctx.keepTemp) {
+          rm(ctx.tempRoot, { recursive: true, force: true });
+        } else {
+          log(`tempdir preserved at ${ctx.tempRoot}`);
+        }
+      },
+      log,
+      errorLog
+    );
+  }
+
+  return exitCode;
+}
+
+function isDirectRun(): boolean {
+  if (!process.argv[1]) {
+    return false;
+  }
+  try {
+    return (
+      realpathSync(resolve(process.argv[1])).toLowerCase() ===
+      realpathSync(fileURLToPath(import.meta.url)).toLowerCase()
+    );
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectRun()) {
+  process.exitCode = runPackedConsumerSmoke();
 }
