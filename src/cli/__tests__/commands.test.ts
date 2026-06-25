@@ -25,6 +25,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameboardCliError } from '../../errors';
+import type { GameboardPlan } from '../../gameboard';
 import type { ParsedArgs } from '../_shared';
 import { run as runAnalyze } from '../commands/analyze';
 import { run as runBlueprint } from '../commands/blueprint';
@@ -214,6 +215,53 @@ function writeEmptyManifest(name: string): string {
     assetsById: {},
     counts: { total: 0, byCategory: {}, bySubcategory: {} },
   });
+}
+
+function spawnGroupsCommandPlan(overrides: Partial<GameboardPlan> = {}): GameboardPlan {
+  const tiles: GameboardPlan['tiles'] = [
+    {
+      key: '0,0',
+      coordinates: { q: 0, r: 0 },
+      terrain: 'grass',
+      textureSet: 'default',
+      elevation: 0,
+      baseAssetId: 'fixture_grass',
+      supportAssetId: 'fixture_grass',
+      roadEdges: 0,
+      riverEdges: 0,
+      coastEdges: 0,
+      riverWaterless: false,
+      riverCurvy: false,
+      coastWaterless: false,
+      tags: [],
+    },
+    {
+      key: '1,0',
+      coordinates: { q: 1, r: 0 },
+      terrain: 'grass',
+      textureSet: 'default',
+      elevation: 0,
+      baseAssetId: 'fixture_grass',
+      supportAssetId: 'fixture_grass',
+      roadEdges: 0,
+      riverEdges: 0,
+      coastEdges: 0,
+      riverWaterless: false,
+      riverCurvy: false,
+      coastWaterless: false,
+      tags: [],
+    },
+  ];
+  return {
+    schemaVersion: '1.0.0',
+    seed: 'spawn-groups-command',
+    shape: { kind: 'rectangle', width: 2, height: 1 },
+    textureSet: 'default',
+    tiles,
+    placements: [],
+    warnings: [],
+    ...overrides,
+  };
 }
 
 describe.skipIf(!HAS_FREE_REFERENCES)('CLI validate subcommand (PRD E0h)', () => {
@@ -2499,6 +2547,121 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
     await expect(runSpawnGroups({ command: 'spawn-groups', flags: {} }, '/x', 'free')).rejects.toThrow(
       /spawn-groups requires exactly one of/
     );
+  });
+
+  it('spawn-groups throws when --groups is missing', async () => {
+    await expect(
+      runSpawnGroups({ command: 'spawn-groups', flags: { plan: 'fixture.plan.json' } }, '/x', 'free')
+    ).rejects.toThrow(/spawn-groups requires --groups/);
+  });
+
+  it('spawn-groups prints JSON plans with seed overrides', async () => {
+    const planPath = writeCommandOutput('spawn-groups-json.plan.json', spawnGroupsCommandPlan());
+    const groupsPath = writeCommandOutput('spawn-groups-json.groups.json', [
+      { id: 'party', count: 1 },
+    ]);
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(String(message));
+    });
+
+    try {
+      await runSpawnGroups(
+        {
+          command: 'spawn-groups',
+          flags: {
+            plan: resolve(commandOutputRoot, planPath),
+            groups: resolve(commandOutputRoot, groupsPath),
+            seed: 'spawn-groups-json-seed',
+            json: true,
+          },
+        },
+        '/nonexistent-source-root',
+        'free'
+      );
+    } finally {
+      logSpy.mockRestore();
+    }
+
+    const plan = JSON.parse(logs.join('\n')) as { seed: string; selectedLocationCount: number };
+    expect(plan).toMatchObject({ seed: 'spawn-groups-json-seed', selectedLocationCount: 1 });
+  });
+
+  it('spawn-groups prints validation errors before exiting', async () => {
+    const basePlan = spawnGroupsCommandPlan();
+    const invalidPlan = spawnGroupsCommandPlan({
+      tiles: basePlan.tiles.map((tile, index) =>
+        index === 0 ? { ...tile, terrain: 'water', elevation: 1 } : tile
+      ),
+    });
+    const planPath = writeCommandOutput('spawn-groups-invalid.plan.json', invalidPlan);
+    const groupsPath = writeCommandOutput('spawn-groups-invalid.groups.json', [
+      { id: 'party', count: 1 },
+    ]);
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(String(message));
+    });
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runSpawnGroups(
+          {
+            command: 'spawn-groups',
+            flags: {
+              plan: resolve(commandOutputRoot, planPath),
+              groups: resolve(commandOutputRoot, groupsPath),
+            },
+          },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      logSpy.mockRestore();
+      exitSpy.mockRestore();
+    }
+
+    expect(logs[0]).toBe('validation: 1 error(s), 0 warning(s)');
+    expect(logs.join('\n')).toContain('error: stack.water_elevation 0,0');
+  });
+
+  it('spawn-groups exits when planning errors remain after printing', async () => {
+    const planPath = writeCommandOutput('spawn-groups-errors.plan.json', spawnGroupsCommandPlan());
+    const groupsPath = writeCommandOutput('spawn-groups-errors.groups.json', [
+      { id: 'party', count: 3 },
+    ]);
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(String(message));
+    });
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runSpawnGroups(
+          {
+            command: 'spawn-groups',
+            flags: {
+              plan: resolve(commandOutputRoot, planPath),
+              groups: resolve(commandOutputRoot, groupsPath),
+            },
+          },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      logSpy.mockRestore();
+      exitSpy.mockRestore();
+    }
+
+    expect(logs.join('\n')).toContain('error: Spawn group party selected 2/3 requested location(s)');
   });
 
   it('patrol-routes throws when neither --plan/--recipe/--scenario supplied', async () => {
