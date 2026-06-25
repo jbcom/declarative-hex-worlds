@@ -233,9 +233,7 @@ export function planGameboardSpawnGroups(
   }
 
   const routeChecks = groups.flatMap((group) => [...group.routeChecks]);
-  const warnings = groups.flatMap((group) =>
-    group.warnings.map((warning) => `${group.id}: ${warning}`)
-  );
+  const warnings: string[] = [];
   const errors = groups.flatMap((group) => group.errors.map((error) => `${group.id}: ${error}`));
 
   return {
@@ -309,10 +307,7 @@ function betterSpawnGroupRoute(
   if (candidate.pathKeys.length !== current.pathKeys.length) {
     return candidate.pathKeys.length < current.pathKeys.length;
   }
-  return (
-    `${candidate.fromKey ?? ''}:${candidate.toKey ?? ''}` <
-    `${current.fromKey ?? ''}:${current.toKey ?? ''}`
-  );
+  return `${candidate.fromKey}:${candidate.toKey}` < `${current.fromKey}:${current.toKey}`;
 }
 
 function emptySpawnGroupRoute(fromGroupId: string, toGroupId: string): GameboardSpawnGroupRoute {

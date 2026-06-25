@@ -242,6 +242,12 @@ describe('gameboard quests', () => {
       chapter: 'intro',
       step: 1,
     });
+
+    const defaultMetadataQuest = spawnGameboardQuest(world, {
+      id: 'default-metadata-quest',
+      objectives: [],
+    });
+    expect(findGameboardQuest(world, defaultMetadataQuest)?.quest.metadata).toEqual({});
   });
 
   it('keeps pending fallback progress for objectives not advanced in this step (E0a)', () => {
