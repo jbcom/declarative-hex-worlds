@@ -26,259 +26,64 @@ interface PackResult {
   filename: string;
 }
 
-/**
- * Run the runtime smoke phase against the resolved {@link SmokeContext}.
- *
- * Mutates the tempdir tree (writes `app/package.json`, `app/smoke.mjs`, pulls
- * the tarball into `pack/`) and calls out to `npm` + `node`. The orchestrator
- * is responsible for cleaning up the tempdir in a `finally` block.
- */
-export function runPackInstallSmoke(ctx: SmokeContext): void {
-  const { packageRoot, tempRoot, packRoot, appRoot, keepTemp } = ctx;
-  for (const requiredFile of [
-    'dist/index.js',
-    'dist/examples/blueprint-board-usage.js',
-    'dist/cli.js',
-  ]) {
-    assert(
-      existsSync(join(packageRoot, requiredFile)),
-      `missing ${requiredFile}; run pnpm build before pnpm test:consumer`
-    );
-  }
+export const PACKED_CONSUMER_TEMP_WRITE_OPTIONS = {
+  encoding: 'utf8',
+  mode: 0o600,
+  flag: 'wx',
+} as const;
 
-  const [pack] = JSON.parse(
-    execFileSync('npm', ['pack', '--json', '--pack-destination', packRoot], {
-      cwd: packageRoot,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
-  ) as PackResult[];
-  if (pack === undefined) {
-    throw new Error('npm pack did not return any tarball metadata');
+type SmokeExecFile = (
+  file: string,
+  args: string[],
+  options: {
+    cwd: string;
+    encoding: 'utf8';
+    maxBuffer?: number;
+    stdio: ['ignore', 'pipe', 'pipe'];
   }
-  const tarballPath = join(packRoot, pack.filename);
-  assert(existsSync(tarballPath), `npm pack did not create ${tarballPath}`);
+) => string;
+type SmokeExists = (path: string) => boolean;
+type SmokeWriteFile = (
+  path: string,
+  data: string,
+  options: typeof PACKED_CONSUMER_TEMP_WRITE_OPTIONS
+) => void;
+type SmokeCopyFile = (src: string, dest: string) => void;
+type SmokeLog = (message: string) => void;
 
-  writeFileSync(
-    join(appRoot, 'package.json'),
-    `${JSON.stringify(
-      {
-        private: true,
-        type: 'module',
-        dependencies: {
-          'declarative-hex-worlds': `file:${tarballPath}`,
-          '@types/react': '^19.0.0',
-          koota: '^0.6.6',
-          react: '^19.0.0',
-          three: '^0.184.0',
-        },
+export interface PackInstallSmokeDependencies {
+  execFileSyncImpl?: SmokeExecFile;
+  existsSyncImpl?: SmokeExists;
+  writeFileSyncImpl?: SmokeWriteFile;
+  copyFileSyncImpl?: SmokeCopyFile;
+  log?: SmokeLog;
+}
+
+export function createPackedConsumerPackageJson(tarballPath: string): string {
+  return `${JSON.stringify(
+    {
+      private: true,
+      type: 'module',
+      dependencies: {
+        'declarative-hex-worlds': `file:${tarballPath}`,
+        '@types/react': '^19.0.0',
+        koota: '^0.6.6',
+        react: '^19.0.0',
+        three: '^0.184.0',
       },
-      null,
-      2
-    )}\n`,
-    'utf8'
-  );
+    },
+    null,
+    2
+  )}\n`;
+}
 
-  execFileSync('npm', ['install', '--ignore-scripts', '--no-audit', '--fund=false'], {
-    cwd: appRoot,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-
-  const installedPackageRoot = join(appRoot, 'node_modules/declarative-hex-worlds');
-  const installedCliPath = join(installedPackageRoot, 'dist/cli.js');
-  assert(
-    existsSync(join(installedPackageRoot, 'dist/examples/blueprint-board-usage.js')),
-    'compiled blueprint usage example is missing'
-  );
-  assert(
-    existsSync(join(installedPackageRoot, 'examples/blueprint-board.json')),
-    'blueprint JSON example is missing'
-  );
-  assert(
-    !existsSync(join(installedPackageRoot, 'examples/blueprint-board-usage.ts')),
-    'raw TypeScript blueprint usage example must not be published'
-  );
-  // PRD R4: SimpleRPG is a test driver, not a published example. The
-  // tarball must NOT ship its compiled module, the JSON fixtures, or the
-  // raw TypeScript source.
-  assert(
-    !existsSync(join(installedPackageRoot, 'dist/examples/simple-rpg-usage.js')),
-    'SimpleRPG usage module must not ship in the published tarball'
-  );
-  assert(
-    !existsSync(join(installedPackageRoot, 'examples/simple-rpg-usage.ts')),
-    'raw TypeScript SimpleRPG usage example must not be published'
-  );
-  assert(
-    !existsSync(join(installedPackageRoot, 'examples/simple-rpg-scenario.json')),
-    'SimpleRPG scenario JSON must not ship in the published tarball'
-  );
-  assert(
-    !existsSync(join(installedPackageRoot, 'examples/simple-rpg-simulation.script.json')),
-    'SimpleRPG simulation script JSON must not ship in the published tarball'
-  );
-  // PRD R4: SimpleRPG fixtures live under tests/ and are NOT shipped. To
-  // exercise the packed CLI against a real scenario the workspace fixture
-  // is staged into the consumer tempdir as if the consumer had supplied
-  // their own scenario file.
-  const stagedScenarioPath = join(appRoot, 'simple-rpg-scenario.json');
-  const stagedSimulationScriptPath = join(appRoot, 'simple-rpg-simulation.script.json');
-  copyFileSync(
-    join(packageRoot, 'tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json'),
-    stagedScenarioPath
-  );
-  copyFileSync(
-    join(packageRoot, 'tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json'),
-    stagedSimulationScriptPath
-  );
-  const installedGuideUsageOutput = execFileSync(
-    process.execPath,
-    [
-      installedCliPath,
-      'guide-usages',
-      '--source',
-      join(tempRoot, 'missing-guide-source'),
-      '--page',
-      '14',
-      '--json',
-    ],
-    {
-      cwd: appRoot,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    }
-  );
-  const installedGuideUsage = JSON.parse(installedGuideUsageOutput) as {
-    count: number;
-    occurrenceCounts: { extra: number; scenarios: number; pages: number };
-    assetIds: string[];
-  };
-  assert(
-    installedGuideUsage.count === 137 &&
-      installedGuideUsage.occurrenceCounts.extra === 137 &&
-      installedGuideUsage.occurrenceCounts.scenarios === 1 &&
-      installedGuideUsage.occurrenceCounts.pages === 1 &&
-      installedGuideUsage.assetIds.includes('unit_blue_full'),
-    'packed CLI guide-usages command did not emit page 14 renderer rows'
-  );
-  const installedSummaryOutput = execFileSync(
-    process.execPath,
-    [
-      installedCliPath,
-      'summarize-plan',
-      '--scenario',
-      stagedScenarioPath,
-      '--manifest',
-      join(installedPackageRoot, 'assets/free/manifest.json'),
-      '--json',
-    ],
-    {
-      cwd: appRoot,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    }
-  );
-  const installedSummary = JSON.parse(installedSummaryOutput) as {
-    source: { kind: string };
-    validation: { errorCount: number };
-    summary: {
-      tileCount: number;
-      placementCount: number;
-      placementKindCounts: Record<string, number>;
-    };
-  };
-  assert(
-    installedSummary.source.kind === 'scenario' &&
-      installedSummary.validation.errorCount === 0 &&
-      installedSummary.summary.tileCount > 0 &&
-      installedSummary.summary.placementCount > 0 &&
-      (installedSummary.summary.placementKindCounts.terrain ?? 0) > 0,
-    'packed CLI summarize-plan command did not emit scenario board counts'
-  );
-  const installedScenarioSummaryOutput = execFileSync(
-    process.execPath,
-    [
-      installedCliPath,
-      'summarize-scenario',
-      '--scenario',
-      stagedScenarioPath,
-      '--manifest',
-      join(installedPackageRoot, 'assets/free/manifest.json'),
-      '--json',
-    ],
-    {
-      cwd: appRoot,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    }
-  );
-  const installedScenarioSummary = JSON.parse(installedScenarioSummaryOutput) as {
-    scenarioId: string;
-    validation: { errorCount: number };
-    actorCount: number;
-    questCount: number;
-    objectiveCount: number;
-    actorKindCounts: Record<string, number>;
-  };
-  assert(
-    installedScenarioSummary.scenarioId === 'docs-simple-rpg-scenario' &&
-      installedScenarioSummary.validation.errorCount === 0 &&
-      installedScenarioSummary.actorCount > 0 &&
-      installedScenarioSummary.questCount > 0 &&
-      installedScenarioSummary.objectiveCount > 0 &&
-      (installedScenarioSummary.actorKindCounts.player ?? 0) > 0,
-    'packed CLI summarize-scenario command did not emit playable scenario counts'
-  );
-  const installedCoverageOutput = execFileSync(
-    process.execPath,
-    [installedCliPath, 'coverage', '--checksPassed', '--json'],
-    {
-      cwd: appRoot,
-      encoding: 'utf8',
-      maxBuffer: COVERAGE_CLI_MAX_BUFFER_BYTES,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    }
-  );
-  const installedCoverage = JSON.parse(installedCoverageOutput) as {
-    simpleRpgEvidence?: {
-      publicApiExercises?: Array<{
-        assetCount: number;
-        modes: string[];
-        pages: number[];
-        publicApi: string;
-      }>;
-    };
-  };
-  const installedCoverageBridgeExercise =
-    installedCoverage.simpleRpgEvidence?.publicApiExercises?.find(
-      (exercise) => exercise.publicApi === 'GameboardBuilder.addBridge'
-    );
-  const installedCoverageMarkdown = execFileSync(
-    process.execPath,
-    [installedCliPath, 'coverage', '--checksPassed', '--markdown'],
-    {
-      cwd: appRoot,
-      encoding: 'utf8',
-      maxBuffer: COVERAGE_CLI_MAX_BUFFER_BYTES,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    }
-  );
-  assert(
-    installedCoverage.simpleRpgEvidence?.publicApiExercises?.length === 74 &&
-      installedCoverageBridgeExercise?.assetCount === 2 &&
-      installedCoverageBridgeExercise.pages.join(',') === '2,7,9' &&
-      installedCoverageBridgeExercise.modes.includes('visual-coverage') &&
-      installedCoverageMarkdown.includes('### SimpleRPG Exercise Matrix') &&
-      installedCoverageMarkdown.includes(
-        '| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 |'
-      ),
-    'packed CLI coverage command did not emit the SimpleRPG public API exercise matrix'
-  );
-
-  writeFileSync(
-    join(appRoot, 'smoke.mjs'),
-    `
+/**
+ * Build the generated runtime smoke source that runs inside the installed
+ * consumer fixture app. Kept as a function so unit coverage can pin the
+ * published runtime surface without invoking npm install.
+ */
+export function createPackedConsumerRuntimeSmokeSource(): string {
+  return `
 import {
   createGameboardBuilder,
   createGameboardInteropSnapshot,
@@ -1363,16 +1168,267 @@ console.log(JSON.stringify({
   simulationSubpathActionCount: simulationSubpathActions.length,
   simulationActorTargetCommandStepAction: simulationActorTargetCommandStep.action,
 }, null, 2));
-`,
-    'utf8'
+`;
+}
+
+/**
+ * Run the runtime smoke phase against the resolved {@link SmokeContext}.
+ *
+ * Mutates the tempdir tree (writes `app/package.json`, `app/smoke.mjs`, pulls
+ * the tarball into `pack/`) and calls out to `npm` + `node`. The orchestrator
+ * is responsible for cleaning up the tempdir in a `finally` block.
+ */
+export function runPackInstallSmoke(
+  ctx: SmokeContext,
+  dependencies: PackInstallSmokeDependencies = {}
+): void {
+  const {
+    execFileSyncImpl = execFileSync as SmokeExecFile,
+    existsSyncImpl = existsSync,
+    writeFileSyncImpl = writeFileSync as SmokeWriteFile,
+    copyFileSyncImpl = copyFileSync,
+    log = console.log,
+  } = dependencies;
+  const { packageRoot, tempRoot, packRoot, appRoot, keepTemp } = ctx;
+  for (const requiredFile of [
+    'dist/index.js',
+    'dist/examples/blueprint-board-usage.js',
+    'dist/cli.js',
+  ]) {
+    assert(
+      existsSyncImpl(join(packageRoot, requiredFile)),
+      `missing ${requiredFile}; run pnpm build before pnpm test:consumer`
+    );
+  }
+
+  const [pack] = JSON.parse(
+    execFileSyncImpl('npm', ['pack', '--json', '--pack-destination', packRoot], {
+      cwd: packageRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+  ) as PackResult[];
+  if (pack === undefined) {
+    throw new Error('npm pack did not return any tarball metadata');
+  }
+  const tarballPath = join(packRoot, pack.filename);
+  assert(existsSyncImpl(tarballPath), `npm pack did not create ${tarballPath}`);
+
+  writeFileSyncImpl(
+    join(appRoot, 'package.json'),
+    createPackedConsumerPackageJson(tarballPath),
+    PACKED_CONSUMER_TEMP_WRITE_OPTIONS
   );
 
-  const smokeOutput = execFileSync(process.execPath, ['smoke.mjs'], {
+  execFileSyncImpl('npm', ['install', '--ignore-scripts', '--no-audit', '--fund=false'], {
     cwd: appRoot,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
-  const binOutput = execFileSync(
+
+  const installedPackageRoot = join(appRoot, 'node_modules/declarative-hex-worlds');
+  const installedCliPath = join(installedPackageRoot, 'dist/cli.js');
+  assert(
+    existsSyncImpl(join(installedPackageRoot, 'dist/examples/blueprint-board-usage.js')),
+    'compiled blueprint usage example is missing'
+  );
+  assert(
+    existsSyncImpl(join(installedPackageRoot, 'examples/blueprint-board.json')),
+    'blueprint JSON example is missing'
+  );
+  assert(
+    !existsSyncImpl(join(installedPackageRoot, 'examples/blueprint-board-usage.ts')),
+    'raw TypeScript blueprint usage example must not be published'
+  );
+  // PRD R4: SimpleRPG is a test driver, not a published example. The
+  // tarball must NOT ship its compiled module, the JSON fixtures, or the
+  // raw TypeScript source.
+  assert(
+    !existsSyncImpl(join(installedPackageRoot, 'dist/examples/simple-rpg-usage.js')),
+    'SimpleRPG usage module must not ship in the published tarball'
+  );
+  assert(
+    !existsSyncImpl(join(installedPackageRoot, 'examples/simple-rpg-usage.ts')),
+    'raw TypeScript SimpleRPG usage example must not be published'
+  );
+  assert(
+    !existsSyncImpl(join(installedPackageRoot, 'examples/simple-rpg-scenario.json')),
+    'SimpleRPG scenario JSON must not ship in the published tarball'
+  );
+  assert(
+    !existsSyncImpl(join(installedPackageRoot, 'examples/simple-rpg-simulation.script.json')),
+    'SimpleRPG simulation script JSON must not ship in the published tarball'
+  );
+  // PRD R4: SimpleRPG fixtures live under tests/ and are NOT shipped. To
+  // exercise the packed CLI against a real scenario the workspace fixture
+  // is staged into the consumer tempdir as if the consumer had supplied
+  // their own scenario file.
+  const stagedScenarioPath = join(appRoot, 'simple-rpg-scenario.json');
+  const stagedSimulationScriptPath = join(appRoot, 'simple-rpg-simulation.script.json');
+  copyFileSyncImpl(
+    join(packageRoot, 'tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json'),
+    stagedScenarioPath
+  );
+  copyFileSyncImpl(
+    join(packageRoot, 'tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json'),
+    stagedSimulationScriptPath
+  );
+  const installedGuideUsageOutput = execFileSyncImpl(
+    process.execPath,
+    [
+      installedCliPath,
+      'guide-usages',
+      '--source',
+      join(tempRoot, 'missing-guide-source'),
+      '--page',
+      '14',
+      '--json',
+    ],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  const installedGuideUsage = JSON.parse(installedGuideUsageOutput) as {
+    count: number;
+    occurrenceCounts: { extra: number; scenarios: number; pages: number };
+    assetIds: string[];
+  };
+  assert(
+    installedGuideUsage.count === 137 &&
+      installedGuideUsage.occurrenceCounts.extra === 137 &&
+      installedGuideUsage.occurrenceCounts.scenarios === 1 &&
+      installedGuideUsage.occurrenceCounts.pages === 1 &&
+      installedGuideUsage.assetIds.includes('unit_blue_full'),
+    'packed CLI guide-usages command did not emit page 14 renderer rows'
+  );
+  const installedSummaryOutput = execFileSyncImpl(
+    process.execPath,
+    [
+      installedCliPath,
+      'summarize-plan',
+      '--scenario',
+      stagedScenarioPath,
+      '--manifest',
+      join(installedPackageRoot, 'assets/free/manifest.json'),
+      '--json',
+    ],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  const installedSummary = JSON.parse(installedSummaryOutput) as {
+    source: { kind: string };
+    validation: { errorCount: number };
+    summary: {
+      tileCount: number;
+      placementCount: number;
+      placementKindCounts: Record<string, number>;
+    };
+  };
+  assert(
+    installedSummary.source.kind === 'scenario' &&
+      installedSummary.validation.errorCount === 0 &&
+      installedSummary.summary.tileCount > 0 &&
+      installedSummary.summary.placementCount > 0 &&
+      (installedSummary.summary.placementKindCounts.terrain ?? 0) > 0,
+    'packed CLI summarize-plan command did not emit scenario board counts'
+  );
+  const installedScenarioSummaryOutput = execFileSyncImpl(
+    process.execPath,
+    [
+      installedCliPath,
+      'summarize-scenario',
+      '--scenario',
+      stagedScenarioPath,
+      '--manifest',
+      join(installedPackageRoot, 'assets/free/manifest.json'),
+      '--json',
+    ],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  const installedScenarioSummary = JSON.parse(installedScenarioSummaryOutput) as {
+    scenarioId: string;
+    validation: { errorCount: number };
+    actorCount: number;
+    questCount: number;
+    objectiveCount: number;
+    actorKindCounts: Record<string, number>;
+  };
+  assert(
+    installedScenarioSummary.scenarioId === 'docs-simple-rpg-scenario' &&
+      installedScenarioSummary.validation.errorCount === 0 &&
+      installedScenarioSummary.actorCount > 0 &&
+      installedScenarioSummary.questCount > 0 &&
+      installedScenarioSummary.objectiveCount > 0 &&
+      (installedScenarioSummary.actorKindCounts.player ?? 0) > 0,
+    'packed CLI summarize-scenario command did not emit playable scenario counts'
+  );
+  const installedCoverageOutput = execFileSyncImpl(
+    process.execPath,
+    [installedCliPath, 'coverage', '--checksPassed', '--json'],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      maxBuffer: COVERAGE_CLI_MAX_BUFFER_BYTES,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  const installedCoverage = JSON.parse(installedCoverageOutput) as {
+    simpleRpgEvidence?: {
+      publicApiExercises?: Array<{
+        assetCount: number;
+        modes: string[];
+        pages: number[];
+        publicApi: string;
+      }>;
+    };
+  };
+  const installedCoverageBridgeExercise =
+    installedCoverage.simpleRpgEvidence?.publicApiExercises?.find(
+      (exercise) => exercise.publicApi === 'GameboardBuilder.addBridge'
+    );
+  const installedCoverageMarkdown = execFileSyncImpl(
+    process.execPath,
+    [installedCliPath, 'coverage', '--checksPassed', '--markdown'],
+    {
+      cwd: appRoot,
+      encoding: 'utf8',
+      maxBuffer: COVERAGE_CLI_MAX_BUFFER_BYTES,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  assert(
+    installedCoverage.simpleRpgEvidence?.publicApiExercises?.length === 74 &&
+      installedCoverageBridgeExercise?.assetCount === 2 &&
+      installedCoverageBridgeExercise.pages.join(',') === '2,7,9' &&
+      installedCoverageBridgeExercise.modes.includes('visual-coverage') &&
+      installedCoverageMarkdown.includes('### SimpleRPG Exercise Matrix') &&
+      installedCoverageMarkdown.includes(
+        '| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 |'
+      ),
+    'packed CLI coverage command did not emit the SimpleRPG public API exercise matrix'
+  );
+
+  writeFileSyncImpl(
+    join(appRoot, 'smoke.mjs'),
+    createPackedConsumerRuntimeSmokeSource(),
+    PACKED_CONSUMER_TEMP_WRITE_OPTIONS
+  );
+
+  const smokeOutput = execFileSyncImpl(process.execPath, ['smoke.mjs'], {
+    cwd: appRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const binOutput = execFileSyncImpl(
     join(appRoot, 'node_modules/.bin/declarative-hex-worlds'),
     ['doctor', '--source', join(appRoot, 'missing-free')],
     {
@@ -1381,7 +1437,7 @@ console.log(JSON.stringify({
       stdio: ['ignore', 'pipe', 'pipe'],
     }
   );
-  const binCoverageDoctorOutput = execFileSync(
+  const binCoverageDoctorOutput = execFileSyncImpl(
     join(appRoot, 'node_modules/.bin/declarative-hex-worlds'),
     ['doctor', '--coverage', '--checksPassed'],
     {
@@ -1417,7 +1473,7 @@ console.log(JSON.stringify({
     'installed CLI doctor --coverage did not emit passing package-aware release-readiness and SimpleRPG evidence'
   );
 
-  console.log(
+  log(
     keepTemp
       ? `packed consumer runtime smoke passed in ${appRoot}`
       : 'packed consumer runtime smoke passed'
