@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-24
+last_verified: 2026-06-25
 source_images:
   - docs/assets/kaykit-guide/montage.png
   - docs/assets/kaykit-guide/pages/page-01.png
@@ -56,6 +56,8 @@ implementation_links:
   - src/scenario/blueprint.ts
   - src/cli/cli.ts
   - src/scenario/catalog.ts
+  - src/scenario/catalog-guide-data.ts
+  - src/scenario/catalog-treatments.ts
   - src/interop/coverage.ts
   - src/interop/compatibility.ts
   - src/three/three.ts

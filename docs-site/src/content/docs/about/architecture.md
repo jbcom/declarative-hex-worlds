@@ -20,7 +20,7 @@ The library is one published npm package (`declarative-hex-worlds`) that interna
 | `gameboard/` | Plan builders, terrain/connectivity placement construction, occupancy-backed navigation, spawn groups, patrol routes | `/gameboard`, `/navigation`, `/occupancy` |
 | `pieces/` | Custom piece declarations + cross-kit compatibility | `/pieces` |
 | `rules/` | Plan + scenario validation, layout fill rules | `/rules`, `/validation`, `/rule-types` |
-| `scenario/` | Recipe → blueprint → scenario compilation, catalog | `/scenario`, `/recipe`, `/blueprint`, `/catalog`, `/registry` |
+| `scenario/` | Recipe → blueprint → scenario compilation, catalog queries, guide-page data, public treatment construction | `/scenario`, `/recipe`, `/blueprint`, `/catalog`, `/registry` |
 | `actors/` | Actor traits, queries, registration, navigation profiles, targets | `/actors` |
 | `movement/` | Movement agents + step execution | `/movement` |
 | `patrol/` | Patrol routes + assignment + scripted patrol simulation | `/patrol` |
