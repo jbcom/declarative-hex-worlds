@@ -289,6 +289,7 @@ export function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: Pa
     );
   }
   if (typeof parsed.flags.outScenario === 'string') {
+    /* v8 ignore next 4 -- shouldInspectBlueprintScenario is true whenever --outScenario is present; this is defensive. */
     if (!scenarioInspection) {
       throw new GameboardCliError(
         'blueprint --outScenario requires scenario options or --includeScenario'
@@ -304,6 +305,7 @@ export function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: Pa
     );
   }
   if (typeof parsed.flags.outScenarioInspection === 'string') {
+    /* v8 ignore next 4 -- shouldInspectBlueprintScenario is true whenever --outScenarioInspection is present; this is defensive. */
     if (!scenarioInspection) {
       throw new GameboardCliError(
         'blueprint --outScenarioInspection requires scenario options or --includeScenarioInspection'
@@ -319,6 +321,7 @@ export function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: Pa
     );
   }
   if (typeof parsed.flags.outInterop === 'string') {
+    /* v8 ignore next 3 -- shouldEmitBlueprintInterop creates interop whenever --outInterop is present; this is defensive. */
     if (!interop) {
       throw new GameboardCliError('blueprint --outInterop requires a generated blueprint scenario');
     }
