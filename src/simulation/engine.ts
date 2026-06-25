@@ -23,6 +23,7 @@ import {
   removeGameboardPlacement,
   spawnGameboardPlacement,
   updateGameboardPlacement,
+  type PlacementStateValue,
   type UpdateGameboardPlacementOptions,
 } from '../koota';
 import {
@@ -691,10 +692,10 @@ function runSpawnPlacementStep(
   index: number
 ): GameboardScenarioSimulationStepResult {
   const entity = spawnGameboardPlacement(runtime.world, step.placement);
-  const placement = entity.get(PlacementState);
+  const placement = entity.get(PlacementState) as PlacementStateValue;
   const mutation: GameboardScenarioSimulationMutationRecord = {
     type: 'placement-spawned',
-    placementId: placement?.id ?? step.placement.id,
+    placementId: placement.id,
     spawned: true,
   };
   const systems =
@@ -799,10 +800,10 @@ function updatePlacementMutation(
   placement: UpdateGameboardPlacementOptions
 ): GameboardScenarioSimulationMutationRecord {
   const entity = updateGameboardPlacement(runtime.world, placementId, placement);
-  const updated = entity.get(PlacementState);
+  const updated = entity.get(PlacementState) as PlacementStateValue;
   return {
     type: 'placement-updated',
-    placementId: updated?.id ?? placementId,
+    placementId: updated.id,
     updated: true,
   };
 }
