@@ -448,6 +448,106 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
     expect(joined).toContain('guide scenarios:');
     expect(joined).toContain('guide usage rows:');
   });
+
+  it('covers guide API, permutation, and render request output paths', async () => {
+    const previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+    try {
+      await runGuideApis(
+        {
+          command: 'guide-apis',
+          flags: {
+            publicApi: 'GameboardBuilder.addHarbor',
+            out: commandOutputPath('guide-apis.harbor.json'),
+          },
+        },
+        '/nonexistent',
+        'free'
+      );
+      await runGuidePermutations(
+        {
+          command: 'guide-permutations',
+          flags: { out: commandOutputPath('guide-permutations.json') },
+        },
+        '/nonexistent',
+        'free'
+      );
+      await runGuideRenderRequests(
+        {
+          command: 'guide-render-requests',
+          flags: {
+            minimumEdition: 'free',
+            role: 'prop',
+            includeGroups: true,
+            assetBaseUrl: '/assets/free',
+            out: commandOutputPath('guide-render-requests.free-prop.json'),
+          },
+        },
+        '/nonexistent',
+        'free'
+      );
+
+      logs = [];
+      await runGuideApis(
+        { command: 'guide-apis', flags: { publicApi: 'GameboardBuilder.addHarbor' } },
+        '/nonexistent',
+        'free'
+      );
+      await runGuidePermutations({ command: 'guide-permutations', flags: {} }, '/nonexistent', 'free');
+      await runGuideRenderRequests(
+        {
+          command: 'guide-render-requests',
+          flags: { minimumEdition: 'free', role: 'prop', assetBaseUrl: '/assets/free' },
+        },
+        '/nonexistent',
+        'free'
+      );
+    } finally {
+      if (previousOutRoot === undefined) {
+        delete process.env.HEX_WORLDS_OUT_ROOT;
+      } else {
+        process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+      }
+    }
+
+    const apis = readCommandOutput<{
+      count: number;
+      selection: { publicApis: string[] };
+      selected: unknown;
+    }>('guide-apis.harbor.json');
+    const permutations = readCommandOutput<{ count: number; counts: Record<string, number> }>(
+      'guide-permutations.json'
+    );
+    const renderRequests = readCommandOutput<{
+      count: number;
+      groupCount: number;
+      render: { assetBaseUrl: string; urlResolvedCount: number };
+      selection: { roles: string[]; minimumEdition?: string };
+      assetIds: string[];
+      groups: unknown[];
+    }>('guide-render-requests.free-prop.json');
+    const joined = logs.join('\n');
+
+    expect(apis).toMatchObject({
+      count: 1,
+      selection: { publicApis: ['GameboardBuilder.addHarbor'] },
+    });
+    expect(apis.selected).toBeDefined();
+    expect(permutations.count).toBeGreaterThan(0);
+    expect(permutations.counts).toMatchObject({ road: expect.any(Number), coast: expect.any(Number) });
+    expect(renderRequests.count).toBeGreaterThan(0);
+    expect(renderRequests.groupCount).toBeGreaterThan(0);
+    expect(renderRequests.groups.length).toBe(renderRequests.groupCount);
+    expect(renderRequests.render).toMatchObject({
+      assetBaseUrl: '/assets/free',
+      urlResolvedCount: renderRequests.count,
+    });
+    expect(renderRequests.selection).toMatchObject({ roles: ['prop'], minimumEdition: 'free' });
+    expect(renderRequests.assetIds).toContain('barrel');
+    expect(joined).toContain('guide public APIs:');
+    expect(joined).toContain('guide permutations:');
+    expect(joined).toContain('guide render requests:');
+  });
 });
 
 describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
