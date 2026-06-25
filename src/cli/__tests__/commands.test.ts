@@ -2054,6 +2054,40 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
     );
   });
 
+  it('validate-recipe reports recipe errors before exiting', async () => {
+    const recipePath = writeCommandOutput('validate-recipe-invalid.recipe.json', {
+      schemaVersion: '1.0.0',
+      options: { seed: 'bad-recipe', shape: { kind: 'rectangle', width: 1, height: 1 } },
+      steps: [{ action: 'setTerrain', at: { q: 3, r: 0 }, terrain: 'water' }],
+    });
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(String(message));
+    });
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runValidateRecipe(
+          {
+            command: 'validate-recipe',
+            flags: { recipe: resolve(commandOutputRoot, recipePath) },
+          },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      logSpy.mockRestore();
+      exitSpy.mockRestore();
+    }
+
+    expect(logs[0]).toBe('validation: 1 error(s), 0 warning(s)');
+    expect(logs.join('\n')).toContain('error: recipe.compile_failed board');
+  });
+
   it('validate-scenario throws GameboardCliError without --scenario', async () => {
     await expect(runValidateScenario({ command: 'validate-scenario', flags: {} }, '/x', 'free')).rejects.toThrow(
       /validate-scenario requires --scenario/
