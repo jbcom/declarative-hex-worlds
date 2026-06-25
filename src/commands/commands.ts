@@ -128,6 +128,13 @@ export interface GameboardInteractionHandlerResult {
   metadata?: GameboardInteractionHandlerMetadata;
 }
 
+type NormalizedGameboardInteractionHandlerResult = Omit<
+  GameboardInteractionHandlerResult,
+  'effects'
+> & {
+  effects: readonly GameboardInteractionHandlerEffect[];
+};
+
 /**
  * Context passed to a game-supplied command handler.
  */
@@ -341,10 +348,8 @@ export function planGameboardActorTargetCommand(
         ? `No actor target found for ${targetActorId}`
         : 'No actor target matched the targeting options'
       : requireReachable && !target.reachable
-        ? (target.reason ?? `Actor target ${target.actor.actor.actorId} is not reachable`)
-        : !command?.canExecute
-          ? command?.reason
-          : undefined);
+        ? target.reason
+        : undefined);
 
   return {
     targeting,
@@ -444,10 +449,7 @@ export function executeGameboardInteractionCommand(
     return {
       command,
       preview,
-      status:
-        movement.state.status === 'ready' || movement.state.status === 'completed'
-          ? 'requested-move'
-          : 'blocked',
+      status: 'requested-move',
       movement,
       reason: movement.state.reason,
     };
@@ -460,7 +462,7 @@ export function executeGameboardInteractionCommand(
       preview,
       status: handler.status,
       handler,
-      effects: handler.effects ?? [],
+      effects: handler.effects,
       reason: handler.reason,
     };
   }
@@ -659,12 +661,11 @@ function movementOptionsForCommand(
   options: GameboardInteractionCommandPreviewOptions
 ): GameboardMovementPathRequestOptions {
   const baseProfile = options.movement?.navigation;
-  const navigation = command.source
-    ? createGameboardActorNavigationProfile(world, command.source.entity, {
-        ...actorNavigationOptions(options),
-        baseProfile,
-      })
-    : baseProfile;
+  const source = command.source as NonNullable<GameboardInteractionCommand['source']>;
+  const navigation = createGameboardActorNavigationProfile(world, source.entity, {
+    ...actorNavigationOptions(options),
+    baseProfile,
+  });
   return {
     ...(options.movement ?? {}),
     navigation,
@@ -720,7 +721,7 @@ function executeInteractionHandlers(
   command: GameboardInteractionCommand,
   preview: GameboardInteractionCommandPreview,
   handlers: GameboardInteractionCommandExecutionOptions['handlers']
-): GameboardInteractionHandlerResult | undefined {
+): NormalizedGameboardInteractionHandlerResult | undefined {
   for (const handler of normalizeInteractionHandlers(handlers)) {
     const result = handler({ world, command, preview });
     if (result) {
