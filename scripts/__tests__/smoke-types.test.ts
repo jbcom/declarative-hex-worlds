@@ -29,7 +29,7 @@ describe('scripts/smoke/types', () => {
     expect(writeCall).toEqual({
       kind: 'write',
       path: '/tmp/app/smoke-types.ts',
-      encoding: 'utf8',
+      options: { encoding: 'utf8', mode: 0o600, flag: 'wx' },
       hasReactHook: true,
     });
     expect(execCall).toEqual({
@@ -79,7 +79,7 @@ describe('scripts/smoke/types', () => {
       {
         kind: 'write',
         path: '/tmp/app/smoke-types.ts',
-        encoding: 'utf8',
+        options: { encoding: 'utf8', mode: 0o600, flag: 'wx' },
         hasReactHook: true,
       },
     ]);
@@ -102,11 +102,11 @@ function dependencies(
   overrides: Partial<TypesAttestationDependencies> = {}
 ): TypesAttestationDependencies {
   return {
-    writeFileSyncImpl: (path, data, encoding) => {
+    writeFileSyncImpl: (path, data, options) => {
       calls.push({
         kind: 'write',
         path,
-        encoding,
+        options,
         hasReactHook: data.includes('useGameboardRuntimeSnapshot'),
       });
     },

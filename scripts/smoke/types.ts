@@ -32,7 +32,8 @@ type ExecFile = (
     stdio: ['ignore', 'pipe', 'pipe'];
   }
 ) => unknown;
-type WriteFile = (path: string, data: string, encoding: 'utf8') => void;
+type SmokeTypesWriteOptions = { encoding: 'utf8'; mode: number; flag: 'wx' };
+type WriteFile = (path: string, data: string, options: SmokeTypesWriteOptions) => void;
 type Log = (message: string) => void;
 
 export interface TypesAttestationDependencies {
@@ -1051,7 +1052,11 @@ export function runTypesAttestation(
   const execFile = dependencies.execFileSyncImpl ?? execFileSync;
   const log = dependencies.log ?? console.log;
 
-  writeFile(join(appRoot, 'smoke-types.ts'), createTypesAttestationSource(), 'utf8');
+  writeFile(join(appRoot, 'smoke-types.ts'), createTypesAttestationSource(), {
+    encoding: 'utf8',
+    mode: 0o600,
+    flag: 'wx',
+  });
 
   execFile(
     process.execPath,
