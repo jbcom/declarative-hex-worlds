@@ -109,7 +109,7 @@ export function edgeMask(edges: HexEdgeInput): number {
     return edges & 0b111111;
   }
   let mask = 0;
-  for (const edge of Array.isArray(edges) ? edges : [edges]) {
+  for (const edge of edges) {
     mask |= 1 << edge;
   }
   return mask & 0b111111;
