@@ -46,6 +46,8 @@ import {
   renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
 } from '../../scenario/catalog';
+import type { NeutralStructureKind, NeutralUnitPart, PropAssetId } from '../../scenario/catalog';
+import { createKayKitAssetPublicTreatmentsFromSource } from '../../scenario/catalog-treatments';
 import { generateManifestFromSource } from '../../ingest/index';
 import { freeManifest } from '../../manifest/free';
 
@@ -122,6 +124,50 @@ describe('asset catalog public treatments', () => {
       publicApi: expect.arrayContaining(['selectCoastVariant', 'GameboardBuilder.setCoastEdges']),
     });
     expect(hasKayKitAssetTreatment('hex_transition')).toBe(true);
+  });
+
+  it('covers source-adapter fallback treatments and stable sourcePath tie sorting', () => {
+    const neutralPart = 'plain_neutral_part' as NeutralUnitPart;
+    const neutralUnitAssetIds = ['unit_sort_b', 'unit_sort_a'];
+    const treatments = createKayKitAssetPublicTreatmentsFromSource({
+      baseTileAssetIds: [],
+      extraTransitionTileAssetIds: [],
+      roadTileAssetIds: [],
+      coastTileAssetIds: [],
+      riverTileAssetIds: [],
+      freeFactionBuildingKinds: [],
+      extraFactionBuildingKinds: [],
+      neutralStructureKinds: ['building_plain' as NeutralStructureKind],
+      natureAssetIds: [],
+      freePropAssetIds: ['plain_prop' as PropAssetId],
+      extraPropAssetIds: [],
+      coloredUnitParts: [],
+      neutralUnitParts: [neutralPart, neutralPart],
+      extraUnitStyles: [],
+      factions: [],
+      factionBuildingAssetId: (kind, faction) => `building_${kind}_${faction}`,
+      coloredUnitAssetId: (part, faction, style) => `unit_${faction}_${style}_${part}`,
+      neutralUnitAssetId: () => neutralUnitAssetIds.shift() ?? 'unit_sort_fallback',
+    });
+
+    expect(
+      treatments
+        .filter((treatment) => treatment.sourcePath === 'units/neutral/plain_neutral_part.gltf')
+        .map((treatment) => treatment.assetId)
+    ).toEqual(['unit_sort_a', 'unit_sort_b']);
+    expect(treatments.find((treatment) => treatment.assetId === 'building_plain')).toMatchObject({
+      scenario: 'neutral structures and construction',
+      publicApi: ['GameboardBuilder.addNeutralStructure', 'createGameboardPlanFromRecipe'],
+    });
+    expect(treatments.find((treatment) => treatment.assetId === 'plain_prop')).toMatchObject({
+      scenario: 'props and resource dressing',
+      publicApi: [
+        'GameboardBuilder.addProp',
+        'GameboardBuilder.addPropCluster',
+        'listPropClusterAssets',
+        'createGameboardLayoutFillRuleFromPiece',
+      ],
+    });
   });
 
   it('exposes a decomposed guide scenario for every extracted README page', () => {
