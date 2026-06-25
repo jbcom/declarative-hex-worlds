@@ -41,11 +41,72 @@ describe('tile registry and ECS interop', () => {
       throw new Error('custom_hex_lava tile missing from registry');
     }
     const tile = analyzeTileGeometry(customTile);
+    const zOffsetTile = analyzeTileGeometry({
+      id: 'custom_hex_offset_z',
+      assetId: 'custom_hex_offset_z',
+      role: 'base',
+      geometry: KAYKIT_HEX_GEOMETRY,
+      bounds: {
+        min: [-1, 0, -1],
+        max: [1, 0.5, 3],
+        size: [2, 0.5, 4],
+      },
+    });
 
     expect(analysis.analyzedCount).toBe(1);
     expect(tile.recommendedScale).toBeGreaterThan(0);
     expect(tile.warnings.some((warning) => warning.includes('ratio'))).toBe(true);
     expect(tile.warnings.some((warning) => warning.includes('off-center'))).toBe(true);
+    expect(zOffsetTile.warnings.some((warning) => warning.includes('Z origin is offset'))).toBe(true);
+  });
+
+  it('keeps inferred terrain undefined for neutral manifest tiles', () => {
+    const source = freeManifest.assets.find((asset) => asset.id === 'hex_grass');
+    if (source === undefined) {
+      throw new Error('hex_grass fixture missing from FREE manifest');
+    }
+    const registry = createHexTileRegistryFromManifest({
+      ...freeManifest,
+      assets: [
+        {
+          ...source,
+          id: 'hex_sand',
+          family: 'hex_sand',
+          modelPath: 'assets/free/tiles/base/hex_sand.gltf',
+          sourcePath: 'tiles/base/hex_sand.gltf',
+        },
+      ],
+    } as typeof freeManifest);
+
+    expect(registry.byAssetId.hex_sand?.role).toBe('base');
+    expect(registry.byAssetId.hex_sand?.terrain).toBeUndefined();
+  });
+
+  it('normalizes declaration defaults and analyzes custom/support footprint roles', () => {
+    const registry = createHexTileRegistry([
+      {
+        id: 'custom_hex_default_asset',
+        bounds: { min: [-1, 0, -1], max: [1, 0.5, 1], size: [2, 0.5, 2] },
+      },
+      {
+        id: 'custom_support_stack',
+        role: 'support',
+        bounds: { min: [-1, 0, -1], max: [1, 0.5, 1], size: [2, 0.5, 2] },
+      },
+    ]);
+
+    const defaultAsset = registry.byId.custom_hex_default_asset;
+    if (defaultAsset === undefined) {
+      throw new Error('custom_hex_default_asset declaration missing from registry');
+    }
+
+    expect(defaultAsset).toMatchObject({
+      assetId: 'custom_hex_default_asset',
+      source: 'custom',
+      role: 'custom',
+    });
+    expect(analyzeTileGeometry(defaultAsset).warnings.some((warning) => warning.includes('ratio'))).toBe(true);
+    expect(analyzeHexTileRegistry(registry).analyzedCount).toBe(2);
   });
 
   it('applies registered custom base tiles and exposes neutral ECS records', () => {
@@ -89,21 +150,30 @@ describe('tile registry and ECS interop', () => {
       { id: 's1', assetId: 's1', role: 'structure' },
       { id: 'u1', assetId: 'u1', role: 'unit' },
       { id: 'd1', assetId: 'd1', role: 'decoration' },
+      { id: 'x1', assetId: 'x1', role: 'custom' },
     ]);
     const builder = createGameboardBuilder({
       seed: 'role-kinds',
-      shape: { kind: 'rectangle', width: 5, height: 1 },
+      shape: { kind: 'rectangle', width: 7, height: 1 },
     });
+    const decoration = registry.byId.d1;
+    if (decoration === undefined) {
+      throw new Error('d1 declaration missing from registry');
+    }
     applyTileDeclaration(builder, registry, { at: { q: 0, r: 0 }, declaration: 'r1' });
     applyTileDeclaration(builder, registry, { at: { q: 1, r: 0 }, declaration: 'c1' });
     applyTileDeclaration(builder, registry, { at: { q: 2, r: 0 }, declaration: 's1' });
     applyTileDeclaration(builder, registry, { at: { q: 3, r: 0 }, declaration: 'u1' });
     applyTileDeclaration(builder, registry, { at: { q: 4, r: 0 }, declaration: 'd1' });
+    applyTileDeclaration(builder, registry, { at: { q: 5, r: 0 }, declaration: decoration });
+    applyTileDeclaration(builder, registry, { at: { q: 6, r: 0 }, declaration: 'x1' });
     const plan = builder.build();
     const kinds = plan.placements.map((p) => p.kind);
     expect(kinds).toContain('river');
     expect(kinds).toContain('coast');
     expect(kinds).toContain('structure');
+    expect(kinds).toContain('terrain');
+    expect(kinds.filter((kind) => kind === 'decoration')).toHaveLength(2);
   });
 
   it('analyzeHexTileRegistry warns on no tile-sized declarations + width/depth variance (E0b)', () => {

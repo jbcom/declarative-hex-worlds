@@ -86,6 +86,45 @@ describe('CLI doctor subcommand (PRD E0h)', () => {
     expect(joined).toMatch(/source exists: no/);
     expect(joined).toMatch(/gltf count: 0\/221/);
   });
+
+  it('reports existing sources and missing docs montage from a non-repo cwd', async () => {
+    const previousCwd = process.cwd();
+    const isolatedRoot = mkdtempSync(join(tmpdir(), 'hex-worlds-doctor-cwd-'));
+    const sourceRoot = join(isolatedRoot, 'source');
+    mkdirSync(sourceRoot);
+
+    try {
+      process.chdir(isolatedRoot);
+      await runDoctor({ command: 'doctor', flags: {} }, sourceRoot, 'free');
+    } finally {
+      process.chdir(previousCwd);
+      rmSync(isolatedRoot, { recursive: true, force: true });
+    }
+
+    const joined = logs.join('\n');
+    expect(joined).toContain('source exists: yes');
+    expect(joined).toContain('docs montage: missing');
+  });
+
+  it('delegates to the coverage command when --coverage is supplied', async () => {
+    await runDoctor(
+      {
+        command: 'doctor',
+        flags: {
+          coverage: true,
+          json: true,
+          generatedAt: '2026-06-25T00:00:00.000Z',
+          checksPassed: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const report = JSON.parse(logs.join('\n')) as { schemaVersion: string; status: string };
+    expect(report.schemaVersion).toBe('1.0.0');
+    expect(report.status).toBeDefined();
+  });
 });
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
@@ -155,6 +194,26 @@ function captureError(action: () => unknown): unknown {
     return error;
   }
   throw new Error('Expected action to throw');
+}
+
+function writeEmptyManifest(name: string): string {
+  return writeCommandOutput(name, {
+    schemaVersion: '1.0.0',
+    edition: 'free',
+    sourcePack: {
+      name: 'Fixture',
+      version: '1.0.0',
+      creator: 'Fixture',
+      license: 'CC0-1.0',
+      licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
+      sourceRootName: 'fixture',
+      edition: 'free',
+    },
+    textureSets: [],
+    assets: [],
+    assetsById: {},
+    counts: { total: 0, byCategory: {}, bySubcategory: {} },
+  });
 }
 
 describe.skipIf(!HAS_FREE_REFERENCES)('CLI validate subcommand (PRD E0h)', () => {
@@ -275,6 +334,86 @@ describe('CLI source-root command branch coverage (PRD E0h)', () => {
         process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
       }
     }
+  });
+});
+
+describe('CLI validate-manifest command branch coverage (PRD E0h)', () => {
+  let logs: string[];
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    logs = [];
+    logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+  });
+
+  it('prints readable empty-manifest summaries with the texture-set none fallback', async () => {
+    const manifestPath = resolve(commandOutputRoot, writeEmptyManifest('empty-manifest.json'));
+
+    await runValidateManifest(
+      { command: 'validate-manifest', flags: { manifest: manifestPath } },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const joined = logs.join('\n');
+    expect(joined).toContain(`manifest: ${manifestPath}`);
+    expect(joined).toContain('edition: free');
+    expect(joined).toContain('assets: 0');
+    expect(joined).toContain('texture sets: none');
+    expect(joined).toContain('validation: 0 error(s), 0 warning(s)');
+  });
+
+  it('prints JSON manifest inspection output', async () => {
+    const manifestPath = resolve(commandOutputRoot, writeEmptyManifest('empty-manifest-json.json'));
+
+    await runValidateManifest(
+      { command: 'validate-manifest', flags: { manifest: manifestPath, json: true } },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const payload = JSON.parse(logs.join('\n')) as {
+      manifest: string;
+      errorCount: number;
+      edition?: string;
+      textureSets?: string[];
+    };
+    expect(payload).toMatchObject({
+      manifest: manifestPath,
+      errorCount: 0,
+      edition: 'free',
+      textureSets: [],
+    });
+  });
+
+  it('prints readable manifest validation issues before exiting 1', async () => {
+    const manifestPath = resolve(commandOutputRoot, writeCommandOutput('invalid-manifest-object.json', []));
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runValidateManifest(
+          { command: 'validate-manifest', flags: { manifest: manifestPath } },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    const joined = logs.join('\n');
+    expect(joined).toContain(`manifest: ${manifestPath}`);
+    expect(joined).toContain('validation: 1 error(s), 0 warning(s)');
+    expect(joined).toContain('error: manifest.object $ - Manifest must be a JSON object');
   });
 });
 

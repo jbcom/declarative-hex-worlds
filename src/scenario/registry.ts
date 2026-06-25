@@ -565,9 +565,6 @@ function kindForDeclaration(declaration: HexTileDeclaration): GameboardPlacement
 
 function layerForDeclaration(declaration: HexTileDeclaration): GameboardPlacementLayer {
   switch (declaration.role) {
-    case 'base':
-    case 'support':
-      return 'terrain';
     case 'road':
     case 'river':
     case 'coast':
@@ -604,13 +601,10 @@ function median(values: readonly number[]): number {
     return 1;
   }
   const middle = Math.floor(finite.length / 2);
-  const mid = finite[middle];
-  if (mid === undefined) {
-    return 1;
-  }
+  const mid = finite[middle] as number;
   if (finite.length % 2 === 0) {
-    const prev = finite[middle - 1];
-    return prev === undefined ? mid : (prev + mid) / 2;
+    const prev = finite[middle - 1] as number;
+    return (prev + mid) / 2;
   }
   return mid;
 }
