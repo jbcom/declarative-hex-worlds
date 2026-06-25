@@ -1653,6 +1653,181 @@ describe('CLI readable command output variants (PRD E0h)', () => {
   });
 });
 
+describe('CLI snapshot and piece selection variants (PRD E0h)', () => {
+  let logs: string[];
+  let logSpy: ReturnType<typeof vi.spyOn>;
+  let previousSnapshotOutRoot: string | undefined;
+
+  beforeEach(() => {
+    previousSnapshotOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+    logs = [];
+    logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+    if (previousSnapshotOutRoot === undefined) {
+      delete process.env.HEX_WORLDS_OUT_ROOT;
+    } else {
+      process.env.HEX_WORLDS_OUT_ROOT = previousSnapshotOutRoot;
+    }
+  });
+
+  it('prints blueprint, snapshot, asset scan, and piece registry variants', async () => {
+    const prefix = 'snapshot-piece-variants';
+    const blueprintPath = resolve(repoRoot, 'examples/blueprint-board.json');
+    const planPath = commandOutputPath(`${prefix}.plan.json`);
+    const recipePath = commandOutputPath(`${prefix}.recipe.json`);
+    await runBlueprint(
+      {
+        command: 'blueprint',
+        flags: {
+          blueprint: blueprintPath,
+          outPlan: planPath,
+          outRecipe: recipePath,
+          includeScenario: true,
+          includeScenarioInspection: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSnapshot(
+      {
+        command: 'snapshot',
+        flags: {
+          plan: resolve(commandOutputRoot, planPath),
+          excludePlacements: true,
+          spawnCount: '2',
+          spawnSeed: 'snapshot-spawns',
+          spawnMinDistance: '1',
+          spawnEdgePadding: '0',
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSnapshot(
+      {
+        command: 'snapshot',
+        flags: {
+          recipe: docsRecipePath,
+          excludeActors: true,
+          excludeQuests: true,
+          excludeSpawnGroups: true,
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+          allowInvalid: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const assetRoot = resolve(commandOutputRoot, 'snapshot-piece-assets');
+    writeCommandGltfBounds(
+      'snapshot-piece-assets/decor/standing-stone.gltf',
+      [-0.35, 0, -0.35],
+      [0.35, 1.1, 0.35]
+    );
+    writeCommandGltfBounds(
+      'snapshot-piece-assets/trees/pine.gltf',
+      [-0.25, 0, -0.2],
+      [0.25, 1.5, 0.2]
+    );
+    const overridesPath = writeCommandOutput(`${prefix}.overrides.json`, {
+      'decor/standing-stone': {
+        role: 'landmark',
+        tags: ['stone'],
+        criteria: { terrain: ['grass'], allowOccupied: true },
+      },
+      missing: { tags: ['unused'] },
+    });
+    await runPiecesFromAssets(
+      {
+        command: 'pieces-from-assets',
+        flags: {
+          assets: assetRoot,
+          sourcePack: 'fixture-pieces',
+          overrides: resolve(commandOutputRoot, overridesPath),
+          includeAbsolutePaths: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const registryPath = writeCommandOutput(`${prefix}.registry.json`, {
+      pieces: [
+        {
+          id: 'piece-tree',
+          assetId: 'tree_single_A',
+          source: 'fixture-pieces',
+          role: 'tree',
+          tags: ['forest'],
+          criteria: { terrain: ['grass', 'forest', 'hill'], allowOccupied: true },
+        },
+        {
+          id: 'piece-stone',
+          assetId: 'stone_small_A',
+          source: 'fixture-pieces',
+          role: 'landmark',
+          requiresExtra: true,
+          tags: ['stone'],
+          criteria: { terrain: ['grass'], allowOccupied: true },
+        },
+      ],
+    });
+    await runPieces(
+      {
+        command: 'pieces',
+        flags: { pieces: resolve(commandOutputRoot, registryPath) },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runPieces(
+      {
+        command: 'pieces',
+        flags: {
+          pieces: resolve(commandOutputRoot, registryPath),
+          recipe: docsRecipePath,
+          role: 'tree',
+          tags: 'forest',
+          mode: 'pool',
+          count: '1',
+          emitRules: true,
+          emitSourceUrls: true,
+          pieceSourceRoot: '/assets/pieces',
+          outPlan: commandOutputPath(`${prefix}.piece-filled-plan.json`),
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const joined = logs.join('\n');
+    expect(joined).toContain('blueprint seed: docs-blueprint-board');
+    expect(joined).toContain('scenario: docs-blueprint-board:intro');
+    expect(joined).toContain('"entities"');
+    expect(joined).toContain('assets scanned: 2');
+    expect(joined).toContain('override warnings:');
+    expect(joined).toContain('pieces: 2');
+    expect(joined).toContain('"checks"');
+    expect(joined).toContain('"rules"');
+    expect(joined).toContain('"sourceUrls"');
+    expect(joined).toContain('Wrote piece-filled GameboardPlan to');
+    expect(existsSync(resolve(commandOutputRoot, `${prefix}.piece-filled-plan.json`))).toBe(true);
+  });
+});
+
 describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', () => {
   it('validate-manifest throws GameboardCliError without --manifest', async () => {
     await expect(runValidateManifest({ command: 'validate-manifest', flags: {} }, '/x', 'free')).rejects.toThrow(
