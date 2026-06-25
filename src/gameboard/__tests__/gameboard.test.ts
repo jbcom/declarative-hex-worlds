@@ -3,6 +3,7 @@ import {
   coordinatesForShape,
   createGameboardBuilder,
   createGameboardPlan,
+  createGameboardPlanFromTiles,
   createHarborBoard,
   edgeBetween,
   gameboardPlanIndex,
@@ -14,6 +15,8 @@ import {
   oppositeEdge,
   requiresExtraAsset,
   summarizeGameboardPlan,
+  type GameboardPlacementSpec,
+  type GameboardTileSpec,
 } from '../../gameboard/index';
 import { freeManifest } from '../../manifest/free';
 
@@ -93,6 +96,64 @@ describe('gameboard plan builder', () => {
     expect(plan.placements.some((placement) => placement.assetId === 'hex_road_B')).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId === 'hex_river_B_waterless')).toBe(true);
     expect(plan.placements.some((placement) => placement.assetId === 'hex_coast_B')).toBe(true);
+  });
+
+  it('sorts same-order custom placements while applying plan defaults', () => {
+    const plan = createGameboardPlanFromTiles({
+      seed: 'terrain-plan-defaults',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+      tiles: [],
+      placements: [placementFixture('custom:b', 7), placementFixture('custom:a', 7)],
+    });
+
+    expect(plan.textureSet).toBe('default');
+    expect(plan.warnings).toEqual([]);
+    expect(plan.placements.map((placement) => placement.id)).toEqual(['custom:a', 'custom:b']);
+  });
+
+  it('preserves authored tile tags when overriding tile assets', () => {
+    const plan = createGameboardBuilder({
+      seed: 'terrain-extra-tags',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .setTileAsset({ at: { q: 0, r: 0 }, assetId: 'hex_grass', tags: ['custom-tag'] })
+      .build();
+
+    expect(plan.tiles[0]?.tags).toContain('custom-tag');
+  });
+
+  it('creates river crossing, single-edge river, and sloped road overlays from authored tiles', () => {
+    const plan = createGameboardPlanFromTiles({
+      seed: 'terrain-river-crossings',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+      textureSet: 'default',
+      tiles: [
+        tileFixture({ key: '0,0', riverCrossing: 'A', riverWaterless: true }),
+        tileFixture({ key: '1,0', coordinates: { q: 1, r: 0 }, riverEdges: 1 }),
+        tileFixture({
+          key: '2,0',
+          coordinates: { q: 2, r: 0 },
+          roadEdges: 0b001001,
+          roadSlope: 'high',
+        }),
+      ],
+    });
+
+    expect(plan.placements.find((placement) => placement.id === 'river:0,0')).toMatchObject({
+      assetId: 'hex_river_crossing_A_waterless',
+      kind: 'river',
+      elevationOffset: 0.02,
+      metadata: { edgeMask: 0 },
+    });
+    expect(plan.placements.find((placement) => placement.id === 'river:1,0')).toMatchObject({
+      kind: 'river',
+      metadata: { edgeMask: 1 },
+    });
+    expect(plan.placements.find((placement) => placement.id === 'road:2,0')).toMatchObject({
+      assetId: 'hex_road_A_sloped_high',
+      kind: 'road',
+      metadata: { edgeMask: 0b001001, slope: 'high' },
+    });
   });
 
   it('models harbors as coast, structure, water, and local EXTRA props', () => {
@@ -520,3 +581,44 @@ describe('addUnitPreset role variants (PRD E0a)', () => {
     expect(plan.placements.length).toBeGreaterThan(roles.length);
   });
 });
+
+function tileFixture(overrides: Partial<GameboardTileSpec> = {}): GameboardTileSpec {
+  return {
+    key: '0,0',
+    coordinates: { q: 0, r: 0 },
+    terrain: 'grass',
+    textureSet: 'default',
+    elevation: 0,
+    baseAssetId: 'hex_grass',
+    supportAssetId: 'hex_grass_bottom',
+    roadEdges: 0,
+    riverEdges: 0,
+    coastEdges: 0,
+    riverWaterless: false,
+    riverCurvy: false,
+    coastWaterless: false,
+    tags: ['grass'],
+    ...overrides,
+  };
+}
+
+function placementFixture(id: string, order: number): GameboardPlacementSpec {
+  return {
+    id,
+    tileKey: '0,0',
+    coordinates: { q: 0, r: 0 },
+    position: { x: 0, y: 0, z: 0 },
+    assetId: 'crate_A_small',
+    kind: 'prop',
+    layer: 'feature',
+    textureSet: 'default',
+    elevation: 0,
+    elevationOffset: 0,
+    rotationSteps: 0,
+    rotationRadians: 0,
+    scale: 1,
+    order,
+    requiresExtra: false,
+    metadata: {},
+  };
+}
