@@ -33,8 +33,8 @@ env:
 #     tests/contract/. They count toward the coverage gate and surface
 #     failures through the normal test report instead of opaque
 #     `scripts/audit-X.ts → process.exit(1)` mid-step.
-#   - `coverage:all:enforce` → the required Coverage job. It merges unit +
-#     browser-free coverage before checking the ratchet so browser-only
+#   - Coverage job → the required merged ratchet. It runs unit coverage,
+#     browser-free coverage, then `coverage:merge:enforce` so browser-only
 #     bindings count where they can actually run.
 #   - FREE Browser Visuals (`pnpm test:browser:free`) → local-only gate.
 #     Bootstraps the KayKit FREE pack + runs a full Playwright visual suite
@@ -184,8 +184,17 @@ jobs:
       - name: Bootstrap FREE models for browser coverage
         run: pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models
 
+      - name: Reset coverage output
+        run: pnpm exec rimraf coverage
+
+      - name: Collect unit coverage
+        run: pnpm test:coverage
+
+      - name: Collect browser-free coverage
+        run: pnpm test:coverage:browser:free
+
       - name: Enforce merged coverage floor
-        run: pnpm coverage:all:enforce
+        run: pnpm coverage:merge:enforce
 
   dependency-review:
     name: Dependency Review

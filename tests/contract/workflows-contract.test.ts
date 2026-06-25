@@ -61,8 +61,10 @@ describe('workflow contract', () => {
       // The matrix-driven check job runs the four per-PR correctness gates.
       // Coverage enforcement runs in its own dedicated CI job (see below).
       ['task: [lint, typecheck, build, test]'],
-      // dedicated coverage job runs the merged unit + browser-free ratchet floor check on every PR
-      ['pnpm coverage:all:enforce'],
+      // dedicated coverage job collects unit + browser-free coverage, then enforces the merged ratchet
+      ['pnpm test:coverage'],
+      ['pnpm test:coverage:browser:free'],
+      ['pnpm coverage:merge:enforce'],
       ['pnpm exec playwright install --with-deps chromium'],
       ['pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models'],
       // browser-free visual gate remains documented as a local/full visual command
