@@ -59,6 +59,7 @@ function runSpawnGroups(parsed: ParsedArgs, sourceRoot: string, edition: PackEdi
   if (spawnPlan.errors.length > 0) {
     process.exit(1);
   }
+  /* v8 ignore next 3 -- spawn-group planner currently emits fatal errors only; warning exits are reserved for future warning emitters. */
   if (parsed.flags.failOnWarning === true && spawnPlan.warnings.length > 0) {
     process.exit(1);
   }
