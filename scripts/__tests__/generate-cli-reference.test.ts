@@ -1,10 +1,13 @@
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   buildCliReference,
   cliReferenceOutputPath,
   defaultRepoRoot,
   generateCliReference,
+  isDirectRun,
+  resolveGenerateCliReferenceOptions,
 } from '../generate-cli-reference';
 
 describe('scripts/generate-cli-reference', () => {
@@ -24,6 +27,16 @@ describe('scripts/generate-cli-reference', () => {
     expect(cliReferenceOutputPath('/repo')).toBe(
       '/repo/docs-site/src/content/docs/guides/cli-reference.md'
     );
+  });
+
+  it('resolves default generator options without executing IO', () => {
+    const defaults = resolveGenerateCliReferenceOptions();
+
+    expect(defaults.repoRoot).toBe(defaultRepoRoot());
+    expect(defaults.outputPath).toBe(cliReferenceOutputPath(defaultRepoRoot()));
+    expect(defaults.execHelp).toEqual(expect.any(Function));
+    expect(defaults.writeTextFile).toEqual(expect.any(Function));
+    expect(defaults.log).toBe(console.log);
   });
 
   it('runs the CLI help command and writes the generated page through injected IO', () => {
@@ -61,5 +74,15 @@ describe('scripts/generate-cli-reference', () => {
     expect(result.outputPath).toBe('/repo/docs-site/src/content/docs/guides/cli-reference.md');
     expect(result.contents).toContain('Usage: generated help');
     expect(logs).toEqual(['Wrote /repo/docs-site/src/content/docs/guides/cli-reference.md']);
+  });
+
+  it('detects direct script execution from argv and module URL', () => {
+    const scriptPath = '/repo/scripts/generate-cli-reference.ts';
+    const moduleUrl = pathToFileURL(scriptPath).href;
+
+    expect(isDirectRun(scriptPath, moduleUrl)).toBe(true);
+    expect(isDirectRun('/repo/scripts/other.ts', moduleUrl)).toBe(false);
+    expect(isDirectRun('', moduleUrl)).toBe(false);
+    expect(isDirectRun(undefined, moduleUrl)).toBe(false);
   });
 });

@@ -35,6 +35,14 @@ interface GenerateCliReferenceResult {
   contents: string;
 }
 
+interface ResolvedGenerateCliReferenceOptions {
+  repoRoot: string;
+  outputPath: string;
+  execHelp: ExecHelp;
+  writeTextFile: WriteTextFile;
+  log: (message: string) => void;
+}
+
 export function defaultRepoRoot(): string {
   return resolve(import.meta.dirname, '..');
 }
@@ -143,13 +151,24 @@ CLI errors are \`GameboardCliError\` instances ([PRD D2](https://github.com/jbco
 `;
 }
 
+export function resolveGenerateCliReferenceOptions(
+  options: GenerateCliReferenceOptions = {}
+): ResolvedGenerateCliReferenceOptions {
+  const repoRoot = options.repoRoot ?? defaultRepoRoot();
+  return {
+    repoRoot,
+    outputPath: options.outputPath ?? cliReferenceOutputPath(repoRoot),
+    execHelp: options.execFileSyncImpl ?? (execFileSync as ExecHelp),
+    writeTextFile: options.writeFileSyncImpl ?? writeFileSync,
+    log: options.log ?? console.log,
+  };
+}
+
 export function generateCliReference(
   options: GenerateCliReferenceOptions = {}
 ): GenerateCliReferenceResult {
-  const repoRoot = options.repoRoot ?? defaultRepoRoot();
-  const outputPath = options.outputPath ?? cliReferenceOutputPath(repoRoot);
-  const execHelp = options.execFileSyncImpl ?? (execFileSync as ExecHelp);
-  const writeTextFile = options.writeFileSyncImpl ?? writeFileSync;
+  const { repoRoot, outputPath, execHelp, writeTextFile, log } =
+    resolveGenerateCliReferenceOptions(options);
   const helpOutput = execHelp(
     'pnpm',
     ['exec', 'tsx', 'src/cli/cli.ts', '--help'],
@@ -160,17 +179,21 @@ export function generateCliReference(
   );
   const contents = buildCliReference(helpOutput);
   writeTextFile(outputPath, contents, 'utf8');
-  (options.log ?? console.log)(`Wrote ${outputPath}`);
+  log(`Wrote ${outputPath}`);
 
   return { outputPath, contents };
 }
 
-function isDirectRun(): boolean {
-  return process.argv[1]
-    ? resolve(process.argv[1]).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase()
+export function isDirectRun(
+  argvEntry = process.argv[1],
+  moduleUrl = import.meta.url
+): boolean {
+  return argvEntry
+    ? resolve(argvEntry).toLowerCase() === fileURLToPath(moduleUrl).toLowerCase()
     : false;
 }
 
+/* v8 ignore next 3 -- thin executable entrypoint; predicate and generator are unit-tested. */
 if (isDirectRun()) {
   generateCliReference();
 }
