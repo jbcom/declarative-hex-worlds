@@ -77,10 +77,38 @@ describe('scripts/smoke/pack-install', () => {
     const installedRoot = `${ctx.appRoot}/node_modules/declarative-hex-worlds`;
     const cases: Array<[Partial<FakePayloads>, string]> = [
       [{ pack: '{}' }, 'npm pack did not return an array of tarball metadata'],
+      [{ pack: '[]' }, 'npm pack did not return any tarball metadata'],
       [{ guideUsage: '[]' }, 'packed CLI guide-usages command did not return a valid JSON object'],
       [{ planSummary: '[]' }, 'packed CLI summarize-plan command did not return a valid JSON object'],
+      [
+        {
+          planSummary: JSON.stringify({
+            source: { kind: 'scenario' },
+            validation: { errorCount: 0 },
+            summary: { tileCount: 1, placementCount: 1, placementKindCounts: {} },
+          }),
+        },
+        'packed CLI summarize-plan command did not emit scenario board counts',
+      ],
       [{ scenarioSummary: '[]' }, 'packed CLI summarize-scenario command did not return a valid JSON object'],
+      [
+        {
+          scenarioSummary: JSON.stringify({
+            scenarioId: 'docs-simple-rpg-scenario',
+            validation: { errorCount: 0 },
+            actorCount: 1,
+            questCount: 1,
+            objectiveCount: 1,
+            actorKindCounts: {},
+          }),
+        },
+        'packed CLI summarize-scenario command did not emit playable scenario counts',
+      ],
       [{ coverage: '[]' }, 'packed CLI coverage command did not return a valid JSON object'],
+      [
+        { coverage: JSON.stringify({ simpleRpgEvidence: { publicApiExercises: null } }) },
+        'packed CLI coverage command did not emit the SimpleRPG public API exercise matrix',
+      ],
     ];
 
     for (const [payloads, message] of cases) {
@@ -93,6 +121,22 @@ describe('scripts/smoke/pack-install', () => {
         })
       ).toThrow(message);
     }
+  });
+
+  it('logs the retained temporary app root when requested', () => {
+    const ctx = { ...fakeContext(), keepTemp: true };
+    const installedRoot = `${ctx.appRoot}/node_modules/declarative-hex-worlds`;
+    const logs: string[] = [];
+
+    runPackInstallSmoke(ctx, {
+      existsSyncImpl: (path) => fakeExistingPaths(installedRoot).has(path),
+      copyFileSyncImpl: () => undefined,
+      writeFileSyncImpl: () => undefined,
+      execFileSyncImpl: (file, args) => fakeExec(file, args, installedRoot),
+      log: (message) => logs.push(message),
+    });
+
+    expect(logs).toEqual(['packed consumer runtime smoke passed in /tmp/consumer/app']);
   });
 });
 
