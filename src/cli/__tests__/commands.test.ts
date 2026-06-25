@@ -240,9 +240,9 @@ describe('CLI source-root command branch coverage (PRD E0h)', () => {
 
   it('reports validate count failures before exiting', async () => {
     const sourceRoot = writeSyntheticSourceRoot('validate-failure-source');
-    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: string | number | null) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit ${code}`);
-    }) as typeof process.exit);
+    });
 
     try {
       await expect(runValidate({ command: 'validate', flags: {} }, sourceRoot, 'free')).rejects.toThrow(
