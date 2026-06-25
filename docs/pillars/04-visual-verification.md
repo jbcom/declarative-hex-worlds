@@ -59,7 +59,9 @@ implementation_links:
   - src/interop/coverage.ts
   - src/interop/compatibility.ts
   - src/three/three.ts
+  - src/gameboard/assets.ts
   - src/gameboard/gameboard.ts
+  - src/gameboard/terrain.ts
   - src/koota/koota.ts
   - src/coordinates/layout.ts
   - src/movement/movement.ts
