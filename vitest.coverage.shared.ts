@@ -47,9 +47,9 @@ export const COVERAGE_THRESHOLDS = {
   // Threshold ratchet uses the CI-measured merged unit + browser-free floor.
   // Local runs can read higher when skip-gated reference tests execute, so each
   // E0a/E0h commit sets the floor 0.5pp below CI-shaped proof, then confirms on PR Coverage.
-  // Occupancy branch closure local proof (2026-06-25): S=88.55, B=82.67, F=91.46, L=88.48.
+  // Manifest schema branch closure local proof (2026-06-25): S=88.55, B=82.71, F=91.46, L=88.48.
   statements: 87.0,
-  branches: 81.5,
+  branches: 81.6,
   functions: 90.3,
   lines: 87.0,
 };
