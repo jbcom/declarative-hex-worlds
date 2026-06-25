@@ -15,6 +15,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { COVERAGE_THRESHOLDS } from '../vitest.coverage.shared';
 
 const repoRoot = resolve(import.meta.dirname, '..');
@@ -22,114 +23,256 @@ const coverageRoot = join(repoRoot, 'coverage');
 const mergedDir = join(coverageRoot, '.merged');
 const enforce = process.env.HEX_WORLDS_COVERAGE_ENFORCE === '1';
 
-if (!existsSync(coverageRoot)) {
-  console.error('coverage merge: no coverage/ directory — run `HEX_WORLDS_COVERAGE=1 pnpm test:coverage` first.');
-  process.exit(1);
-}
-
-const harnessDirs = readdirSync(coverageRoot, { withFileTypes: true })
-  .filter(
-    (entry) =>
-      entry.isDirectory() &&
-      entry.name !== '.merged' &&
-      entry.name !== 'merged' &&
-      !entry.name.startsWith('.')
-  )
-  .map((entry) => join(coverageRoot, entry.name));
-
-if (harnessDirs.length === 0) {
-  console.error('coverage merge: no harness coverage directories found under coverage/.');
-  process.exit(1);
-}
-
-mkdirSync(mergedDir, { recursive: true });
-const merged = new Map<string, unknown>();
-
-for (const harnessDir of harnessDirs) {
-  const final = join(harnessDir, 'coverage-final.json');
-  if (!existsSync(final)) {
-    console.warn(`coverage merge: ${harnessDir} missing coverage-final.json — skipped.`);
-    continue;
+export function runCoverageMerge(): void {
+  if (!existsSync(coverageRoot)) {
+    console.error('coverage merge: no coverage/ directory — run `HEX_WORLDS_COVERAGE=1 pnpm test:coverage` first.');
+    process.exit(1);
   }
-  const parsed = JSON.parse(readFileSync(final, 'utf8')) as Record<string, unknown>;
-  for (const [url, data] of Object.entries(parsed)) {
-    if (!merged.has(url)) {
-      merged.set(url, data);
+
+  const harnessDirs = readdirSync(coverageRoot, { withFileTypes: true })
+    .filter(
+      (entry) =>
+        entry.isDirectory() &&
+        entry.name !== '.merged' &&
+        entry.name !== 'merged' &&
+        !entry.name.startsWith('.')
+    )
+    .sort((left, right) => harnessSortRank(left.name) - harnessSortRank(right.name) || left.name.localeCompare(right.name))
+    .map((entry) => join(coverageRoot, entry.name));
+
+  if (harnessDirs.length === 0) {
+    console.error('coverage merge: no harness coverage directories found under coverage/.');
+    process.exit(1);
+  }
+
+  mkdirSync(mergedDir, { recursive: true });
+  const merged = new Map<string, unknown>();
+
+  for (const harnessDir of harnessDirs) {
+    const final = join(harnessDir, 'coverage-final.json');
+    if (!existsSync(final)) {
+      console.warn(`coverage merge: ${harnessDir} missing coverage-final.json — skipped.`);
       continue;
     }
-    // istanbul-shaped { statementMap, fnMap, branchMap, s, f, b }: sum counters
-    const existing = merged.get(url) as Record<string, unknown>;
-    const next = data as Record<string, unknown>;
-    merged.set(url, mergeIstanbulRecord(existing, next));
+    const parsed = JSON.parse(readFileSync(final, 'utf8')) as Record<string, unknown>;
+    for (const [url, data] of Object.entries(parsed)) {
+      if (!merged.has(url)) {
+        merged.set(url, data);
+        continue;
+      }
+      const existing = merged.get(url) as Record<string, unknown>;
+      const next = data as Record<string, unknown>;
+      merged.set(url, mergeIstanbulRecord(existing, next));
+    }
   }
+
+  const mergedFinal = Object.fromEntries(merged);
+  writeFileSync(join(mergedDir, 'coverage-final.json'), `${JSON.stringify(mergedFinal, null, 2)}\n`, 'utf8');
+
+  // Use nyc to render the merged JSON into HTML + lcov + text summary.
+  try {
+    execFileSync(
+      'pnpm',
+      [
+        'exec',
+        'nyc',
+        'report',
+        '--temp-dir',
+        mergedDir,
+        '--reporter=lcov',
+        '--reporter=text-summary',
+        '--report-dir',
+        join(coverageRoot, 'merged'),
+      ],
+      { cwd: repoRoot, stdio: 'inherit' }
+    );
+  } catch (error) {
+    console.warn(
+      `coverage merge: nyc reporter unavailable (${error instanceof Error ? error.message : String(error)}); JSON-only output written to ${mergedDir}.`
+    );
+  }
+
+  if (enforce) {
+    execFileSync(
+      'pnpm',
+      [
+        'exec',
+        'nyc',
+        'check-coverage',
+        '--temp-dir',
+        mergedDir,
+        '--statements',
+        String(COVERAGE_THRESHOLDS.statements),
+        '--branches',
+        String(COVERAGE_THRESHOLDS.branches),
+        '--functions',
+        String(COVERAGE_THRESHOLDS.functions),
+        '--lines',
+        String(COVERAGE_THRESHOLDS.lines),
+      ],
+      { cwd: repoRoot, stdio: 'inherit' }
+    );
+  }
+
+  console.log(`coverage merge: combined ${harnessDirs.length} harness reports into ${mergedDir}/coverage-final.json`);
 }
 
-const mergedFinal = Object.fromEntries(merged);
-writeFileSync(join(mergedDir, 'coverage-final.json'), `${JSON.stringify(mergedFinal, null, 2)}\n`, 'utf8');
-
-// Use nyc to render the merged JSON into HTML + lcov + text summary.
-try {
-  execFileSync(
-    'pnpm',
-    [
-      'exec',
-      'nyc',
-      'report',
-      '--temp-dir',
-      mergedDir,
-      '--reporter=lcov',
-      '--reporter=text-summary',
-      '--report-dir',
-      join(coverageRoot, 'merged'),
-    ],
-    { cwd: repoRoot, stdio: 'inherit' }
-  );
-} catch (error) {
-  console.warn(
-    `coverage merge: nyc reporter unavailable (${error instanceof Error ? error.message : String(error)}); JSON-only output written to ${mergedDir}.`
-  );
-}
-
-if (enforce) {
-  execFileSync(
-    'pnpm',
-    [
-      'exec',
-      'nyc',
-      'check-coverage',
-      '--temp-dir',
-      mergedDir,
-      '--statements',
-      String(COVERAGE_THRESHOLDS.statements),
-      '--branches',
-      String(COVERAGE_THRESHOLDS.branches),
-      '--functions',
-      String(COVERAGE_THRESHOLDS.functions),
-      '--lines',
-      String(COVERAGE_THRESHOLDS.lines),
-    ],
-    { cwd: repoRoot, stdio: 'inherit' }
-  );
-}
-
-console.log(`coverage merge: combined ${harnessDirs.length} harness reports into ${mergedDir}/coverage-final.json`);
-
-function mergeIstanbulRecord(
+export function mergeIstanbulRecord(
   existing: Record<string, unknown>,
   next: Record<string, unknown>
 ): Record<string, unknown> {
+  const statements = mergeMappedCounters(
+    existing.statementMap as Record<string, CoverageLocation> | undefined,
+    existing.s as Record<string, number> | undefined,
+    next.statementMap as Record<string, CoverageLocation> | undefined,
+    next.s as Record<string, number> | undefined,
+    locationKey,
+    lineLocationKey
+  );
+  const functions = mergeMappedCounters(
+    existing.fnMap as Record<string, FunctionMapEntry> | undefined,
+    existing.f as Record<string, number> | undefined,
+    next.fnMap as Record<string, FunctionMapEntry> | undefined,
+    next.f as Record<string, number> | undefined,
+    functionKey,
+    functionLineKey
+  );
+  const branches = mergeBranchCounters(
+    existing.branchMap as Record<string, BranchMapEntry> | undefined,
+    existing.b as Record<string, number[]> | undefined,
+    next.branchMap as Record<string, BranchMapEntry> | undefined,
+    next.b as Record<string, number[]> | undefined
+  );
   return {
     ...existing,
-    s: addCounters(existing.s as Record<string, number> | undefined, next.s as Record<string, number> | undefined),
-    f: addCounters(existing.f as Record<string, number> | undefined, next.f as Record<string, number> | undefined),
-    b: mergeBranchCounters(
-      existing.b as Record<string, number[]> | undefined,
-      next.b as Record<string, number[]> | undefined
-    ),
+    statementMap: statements.map,
+    fnMap: functions.map,
+    branchMap: branches.map,
+    s: statements.counts,
+    f: functions.counts,
+    b: branches.counts,
   };
 }
 
-function addCounters(
+interface CoveragePosition {
+  line: number;
+  column: number;
+}
+
+interface CoverageLocation {
+  start: CoveragePosition;
+  end: CoveragePosition;
+}
+
+interface FunctionMapEntry {
+  name?: string;
+  decl?: CoverageLocation;
+  loc: CoverageLocation;
+  line?: number;
+}
+
+interface BranchMapEntry {
+  type?: string;
+  loc: CoverageLocation;
+  locations?: CoverageLocation[];
+  line?: number;
+}
+
+function mergeMappedCounters<T>(
+  leftMap: Record<string, T> | undefined,
+  leftCounts: Record<string, number> | undefined,
+  rightMap: Record<string, T> | undefined,
+  rightCounts: Record<string, number> | undefined,
+  keyFor: (entry: T) => string,
+  fallbackKeyFor?: (entry: T) => string
+): { map: Record<string, T>; counts: Record<string, number> } {
+  if (!leftMap || !rightMap) {
+    return {
+      map: { ...(leftMap ?? rightMap ?? {}) },
+      counts: addCountersById(leftCounts, rightCounts),
+    };
+  }
+  const map: Record<string, T> = { ...leftMap };
+  const counts: Record<string, number> = { ...(leftCounts ?? {}) };
+  const idsByLocation = new Map(Object.entries(map).map(([id, entry]) => [keyFor(entry), id]));
+  const fallbackIds = fallbackKeyFor ? uniqueEntryIndex(map, fallbackKeyFor) : new Map<string, string>();
+  const rightFallbackCounts = fallbackKeyFor ? keyCounts(rightMap, fallbackKeyFor) : new Map<string, number>();
+  let nextId = nextCounterId(map);
+
+  for (const [rightId, entry] of Object.entries(rightMap)) {
+    const count = rightCounts?.[rightId] ?? 0;
+    const key = keyFor(entry);
+    let id = idsByLocation.get(key);
+    if (!id && fallbackKeyFor) {
+      const fallbackKey = fallbackKeyFor(entry);
+      if (rightFallbackCounts.get(fallbackKey) === 1) {
+        id = fallbackIds.get(fallbackKey);
+      }
+    }
+    if (!id) {
+      if (count === 0) {
+        continue;
+      }
+      id = String(nextId);
+      nextId += 1;
+      map[id] = entry;
+      idsByLocation.set(key, id);
+    }
+    counts[id] = (counts[id] ?? 0) + count;
+  }
+  return { map, counts };
+}
+
+function mergeBranchCounters(
+  leftMap: Record<string, BranchMapEntry> | undefined,
+  leftCounts: Record<string, number[]> | undefined,
+  rightMap: Record<string, BranchMapEntry> | undefined,
+  rightCounts: Record<string, number[]> | undefined
+): { map: Record<string, BranchMapEntry>; counts: Record<string, number[]> } {
+  if (!leftMap || !rightMap) {
+    return {
+      map: { ...(leftMap ?? rightMap ?? {}) },
+      counts: addBranchCountersById(leftCounts, rightCounts),
+    };
+  }
+  const map: Record<string, BranchMapEntry> = { ...leftMap };
+  const counts: Record<string, number[]> = { ...(leftCounts ?? {}) };
+  const idsByLocation = new Map(Object.entries(map).map(([id, entry]) => [branchKey(entry), id]));
+  const fallbackIds = uniqueEntryIndex(map, branchLineKey);
+  const rightFallbackCounts = keyCounts(rightMap, branchLineKey);
+  let nextId = nextCounterId(map);
+
+  for (const [rightId, entry] of Object.entries(rightMap)) {
+    const right = rightCounts?.[rightId] ?? [];
+    const key = branchKey(entry);
+    let id = idsByLocation.get(key);
+    if (!id) {
+      const fallbackKey = branchLineKey(entry);
+      if (rightFallbackCounts.get(fallbackKey) === 1) {
+        id = fallbackIds.get(fallbackKey);
+      }
+    }
+    if (!id) {
+      if (right.every((count) => count === 0)) {
+        continue;
+      }
+      id = String(nextId);
+      nextId += 1;
+      map[id] = entry;
+      idsByLocation.set(key, id);
+    }
+    const left = counts[id] ?? [];
+    const length = Math.max(left.length, right.length);
+    const merged = new Array<number>(length);
+    for (let i = 0; i < length; i += 1) {
+      merged[i] = (left[i] ?? 0) + (right[i] ?? 0);
+    }
+    counts[id] = merged;
+  }
+  return { map, counts };
+}
+
+function addCountersById(
   a: Record<string, number> | undefined,
   b: Record<string, number> | undefined
 ): Record<string, number> {
@@ -140,7 +283,7 @@ function addCounters(
   return result;
 }
 
-function mergeBranchCounters(
+function addBranchCountersById(
   a: Record<string, number[]> | undefined,
   b: Record<string, number[]> | undefined
 ): Record<string, number[]> {
@@ -149,12 +292,81 @@ function mergeBranchCounters(
   for (const key of keys) {
     const left = a?.[key] ?? [];
     const right = b?.[key] ?? [];
-    const length = Math.max(left.length, right.length);
-    const merged = new Array<number>(length);
-    for (let i = 0; i < length; i += 1) {
-      merged[i] = (left[i] ?? 0) + (right[i] ?? 0);
+    result[key] = left.map((value, index) => value + (right[index] ?? 0));
+    for (let index = left.length; index < right.length; index += 1) {
+      result[key].push(right[index] ?? 0);
     }
-    result[key] = merged;
   }
   return result;
+}
+
+function locationKey(location: CoverageLocation): string {
+  return `${location.start.line}:${location.start.column}-${location.end.line}:${location.end.column}`;
+}
+
+function lineLocationKey(location: CoverageLocation): string {
+  return `${location.start.line}-${location.end.line}`;
+}
+
+function functionKey(entry: FunctionMapEntry): string {
+  return `${entry.name ?? ''}|${locationKey(entry.decl ?? entry.loc)}|${locationKey(entry.loc)}`;
+}
+
+function functionLineKey(entry: FunctionMapEntry): string {
+  return `${entry.name ?? ''}|${lineLocationKey(entry.decl ?? entry.loc)}|${lineLocationKey(entry.loc)}`;
+}
+
+function branchKey(entry: BranchMapEntry): string {
+  return `${entry.type ?? ''}|${locationKey(entry.loc)}|${(entry.locations ?? []).map(locationKey).join(',')}`;
+}
+
+function branchLineKey(entry: BranchMapEntry): string {
+  return `${entry.type ?? ''}|${lineLocationKey(entry.loc)}|${(entry.locations ?? []).map(lineLocationKey).join(',')}`;
+}
+
+function uniqueEntryIndex<T>(
+  map: Record<string, T>,
+  keyFor: (entry: T) => string
+): Map<string, string> {
+  const unique = new Map<string, string>();
+  const duplicates = new Set<string>();
+  for (const [id, entry] of Object.entries(map)) {
+    const key = keyFor(entry);
+    if (unique.has(key)) {
+      unique.delete(key);
+      duplicates.add(key);
+    } else if (!duplicates.has(key)) {
+      unique.set(key, id);
+    }
+  }
+  return unique;
+}
+
+function keyCounts<T>(map: Record<string, T>, keyFor: (entry: T) => string): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const entry of Object.values(map)) {
+    const key = keyFor(entry);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function nextCounterId(map: Record<string, unknown>): number {
+  return Math.max(-1, ...Object.keys(map).map((key) => Number(key)).filter(Number.isFinite)) + 1;
+}
+
+function harnessSortRank(name: string): number {
+  if (name === 'unit') {
+    return 0;
+  }
+  return 1;
+}
+
+function isDirectRun(argvEntry = process.argv[1], moduleUrl = import.meta.url): boolean {
+  return typeof argvEntry === 'string' && resolve(argvEntry) === fileURLToPath(moduleUrl);
+}
+
+/* v8 ignore next 3 -- thin executable entrypoint; merge helpers are unit-tested. */
+if (isDirectRun()) {
+  runCoverageMerge();
 }
