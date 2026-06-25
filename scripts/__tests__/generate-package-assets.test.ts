@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { MedievalHexagonManifest } from '../../src/types';
 import {
+  defaultPackageRoot,
   generatePackageAssets,
   parsePackageAssetsArgs,
   runGeneratePackageAssets,
@@ -14,11 +15,11 @@ const manifest = {
 describe('scripts/generate-package-assets', () => {
   it('parses required args and defaults the package root', () => {
     expect(
-      parsePackageAssetsArgs(['ignored', '--edition', 'free', '--source', 'references/free'], '/repo')
+      parsePackageAssetsArgs(['ignored', '--edition', 'free', '--source', 'references/free'])
     ).toEqual({
       edition: 'free',
       source: 'references/free',
-      packageRoot: '/repo',
+      packageRoot: defaultPackageRoot(),
     });
   });
 

@@ -1,3 +1,4 @@
+import { realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -123,9 +124,17 @@ export function runGeneratePackageAssets(
 }
 
 function isDirectRun(): boolean {
-  return process.argv[1]
-    ? resolve(process.argv[1]).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase()
-    : false;
+  if (!process.argv[1]) {
+    return false;
+  }
+  try {
+    return (
+      realpathSync(resolve(process.argv[1])).toLowerCase() ===
+      realpathSync(fileURLToPath(import.meta.url)).toLowerCase()
+    );
+  } catch {
+    return false;
+  }
 }
 
 if (isDirectRun()) {
