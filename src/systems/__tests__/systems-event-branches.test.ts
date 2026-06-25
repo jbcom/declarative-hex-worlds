@@ -11,13 +11,19 @@
 
 import { describe, expect, it } from 'vitest';
 import { createGameboardBuilder } from '../../gameboard/index';
-import { createGameboardWorld } from '../../koota/index';
+import { createGameboardWorld, spawnGameboardPlacement } from '../../koota/index';
 import { spawnGameboardActor } from '../../actors/index';
 import { setGameboardPatrolAgent, advanceGameboardPatrol } from '../../patrol/index';
-import { advanceGameboardMovement } from '../../movement/index';
-import { spawnGameboardQuest } from '../../quests/index';
 import {
+  advanceGameboardMovement,
+  requestGameboardMovement,
+  setGameboardMovementAgent,
+} from '../../movement/index';
+import { advanceGameboardQuest, spawnGameboardQuest } from '../../quests/index';
+import {
+  dispatchGameboardInteractionCommand,
   runGameboardSystems,
+  snapshotGameboardSystemEvent,
   snapshotGameboardSystemEvents,
 } from '../../systems/index';
 
@@ -117,6 +123,131 @@ describe('systems patrol event branches (PRD E0a)', () => {
 
     const records = snapshotGameboardSystemEvents(systems.events);
     expect(records.some((r) => r.type === 'patrol-completed')).toBe(true);
+  });
+
+  it('reports out-of-range movement and then a non-requested patrol block', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'systems-patrol-out-of-range',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      }).build()
+    );
+    const guard = spawnGameboardActor(world, {
+      id: 'patrol-budget-placement',
+      actorId: 'patrol-budget-guard',
+      actorKind: 'npc',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+
+    setGameboardPatrolAgent(world, guard, {
+      route: {
+        id: 'budget-route',
+        waypointKeys: ['0,0', '2,0'],
+        loop: false,
+      },
+      movement: { profile: 'ground' },
+    });
+
+    const firstTick = runGameboardSystems(world, {
+      patrols: { movement: { movementBudget: 0 } },
+      movement: { steps: 1 },
+      quests: false,
+    });
+    expect(firstTick.events.map((event) => event.type)).toEqual([
+      'patrol-move-requested',
+      'movement-blocked',
+    ]);
+    expect(firstTick.eventRecords).toEqual([
+      expect.objectContaining({ type: 'patrol-move-requested' }),
+      expect.objectContaining({
+        type: 'movement-blocked',
+        reason: 'Movement needs 1 remaining movement; agent has 0',
+      }),
+    ]);
+
+    const secondTick = runGameboardSystems(world, { movement: false, quests: false });
+    expect(secondTick.events.map((event) => event.type)).toEqual(['patrol-blocked']);
+    expect(secondTick.eventRecords).toEqual([
+      expect.objectContaining({
+        type: 'patrol-blocked',
+        reason: 'Movement needs 1 remaining movement; agent has 0',
+        patrol: expect.objectContaining({
+          requested: false,
+          status: 'blocked',
+        }),
+      }),
+    ]);
+  });
+
+  it('snapshots movement and quest guard records without actor or before state', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'systems-event-snapshot-guards',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    spawnGameboardActor(world, {
+      id: 'snapshot-hero-placement',
+      actorId: 'snapshot-hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+
+    const dispatch = dispatchGameboardInteractionCommand(world, '1,0', {
+      sourceActor: 'snapshot-hero',
+    });
+    expect(
+      snapshotGameboardSystemEvent({
+        type: 'movement-requested',
+        execution: { ...dispatch.execution, movement: undefined },
+      }).movement
+    ).toBeUndefined();
+
+    const marker = spawnGameboardPlacement(world, {
+      id: 'actorless-marker',
+      at: '0,0',
+      assetId: 'flag_green',
+      kind: 'prop',
+    });
+    setGameboardMovementAgent(world, marker, { profile: 'ground', movementBudget: 0 });
+    requestGameboardMovement(world, marker, '1,0', { movementBudget: 0 });
+    const movement = advanceGameboardMovement(world, marker);
+    const movementRecord = snapshotGameboardSystemEvent({
+      type: 'movement-blocked',
+      movement,
+      reason: movement.state.reason,
+    });
+    expect(movementRecord).toMatchObject({
+      type: 'movement-blocked',
+      movement: {
+        placementId: 'actorless-marker',
+        actorId: undefined,
+        state: { status: 'out-of-range' },
+      },
+    });
+
+    const questEntity = spawnGameboardQuest(world, {
+      id: 'snapshot-quest',
+      objectives: [
+        { id: 'snapshot-objective', kind: 'reach-tile', actor: 'snapshot-hero', tile: '0,0' },
+      ],
+    });
+    const quest = advanceGameboardQuest(world, questEntity);
+    expect(
+      snapshotGameboardSystemEvent({
+        type: 'quest-advanced',
+        before: undefined,
+        quest,
+      })
+    ).toMatchObject({
+      type: 'quest-advanced',
+      beforeQuest: undefined,
+      quest: { questId: 'snapshot-quest', status: 'completed' },
+    });
   });
 });
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { freeManifest } from '../../manifest/free';
 import {
   rewriteToBootstrapPath,
@@ -59,6 +59,16 @@ describe('runtime asset root resolution (PRD RB3)', () => {
   it('falls back to process.env.HEX_WORLDS_ASSET_ROOT when no global is set', () => {
     process.env[GAMEBOARD_ASSET_ROOT_ENV_VAR] = '/env/assets';
     expect(resolveGameboardAssetRoot()).toBe('/env/assets');
+  });
+
+  it('uses the default root when process is unavailable', () => {
+    const originalProcess = globalThis.process;
+    vi.stubGlobal('process', undefined);
+    try {
+      expect(resolveGameboardAssetRoot()).toBe(DEFAULT_GAMEBOARD_ASSET_ROOT);
+    } finally {
+      vi.stubGlobal('process', originalProcess);
+    }
   });
 
   it('priority: explicit override beats global beats env beats default', () => {

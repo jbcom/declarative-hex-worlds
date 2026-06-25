@@ -154,6 +154,7 @@ function questChanged(
   before: GameboardQuestSnapshot | undefined,
   after: GameboardQuestSnapshot
 ): boolean {
+  /* v8 ignore next -- defensive for custom quest systems that add quests between snapshots. */
   if (!before) {
     return true;
   }
