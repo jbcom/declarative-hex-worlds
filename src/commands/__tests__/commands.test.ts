@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createGameboardBuilder } from '../../gameboard/index';
-import { PlacementState, createGameboardWorld, findPlacementEntity } from '../../koota/index';
+import { PlacementState, createGameboardWorld, findPlacementEntity, spawnGameboardPlacement } from '../../koota/index';
 import { setGameboardMovementAgent } from '../../movement/index';
 import { findGameboardActor, spawnGameboardActor } from '../../actors/index';
 import type { World } from 'koota';
@@ -141,6 +141,60 @@ describe('gameboard interaction commands', () => {
     });
   });
 
+  it('uses fallback preview reasons for source-less and unreachable move commands', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'commands-preview-fallbacks',
+        shape: { kind: 'rectangle', width: 3, height: 1 },
+      })
+        .setTerrain({ q: 1, r: 0 }, 'water')
+        .build()
+    );
+    spawnGameboardActor(world, {
+      id: 'hero-placement',
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+
+    expect(
+      previewGameboardInteractionCommand(world, {
+        kind: 'move',
+        intent: 'move',
+        target: { kind: 'tile' },
+        tileKey: '2,0',
+        canExecute: true,
+      } as GameboardInteractionCommand)
+    ).toMatchObject({
+      canExecute: false,
+      reason: 'Move commands require a source actor',
+    });
+    expect(previewGameboardInteractionCommand(world, '2,0', { sourceActor: 'hero' })).toMatchObject(
+      {
+        canExecute: false,
+        reason: 'No passable path to destination',
+      }
+    );
+
+    const source = findGameboardActor(world, 'hero');
+    if (!source) {
+      throw new Error('expected hero actor fixture');
+    }
+    const blockedWithoutReason = previewGameboardInteractionCommand(world, {
+      kind: 'move',
+      intent: 'move',
+      target: { kind: 'tile' },
+      source,
+      tileKey: '0,0',
+      canExecute: false,
+    } as GameboardInteractionCommand);
+    expect(blockedWithoutReason.canExecute).toBe(false);
+    expect(blockedWithoutReason.reason).toBeUndefined();
+
+  });
+
   it('returns handler-required commands for attacks and interactions', () => {
     const world = createGameboardWorld(
       createGameboardBuilder({
@@ -275,6 +329,15 @@ describe('gameboard interaction commands', () => {
       canExecute: false,
       reason: 'No actor target found for missing-raider',
     });
+    expect(
+      planGameboardActorTargetCommand(world, {
+        sourceActor: 'hero',
+        interactive: true,
+      })
+    ).toMatchObject({
+      canExecute: false,
+      reason: 'No actor target matched the targeting options',
+    });
   });
 
   it('executes opt-in handlers for host-owned attack and interaction effects', () => {
@@ -357,6 +420,27 @@ describe('gameboard interaction commands', () => {
       ],
     });
     expect(findGameboardActor(world, 'raider')).toBeUndefined();
+    expect(
+      createRemoveTargetActorHandler()({
+        world,
+        preview: {} as GameboardInteractionCommandPreview,
+        command: {
+          kind: 'attack-actor',
+          target: {
+            kind: 'actor',
+            actor: {
+              actor: { actorId: 'raider' },
+              placement: { id: 'raider-placement' },
+              entity: 'raider-placement',
+            },
+          },
+        } as unknown as GameboardInteractionCommand,
+      })
+    ).toMatchObject({
+      status: 'blocked',
+      reason: 'No actor exists with id raider',
+      effects: [{ type: 'actor-removed', actorId: 'raider', removed: false }],
+    });
   });
 
   it('exposes reusable handler presets for direct game and ECS integrations', () => {
@@ -368,6 +452,9 @@ describe('gameboard interaction commands', () => {
     ]);
     expect(isGameboardInteractionHandlerPreset('default-rpg')).toBe(true);
     expect(isGameboardInteractionHandlerPreset('custom-handler')).toBe(false);
+    expect(createGameboardInteractionHandlerPreset('remove-target-actor')).toHaveLength(1);
+    expect(createGameboardInteractionHandlerPreset('remove-target-placement')).toHaveLength(1);
+    expect(createGameboardInteractionHandlerPreset('mark-target-interacted')).toHaveLength(1);
 
     const world = createGameboardWorld(
       createGameboardBuilder({
@@ -488,6 +575,33 @@ describe('gameboard interaction commands', () => {
     });
     expect(targetPlan).toBeDefined();
   });
+
+  it('normalizes handled commands that return no effects', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'commands-no-effect-handler',
+        shape: { kind: 'rectangle', width: 1, height: 1 },
+      }).build()
+    );
+    expect(
+      executeGameboardInteractionCommand(
+        world,
+        {
+          kind: 'interact-actor',
+          intent: 'interact',
+          target: { kind: 'actor' },
+          canExecute: true,
+        } as unknown as GameboardInteractionCommand,
+        {
+          handlers: () => ({ handlerId: 'no-effects', status: 'handled' }),
+        }
+      )
+    ).toMatchObject({
+      status: 'handled',
+      handler: { handlerId: 'no-effects', status: 'handled', effects: [] },
+      effects: [],
+    });
+  });
 });
 
 describe('createRemoveTargetPlacementHandler factory (PRD E0a)', () => {
@@ -524,6 +638,50 @@ describe('createRemoveTargetPlacementHandler factory (PRD E0a)', () => {
       })
     );
     expect(result).toBeUndefined();
+  });
+
+  it('reports successful placement removal effects', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'commands-placement-removal',
+        shape: { kind: 'rectangle', width: 1, height: 1 },
+      }).build()
+    );
+    const placementId = 'crate-placement';
+    spawnGameboardPlacement(world, {
+      id: placementId,
+      at: '0,0',
+      assetId: 'crate',
+      kind: 'prop',
+    });
+    const handler = createRemoveTargetPlacementHandler();
+    const result = handler({
+      world,
+      preview: {} as GameboardInteractionCommandPreview,
+      command: {
+        kind: 'interact-placement',
+        target: { kind: 'placement', placement: { id: placementId } },
+      } as unknown as GameboardInteractionCommand,
+    });
+
+    expect(result).toMatchObject({
+      status: 'handled',
+      effects: [{ type: 'placement-removed', placementId, removed: true }],
+    });
+    expect(findPlacementEntity(world, placementId)).toBeUndefined();
+    const stale = handler({
+      world,
+      preview: {} as GameboardInteractionCommandPreview,
+      command: {
+        kind: 'interact-placement',
+        target: { kind: 'placement', placement: { id: placementId } },
+      } as unknown as GameboardInteractionCommand,
+    });
+    expect(stale).toMatchObject({
+      status: 'blocked',
+      reason: `No placement exists with id ${placementId}`,
+      effects: [{ type: 'placement-removed', placementId, removed: false }],
+    });
   });
 });
 
@@ -604,6 +762,7 @@ describe('createRemoveTargetActorHandler factory (PRD E0a)', () => {
       reason: 'Target actor elder is not hostile',
     });
   });
+
 });
 
 describe('createMarkTargetActorInteractedHandler factory (PRD E0a)', () => {
@@ -624,6 +783,43 @@ describe('createMarkTargetActorInteractedHandler factory (PRD E0a)', () => {
       stubHandlerContext({ kind: 'interact-actor', target: { kind: 'tile' } as never })
     );
     expect(result).toMatchObject({ status: 'blocked', reason: 'No target actor for command' });
+  });
+
+  it('marks source-less interactions with null source metadata', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'commands-source-less-interaction',
+        shape: { kind: 'rectangle', width: 1, height: 1 },
+      }).build()
+    );
+    spawnGameboardActor(world, {
+      id: 'elder-placement',
+      actorId: 'elder',
+      actorKind: 'npc',
+      interactive: true,
+      at: '0,0',
+      assetId: 'flag_green',
+      kind: 'prop',
+    });
+    const target = findGameboardActor(world, 'elder');
+    if (!target) {
+      throw new Error('expected elder actor fixture');
+    }
+
+    const handler = createMarkTargetActorInteractedHandler();
+    const result = handler({
+      world,
+      preview: {} as GameboardInteractionCommandPreview,
+      command: {
+        kind: 'interact-actor',
+        target: { kind: 'actor', actor: target },
+      } as GameboardInteractionCommand,
+    });
+
+    expect(result).toMatchObject({
+      status: 'handled',
+      metadata: { interacted: true, lastInteractedBy: null },
+    });
   });
 });
 
