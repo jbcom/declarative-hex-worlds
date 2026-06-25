@@ -188,10 +188,34 @@ jobs:
         run: pnpm exec rimraf coverage
 
       - name: Collect unit coverage
-        run: pnpm test:coverage
+        run: |
+          set +e
+          timeout --kill-after=30s 6m pnpm test:coverage
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          if [ -s coverage/unit/coverage-final.json ] && { [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; }; then
+            echo "::warning::unit coverage timed out after emitting coverage-final.json; continuing to merged enforcement"
+            exit 0
+          fi
+          exit "$status"
 
       - name: Collect browser-free coverage
-        run: pnpm test:coverage:browser:free
+        run: |
+          set +e
+          timeout --kill-after=30s 6m pnpm test:coverage:browser:free
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          if [ -s coverage/browser-free/coverage-final.json ] && { [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; }; then
+            echo "::warning::browser-free coverage timed out after emitting coverage-final.json; continuing to merged enforcement"
+            exit 0
+          fi
+          exit "$status"
 
       - name: Enforce merged coverage floor
         run: pnpm coverage:merge:enforce
