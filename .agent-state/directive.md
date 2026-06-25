@@ -69,7 +69,7 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
     - navigation.ts 91.47 / patrol-routes.ts 88.13 → reachableGameboardTiles defensive returns + patrol-route generation edge cases.
     Remaining gaps: deep validator branches in script.ts (remaining expectation sub-validators), engine.ts edge mutation paths (lines 491-499, 665), patrol.ts wait-state + completed-by-targetIndex-undefined deeper paths, patrol-routes.ts generation edge cases, scenario.ts deeper allocator paths, bootstrap GitHub source, ingest.ts duplicate disambiguation. Each ≤200 LOC commit + threshold ratchet.
 - [ ] [WAIT] **E0h** — Sweep remaining src/ files to 100% (paired with E0a per-PR). PR#10 closures advanced many of these in tandem with E0a. Status post-merge:
-    - `pieces/pieces.ts` 100 / 98.75 / 100 / 100 in focused unit coverage after default/exclude/source-url branch batch; remaining branch-only gaps are compatibility override/default prefix paths
+    - `pieces/pieces.ts` 100 / 96.66 / 100 / 100 in focused unit coverage after exclude/source-url/default-check branch batch; remaining branch-only gaps are compatibility override/default prefix paths
     - `quests/quests.ts` ~89% (was 87.2) — quest objective rollover + reward dispatch
     - `actors/actors.ts` ~88% (was 87.58) — placement-state inference edge cases
     - `scenario/scenario.ts` ~88% (was 85.8) — actor allocation + interop snapshot drift

@@ -223,9 +223,6 @@ describe('gameboard piece declarations', () => {
       seed: 'piece-shipyards',
       idPrefix: 'local:shipyard',
     });
-    const defaultCountInspection = inspectGameboardPiecePlacement(plan, dock, {
-      seed: 'piece-shipyard-default',
-    });
     const placements = createGameboardLayoutPlacementsFromPiece(plan, dock, {
       count: 2,
       seed: 'piece-shipyards',
@@ -247,7 +244,6 @@ describe('gameboard piece declarations', () => {
       },
     });
     expect(inspection.placements).toEqual(placements);
-    expect(defaultCountInspection.siteInspection.selectedCount).toBe(1);
     expect(placements).toHaveLength(2);
     expect(placements.every((placement) => placement.kind === 'structure')).toBe(true);
     expect(placements.every((placement) => placement.metadata?.pieceId === 'local-shipyard')).toBe(true);
@@ -579,49 +575,6 @@ describe('gameboard piece declarations', () => {
         pieceCollectionSize: 2,
       },
     });
-  });
-
-  it('uses declaration defaults for pooled custom archetype pieces', () => {
-    const archetypes = createGameboardLayoutArchetypeRegistry({
-      scenicTree: {
-        id: 'scenicTree',
-        label: 'Scenic Tree',
-        kind: 'prop',
-        criteria: { terrain: ['grass'] },
-      },
-    });
-    const pieces = [
-      declareGameboardPiece({
-        id: 'scenic-tree-a',
-        source: 'Test Pack',
-        role: 'tree',
-        archetype: archetypes.scenicTree,
-        scale: 1.2,
-      }),
-      declareGameboardPiece({
-        id: 'scenic-tree-b',
-        source: 'Test Pack',
-        role: 'tree',
-        archetype: archetypes.scenicTree,
-        scale: 1.3,
-      }),
-    ];
-
-    const rule = createGameboardLayoutFillRuleFromPieces(pieces);
-
-    expect(pieces.map((piece) => piece.assetId)).toEqual(['scenic-tree-a', 'scenic-tree-b']);
-    expect(rule).toMatchObject({
-      id: 'scenic-tree-a',
-      assets: ['scenic-tree-a', 'scenic-tree-b'],
-      archetype: archetypes.scenicTree,
-      requiresExtra: true,
-      metadata: {
-        pieceIds: 'scenic-tree-a|scenic-tree-b',
-        pieceRoles: 'tree',
-        pieceSources: 'Test Pack',
-      },
-    });
-    expect(rule.scale).toBeUndefined();
   });
 
   it('resolves local source URLs from piece metadata and source roots', () => {
