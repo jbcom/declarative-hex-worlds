@@ -46,12 +46,12 @@ export const COVERAGE_EXCLUDES = [
 export const COVERAGE_THRESHOLDS = {
   // Threshold ratchet uses the CI-measured merged unit + browser-free floor.
   // Local runs can read higher when skip-gated reference tests execute, so each
-  // E0a/E0h commit sets the floor 0.5pp below the last green PR Coverage job.
-  // PR #106 (2026-06-25): S=76.74, B=70.87, F=84.69, L=76.48.
-  statements: 76.2,
-  branches: 70.3,
-  functions: 84.1,
-  lines: 75.9,
+  // E0a/E0h commit sets the floor 0.5pp below CI-shaped proof, then confirms on PR Coverage.
+  // PR #108 Coverage (2026-06-25): S=78.32, B=72.80, F=85.69, L=78.06.
+  statements: 77.8,
+  branches: 72.3,
+  functions: 85.1,
+  lines: 77.5,
 };
 
 /**

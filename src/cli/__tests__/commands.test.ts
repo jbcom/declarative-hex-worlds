@@ -23,10 +23,11 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameboardCliError } from '../../errors';
 import type { ParsedArgs } from '../_shared';
 import { run as runAnalyze } from '../commands/analyze';
+import { run as runBlueprint } from '../commands/blueprint';
 import { findCliPackageRoot, run as runCoverageCmd } from '../commands/coverage';
 import { run as runDoctor } from '../commands/doctor';
 import { run as runGuideApis } from '../commands/guide-apis';
@@ -90,6 +91,23 @@ describe('CLI doctor subcommand (PRD E0h)', () => {
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const referenceFreeRoot = join(repoRoot, 'references/KayKit_Medieval_Hexagon_Pack_1.0_FREE');
 const HAS_FREE_REFERENCES = existsSync(referenceFreeRoot);
+const commandOutputRoot = mkdtempSync(join(tmpdir(), 'hex-worlds-commands-'));
+let previousOutRoot: string | undefined;
+
+function commandOutputPath(name: string): string {
+  mkdirSync(commandOutputRoot, { recursive: true });
+  return name;
+}
+
+function readCommandOutput<T>(name: string): T {
+  return JSON.parse(readFileSync(resolve(commandOutputRoot, name), 'utf8')) as T;
+}
+
+function writeCommandOutput(name: string, payload: unknown): string {
+  const path = commandOutputPath(name);
+  writeFileSync(resolve(commandOutputRoot, path), `${JSON.stringify(payload, null, 2)}\n`);
+  return path;
+}
 
 function createPackageSearchRoot(packageSearchRoots: string[]): string {
   const root = mkdtempSync(join(tmpdir(), 'hex-worlds-coverage-'));
@@ -317,6 +335,181 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
     const parsed: ParsedArgs = { command: 'guide-usages', flags: { json: true } };
     await runGuideUsages(parsed, '/nonexistent', 'free');
     expect(logs.length).toBeGreaterThan(0);
+  });
+});
+
+describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
+  const blueprintPath = resolve(repoRoot, 'examples/blueprint-board.json');
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeAll(() => {
+    previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+  });
+
+  beforeEach(() => {
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+  });
+
+  afterAll(() => {
+    if (previousOutRoot === undefined) {
+      delete process.env.HEX_WORLDS_OUT_ROOT;
+    } else {
+      process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+    }
+    rmSync(commandOutputRoot, { recursive: true, force: true });
+  });
+
+  it('summarizes, snapshots, spawn-plans, and patrol-plans blueprint artifacts', async () => {
+    const prefix = 'blueprint-derived';
+    const paths = Object.fromEntries(
+      ['plan', 'recipe', 'scenario', 'scenarioInspection', 'interop', 'inspection'].map((key) => [
+        key,
+        commandOutputPath(`${prefix}.${key}.json`),
+      ])
+    ) as Record<
+      'plan' | 'recipe' | 'scenario' | 'scenarioInspection' | 'interop' | 'inspection',
+      string
+    >;
+    await runBlueprint(
+      {
+        command: 'blueprint',
+        flags: {
+          blueprint: blueprintPath,
+          outRecipe: paths.recipe,
+          outPlan: paths.plan,
+          outScenario: paths.scenario,
+          outScenarioInspection: paths.scenarioInspection,
+          outInterop: paths.interop,
+          out: paths.inspection,
+          includeRecipe: true,
+          includePlan: true,
+          includeScenario: true,
+          includeScenarioInspection: true,
+          includeInterop: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    const blueprint = JSON.parse(readFileSync(blueprintPath, 'utf8')) as {
+      spawnGroups: unknown;
+      patrolRoutes: unknown;
+    };
+    const groupsPath = writeCommandOutput('blueprint-derived.groups.json', blueprint.spawnGroups);
+    const routesPath = writeCommandOutput('blueprint-derived.routes.json', {
+      seed: 'blueprint-derived-routes',
+      routes: blueprint.patrolRoutes,
+    });
+
+    await runSummarizePlan(
+      {
+        command: 'summarize-plan',
+        flags: {
+          plan: resolve(commandOutputRoot, paths.plan),
+          outPlan: commandOutputPath('blueprint-derived.summary-plan.json'),
+          out: commandOutputPath('blueprint-derived.summary.json'),
+          topAssets: '3',
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSnapshot(
+      {
+        command: 'snapshot',
+        flags: {
+          scenario: resolve(commandOutputRoot, paths.scenario),
+          out: commandOutputPath('blueprint-derived.snapshot.json'),
+          spawnCount: '3',
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSpawnGroups(
+      {
+        command: 'spawn-groups',
+        flags: {
+          plan: resolve(commandOutputRoot, paths.plan),
+          groups: resolve(commandOutputRoot, groupsPath),
+          out: commandOutputPath('blueprint-derived.spawn-groups.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runPatrolRoutes(
+      {
+        command: 'patrol-routes',
+        flags: {
+          plan: resolve(commandOutputRoot, paths.plan),
+          groups: resolve(commandOutputRoot, groupsPath),
+          routes: resolve(commandOutputRoot, routesPath),
+          out: commandOutputPath('blueprint-derived.patrol-routes.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const summary = readCommandOutput<{
+      source: { kind: string };
+      summary: { seed: string; topAssets: unknown[] };
+      validation: { errorCount: number };
+    }>(`${prefix}.summary.json`);
+    const plan = readCommandOutput<{ tiles: unknown[]; placements: unknown[] }>(
+      `${prefix}.plan.json`
+    );
+    const scenario = readCommandOutput<{ id: string; actors: unknown[] }>(
+      `${prefix}.scenario.json`
+    );
+    const snapshot = readCommandOutput<{ entities: unknown[]; relations: unknown[] }>(
+      `${prefix}.snapshot.json`
+    );
+    const spawnGroups = readCommandOutput<{
+      selectedLocationCount: number;
+      errors: unknown[];
+    }>(`${prefix}.spawn-groups.json`);
+    const patrolRoutes = readCommandOutput<{
+      routes: Array<{ id: string; found: boolean }>;
+      errors: unknown[];
+    }>(`${prefix}.patrol-routes.json`);
+
+    expect(plan.tiles.length).toBeGreaterThan(0);
+    expect(plan.placements.length).toBeGreaterThan(0);
+    expect(scenario).toMatchObject({
+      id: 'docs-blueprint-board:intro',
+      actors: expect.any(Array),
+    });
+    expect(existsSync(resolve(commandOutputRoot, paths.recipe))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, paths.scenarioInspection))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, paths.interop))).toBe(true);
+    expect(readCommandOutput<{ validation: { errorCount: number } }>(`${prefix}.inspection.json`))
+      .toMatchObject({ validation: { errorCount: 0 } });
+    expect(summary).toMatchObject({
+      source: { kind: 'plan' },
+      summary: { seed: 'docs-blueprint-board' },
+      validation: { errorCount: 0 },
+    });
+    expect(summary.summary.topAssets).toHaveLength(3);
+    expect(snapshot.entities.length).toBeGreaterThan(0);
+    expect(snapshot.relations.length).toBeGreaterThan(0);
+    expect(spawnGroups).toMatchObject({
+      selectedLocationCount: 3,
+      errors: [],
+    });
+    expect(patrolRoutes).toMatchObject({
+      errors: [],
+    });
+    expect(patrolRoutes.routes[0]).toMatchObject({
+      id: 'raider-watch',
+      found: true,
+    });
   });
 });
 
