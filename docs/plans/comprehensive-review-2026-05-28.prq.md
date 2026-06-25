@@ -3,6 +3,10 @@
 **Source:** `.full-review/05-final-report.md` (5-phase full codebase review)  
 **Directive:** `.agent-state/directive.md` Phase CR queue
 
+> Status note (2026-06-25): this file is the historical review seed list. The
+> canonical live status is `.agent-state/directive.md`, where completed CR items
+> are marked with proof and PR context.
+
 ## Overview
 
 Full review of `declarative-hex-worlds` identified 9 critical, 26 high, 33 medium, and 30 low findings across code quality, architecture, security, performance, testing, documentation, best practices, and CI/CD. Findings are carried into the directive as CR-P0 through CR-P3 items.

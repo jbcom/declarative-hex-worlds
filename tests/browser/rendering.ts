@@ -20,7 +20,7 @@ import {
   syncGameboardPlacementObjects,
 } from '../../src/three/index';
 import type { MedievalHexagonAsset } from '../../src/types/index';
-import { gameboardAssetUrl } from '../../src/runtime/asset-root';
+import { gameboardAssetUrl, resolveGameboardAssetRoot } from '../../src/runtime/asset-root';
 
 declare const __EXTRA_SOURCE_ROOT__: string | undefined;
 
@@ -195,6 +195,7 @@ export async function renderGameboardPlan(
       return false;
     }
     return Boolean(resolveGameboardPlacementAssetUrl(placement, {
+      bootstrapAssetRoot: resolveGameboardAssetRoot(),
       catalog: freeManifest,
       fallback: options.resolvePlacementUrl,
     }));
@@ -202,6 +203,7 @@ export async function renderGameboardPlan(
   await syncGameboardPlacementObjects(loadable, {
     loader,
     parent: scene,
+    bootstrapAssetRoot: resolveGameboardAssetRoot(),
     catalog: freeManifest,
     fallback: options.resolvePlacementUrl,
     animationUrlResolver: options.resolvePlacementAnimationUrl,

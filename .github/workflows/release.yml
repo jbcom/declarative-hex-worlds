@@ -43,6 +43,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Bootstrap FREE models for browser coverage
+        run: pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models
+
       - name: Production audit (high+)
         # Final blocking security gate before any bytes ship. Per-PR uses
         # dependency-review-action for CVE intake; this is the last word
@@ -51,13 +57,13 @@ jobs:
 
       - name: Verify package
         # Full verify chain: lint, typecheck, full vitest suite (incl.
-        # contract specs under tests/contract/), enforced coverage
-        # threshold. Same gates CI ran per-PR; re-run at release to
-        # catch any drift between PR-CI and release time.
+        # contract specs under tests/contract/), and the merged unit +
+        # browser-free coverage threshold. Same gates CI ran per-PR; re-run
+        # at release to catch any drift between PR-CI and release time.
         run: |
           pnpm lint
           pnpm typecheck
-          pnpm test:coverage:enforce
+          pnpm coverage:all:enforce
 
       - name: Build package
         run: pnpm build

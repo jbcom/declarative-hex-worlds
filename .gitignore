@@ -163,6 +163,7 @@ ios
 # materializes them for testing but they stay out of git.
 assets/free/**
 !assets/free/manifest.json
+models/
 
 # Playwright
 playwright-report
@@ -173,8 +174,15 @@ test-results
 # Vitest browser-mode failure artifacts (Playwright visual baselines under
 # tests/e2e and tests/visual ARE committed — these are transient failure shots)
 .vitest-attachments
-tests/browser/**/__screenshots__
-**/tests/browser/**/__screenshots__/
+tests/browser/**/__screenshots__/*
+!tests/browser/**/__screenshots__/
+!tests/browser/**/__screenshots__/feature-gallery/
+!tests/browser/**/__screenshots__/feature-gallery/fixed-harbor.png
+!tests/browser/**/__screenshots__/free-*.png
+!tests/browser/**/__screenshots__/simple-rpg-fixed-completed.png
+!tests/browser/**/__screenshots__/simple-rpg-seeded-completed.png
+!tests/browser/**/__screenshots__/simple-rpg-packaged-scenario.png
+!tests/browser/**/__screenshots__/simple-rpg-simulation-report.png
 
 # macOS
 .DS_Store
@@ -200,4 +208,3 @@ docs-site/.astro
 # Claude Code runtime state (not for git)
 .claude/scheduled_tasks.lock
 .claude/state/task-batch/
-

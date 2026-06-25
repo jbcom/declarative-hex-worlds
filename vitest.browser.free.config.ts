@@ -6,10 +6,14 @@ import { packageAliases } from './vitest.alias.shared';
 import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
+const configuredAssetRoot = process.env.HEX_WORLDS_ASSET_ROOT ?? 'models';
+const browserAssetRoot = /^[a-z][a-z\d+.-]*:|^\//i.test(configuredAssetRoot)
+  ? configuredAssetRoot
+  : `/@fs/${packageRoot}/${configuredAssetRoot}`;
 
 export default defineConfig({
   optimizeDeps: {
-    include: ['koota', 'koota/react', 'react', 'react-dom/client'],
+    include: ['honeycomb-grid', 'koota', 'koota/react', 'react', 'react-dom/client', 'seedrandom', 'three'],
   },
   resolve: {
     // Shared with the unit harness so subpath imports (e.g. `/commands` →
@@ -19,14 +23,11 @@ export default defineConfig({
   },
   define: {
     __WORKSPACE_ROOT__: JSON.stringify(packageRoot),
-    // Tell the runtime asset-root resolver where bootstrapped GLTFs live.
-    // CI bootstraps into <packageRoot>/models/ and publicDir=packageRoot serves
-    // it as a relative URL: models/<sourcePath>.
-    'process.env.HEX_WORLDS_ASSET_ROOT': JSON.stringify(process.env['HEX_WORLDS_ASSET_ROOT'] ?? 'models'),
+    // Tell browser tests where bootstrapped GLTFs live without making the
+    // repository root Vite's publicDir, which shadows Vitest Browser's client.
+    'process.env.HEX_WORLDS_ASSET_ROOT': JSON.stringify(browserAssetRoot),
   },
-  // Serve repo root as static files so browser tests can fetch bootstrapped
-  // GLTFs from models/ (or wherever HEX_WORLDS_ASSET_ROOT points).
-  publicDir: packageRoot,
+  publicDir: false,
   server: {
     fs: {
       allow: [packageRoot],
@@ -45,6 +46,7 @@ export default defineConfig({
       screenshotFailures: false,
     },
     include: [
+      'tests/browser/browser-harness-smoke.test.ts',
       'tests/browser/free-visual.test.ts',
       'tests/browser/simple-rpg-visual.test.ts',
       'tests/browser/react-bindings.test.ts',

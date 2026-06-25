@@ -11,6 +11,7 @@ import { createGameboardBlueprintPlan } from '../../src/scenario/blueprint';
 import { createHarborBoard } from '../../src/gameboard/index';
 import { freeManifest } from '../../src/manifest/free';
 import { createGameboardPlanFromRecipe, type GameboardRecipe } from '../../src/scenario/recipe';
+import { resolveGameboardAssetRoot } from '../../src/runtime/asset-root';
 import { createSeededGameboardPlan } from '../../src/rules/index';
 import {
   listCoastGuidePermutations,
@@ -104,7 +105,7 @@ describe('FREE visual coverage', () => {
 
     const requests = listKayKitGuideScenarioAssetRenderRequests({
       minimumEdition: 'free',
-      assetBaseUrl: '/assets/free',
+      assetBaseUrl: resolveGameboardAssetRoot(),
     }).map((request) => {
       const asset = freeManifest.assetsById[request.assetId];
       if (!asset) {
@@ -135,14 +136,14 @@ describe('FREE visual coverage', () => {
   });
 
   it('captures all road guide permutations by label and rotation', async () => {
-    await page.viewport(1900, 1050);
+    await page.viewport(1900, 1120);
     const requests = listRoadGuidePermutations().map(requestForPermutation);
     expect(requests).toHaveLength(78);
 
     const canvas = await renderContactSheet(requests, {
       title: 'free-guide-roads-all-labels-rotations',
       width: 1800,
-      height: 950,
+      height: 1020,
       columns: 13,
       cellSize: 2.7,
     });
@@ -180,7 +181,7 @@ describe('FREE visual coverage', () => {
   });
 
   it('captures all curvy river and river crossing guide permutations', async () => {
-    await page.viewport(1300, 620);
+    await page.viewport(1300, 860);
     const requests = [
       ...listRiverCurvyGuidePermutations().map(requestForPermutation),
       ...listRiverCrossingGuidePermutations().map(requestForPermutation),
@@ -190,7 +191,7 @@ describe('FREE visual coverage', () => {
     const canvas = await renderContactSheet(requests, {
       title: 'free-guide-river-curvy-crossings-all-modes',
       width: 1200,
-      height: 520,
+      height: 760,
       columns: 8,
       cellSize: 2.6,
     });
