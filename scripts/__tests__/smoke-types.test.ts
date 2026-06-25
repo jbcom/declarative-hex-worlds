@@ -52,7 +52,7 @@ describe('scripts/smoke/types', () => {
       options: {
         cwd: '/tmp/app',
         encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: ['ignore', 'inherit', 'inherit'],
       },
     });
     expect(logCall).toEqual({

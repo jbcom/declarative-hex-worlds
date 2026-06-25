@@ -29,7 +29,7 @@ type ExecFile = (
   options: {
     cwd: string;
     encoding: 'utf8';
-    stdio: ['ignore', 'pipe', 'pipe'];
+    stdio: ['ignore', 'inherit', 'inherit'];
   }
 ) => unknown;
 type SmokeTypesWriteOptions = { encoding: 'utf8'; mode: number; flag: 'wx' };
@@ -1077,7 +1077,7 @@ export function runTypesAttestation(
     {
       cwd: appRoot,
       encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['ignore', 'inherit', 'inherit'],
     }
   );
 
