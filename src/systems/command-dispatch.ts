@@ -85,7 +85,7 @@ export function dispatchGameboardActorTargetCommand(
       targetCommand,
       events: [],
       eventRecords: [],
-      reason: targetCommand.reason ?? 'No executable actor target command',
+      reason: targetCommand.reason,
     };
   }
 
