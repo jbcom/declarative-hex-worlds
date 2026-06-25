@@ -1558,6 +1558,62 @@ describe('CLI declaration and piece output paths (PRD E0h)', () => {
       placement: { modelForward: '-x' },
     });
   });
+
+  it('compatibility exits on warning when requested', async () => {
+    const asset = writeCommandGltfBounds(
+      'compatibility-warning-assets/wide-prop.gltf',
+      [-0.25, 0, -0.1],
+      [0.25, 0.5, 0.1]
+    );
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runCompatibilityCmd(
+          {
+            command: 'compatibility',
+            flags: { asset, id: 'fixture:wide-prop', failOnWarning: true },
+          },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    expect(logs.join('\n')).toContain('warnings:');
+  });
+
+  it('compatibility exits on invalid horizontal bounds', async () => {
+    const asset = writeCommandGltfBounds(
+      'compatibility-error-assets/flat-prop.gltf',
+      [0, 0, 0],
+      [0, 0.5, 0]
+    );
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runCompatibilityCmd(
+          {
+            command: 'compatibility',
+            flags: { asset, id: 'fixture:flat-prop' },
+          },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    expect(logs.join('\n')).toContain('errors:');
+  });
 });
 
 describe('CLI readable command output variants (PRD E0h)', () => {
