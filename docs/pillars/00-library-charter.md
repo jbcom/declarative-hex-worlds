@@ -27,7 +27,6 @@ implementation_links:
   - tests/contract/reference-tree-contract.test.ts
   - tests/contract/tarball-contract.test.ts
   - tests/contract/workflows-contract.test.ts
-  - scripts/smoke-built-cli.ts
   - scripts/smoke-packed-consumer.ts
   - examples/blueprint-board-usage.ts
 test_links:
@@ -43,7 +42,6 @@ test_links:
   - tests/contract/reference-tree-contract.test.ts
   - tests/contract/tarball-contract.test.ts
   - tests/contract/workflows-contract.test.ts
-  - scripts/smoke-built-cli.ts
   - scripts/smoke-packed-consumer.ts
 ---
 
@@ -82,40 +80,32 @@ open source package useful while preserving the local-only purchased workflow.
   committed for npm publishing.
 - Generated manifests are the runtime catalog; source images and pillar docs are
   the human contract for future changes.
-- `pnpm test:docs-contract` validates every pillar's required frontmatter, source
-  images, implementation links, and test links before docs publish or release.
-- `pnpm test:assets` validates the packaged FREE GLTF/BIN/PNG tree against the
-  generated manifest, expected taxonomy counts, bounds, local-path exclusion, and
-  NOTICE attribution.
-- `pnpm test:reference-assets` validates the exact FREE/EXTRA source inventory
-  when local `references/` folders are present, including EXTRA-only models,
-  seasonal texture sets, and duplicate source basename disambiguation without
-  committing purchased binaries.
-- `pnpm test:workspace` validates Nx target wiring, pnpm workspace config,
-  VitePress docs dependency alignment, and tsup entries against the package
-  export map.
-- `pnpm test:cli` validates the built CLI against the packaged FREE manifest,
-  packaged examples, the SimpleRPG simulation, and synthetic external GLTF
-  fixtures for compatibility plus custom-piece declarations.
+- `pnpm test` owns the source-level unit, integration, and contract suites,
+  including pillar frontmatter/link checks, workflow contracts, package boundary
+  contracts, manifest drift contracts, and CLI command behavior.
+- `pnpm coverage:all:enforce` owns the required merged coverage ratchet: unit
+  coverage, browser-free coverage, and the merged threshold enforcement used by
+  CI's `Coverage` job.
+- `pnpm test:browser:free` is the full local visual gate for committed FREE
+  screenshots. CI's coverage job runs the browser-free coverage harness after
+  bootstrapping FREE models, while the full screenshot command remains a local
+  rendering/API-change proof step.
+- `pnpm docs-site:build` validates the generated CLI reference and Astro
+  Starlight site.
+- Release-time tarball, audit, SBOM, provenance, and publish checks live in
+  `release.yml`, not the per-PR CI workflow.
 - `pnpm expectations` validates behavior-drift assertions for simulation
   expectations, packaged SimpleRPG examples, quests, actors, commands,
   actor-target records, patrols, movement, mutations, and final placements.
-- `pnpm test:consumer` validates the npm tarball from a fresh temporary app,
-  compiling public TypeScript imports from `node_modules` and running the
-  installed CLI.
-- `pnpm test:package` validates the package export map, publish whitelist,
-  packed example/data boundary, built CLI bin, KayKit attribution/NOTICE text,
-  published README gallery links, packed showcase PNG quality, and absence of
-  machine-local paths or embedded source-map source content in packed text
-  files.
-- `pnpm test:workspace` validates Markdown TypeScript snippets for duplicate
-  object keys, keeping documented recipes and scenario examples from drifting
-  into copy/paste-invalid shapes.
+- Contract tests validate Markdown TypeScript snippets for duplicate object
+  keys, keeping documented recipes and scenario examples from drifting into
+  copy/paste-invalid shapes.
 - TypeDoc entry points are derived from every public TypeScript export surface;
-  every entry point must carry top-level `@module` JSDoc, and
-  `pnpm test:api-docs` must verify the public export map, top-level module docs,
-  and zero not-documented warnings before API docs are considered complete.
-- `pnpm test:workflows` validates the requested CI/CD, Release Please,
-  Dependabot grouping, and automerge workflow contracts.
+  every entry point must carry top-level `@module` JSDoc, and the docs/API
+  contract tests plus `pnpm docs-site:build` must verify the public export map,
+  top-level module docs, and zero not-documented warnings before API docs are
+  considered complete.
+- `tests/contract/workflows-contract.test.ts` validates the requested CI/CD,
+  Release Please, Dependabot grouping, and automerge workflow contracts.
 - Visual tests must produce reviewable screenshots or contact sheets for guide
   permutations, not only boolean assertions.

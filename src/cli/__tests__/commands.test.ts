@@ -1,9 +1,9 @@
 /**
  * Direct-import coverage for the smaller CLI command modules (PRD E0h).
  *
- * The CLI dispatcher (cli.ts) lazy-imports per-subcommand modules; tests
- * that invoke the dispatcher via subprocess (smoke-built-cli.ts) don't
- * register coverage. Direct `import { run } from ...` calls do.
+ * The CLI dispatcher (cli.ts) lazy-imports per-subcommand modules; subprocess
+ * CLI tests do not reliably register lazy module coverage. Direct
+ * `import { run } from ...` calls do.
  *
  * Limited to subcommands that:
  *   - Don't require a populated bootstrap-target (so CI without RB-pre

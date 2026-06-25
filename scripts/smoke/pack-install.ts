@@ -1257,7 +1257,7 @@ export function runPackInstallSmoke(
   ]) {
     assert(
       existsSyncImpl(join(packageRoot, requiredFile)),
-      `missing ${requiredFile}; run pnpm build before pnpm test:consumer`
+      `missing ${requiredFile}; run pnpm build before running packed-consumer smoke`
     );
   }
 
