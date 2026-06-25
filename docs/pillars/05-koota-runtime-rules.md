@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-25
+last_verified: 2026-06-25
 source_images:
   - docs/assets/kaykit-guide/pages/page-05.png
   - docs/assets/kaykit-guide/pages/page-06.png
@@ -45,7 +45,9 @@ implementation_links:
   - src/scenario/scenario.ts
   - src/simulation/index.ts
   - src/react/react.ts
+  - src/systems/command-dispatch.ts
   - src/systems/systems.ts
+  - src/systems/tick.ts
   - src/three/three.ts
   - src/rules/validation.ts
   - src/systems/world-rules-system.ts
@@ -370,19 +372,22 @@ accepts a route plan from `./navigation` or a plain route input, and
 the same `./movement` layer used by player commands.
 
 `./systems` is the game-loop boundary on top of commands, patrols, movement, and
-quests. It emits neutral event records for command dispatch, patrol movement
-requests, patrol waits/completions/blockers, movement stepping, movement
-completion/blocking, quest advancement, quest completion, and quest blocking.
-Use these records to mirror state into another ECS, update UI, or route
-handler-required commands without making this package own host-game combat,
-dialog, loot, or inventory. When opt-in handlers are supplied, `command-handled`
-records include the handler id, handler status, effect types, and plain effect
-payloads. Dispatch/run helpers return both in-process `events` and serializable
-`eventRecords`; use the records across runtime boundaries so Koota entity
-references are already replaced with plain placement, actor, patrol, movement,
-and quest ids. Use `snapshotGameboardSystemEvent` or
-`snapshotGameboardSystemEvents` only when an integration already has in-process
-event objects.
+quests. Source is split by boundary: `command-dispatch.ts` plans or executes
+commands, `tick.ts` orchestrates patrol/movement/quest advancement, `events.ts`
+owns neutral event contracts and snapshots, and `systems.ts` composes those
+pieces into high-level helpers and Koota actions. The subpath emits neutral event
+records for command dispatch, patrol movement requests, patrol
+waits/completions/blockers, movement stepping, movement completion/blocking,
+quest advancement, quest completion, and quest blocking. Use these records to
+mirror state into another ECS, update UI, or route handler-required commands
+without making this package own host-game combat, dialog, loot, or inventory.
+When opt-in handlers are supplied, `command-handled` records include the handler
+id, handler status, effect types, and plain effect payloads. Dispatch/run helpers
+return both in-process `events` and serializable `eventRecords`; use the records
+across runtime boundaries so Koota entity references are already replaced with
+plain placement, actor, patrol, movement, and quest ids. Use
+`snapshotGameboardSystemEvent` or `snapshotGameboardSystemEvents` only when an
+integration already has in-process event objects.
 
 `./runtime` is the high-level game-loop facade for consumers that want one
 public object per board. `createGameboardRuntime` accepts a `GameboardPlan`, an

@@ -29,7 +29,7 @@ The library is one published npm package (`declarative-hex-worlds`) that interna
 | `selectors/` | Internal selector helpers (`@internal`-tagged) | `/selectors` |
 | `koota/` | createWorld + per-tile/per-actor spawn helpers | `/koota` |
 | `runtime/` | Runtime facade for snapshots + asset-root resolution | `/runtime` |
-| `systems/` | Per-tick system functions (movement, patrol, quests, rules) | `/systems`, `/world-rules` |
+| `systems/` | Command dispatch, per-tick movement/patrol/quest orchestration, rules | `/systems`, `/world-rules` |
 | `simulation/` | Scripted scenario simulation engine | `/simulation` |
 | `interop/` | Neutral ECS snapshot, external asset compatibility, release-readiness coverage | `/interop`, `/compatibility`, `/coverage` |
 | `react/` | React bindings: provider, hooks, selectors | `/react` |
