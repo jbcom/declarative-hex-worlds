@@ -6,8 +6,11 @@ import {
   ActiveGameboardQuestQuery,
   BlockedGameboardQuestQuery,
   CompletedGameboardQuestQuery,
+  GameboardQuest,
   advanceGameboardQuest,
   evaluateGameboardQuestObjective,
+  findGameboardQuest,
+  findGameboardQuestEntity,
   gameboardQuestActions,
   readGameboardQuests,
   spawnGameboardQuest,
@@ -161,6 +164,29 @@ describe('gameboard quests', () => {
     expect(evaluation.progress.detail).toMatch(/is missing/);
   });
 
+  it('reports pending reach-tile objectives when the actor is too far away (E0a)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const evaluation = evaluateGameboardQuestObjective(world, {
+      id: 'walk-to-exit',
+      kind: 'reach-tile',
+      actor: 'hero',
+      tile: '2,0',
+      maxDistance: 0,
+    });
+
+    expect(evaluation.progress).toMatchObject({
+      status: 'pending',
+      detail: 'Actor hero is 2 tile(s) from 2,0',
+    });
+  });
+
   it('marks reach-actor objective blocked when target actor is missing (E0h)', () => {
     const world = createQuestTestWorld();
     spawnGameboardActor(world, {
@@ -199,6 +225,54 @@ describe('gameboard quests', () => {
     actions.advance('arrive');
     actions.advanceAll();
     expect(actions.read().length).toBe(1);
+  });
+
+  it('preserves metadata and reports missing quest lookups (E0a)', () => {
+    const world = createQuestTestWorld();
+    const quest = spawnGameboardQuest(world, {
+      id: 'metadata-quest',
+      metadata: { chapter: 'intro', step: 1 },
+      objectives: [],
+    });
+    const emptyEntity = world.spawn();
+
+    expect(findGameboardQuest(world, 'missing-quest')).toBeUndefined();
+    expect(findGameboardQuestEntity(world, emptyEntity)).toBeUndefined();
+    expect(findGameboardQuest(world, quest)?.quest.metadata).toEqual({
+      chapter: 'intro',
+      step: 1,
+    });
+  });
+
+  it('keeps pending fallback progress for objectives not advanced in this step (E0a)', () => {
+    const world = createQuestTestWorld();
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const quest = spawnGameboardQuest(world, {
+      id: 'partial-progress',
+      objectives: [
+        { id: 'arrive', kind: 'reach-tile', actor: 'hero', tile: '0,0' },
+        { id: 'later', kind: 'reach-tile', actor: 'hero', tile: '3,0' },
+      ],
+    });
+    const state = quest.get(GameboardQuest);
+    if (!state) {
+      throw new Error('expected quest state');
+    }
+    quest.set(GameboardQuest, { ...state, progress: [] });
+
+    const result = advanceGameboardQuest(world, quest, { advanceThroughCompleted: false });
+
+    expect(result.quest.status).toBe('active');
+    expect(result.quest.progress).toEqual([
+      expect.objectContaining({ objectiveId: 'arrive', status: 'completed' }),
+      expect.objectContaining({ objectiveId: 'later', status: 'pending', detail: 'Pending' }),
+    ]);
   });
 
   it('completes reach-actor objective when actors are within maxDistance (E0h)', () => {
@@ -336,11 +410,37 @@ describe('gameboard quests', () => {
     expect(['completed', 'pending', 'blocked', 'active']).toContain(evaluation.progress.status);
   });
 
+  it('collision objective accepts target tiles without a source actor (E0a)', () => {
+    const world = createQuestTestWorld();
+    const openTile = evaluateGameboardQuestObjective(world, {
+      id: 'open-tile',
+      kind: 'collision',
+      targetTile: { q: 1, r: 0 },
+      expect: 'can-enter',
+    });
+    const missingSource = evaluateGameboardQuestObjective(world, {
+      id: 'missing-source',
+      kind: 'collision',
+      actor: 'ghost',
+      targetTile: '1,0',
+      expect: 'can-enter',
+    });
+
+    expect(openTile.progress.status).toBe('completed');
+    expect(missingSource.progress.status).toBe('completed');
+  });
+
   it('advanceGameboardQuest throws when quest id is unknown (E0a)', () => {
     const world = createQuestTestWorld();
     expect(() => advanceGameboardQuest(world, 'no-such-quest')).toThrow(
       /No gameboard quest exists/
     );
+  });
+
+  it('throws when a non-quest entity is advanced as a quest (E0a)', () => {
+    const world = createQuestTestWorld();
+    const emptyEntity = world.spawn();
+    expect(() => advanceGameboardQuest(world, emptyEntity)).toThrow(/No gameboard quest exists/);
   });
 
   it('evaluates collision objective with expect="hostile" (E0a)', () => {

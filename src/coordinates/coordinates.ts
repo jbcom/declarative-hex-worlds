@@ -240,7 +240,6 @@ export function findHexPath(
   const startKey = hexKey(start);
   const goalKey = hexKey(goal);
   const cameFrom = new Map<string, string>();
-  const coordinatesByKey = new Map<string, HexCoordinates>([[startKey, start]]);
   const costByKey = new Map<string, number>([[startKey, 0]]);
   const h0 = hexDistance(start, goal);
   const heap = minHeapCreate<[number, string]>((a, b) => a[0] - b[0]);
@@ -249,27 +248,18 @@ export function findHexPath(
   let visited = 0;
 
   while (heap.length > 0) {
-    const popped = minHeapPop(heap);
-    if (popped === undefined) {
-      continue;
-    }
+    const popped = minHeapPop(heap) as [number, string];
     const [, currentKey] = popped;
     if (closed.has(currentKey)) {
       continue;
     }
-    const currentCost = costByKey.get(currentKey);
-    if (currentCost === undefined) {
-      continue;
-    }
-    const current = coordinatesByKey.get(currentKey);
-    if (!current) {
-      continue;
-    }
+    const currentCost = costByKey.get(currentKey) as number;
+    const current = parseHexKey(currentKey);
 
     if (currentKey === goalKey) {
       return {
         found: true,
-        path: reconstructPath(cameFrom, coordinatesByKey, currentKey),
+        path: reconstructPath(cameFrom, currentKey),
         cost: currentCost,
         visited,
       };
@@ -296,7 +286,6 @@ export function findHexPath(
       }
 
       cameFrom.set(adjacentKey, currentKey);
-      coordinatesByKey.set(adjacentKey, adjacent);
       costByKey.set(adjacentKey, nextCost);
       const fScore = nextCost + hexDistance(adjacent, goal);
       minHeapPush(heap, [fScore, adjacentKey]);
@@ -388,12 +377,10 @@ export function minHeapPop<T>(heap: T[] & { _compare: (a: T, b: T) => number }):
       )
         smallest = right;
       if (smallest === i) break;
-      const tmp = heap[i];
-      const sm = heap[smallest];
-      if (tmp !== undefined && sm !== undefined) {
-        heap[i] = sm;
-        heap[smallest] = tmp;
-      }
+      const tmp = heap[i] as T;
+      const sm = heap[smallest] as T;
+      heap[i] = sm;
+      heap[smallest] = tmp;
       i = smallest;
     }
   }
@@ -402,16 +389,12 @@ export function minHeapPop<T>(heap: T[] & { _compare: (a: T, b: T) => number }):
 
 function reconstructPath(
   cameFrom: ReadonlyMap<string, string>,
-  coordinatesByKey: ReadonlyMap<string, HexCoordinates>,
   currentKey: string
 ): HexCoordinates[] {
   const path: HexCoordinates[] = [];
   let key: string | undefined = currentKey;
   while (key) {
-    const coordinates = coordinatesByKey.get(key);
-    if (coordinates) {
-      path.push(coordinates);
-    }
+    path.push(parseHexKey(key));
     key = cameFrom.get(key);
   }
   return path.reverse();
