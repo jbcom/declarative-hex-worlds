@@ -24,6 +24,8 @@ import { normalizeHexRotationSteps, oppositeEdge } from './coordinates';
 import { selectCoastVariant, selectRiverCrossingVariant, selectRiverVariant, selectRoadVariant } from '../selectors';
 import type { World } from 'koota';
 
+type ProjectedSurfaceKind = Extract<GameboardPlacementKind, 'coast' | 'river' | 'road'>;
+
 /** Projects a Koota gameboard world into a serializable gameboard plan with render placements. */
 export function projectWorldToGameboardPlan(world: World): GameboardPlan {
   const board = world.get(GameboardState);
@@ -92,13 +94,13 @@ export function readValidationGameboardPlanFromWorld(world: World): GameboardPla
 function createProjectedPlanFromTiles(options: {
   seed: string;
   shape: GameboardPlan['shape'];
-  textureSet?: GameboardPlan['textureSet'];
+  textureSet: GameboardPlan['textureSet'];
   tiles: readonly GameboardTileSpec[];
-  placements?: readonly GameboardPlacementSpec[];
+  placements: readonly GameboardPlacementSpec[];
 }): GameboardPlan {
   const terrainPlacements = options.tiles.flatMap((tile, index) => terrainPlacementsForTile(tile, index));
   const connectivityPlacements = options.tiles.flatMap((tile, index) => connectivityPlacementsForTile(tile, index));
-  const placements = [...terrainPlacements, ...connectivityPlacements, ...(options.placements ?? [])].sort(
+  const placements = [...terrainPlacements, ...connectivityPlacements, ...options.placements].sort(
     (left, right) => left.order - right.order || left.id.localeCompare(right.id)
   );
 
@@ -106,7 +108,7 @@ function createProjectedPlanFromTiles(options: {
     schemaVersion: '1.0.0',
     seed: options.seed,
     shape: options.shape,
-    textureSet: options.textureSet ?? 'default',
+    textureSet: options.textureSet,
     tiles: [...options.tiles],
     placements,
     warnings: [],
@@ -203,30 +205,24 @@ function connectivityPlacementsForTile(
 }
 
 function riverVisualMask(mask: number): number {
-  if (bitCount(mask) !== 1) {
+  const edge = edgeFromSingleBit(mask);
+  if (edge === undefined) {
     return mask;
   }
-  const edge = edgeFromSingleBit(mask);
   return (mask | (1 << oppositeEdge(edge))) & 0b111111;
 }
 
-function bitCount(mask: number): number {
-  let count = 0;
+function edgeFromSingleBit(mask: number): 0 | 1 | 2 | 3 | 4 | 5 | undefined {
+  let singleEdge: 0 | 1 | 2 | 3 | 4 | 5 | undefined;
   for (let edge = 0; edge < 6; edge += 1) {
     if ((mask & (1 << edge)) !== 0) {
-      count += 1;
+      if (singleEdge !== undefined) {
+        return undefined;
+      }
+      singleEdge = edge as 0 | 1 | 2 | 3 | 4 | 5;
     }
   }
-  return count;
-}
-
-function edgeFromSingleBit(mask: number): 0 | 1 | 2 | 3 | 4 | 5 {
-  for (let edge = 0; edge < 6; edge += 1) {
-    if ((mask & (1 << edge)) !== 0) {
-      return edge as 0 | 1 | 2 | 3 | 4 | 5;
-    }
-  }
-  return 0;
+  return singleEdge;
 }
 
 function basePlacement(
@@ -265,7 +261,7 @@ function overlayPlacement(
   options: {
     id: string;
     assetId: string;
-    kind: GameboardPlacementKind;
+    kind: ProjectedSurfaceKind;
     layer: GameboardPlacementLayer;
     order: number;
     rotationSteps: number;
@@ -294,7 +290,7 @@ function overlayPlacement(
   };
 }
 
-function surfaceElevationOffset(kind: GameboardPlacementKind): number {
+function surfaceElevationOffset(kind: ProjectedSurfaceKind): number {
   switch (kind) {
     case 'coast':
       return 0.01;
@@ -302,7 +298,5 @@ function surfaceElevationOffset(kind: GameboardPlacementKind): number {
       return 0.02;
     case 'road':
       return 0.03;
-    default:
-      return 0;
   }
 }

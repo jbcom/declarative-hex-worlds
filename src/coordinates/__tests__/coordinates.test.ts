@@ -9,7 +9,10 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { createGameboardBuilder } from '../../gameboard/index';
+import { createGameboardWorld, spawnGameboardPlacement } from '../../koota/index';
 import { findHexPath, hexLine, hexRing, hexKey, tryParseHexKey } from '../coordinates';
+import { projectWorldToGameboardPlan } from '../projection';
 
 describe('hexRing (PRD E0h)', () => {
   it('returns the center alone for radius 0', () => {
@@ -57,6 +60,65 @@ describe('projectWorldToGameboardPlan empty-world throw (PRD E0a)', () => {
     expect(() => readValidationGameboardPlanFromWorld(empty)).toThrow(
       /World does not contain GameboardState/
     );
+  });
+
+  it('rebuilds sloped road and crossing overlays from decomposed Koota tile state', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'projection-connectivity',
+        shape: { kind: 'rectangle', width: 3, height: 2 },
+      })
+        .addRoadPath(
+          [
+            { q: 0, r: 0 },
+            { q: 1, r: 0 },
+            { q: 2, r: 0 },
+          ],
+          { slope: 'high' }
+        )
+        .addRiverPath(
+          [
+            { q: 0, r: 1 },
+            { q: 1, r: 1 },
+          ],
+          { crossing: 'A', waterless: true }
+        )
+        .build()
+    );
+    spawnGameboardPlacement(world, {
+      id: 'custom:b',
+      at: { q: 0, r: 0 },
+      assetId: 'crate_A_small',
+      kind: 'prop',
+      order: 200_000,
+    });
+    spawnGameboardPlacement(world, {
+      id: 'custom:a',
+      at: { q: 0, r: 0 },
+      assetId: 'barrel',
+      kind: 'prop',
+      order: 200_000,
+    });
+
+    const projected = projectWorldToGameboardPlan(world);
+    const road = projected.placements.find((placement) => placement.id === 'road:1,0');
+    const river = projected.placements.find((placement) => placement.id === 'river:0,1');
+
+    expect(road).toMatchObject({
+      assetId: 'hex_road_A_sloped_high',
+      kind: 'road',
+      metadata: { slope: 'high' },
+    });
+    expect(river).toMatchObject({
+      assetId: 'hex_river_crossing_A_waterless',
+      kind: 'river',
+      metadata: { edgeMask: expect.any(Number) },
+    });
+    expect(
+      projected.placements
+        .filter((placement) => placement.id.startsWith('custom:'))
+        .map((placement) => placement.id)
+    ).toEqual(['custom:a', 'custom:b']);
   });
 });
 
