@@ -8,14 +8,12 @@ import seedrandom from 'seedrandom';
 import { GameboardRuntimeError } from '../errors';
 import {
   coloredUnitAssetId,
-  describeKayKitAssetTreatment,
   factionBuildingAssetId,
   flagAssetId,
   neutralUnitAssetId,
   type ColoredUnitPart,
   type NeutralStructureKind,
   type NeutralUnitPart,
-  type PropAssetId,
 } from '../scenario';
 import {
   HEX_DIRECTIONS,
@@ -28,20 +26,12 @@ import {
   parseHexKey,
 } from '../coordinates';
 import { axialToWorld } from '../coordinates';
-import {
-  edgeMask,
-  selectCoastVariant,
-  selectRiverCrossingVariant,
-  selectRiverVariant,
-  selectRoadVariant,
-} from '../selectors';
+import { edgeMask } from '../selectors';
 import type {
   Faction,
   GameboardShape,
   HexCoordinates,
   HexEdgeIndex,
-  MedievalHexagonAsset,
-  MedievalHexagonManifest,
   TextureSet,
 } from '../types';
 import type {
@@ -57,10 +47,8 @@ import type {
   GameboardPlacementLayer,
   GameboardPlacementSpec,
   GameboardPlan,
-  GameboardPlanFromTilesOptions,
   GameboardPlanOptions,
   GameboardTerrain,
-  GameboardTileSpec,
   HarborBoardOptions,
   HarborKind,
   HarborOptions,
@@ -69,7 +57,6 @@ import type {
   MountainVariant,
   NaturePlacementOptions,
   NeutralStructureOptions,
-  PropClusterKind,
   PropClusterPlacement,
   PropClusterOptions,
   PropPlacementOptions,
@@ -82,50 +69,30 @@ import type {
   UnitPlacementOptions,
   UnitPresetOptions,
 } from './plan';
+import { listPropClusterAssets, requiresExtraAsset } from './assets';
+import {
+  createGameboardPlanFromTiles,
+  createGameboardTile,
+  freezeGameboardTile,
+  GAMEBOARD_TERRAIN_ASSETS,
+  updateGameboardTileTags,
+  type MutableGameboardTileSpec,
+} from './terrain';
 
-import { GAMEBOARD_SCHEMA_VERSION } from '../types';
+export {
+  getPlacementAsset,
+  listPropClusterAssets,
+  loadPlacementAsset,
+  requiresExtraAsset,
+} from './assets';
+export { createGameboardPlanFromTiles } from './terrain';
 
 const DEFAULT_SEED = 'declarative-hex-worlds';
 const EDGE_INDEXES = [0, 1, 2, 3, 4, 5] as const satisfies readonly HexEdgeIndex[];
-const TERRAIN_ASSETS: Record<Extract<GameboardTerrain, 'grass' | 'water'>, string> = {
-  grass: 'hex_grass',
-  water: 'hex_water',
-};
 const EXTRA_HARBOR_ASSETS: Record<Exclude<HarborKind, 'watermill'>, string> = {
   docks: 'building_docks',
   shipyard: 'building_shipyard',
 };
-const PROP_CLUSTER_ASSETS = {
-  camp: ['tent', 'barrel', 'sack', 'bucket_empty', 'crate_A_small', 'crate_B_small'],
-  'harbor-support': ['anchor', 'boat', 'boatrack', 'barrel', 'crate_long_A', 'crate_long_B', 'crate_open'],
-  'resource-cache': [
-    'resource_lumber',
-    'resource_stone',
-    'crate_A_big',
-    'crate_B_big',
-    'crate_long_A',
-    'crate_long_B',
-    'crate_long_C',
-    'crate_open',
-    'sack',
-    'barrel',
-    'pallet',
-    'wheelbarrow',
-  ],
-  'stable-yard': ['haybale', 'trough', 'trough_long', 'bucket_water', 'barrel'],
-  'training-yard': ['target', 'weaponrack', 'bucket_arrows', 'icon_combat', 'icon_range', 'cannonball_pallet'],
-  worksite: [
-    'ladder',
-    'pallet',
-    'wheelbarrow',
-    'bucket_empty',
-    'bucket_water',
-    'crate_long_empty',
-    'resource_lumber',
-    'resource_stone',
-    'barrel',
-  ],
-} as const satisfies Record<PropClusterKind, readonly PropAssetId[]>;
 
 /**
  * Fluent builder for deterministic gameboard plans using KayKit guide variants,
@@ -155,7 +122,7 @@ export class GameboardBuilder {
 
     const defaultTerrain = options.defaultTerrain ?? 'grass';
     for (const coordinates of coordinatesForShape(options.shape)) {
-      this.tiles.set(hexKey(coordinates), createTile(coordinates, defaultTerrain, this.textureSet));
+      this.tiles.set(hexKey(coordinates), createGameboardTile(coordinates, defaultTerrain, this.textureSet));
     }
   }
 
@@ -169,10 +136,10 @@ export class GameboardBuilder {
   ): this {
     const tile = this.requireTile(coordinates);
     tile.terrain = terrain;
-    tile.baseAssetId = options.baseAssetId ?? TERRAIN_ASSETS[terrain];
+    tile.baseAssetId = options.baseAssetId ?? GAMEBOARD_TERRAIN_ASSETS[terrain];
     tile.elevation = normalizeElevation(options.elevation ?? tile.elevation);
     tile.textureSet = options.textureSet ?? tile.textureSet;
-    updateTags(tile);
+    updateGameboardTileTags(tile);
     return this;
   }
 
@@ -194,7 +161,7 @@ export class GameboardBuilder {
     tile.riverCrossing = options.riverCrossing ?? tile.riverCrossing;
     tile.coastWaterless = options.coastWaterless ?? tile.coastWaterless;
     tile.textureSet = options.textureSet ?? tile.textureSet;
-    updateTags(tile, options.tags);
+    updateGameboardTileTags(tile, options.tags);
     return this;
   }
 
@@ -213,7 +180,7 @@ export class GameboardBuilder {
   setElevation(coordinates: HexCoordinates, elevation: number): this {
     const tile = this.requireTile(coordinates);
     tile.elevation = normalizeElevation(elevation);
-    updateTags(tile);
+    updateGameboardTileTags(tile);
     return this;
   }
 
@@ -229,7 +196,7 @@ export class GameboardBuilder {
     tile.terrain = 'coast';
     tile.coastEdges = edgeMask(waterEdges);
     tile.coastWaterless = options.waterless ?? false;
-    updateTags(tile);
+    updateGameboardTileTags(tile);
     return this;
   }
 
@@ -246,7 +213,7 @@ export class GameboardBuilder {
       tile.terrain = tile.terrain === 'water' || tile.terrain === 'coast' ? 'coast' : 'road';
       tile.roadEdges = mergeMask(tile.roadEdges, mask);
       tile.roadSlope = options.slope ?? tile.roadSlope;
-      updateTags(tile);
+      updateGameboardTileTags(tile);
     }
     return this;
   }
@@ -266,7 +233,7 @@ export class GameboardBuilder {
       tile.riverWaterless = options.waterless ?? tile.riverWaterless;
       tile.riverCurvy = options.curvy ?? tile.riverCurvy;
       tile.riverCrossing = options.crossing ?? tile.riverCrossing;
-      updateTags(tile);
+      updateGameboardTileTags(tile);
     }
     return this;
   }
@@ -281,7 +248,7 @@ export class GameboardBuilder {
     tile.terrain = 'mountain';
     tile.elevation = height;
     tile.baseAssetId = 'hex_grass';
-    updateTags(tile);
+    updateGameboardTileTags(tile);
 
     this.addPlacement({
       at: options.at,
@@ -308,7 +275,7 @@ export class GameboardBuilder {
   ): this {
     const tile = this.requireTile(coordinates);
     tile.terrain = 'hill';
-    updateTags(tile);
+    updateGameboardTileTags(tile);
     const variant = options.variant ?? 'A';
     const assetId = options.single
       ? `hill_single_${variant}`
@@ -333,7 +300,7 @@ export class GameboardBuilder {
   ): this {
     const tile = this.requireTile(coordinates);
     tile.terrain = 'forest';
-    updateTags(tile);
+    updateGameboardTileTags(tile);
     const species = options.species ?? 'A';
     const size = options.size ?? 'medium';
     const assetId = options.cut ? `trees_${species}_cut` : `trees_${species}_${size}`;
@@ -704,7 +671,7 @@ export class GameboardBuilder {
     const water = neighbor(options.at, options.facing);
     tile.terrain = 'coast';
     tile.coastEdges = mergeMask(tile.coastEdges, 1 << options.facing);
-    updateTags(tile);
+    updateGameboardTileTags(tile);
 
     if (this.tiles.has(hexKey(water))) {
       this.setTerrain(water, 'water');
@@ -814,7 +781,7 @@ export class GameboardBuilder {
    * Build an immutable gameboard plan from current builder state.
    */
   build(): GameboardPlan {
-    const tiles = [...this.tiles.values()].map(freezeTile);
+    const tiles = [...this.tiles.values()].map(freezeGameboardTile);
     return createGameboardPlanFromTiles({
       seed: this.seed,
       shape: this.shape,
@@ -854,12 +821,6 @@ export class GameboardBuilder {
   }
 }
 
-type MutableGameboardTileSpec = {
-  -readonly [K in keyof GameboardTileSpec]: GameboardTileSpec[K] extends readonly string[]
-    ? string[]
-    : GameboardTileSpec[K];
-};
-
 /**
  * Create a fluent gameboard builder.
  */
@@ -878,28 +839,6 @@ export function createGameboardPlan(
   const builder = createGameboardBuilder(options);
   configure?.(builder);
   return builder.build();
-}
-
-/**
- * Create a complete plan from explicit tiles and custom placements, adding the
- * derived terrain and connectivity placements used by renderers.
- */
-export function createGameboardPlanFromTiles(options: GameboardPlanFromTilesOptions): GameboardPlan {
-  const terrainPlacements = options.tiles.flatMap((tile, index) => terrainPlacementsForTile(tile, index));
-  const connectivityPlacements = options.tiles.flatMap((tile, index) => connectivityPlacementsForTile(tile, index));
-  const placements = [...terrainPlacements, ...connectivityPlacements, ...(options.placements ?? [])].sort(
-    (left, right) => left.order - right.order || left.id.localeCompare(right.id)
-  );
-
-  return {
-    schemaVersion: GAMEBOARD_SCHEMA_VERSION,
-    seed: options.seed,
-    shape: options.shape,
-    textureSet: options.textureSet ?? 'default',
-    tiles: [...options.tiles],
-    placements,
-    warnings: [...(options.warnings ?? [])],
-  };
 }
 
 /**
@@ -1048,268 +987,6 @@ export { HEX_DIRECTIONS, coordinatesForShape, edgeBetween, hexKey, neighbor, opp
  */
 export type { GameboardShape, HexagonGameboardShape, RectangleGameboardShape } from '../types';
 
-/**
- * Resolve a placement's asset from a manifest.
- */
-export function getPlacementAsset(
-  placement: Pick<GameboardPlacementSpec, 'assetId'>,
-  manifest: MedievalHexagonManifest
-): MedievalHexagonAsset | undefined {
-  return manifest.assetsById[placement.assetId];
-}
-
-/**
- * Resolve a placement's asset from the packaged FREE manifest.
- */
-export async function loadPlacementAsset(
-  placement: Pick<GameboardPlacementSpec, 'assetId'>
-): Promise<MedievalHexagonAsset | undefined> {
-  // biome-ignore lint/style/noRestrictedImports: the manifest barrel statically pulls the FREE manifest into dist/gameboard.js.
-  const { loadFreeManifest } = await import('../manifest/free');
-  return getPlacementAsset(placement, await loadFreeManifest());
-}
-
-/**
- * Return whether an asset id requires a local EXTRA edition asset.
- */
-export function requiresExtraAsset(assetId: string): boolean {
-  return describeKayKitAssetTreatment(assetId)?.requiresExtra ?? true;
-}
-
-/**
- * List the default prop assets used by a semantic cluster kind.
- */
-export function listPropClusterAssets(
-  kind: PropClusterKind,
-  options: { includeExtra?: boolean } = {}
-): readonly PropAssetId[] {
-  const assets = PROP_CLUSTER_ASSETS[kind];
-  if (options.includeExtra) {
-    return assets;
-  }
-  return assets.filter((assetId) => !requiresExtraAsset(assetId));
-}
-
-function createTile(
-  coordinates: HexCoordinates,
-  terrain: Extract<GameboardTerrain, 'grass' | 'water'>,
-  textureSet: TextureSet
-): MutableGameboardTileSpec {
-  const tile: MutableGameboardTileSpec = {
-    key: hexKey(coordinates),
-    coordinates,
-    terrain,
-    textureSet,
-    elevation: 0,
-    baseAssetId: TERRAIN_ASSETS[terrain],
-    supportAssetId: 'hex_grass_bottom',
-    roadEdges: 0,
-    riverEdges: 0,
-    coastEdges: 0,
-    riverWaterless: false,
-    riverCurvy: false,
-    coastWaterless: false,
-    tags: [],
-  };
-  updateTags(tile);
-  return tile;
-}
-
-function updateTags(tile: MutableGameboardTileSpec, extraTags: readonly string[] = []): void {
-  const tags = new Set<string>([tile.terrain]);
-  for (const tag of extraTags) {
-    tags.add(tag);
-  }
-  if (tile.elevation > 0) {
-    tags.add('elevated');
-  }
-  if (tile.roadEdges !== 0) {
-    tags.add('road');
-  }
-  if (tile.riverEdges !== 0 || tile.riverCrossing) {
-    tags.add('river');
-  }
-  if (tile.coastEdges !== 0) {
-    tags.add('coast');
-  }
-  tile.tags = [...tags].sort();
-}
-
-function freezeTile(tile: MutableGameboardTileSpec): GameboardTileSpec {
-  return {
-    ...tile,
-    coordinates: { ...tile.coordinates },
-    tags: [...tile.tags],
-  };
-}
-
-function terrainPlacementsForTile(tile: GameboardTileSpec, tileIndex: number): GameboardPlacementSpec[] {
-  const placements: GameboardPlacementSpec[] = [];
-  for (let level = 0; level < tile.elevation; level += 1) {
-    placements.push(
-      basePlacement(tile, {
-        id: `terrain:${tile.key}:support:${level}`,
-        assetId: tile.supportAssetId,
-        order: tileIndex * 10 + level,
-        elevation: level,
-        stackIndex: level,
-      })
-    );
-  }
-  placements.push(
-    basePlacement(tile, {
-      id: `terrain:${tile.key}:top`,
-      assetId: tile.baseAssetId,
-      order: tileIndex * 10 + tile.elevation,
-      elevation: tile.elevation,
-      stackIndex: tile.elevation,
-    })
-  );
-  return placements;
-}
-
-function connectivityPlacementsForTile(
-  tile: GameboardTileSpec,
-  tileIndex: number
-): GameboardPlacementSpec[] {
-  const placements: GameboardPlacementSpec[] = [];
-  const baseOrder = 100_000 + tileIndex * 10;
-
-  if (tile.coastEdges !== 0) {
-    const selection = selectCoastVariant(tile.coastEdges, { waterless: tile.coastWaterless });
-    placements.push(
-      overlayPlacement(tile, {
-        id: `coast:${tile.key}`,
-        assetId: selection.assetId,
-        kind: 'coast',
-        layer: 'surface',
-        order: baseOrder,
-        rotationSteps: selection.rotationSteps,
-        metadata: { edgeMask: tile.coastEdges },
-      })
-    );
-  }
-
-  if (tile.riverEdges !== 0 || tile.riverCrossing) {
-    const selection = tile.riverCrossing
-      ? selectRiverCrossingVariant(tile.riverCrossing, { waterless: tile.riverWaterless })
-      : selectRiverVariant(riverVisualMask(tile.riverEdges), {
-          waterless: tile.riverWaterless,
-          curvy: tile.riverCurvy,
-        });
-    placements.push(
-      overlayPlacement(tile, {
-        id: `river:${tile.key}`,
-        assetId: selection.assetId,
-        kind: 'river',
-        layer: 'surface',
-        order: baseOrder + 1,
-        rotationSteps: selection.rotationSteps,
-        metadata: { edgeMask: tile.riverEdges },
-      })
-    );
-  }
-
-  if (tile.roadEdges !== 0) {
-    const selection = selectRoadVariant(tile.roadEdges);
-    const assetId =
-      selection.label === 'A' && tile.roadSlope
-        ? `hex_road_A_sloped_${tile.roadSlope}`
-        : selection.assetId;
-    placements.push(
-      overlayPlacement(tile, {
-        id: `road:${tile.key}`,
-        assetId,
-        kind: 'road',
-        layer: 'surface',
-        order: baseOrder + 2,
-        rotationSteps: selection.rotationSteps,
-        metadata: { edgeMask: tile.roadEdges, slope: tile.roadSlope ?? null },
-      })
-    );
-  }
-
-  return placements;
-}
-
-function basePlacement(
-  tile: GameboardTileSpec,
-  options: {
-    id: string;
-    assetId: string;
-    order: number;
-    elevation: number;
-    stackIndex?: number;
-  }
-): GameboardPlacementSpec {
-  return {
-    id: options.id,
-    tileKey: tile.key,
-    coordinates: tile.coordinates,
-    position: axialToWorld(tile.coordinates, options.elevation),
-    assetId: options.assetId,
-    kind: 'terrain',
-    layer: 'terrain',
-    textureSet: tile.textureSet,
-    elevation: options.elevation,
-    elevationOffset: 0,
-    rotationSteps: 0,
-    rotationRadians: 0,
-    scale: 1,
-    order: options.order,
-    stackIndex: options.stackIndex,
-    requiresExtra: requiresExtraAsset(options.assetId),
-    metadata: {},
-  };
-}
-
-function overlayPlacement(
-  tile: GameboardTileSpec,
-  options: {
-    id: string;
-    assetId: string;
-    kind: GameboardPlacementKind;
-    layer: GameboardPlacementLayer;
-    order: number;
-    rotationSteps: number;
-    metadata: Readonly<Record<string, string | number | boolean | null>>;
-  }
-): GameboardPlacementSpec {
-  const rotationSteps = normalizeRotationSteps(options.rotationSteps);
-  const elevationOffset = surfaceElevationOffset(options.kind);
-  return {
-    id: options.id,
-    tileKey: tile.key,
-    coordinates: tile.coordinates,
-    position: axialToWorld(tile.coordinates, tile.elevation + elevationOffset),
-    assetId: options.assetId,
-    kind: options.kind,
-    layer: options.layer,
-    textureSet: tile.textureSet,
-    elevation: tile.elevation,
-    elevationOffset,
-    rotationSteps,
-    rotationRadians: rotationSteps * (Math.PI / 3),
-    scale: 1,
-    order: options.order,
-    requiresExtra: requiresExtraAsset(options.assetId),
-    metadata: options.metadata,
-  };
-}
-
-function surfaceElevationOffset(kind: GameboardPlacementKind): number {
-  switch (kind) {
-    case 'coast':
-      return 0.01;
-    case 'river':
-      return 0.02;
-    case 'road':
-      return 0.03;
-    default:
-      return 0;
-  }
-}
-
 function pathMasks(path: readonly HexCoordinates[]): Map<string, number> {
   const masks = new Map<string, number>();
   for (let index = 0; index < path.length - 1; index += 1) {
@@ -1330,33 +1007,6 @@ function pathMasks(path: readonly HexCoordinates[]): Map<string, number> {
 
 function mergeMask(current: number, next: number): number {
   return (current | next) & 0b111111;
-}
-
-function riverVisualMask(mask: number): number {
-  if (bitCount(mask) !== 1) {
-    return mask;
-  }
-  const edge = edgeFromSingleBit(mask);
-  return mergeMask(mask, 1 << oppositeEdge(edge));
-}
-
-function bitCount(mask: number): number {
-  let count = 0;
-  for (let edge = 0; edge < 6; edge += 1) {
-    if ((mask & (1 << edge)) !== 0) {
-      count += 1;
-    }
-  }
-  return count;
-}
-
-function edgeFromSingleBit(mask: number): HexEdgeIndex {
-  for (let edge = 0; edge < 6; edge += 1) {
-    if ((mask & (1 << edge)) !== 0) {
-      return edge as HexEdgeIndex;
-    }
-  }
-  throw new GameboardRuntimeError('Expected a single-edge mask');
 }
 
 function waterEdgesFor(coordinates: HexCoordinates, waterKeys: ReadonlySet<string>): HexEdgeIndex[] {

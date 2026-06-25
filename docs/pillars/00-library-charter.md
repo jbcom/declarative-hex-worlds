@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-24
+last_verified: 2026-06-25
 source_images:
   - docs/assets/kaykit-guide/montage.png
   - docs/assets/kaykit-guide/pages/page-01.png
@@ -15,7 +15,9 @@ implementation_links:
   - src/cli/cli.ts
   - src/interop/coverage.ts
   - src/types/index.ts
+  - src/gameboard/assets.ts
   - src/gameboard/gameboard.ts
+  - src/gameboard/terrain.ts
   - src/koota/koota.ts
   - src/rules/rules.ts
   - src/react/react.ts

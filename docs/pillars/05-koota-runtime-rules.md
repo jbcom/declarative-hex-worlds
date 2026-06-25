@@ -24,7 +24,9 @@ implementation_links:
   - src/cli/cli.ts
   - src/interop/compatibility.ts
   - src/coordinates/coordinates.ts
+  - src/gameboard/assets.ts
   - src/gameboard/gameboard.ts
+  - src/gameboard/terrain.ts
   - src/coordinates/grid.ts
   - src/index.ts
   - src/interop/interop.ts
