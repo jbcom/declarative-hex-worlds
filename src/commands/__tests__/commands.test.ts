@@ -107,6 +107,40 @@ describe('gameboard interaction commands', () => {
     );
   });
 
+  it('blocks preplanned move commands without a target tile (E0a)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'commands-missing-tile-key',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    spawnGameboardActor(world, {
+      id: 'hero-placement',
+      actorId: 'hero',
+      actorKind: 'player',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const source = findGameboardActor(world, 'hero');
+    if (!source) {
+      throw new Error('expected hero actor fixture');
+    }
+
+    expect(
+      previewGameboardInteractionCommand(world, {
+        kind: 'move',
+        intent: 'move',
+        target: { kind: 'tile' } as never,
+        source,
+        canExecute: true,
+      })
+    ).toMatchObject({
+      canExecute: false,
+      reason: 'No target tile',
+    });
+  });
+
   it('returns handler-required commands for attacks and interactions', () => {
     const world = createGameboardWorld(
       createGameboardBuilder({
@@ -490,6 +524,106 @@ describe('createRemoveTargetPlacementHandler factory (PRD E0a)', () => {
       })
     );
     expect(result).toBeUndefined();
+  });
+});
+
+describe('createRemoveTargetActorHandler factory (PRD E0a)', () => {
+  it('blocks accepted commands without an actor target', () => {
+    const handler = createRemoveTargetActorHandler();
+    const result = handler(
+      stubHandlerContext({ kind: 'attack-actor', target: { kind: 'tile' } as never })
+    );
+    expect(result).toMatchObject({ status: 'blocked', reason: 'No target actor for command' });
+  });
+
+  it('blocks non-hostile targets when hostile removal is required', () => {
+    const handler = createRemoveTargetActorHandler({ requireHostile: true });
+    const result = handler(
+      stubHandlerContext({
+        kind: 'attack-actor',
+        target: {
+          kind: 'actor',
+          actor: {
+            actor: { actorId: 'elder', hostile: false },
+            placement: { id: 'elder-placement' },
+            entity: 'elder-placement',
+          },
+        } as never,
+      })
+    );
+    expect(result).toMatchObject({
+      status: 'blocked',
+      reason: 'Target actor elder is not hostile',
+    });
+  });
+
+  it('blocks source-aware non-hostile targets when hostile removal is required', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'commands-source-aware-hostility',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    spawnGameboardActor(world, {
+      id: 'hero-placement',
+      actorId: 'hero',
+      actorKind: 'player',
+      team: 'blue',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      id: 'elder-placement',
+      actorId: 'elder',
+      actorKind: 'npc',
+      team: 'blue',
+      at: '1,0',
+      assetId: 'flag_green',
+      kind: 'unit',
+    });
+    const source = findGameboardActor(world, 'hero');
+    const target = findGameboardActor(world, 'elder');
+    if (!source || !target) {
+      throw new Error('expected source and target actor fixtures');
+    }
+
+    const handler = createRemoveTargetActorHandler({ requireHostile: true });
+    const result = handler(
+      stubHandlerContext({
+        kind: 'attack-actor',
+        source,
+        target: {
+          kind: 'actor',
+          actor: target,
+        } as never,
+      } as never)
+    );
+    expect(result).toMatchObject({
+      status: 'blocked',
+      reason: 'Target actor elder is not hostile',
+    });
+  });
+});
+
+describe('createMarkTargetActorInteractedHandler factory (PRD E0a)', () => {
+  it('returns undefined for unaccepted command kinds', () => {
+    const handler = createMarkTargetActorInteractedHandler();
+    const result = handler(
+      stubHandlerContext({
+        kind: 'attack-actor',
+        target: { kind: 'actor', actor: { actorId: 'elder' } } as never,
+      })
+    );
+    expect(result).toBeUndefined();
+  });
+
+  it('blocks accepted commands without an actor target', () => {
+    const handler = createMarkTargetActorInteractedHandler();
+    const result = handler(
+      stubHandlerContext({ kind: 'interact-actor', target: { kind: 'tile' } as never })
+    );
+    expect(result).toMatchObject({ status: 'blocked', reason: 'No target actor for command' });
   });
 });
 
