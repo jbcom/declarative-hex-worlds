@@ -364,6 +364,90 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
     await runGuideUsages(parsed, '/nonexistent', 'free');
     expect(logs.length).toBeGreaterThan(0);
   });
+
+  it('covers filtered guide output files and readable summaries', async () => {
+    const previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+    try {
+      await runGuideAssets(
+        { command: 'guide-assets', flags: { role: 'prop', out: commandOutputPath('guide-assets.prop.json') } },
+        '/nonexistent',
+        'free'
+      );
+      await runGuideRoles(
+        { command: 'guide-roles', flags: { role: 'prop', out: commandOutputPath('guide-roles.prop.json') } },
+        '/nonexistent',
+        'free'
+      );
+      await runGuideScenarios(
+        {
+          command: 'guide-scenarios',
+          flags: { markdown: true, out: commandOutputPath('guide-scenarios.md') },
+        },
+        '/nonexistent',
+        'free'
+      );
+      await runGuideUsages(
+        {
+          command: 'guide-usages',
+          flags: {
+            minimumEdition: 'free',
+            role: 'prop',
+            out: commandOutputPath('guide-usages.free-prop.json'),
+          },
+        },
+        '/nonexistent',
+        'free'
+      );
+
+      logs = [];
+      await runGuideAssets({ command: 'guide-assets', flags: { role: 'prop' } }, '/nonexistent', 'free');
+      await runGuideRoles({ command: 'guide-roles', flags: { role: 'prop' } }, '/nonexistent', 'free');
+      await runGuideScenarios(
+        { command: 'guide-scenarios', flags: { assetScope: 'all' } },
+        '/nonexistent',
+        'free'
+      );
+      await runGuideUsages(
+        { command: 'guide-usages', flags: { minimumEdition: 'free', role: 'prop' } },
+        '/nonexistent',
+        'free'
+      );
+    } finally {
+      if (previousOutRoot === undefined) {
+        delete process.env.HEX_WORLDS_OUT_ROOT;
+      } else {
+        process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+      }
+    }
+
+    const assets = readCommandOutput<{ count: number; selection: { roles: string[] }; assetIds: string[] }>(
+      'guide-assets.prop.json'
+    );
+    const roles = readCommandOutput<{ count: number; selection: { roles: string[] }; selected: unknown }>(
+      'guide-roles.prop.json'
+    );
+    const usages = readCommandOutput<{
+      count: number;
+      selection: { roles: string[]; minimumEdition?: string };
+      assetIds: string[];
+    }>('guide-usages.free-prop.json');
+    const markdown = readFileSync(resolve(commandOutputRoot, 'guide-scenarios.md'), 'utf8');
+    const joined = logs.join('\n');
+
+    expect(assets.count).toBeGreaterThan(0);
+    expect(assets.selection.roles).toEqual(['prop']);
+    expect(roles).toMatchObject({ count: 1, selection: { roles: ['prop'] } });
+    expect(roles.selected).toBeDefined();
+    expect(usages.count).toBeGreaterThan(0);
+    expect(usages.selection).toMatchObject({ roles: ['prop'], minimumEdition: 'free' });
+    expect(usages.assetIds).toContain('barrel');
+    expect(markdown).toContain('# Guide Scenario Coverage');
+    expect(joined).toContain('guide assets:');
+    expect(joined).toContain('guide public roles:');
+    expect(joined).toContain('guide scenarios:');
+    expect(joined).toContain('guide usage rows:');
+  });
 });
 
 describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
