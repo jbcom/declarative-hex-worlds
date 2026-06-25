@@ -22,7 +22,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameboardCliError } from '../../errors';
 import type { ParsedArgs } from '../_shared';
@@ -110,6 +110,30 @@ function readCommandOutput<T>(name: string): T {
 function writeCommandOutput(name: string, payload: unknown): string {
   const path = commandOutputPath(name);
   writeFileSync(resolve(commandOutputRoot, path), `${JSON.stringify(payload, null, 2)}\n`);
+  return path;
+}
+
+function writeCommandGltfBounds(
+  relativePath: string,
+  min: [number, number, number],
+  max: [number, number, number]
+): string {
+  const path = resolve(commandOutputRoot, relativePath);
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(
+    path,
+    `${JSON.stringify(
+      {
+        asset: { version: '2.0' },
+        accessors: [{ min, max }],
+        buffers: [{ uri: 'fixture.bin', byteLength: 0 }],
+        materials: [{ name: 'fixture_material' }],
+        meshes: [{ primitives: [{ attributes: { POSITION: 0 }, material: 0 }] }],
+      },
+      null,
+      2
+    )}\n`
+  );
   return path;
 }
 
@@ -726,6 +750,125 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
     });
     expect(scenarioSummary.topActorAssets.length).toBeGreaterThan(0);
     expect(scenarioSummary.topActorAssets.length).toBeLessThanOrEqual(2);
+  });
+
+  it('scans local GLTF assets into piece registry rule output', async () => {
+    const assetRoot = resolve(commandOutputRoot, 'piece-registry-assets');
+    writeCommandGltfBounds(
+      'piece-registry-assets/tower-hexagon-base.gltf',
+      [-0.45, 0, -0.39],
+      [0.45, 1.25, 0.39]
+    );
+    writeCommandGltfBounds(
+      'piece-registry-assets/tree-large.gltf',
+      [-0.22, 0, -0.18],
+      [0.22, 1.6, 0.18]
+    );
+    const overridesPath = writeCommandOutput('piece-registry-overrides.json', {
+      overrides: {
+        'tower-hexagon-base': {
+          footprint: { kind: 'adjacent', edges: [0, 1], includeCenter: true },
+          criteria: { terrain: ['grass', 'road'], edgePadding: 1 },
+          metadata: { placementPreset: 'tower-footprint' },
+        },
+        'tree-large': {
+          criteria: { maxPerTile: 3, slotGroup: 'soft-feature' },
+          tags: ['forest'],
+        },
+        missing: { tags: ['unused'] },
+      },
+    });
+    const registryPath = commandOutputPath('piece-registry-output.json');
+    await runPiecesFromAssets(
+      {
+        command: 'pieces-from-assets',
+        flags: {
+          assets: assetRoot,
+          sourcePack: 'fixture-castle-kit',
+          intendedRole: 'tile',
+          assetIdPrefix: 'fixture',
+          pieceIdPrefix: 'fixture-piece',
+          tags: 'castle,test',
+          pieceOverrides: resolve(commandOutputRoot, overridesPath),
+          includeReports: true,
+          out: registryPath,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const sourceRootsPath = writeCommandOutput('piece-registry-source-roots.json', {
+      sourceRoots: { 'fixture-castle-kit': '/fixture-assets' },
+    });
+    await runPieces(
+      {
+        command: 'pieces',
+        flags: {
+          pieces: resolve(commandOutputRoot, registryPath),
+          role: 'landmark',
+          emitRules: true,
+          emitSourceUrls: true,
+          pieceSourceRoots: resolve(commandOutputRoot, sourceRootsPath),
+          count: '1',
+          out: commandOutputPath('piece-registry-rules.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const registry = readCommandOutput<{
+      assets: string[];
+      sourceAssets: Array<{ id: string; relativePath: string; fileName: string }>;
+      pieces: Array<{
+        id: string;
+        assetId: string;
+        role: string;
+        tags: string[];
+        metadata: Record<string, unknown>;
+      }>;
+      summary: { assetCount: number; pieceRoles: Record<string, number>; overrideWarnings: string[] };
+      reports: Array<{ suggestedRole: string; compatibleAsTile: boolean }>;
+    }>('piece-registry-output.json');
+    const rulesPayload = readCommandOutput<{
+      rules: Array<{ assetId: string; count: number }>;
+      sourceUrls: Record<string, string>;
+    }>('piece-registry-rules.json');
+
+    expect(registry.assets).toEqual(['tower-hexagon-base.gltf', 'tree-large.gltf']);
+    expect(registry.sourceAssets.map((asset) => asset.id)).toEqual([
+      'tower-hexagon-base',
+      'tree-large',
+    ]);
+    expect(registry.summary).toMatchObject({
+      assetCount: 2,
+      pieceRoles: { tree: 1, landmark: 1 },
+      overrideWarnings: ['Piece override missing did not match any scanned asset id'],
+    });
+    expect(registry.reports.every((report) => report.compatibleAsTile === false)).toBe(true);
+    expect(
+      registry.pieces.find((piece) => piece.id === 'fixture-piece:tower-hexagon-base')
+    ).toMatchObject({
+      assetId: 'fixture:tower-hexagon-base',
+      role: 'landmark',
+      tags: ['castle', 'test'],
+      metadata: {
+        placementPreset: 'tower-footprint',
+        sourceRelativePath: 'tower-hexagon-base.gltf',
+        sourceFileName: 'tower-hexagon-base.gltf',
+        localAsset: true,
+      },
+    });
+    expect(rulesPayload.rules).toHaveLength(1);
+    expect(rulesPayload.rules[0]).toMatchObject({
+      assetId: 'fixture:tower-hexagon-base',
+      count: 1,
+    });
+    expect(rulesPayload.sourceUrls).toMatchObject({
+      'fixture:tower-hexagon-base': '/fixture-assets/tower-hexagon-base.gltf',
+      'fixture:tree-large': '/fixture-assets/tree-large.gltf',
+    });
   });
 });
 
