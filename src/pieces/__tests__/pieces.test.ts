@@ -445,6 +445,10 @@ describe('gameboard piece declarations', () => {
       tags: ['forest'],
       requiresExtra: true,
     });
+    const withoutScatter = selectGameboardPieces(registry, {
+      roles: ['tree'],
+      excludeTags: ['scatter'],
+    });
     const rules = createGameboardLayoutFillRulesFromRegistry(registry, {
       selection: { roles: ['tree'], sources: ['Kenney Castle Kit'] },
       ruleIdPrefix: 'forest-pack',
@@ -452,9 +456,14 @@ describe('gameboard piece declarations', () => {
       maxCount: 2,
       metadata: { biome: 'forest' },
     });
+    const prefixlessRules = createGameboardLayoutFillRulesFromRegistry(registry, {
+      selection: { ids: ['kaykit-free-tree'] },
+    });
 
     expect(selected.map((piece) => piece.id)).toEqual(['kenney-large-tree', 'kenney-small-tree']);
+    expect(withoutScatter.map((piece) => piece.id)).toEqual(['kaykit-free-tree']);
     expect(rules.map((rule) => rule.id)).toEqual(['forest-pack:kenney-large-tree', 'forest-pack:kenney-small-tree']);
+    expect(prefixlessRules.map((rule) => rule.id)).toEqual(['piece:kaykit-free-tree']);
     expect(rules.every((rule) => rule.archetype === 'tree')).toBe(true);
     expect(rules.every((rule) => rule.requiresExtra === true)).toBe(true);
     expect(rules[0]).toMatchObject({
@@ -495,6 +504,7 @@ describe('gameboard piece declarations', () => {
     ]);
     const analysis = analyzeGameboardPieceRegistry(registry, {
       checks: [
+        {},
         { id: 'forest-pool', mode: 'pool', selection: { roles: ['tree'], tags: ['forest'] } },
         { id: 'mixed-pool', mode: 'pool', selection: { sources: ['Kenney Castle Kit'] } },
         { id: 'missing-selection', selection: { roles: ['unit'] } },
@@ -509,6 +519,7 @@ describe('gameboard piece declarations', () => {
       tagCounts: { forest: 2, castle: 1 },
     });
     expect(analysis.checks.map((check) => [check.id, check.selectedCount])).toEqual([
+      ['check:0', 3],
       ['forest-pool', 2],
       ['mixed-pool', 3],
       ['missing-selection', 0],
@@ -620,6 +631,7 @@ describe('gameboard piece declarations', () => {
     expect(resolveGameboardPieceSourceUrl(piece, { sourceRoot: '/assets/root///' })).toBe(
       '/assets/root/nested/path.glb'
     );
+    expect(resolveGameboardPieceSourceUrl(piece)).toBe('///nested/path.glb');
   });
 
   it('analyzeGameboardPieceRegistry warns on empty registry (E0h)', () => {

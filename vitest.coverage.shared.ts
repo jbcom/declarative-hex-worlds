@@ -44,15 +44,14 @@ export const COVERAGE_EXCLUDES = [
  * does the ratchet automatically.
  */
 export const COVERAGE_THRESHOLDS = {
-  // Threshold ratchet uses the CI floor (unit harness only — browser/e2e
-  // harnesses are skipped on PR CI). Local runs ~1-2pp higher because the
-  // skip-gated reference tests execute locally but not in PR CI.
-  // Each E0a/E0h commit advances these; set 0.5pp below CI-measured.
-  // E0a batch 42: CI measured 2026-05-29: S=73.97, B=69.95, F=81.22, L=73.65.
-  statements: 73.4,
-  branches: 69.4,
-  functions: 80.7,
-  lines: 73.1,
+  // Threshold ratchet uses the CI-measured merged unit + browser-free floor.
+  // Local runs can read higher when skip-gated reference tests execute, so each
+  // E0a/E0h commit sets the floor 0.5pp below the last green PR Coverage job.
+  // PR #106 (2026-06-25): S=76.74, B=70.87, F=84.69, L=76.48.
+  statements: 76.2,
+  branches: 70.3,
+  functions: 84.1,
+  lines: 75.9,
 };
 
 /**
