@@ -400,6 +400,20 @@ describe('selectManifestAssets filter branches (PRD E0h)', () => {
     const result = selectManifestAssets(freeManifest, { unitStyles: ['accent'] });
     expect(result.every((a) => a.unitStyle === 'accent')).toBe(true);
   });
+
+  it('rejects assets whose unitStyle is present but excluded (E0h)', () => {
+    const manifest = manifestFixture('free', [
+      assetFixture({
+        id: 'unit_blue_full',
+        edition: 'free',
+        category: 'units',
+        subcategory: 'blue',
+        unitStyle: 'full',
+      }),
+    ]);
+
+    expect(selectManifestAssets(manifest, { unitStyles: ['accent'] })).toEqual([]);
+  });
 });
 
 describe('createManifestBundle duplicatePreference variants (PRD E0a)', () => {
@@ -435,6 +449,54 @@ describe('createManifestBundle duplicatePreference variants (PRD E0a)', () => {
     // Insert extra first so the duplicate-pref branch fires (existing.edition !== 'free' && next.edition === 'free').
     const bundle = createManifestBundle([extra, free], { duplicatePreference: 'free' });
     expect(getManifestAsset(bundle, 'shared')?.edition).toBe('free');
+  });
+});
+
+describe('manifest schema branch fallbacks (E0h)', () => {
+  it('labels malformed asset ids as unknown in dependent diagnostics', () => {
+    const base = manifestFixture('free', []);
+    const validAsset = assetFixture({
+      id: 'valid-control',
+      edition: 'free',
+      category: 'tiles',
+      subcategory: 'base',
+    });
+    const manifest = {
+      ...base,
+      assets: [
+        {
+          ...validAsset,
+          id: '',
+          edition: 'extra',
+          bounds: { min: [0, 0], max: [1, 1, 1], size: [0, 0, 0] },
+        },
+      ],
+    };
+
+    const issues = validateMedievalHexagonManifest(manifest);
+
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        code: 'manifest.asset_edition_mismatch',
+        message: expect.stringContaining(
+          'Manifest asset <unknown> uses edition extra; expected free'
+        ),
+      })
+    );
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        code: 'manifest.asset_bounds_vector',
+        message: expect.stringContaining(
+          'Manifest asset <unknown> bounds.min must be three finite numbers'
+        ),
+      })
+    );
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        code: 'manifest.asset_empty_bounds',
+        message: expect.stringContaining('Manifest asset <unknown> has empty bounds'),
+      })
+    );
   });
 });
 
