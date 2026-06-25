@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-05-24
+last_verified: 2026-06-25
 source_images:
   - docs/assets/kaykit-guide/pages/page-02.png
   - docs/assets/kaykit-guide/pages/page-05.png
@@ -17,6 +17,8 @@ implementation_links:
   - docs/guides/guide-scenario-coverage.md
   - docs/guides/release-readiness.md
   - src/scenario/catalog.ts
+  - src/scenario/catalog-guide-data.ts
+  - src/scenario/catalog-treatments.ts
   - src/interop/coverage.ts
   - src/manifest/free.ts
   - src/types/index.ts

@@ -21,6 +21,8 @@ implementation_links:
   - src/commands/commands.ts
   - src/interop/coverage.ts
   - src/scenario/catalog.ts
+  - src/scenario/catalog-guide-data.ts
+  - src/scenario/catalog-treatments.ts
   - src/cli/cli.ts
   - src/interop/compatibility.ts
   - src/coordinates/coordinates.ts
