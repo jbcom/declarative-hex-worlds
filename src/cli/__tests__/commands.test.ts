@@ -1344,6 +1344,145 @@ describe.skipIf(!HAS_FREE_REFERENCES)('CLI compatibility happy path (PRD E0h)', 
   });
 });
 
+describe('CLI declaration and piece output paths (PRD E0h)', () => {
+  let logs: string[];
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    logs = [];
+    logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+  });
+
+  it('emits declarations files and readable registry analysis from the packaged manifest', async () => {
+    const previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+    try {
+      await runDeclarations(
+        {
+          command: 'declarations',
+          flags: {
+            manifest: freeManifestPath,
+            out: commandOutputPath('declarations.free.json'),
+          },
+        },
+        '/nonexistent-source-root',
+        'free'
+      );
+      await runDeclarations(
+        { command: 'declarations', flags: { manifest: freeManifestPath } },
+        '/nonexistent-source-root',
+        'free'
+      );
+      await runAnalyze(
+        { command: 'analyze', flags: { manifest: freeManifestPath } },
+        '/nonexistent-source-root',
+        'free'
+      );
+    } finally {
+      if (previousOutRoot === undefined) {
+        delete process.env.HEX_WORLDS_OUT_ROOT;
+      } else {
+        process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+      }
+    }
+
+    const declarations = readCommandOutput<unknown[]>('declarations.free.json');
+    const joined = logs.join('\n');
+    expect(declarations.length).toBeGreaterThan(0);
+    expect(joined).toContain('Wrote');
+    expect(joined).toContain('tile declarations to');
+    expect(joined).toContain('"assetId": "hex_grass"');
+    expect(joined).toContain('tile declarations:');
+    expect(joined).toContain('analyzed tile bounds:');
+    expect(joined).toContain('warnings:');
+  });
+
+  it('prints compatibility reports and writes piece declarations for synthetic GLTF assets', async () => {
+    const previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+    const asset = writeCommandGltfBounds(
+      'declaration-piece-assets/camp-prop.gltf',
+      [-0.2, 0, -0.2],
+      [0.2, 0.65, 0.2]
+    );
+    try {
+      await runCompatibilityCmd(
+        {
+          command: 'compatibility',
+          flags: {
+            asset,
+            id: 'fixture:camp-prop',
+            sourcePack: 'fixture-pack',
+            creator: 'Fixture Creator',
+            license: 'CC0-1.0',
+            intendedRole: 'prop',
+            modelForward: '-x',
+            boardForwardEdge: '3',
+          },
+        },
+        '/nonexistent-source-root',
+        'free'
+      );
+      await runPiece(
+        {
+          command: 'piece',
+          flags: {
+            asset,
+            id: 'fixture:camp-prop',
+            pieceId: 'fixture-piece:camp-prop',
+            sourcePack: 'fixture-pack',
+            intendedRole: 'prop',
+            modelForward: '-x',
+            boardForwardEdge: '3',
+            role: 'prop',
+            tags: 'camp,fixture',
+            includeReport: true,
+            out: commandOutputPath('camp-prop.piece.json'),
+          },
+        },
+        '/nonexistent-source-root',
+        'free'
+      );
+    } finally {
+      if (previousOutRoot === undefined) {
+        delete process.env.HEX_WORLDS_OUT_ROOT;
+      } else {
+        process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+      }
+    }
+
+    const payload = readCommandOutput<{
+      declaration: { id: string; assetId: string; role: string; tags: string[] };
+      report: { id: string; suggestedRole: string; placement: { modelForward: string } };
+    }>('camp-prop.piece.json');
+    const joined = logs.join('\n');
+    expect(joined).toContain('asset: fixture:camp-prop');
+    expect(joined).toContain('source pack: fixture-pack');
+    expect(joined).toContain('suggested role: prop');
+    expect(joined).toContain('model forward: -x');
+    expect(joined).toContain('warnings:');
+    expect(joined).toContain('needs non-uniform tile scaling');
+    expect(joined).toContain('Wrote piece declaration to');
+    expect(payload.declaration).toMatchObject({
+      id: 'fixture-piece:camp-prop',
+      assetId: 'fixture:camp-prop',
+      role: 'prop',
+      tags: ['camp', 'fixture'],
+    });
+    expect(payload.report).toMatchObject({
+      id: 'fixture:camp-prop',
+      suggestedRole: 'prop',
+      placement: { modelForward: '-x' },
+    });
+  });
+});
+
 describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', () => {
   it('validate-manifest throws GameboardCliError without --manifest', async () => {
     await expect(runValidateManifest({ command: 'validate-manifest', flags: {} }, '/x', 'free')).rejects.toThrow(
