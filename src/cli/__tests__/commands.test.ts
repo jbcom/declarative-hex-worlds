@@ -90,6 +90,10 @@ describe('CLI doctor subcommand (PRD E0h)', () => {
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const referenceFreeRoot = join(repoRoot, 'references/KayKit_Medieval_Hexagon_Pack_1.0_FREE');
+const freeManifestPath = join(repoRoot, 'assets/free/manifest.json');
+const docsRecipePath = join(repoRoot, 'docs/examples/generated-piece-scenario.recipe.json');
+const docsScenarioPath = join(repoRoot, 'docs/examples/simple-rpg-scenario.json');
+const docsSimulationScriptPath = join(repoRoot, 'docs/examples/simple-rpg-simulation.script.json');
 const HAS_FREE_REFERENCES = existsSync(referenceFreeRoot);
 const commandOutputRoot = mkdtempSync(join(tmpdir(), 'hex-worlds-commands-'));
 let previousOutRoot: string | undefined;
@@ -456,6 +460,76 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       '/nonexistent-source-root',
       'free'
     );
+    await runValidatePlan(
+      {
+        command: 'validate-plan',
+        flags: {
+          plan: resolve(commandOutputRoot, paths.plan),
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+          json: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runValidateRecipe(
+      {
+        command: 'validate-recipe',
+        flags: {
+          recipe: docsRecipePath,
+          outPlan: commandOutputPath('blueprint-derived.validate-recipe-plan.json'),
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+          json: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runValidateScenario(
+      {
+        command: 'validate-scenario',
+        flags: {
+          scenario: docsScenarioPath,
+          outPlan: commandOutputPath('blueprint-derived.validate-scenario-plan.json'),
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+          json: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runValidateSimulation(
+      {
+        command: 'validate-simulation',
+        flags: {
+          scenario: docsScenarioPath,
+          script: docsSimulationScriptPath,
+          outPlan: commandOutputPath('blueprint-derived.validate-simulation-plan.json'),
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+          json: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSummarizeScenario(
+      {
+        command: 'summarize-scenario',
+        flags: {
+          scenario: docsScenarioPath,
+          out: commandOutputPath('blueprint-derived.scenario-summary.json'),
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+          topAssets: '2',
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
 
     const summary = readCommandOutput<{
       source: { kind: string };
@@ -479,6 +553,11 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       routes: Array<{ id: string; found: boolean }>;
       errors: unknown[];
     }>(`${prefix}.patrol-routes.json`);
+    const scenarioSummary = readCommandOutput<{
+      scenarioId: string;
+      validation: { errorCount: number };
+      topActorAssets: unknown[];
+    }>(`${prefix}.scenario-summary.json`);
 
     expect(plan.tiles.length).toBeGreaterThan(0);
     expect(plan.placements.length).toBeGreaterThan(0);
@@ -489,6 +568,9 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
     expect(existsSync(resolve(commandOutputRoot, paths.recipe))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, paths.scenarioInspection))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, paths.interop))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.validate-recipe-plan.json'))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.validate-scenario-plan.json'))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.validate-simulation-plan.json'))).toBe(true);
     expect(readCommandOutput<{ validation: { errorCount: number } }>(`${prefix}.inspection.json`))
       .toMatchObject({ validation: { errorCount: 0 } });
     expect(summary).toMatchObject({
@@ -510,6 +592,12 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       id: 'raider-watch',
       found: true,
     });
+    expect(scenarioSummary).toMatchObject({
+      scenarioId: 'docs-simple-rpg-scenario',
+      validation: { errorCount: 0 },
+    });
+    expect(scenarioSummary.topActorAssets.length).toBeGreaterThan(0);
+    expect(scenarioSummary.topActorAssets.length).toBeLessThanOrEqual(2);
   });
 });
 
