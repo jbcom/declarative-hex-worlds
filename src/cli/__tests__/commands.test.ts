@@ -137,6 +137,11 @@ function writeCommandGltfBounds(
   return path;
 }
 
+function writeSyntheticSourceRoot(name: string): string {
+  writeCommandGltfBounds(`${name}/Assets/gltf/tiles/hex_fixture.gltf`, [-0.5, 0, -0.5], [0.5, 0.25, 0.5]);
+  return resolve(commandOutputRoot, name);
+}
+
 function createPackageSearchRoot(packageSearchRoots: string[]): string {
   const root = mkdtempSync(join(tmpdir(), 'hex-worlds-coverage-'));
   packageSearchRoots.push(root);
@@ -198,6 +203,78 @@ describe.skipIf(!HAS_FREE_REFERENCES)('CLI manifest subcommand (PRD E0h)', () =>
     const parsedManifest = JSON.parse(readFileSync(outAbsolute, 'utf8'));
     expect(parsedManifest.edition).toBe('free');
     expect(parsedManifest.counts.total).toBe(221);
+  });
+});
+
+describe('CLI source-root command branch coverage (PRD E0h)', () => {
+  let logs: string[];
+  let errors: string[];
+  let logSpy: ReturnType<typeof vi.spyOn>;
+  let errorSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    logs = [];
+    errors = [];
+    logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+    errorSpy = vi.spyOn(console, 'error').mockImplementation((message: unknown) => {
+      errors.push(typeof message === 'string' ? message : String(message));
+    });
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('prints a synthetic manifest to stdout when --out is omitted', async () => {
+    const sourceRoot = writeSyntheticSourceRoot('manifest-stdout-source');
+
+    await runManifest({ command: 'manifest', flags: {} }, sourceRoot, 'free');
+
+    const manifest = JSON.parse(logs.join('\n')) as { edition: string; counts: { total: number } };
+    expect(manifest.edition).toBe('free');
+    expect(manifest.counts.total).toBe(1);
+  });
+
+  it('reports validate count failures before exiting', async () => {
+    const sourceRoot = writeSyntheticSourceRoot('validate-failure-source');
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(runValidate({ command: 'validate', flags: {} }, sourceRoot, 'free')).rejects.toThrow(
+        'process.exit 1'
+      );
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    expect(errors).toEqual(['Expected 221 free GLTF files, found 1.']);
+  });
+
+  it('extracts a synthetic source using the default output folder when --out is omitted', async () => {
+    const sourceRoot = writeSyntheticSourceRoot('extract-default-source');
+    const previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+    const outputRoot = resolve(commandOutputRoot, 'kaykit-medieval-hexagon-free');
+    rmSync(outputRoot, { recursive: true, force: true });
+
+    try {
+      await runExtract({ command: 'extract', flags: { force: true } }, sourceRoot, 'free');
+      expect(existsSync(resolve(outputRoot, 'assets/tiles/hex_fixture.gltf'))).toBe(true);
+      expect(readCommandOutput<{ counts: { total: number } }>('kaykit-medieval-hexagon-free/manifest.json').counts.total).toBe(1);
+      expect(logs).toEqual([`Extracted 1 free assets to ${outputRoot}`]);
+    } finally {
+      rmSync(outputRoot, { recursive: true, force: true });
+      if (previousOutRoot === undefined) {
+        delete process.env.HEX_WORLDS_OUT_ROOT;
+      } else {
+        process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+      }
+    }
   });
 });
 
