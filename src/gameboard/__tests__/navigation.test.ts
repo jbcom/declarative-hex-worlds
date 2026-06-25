@@ -11,6 +11,7 @@ import {
   reachableGameboardTiles,
   selectGameboardSpawnLocations,
 } from '../../gameboard/navigation';
+import { spawnCandidateCoordinates } from '../spawn-groups';
 
 describe('board-aware navigation and occupancy', () => {
   it('indexes blockers and finds paths around terrain and runtime placement obstacles', () => {
@@ -559,6 +560,129 @@ describe('findGameboardPath defensive returns (PRD E0a)', () => {
 });
 
 describe('planGameboardSpawnGroups validation branches (PRD E0a)', () => {
+  it('filters spawn candidates by terrain, elevation, and tile tags', () => {
+    const plan = createGameboardBuilder({
+      seed: 'spawn-filter-branches',
+      shape: { kind: 'rectangle', width: 3, height: 2 },
+    })
+      .setTileAsset({
+        at: { q: 0, r: 0 },
+        assetId: 'hex_grass',
+        terrain: 'grass',
+        tags: ['spawn'],
+      })
+      .setElevation({ q: 0, r: 0 }, 1)
+      .setTileAsset({
+        at: { q: 1, r: 0 },
+        assetId: 'hex_hill',
+        terrain: 'hill',
+        tags: ['spawn', 'blocked'],
+      })
+      .setElevation({ q: 1, r: 0 }, 2)
+      .setTileAsset({
+        at: { q: 2, r: 0 },
+        assetId: 'hex_water',
+        terrain: 'water',
+        tags: ['spawn'],
+      })
+      .setTileAsset({
+        at: { q: 0, r: 1 },
+        assetId: 'hex_grass',
+        terrain: 'grass',
+        tags: ['camp'],
+      })
+      .build();
+
+    const candidates = spawnCandidateCoordinates(plan, createGameboardNavigation(plan), {
+      terrain: ['grass', 'hill'],
+      minElevation: 1,
+      maxElevation: 2,
+      tileTags: ['elevated'],
+      excludeTileTags: ['hill'],
+    });
+    const grassCandidates = spawnCandidateCoordinates(plan, createGameboardNavigation(plan), {
+      terrain: 'grass',
+    });
+
+    expect(candidates).toEqual([{ q: 0, r: 0 }]);
+    expect(grassCandidates).toEqual(
+      expect.arrayContaining([
+        { q: 0, r: 0 },
+        { q: 0, r: 1 },
+      ])
+    );
+  });
+
+  it('prefers found, lower-cost, and shorter spawn group routes', () => {
+    const costPlan = createGameboardBuilder({
+      seed: 'spawn-route-cost',
+      shape: { kind: 'rectangle', width: 5, height: 3 },
+    })
+      .setTileAsset({ at: { q: 0, r: 2 }, assetId: 'hex_grass', terrain: 'grass', tags: ['target'] })
+      .setTileAsset({ at: { q: 1, r: 2 }, assetId: 'hex_grass', terrain: 'grass', tags: ['source'] })
+      .setTileAsset({ at: { q: 4, r: 0 }, assetId: 'hex_grass', terrain: 'grass', tags: ['source'] })
+      .build();
+
+    const lowerCostRoute = planGameboardSpawnGroups(costPlan, {
+      seed: 'spawn-route-cost',
+      groups: [
+        { id: 'target', count: 1, tileTags: ['target'] },
+        { id: 'source', count: 2, tileTags: ['source'], pathToGroups: ['target'] },
+      ],
+    }).routeChecks[0];
+
+    const shorterRoute = planGameboardSpawnGroups(costPlan, {
+      seed: 'spawn-route-cost',
+      groups: [
+        { id: 'target', count: 1, tileTags: ['target'] },
+        {
+          id: 'source',
+          count: 2,
+          tileTags: ['source'],
+          pathToGroups: ['target'],
+          routeProfile: { cost: () => 0 },
+        },
+      ],
+    }).routeChecks[0];
+
+    const foundPlan = createGameboardBuilder({
+      seed: 'spawn-route-found',
+      shape: { kind: 'rectangle', width: 5, height: 3 },
+    })
+      .setTileAsset({ at: { q: 0, r: 0 }, assetId: 'hex_grass', terrain: 'grass', tags: ['target'] })
+      .setTileAsset({ at: { q: 0, r: 2 }, assetId: 'hex_grass', terrain: 'grass', tags: ['target'] })
+      .setTileAsset({ at: { q: 4, r: 0 }, assetId: 'hex_grass', terrain: 'grass', tags: ['source'] })
+      .setTileAsset({ at: { q: 4, r: 2 }, assetId: 'hex_grass', terrain: 'grass', tags: ['source'] })
+      .setTerrain({ q: 1, r: 0 }, 'water')
+      .setTerrain({ q: 0, r: 1 }, 'water')
+      .setTerrain({ q: 1, r: 1 }, 'water')
+      .build();
+    const foundRoute = planGameboardSpawnGroups(foundPlan, {
+      seed: 'spawn-route-found',
+      groups: [
+        { id: 'target', count: 2, tileTags: ['target'] },
+        { id: 'source', count: 2, tileTags: ['source'], pathToGroups: ['target'] },
+      ],
+    }).routeChecks[0];
+    const emptyRoute = planGameboardSpawnGroups(costPlan, {
+      seed: 'spawn-route-empty',
+      groups: [
+        { id: 'target', count: 0, tileTags: ['target'] },
+        { id: 'source', count: 1, tileTags: ['source'], pathToGroups: ['target'] },
+      ],
+    }).routeChecks[0];
+
+    expect(lowerCostRoute).toMatchObject({ fromKey: '1,2', toKey: '0,2', cost: 1 });
+    expect(shorterRoute).toMatchObject({ fromKey: '1,2', toKey: '0,2', cost: 0 });
+    expect(shorterRoute?.pathKeys).toEqual(['1,2', '0,2']);
+    expect(foundRoute).toMatchObject({ found: true, toKey: '0,2' });
+    expect(emptyRoute).toMatchObject({
+      found: false,
+      pathKeys: [],
+      cost: Number.POSITIVE_INFINITY,
+    });
+  });
+
   it('errors when a spawn group has an empty id', () => {
     const plan = createGameboardBuilder({
       seed: 'spawn-no-id',

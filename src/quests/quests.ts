@@ -203,7 +203,7 @@ export function spawnGameboardQuest(
         status: 'pending',
         detail: 'Pending',
       })),
-      metadata: { ...(quest.metadata ?? {}) },
+      metadata: { ...quest.metadata },
     })
   );
   retagQuest(entity);
