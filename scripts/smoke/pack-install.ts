@@ -26,6 +26,42 @@ interface PackResult {
   filename: string;
 }
 
+interface PackedGuideUsagePayload {
+  count?: number;
+  occurrenceCounts?: { extra?: number; scenarios?: number; pages?: number };
+  assetIds?: unknown;
+}
+
+interface PackedPlanSummaryPayload {
+  source?: { kind?: string };
+  validation?: { errorCount?: number };
+  summary?: {
+    tileCount?: number;
+    placementCount?: number;
+    placementKindCounts?: unknown;
+  };
+}
+
+interface PackedScenarioSummaryPayload {
+  scenarioId?: string;
+  validation?: { errorCount?: number };
+  actorCount?: number;
+  questCount?: number;
+  objectiveCount?: number;
+  actorKindCounts?: unknown;
+}
+
+interface PackedCoveragePayload {
+  simpleRpgEvidence?: {
+    publicApiExercises?: Array<{
+      assetCount?: number;
+      modes?: string[];
+      pages?: number[];
+      publicApi?: string;
+    }>;
+  };
+}
+
 export const PACKED_CONSUMER_TEMP_WRITE_OPTIONS = {
   encoding: 'utf8',
   mode: 0o600,
@@ -57,6 +93,30 @@ export interface PackInstallSmokeDependencies {
   writeFileSyncImpl?: SmokeWriteFile;
   copyFileSyncImpl?: SmokeCopyFile;
   log?: SmokeLog;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function parseJsonObject<T extends object>(payload: string, message: string): T {
+  const parsed = JSON.parse(payload) as unknown;
+  if (!isRecord(parsed)) {
+    throw new Error(message);
+  }
+  return parsed as T;
+}
+
+function parsePackResult(payload: string): PackResult {
+  const parsed = JSON.parse(payload) as unknown;
+  if (!Array.isArray(parsed)) {
+    throw new Error('npm pack did not return an array of tarball metadata');
+  }
+  const [pack] = parsed;
+  if (!isRecord(pack) || typeof pack.filename !== 'string' || pack.filename.length === 0) {
+    throw new Error('npm pack did not return any tarball metadata');
+  }
+  return { filename: pack.filename };
 }
 
 export function createPackedConsumerPackageJson(tarballPath: string): string {
@@ -1201,16 +1261,13 @@ export function runPackInstallSmoke(
     );
   }
 
-  const [pack] = JSON.parse(
+  const pack = parsePackResult(
     execFileSyncImpl('npm', ['pack', '--json', '--pack-destination', packRoot], {
       cwd: packageRoot,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     })
-  ) as PackResult[];
-  if (pack === undefined) {
-    throw new Error('npm pack did not return any tarball metadata');
-  }
+  );
   const tarballPath = join(packRoot, pack.filename);
   assert(existsSyncImpl(tarballPath), `npm pack did not create ${tarballPath}`);
 
@@ -1290,16 +1347,16 @@ export function runPackInstallSmoke(
       stdio: ['ignore', 'pipe', 'pipe'],
     }
   );
-  const installedGuideUsage = JSON.parse(installedGuideUsageOutput) as {
-    count: number;
-    occurrenceCounts: { extra: number; scenarios: number; pages: number };
-    assetIds: string[];
-  };
+  const installedGuideUsage = parseJsonObject<PackedGuideUsagePayload>(
+    installedGuideUsageOutput,
+    'packed CLI guide-usages command did not return a valid JSON object'
+  );
   assert(
-    installedGuideUsage.count === 137 &&
-      installedGuideUsage.occurrenceCounts.extra === 137 &&
-      installedGuideUsage.occurrenceCounts.scenarios === 1 &&
-      installedGuideUsage.occurrenceCounts.pages === 1 &&
+      installedGuideUsage.count === 137 &&
+      installedGuideUsage.occurrenceCounts?.extra === 137 &&
+      installedGuideUsage.occurrenceCounts?.scenarios === 1 &&
+      installedGuideUsage.occurrenceCounts?.pages === 1 &&
+      Array.isArray(installedGuideUsage.assetIds) &&
       installedGuideUsage.assetIds.includes('unit_blue_full'),
     'packed CLI guide-usages command did not emit page 14 renderer rows'
   );
@@ -1320,21 +1377,18 @@ export function runPackInstallSmoke(
       stdio: ['ignore', 'pipe', 'pipe'],
     }
   );
-  const installedSummary = JSON.parse(installedSummaryOutput) as {
-    source: { kind: string };
-    validation: { errorCount: number };
-    summary: {
-      tileCount: number;
-      placementCount: number;
-      placementKindCounts: Record<string, number>;
-    };
-  };
+  const installedSummary = parseJsonObject<PackedPlanSummaryPayload>(
+    installedSummaryOutput,
+    'packed CLI summarize-plan command did not return a valid JSON object'
+  );
+  const placementKindCounts = installedSummary.summary?.placementKindCounts;
   assert(
-    installedSummary.source.kind === 'scenario' &&
-      installedSummary.validation.errorCount === 0 &&
-      installedSummary.summary.tileCount > 0 &&
-      installedSummary.summary.placementCount > 0 &&
-      (installedSummary.summary.placementKindCounts.terrain ?? 0) > 0,
+    installedSummary.source?.kind === 'scenario' &&
+      installedSummary.validation?.errorCount === 0 &&
+      (installedSummary.summary?.tileCount ?? 0) > 0 &&
+      (installedSummary.summary?.placementCount ?? 0) > 0 &&
+      isRecord(placementKindCounts) &&
+      Number(placementKindCounts.terrain ?? 0) > 0,
     'packed CLI summarize-plan command did not emit scenario board counts'
   );
   const installedScenarioSummaryOutput = execFileSyncImpl(
@@ -1354,21 +1408,19 @@ export function runPackInstallSmoke(
       stdio: ['ignore', 'pipe', 'pipe'],
     }
   );
-  const installedScenarioSummary = JSON.parse(installedScenarioSummaryOutput) as {
-    scenarioId: string;
-    validation: { errorCount: number };
-    actorCount: number;
-    questCount: number;
-    objectiveCount: number;
-    actorKindCounts: Record<string, number>;
-  };
+  const installedScenarioSummary = parseJsonObject<PackedScenarioSummaryPayload>(
+    installedScenarioSummaryOutput,
+    'packed CLI summarize-scenario command did not return a valid JSON object'
+  );
+  const actorKindCounts = installedScenarioSummary.actorKindCounts;
   assert(
     installedScenarioSummary.scenarioId === 'docs-simple-rpg-scenario' &&
-      installedScenarioSummary.validation.errorCount === 0 &&
-      installedScenarioSummary.actorCount > 0 &&
-      installedScenarioSummary.questCount > 0 &&
-      installedScenarioSummary.objectiveCount > 0 &&
-      (installedScenarioSummary.actorKindCounts.player ?? 0) > 0,
+      installedScenarioSummary.validation?.errorCount === 0 &&
+      (installedScenarioSummary.actorCount ?? 0) > 0 &&
+      (installedScenarioSummary.questCount ?? 0) > 0 &&
+      (installedScenarioSummary.objectiveCount ?? 0) > 0 &&
+      isRecord(actorKindCounts) &&
+      Number(actorKindCounts.player ?? 0) > 0,
     'packed CLI summarize-scenario command did not emit playable scenario counts'
   );
   const installedCoverageOutput = execFileSyncImpl(
@@ -1381,20 +1433,16 @@ export function runPackInstallSmoke(
       stdio: ['ignore', 'pipe', 'pipe'],
     }
   );
-  const installedCoverage = JSON.parse(installedCoverageOutput) as {
-    simpleRpgEvidence?: {
-      publicApiExercises?: Array<{
-        assetCount: number;
-        modes: string[];
-        pages: number[];
-        publicApi: string;
-      }>;
-    };
-  };
-  const installedCoverageBridgeExercise =
-    installedCoverage.simpleRpgEvidence?.publicApiExercises?.find(
-      (exercise) => exercise.publicApi === 'GameboardBuilder.addBridge'
-    );
+  const installedCoverage = parseJsonObject<PackedCoveragePayload>(
+    installedCoverageOutput,
+    'packed CLI coverage command did not return a valid JSON object'
+  );
+  const publicApiExercises = Array.isArray(installedCoverage.simpleRpgEvidence?.publicApiExercises)
+    ? installedCoverage.simpleRpgEvidence.publicApiExercises
+    : [];
+  const installedCoverageBridgeExercise = publicApiExercises.find(
+    (exercise) => exercise.publicApi === 'GameboardBuilder.addBridge'
+  );
   const installedCoverageMarkdown = execFileSyncImpl(
     process.execPath,
     [installedCliPath, 'coverage', '--checksPassed', '--markdown'],
@@ -1406,10 +1454,10 @@ export function runPackInstallSmoke(
     }
   );
   assert(
-    installedCoverage.simpleRpgEvidence?.publicApiExercises?.length === 74 &&
+    publicApiExercises.length === 74 &&
       installedCoverageBridgeExercise?.assetCount === 2 &&
-      installedCoverageBridgeExercise.pages.join(',') === '2,7,9' &&
-      installedCoverageBridgeExercise.modes.includes('visual-coverage') &&
+      installedCoverageBridgeExercise.pages?.join(',') === '2,7,9' &&
+      installedCoverageBridgeExercise.modes?.includes('visual-coverage') &&
       installedCoverageMarkdown.includes('### SimpleRPG Exercise Matrix') &&
       installedCoverageMarkdown.includes(
         '| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 |'
