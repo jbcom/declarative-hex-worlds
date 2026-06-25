@@ -237,9 +237,6 @@ export function analyzeExternalAssetCompatibility(
       `${input.id} footprint ratio ${round(tile.aspectRatio)} differs from KayKit hex ratio ${round(tile.expectedAspectRatio)}`
     );
   }
-  if (input.hasRig && suggestedRole !== 'unit') {
-    warnings.push(`${input.id} is rigged; prefer unit placement metadata over static prop metadata`);
-  }
   if (suggestedRole === 'unit' && !input.hasRig) {
     warnings.push(`${input.id} is marked as a unit but no rig was detected`);
   }

@@ -32,6 +32,10 @@ describe('external asset compatibility', () => {
       Math.PI / 6,
       3
     );
+    expect(recommendExternalAssetFacing({ boardForwardEdge: 0 })).toMatchObject({
+      modelForward: '+z',
+      rotationSteps: 0,
+    });
   });
 
   it('flags non-KayKit hex shapes and suggests prop placement', () => {
@@ -50,6 +54,26 @@ describe('external asset compatibility', () => {
       anchor: 'bottom-center',
     });
     expect(report.warnings.join('\n')).toContain('does not match the KayKit hex footprint');
+  });
+
+  it('keeps KayKit-sized tile assets on terrain placement (E0h)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'kaykit-terrain-tile',
+      sourcePack: 'test',
+      bounds: { min: [-1, 0, -1.1547], max: [1, 0.2, 1.1547], size: [2, 0.2, 2.3094] },
+      intendedRole: 'tile',
+    });
+
+    expect(report.compatibleAsTile).toBe(true);
+    expect(report.suggestedRole).toBe('tile');
+    expect(report.placement).toMatchObject({
+      role: 'tile',
+      kind: 'terrain',
+      layer: 'terrain',
+      footprint: 'hex',
+      scale: 1,
+      blocksMovement: false,
+    });
   });
 
   it('models rigged character placement with facing and animation expectations', () => {
@@ -93,6 +117,37 @@ describe('external asset compatibility', () => {
     });
   });
 
+  it('fills spawn defaults for non-animated external props (E0h)', () => {
+    const report = analyzeExternalAssetCompatibility({
+      id: 'crate',
+      sourcePack: 'fallback pack',
+      bounds: { min: [-0.25, 0, -0.25], max: [0.25, 0.4, 0.25], size: [0.5, 0.4, 0.5] },
+      intendedRole: 'prop',
+    });
+    const spawn = externalAssetSpawnOptions({
+      id: 'spawn-crate',
+      at: '0,0',
+      assetId: 'extra:crate',
+      report,
+      sourcePack: 'override pack',
+      scale: 0.5,
+      rotationSteps: 3,
+    });
+
+    expect(spawn).toMatchObject({
+      id: 'spawn-crate',
+      kind: 'prop',
+      scale: 0.5,
+      rotationSteps: 3,
+      metadata: {
+        sourcePack: 'override pack',
+        sourceUrl: null,
+        animationDefaultClip: null,
+        externalAsset: true,
+      },
+    });
+  });
+
   it('flags empty horizontal bounds with errors (E0h)', () => {
     const flat: AssetBounds = { min: [0, 0, 0], max: [0, 1, 0], size: [0, 1, 0] };
     const report = analyzeExternalAssetCompatibility({
@@ -116,6 +171,28 @@ describe('external asset compatibility', () => {
       modelForward: '+z',
     });
     expect(report.suggestedRole).toBe('unit');
+  });
+
+  it('defaults rigged assets to units and falls back through idle and first animation clips (E0h)', () => {
+    const idleReport = analyzeExternalAssetCompatibility({
+      id: 'rigged-default-unit',
+      sourcePack: 'test',
+      bounds: { min: [-0.5, 0, -0.5], max: [0.5, 1, 0.5], size: [1, 1, 1] },
+      hasRig: true,
+      animationNames: ['Idle_A', 'Pose_A'],
+    });
+    const firstClipReport = analyzeExternalAssetCompatibility({
+      id: 'rigged-first-clip',
+      sourcePack: 'test',
+      bounds: { min: [-0.5, 0, -0.5], max: [0.5, 1, 0.5], size: [1, 1, 1] },
+      intendedRole: 'unit',
+      hasRig: true,
+      animationNames: ['Attack_A'],
+    });
+
+    expect(idleReport.suggestedRole).toBe('unit');
+    expect(idleReport.placement.animation?.defaultClip).toBe('Idle_A');
+    expect(firstClipReport.placement.animation?.defaultClip).toBe('Attack_A');
   });
 
   it('warns when unit-intended asset is not rigged (E0h)', () => {
