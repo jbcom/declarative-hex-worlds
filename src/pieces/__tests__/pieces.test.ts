@@ -223,6 +223,9 @@ describe('gameboard piece declarations', () => {
       seed: 'piece-shipyards',
       idPrefix: 'local:shipyard',
     });
+    const defaultCountInspection = inspectGameboardPiecePlacement(plan, dock, {
+      seed: 'piece-shipyard-default',
+    });
     const placements = createGameboardLayoutPlacementsFromPiece(plan, dock, {
       count: 2,
       seed: 'piece-shipyards',
@@ -244,6 +247,7 @@ describe('gameboard piece declarations', () => {
       },
     });
     expect(inspection.placements).toEqual(placements);
+    expect(defaultCountInspection.siteInspection.selectedCount).toBe(1);
     expect(placements).toHaveLength(2);
     expect(placements.every((placement) => placement.kind === 'structure')).toBe(true);
     expect(placements.every((placement) => placement.metadata?.pieceId === 'local-shipyard')).toBe(true);
@@ -445,6 +449,10 @@ describe('gameboard piece declarations', () => {
       tags: ['forest'],
       requiresExtra: true,
     });
+    const withoutScatter = selectGameboardPieces(registry, {
+      roles: ['tree'],
+      excludeTags: ['scatter'],
+    });
     const rules = createGameboardLayoutFillRulesFromRegistry(registry, {
       selection: { roles: ['tree'], sources: ['Kenney Castle Kit'] },
       ruleIdPrefix: 'forest-pack',
@@ -452,9 +460,14 @@ describe('gameboard piece declarations', () => {
       maxCount: 2,
       metadata: { biome: 'forest' },
     });
+    const prefixlessRules = createGameboardLayoutFillRulesFromRegistry(registry, {
+      selection: { ids: ['kaykit-free-tree'] },
+    });
 
     expect(selected.map((piece) => piece.id)).toEqual(['kenney-large-tree', 'kenney-small-tree']);
+    expect(withoutScatter.map((piece) => piece.id)).toEqual(['kaykit-free-tree']);
     expect(rules.map((rule) => rule.id)).toEqual(['forest-pack:kenney-large-tree', 'forest-pack:kenney-small-tree']);
+    expect(prefixlessRules.map((rule) => rule.id)).toEqual(['piece:kaykit-free-tree']);
     expect(rules.every((rule) => rule.archetype === 'tree')).toBe(true);
     expect(rules.every((rule) => rule.requiresExtra === true)).toBe(true);
     expect(rules[0]).toMatchObject({
@@ -495,6 +508,7 @@ describe('gameboard piece declarations', () => {
     ]);
     const analysis = analyzeGameboardPieceRegistry(registry, {
       checks: [
+        {},
         { id: 'forest-pool', mode: 'pool', selection: { roles: ['tree'], tags: ['forest'] } },
         { id: 'mixed-pool', mode: 'pool', selection: { sources: ['Kenney Castle Kit'] } },
         { id: 'missing-selection', selection: { roles: ['unit'] } },
@@ -509,6 +523,7 @@ describe('gameboard piece declarations', () => {
       tagCounts: { forest: 2, castle: 1 },
     });
     expect(analysis.checks.map((check) => [check.id, check.selectedCount])).toEqual([
+      ['check:0', 3],
       ['forest-pool', 2],
       ['mixed-pool', 3],
       ['missing-selection', 0],
@@ -566,6 +581,49 @@ describe('gameboard piece declarations', () => {
     });
   });
 
+  it('uses declaration defaults for pooled custom archetype pieces', () => {
+    const archetypes = createGameboardLayoutArchetypeRegistry({
+      scenicTree: {
+        id: 'scenicTree',
+        label: 'Scenic Tree',
+        kind: 'prop',
+        criteria: { terrain: ['grass'] },
+      },
+    });
+    const pieces = [
+      declareGameboardPiece({
+        id: 'scenic-tree-a',
+        source: 'Test Pack',
+        role: 'tree',
+        archetype: archetypes.scenicTree,
+        scale: 1.2,
+      }),
+      declareGameboardPiece({
+        id: 'scenic-tree-b',
+        source: 'Test Pack',
+        role: 'tree',
+        archetype: archetypes.scenicTree,
+        scale: 1.3,
+      }),
+    ];
+
+    const rule = createGameboardLayoutFillRuleFromPieces(pieces);
+
+    expect(pieces.map((piece) => piece.assetId)).toEqual(['scenic-tree-a', 'scenic-tree-b']);
+    expect(rule).toMatchObject({
+      id: 'scenic-tree-a',
+      assets: ['scenic-tree-a', 'scenic-tree-b'],
+      archetype: archetypes.scenicTree,
+      requiresExtra: true,
+      metadata: {
+        pieceIds: 'scenic-tree-a|scenic-tree-b',
+        pieceRoles: 'tree',
+        pieceSources: 'Test Pack',
+      },
+    });
+    expect(rule.scale).toBeUndefined();
+  });
+
   it('resolves local source URLs from piece metadata and source roots', () => {
     const registry = createGameboardPieceRegistry([
       {
@@ -620,6 +678,7 @@ describe('gameboard piece declarations', () => {
     expect(resolveGameboardPieceSourceUrl(piece, { sourceRoot: '/assets/root///' })).toBe(
       '/assets/root/nested/path.glb'
     );
+    expect(resolveGameboardPieceSourceUrl(piece)).toBe('///nested/path.glb');
   });
 
   it('analyzeGameboardPieceRegistry warns on empty registry (E0h)', () => {

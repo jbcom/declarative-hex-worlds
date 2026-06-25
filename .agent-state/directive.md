@@ -48,7 +48,7 @@ The 1.0 stabilization queue (35+ items across Phases R, A, B, D, E, F, G + the b
 
 The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `33d271b`. Each commit below advances it. E8's 100/100/100/100 flip lands after these complete.
 
-- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10-#51 merged; no open PR remains for the old PR#52 note as of 2026-06-25. Current local merged coverage gate after browser-free integration is 78.19 / 72.18 / 86.11 / 77.94, with unit-only coverage at 76.37 / 71.27 / 83.50 / 76.14. Ratchet against CI-measured merged coverage after each ≤200 LOC test batch; E8's 100/100/100/100 flip still waits on the per-file gaps below. NOTE: scenario.ts:1189 (spawn-group warning map) + 1204 (patrol warning map) effectively unreachable — spawn groups never emit warnings; patrol warning in patrol-route planning needs >1 waypoint + 0 segments (contradictory). Skip these arms.
+- [ ] [WAIT] **E0a** — Simulation + patrol files toward 100%. PR#10-#51 merged; no open PR remains for the old PR#52 note as of 2026-06-25. Current CI-measured merged coverage gate after browser-free integration is 76.74 / 70.87 / 84.69 / 76.48 (PR #106 Coverage); local reference-enabled runs read 78.19 / 72.18 / 86.11 / 77.94. Ratchet against CI-measured merged coverage after each ≤200 LOC test batch; E8's 100/100/100/100 flip still waits on the per-file gaps below. NOTE: scenario.ts:1189 (spawn-group warning map) + 1204 (patrol warning map) effectively unreachable — spawn groups never emit warnings; patrol warning in patrol-route planning needs >1 waypoint + 0 segments (contradictory). Skip these arms.
     - script.ts 88.76 / 83.88 / 98.88 / 88.83 — inspect-actor-targets sub-fields, expectation validators non-array + non-record, validateStringInteractionTarget missing-id.
     - engine.ts 94.11 / 80.44 / 97.14 / 93.91 — resolveSimulationSpawnActor throw, patrolSegmentSimulationStep inverted pairs.
     - assertions.ts 92.39 / 94.38 / 89.06 / 91.87 — matchesAnyActorTarget vacuous-match.
@@ -69,7 +69,7 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
     - navigation.ts 91.47 / patrol-routes.ts 88.13 → reachableGameboardTiles defensive returns + patrol-route generation edge cases.
     Remaining gaps: deep validator branches in script.ts (remaining expectation sub-validators), engine.ts edge mutation paths (lines 491-499, 665), patrol.ts wait-state + completed-by-targetIndex-undefined deeper paths, patrol-routes.ts generation edge cases, scenario.ts deeper allocator paths, bootstrap GitHub source, ingest.ts duplicate disambiguation. Each ≤200 LOC commit + threshold ratchet.
 - [ ] [WAIT] **E0h** — Sweep remaining src/ files to 100% (paired with E0a per-PR). PR#10 closures advanced many of these in tandem with E0a. Status post-merge:
-    - `pieces/pieces.ts` ~91% (was 89.69) — cross-pack composition + remaining infer paths
+    - `pieces/pieces.ts` 100 / 98.75 / 100 / 100 in focused unit coverage after default/exclude/source-url branch batch; remaining branch-only gaps are compatibility override/default prefix paths
     - `quests/quests.ts` ~89% (was 87.2) — quest objective rollover + reward dispatch
     - `actors/actors.ts` ~88% (was 87.58) — placement-state inference edge cases
     - `scenario/scenario.ts` ~88% (was 85.8) — actor allocation + interop snapshot drift
@@ -79,7 +79,7 @@ The A8 coverage ratchet floors at 64.5 / 62.3 / 76.4 / 64 (unit harness) as of `
     - `scenario/recipe.ts` ~82% (was 79.5) — recipe generation edge cases
     - `patrol/patrol.ts` ~81% (was 79.56) — patrol agent edge cases
     Each file's continuation work lands as one commit that adds ≤200 LOC of test code and ratchets the floor.
-- [ ] [WAIT] **E8** — Flip coverage thresholds to **100 / 100 / 100 / 100** in `vitest.coverage.shared.ts`. Depends on E0a + E0h reaching the floor at 100. Current enforced merged coverage is 78.19/72.18/86.11/77.94; unblocks when the per-file gaps in the E0a/E0h lists close out. Final ratchet commit.
+- [ ] [WAIT] **E8** — Flip coverage thresholds to **100 / 100 / 100 / 100** in `vitest.coverage.shared.ts`. Depends on E0a + E0h reaching the floor at 100. Current enforced CI merged coverage is 76.74/70.87/84.69/76.48 with thresholds ratcheted to 76.2/70.3/84.1/75.9; unblocks when the per-file gaps in the E0a/E0h lists close out. Final ratchet commit.
 
 ### Phase E-MergedGate — wire browser coverage into the enforced gate
 
