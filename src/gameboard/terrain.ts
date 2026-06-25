@@ -5,7 +5,6 @@
  * @module
  */
 import { axialToWorld } from '../coordinates';
-import { GameboardRuntimeError } from '../errors';
 import {
   selectCoastVariant,
   selectRiverCrossingVariant,
@@ -238,7 +237,7 @@ function overlayPlacement(
   options: {
     id: string;
     assetId: string;
-    kind: GameboardPlacementKind;
+    kind: Extract<GameboardPlacementKind, 'coast' | 'river' | 'road'>;
     layer: GameboardPlacementLayer;
     order: number;
     rotationSteps: number;
@@ -267,7 +266,7 @@ function overlayPlacement(
   };
 }
 
-function surfaceElevationOffset(kind: GameboardPlacementKind): number {
+function surfaceElevationOffset(kind: Extract<GameboardPlacementKind, 'coast' | 'river' | 'road'>): number {
   switch (kind) {
     case 'coast':
       return 0.01;
@@ -275,16 +274,14 @@ function surfaceElevationOffset(kind: GameboardPlacementKind): number {
       return 0.02;
     case 'road':
       return 0.03;
-    default:
-      return 0;
   }
 }
 
 function riverVisualMask(mask: number): number {
-  if (bitCount(mask) !== 1) {
+  const edge = edgeFromSingleBit(mask);
+  if (edge === undefined) {
     return mask;
   }
-  const edge = edgeFromSingleBit(mask);
   return (mask | (1 << oppositeEdge(edge))) & 0b111111;
 }
 
@@ -292,23 +289,17 @@ function oppositeEdge(edge: HexEdgeIndex): HexEdgeIndex {
   return ((edge + 3) % 6) as HexEdgeIndex;
 }
 
-function bitCount(mask: number): number {
-  let count = 0;
+function edgeFromSingleBit(mask: number): HexEdgeIndex | undefined {
+  let singleEdge: HexEdgeIndex | undefined;
   for (let edge = 0; edge < 6; edge += 1) {
     if ((mask & (1 << edge)) !== 0) {
-      count += 1;
+      if (singleEdge !== undefined) {
+        return undefined;
+      }
+      singleEdge = edge as HexEdgeIndex;
     }
   }
-  return count;
-}
-
-function edgeFromSingleBit(mask: number): HexEdgeIndex {
-  for (let edge = 0; edge < 6; edge += 1) {
-    if ((mask & (1 << edge)) !== 0) {
-      return edge as HexEdgeIndex;
-    }
-  }
-  throw new GameboardRuntimeError('Expected a single-edge mask');
+  return singleEdge;
 }
 
 function normalizeRotationSteps(steps: number): number {
