@@ -460,6 +460,37 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       '/nonexistent-source-root',
       'free'
     );
+    await runPatrolScript(
+      {
+        command: 'patrol-script',
+        flags: {
+          routes: resolve(commandOutputRoot, `${prefix}.patrol-routes.json`),
+          routeId: 'raider-watch',
+          actorId: 'raider-1',
+          includeReport: true,
+          out: commandOutputPath('blueprint-derived.patrol-script.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSimulateScenario(
+      {
+        command: 'simulate-scenario',
+        flags: {
+          scenario: docsScenarioPath,
+          script: docsSimulationScriptPath,
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+          allowExpectationFailures: true,
+          out: commandOutputPath('blueprint-derived.simulation-report.json'),
+          outPlan: commandOutputPath('blueprint-derived.simulation-final-plan.json'),
+          outInterop: commandOutputPath('blueprint-derived.simulation-interop.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
     await runValidatePlan(
       {
         command: 'validate-plan',
@@ -553,6 +584,17 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       routes: Array<{ id: string; found: boolean }>;
       errors: unknown[];
     }>(`${prefix}.patrol-routes.json`);
+    const patrolScript = readCommandOutput<{
+      stepCount: number;
+      assignments: Array<{ actorId: string; routeId: string }>;
+      errors: unknown[];
+    }>(`${prefix}.patrol-script.json`);
+    const simulationReport = readCommandOutput<{
+      scenarioId: string;
+      steps: unknown[];
+      actors: unknown[];
+      quests: unknown[];
+    }>(`${prefix}.simulation-report.json`);
     const scenarioSummary = readCommandOutput<{
       scenarioId: string;
       validation: { errorCount: number };
@@ -568,6 +610,8 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
     expect(existsSync(resolve(commandOutputRoot, paths.recipe))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, paths.scenarioInspection))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, paths.interop))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.simulation-final-plan.json'))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.simulation-interop.json'))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.validate-recipe-plan.json'))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.validate-scenario-plan.json'))).toBe(true);
     expect(existsSync(resolve(commandOutputRoot, 'blueprint-derived.validate-simulation-plan.json'))).toBe(true);
@@ -592,6 +636,17 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
       id: 'raider-watch',
       found: true,
     });
+    expect(patrolScript).toMatchObject({
+      assignments: [{ actorId: 'raider-1', routeId: 'raider-watch' }],
+      errors: [],
+    });
+    expect(patrolScript.stepCount).toBeGreaterThan(0);
+    expect(simulationReport).toMatchObject({
+      scenarioId: 'docs-simple-rpg-scenario',
+    });
+    expect(simulationReport.steps.length).toBeGreaterThan(0);
+    expect(simulationReport.actors.length).toBeGreaterThan(0);
+    expect(simulationReport.quests.length).toBeGreaterThan(0);
     expect(scenarioSummary).toMatchObject({
       scenarioId: 'docs-simple-rpg-scenario',
       validation: { errorCount: 0 },
