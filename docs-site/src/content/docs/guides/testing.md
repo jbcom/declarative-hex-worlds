@@ -12,7 +12,7 @@ Three vitest harnesses + one perf harness. Coverage from all of them feeds into 
 | Harness | Config | Includes | Cadence |
 |---|---|---|---|
 | **Unit** | `vitest.config.ts` | `src/**/__tests__/*.test.ts`, `tests/unit/**/*.test.ts`, `tests/integration/**/*.test.ts` | every PR (`pnpm test`) |
-| **Browser FREE** | `vitest.browser.free.config.ts` | `tests/browser/{free-visual,simple-rpg-visual,react-bindings}.test.ts` | every PR once Phase RB bootstrap step lands in CI |
+| **Browser FREE** | `vitest.browser.free.config.ts` | `tests/browser/{free-visual,simple-rpg-visual,react-bindings}.test.ts`, `tests/browser/feature-gallery.spec.ts`, harness smoke | required merged coverage job on every PR; full screenshot command is local proof |
 | **Browser EXTRA** | `vitest.browser.extra.config.ts` | `tests/browser/extra-visual.test.ts` | local-only with `HEX_WORLDS_ENABLE_EXTRA=1` |
 | **E2E local-assets** | `vitest.browser.local-assets.config.ts` | `tests/e2e/local-assets/**/*.test.ts` | local-only with `HEX_WORLDS_ENABLE_LOCAL_ASSETS=1` |
 | **SimpleRPG e2e (GitHub)** | `vitest.simple-rpg-e2e.config.ts` | `tests/e2e/simple-rpg-ci.test.ts` | scheduled CI with `HEX_WORLDS_E2E_GITHUB=1` |
@@ -21,9 +21,9 @@ Three vitest harnesses + one perf harness. Coverage from all of them feeds into 
 
 ## Coverage gates
 
-`vitest.coverage.shared.ts` exports `COVERAGE_THRESHOLDS` at the current floor (statements 65 / branches 60 / functions 75 / lines 64 — measured baseline minus ~1% slack). PRD A8 ratchets these toward 100/100/100/100 via Epic E0-E10; each commit that closes a coverage gap raises the floor in the same commit.
+`vitest.coverage.shared.ts` exports `COVERAGE_THRESHOLDS` at the current floor. PRD A8 ratchets these toward 100/100/100/100 via Epic E0-E10; each commit that closes a coverage gap raises the floor in the same commit.
 
-CI runs `pnpm test:coverage:enforce` in the check matrix; regressions block merge.
+CI's required `Coverage` job bootstraps FREE models, collects unit coverage, collects browser-free coverage, then runs `pnpm coverage:merge:enforce`; regressions block merge.
 
 To merge harness reports locally:
 
@@ -60,18 +60,17 @@ Add more benches to `tests/perf/` as PRD B/D-series perf work lands. The bench h
 
 `tests/browser/__screenshots__/` holds committed PNG snapshots that vitest-browser compares against every render. Drift fails the build until either the diff is accepted (new snapshot committed) or fixed.
 
-The screenshot assertion script is `tests/scripts/assert-screenshots.ts`; CI calls it via `pnpm test:screenshots:free` + `:extra` + `:local-assets`.
+The screenshot assertion script is `tests/scripts/assert-screenshots.ts`; local visual commands call it via `pnpm test:screenshots:free` + `:extra` + `:local-assets`.
 
 ## What CI actually runs
 
 See `.github/workflows/ci.yml`. The chain (post-PRD A9 install-once):
 
 1. `install` job — `pnpm install --frozen-lockfile` once, uploads `node_modules.tar.zst` artifact.
-2. `check` matrix — `lint`, `typecheck`, `build`, `test`, `test:coverage:enforce` (each downloads + restores the artifact).
-3. `browser-free` — runs the FREE browser visuals (gated until RB bootstrap lands in CI).
-4. `docs` + `docs-site` — vitepress + Astro Starlight builds.
-5. `package` — `audit`, `test:assets`, `test:workspace`, `test:workflows`, `build`, `test:cli`, `expectations`, `test:package`, `test:consumer`, `pack:dry-run`.
-6. `dependency-review` — fail-on-severity: high.
-7. `semgrep` — OWASP Top 10 + Node.js SAST.
+2. `check` matrix — `lint`, `typecheck`, `build`, `test` (each downloads + restores the artifact).
+3. `coverage` — bootstraps FREE models, collects unit + browser-free coverage, then enforces the merged ratchet.
+4. `docs-site` — Astro Starlight build with generated CLI reference.
+5. `dependency-review` — fail-on-severity: high.
+6. `semgrep` — OWASP Top 10 + Node.js SAST.
 
-All of this runs locally via `pnpm verify` (PRD G4 keeps them at parity).
+Local proof uses `pnpm verify` for the fast source gates and `pnpm coverage:all:enforce` for the CI-shaped merged coverage gate.

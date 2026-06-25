@@ -92,7 +92,6 @@ test_links:
   - tests/browser/simple-rpg-visual.test.ts
   - tests/e2e/local-assets/third-party-assets.test.ts
   - tests/browser/extra-visual.test.ts
-  - scripts/smoke-built-cli.ts
   - scripts/smoke-packed-consumer.ts
 ---
 
@@ -658,9 +657,9 @@ references before execution. The `pnpm expectations` gate checks event sequences
 or required event types, command records, movement records, mutations, actor
 existence/positions/metadata/tags, placement existence/metadata, and
 quest/objective status; the CLI exits non-zero on validation or expectation
-failures unless explicitly allowed. `pnpm test:cli` runs those built commands
-against the packaged SimpleRPG scenario so the documented CLI surface is checked
-after compilation, not only through source-level unit tests.
+failures unless explicitly allowed. Source-level CLI command tests and the merged
+coverage gate exercise those documented command paths; package/release-time
+checks own the final tarball and dist boundary.
 The CLI `piece` command analyzes an external GLB/GLTF and emits a
 starter custom piece declaration with suggested role, scale, footprint, facing,
 and animation metadata. The CLI `pieces-from-assets` command scans one or more

@@ -139,8 +139,8 @@ in `src/cli/` on a real CLI framework, with bootstrap as a command, config in
   the lightest that supports lazy subcommand loading to preserve the
   headless-fast-path). Hand-rolled `parseArgs` + dispatch table removed.
 - All existing subcommands preserved with identical behavior + `--help`.
-- CLI smoke tests (`scripts/smoke-built-cli.ts`, cli tests) pass.
-- Verification: `command` — `pnpm test && pnpm test:cli`.
+- CLI dispatcher and per-command Vitest specs pass.
+- Verification: `command` — `pnpm typecheck && pnpm test`.
 
 ### LF7 — Unify bootstrap source on the zip flow (REVISED 2026-05-28)
 **User revision** (during execution): the isomorphic-git/peer-dep approach was
