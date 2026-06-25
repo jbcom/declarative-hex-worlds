@@ -12,7 +12,7 @@
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 type ExecHelp = (
   file: string,
@@ -166,7 +166,9 @@ export function generateCliReference(
 }
 
 function isDirectRun(): boolean {
-  return process.argv[1] ? pathToFileURL(resolve(process.argv[1])).href === import.meta.url : false;
+  return process.argv[1]
+    ? resolve(process.argv[1]).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase()
+    : false;
 }
 
 if (isDirectRun()) {
