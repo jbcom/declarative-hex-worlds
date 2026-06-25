@@ -113,12 +113,12 @@ describe('KayKit upstream layouts', () => {
     // FREE layout must NOT have units/ — detector rejects.
     const root = mkdtempSync(join(tmpdir(), 'medieval-hexagon-fake-free-with-units-'));
     try {
-      const gltfRoot = join(root, 'Assets', 'gltf');
-      mkdirSync(gltfRoot, { recursive: true });
-      // Create every required asset category to pass the earlier checks.
-      for (const category of KAYKIT_MEDIEVAL_FREE_LAYOUT.assetCategories) {
-        mkdirSync(join(gltfRoot, category), { recursive: true });
-      }
+      seedLayout(root, KAYKIT_MEDIEVAL_FREE_LAYOUT);
+      rmSync(join(root, KAYKIT_MEDIEVAL_FREE_LAYOUT.relativeTextureRoot), {
+        recursive: true,
+        force: true,
+      });
+      const gltfRoot = join(root, KAYKIT_MEDIEVAL_FREE_LAYOUT.relativeGltfRoot);
       // Add the disqualifying units/ directory.
       mkdirSync(join(gltfRoot, 'units'), { recursive: true });
       expect(detectKayKitLayout(root)).toBeUndefined();

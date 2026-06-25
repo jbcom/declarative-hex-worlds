@@ -134,9 +134,7 @@ function matchesLayout(rootPath: string, layout: KayKitUpstreamLayout): boolean 
     layout.markerFiles.every((m) => existsSync(join(rootPath, m)));
   const primaryTexturePresent =
     layout.textureFiles.length > 0 &&
-    existsSync(
-      join(rootPath, layout.relativeTextureRoot, layout.textureFiles[0] ?? '')
-    );
+    existsSync(join(rootPath, layout.relativeTextureRoot, layout.textureFiles[0] as string));
   if (!allMarkersPresent && !primaryTexturePresent) {
     return false;
   }
@@ -144,9 +142,6 @@ function matchesLayout(rootPath: string, layout: KayKitUpstreamLayout): boolean 
     if (!isDirectory(join(gltfRoot, category))) {
       return false;
     }
-  }
-  if (layout.editionName === 'extra' && !isDirectory(join(gltfRoot, 'units'))) {
-    return false;
   }
   if (layout.editionName === 'free') {
     const entries = readdirSync(gltfRoot, { withFileTypes: true });
