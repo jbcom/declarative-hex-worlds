@@ -1483,6 +1483,176 @@ describe('CLI declaration and piece output paths (PRD E0h)', () => {
   });
 });
 
+describe('CLI readable command output variants (PRD E0h)', () => {
+  let logs: string[];
+  let logSpy: ReturnType<typeof vi.spyOn>;
+  let previousReadableOutRoot: string | undefined;
+
+  beforeEach(() => {
+    previousReadableOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+    logs = [];
+    logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+    if (previousReadableOutRoot === undefined) {
+      delete process.env.HEX_WORLDS_OUT_ROOT;
+    } else {
+      process.env.HEX_WORLDS_OUT_ROOT = previousReadableOutRoot;
+    }
+  });
+
+  it('prints readable validation, summary, spawn, layout, and piece reports', async () => {
+    const prefix = 'readable-command-variants';
+    const readableBlueprintPath = resolve(repoRoot, 'examples/blueprint-board.json');
+    const planPath = commandOutputPath(`${prefix}.plan.json`);
+    const scenarioPath = commandOutputPath(`${prefix}.scenario.json`);
+    await runBlueprint(
+      {
+        command: 'blueprint',
+        flags: {
+          blueprint: readableBlueprintPath,
+          outPlan: planPath,
+          outScenario: scenarioPath,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    const blueprint = JSON.parse(readFileSync(readableBlueprintPath, 'utf8')) as {
+      spawnGroups: unknown;
+    };
+    const groupsPath = writeCommandOutput(`${prefix}.groups.json`, blueprint.spawnGroups);
+    const layoutRulesPath = writeCommandOutput(`${prefix}.layout-rules.json`, {
+      seed: `${prefix}-layout`,
+      rules: [{ id: 'camp-fill', archetype: 'tree', assetId: 'tree_single_A', count: 1 }],
+    });
+    const piecesPath = writeCommandOutput(`${prefix}.pieces.json`, {
+      pieces: [
+        {
+          id: 'camp-tree',
+          assetId: 'tree_single_A',
+          source: 'fixture pieces',
+          role: 'tree',
+          criteria: { terrain: ['grass', 'forest', 'hill'], allowOccupied: true },
+        },
+      ],
+    });
+
+    logs = [];
+    await runSummarizePlan(
+      {
+        command: 'summarize-plan',
+        flags: { plan: resolve(commandOutputRoot, planPath), topAssets: '2' },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runValidatePlan(
+      {
+        command: 'validate-plan',
+        flags: {
+          plan: resolve(commandOutputRoot, planPath),
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runValidateRecipe(
+      {
+        command: 'validate-recipe',
+        flags: {
+          recipe: docsRecipePath,
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runValidateScenario(
+      {
+        command: 'validate-scenario',
+        flags: {
+          scenario: resolve(commandOutputRoot, scenarioPath),
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runValidateSimulation(
+      {
+        command: 'validate-simulation',
+        flags: {
+          scenario: docsScenarioPath,
+          script: docsSimulationScriptPath,
+          manifest: freeManifestPath,
+          allowUnknownAssets: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSpawnGroups(
+      {
+        command: 'spawn-groups',
+        flags: {
+          plan: resolve(commandOutputRoot, planPath),
+          groups: resolve(commandOutputRoot, groupsPath),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runAnalyzeLayout(
+      {
+        command: 'analyze-layout',
+        flags: {
+          scenario: resolve(commandOutputRoot, scenarioPath),
+          rules: resolve(commandOutputRoot, layoutRulesPath),
+          allowUnknownAssets: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runPlacePiece(
+      {
+        command: 'place-piece',
+        flags: {
+          recipe: docsRecipePath,
+          pieces: resolve(commandOutputRoot, piecesPath),
+          pieceId: 'camp-tree',
+          allowUnknownAssets: true,
+          count: '1',
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const joined = logs.join('\n');
+    expect(joined).toContain('source: plan');
+    expect(joined).toContain('validation: 0 error(s)');
+    expect(joined).toContain('scenario: docs-blueprint-board:intro');
+    expect(joined).toContain('steps:');
+    expect(joined).toContain('spawn seed:');
+    expect(joined).toContain('groups:');
+    expect(joined).toContain('layout seed: readable-command-variants-layout');
+    expect(joined).toContain('candidate sites:');
+    expect(joined).toContain('piece: camp-tree');
+    expect(joined).toContain('placements: 1');
+  });
+});
+
 describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', () => {
   it('validate-manifest throws GameboardCliError without --manifest', async () => {
     await expect(runValidateManifest({ command: 'validate-manifest', flags: {} }, '/x', 'free')).rejects.toThrow(
