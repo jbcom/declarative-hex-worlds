@@ -455,10 +455,9 @@ export function createKayKitGuideScenarios(
 
 type KayKitGuideScenarioInput = Omit<
   KayKitGuideScenario,
-  'assetIds' | 'publicApi' | 'treatmentRoles'
+  'assetIds' | 'treatmentRoles'
 > & {
   assetIds?: readonly string[];
-  publicApi?: readonly string[];
   treatmentRoles?: readonly KayKitAssetPublicRole[];
 };
 
@@ -477,7 +476,7 @@ function guideScenario(
     ...input,
     assetIds,
     publicApi: uniqueSortedStrings([
-      ...(input.publicApi ?? []),
+      ...input.publicApi,
       ...matchingTreatments.flatMap((treatment) => treatment.publicApi),
     ]),
     treatmentRoles: uniqueSortedRoles([
