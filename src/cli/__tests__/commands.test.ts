@@ -2174,6 +2174,80 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
     );
   });
 
+  it('snapshot prints validation errors before exiting 1', async () => {
+    const planPath = writeCommandOutput('invalid-snapshot-plan.json', {
+      schemaVersion: '1.0.0',
+      seed: 'invalid-snapshot-plan',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+      textureSet: 'default',
+      tiles: [
+        {
+          key: '0,0',
+          coordinates: { q: 0, r: 0 },
+          terrain: 'grass',
+          textureSet: 'default',
+          elevation: 5,
+          baseAssetId: 'hex_grass',
+          supportAssetId: 'hex_grass',
+          roadEdges: 0,
+          riverEdges: 0,
+          coastEdges: 0,
+          riverWaterless: false,
+          riverCurvy: false,
+          coastWaterless: false,
+          tags: [],
+        },
+      ],
+      placements: [],
+      warnings: [],
+    });
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(String(message));
+    });
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runSnapshot(
+          {
+            command: 'snapshot',
+            flags: { plan: resolve(commandOutputRoot, planPath), allowUnknownAssets: true },
+          },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      logSpy.mockRestore();
+      exitSpy.mockRestore();
+    }
+
+    expect(logs[0]).toBe('validation: 1 error(s), 0 warning(s)');
+    expect(logs.join('\n')).toContain('error: stack.max_elevation 0,0');
+  });
+
+  it('snapshot rejects recipes that do not compile even when invalid plans are allowed', async () => {
+    const recipePath = writeCommandOutput('snapshot-invalid.recipe.json', {
+      schemaVersion: '1.0.0',
+      options: { seed: 'snapshot-bad-recipe', shape: { kind: 'rectangle', width: 1, height: 1 } },
+      steps: [{ action: 'setTerrain', at: { q: 3, r: 0 }, terrain: 'water' }],
+    });
+
+    await expect(
+      runSnapshot(
+        {
+          command: 'snapshot',
+          flags: { recipe: resolve(commandOutputRoot, recipePath), allowInvalid: true },
+        },
+        '/nonexistent-source-root',
+        'free'
+      )
+    ).rejects.toThrow(/did not compile to a GameboardPlan/);
+  });
+
   it('spawn-groups throws when neither --plan/--recipe/--scenario supplied', async () => {
     await expect(runSpawnGroups({ command: 'spawn-groups', flags: {} }, '/x', 'free')).rejects.toThrow(
       /spawn-groups requires exactly one of/
