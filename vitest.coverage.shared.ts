@@ -47,11 +47,11 @@ export const COVERAGE_THRESHOLDS = {
   // Threshold ratchet uses the CI-measured merged unit + browser-free floor.
   // Local runs can read higher when skip-gated reference tests execute, so each
   // E0a/E0h commit sets the floor 0.5pp below CI-shaped proof, then confirms on PR Coverage.
-  // CLI piece-registry batch local merged proof (2026-06-25): S=83.49, B=78.02, F=89.64, L=83.29.
-  statements: 81.3,
-  branches: 76.0,
-  functions: 87.6,
-  lines: 81.1,
+  // CLI summary-variant batch local merged proof (2026-06-25): S=83.74, B=78.44, F=89.64, L=83.55.
+  statements: 81.8,
+  branches: 76.5,
+  functions: 87.9,
+  lines: 81.6,
 };
 
 /**
