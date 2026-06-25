@@ -1042,6 +1042,158 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
     expect(patrolRoutes.errors).toEqual([]);
   });
 
+  it('prints readable scenario summaries and patrol route summaries', async () => {
+    const logs: string[] = [];
+    logSpy.mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+
+    await runSummarizeScenario(
+      {
+        command: 'summarize-scenario',
+        flags: {
+          scenario: docsScenarioPath,
+          topAssets: '2',
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runPatrolRoutes(
+      {
+        command: 'patrol-routes',
+        flags: {
+          scenario: docsScenarioPath,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const joined = logs.join('\n');
+    expect(joined).toContain(`source: scenario ${resolve(docsScenarioPath)}`);
+    expect(joined).toContain('scenario: docs-simple-rpg-scenario');
+    expect(joined).toContain('actor flags:');
+    expect(joined).toContain('patrol routes:');
+    expect(joined).toContain('patrol seed: docs-simple-rpg-scenario:patrol-routes');
+    expect(joined).toContain('routes: 1');
+    expect(joined).toContain('  - bandit-watch:');
+    expect(joined).toContain('tiles:');
+    expect(joined).toContain('path:');
+  });
+
+  it('covers patrol script assignment files, JSON output, and readable summaries', async () => {
+    const routeSetPath = commandOutputPath('scenario-patrol-script.routes.json');
+    await runPatrolRoutes(
+      {
+        command: 'patrol-routes',
+        flags: {
+          scenario: docsScenarioPath,
+          out: routeSetPath,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    const assignmentsPath = writeCommandOutput('scenario-patrol-script.assignments.json', {
+      assignments: [{ routeId: 'bandit-watch', actorId: 'bandit' }],
+    });
+    const logs: string[] = [];
+    logSpy.mockImplementation((message: unknown) => {
+      logs.push(typeof message === 'string' ? message : String(message));
+    });
+
+    await runPatrolScript(
+      {
+        command: 'patrol-script',
+        flags: {
+          routes: resolve(commandOutputRoot, routeSetPath),
+          assignments: resolve(commandOutputRoot, assignmentsPath),
+          rounds: '2',
+          includeReport: true,
+          json: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runPatrolScript(
+      {
+        command: 'patrol-script',
+        flags: {
+          routes: resolve(commandOutputRoot, routeSetPath),
+          routeId: 'bandit-watch',
+          actorId: 'bandit',
+          idPrefix: 'watch',
+          rounds: '1',
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const joined = logs.join('\n');
+    expect(joined).toContain('"stepCount"');
+    expect(joined).toContain('"roundCount": 2');
+    expect(joined).toContain('patrol simulation steps:');
+    expect(joined).toContain('assignments: 1');
+    expect(joined).toContain('bandit -> bandit-watch:');
+    expect(joined).toContain('warnings: 0');
+    expect(joined).toContain('errors: 0');
+  });
+
+  it('rejects malformed scenario, patrol route, and assignment payloads', async () => {
+    const badScenarioPath = writeCommandOutput('scenario-patrol-bad-scenario.json', []);
+    const badAssignmentsPath = writeCommandOutput('scenario-patrol-bad-assignments.json', {
+      assignments: 'not-array',
+    });
+    const routeSetPath = writeCommandOutput('scenario-patrol-empty-route-set.json', {
+      routes: [{ id: 'empty-route', waypoints: [], segments: [] }],
+    });
+
+    await expect(
+      runSummarizeScenario(
+        { command: 'summarize-scenario', flags: { scenario: resolve(commandOutputRoot, badScenarioPath) } },
+        '/x',
+        'free'
+      )
+    ).rejects.toThrow(/must be a JSON object/);
+    await expect(
+      runPatrolRoutes(
+        { command: 'patrol-routes', flags: { scenario: resolve(commandOutputRoot, badScenarioPath) } },
+        '/x',
+        'free'
+      )
+    ).rejects.toThrow(/must be a JSON object/);
+    await expect(
+      runPatrolScript(
+        {
+          command: 'patrol-script',
+          flags: {
+            scenario: resolve(commandOutputRoot, badScenarioPath),
+            routeId: 'empty-route',
+            actorId: 'actor',
+          },
+        },
+        '/x',
+        'free'
+      )
+    ).rejects.toThrow(/must be a JSON object/);
+    await expect(
+      runPatrolScript(
+        {
+          command: 'patrol-script',
+          flags: {
+            routes: resolve(commandOutputRoot, routeSetPath),
+            assignments: resolve(commandOutputRoot, badAssignmentsPath),
+          },
+        },
+        '/x',
+        'free'
+      )
+    ).rejects.toThrow(/must be an array or/);
+  });
+
   it('scans local GLTF assets into piece registry rule output', async () => {
     const assetRoot = resolve(commandOutputRoot, 'piece-registry-assets');
     writeCommandGltfBounds(
