@@ -276,10 +276,7 @@ export function advanceGameboardQuest(
   let status: GameboardQuestStatus = current.status === 'completed' ? 'completed' : 'active';
 
   while (activeObjectiveIndex < current.objectives.length) {
-    const objective = current.objectives[activeObjectiveIndex];
-    if (objective === undefined) {
-      throw new GameboardRuntimeError(`Quest objective index ${activeObjectiveIndex} out of range`);
-    }
+    const objective = current.objectives[activeObjectiveIndex] as GameboardQuestObjective;
     const evaluation = evaluateGameboardQuestObjective(world, objective, options.step ?? 0);
     progressById.set(objective.id, evaluation.progress);
 
@@ -454,10 +451,7 @@ function requireQuestEntity(world: World, quest: Entity | string): Entity {
 }
 
 function requireQuestState(entity: Entity): GameboardQuestValue {
-  const quest = entity.get(GameboardQuest);
-  if (!quest) {
-    throw new GameboardRuntimeError(`Quest entity ${entity.id()} is missing GameboardQuest`);
-  }
+  const quest = entity.get(GameboardQuest) as GameboardQuestValue;
   return copyQuestValue(quest);
 }
 
@@ -469,11 +463,8 @@ function snapshotForQuestEntity(entity: Entity): GameboardQuestSnapshot {
 }
 
 function retagQuest(entity: Entity): void {
-  const quest = entity.get(GameboardQuest);
+  const quest = entity.get(GameboardQuest) as GameboardQuestValue;
   entity.remove(IsActiveGameboardQuest, IsCompletedGameboardQuest, IsBlockedGameboardQuest);
-  if (!quest) {
-    return;
-  }
   if (quest.status === 'active') {
     entity.add(IsActiveGameboardQuest);
   }

@@ -11,7 +11,16 @@
 import { describe, expect, it } from 'vitest';
 import { createGameboardBuilder } from '../../gameboard/index';
 import { createGameboardWorld, spawnGameboardPlacement } from '../../koota/index';
-import { findHexPath, hexLine, hexRing, hexKey, tryParseHexKey } from '../coordinates';
+import {
+  findHexPath,
+  hexLine,
+  hexRing,
+  hexKey,
+  minHeapCreate,
+  minHeapPop,
+  selectSpawnCoordinates,
+  tryParseHexKey,
+} from '../coordinates';
 import { projectWorldToGameboardPlan } from '../projection';
 
 describe('hexRing (PRD E0h)', () => {
@@ -127,6 +136,31 @@ describe('findHexPath maxVisited limit (PRD E0a)', () => {
     // Path far enough that A* visits >1 tile; maxVisited=1 trips early-exit.
     const result = findHexPath({ q: 0, r: 0 }, { q: 5, r: 5 }, { maxVisited: 1 });
     expect(result.found).toBe(false);
+  });
+});
+
+describe('selectSpawnCoordinates predicate filtering (PRD E0a)', () => {
+  it('rejects candidates through a supplied passable predicate', () => {
+    const selected = selectSpawnCoordinates({
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+      count: 2,
+      seed: 'passable-filter',
+      passable: (coordinates) => coordinates.q !== 1,
+    });
+
+    expect(selected).toHaveLength(2);
+    expect(selected.map(hexKey)).not.toContain('1,0');
+  });
+});
+
+describe('minHeapPop exported boundary cases (PRD E0a)', () => {
+  it('returns undefined for empty or sparse heaps', () => {
+    const empty = minHeapCreate<number>((left, right) => left - right);
+    expect(minHeapPop(empty)).toBeUndefined();
+
+    const sparse = minHeapCreate<number>((left, right) => left - right);
+    sparse.length = 1;
+    expect(minHeapPop(sparse)).toBeUndefined();
   });
 });
 
