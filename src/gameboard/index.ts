@@ -6,7 +6,7 @@
  * - `./terrain` — derived terrain and connectivity placement construction.
  * - `./gameboard` — fluent board builder and built-in sample boards.
  * - `./occupancy` — placement-vs-tile occupancy maps + collision queries.
- * - `./navigation` — pathfinding, distance queries, patrol-route planning.
+ * - `./navigation` — pathfinding, distance queries, spawn, and patrol planning.
  *
  * @module
  */
