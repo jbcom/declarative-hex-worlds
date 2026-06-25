@@ -425,14 +425,17 @@ describe('gameboard plan builder', () => {
     await expect(loadPlacementAsset({ assetId: 'definitely-not-an-asset' })).resolves.toBeUndefined();
   });
 
-  it('gameboardPlacementBlocksOccupancy honors ignorePlacementIds (E0h)', async () => {
-    const { gameboardPlacementBlocksOccupancy } = await import('../../gameboard/occupancy');
+  it('occupancy helpers honor ignore and footprint options (E0h)', async () => {
+    const { gameboardPlacementBlocksOccupancy, gameboardPlacementFootprintKeys } = await import(
+      '../../gameboard/occupancy'
+    );
     // biome-ignore lint/suspicious/noExplicitAny: minimal fixture matching GameboardPlacementOccupancyLike
     const placement: any = {
       id: 'wall-1',
+      tileKey: '0,0',
       kind: 'structure',
       layer: 'structure',
-      metadata: {},
+      metadata: { layoutFootprintTiles: '1,0|0,1' },
     };
     // Default blocks.
     expect(gameboardPlacementBlocksOccupancy(placement)).toBe(true);
@@ -440,6 +443,10 @@ describe('gameboard plan builder', () => {
     expect(
       gameboardPlacementBlocksOccupancy(placement, { ignorePlacementIds: ['wall-1'] })
     ).toBe(false);
+    // Explicitly ignoring layout footprints leaves only the origin tile.
+    expect(gameboardPlacementFootprintKeys(placement, { includeLayoutFootprint: false })).toEqual([
+      '0,0',
+    ]);
   });
 
   it('addPropCluster zero density returns the builder unchanged (E0h)', () => {
