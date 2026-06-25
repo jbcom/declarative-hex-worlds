@@ -1918,6 +1918,61 @@ describe('CLI validate-* subcommands surface required-flag errors (PRD E0h)', ()
     );
   });
 
+  it('validate-plan prints validation errors before exiting 1', async () => {
+    const planPath = writeCommandOutput('invalid-validate-plan.json', {
+      schemaVersion: '1.0.0',
+      seed: 'invalid-validate-plan',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+      textureSet: 'default',
+      tiles: [
+        {
+          key: '0,0',
+          coordinates: { q: 0, r: 0 },
+          terrain: 'grass',
+          textureSet: 'default',
+          elevation: 5,
+          baseAssetId: 'hex_grass',
+          supportAssetId: 'hex_grass',
+          roadEdges: 0,
+          riverEdges: 0,
+          coastEdges: 0,
+          riverWaterless: false,
+          riverCurvy: false,
+          coastWaterless: false,
+          tags: [],
+        },
+      ],
+      placements: [],
+      warnings: [],
+    });
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+      logs.push(String(message));
+    });
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runValidatePlan(
+          {
+            command: 'validate-plan',
+            flags: { plan: resolve(commandOutputRoot, planPath), allowUnknownAssets: true },
+          },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      logSpy.mockRestore();
+      exitSpy.mockRestore();
+    }
+
+    expect(logs[0]).toBe('validation: 1 error(s), 0 warning(s)');
+    expect(logs.join('\n')).toContain('error: stack.max_elevation 0,0');
+  });
+
   it('validate-recipe throws GameboardCliError without --recipe', async () => {
     await expect(runValidateRecipe({ command: 'validate-recipe', flags: {} }, '/x', 'free')).rejects.toThrow(
       /validate-recipe requires --recipe/
