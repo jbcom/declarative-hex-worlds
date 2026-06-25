@@ -61,9 +61,11 @@ describe('workflow contract', () => {
       // The matrix-driven check job runs the four per-PR correctness gates.
       // Coverage enforcement runs in its own dedicated CI job (see below).
       ['task: [lint, typecheck, build, test]'],
-      // dedicated coverage job runs the ratchet floor check on every PR
-      ['pnpm test:coverage:enforce'],
-      // browser-free job's vitest invocation
+      // dedicated coverage job runs the merged unit + browser-free ratchet floor check on every PR
+      ['pnpm coverage:all:enforce'],
+      ['pnpm exec playwright install --with-deps chromium'],
+      ['pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models'],
+      // browser-free visual gate remains documented as a local/full visual command
       ['pnpm test:browser:free'],
       // docs-site build (artifact uploaded for cd.yml to deploy)
       ['pnpm docs-site:build'],
@@ -109,8 +111,10 @@ describe('workflow contract', () => {
       ['id-token: write'],
       // Release-time security gate (per-PR uses dependency-review-action)
       ['pnpm audit --prod --audit-level=high'],
-      // Coverage-enforce re-run at release for drift detection
-      ['pnpm test:coverage:enforce'],
+      // Merged coverage-enforce re-run at release for drift detection
+      ['pnpm coverage:all:enforce'],
+      ['pnpm exec playwright install --with-deps chromium'],
+      ['pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models'],
       // Publish step explicitly hands the packed tarball to npm publish
       // so the SLSA L3 attestation in the previous step covers the exact
       // bytes that ship.

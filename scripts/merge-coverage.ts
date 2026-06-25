@@ -15,10 +15,12 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { COVERAGE_THRESHOLDS } from '../vitest.coverage.shared';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const coverageRoot = join(repoRoot, 'coverage');
 const mergedDir = join(coverageRoot, '.merged');
+const enforce = process.env.HEX_WORLDS_COVERAGE_ENFORCE === '1';
 
 if (!existsSync(coverageRoot)) {
   console.error('coverage merge: no coverage/ directory — run `HEX_WORLDS_COVERAGE=1 pnpm test:coverage` first.');
@@ -26,7 +28,13 @@ if (!existsSync(coverageRoot)) {
 }
 
 const harnessDirs = readdirSync(coverageRoot, { withFileTypes: true })
-  .filter((entry) => entry.isDirectory() && entry.name !== '.merged' && !entry.name.startsWith('.'))
+  .filter(
+    (entry) =>
+      entry.isDirectory() &&
+      entry.name !== '.merged' &&
+      entry.name !== 'merged' &&
+      !entry.name.startsWith('.')
+  )
   .map((entry) => join(coverageRoot, entry.name));
 
 if (harnessDirs.length === 0) {
@@ -79,6 +87,28 @@ try {
 } catch (error) {
   console.warn(
     `coverage merge: nyc reporter unavailable (${error instanceof Error ? error.message : String(error)}); JSON-only output written to ${mergedDir}.`
+  );
+}
+
+if (enforce) {
+  execFileSync(
+    'pnpm',
+    [
+      'exec',
+      'nyc',
+      'check-coverage',
+      '--temp-dir',
+      mergedDir,
+      '--statements',
+      String(COVERAGE_THRESHOLDS.statements),
+      '--branches',
+      String(COVERAGE_THRESHOLDS.branches),
+      '--functions',
+      String(COVERAGE_THRESHOLDS.functions),
+      '--lines',
+      String(COVERAGE_THRESHOLDS.lines),
+    ],
+    { cwd: repoRoot, stdio: 'inherit' }
   );
 }
 

@@ -33,10 +33,9 @@ env:
 #     tests/contract/. They count toward the coverage gate and surface
 #     failures through the normal test report instead of opaque
 #     `scripts/audit-X.ts → process.exit(1)` mid-step.
-#   - `test:coverage:enforce` → local-only gate. Run `pnpm test:coverage:enforce`
-#     before major changes (coverage ratchet bumps, new modules). CI running
-#     `test` already catches regressions; the threshold check is a ratchet
-#     tool, not a per-PR gate.
+#   - `coverage:all:enforce` → the required Coverage job. It merges unit +
+#     browser-free coverage before checking the ratchet so browser-only
+#     bindings count where they can actually run.
 #   - FREE Browser Visuals (`pnpm test:browser:free`) → local-only gate.
 #     Bootstraps the KayKit FREE pack + runs a full Playwright visual suite
 #     (~20 min). Run locally before changes to rendering / asset resolution /
@@ -179,8 +178,14 @@ jobs:
       - name: Unpack node_modules
         run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
 
-      - name: Enforce coverage floor
-        run: pnpm test:coverage:enforce
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Bootstrap FREE models for browser coverage
+        run: pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models
+
+      - name: Enforce merged coverage floor
+        run: pnpm coverage:all:enforce
 
   dependency-review:
     name: Dependency Review
