@@ -752,6 +752,112 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
     expect(scenarioSummary.topActorAssets.length).toBeLessThanOrEqual(2);
   });
 
+  it('covers summary and scenario command input variants', async () => {
+    await runSummarizePlan(
+      {
+        command: 'summarize-plan',
+        flags: {
+          recipe: docsRecipePath,
+          outPlan: commandOutputPath('summary-variants.recipe-plan.json'),
+          out: commandOutputPath('summary-variants.recipe-summary.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSummarizePlan(
+      {
+        command: 'summarize-plan',
+        flags: {
+          scenario: docsScenarioPath,
+          json: true,
+          topAssets: '1',
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSummarizePlan(
+      {
+        command: 'summarize-plan',
+        flags: {
+          blueprint: blueprintPath,
+          outPlan: commandOutputPath('summary-variants.blueprint-plan.json'),
+          out: commandOutputPath('summary-variants.blueprint-summary.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runValidateScenario(
+      {
+        command: 'validate-scenario',
+        flags: {
+          scenario: docsScenarioPath,
+          json: true,
+          outPlan: commandOutputPath('summary-variants.validate-scenario-plan.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runValidateSimulation(
+      {
+        command: 'validate-simulation',
+        flags: {
+          scenario: docsScenarioPath,
+          script: docsSimulationScriptPath,
+          json: true,
+          outPlan: commandOutputPath('summary-variants.validate-simulation-plan.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runSummarizeScenario(
+      {
+        command: 'summarize-scenario',
+        flags: {
+          scenario: docsScenarioPath,
+          json: true,
+          topAssets: '1',
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runPatrolRoutes(
+      {
+        command: 'patrol-routes',
+        flags: {
+          scenario: docsScenarioPath,
+          out: commandOutputPath('summary-variants.patrol-routes.json'),
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const recipeSummary = readCommandOutput<{ source: { kind: string }; validation: { errorCount: number } }>(
+      'summary-variants.recipe-summary.json'
+    );
+    const blueprintSummary = readCommandOutput<{ source: { kind: string }; validation: { errorCount: number } }>(
+      'summary-variants.blueprint-summary.json'
+    );
+    const patrolRoutes = readCommandOutput<{ routeCount: number; errors: unknown[] }>(
+      'summary-variants.patrol-routes.json'
+    );
+
+    expect(recipeSummary).toMatchObject({ source: { kind: 'recipe' }, validation: { errorCount: 0 } });
+    expect(blueprintSummary).toMatchObject({ source: { kind: 'blueprint' }, validation: { errorCount: 0 } });
+    expect(existsSync(resolve(commandOutputRoot, 'summary-variants.recipe-plan.json'))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'summary-variants.blueprint-plan.json'))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'summary-variants.validate-scenario-plan.json'))).toBe(true);
+    expect(existsSync(resolve(commandOutputRoot, 'summary-variants.validate-simulation-plan.json'))).toBe(true);
+    expect(patrolRoutes.routeCount).toBeGreaterThan(0);
+    expect(patrolRoutes.errors).toEqual([]);
+  });
+
   it('scans local GLTF assets into piece registry rule output', async () => {
     const assetRoot = resolve(commandOutputRoot, 'piece-registry-assets');
     writeCommandGltfBounds(
