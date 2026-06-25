@@ -783,6 +783,33 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
     expect(joined).toContain('guide permutations:');
     expect(joined).toContain('guide render requests:');
   });
+
+  it('reports missing guide permutation assets from a manifest before exiting', async () => {
+    const manifestPath = resolve(commandOutputRoot, writeEmptyManifest('guide-permutations-empty-manifest.json'));
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runGuidePermutations(
+          {
+            command: 'guide-permutations',
+            flags: { manifest: manifestPath },
+          },
+          '/nonexistent',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    const joined = logs.join('\n');
+    expect(joined).toContain('guide permutations: 298');
+    expect(joined).toContain('missing assets:');
+    expect(joined).toContain('  - hex_road_A');
+  });
 });
 
 describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
@@ -1333,6 +1360,9 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
     const assignmentsPath = writeCommandOutput('scenario-patrol-script.assignments.json', {
       assignments: [{ routeId: 'bandit-watch', actorId: 'bandit' }],
     });
+    const assignmentsArrayPath = writeCommandOutput('scenario-patrol-script.assignments-array.json', [
+      { routeId: 'bandit-watch', actorId: 'bandit', rounds: 3 },
+    ]);
     const logs: string[] = [];
     logSpy.mockImplementation((message: unknown) => {
       logs.push(typeof message === 'string' ? message : String(message));
@@ -1345,6 +1375,19 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
           routes: resolve(commandOutputRoot, routeSetPath),
           assignments: resolve(commandOutputRoot, assignmentsPath),
           rounds: '2',
+          includeReport: true,
+          json: true,
+        },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+    await runPatrolScript(
+      {
+        command: 'patrol-script',
+        flags: {
+          routes: resolve(commandOutputRoot, routeSetPath),
+          assignments: resolve(commandOutputRoot, assignmentsArrayPath),
           includeReport: true,
           json: true,
         },
@@ -1370,10 +1413,68 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
     const joined = logs.join('\n');
     expect(joined).toContain('"stepCount"');
     expect(joined).toContain('"roundCount": 2');
+    expect(joined).toContain('"roundCount": 3');
     expect(joined).toContain('patrol simulation steps:');
     expect(joined).toContain('assignments: 1');
     expect(joined).toContain('bandit -> bandit-watch:');
     expect(joined).toContain('warnings: 0');
+    expect(joined).toContain('errors: 0');
+  });
+
+  it('reports patrol script warnings and errors before configured exits', async () => {
+    const warningRouteSetPath = writeCommandOutput('scenario-patrol-script-warning-route-set.json', {
+      routes: [{ id: 'empty-route', found: true, waypoints: [], segments: [] }],
+    });
+    const errorRouteSetPath = writeCommandOutput('scenario-patrol-script-error-route-set.json', {
+      routes: [{ id: 'incomplete-route', found: false, waypoints: [], segments: [] }],
+    });
+    const exitLogs: string[] = [];
+    logSpy.mockImplementation((message: unknown) => {
+      exitLogs.push(typeof message === 'string' ? message : String(message));
+    });
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+
+    try {
+      await expect(
+        runPatrolScript(
+          {
+            command: 'patrol-script',
+            flags: {
+              routes: resolve(commandOutputRoot, errorRouteSetPath),
+              routeId: 'incomplete-route',
+              actorId: 'bandit',
+            },
+          },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+
+      exitLogs.length = 0;
+      await expect(
+        runPatrolScript(
+          {
+            command: 'patrol-script',
+            flags: {
+              routes: resolve(commandOutputRoot, warningRouteSetPath),
+              routeId: 'empty-route',
+              actorId: 'bandit',
+              failOnWarning: true,
+            },
+          },
+          '/nonexistent-source-root',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    const joined = exitLogs.join('\n');
+    expect(joined).toContain('warning: Patrol route empty-route has no movement segments');
+    expect(joined).toContain('warnings: 1');
     expect(joined).toContain('errors: 0');
   });
 
@@ -1427,6 +1528,13 @@ describe('CLI blueprint-derived subcommands (PRD E0h)', () => {
         'free'
       )
     ).rejects.toThrow(/must be an array or/);
+    await expect(
+      runPatrolScript(
+        { command: 'patrol-script', flags: { routes: resolve(commandOutputRoot, routeSetPath) } },
+        '/x',
+        'free'
+      )
+    ).rejects.toThrow(/patrol-script requires --assignments/);
   });
 
   it('scans local GLTF assets into piece registry rule output', async () => {
