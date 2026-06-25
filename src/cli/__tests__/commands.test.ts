@@ -424,6 +424,23 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
     expect(logs.length).toBeGreaterThan(0);
   });
 
+  it('guide API and role filters reject empty selections', async () => {
+    await expect(
+      runGuideApis(
+        { command: 'guide-apis', flags: { publicApi: 'GameboardBuilder.missingApi' } },
+        '/nonexistent',
+        'free'
+      )
+    ).rejects.toThrow(/guide-apis selection did not match/);
+    await expect(
+      runGuideRoles(
+        { command: 'guide-roles', flags: { role: 'missing-role' } },
+        '/nonexistent',
+        'free'
+      )
+    ).rejects.toThrow(/guide-roles selection did not match/);
+  });
+
   it('guide-scenarios run() delegates to runGuideScenarios', async () => {
     const parsed: ParsedArgs = { command: 'guide-scenarios', flags: { json: true } };
     await runGuideScenarios(parsed, '/nonexistent', 'free');
@@ -570,6 +587,7 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
         '/nonexistent',
         'free'
       );
+      await runGuideApis({ command: 'guide-apis', flags: {} }, '/nonexistent', 'free');
       await runGuidePermutations({ command: 'guide-permutations', flags: {} }, '/nonexistent', 'free');
       await runGuideRenderRequests(
         {
@@ -622,6 +640,7 @@ describe('CLI guide-* subcommands (PRD E0h)', () => {
     expect(renderRequests.selection).toMatchObject({ roles: ['prop'], minimumEdition: 'free' });
     expect(renderRequests.assetIds).toContain('barrel');
     expect(joined).toContain('guide public APIs:');
+    expect(joined).toMatch(/\.\.\.[0-9]+ more/);
     expect(joined).toContain('guide permutations:');
     expect(joined).toContain('guide render requests:');
   });

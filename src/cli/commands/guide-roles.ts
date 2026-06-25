@@ -36,7 +36,7 @@ export async function run(parsed: ParsedArgs, _sourceRoot: string, _edition: Pac
     roles: coverages.map((coverage) => coverage.role),
     coverage: coverages,
     ...(roleFilter.length === 1
-      ? { selected: describeKayKitGuideRoleCoverage(roleFilter[0] ?? '') }
+      ? { selected: describeKayKitGuideRoleCoverage(roleFilter.join()) }
       : {}),
   };
 
@@ -53,13 +53,10 @@ export async function run(parsed: ParsedArgs, _sourceRoot: string, _edition: Pac
     console.log(JSON.stringify(payload, null, 2));
   } else {
     console.log(`guide public roles: ${coverages.length}`);
-    for (const coverage of coverages.slice(0, 20)) {
+    for (const coverage of coverages) {
       console.log(
         `${coverage.role}: pages ${formatGuideScenarioPages(coverage.pages)}, assets ${coverage.assetCounts.unique}, APIs ${coverage.publicApi.length}`
       );
-    }
-    if (coverages.length > 20) {
-      console.log(`...${coverages.length - 20} more`);
     }
   }
 }
