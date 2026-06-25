@@ -2,6 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { run as runAnalyzeLayout } from '../commands/analyze-layout';
 import { run as runCompatibility } from '../commands/compatibility';
 import { run as runDeclarations } from '../commands/declarations';
 import { run as runDoctor } from '../commands/doctor';
@@ -429,6 +430,133 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
               pieceId: 'blocked-crate',
               minCount: '1',
             },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
+  it('covers analyze-layout rule parsing, output modes, and exit branches', async () => {
+    const planPath = writeJson('layout.plan.json', patrolPlan());
+    const validRulesPath = writeJson('layout.rules.json', {
+      seed: 'file-layout-seed',
+      rules: [{ id: 'crate-fill', archetype: 'prop', assetId: 'fixture:crate', count: 1 }],
+    });
+
+    await expect(
+      runAnalyzeLayout({ command: 'analyze-layout', flags: {} }, '/missing-source', 'free')
+    ).rejects.toThrow(/requires exactly one/);
+    await expect(
+      runAnalyzeLayout(
+        { command: 'analyze-layout', flags: { plan: planPath } },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/requires --rules/);
+    await expect(
+      runAnalyzeLayout(
+        {
+          command: 'analyze-layout',
+          flags: { plan: planPath, rules: writeJson('layout.invalid-rules.json', {}) },
+        },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/must be a rule array/);
+
+    await runAnalyzeLayout(
+      {
+        command: 'analyze-layout',
+        flags: { plan: planPath, rules: validRulesPath, seed: 'cli-layout-seed', json: true },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      seed: 'cli-layout-seed',
+      placementCount: 1,
+      errorCount: 0,
+    });
+
+    logs.length = 0;
+    await runAnalyzeLayout(
+      {
+        command: 'analyze-layout',
+        flags: {
+          plan: planPath,
+          rules: validRulesPath,
+          out: 'layout-analysis.json',
+          outPlan: 'layout-plan.json',
+        },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote compiled GameboardPlan to');
+    expect(logs.join('\n')).toContain('Wrote layout analysis to');
+
+    const arrayRulesPath = writeJson('layout.array-rules.json', [
+      { id: 'selected-prop', archetype: 'prop', assetId: 'fixture:prop', count: 1 },
+      {
+        id: 'water-prop',
+        archetype: 'prop',
+        assetId: 'fixture:water-prop',
+        count: 1,
+        criteria: { terrain: ['water'] },
+      },
+      { id: 'missing-asset', archetype: 'prop', count: 1 },
+    ]);
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      logs.length = 0;
+      await expect(
+        runAnalyzeLayout(
+          { command: 'analyze-layout', flags: { plan: planPath, rules: arrayRulesPath } },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(logs.join('\n')).toContain('layout seed: patrol-command:layout-fill');
+      expect(logs.join('\n')).toContain('rejected tiles:');
+      expect(logs.join('\n')).toContain('assets: fixture:prop');
+      expect(logs.join('\n')).toContain('selected tiles:');
+      expect(logs.join('\n')).toContain('warning: Layout fill rule water-prop matched no candidate sites');
+      expect(logs.join('\n')).toContain('error: Layout fill rule missing-asset requires assetId or assets');
+
+      logs.length = 0;
+      await expect(
+        runAnalyzeLayout(
+          {
+            command: 'analyze-layout',
+            flags: {
+              plan: planPath,
+              rules: writeJson('layout.warning-rules.json', {
+                rules: [{ id: 'overflow-prop', archetype: 'prop', assetId: 'fixture:prop', count: 3, maxCount: 1 }],
+              }),
+              failOnWarning: true,
+              json: true,
+            },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+        errorCount: 0,
+        warningCount: 1,
+      });
+
+      await expect(
+        runAnalyzeLayout(
+          {
+            command: 'analyze-layout',
+            flags: { plan: writeJson('layout.invalid-plan.json', invalidPlan()), rules: validRulesPath },
           },
           '/missing-source',
           'free'
