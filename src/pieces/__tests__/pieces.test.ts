@@ -773,6 +773,57 @@ describe('gameboard piece declarations', () => {
     const piece = declareGameboardPieceFromCompatibility(report);
     expect(piece.role).toBe('prop');
   });
+
+  it('covers branch-only defaults for piece declarations and pooled rules (E0h)', () => {
+    const defaultAsset = declareGameboardPiece({ id: 'asset-defaults' });
+    expect(defaultAsset.assetId).toBe('asset-defaults');
+
+    const archetype = {
+      id: 'camp-prop',
+      label: 'Camp Prop',
+      kind: 'prop',
+      layer: 'feature',
+      criteria: { terrain: ['grass'] },
+    } as const;
+    const first = declareGameboardPiece({
+      id: 'camp-crate',
+      assetId: 'camp:crate',
+      role: 'custom',
+      archetype,
+      scale: 1,
+    });
+    const second = declareGameboardPiece({
+      id: 'camp-barrel',
+      assetId: 'camp:barrel',
+      role: 'custom',
+      archetype,
+      scale: 2,
+    });
+    const pooled = createGameboardLayoutFillRuleFromPieces([first, second]);
+
+    expect(pooled.id).toBe('camp-crate');
+    expect(pooled.archetype).toBe(archetype);
+    expect(pooled.scale).toBeUndefined();
+
+    const objectArchetypeAnalysis = analyzeGameboardPieceRegistry(
+      createGameboardPieceRegistry([first, second]),
+      { checks: [{ id: 'object-archetype-pool', mode: 'pool' }] }
+    );
+    expect(objectArchetypeAnalysis.errors).toEqual([]);
+
+    const inspection = inspectGameboardPiecePlacement(createPieceFixturePlan(), defaultAsset);
+    expect(inspection.siteInspection.selectedCount).toBe(1);
+
+    const report = analyzeExternalAssetCompatibility({
+      id: 'override-tags-only',
+      sourcePack: 'External Source',
+      bounds: { min: [-0.2, 0, -0.2], max: [0.2, 0.3, 0.2], size: [0.4, 0.3, 0.4] },
+    });
+    const [piece] = declareGameboardPiecesFromCompatibilityReports([report], {
+      overrides: { 'override-tags-only': { tags: ['override-only'] } },
+    });
+    expect(piece?.tags).toEqual(['override-only']);
+  });
 });
 
 function createPieceFixturePlan() {
