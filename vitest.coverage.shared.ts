@@ -47,11 +47,11 @@ export const COVERAGE_THRESHOLDS = {
   // Threshold ratchet uses the CI-measured merged unit + browser-free floor.
   // Local runs can read higher when skip-gated reference tests execute, so each
   // E0a/E0h commit sets the floor 0.5pp below CI-shaped proof, then confirms on PR Coverage.
-  // SimpleRPG executable smoke branch cleanup local proof (2026-06-25): S=88.89, B=83.43, F=91.73, L=88.82.
-  statements: 88.52,
-  branches: 83.05,
-  functions: 91.44,
-  lines: 88.44,
+  // Package-assets generator branch cleanup local proof (2026-06-25): S=88.92, B=83.52, F=91.73, L=88.84.
+  statements: 88.55,
+  branches: 83.14,
+  functions: 91.5,
+  lines: 88.46,
 };
 
 /**
