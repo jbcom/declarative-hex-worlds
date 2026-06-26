@@ -31,10 +31,10 @@ export async function run(
     (violation) => violation.severity === 'error'
   );
   const runtime = hasScenarioErrors ? undefined : createGameboardWorldFromScenario(scenario);
-  if (typeof parsed.flags.outPlan === 'string' && (inspection.plan ?? runtime?.plan)) {
+  if (typeof parsed.flags.outPlan === 'string' && inspection.plan) {
     writeFileSync(
       safeResolveOutput(String(parsed.flags.outPlan)),
-      `${JSON.stringify(inspection.plan ?? runtime?.plan, null, 2)}\n`,
+      `${JSON.stringify(inspection.plan, null, 2)}\n`,
       'utf8'
     );
     console.log(`Wrote compiled GameboardPlan to ${safeResolveOutput(String(parsed.flags.outPlan))}`);
