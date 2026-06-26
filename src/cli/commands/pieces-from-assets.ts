@@ -89,15 +89,17 @@ export function runPiecesFromAssets(parsed: ParsedArgs): void {
   }
   const roots = assetInputRoots(assetInputs);
   const includeAbsolutePaths = parsed.flags.includeAbsolutePaths === true;
-  const sourceAssets = assetPaths.map((assetPath) =>
-    sourceAssetRecord(assetPath, roots, includeAbsolutePaths)
-  );
+  const sourceInputs = assetPaths.map((assetPath) => ({
+    assetPath,
+    sourceAsset: sourceAssetRecord(assetPath, roots, includeAbsolutePaths),
+  }));
+  const sourceAssets = sourceInputs.map((sourceInput) => sourceInput.sourceAsset);
   const sourcePack = String(parsed.flags.sourcePack ?? 'external');
   const intendedRole = readIntendedRole(parsed.flags.intendedRole);
-  const reports = assetPaths.map((assetPath, index) => {
+  const reports = sourceInputs.map(({ assetPath, sourceAsset }) => {
     const metadata = readGltfMetadata(assetPath);
     return analyzeExternalAssetCompatibility({
-      id: sourceAssets[index]?.id ?? assetIdFromBatchPath(assetPath, roots),
+      id: sourceAsset.id,
       sourcePack,
       creator: typeof parsed.flags.creator === 'string' ? parsed.flags.creator : undefined,
       license: typeof parsed.flags.license === 'string' ? parsed.flags.license : undefined,
@@ -280,8 +282,8 @@ function sourceAssetRecord(
 function relativeAssetPath(path: string, roots: readonly AssetInputRoot[]): string {
   const root = [...roots]
     .sort((left, right) => right.base.length - left.base.length)
-    .find((candidate) => path === candidate.input || path.startsWith(`${candidate.base}/`));
-  return normalizePath(root ? relative(root.base, path) : basename(path));
+    .find((candidate) => path === candidate.input || path.startsWith(`${candidate.base}/`)) as AssetInputRoot;
+  return normalizePath(relative(root.base, path));
 }
 
 function normalizeAssetId(value: string): string {
