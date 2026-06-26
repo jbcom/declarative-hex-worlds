@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
 import {
@@ -7,6 +7,7 @@ import {
   defaultSourceRoot,
   generateManifestFromSource,
   validateSourceRoot,
+  writeManifestJson,
   writeManifestModule,
 } from '../../ingest';
 import { freeManifest } from '../../manifest/free';
@@ -25,6 +26,12 @@ describe('source ingestion', () => {
       expectedCount: 221,
       ok: false,
     });
+  });
+
+  it('throws a typed ingest error when manifest generation has no GLTF root', () => {
+    expect(() =>
+      generateManifestFromSource({ sourceRoot: join(tmpdir(), 'missing-kaykit-manifest-source'), edition: 'free' })
+    ).toThrow(/Missing GLTF source directory/);
   });
 
   it.skipIf(!hasFreeSource)('validates the local FREE source count', () => {
@@ -65,6 +72,10 @@ describe('source ingestion', () => {
       expect(readFileSync(freeModulePath, 'utf8')).toContain('export const freeManifest: MedievalHexagonManifest');
       expect(readFileSync(extraModulePath, 'utf8')).toContain('export const extraManifest: MedievalHexagonManifest');
       expect(readFileSync(extraModulePath, 'utf8')).toContain("from 'declarative-hex-worlds'");
+
+      const manifestJsonPath = join(tempRoot, 'manifest.json');
+      writeManifestJson(freeManifest, manifestJsonPath);
+      expect(readFileSync(manifestJsonPath, 'utf8')).toMatch(/^\{\n[\s\S]*\}\n$/);
     } finally {
       rmSync(tempRoot, { recursive: true, force: true });
     }
@@ -142,4 +153,139 @@ describe('source ingestion', () => {
       rmSync(destRoot, { recursive: true, force: true });
     }
   });
+
+  it('generates synthetic manifests with duplicate suffixes and sparse GLTF metadata', () => {
+    const sourceRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-ingest-source-'));
+    try {
+      writeSyntheticGltf(sourceRoot, 'tiles/base/hex_duplicate.gltf');
+      writeSyntheticGltf(sourceRoot, 'tiles/base/nested/hex_duplicate.gltf');
+      writeSyntheticGltf(sourceRoot, 'tiles/base/other/hex_duplicate.gltf');
+      writeSyntheticGltf(sourceRoot, 'tiles/base/z/hex_duplicate.gltf');
+      writeSyntheticGltf(sourceRoot, 'tiles/hex_root.gltf');
+      writeFileSync(join(sourceRoot, 'Assets/gltf/tiles/base/hex_bounds.bin'), '');
+      writeSyntheticGltf(sourceRoot, 'tiles/base/hex_bounds.gltf', {
+        buffers: [{ uri: 'hex_bounds.bin' }, {}],
+        images: [{ uri: 'hex_bounds.png' }, {}],
+        materials: [{ name: 'stone' }, {}],
+        accessors: [{}, { min: [-1], max: [1] }, { min: [-2, 0.25, -3], max: [2, 1.5, 4] }],
+        meshes: [
+          {},
+          {
+            primitives: [
+              {},
+              { attributes: { POSITION: 0 } },
+              { attributes: { POSITION: 1 } },
+              { attributes: { POSITION: 2 } },
+            ],
+          },
+        ],
+      });
+      writeSyntheticGltf(sourceRoot, 'units/blue/unit_knight_blue_accent.gltf');
+      writeSyntheticGltf(sourceRoot, 'units/neutral/unit_monk.gltf');
+      writeSyntheticGltf(sourceRoot, 'units/neutral/unit_monk_full.gltf');
+
+      const manifest = generateManifestFromSource({
+        sourceRoot,
+        edition: 'extra',
+        generatedAt: '2026-06-26T00:00:00.000Z',
+      });
+
+      expect(manifest.textureSets).toEqual(['default']);
+      expect(manifest.assetsById.hex_duplicate?.sourcePath).toBe('tiles/base/hex_duplicate.gltf');
+      expect(manifest.assetsById.tiles_base_hex_duplicate?.sourcePath).toBe(
+        'tiles/base/nested/hex_duplicate.gltf'
+      );
+      expect(manifest.assetsById.tiles_base_hex_duplicate_2?.sourcePath).toBe(
+        'tiles/base/other/hex_duplicate.gltf'
+      );
+      expect(manifest.assetsById.tiles_base_hex_duplicate_3?.sourcePath).toBe(
+        'tiles/base/z/hex_duplicate.gltf'
+      );
+      expect(manifest.assetsById.hex_bounds).toMatchObject({
+        bufferPaths: ['tiles/base/hex_bounds.bin'],
+        texturePaths: ['tiles/base/hex_bounds.png'],
+        materialSlots: ['stone', 'material_1'],
+        bounds: { min: [-2, 0.25, -3], max: [2, 1.5, 4], size: [4, 1.25, 7] },
+      });
+      expect(manifest.assetsById.hex_root?.subcategory).toBe('hex_root.gltf');
+      expect(manifest.assetsById.unit_knight_blue_accent).toMatchObject({
+        faction: 'blue',
+        family: 'unit_knight',
+        unitStyle: 'accent',
+      });
+      expect(manifest.assetsById.unit_monk).toMatchObject({
+        family: 'unit_monk',
+        unitStyle: 'neutral',
+      });
+      expect(manifest.assetsById.unit_monk_full).toMatchObject({
+        family: 'unit_monk',
+        unitStyle: 'full',
+      });
+    } finally {
+      rmSync(sourceRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('detects optional texture sets from a partial texture directory', () => {
+    const sourceRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-texture-source-'));
+    try {
+      mkdirSync(join(sourceRoot, 'Textures'), { recursive: true });
+      writeFileSync(join(sourceRoot, 'Textures/hexagons_medieval_Fall.png'), '');
+      writeFileSync(join(sourceRoot, 'Textures/hexagons_medieval_Summer.png'), '');
+      writeFileSync(join(sourceRoot, 'Textures/hexagons_medieval_Winter.png'), '');
+      writeFileSync(join(sourceRoot, 'Textures/ignored.png'), '');
+      writeSyntheticGltf(sourceRoot, 'tiles/base/hex_grass.gltf');
+
+      expect(generateManifestFromSource({ sourceRoot, edition: 'extra' }).textureSets).toEqual([
+        'default',
+        'fall',
+        'summer',
+        'winter',
+      ]);
+    } finally {
+      rmSync(sourceRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects unsupported source categories before manifest emission', () => {
+    const sourceRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-bad-category-'));
+    try {
+      writeSyntheticGltf(sourceRoot, 'misc/root/unknown.gltf');
+
+      expect(() => generateManifestFromSource({ sourceRoot, edition: 'extra' })).toThrow(
+        /Unsupported asset category: misc/
+      );
+    } finally {
+      rmSync(sourceRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('skips symlinked files while validating and copying source trees', () => {
+    const sourceRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-symlink-source-'));
+    const destRoot = mkdtempSync(join(tmpdir(), 'medieval-hexagon-symlink-dest-'));
+    try {
+      writeSyntheticGltf(sourceRoot, 'tiles/base/hex_safe.gltf');
+      const outsideTarget = join(sourceRoot, '..', 'outside-root-target.gltf');
+      writeFileSync(outsideTarget, '{}');
+      symlinkSync(outsideTarget, join(sourceRoot, 'Assets/gltf/tiles/base/hex_leak.gltf'));
+
+      expect(validateSourceRoot(sourceRoot, 'free')).toMatchObject({ gltfCount: 1, ok: false });
+      copyGltfTree(sourceRoot, destRoot);
+      expect(existsSync(join(destRoot, 'tiles/base/hex_safe.gltf'))).toBe(true);
+      expect(existsSync(join(destRoot, 'tiles/base/hex_leak.gltf'))).toBe(false);
+    } finally {
+      rmSync(sourceRoot, { recursive: true, force: true });
+      rmSync(destRoot, { recursive: true, force: true });
+    }
+  });
 });
+
+function writeSyntheticGltf(
+  sourceRoot: string,
+  relativePath: string,
+  document: Record<string, unknown> = {}
+): void {
+  const filePath = join(sourceRoot, 'Assets/gltf', relativePath);
+  mkdirSync(dirname(filePath), { recursive: true });
+  writeFileSync(filePath, JSON.stringify(document), 'utf8');
+}
