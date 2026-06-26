@@ -266,15 +266,15 @@ function assetFromGltf(
   filePath: string,
   gltfRoot: string,
   edition: PackEdition,
-  assetId?: string,
-  familyId?: string
+  assetId: string,
+  familyId: string
 ): MedievalHexagonAsset {
   const sourcePath = toPosixPath(relative(gltfRoot, filePath));
   const segments = sourcePath.split('/');
   const category = parseCategory(segments[0]);
-  const subcategory = segments[1] ?? 'root';
-  const id = assetId ?? basename(filePath, extname(filePath));
-  const sourceId = familyId ?? id;
+  const subcategory = segments[1] as string;
+  const id = assetId;
+  const sourceId = familyId;
   const document = JSON.parse(readFileSync(filePath, 'utf8')) as GltfDocument;
   // modelPath equals sourcePath — the runtime resolves against the consumer's
   // configured asset root (see gameboardAssetUrl in runtime/asset-root.ts).
@@ -333,9 +333,7 @@ function allocateAssetId(
   }
 
   const sourcePath = toPosixPath(relative(gltfRoot, filePath));
-  const segments = sourcePath.split('/');
-  const category = segments[0] ?? 'asset';
-  const subcategory = segments[1] ?? 'root';
+  const [category, subcategory] = sourcePath.split('/');
   const candidate = `${category}_${subcategory}_${baseId}`;
   if (!usedIds.has(candidate)) {
     return candidate;
@@ -382,6 +380,7 @@ function listFilesInternal(
     const childPath = join(dir, entry.name);
     if (entry.isDirectory()) {
       const childReal = realpathSync(childPath);
+      /* v8 ignore next 5 -- non-symlink directories cannot escape root without bind mounts or concurrent filesystem mutation. */
       if (childReal !== rootRealPath && !childReal.startsWith(`${rootRealPath}${sep}`)) {
         // A non-symlink that still resolves outside the root (e.g. via a
         // bind mount). Skip it rather than crossing the boundary.
@@ -434,10 +433,11 @@ function extractBounds(document: GltfDocument): AssetBounds {
     };
   }
 
+  const size: [number, number, number] = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
   return {
     min: roundTuple(min),
     max: roundTuple(max),
-    size: roundTuple([max[0] - min[0], max[1] - min[1], max[2] - min[2]]),
+    size: roundTuple(size),
   };
 }
 
@@ -481,7 +481,7 @@ function parseCategory(segment: string | undefined): AssetCategory {
   if (segment === 'tiles' || segment === 'buildings' || segment === 'decoration' || segment === 'units') {
     return segment;
   }
-  throw new GameboardManifestError(`Unsupported asset category: ${segment ?? '<missing>'}`);
+  throw new GameboardManifestError(`Unsupported asset category: ${segment}`);
 }
 
 function parseFaction(id: string, subcategory: string): Faction | undefined {
@@ -518,8 +518,8 @@ function parseFamily(id: string, category: AssetCategory): string {
   return family.replace(/_(accent|full)$/, '');
 }
 
-function roundTuple(values: readonly number[]): [number, number, number] {
-  return [round(values[0] ?? 0), round(values[1] ?? 0), round(values[2] ?? 0)];
+function roundTuple(values: readonly [number, number, number]): [number, number, number] {
+  return [round(values[0]), round(values[1]), round(values[2])];
 }
 
 function round(value: number): number {
