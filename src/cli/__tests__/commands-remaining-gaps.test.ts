@@ -343,6 +343,9 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     const badRoutesPath = writeJson('patrol.bad-routes.json', {
       routes: [{ id: 'bad-watch', count: 1, start: '0,0' }],
     });
+    const emptyRoutesPath = writeJson('patrol.empty-routes.json', {
+      routes: [{ id: 'empty-watch', count: 0, loop: false }],
+    });
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit ${code}`);
     });
@@ -368,6 +371,14 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
           'free'
         )
       ).rejects.toThrow('process.exit 1');
+      await expect(
+        runPatrolRoutes(
+          { command: 'patrol-routes', flags: { plan: planPath, routes: emptyRoutesPath } },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(logs.join('\n')).toContain('empty-watch: 0/0 waypoint(s)');
     } finally {
       exitSpy.mockRestore();
     }
@@ -1300,6 +1311,19 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
       success: true,
       quests: [{ questId: 'blocked-expectation', status: 'blocked' }],
     });
+
+    logs.length = 0;
+    await simulate({
+      scenario: scenarioPath,
+      script: writeJson(
+        'simulation.json-out-script.json',
+        blockedQuestScript({ expectedQuestStatus: 'blocked' })
+      ),
+      out: 'simulation.report.json',
+      json: true,
+      allowExpectationFailures: true,
+    });
+    expect(logs.join('\n')).toContain('Wrote scenario simulation report to');
   });
 
   it('covers validate-simulation validation, output fallbacks, and exits', async () => {

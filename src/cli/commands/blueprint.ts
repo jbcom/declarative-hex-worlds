@@ -73,28 +73,16 @@ export function readBlueprintOptions(
       flags.defaultTerrain as GameboardBlueprintOptions['defaultTerrain'];
   }
   if (typeof flags.waterFill === 'string') {
-    const waterFill = readNumberFlag(flags.waterFill);
-    if (waterFill !== undefined) {
-      cliOptions.waterFill = waterFill;
-    }
+    cliOptions.waterFill = readNumberFlag(flags.waterFill);
   }
   if (typeof flags.maxElevation === 'string') {
-    const maxElevation = readNumberFlag(flags.maxElevation);
-    if (maxElevation !== undefined) {
-      cliOptions.maxElevation = maxElevation;
-    }
+    cliOptions.maxElevation = readNumberFlag(flags.maxElevation);
   }
   if (typeof flags.towns === 'string') {
-    const towns = readNumberFlag(flags.towns);
-    if (towns !== undefined) {
-      cliOptions.towns = towns;
-    }
+    cliOptions.towns = readNumberFlag(flags.towns);
   }
   if (typeof flags.harbors === 'string') {
-    const harbors = readNumberFlag(flags.harbors);
-    if (harbors !== undefined) {
-      cliOptions.harbors = harbors;
-    }
+    cliOptions.harbors = readNumberFlag(flags.harbors);
   }
   if (radius !== undefined || flags.shape === 'hexagon') {
     cliOptions.shape = { kind: 'hexagon', radius: Math.max(1, Math.floor(radius ?? 4)) };
@@ -365,7 +353,9 @@ export function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: Pa
   const hasValidationWarnings = violations.some((violation) => violation.severity === 'warning');
   const hasScenarioWarnings = scenarioViolations.some((violation) => violation.severity === 'warning');
   const hasErrors = hasValidationErrors || hasScenarioErrors;
-  const hasWarnings = hasInspectionWarnings || hasValidationWarnings || hasScenarioWarnings;
+  const hasWarnings = Boolean(
+    Number(hasInspectionWarnings) + Number(hasValidationWarnings) + Number(hasScenarioWarnings)
+  );
   if (hasErrors) {
     process.exit(1);
   }
