@@ -11,7 +11,7 @@
  * @module
  */
 
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -19,13 +19,18 @@ import {
   assetIdFromPath,
   defaultOutRoot,
   emitOutput,
+  extractMetadataBounds,
   formatCounts,
   formatGuideScenarioPages,
+  formatManifestIssue,
   formatShape,
   hasPieceFillFlags,
+  inspectPiecesPlacementFromArgs,
   isPatrolRouteSet,
   isRecord,
+  layoutAnalysisPlanFromArgs,
   normalizePieceId,
+  patrolRouteSetFromArgs,
   pieceFillFromFlags,
   pieceSelectionFromFlags,
   pieceSourceUrlOptionsFromFlags,
@@ -45,6 +50,7 @@ import {
   readGuideUsageRoleFilter,
   readIntendedRole,
   readJson,
+  readManifest,
   readModelForward,
   readNumberFlag,
   readPatrolRouteOptions,
@@ -55,14 +61,99 @@ import {
   readRegistry,
   readSimulationScript,
   readSpawnGroupOptions,
+  registryFromArgs,
   relativizePath,
+  routePlanningPlanFromArgs,
   safeResolveOutput,
   round,
   uniqueRoles,
   uniqueStrings,
+  validationCatalogFromArgs,
+  validationConfigFromArgs,
 } from '../_shared';
 import { detectDefaultBootstrapOut, formatBytes } from '../commands/bootstrap';
+import { createGameboardBuilder } from '../../gameboard/index';
 import { listKayKitGuideRoleCoverages } from '../../scenario';
+import { createGameboardRecipe } from '../../scenario/index';
+
+function writeJsonFixture(dir: string, name: string, payload: unknown): string {
+  const path = join(dir, name);
+  writeFileSync(path, JSON.stringify(payload), 'utf8');
+  return path;
+}
+
+function writeSyntheticGltfSource(sourceRoot: string): void {
+  const gltfRoot = join(sourceRoot, 'Assets/gltf/tiles/base');
+  mkdirSync(gltfRoot, { recursive: true });
+  writeFileSync(
+    join(gltfRoot, 'hex_probe.gltf'),
+    JSON.stringify({
+      accessors: [{ min: [0, 0, 0], max: [1, 1, 1] }],
+      buffers: [{ uri: 'hex_probe.bin' }],
+      images: [{ uri: 'hex_probe.png' }],
+      materials: [{ name: 'default' }],
+      meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+    }),
+    'utf8'
+  );
+}
+
+function writeGlb(path: string, chunks: Array<{ type: string; body: Buffer }>): void {
+  const length = 12 + chunks.reduce((total, chunk) => total + 8 + chunk.body.length, 0);
+  const buffer = Buffer.alloc(length);
+  buffer.write('glTF', 0, 'utf8');
+  buffer.writeUInt32LE(2, 4);
+  buffer.writeUInt32LE(length, 8);
+  let offset = 12;
+  for (const chunk of chunks) {
+    buffer.writeUInt32LE(chunk.body.length, offset);
+    buffer.write(chunk.type, offset + 4, 'utf8');
+    chunk.body.copy(buffer, offset + 8);
+    offset += 8 + chunk.body.length;
+  }
+  writeFileSync(path, buffer);
+}
+
+function makeInvalidPlan() {
+  const plan = createGameboardBuilder({
+    seed: 'shared-invalid-plan',
+    shape: { kind: 'rectangle', width: 1, height: 1 },
+  })
+    .addPlacement({ at: { q: 0, r: 0 }, assetId: 'tree', kind: 'prop', layer: 'feature' })
+    .build();
+  return {
+    ...plan,
+    placements: plan.placements.map((placement) => ({
+      ...placement,
+      tileKey: '9,9',
+      coordinates: { q: 9, r: 9 },
+    })),
+  };
+}
+
+function makeValidPlan() {
+  return createGameboardBuilder({
+    seed: 'shared-valid-plan',
+    shape: { kind: 'rectangle', width: 2, height: 1 },
+  }).build();
+}
+
+function captureProcessExit() {
+  const logs: string[] = [];
+  const logSpy = vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
+    logs.push(String(message));
+  });
+  const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+    throw new Error(`process.exit ${code}`);
+  });
+  return {
+    logs,
+    restore() {
+      logSpy.mockRestore();
+      exitSpy.mockRestore();
+    },
+  };
+}
 
 describe('relativizePath (PRD E0h)', () => {
   it('returns "." when the path is the cwd itself', () => {
@@ -302,6 +393,7 @@ describe('scalar CLI helpers (PRD E0h)', () => {
     expect(uniqueStrings(['b', 'a', 'b'])).toEqual(['a', 'b']);
     expect(normalizePieceId('  Fancy Piece! 01  ')).toBe('Fancy-Piece-01');
     expect(assetIdFromPath('/tmp/models/castle.GLB')).toBe('castle');
+    expect(assetIdFromPath('C:\\tmp\\models\\tower.gltf')).toBe('tower');
     expect(assetIdFromPath(false)).toBe('false');
     expect(round(1.23456)).toBe(1.235);
 
@@ -328,7 +420,11 @@ describe('shared registry, output, metadata, and print helpers (PRD E0h)', () =>
       const missingPieceRegistryPath = join(dir, 'missing-pieces.json');
       writeFileSync(registryPath, JSON.stringify([]), 'utf8');
       writeFileSync(invalidRegistryPath, JSON.stringify({ declarations: 'bad' }), 'utf8');
-      writeFileSync(pieceRegistryPath, JSON.stringify({ declaration: { id: 'piece-1', assetId: 'asset-1' } }), 'utf8');
+      writeFileSync(
+        pieceRegistryPath,
+        JSON.stringify({ declaration: { id: 'piece-1', assetId: 'asset-1' } }),
+        'utf8'
+      );
       writeFileSync(invalidPieceRegistryPath, JSON.stringify(null), 'utf8');
       writeFileSync(missingPieceRegistryPath, JSON.stringify({ nope: [] }), 'utf8');
 
@@ -346,7 +442,14 @@ describe('shared registry, output, metadata, and print helpers (PRD E0h)', () =>
       const gltfPath = join(dir, 'asset.gltf');
       writeFileSync(
         gltfPath,
-        JSON.stringify({ accessors: [{ min: [-1, -2, -3], max: [1, 2, 3] }], animations: [{}, { name: 'walk' }], materials: [{}, { name: 'mat' }], meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }], nodes: [{ skin: 0 }], skins: [{}] }),
+        JSON.stringify({
+          accessors: [{ min: [-1, -2, -3], max: [1, 2, 3] }],
+          animations: [{}, { name: 'walk' }],
+          materials: [{}, { name: 'mat' }],
+          meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+          nodes: [{ skin: 0 }],
+          skins: [{}],
+        }),
         'utf8'
       );
       expect(readGltfMetadata(gltfPath)).toMatchObject({
@@ -436,7 +539,13 @@ describe('shared registry, output, metadata, and print helpers (PRD E0h)', () =>
     });
     try {
       printAnalysis({
-        tileCount: 1, analyzedCount: 1, recommendedScale: 1.25, medianWidth: 2, medianDepth: 3, medianHeight: 4, rowSpacing: 5,
+        tileCount: 1,
+        analyzedCount: 1,
+        recommendedScale: 1.25,
+        medianWidth: 2,
+        medianDepth: 3,
+        medianHeight: 4,
+        rowSpacing: 5,
         warnings: ['analysis warning'],
       } as never);
       printPieceRegistryAnalysis({
@@ -448,6 +557,16 @@ describe('shared registry, output, metadata, and print helpers (PRD E0h)', () =>
         checks: [{ id: 'check-1', selectedCount: 1, mode: 'all', selectedIds: ['piece-1'] }],
         warnings: ['piece warning'],
         errors: ['piece error'],
+      } as never);
+      printPieceRegistryAnalysis({
+        pieceCount: 0,
+        localOnlyCount: 0,
+        roleCounts: {},
+        sourceCounts: {},
+        tagCounts: {},
+        checks: [{ id: 'empty-check', selectedCount: 0, mode: 'all', selectedIds: [] }],
+        warnings: [],
+        errors: [],
       } as never);
       printSpawnGroupPlan({
         seed: 'seed',
@@ -470,12 +589,57 @@ describe('shared registry, output, metadata, and print helpers (PRD E0h)', () =>
           },
         ],
       } as never);
+      printSpawnGroupPlan({
+        seed: 'empty-seed',
+        groupCount: 1,
+        selectedLocationCount: 0,
+        routeChecks: [],
+        groups: [
+          {
+            id: 'empty-group',
+            selectedCount: 0,
+            requestedCount: 1,
+            rejectedByGroupDistanceCount: 0,
+            locations: [],
+            routeChecks: [],
+            warnings: [],
+            errors: [],
+          },
+        ],
+      } as never);
       printCompatibility({
-        id: 'asset-1', sourcePack: 'fixture', compatibleAsTile: false, suggestedRole: 'prop',
-        placement: { footprint: 'single', scale: 1, modelForward: '+z', boardForwardEdge: 0, rotationSteps: 0, facingErrorRadians: 0 },
+        id: 'asset-1',
+        sourcePack: 'fixture',
+        compatibleAsTile: false,
+        suggestedRole: 'prop',
+        placement: {
+          footprint: 'single',
+          scale: 1,
+          modelForward: '+z',
+          boardForwardEdge: 0,
+          rotationSteps: 0,
+          facingErrorRadians: 0,
+        },
         tile: { widthScale: 1, depthScale: 1 },
         warnings: [],
         errors: ['compat error'],
+      } as never);
+      printCompatibility({
+        id: 'asset-2',
+        sourcePack: 'fixture',
+        compatibleAsTile: true,
+        suggestedRole: 'tile',
+        placement: {
+          footprint: 'single',
+          scale: 1,
+          modelForward: '+z',
+          boardForwardEdge: 0,
+          rotationSteps: 0,
+          facingErrorRadians: 0,
+        },
+        tile: { widthScale: 1, depthScale: 1 },
+        warnings: ['compat warning'],
+        errors: [],
       } as never);
     } finally {
       logSpy.mockRestore();
@@ -487,5 +651,389 @@ describe('shared registry, output, metadata, and print helpers (PRD E0h)', () =>
     expect(output).toContain('warning: group warning');
     expect(output).toContain('errors:');
     expect(output).toContain('compat error');
+    expect(output).toContain('compatible as KayKit hex tile: yes');
+  });
+});
+
+describe('shared CLI helper remaining branch closure', () => {
+  it('covers manifest issue formatting, manifest validation, and registry source paths', () => {
+    const cwdSpy = vi.spyOn(process, 'cwd').mockImplementation(() => {
+      throw new Error('cwd unavailable');
+    });
+    try {
+      expect(relativizePath('fixture.json')).toBe('fixture.json');
+    } finally {
+      cwdSpy.mockRestore();
+    }
+
+    expect(
+      formatManifestIssue({
+        code: 'manifest.asset',
+        severity: 'error',
+        assetId: 'hex_probe',
+        message: 'bad asset',
+      } as never)
+    ).toBe('manifest.asset hex_probe - bad asset');
+    expect(
+      formatManifestIssue({
+        code: 'manifest.path',
+        severity: 'warning',
+        path: '$.assets[0]',
+        message: 'bad path',
+      } as never)
+    ).toBe('manifest.path $.assets[0] - bad path');
+    expect(
+      formatManifestIssue({
+        code: 'manifest.root',
+        severity: 'error',
+        message: 'bad root',
+      } as never)
+    ).toBe('manifest.root - bad root');
+
+    const dir = mkdtempSync(join(tmpdir(), 'shared-manifest-branches-'));
+    try {
+      const invalidManifestPath = writeJsonFixture(dir, 'invalid-manifest.json', {});
+      const primitiveRegistryPath = writeJsonFixture(dir, 'primitive-registry.json', 42);
+      const registryPath = writeJsonFixture(dir, 'registry.json', []);
+      const sourceRoot = join(dir, 'source');
+      writeSyntheticGltfSource(sourceRoot);
+
+      expect(() => readManifest(invalidManifestPath)).toThrow(/Invalid manifest/);
+      expect(() => readRegistry(primitiveRegistryPath)).toThrow(/Registry file/);
+      expect(
+        registryFromArgs(
+          { command: 'fixture', flags: { registry: registryPath } },
+          sourceRoot,
+          'free'
+        ).declarations
+      ).toEqual([]);
+      expect(
+        validationCatalogFromArgs({ command: 'fixture', flags: {} }, sourceRoot, 'free')?.assetsById
+      ).toHaveProperty('hex_probe');
+      expect(
+        validationConfigFromArgs(
+          {
+            command: 'fixture',
+            flags: {
+              registry: registryPath,
+              allowUnknownAssets: true,
+              allowUnknownAssetIds: 'external-a,external-b',
+            },
+          },
+          sourceRoot,
+          'free'
+        )
+      ).toMatchObject({
+        allowUnknownAssets: true,
+        allowUnknownAssetIds: ['external-a', 'external-b'],
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('covers piece registry payload variants and source selection fallbacks', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'shared-piece-registry-'));
+    try {
+      const directPiecePath = writeJsonFixture(dir, 'direct-piece.json', {
+        id: 'direct-piece',
+        assetId: 'direct-asset',
+      });
+      const arrayPiecePath = writeJsonFixture(dir, 'array-piece.json', [
+        { id: 'array-piece', assetId: 'array-asset' },
+      ]);
+      const declarationsPath = writeJsonFixture(dir, 'declarations-piece.json', {
+        declarations: [{ id: 'declared-piece', assetId: 'declared-asset' }],
+      });
+
+      expect(readPieceRegistry(directPiecePath).pieces.map((piece) => piece.id)).toEqual([
+        'direct-piece',
+      ]);
+      expect(readPieceRegistry(arrayPiecePath).pieces.map((piece) => piece.id)).toEqual([
+        'array-piece',
+      ]);
+      expect(readPieceRegistry(declarationsPath).pieces.map((piece) => piece.id)).toEqual([
+        'declared-piece',
+      ]);
+      expect(pieceSelectionFromFlags({ sources: 'pack-a,pack-b' })).toMatchObject({
+        sources: ['pack-a', 'pack-b'],
+      });
+      expect(
+        readPatrolRouteOptions(writeJsonFixture(dir, 'routes-array.json', []), 'override')
+      ).toEqual({
+        seed: 'override',
+        routes: [],
+      });
+      expect(readSpawnGroupOptions(writeJsonFixture(dir, 'groups-array.json', []), false)).toEqual({
+        seed: undefined,
+        groups: [],
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('covers GLB JSON chunks and sparse GLTF metadata defaults', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'shared-glb-branches-'));
+    try {
+      const glbPath = join(dir, 'asset.glb');
+      const noJsonGlbPath = join(dir, 'no-json.glb');
+      const sparseGltfPath = writeJsonFixture(dir, 'sparse.gltf', {});
+      writeGlb(glbPath, [
+        {
+          type: 'JSON',
+          body: Buffer.from(
+            JSON.stringify({
+              accessors: [{ min: [-1, -2, -3], max: [1, 2, 3] }],
+              meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+              nodes: [{}],
+              materials: [{}],
+            })
+          ),
+        },
+      ]);
+      writeGlb(noJsonGlbPath, [{ type: 'BIN\0', body: Buffer.from([1, 2, 3, 4]) }]);
+
+      expect(readGlbJson(glbPath).meshes).toHaveLength(1);
+      expect(readGltfMetadata(glbPath)).toMatchObject({
+        bounds: { min: [-1, -2, -3], max: [1, 2, 3], size: [2, 4, 6] },
+        hasRig: false,
+        materialSlots: ['material_0'],
+      });
+      expect(() => readGlbJson(noJsonGlbPath)).toThrow(/no JSON chunk/);
+      expect(readGltfMetadata(sparseGltfPath)).toMatchObject({
+        bounds: { min: [0, 0, 0], max: [0, 0, 0], size: [0, 0, 0] },
+        animationNames: [],
+        materialSlots: [],
+      });
+      expect(extractMetadataBounds({} as never)).toEqual({
+        min: [0, 0, 0],
+        max: [0, 0, 0],
+        size: [0, 0, 0],
+      });
+      expect(extractMetadataBounds({ meshes: [{}] } as never)).toEqual({
+        min: [0, 0, 0],
+        max: [0, 0, 0],
+        size: [0, 0, 0],
+      });
+      expect(
+        extractMetadataBounds({
+          accessors: [{}, { min: [undefined, -2, -3], max: [undefined, 2, 3] }],
+          meshes: [
+            {
+              primitives: [
+                { attributes: { POSITION: 0 } },
+                { attributes: {} },
+                { attributes: { POSITION: 1 } },
+              ],
+            },
+          ],
+        } as never)
+      ).toEqual({ min: [0, 0, 0], max: [0, 0, 0], size: [0, 0, 0] });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('covers plan reader and route-set validation exits', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'shared-plan-branches-'));
+    const capture = captureProcessExit();
+    try {
+      const invalidPlanPath = writeJsonFixture(dir, 'invalid-plan.json', makeInvalidPlan());
+      const validPlanPath = writeJsonFixture(dir, 'valid-plan.json', makeValidPlan());
+      const invalidRecipePath = writeJsonFixture(dir, 'invalid-recipe.json', {});
+      const primitiveRecipePath = writeJsonFixture(dir, 'primitive-recipe.json', 42);
+      const invalidScenarioPath = writeJsonFixture(dir, 'invalid-scenario.json', {});
+      const routeOptionsPath = writeJsonFixture(dir, 'route-options.json', {
+        routes: [{ id: 'watch', count: 2 }],
+      });
+      const plannedRouteSetPath = writeJsonFixture(dir, 'planned-routes.json', {
+        seed: 'planned',
+        routes: [{ id: 'ready', waypoints: [], segments: [] }],
+      });
+      const duplicateGroupsPath = writeJsonFixture(dir, 'duplicate-groups.json', {
+        groups: [
+          { id: 'party', count: 1 },
+          { id: 'party', count: 1 },
+        ],
+      });
+      const pieceRegistry = readPieceRegistry(
+        writeJsonFixture(dir, 'pieces.json', { id: 'piece', assetId: 'asset' })
+      );
+
+      expect(() =>
+        inspectPiecesPlacementFromArgs(
+          { command: 'pieces', flags: { plan: invalidPlanPath } },
+          join(dir, 'missing-source'),
+          'free',
+          pieceRegistry,
+          pieceFillFromFlags({})
+        )
+      ).toThrow('process.exit 1');
+      expect(() =>
+        layoutAnalysisPlanFromArgs(
+          { command: 'layout', flags: { recipe: invalidRecipePath } },
+          {},
+          false
+        )
+      ).toThrow('process.exit 1');
+      expect(() =>
+        layoutAnalysisPlanFromArgs(
+          { command: 'layout', flags: { scenario: invalidScenarioPath } },
+          {},
+          false
+        )
+      ).toThrow('process.exit 1');
+      expect(() =>
+        routePlanningPlanFromArgs(
+          { command: 'route', flags: { recipe: invalidRecipePath } },
+          {},
+          false,
+          undefined
+        )
+      ).toThrow('process.exit 1');
+      expect(() =>
+        patrolRouteSetFromArgs(
+          { command: 'patrol-script', flags: { routes: routeOptionsPath, plan: invalidPlanPath } },
+          join(dir, 'missing-source'),
+          'free',
+          undefined
+        )
+      ).toThrow('process.exit 1');
+      expect(() =>
+        patrolRouteSetFromArgs(
+          {
+            command: 'patrol-script',
+            flags: { routes: routeOptionsPath, plan: validPlanPath, groups: duplicateGroupsPath },
+          },
+          join(dir, 'missing-source'),
+          'free',
+          undefined
+        )
+      ).toThrow('process.exit 1');
+
+      expect(() =>
+        layoutAnalysisPlanFromArgs(
+          { command: 'layout', flags: { recipe: invalidRecipePath } },
+          {},
+          true
+        )
+      ).toThrow(/did not compile/);
+      expect(() =>
+        layoutAnalysisPlanFromArgs(
+          { command: 'layout', flags: { scenario: invalidScenarioPath } },
+          {},
+          true
+        )
+      ).toThrow(/did not compile/);
+      expect(() =>
+        routePlanningPlanFromArgs(
+          { command: 'route', flags: { scenario: 'missing-scenario.json' } },
+          {},
+          true,
+          undefined
+        )
+      ).toThrow(/did not include a board recipe/);
+      expect(() =>
+        routePlanningPlanFromArgs(
+          { command: 'route', flags: { recipe: primitiveRecipePath } },
+          {},
+          true,
+          undefined
+        )
+      ).toThrow(/must be a valid JSON object/);
+      expect(() =>
+        routePlanningPlanFromArgs(
+          { command: 'route', flags: { recipe: invalidRecipePath } },
+          {},
+          true,
+          undefined
+        )
+      ).toThrow(/did not compile/);
+      expect(() =>
+        patrolRouteSetFromArgs(
+          { command: 'patrol-script', flags: { routes: routeOptionsPath } },
+          join(dir, 'missing-source'),
+          'free',
+          undefined
+        )
+      ).toThrow(/exactly one/);
+      expect(
+        patrolRouteSetFromArgs(
+          { command: 'patrol-script', flags: { routes: plannedRouteSetPath } },
+          join(dir, 'missing-source'),
+          'free',
+          undefined
+        )
+      ).toMatchObject({ seed: 'planned', routes: [{ id: 'ready' }] });
+      expect(
+        inspectPiecesPlacementFromArgs(
+          { command: 'pieces', flags: { plan: validPlanPath, seed: 'piece-seed' } },
+          join(dir, 'missing-source'),
+          'free',
+          pieceRegistry,
+          pieceFillFromFlags({ ids: 'piece' })
+        ).inspection.seed
+      ).toBe('piece-seed');
+      expect(
+        patrolRouteSetFromArgs(
+          {
+            command: 'patrol-script',
+            flags: { routes: routeOptionsPath, plan: validPlanPath, seed: 'route-seed' },
+          },
+          join(dir, 'missing-source'),
+          'free',
+          undefined
+        )
+      ).toMatchObject({ seed: 'route-seed', routeCount: 1 });
+      expect(capture.logs.join('\n')).toContain('validation:');
+    } finally {
+      capture.restore();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('covers scenario-backed patrol route planning defaults', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'shared-scenario-route-'));
+    try {
+      const scenarioPath = join(dir, 'scenario.json');
+      const scenario = {
+        schemaVersion: '1.0.0',
+        board: createGameboardRecipe({
+          seed: 'scenario-board',
+          shape: { kind: 'rectangle', width: 2, height: 1 },
+        }),
+        patrolRoutes: [{ id: 'watch', count: 2, start: { q: 0, r: 0 }, loop: false }],
+      };
+      writeJsonFixture(dir, 'scenario.json', scenario);
+
+      expect(
+        patrolRouteSetFromArgs(
+          { command: 'patrol-script', flags: { scenario: scenarioPath, allowInvalid: true } },
+          join(dir, 'missing-source'),
+          'free',
+          scenario as never
+        )
+      ).toMatchObject({
+        seed: 'scenario-board:patrol-routes',
+        routeCount: 1,
+      });
+      expect(
+        patrolRouteSetFromArgs(
+          {
+            command: 'patrol-script',
+            flags: { scenario: scenarioPath, seed: 'scenario-route-seed', allowInvalid: true },
+          },
+          join(dir, 'missing-source'),
+          'free',
+          scenario as never
+        )
+      ).toMatchObject({
+        seed: 'scenario-route-seed',
+        routeCount: 1,
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
