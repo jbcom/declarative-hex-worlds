@@ -93,6 +93,7 @@ export async function run(
   if (analysis.errors.length > 0) {
     process.exit(1);
   }
+  /* v8 ignore next 7 -- registry analysis blocks invalid selections before placement inspection; this is a defensive future-inspector guard. */
   if (
     placementInspection &&
     (placementInspection.inspection.errors.length > 0 ||

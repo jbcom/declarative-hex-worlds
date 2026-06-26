@@ -13,6 +13,7 @@ import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runPatrolRoutes } from '../commands/patrol-routes';
 import { run as runPiece } from '../commands/piece';
+import { run as runPieces } from '../commands/pieces';
 import { run as runPlacePiece } from '../commands/place-piece';
 import { run as runSimulateScenario } from '../commands/simulate-scenario';
 import { run as runSummarizePlan } from '../commands/summarize-plan';
@@ -515,6 +516,119 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
           {
             command: 'piece',
             flags: { asset: writeGltf('piece-error.gltf', [0, 0, 0], [0, 0.5, 0]) },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
+  it('covers pieces validation, payload variants, and exit branches', async () => {
+    const planPath = writeJson('pieces.plan.json', patrolPlan());
+    const registryPath = writeJson('pieces.registry.json', pieceRegistry());
+
+    await expect(
+      runPieces({ command: 'pieces', flags: {} }, '/missing-source', 'free')
+    ).rejects.toThrow(/pieces requires --pieces/);
+    await expect(
+      runPieces(
+        {
+          command: 'pieces',
+          flags: { pieces: registryPath, plan: planPath, recipe: writeJson('pieces.recipe.json', validRecipe()) },
+        },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/requires exactly one/);
+
+    await runPieces(
+      {
+        command: 'pieces',
+        flags: {
+          pieces: registryPath,
+          plan: planPath,
+          ids: 'prop-crate',
+          emitRules: true,
+          emitSourceUrls: true,
+          pieceSourceRoot: '/assets/pieces',
+          outPlan: 'pieces.placed-plan.json',
+          json: true,
+        },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote piece-filled GameboardPlan to');
+    const payload = JSON.parse(logs.at(-1) ?? '{}') as {
+      rules?: unknown[];
+      sourceUrls?: Record<string, string>;
+      placementInspection?: { selectedPieceCount: number };
+    };
+    expect(payload.rules).toHaveLength(1);
+    expect(payload.sourceUrls).toEqual({});
+    expect(payload.placementInspection?.selectedPieceCount).toBe(1);
+
+    logs.length = 0;
+    await runPieces(
+      { command: 'pieces', flags: { pieces: registryPath, ids: 'prop-crate', emitRules: true } },
+      '/missing-source',
+      'free'
+    );
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({ rules: [{ id: 'piece:prop-crate' }] });
+
+    logs.length = 0;
+    await runPieces(
+      { command: 'pieces', flags: { pieces: registryPath, out: 'pieces.analysis.json' } },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote piece registry output to');
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      await expect(
+        runPieces(
+          {
+            command: 'pieces',
+            flags: {
+              pieces: writeJson('pieces.incompatible-registry.json', incompatiblePieceRegistry()),
+              ids: 'pool-crate,pool-tree',
+              mode: 'pool',
+            },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+
+      await expect(
+        runPieces(
+          {
+            command: 'pieces',
+            flags: { pieces: writeJson('pieces.empty-registry.json', { pieces: [] }), failOnWarning: true },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+
+      await expect(
+        runPieces(
+          {
+            command: 'pieces',
+            flags: {
+              pieces: registryPath,
+              plan: planPath,
+              ids: 'prop-crate',
+              count: '1',
+              maxCount: '0',
+              failOnWarning: true,
+            },
           },
           '/missing-source',
           'free'
@@ -1106,6 +1220,15 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
           role: 'prop',
           criteria: { terrain: ['water'], edgePadding: 0 },
         },
+      ],
+    };
+  }
+
+  function incompatiblePieceRegistry(): unknown {
+    return {
+      pieces: [
+        { id: 'pool-crate', assetId: 'fixture:pool-crate', role: 'prop' },
+        { id: 'pool-tree', assetId: 'fixture:pool-tree', role: 'tree' },
       ],
     };
   }
