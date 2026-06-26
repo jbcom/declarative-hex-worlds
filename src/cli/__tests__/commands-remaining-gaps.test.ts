@@ -13,6 +13,7 @@ import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runPatrolRoutes } from '../commands/patrol-routes';
 import { run as runPiece } from '../commands/piece';
+import { run as runPiecesFromAssets } from '../commands/pieces-from-assets';
 import { run as runPieces } from '../commands/pieces';
 import { run as runPlacePiece } from '../commands/place-piece';
 import { run as runSimulateScenario } from '../commands/simulate-scenario';
@@ -636,6 +637,179 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
           'free'
         )
       ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
+  it('covers pieces-from-assets validation, metadata, summaries, and exits', async () => {
+    await expect(
+      runPiecesFromAssets({ command: 'pieces-from-assets', flags: {} }, '/missing-source', 'free')
+    ).rejects.toThrow(/pieces-from-assets requires --assets/);
+
+    const emptyAssetDir = resolve(root, 'pieces-from-assets-empty');
+    mkdirSync(emptyAssetDir, { recursive: true });
+    writeFileSync(resolve(emptyAssetDir, 'readme.txt'), 'not a model', 'utf8');
+    await expect(
+      runPiecesFromAssets(
+        { command: 'pieces-from-assets', flags: { assets: emptyAssetDir } },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/found no .glb or .gltf files/);
+    await expect(
+      runPiecesFromAssets(
+        { command: 'pieces-from-assets', flags: { asset: resolve(emptyAssetDir, 'readme.txt') } },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/found no .glb or .gltf files/);
+
+    const singleAssetPath = writeGltf(
+      'pieces-from-assets/single asset.GLTF',
+      [-0.2, 0, -0.2],
+      [0.2, 0.6, 0.2]
+    );
+    await expect(
+      runPiecesFromAssets(
+        {
+          command: 'pieces-from-assets',
+          flags: { asset: singleAssetPath, overrides: writeJson('pieces-from-assets.bad-overrides.json', []) },
+        },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/must be a JSON object/);
+    await expect(
+      runPiecesFromAssets(
+        {
+          command: 'pieces-from-assets',
+          flags: {
+            asset: singleAssetPath,
+            pieceOverrides: writeJson('pieces-from-assets.bad-overrides-property.json', { overrides: [] }),
+          },
+        },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/"overrides" property must be a JSON object/);
+
+    logs.length = 0;
+    await runPiecesFromAssets(
+      {
+        command: 'pieces-from-assets',
+        flags: {
+          asset: singleAssetPath,
+          creator: 'Fixture Creator',
+          license: 'CC0-1.0',
+          intendedRole: 'prop',
+          modelForward: '+z',
+          boardForwardEdge: '1',
+          role: 'landmark',
+          includeAbsolutePaths: true,
+          includeReport: true,
+          json: true,
+        },
+      },
+      '/missing-source',
+      'free'
+    );
+    const singlePayload = JSON.parse(logs.at(-1) ?? '{}') as {
+      sourcePack: string;
+      sourceAssets: Array<{ id: string; path?: string }>;
+      pieces: Array<{ role: string; source: string }>;
+      reports?: Array<{ sourcePack: string; placement: { modelForward: string; boardForwardEdge: number } }>;
+    };
+    expect(singlePayload.sourcePack).toBe('external');
+    expect(singlePayload.sourceAssets[0]).toMatchObject({ id: 'single-asset', path: singleAssetPath });
+    expect(singlePayload.pieces[0]).toMatchObject({ role: 'landmark', source: 'external' });
+    expect(singlePayload.reports?.[0]).toMatchObject({
+      sourcePack: 'external',
+      placement: { modelForward: '+z', boardForwardEdge: 1 },
+    });
+
+    logs.length = 0;
+    await runPiecesFromAssets(
+      {
+        command: 'pieces-from-assets',
+        flags: {
+          asset: singleAssetPath,
+          sourcePack: 'prefixed-pack',
+          pieceIdPrefix: 'piece-prefix',
+          assetIdPrefix: 'asset-prefix',
+          tags: 'prefixed,test',
+          out: 'pieces-from-assets.out.json',
+        },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote 1 piece declarations to');
+
+    const warningAssetPath = writeGltf(
+      'pieces-from-assets/warnings/warn.gltf',
+      [-1, 0, -1.1547],
+      [1, 0.6, 1.1547]
+    );
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      logs.length = 0;
+      await expect(
+        runPiecesFromAssets(
+          {
+            command: 'pieces-from-assets',
+            flags: {
+              assets: warningAssetPath,
+              overrides: writeJson('pieces-from-assets.warning-overrides.json', {
+                missing: { tags: ['unused'] },
+              }),
+              failOnWarning: true,
+            },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(logs.join('\n')).toContain('override warnings:');
+
+      const registryAssetDir = resolve(root, 'pieces-from-assets-registry');
+      writeGltf('pieces-from-assets-registry/a.gltf', [-1, 0, -1.1547], [1, 0.6, 1.1547]);
+      writeGltf('pieces-from-assets-registry/nested/b.gltf', [-1, 0, -1.1547], [1, 0.7, 1.1547]);
+      writeFileSync(resolve(registryAssetDir, 'nested', 'ignored.txt'), 'ignored', 'utf8');
+      logs.length = 0;
+      await runPiecesFromAssets(
+        {
+          command: 'pieces-from-assets',
+          flags: { assets: `${registryAssetDir},${resolve(registryAssetDir, 'nested')}`, json: true },
+        },
+        '/missing-source',
+        'free'
+      );
+      expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({ assets: ['a.gltf', 'b.gltf'] });
+
+      logs.length = 0;
+      await expect(
+        runPiecesFromAssets(
+          {
+            command: 'pieces-from-assets',
+            flags: {
+              assets: registryAssetDir,
+              overrides: writeJson('pieces-from-assets.registry-overrides.json', {
+                a: { id: 'duplicate-piece', assetId: '' },
+                'nested/b': { id: 'duplicate-piece', assetId: 'shared-asset' },
+              }),
+            },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(logs.join('\n')).toContain('registry warnings:');
+      expect(logs.join('\n')).toContain('Duplicate gameboard piece id: duplicate-piece');
+      expect(logs.join('\n')).toContain('registry errors:');
+      expect(logs.join('\n')).toContain('Piece duplicate-piece is missing assetId');
     } finally {
       exitSpy.mockRestore();
     }
