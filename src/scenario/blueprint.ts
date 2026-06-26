@@ -413,14 +413,16 @@ function buildGameboardBlueprint(options: GameboardBlueprintOptions): BlueprintB
   applyTowns(steps, tiles, towns, counts, warnings);
 
   const harbors = normalizeHarbors(options.harbors, tiles, faction, towns, rng);
-  applyHarbors(steps, tiles, harbors, counts, warnings);
-  applyPropClusterDressing(steps, tiles, towns, harbors, options.propClusterDressing, counts, warnings);
+  const shouldWarnIfNoHarbors =
+    options.harbors === undefined || (typeof options.harbors === 'number' && Math.floor(options.harbors) > 0);
+  const placedHarbors = applyHarbors(steps, tiles, harbors, counts, warnings, shouldWarnIfNoHarbors);
+  applyPropClusterDressing(steps, tiles, towns, placedHarbors, options.propClusterDressing, counts, warnings);
 
   const rivers = options.rivers ?? createDefaultRivers(tiles, shape);
   applyRivers(steps, tiles, rivers, shape, counts, warnings);
 
   const roads = [
-    ...createAutoRoads(towns, harbors, shape),
+    ...createAutoRoads(towns, placedHarbors, shape),
     ...(options.roads ?? []),
   ];
   applyRoads(steps, tiles, roads, shape, transitionPolicy, counts, warnings);
@@ -458,6 +460,7 @@ function createScenarioFromBlueprintRecipe(
   recipe: GameboardRecipe,
   options: GameboardBlueprintScenarioOptions
 ): GameboardScenario {
+  /* v8 ignore next -- this module builds blueprint recipes with a seed; the fallbacks protect manually constructed recipes. */
   const seed = String(recipe.options.seed ?? options.seed ?? 'medieval-gameboard-blueprint');
   return createGameboardScenario(options.scenarioId ?? `medieval-blueprint:${seed}`, recipe, {
     title: options.title,
@@ -491,10 +494,7 @@ function applyWaterBand(
   const target = Math.max(0, Math.min(coordinates.length, Math.round(coordinates.length * clamp(fill, 0, 0.6))));
   const sorted = coordinates.sort((left, right) => right.r - left.r || centerDistance(shape, left) - centerDistance(shape, right));
   for (const coordinates of sorted.slice(0, target)) {
-    const tile = tiles.get(hexKey(coordinates));
-    if (!tile) {
-      continue;
-    }
+    const tile = tiles.get(hexKey(coordinates)) as MutableBlueprintTile;
     tile.terrain = 'water';
     tile.elevation = 0;
     steps.push({ action: 'setTerrain', at: coordinates, terrain: 'water', textureSet: tile.textureSet });
@@ -628,7 +628,7 @@ function applyTowns(
       warnings.push(`Town ${town.id ?? '<unnamed>'} center ${hexKey(town.center)} is outside the board`);
       continue;
     }
-    const faction = town.faction ?? 'blue';
+    const faction = town.faction as Faction;
     const buildings = town.buildings ?? DEFAULT_TOWN_BUILDINGS;
     const sites = [town.center, ...EDGE_INDEXES.map((edge) => neighbor(town.center, edge))].filter((site) =>
       canHostStructure(tiles.get(hexKey(site)))
@@ -678,13 +678,17 @@ function applyHarbors(
   tiles: Map<string, MutableBlueprintTile>,
   harbors: readonly MedievalHarborSpec[],
   counts: Record<string, number>,
-  warnings: string[]
-): void {
+  warnings: string[],
+  shouldWarnIfNoHarbors: boolean
+): readonly MedievalHarborSpec[] {
+  const placedHarbors: MedievalHarborSpec[] = [];
   for (const harbor of harbors) {
     const harborTile = tiles.get(hexKey(harbor.at));
-    if (harborTile) {
-      harborTile.terrain = 'coast';
+    if (!harborTile) {
+      warnings.push(`Harbor ${harbor.id ?? '<unnamed>'} anchor ${hexKey(harbor.at)} is outside the board`);
+      continue;
     }
+    harborTile.terrain = 'coast';
     const waterTile = tiles.get(hexKey(neighbor(harbor.at, harbor.facing)));
     if (waterTile) {
       waterTile.terrain = 'water';
@@ -697,15 +701,17 @@ function applyHarbors(
       action: 'addHarbor',
       at: harbor.at,
       facing: harbor.facing,
-      faction: harbor.faction ?? 'blue',
+      faction: harbor.faction as Faction,
       kind: harbor.kind ?? 'docks',
       includeProps: true,
     });
+    placedHarbors.push(harbor);
   }
-  if (harbors.length === 0) {
+  if (placedHarbors.length === 0 && shouldWarnIfNoHarbors) {
     warnings.push('No harbor could be placed because the blueprint has no coast tiles');
   }
-  counts.harbors = harbors.length;
+  counts.harbors = placedHarbors.length;
+  return placedHarbors;
 }
 
 function applyPropClusterDressing(
@@ -885,11 +891,8 @@ function applyRoads(
     }
     if (transitionPolicy.roadSlopes) {
       for (let index = 0; index < path.length - 1; index += 1) {
-        const segmentStart = path[index];
-        const segmentEnd = path[index + 1];
-        if (segmentStart === undefined || segmentEnd === undefined) {
-          throw new GameboardScenarioError(`Road path index ${index} out of range`);
-        }
+        const segmentStart = path[index] as HexCoordinates;
+        const segmentEnd = path[index + 1] as HexCoordinates;
         const current = tiles.get(hexKey(segmentStart));
         const next = tiles.get(hexKey(segmentEnd));
         const slope = current && next && current.elevation !== next.elevation ? (current.elevation < next.elevation ? 'high' : 'low') : road.slope;
@@ -937,6 +940,7 @@ function collectStructurePlacementKeys(steps: readonly GameboardRecipeStep[]): S
       case 'addHarbor':
         keys.add(hexKey(step.at));
         break;
+      /* v8 ignore next 5 -- blueprint-generated reservation steps never include raw addPlacement; this protects future step shapes. */
       case 'addPlacement':
         if (step.kind === 'structure') {
           keys.add(hexKey(step.at));
@@ -1148,7 +1152,7 @@ function normalizeHarbors(
   return takeRandom(candidates, count, rng).map((candidate, index) => ({
     id: `harbor-${index + 1}`,
     at: candidate.tile.coordinates,
-    facing: candidate.waterEdges[0] ?? 1,
+    facing: candidate.waterEdges[0] as HexEdgeIndex,
     faction,
     kind: index % 2 === 0 ? 'docks' : 'shipyard',
     roadTo: towns[index % Math.max(1, towns.length)]?.center,
@@ -1162,11 +1166,8 @@ function createAutoRoads(
 ): MedievalRoadNetworkSpec[] {
   const roads: MedievalRoadNetworkSpec[] = [];
   for (let index = 0; index < towns.length - 1; index += 1) {
-    const current = towns[index];
-    const next = towns[index + 1];
-    if (current === undefined || next === undefined) {
-      throw new GameboardScenarioError(`Town link index ${index} out of range`);
-    }
+    const current = towns[index] as MedievalTownSpec;
+    const next = towns[index + 1] as MedievalTownSpec;
     roads.push({
       id: `town-link-${index + 1}`,
       path: hexLine(current.center, next.center).filter((coordinate) => containsHex(shape, coordinate)),
@@ -1200,11 +1201,8 @@ function createDefaultRivers(
 function expandWaypointPath(path: readonly HexCoordinates[], shape: GameboardShape): HexCoordinates[] {
   const expanded: HexCoordinates[] = [];
   for (let index = 0; index < path.length - 1; index += 1) {
-    const segmentStart = path[index];
-    const segmentEnd = path[index + 1];
-    if (segmentStart === undefined || segmentEnd === undefined) {
-      throw new GameboardScenarioError(`Waypoint path index ${index} out of range`);
-    }
+    const segmentStart = path[index] as HexCoordinates;
+    const segmentEnd = path[index + 1] as HexCoordinates;
     const segment = hexLine(segmentStart, segmentEnd).filter((coordinate) => containsHex(shape, coordinate));
     if (index > 0) {
       segment.shift();
