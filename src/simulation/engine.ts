@@ -33,6 +33,7 @@ import {
   type GameboardScenarioActor,
   type GameboardScenarioRuntime,
 } from '../scenario';
+import { GameboardActor } from '../traits';
 import {
   runGameboardActorTargetInteraction,
   runGameboardInteraction,
@@ -749,17 +750,23 @@ function updateActorMutation(
   actor: GameboardActorSnapshot,
   step: GameboardScenarioSimulationUpdateActorStep
 ): GameboardScenarioSimulationMutationRecord {
+  let entity = actor.entity;
   if (step.placement) {
-    updateGameboardPlacement(runtime.world, actor.entity, step.placement);
+    entity = updateGameboardPlacement(runtime.world, entity, step.placement);
   }
-  updateGameboardActor(runtime.world, actor.entity, step.actor);
-  const updatedActor =
-    findGameboardActor(runtime.world, step.actor.actorId ?? step.actorId) ??
-    findGameboardActor(runtime.world, actor.placement.id);
+  entity = updateGameboardActor(runtime.world, entity, step.actor);
+  const updatedActor = entity.get(GameboardActor);
+  const updatedPlacement = entity.get(PlacementState);
+  /* v8 ignore next 5 -- updateGameboardActor/updateGameboardPlacement return a placement actor entity; this guards custom Koota mutation drift. */
+  if (updatedActor === undefined || updatedPlacement === undefined) {
+    throw new GameboardRuntimeError(
+      `Simulation actor update removed required state for actor ${step.actorId}`
+    );
+  }
   return {
     type: 'actor-updated',
-    actorId: updatedActor?.actor.actorId ?? step.actor.actorId ?? actor.actor.actorId,
-    placementId: updatedActor?.placement.id ?? actor.placement.id,
+    actorId: updatedActor.actorId,
+    placementId: updatedPlacement.id,
     updated: true,
   };
 }
