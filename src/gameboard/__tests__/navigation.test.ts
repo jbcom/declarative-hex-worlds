@@ -621,6 +621,72 @@ describe('findGameboardPath defensive returns (PRD E0a)', () => {
     expect(findGameboardPath(plan, '0,0', '99,99').found).toBe(false);
   });
 
+  it('covers navigation path, reachability, and cost edge branches', () => {
+    const plan = createGameboardBuilder({
+      seed: 'navigation-edge-branches',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    })
+      .setElevation({ q: 1, r: 0 }, 2)
+      .build();
+    const blockedStartPlan = createGameboardBuilder({
+      seed: 'navigation-blocked-start',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'unit_blue_full',
+        kind: 'unit',
+        layer: 'unit',
+      })
+      .build();
+    const blockedGoalPlan = createGameboardBuilder({
+      seed: 'navigation-blocked-goal',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .addPlacement({
+        at: { q: 1, r: 0 },
+        assetId: 'unit_blue_full',
+        kind: 'unit',
+        layer: 'unit',
+      })
+      .build();
+    const navigation = createGameboardNavigation(plan);
+    let callbackPlacementCount = -1;
+    const callbackNavigation = createGameboardNavigation(plan, {
+      canEnter: (_tile, context) => {
+        callbackPlacementCount = context.placements.length;
+        return true;
+      },
+    });
+
+    expect(
+      createGameboardNavigation(blockedStartPlan, { allowStartBlocked: false }).findPath('0,0', '1,0')
+        .found
+    ).toBe(false);
+    expect(
+      createGameboardNavigation(blockedGoalPlan, { allowGoalBlocked: true }).findPath('0,0', '1,0')
+        .found
+    ).toBe(true);
+    expect(navigation.placementsAt('99,99')).toEqual([]);
+    expect(navigation.canEnter('99,99')).toBe(false);
+    expect(createGameboardNavigation(plan, { allowedTerrain: ['water'] }).canEnter('0,0')).toBe(false);
+    expect(callbackNavigation.canEnter('0,0')).toBe(true);
+    expect(callbackPlacementCount).toBe(1);
+    expect(navigation.movementCost('99,99', '0,0')).toBe(Number.POSITIVE_INFINITY);
+    expect(createGameboardNavigation(plan, { maxElevationStep: 0 }).movementCost('0,0', '1,0')).toBe(
+      Number.POSITIVE_INFINITY
+    );
+    expect(
+      reachableGameboardTiles(plan, '1,0', 2, { maxElevationStep: 3 }).map((entry) => entry.tile.key)
+    ).toEqual([
+      '1,0',
+      '0,0',
+      '2,0',
+    ]);
+    expect(navigation.reachable('1,0', 2).map((entry) => entry.tile.key)).toEqual(['1,0']);
+    expect(() => findGameboardPath(plan, 'bad-key', '0,0')).toThrow(/Invalid hex key string/);
+  });
+
 });
 
 describe('planGameboardSpawnGroups validation branches (PRD E0a)', () => {

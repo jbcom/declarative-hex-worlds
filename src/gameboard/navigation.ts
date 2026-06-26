@@ -428,15 +428,18 @@ export function reachableGameboardTiles(
 
   while (heap.length > 0) {
     const popped = minHeapPop(heap);
+    /* v8 ignore next 3 -- heap.length guard prevents empty pops. */
     if (popped === undefined) {
       continue;
     }
     const [heapCost, currentKey] = popped;
     const recordedCost = costByKey.get(currentKey);
+    /* v8 ignore next 3 -- heap keys are pushed only after recording their cost. */
     if (recordedCost === undefined || heapCost > recordedCost) {
       continue;
     }
     const current = tilesByKey.get(currentKey);
+    /* v8 ignore next 3 -- reachable heap keys are always known plan tiles. */
     if (!current) {
       continue;
     }
@@ -458,6 +461,7 @@ export function reachableGameboardTiles(
         continue;
       }
       const adjacent = tilesByKey.get(hexKey(adjacentCoordinates));
+      /* v8 ignore next 3 -- canEnterTile already rejects missing adjacent tiles. */
       if (!adjacent) {
         continue;
       }
@@ -484,6 +488,7 @@ export function reachableGameboardTiles(
   return [...costByKey.entries()]
     .map(([key, cost]) => {
       const tile = tilesByKey.get(key);
+      /* v8 ignore next -- costByKey is populated only from indexed tiles. */
       return tile ? { tile, coordinates: tile.coordinates, cost } : undefined;
     })
     .filter((tile): tile is GameboardReachableTile => tile !== undefined)
@@ -588,6 +593,7 @@ function canEnterTile(
       plan,
       from: fromTile,
       to: tile,
+      /* v8 ignore next -- indexed plan tiles always carry generated terrain placement entries. */
       placements: occupancy.byTileKey.get(tile.key) ?? [],
     }) ?? true
   );
