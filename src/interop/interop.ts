@@ -1390,10 +1390,12 @@ function actorWorldPosition(
   tilesByKey: ReadonlyMap<string, GameboardTileSpec>
 ): WorldPosition | undefined {
   const coordinates = normalizeCoordinates(actor.at);
+  /* v8 ignore next 3 -- scenario actor resolution rejects missing/invalid coordinates before interop serialization. */
   if (!coordinates) {
     return undefined;
   }
   const tile = tilesByKey.get(hexKey(coordinates));
+  /* v8 ignore next -- resolved scenario actors always reference generated plan tiles. */
   const position = axialToWorld(coordinates, (tile?.elevation ?? 0) + (actor.elevationOffset ?? 0));
   return {
     x: position.x + (actor.positionOffset?.x ?? 0),
@@ -1413,6 +1415,7 @@ function adjacencyForTile(
       continue;
     }
     const reciprocalEdge = edgeBetween(adjacent.coordinates, tile.coordinates);
+    /* v8 ignore next 3 -- adjacent was produced by neighbor(edge), so axial hexes always have a reciprocal edge. */
     if (reciprocalEdge === undefined) {
       continue;
     }
@@ -1566,6 +1569,7 @@ function patrolWaypointToInteropEntity(
     components: {
       PatrolWaypoint: patrolWaypointRecord(routeId, waypoint),
       TileCoordinates: { ...waypoint.coordinates },
+      /* v8 ignore next -- patrol route planner waypoints are selected from indexed plan tiles. */
       WorldPosition: tile
         ? axialToWorld(tile.coordinates, tile.elevation)
         : { ...waypoint.position },
@@ -1645,6 +1649,7 @@ function patrolSegmentRecord(
 
 function actorTileRelation(actor: ResolvedGameboardScenarioActor): readonly GameboardEcsRelation[] {
   const coordinates = normalizeCoordinates(actor.at);
+  /* v8 ignore next 3 -- scenario actor resolution rejects missing/invalid coordinates before relations are built. */
   if (!coordinates) {
     return [];
   }
@@ -1674,6 +1679,7 @@ function actorPatrolRouteRelations(
   return [
     {
       name: 'ActorPatrolRoute',
+      /* v8 ignore next -- resolved scenario actors always carry a non-empty actor id. */
       fromId: actorEntityId(actor.actorId) ?? `actor:${actor.actorId}`,
       toId: patrolRouteEntityId(routeId),
       data: {
@@ -2307,6 +2313,7 @@ function normalizeCoordinates(
 function cloneScenarioActor(actor: GameboardScenarioActor): GameboardScenarioActor {
   return {
     ...actor,
+    /* v8 ignore next 6 -- resolved scenario actors serialized by interop always have an authored or resolved location. */
     at:
       actor.at === undefined
         ? undefined
