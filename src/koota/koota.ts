@@ -686,18 +686,14 @@ export function readPlacementsForTile(
  */
 export function readGameboardPlacementOccupancy(world: World): PlacementOccupancySnapshot[] {
   const records: PlacementOccupancySnapshot[] = [];
-  for (const entity of world.query(GameboardPlacementQuery)) {
-    const placement = entity.get(PlacementState);
-    if (!placement) {
-      continue;
-    }
+  world.query(GameboardPlacementQuery).readEach(([placement], entity) => {
     for (const tile of entity.targetsFor(PlacementOccupiesTile)) {
       const record = placementOccupancySnapshot(entity, tile, placement);
       if (record) {
         records.push(record);
       }
     }
-  }
+  });
   return records.sort(comparePlacementOccupancy);
 }
 
@@ -712,14 +708,17 @@ export function readPlacementOccupancyForTile(
   if (!tile) {
     return [];
   }
-  return world
+  const records: PlacementOccupancySnapshot[] = [];
+  world
     .query(IsGameboardPlacement, PlacementOccupiesTile(tile), PlacementState)
-    .map((entity) => {
-      const placement = entity.get(PlacementState);
-      return placement ? placementOccupancySnapshot(entity, tile, placement) : undefined;
-    })
-    .filter((record): record is PlacementOccupancySnapshot => record !== undefined)
-    .sort(comparePlacementOccupancy);
+    .readEach((_, entity) => {
+      const placement = requirePlacementState(entity);
+      const record = placementOccupancySnapshot(entity, tile, placement);
+      if (record) {
+        records.push(record);
+      }
+    });
+  return records.sort(comparePlacementOccupancy);
 }
 
 /**
@@ -809,6 +808,7 @@ function assertPlacementOccupancyGuard(
 
   if (!inspection.canOccupy) {
     throw new GameboardRuntimeError(
+      /* v8 ignore next -- failed occupancy inspections currently carry missing-tile or blocker reasons; fallback protects future/manual objects. */
       `Placement ${placement.id} cannot occupy ${inspection.tileKey}: ${inspection.reason ?? 'blocked'}`
     );
   }
@@ -975,6 +975,15 @@ function requirePlacementEntity(world: World, placement: Entity | string): Entit
   return entity;
 }
 
+function requirePlacementState(entity: Entity): PlacementStateValue {
+  const placement = entity.get(PlacementState);
+  /* v8 ignore next 3 -- callers use PlacementState queries; this catches future query contract drift. */
+  if (!placement) {
+    throw new GameboardRuntimeError(`Placement ${placementId(entity)} is missing PlacementState`);
+  }
+  return placement;
+}
+
 function tileKey(coordinates: HexCoordinates | string): string {
   return typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
 }
@@ -1007,7 +1016,7 @@ function syncPlacementOccupancyRelations(
 
   const footprintKeys = gameboardPlacementFootprintKeys(placement);
   const blocksMovement = gameboardPlacementBlocksOccupancy(placement);
-  const occupancyGroup = gameboardPlacementOccupancyGroup(placement) ?? '';
+  const occupancyGroup = gameboardPlacementOccupancyGroup(placement);
   footprintKeys.forEach((key, footprintIndex) => {
     const tile = tileIndex?.get(key) ?? findTileEntity(world, key);
     if (!tile) {

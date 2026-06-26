@@ -3,6 +3,7 @@ import { createGameboardBuilder, createHarborBoard } from '../../gameboard/index
 import { axialToWorld } from '../../coordinates/grid';
 import {
   ExtraPlacementQuery,
+  GameboardState,
   HarborPlacementQuery,
   HexTileState,
   IsGameboardPlacement,
@@ -460,23 +461,210 @@ describe('Koota gameboard runtime', () => {
   });
 
   it('defaultLayerForPlacementKind covers terrain + surface + structure kinds (E0b)', () => {
-    // Exercises koota.ts lines 910 (terrain) + 915 (road/river/coast/transition).
     const plan = createGameboardBuilder({
       seed: 'kind-layer-defaults',
-      shape: { kind: 'rectangle', width: 2, height: 1 },
+      shape: { kind: 'rectangle', width: 7, height: 1 },
     }).build();
     const world = createGameboardWorld(plan);
-    const terrain = spawnGameboardPlacement(world, {
+    const cases = [
+      ['terrain', 'terrain'],
+      ['road', 'surface'],
+      ['river', 'surface'],
+      ['coast', 'surface'],
+      ['transition', 'surface'],
+      ['structure', 'structure'],
+      ['unit', 'unit'],
+      ['decoration', 'feature'],
+      ['prop', 'feature'],
+    ] as const;
+
+    for (const [index, [kind, layer]] of cases.entries()) {
+      const placement = spawnGameboardPlacement(world, {
+        at: { q: index % 7, r: 0 },
+        assetId: `${kind}-asset`,
+        kind,
+      });
+      expect(placement.get(PlacementState)?.layer).toBe(layer);
+    }
+  });
+
+  it('rejects broken plans and missing tile or placement traits', () => {
+    const plan = createGameboardBuilder({
+      seed: 'koota-defensive-branches',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .addPlacement({ at: { q: 0, r: 0 }, assetId: 'flag_blue', kind: 'prop', layer: 'feature' })
+      .build();
+    const originalPlacement = plan.placements[0];
+    if (!originalPlacement) {
+      throw new Error('Expected defensive fixture placement');
+    }
+    const brokenPlan = {
+      ...plan,
+      placements: [{ ...originalPlacement, tileKey: '9,9' }],
+    };
+
+    expect(() => spawnGameboardPlan(createGameboardWorld(), brokenPlan)).toThrow(
+      /references missing tile 9,9/
+    );
+
+    const world = createGameboardWorld(plan);
+    const tile = findTileEntity(world, '0,0');
+    tile?.remove(HexTileState);
+    expect(() =>
+      spawnGameboardPlacement(world, { at: '0,0', assetId: 'flag_red', kind: 'prop' })
+    ).toThrow(/missing HexTileState/);
+
+    const placement = findPlacementEntity(world, originalPlacement.id);
+    placement?.remove(PlacementState);
+    expect(() => updateGameboardPlacement(world, placement ?? 'missing', {})).toThrow(
+      /missing PlacementState/
+    );
+
+    const updateWorld = createGameboardWorld(plan);
+    findTileEntity(updateWorld, '0,0')?.remove(HexTileState);
+    expect(() => updateGameboardPlacement(updateWorld, originalPlacement.id, {})).toThrow(
+      /missing HexTileState/
+    );
+  });
+
+  it('covers placement lookup, id collision, and unloaded-board mutation guards', () => {
+    const plan = createGameboardBuilder({
+      seed: 'koota-index-guards',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    }).build();
+    const world = createGameboardWorld(plan);
+
+    expect(() =>
+      spawnGameboardPlacement(world, { at: { q: 9, r: 9 }, assetId: 'flag_blue', kind: 'prop' })
+    ).toThrow(/No tile exists at 9,9/);
+    expect(() => updateGameboardPlacement(world, 'missing-placement', {})).toThrow(
+      /No placement exists with id missing-placement/
+    );
+
+    const first = spawnGameboardPlacement(world, {
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'prop',
+    });
+    first.remove(PlacementState);
+    const second = spawnGameboardPlacement(world, {
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'prop',
+    });
+    expect(second.get(PlacementState)?.id).toBe('runtime:prop:0,0:flag_blue:1');
+
+    world.remove(GameboardState);
+    expect(removeGameboardPlacement(world, second)).toBe(true);
+    expect(readGameboardSnapshot(world).board).toBeUndefined();
+  });
+
+  it('sorts equal-order placement and occupancy fallback keys', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'koota-sort-fallbacks',
+        shape: { kind: 'rectangle', width: 1, height: 1 },
+      }).build()
+    );
+    const sortB = spawnGameboardPlacement(world, {
+      id: 'sort-b',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'prop',
+      order: 10,
+    });
+    spawnGameboardPlacement(world, {
+      id: 'sort-a',
       at: { q: 0, r: 0 },
-      assetId: 'hex_grass',
-      kind: 'terrain',
+      assetId: 'flag_red',
+      kind: 'prop',
+      order: 10,
     });
-    expect(terrain.get(PlacementState)?.layer).toBe('terrain');
-    const road = spawnGameboardPlacement(world, {
-      at: { q: 1, r: 0 },
-      assetId: 'hex_road_A',
-      kind: 'road',
+
+    expect(
+      readGameboardPlacements(world)
+        .filter((placement) => placement.id.startsWith('sort-'))
+        .map((placement) => placement.id)
+    ).toEqual(['sort-a', 'sort-b']);
+    expect(
+      readPlacementsForTile(world, { q: 0, r: 0 })
+        .filter((placement) => placement.id.startsWith('sort-'))
+        .map((placement) => placement.id)
+    ).toEqual(['sort-a', 'sort-b']);
+    expect(
+      readPlacementOccupancyForTile(world, '0,0')
+        .filter((record) => record.placement.id.startsWith('sort-'))
+        .map((record) => record.placement.id)
+    ).toEqual(['sort-a', 'sort-b']);
+
+    const tile = findTileEntity(world, '0,0');
+    if (!tile) {
+      throw new Error('Expected sort fallback tile');
+    }
+    sortB.remove(PlacementOccupiesTile(tile));
+    sortB.add(
+      PlacementOccupiesTile(tile, {
+        originTileKey: '0,0',
+        footprintIndex: 1,
+        blocksMovement: false,
+        occupancyGroup: 'sort-b',
+      })
+    );
+    expect(
+      readPlacementOccupancyForTile(world, '0,0')
+        .filter((record) => record.placement.id.startsWith('sort-'))
+        .map((record) => `${record.placement.id}:${record.footprintIndex}`)
+    ).toEqual(['sort-a:0', 'sort-b:1']);
+    const offset = spawnGameboardPlacement(world, {
+      id: 'offset-marker',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'prop',
+      positionOffset: { x: 0.25, y: 0.5, z: -0.25 },
     });
-    expect(road.get(PlacementState)?.layer).toBe('surface');
+    const before = offset.get(PlacementState)?.position;
+    const updated = updateGameboardPlacement(world, offset, { assetId: 'flag_red' });
+
+    expect(updated.get(PlacementState)?.position).toEqual(before);
+  });
+
+  it('handles sparse occupancy relations and invalid inspection tile keys', () => {
+    const plan = createGameboardBuilder({
+      seed: 'koota-occupancy-fallbacks',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    }).build();
+    const world = createGameboardWorld(plan);
+
+    const sparse = spawnGameboardPlacement(world, {
+      id: 'sparse-footprint',
+      at: '0,0',
+      assetId: 'external_gatehouse',
+      kind: 'prop',
+      metadata: { layoutFootprintTiles: '0,0|1,0', layoutBlocksMovement: true },
+    });
+    expect(new Set(readGameboardPlacementOccupancy(world).map((record) => record.tileKey))).toEqual(
+      new Set(['0,0'])
+    );
+    expect(readPlacementsForTile(world, '1,0').map((placement) => placement.id)).toEqual([
+      'sparse-footprint',
+    ]);
+
+    findTileEntity(world, '0,0')?.remove(HexTileState);
+    expect(readGameboardPlacementOccupancy(world)).toEqual([]);
+    sparse.remove(PlacementState);
+    expect(readGameboardPlacementOccupancy(world)).toEqual([]);
+
+    expect(inspectGameboardPlacementOccupancy(world, { at: '0,0' }).canOccupy).toBe(true);
+    expect(
+      inspectGameboardPlacementOccupancy(world, { at: { q: 4, r: 4 }, kind: 'unit' })
+    ).toMatchObject({
+      tileKey: '4,4',
+      coordinates: { q: 4, r: 4 },
+      missingTileKeys: ['4,4'],
+    });
+    expect(() => inspectGameboardPlacementOccupancy(world, { at: 'not-a-tile' })).toThrow(
+      /Invalid tile key/
+    );
   });
 });
