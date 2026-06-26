@@ -266,8 +266,7 @@ export function commandExists(
 }
 
 function pageNumber(filePath: string): number {
-  const match = /^page-(\d+)\.png$/u.exec(basename(filePath));
-  return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+  return Number(basename(filePath).slice('page-'.length, -'.png'.length));
 }
 
 export function isDirectRun(
