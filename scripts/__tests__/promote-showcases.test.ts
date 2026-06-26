@@ -148,6 +148,65 @@ describe('scripts/promote-showcases', () => {
       'showcase quality check failed for docs/showcases/throw.png: not a png',
     ]);
   });
+
+  it('uses default workspace, target, and dependency fallbacks safely with no work', () => {
+    expect(buildShowcaseTargets()[0]?.target).toContain('/docs/showcases/');
+    expect(promoteShowcases({ targets: [] })).toEqual({
+      checkOnly: false,
+      curatedShowcaseFileCount: 0,
+      directoryCount: 0,
+      failures: [],
+    });
+
+    const harness = createHarness();
+    const result = promoteShowcases({ dependencies: harness.dependencies });
+
+    expect(result.failures.length).toBeGreaterThan(0);
+    expect(result.failures.every((failure) => failure.startsWith('missing source screenshot '))).toBe(
+      true
+    );
+  });
+
+  it('reports promotion-mode success through the runner', () => {
+    const harness = createHarness({
+      existingPaths: [target.source],
+      fileContents: { [target.source]: 'source-bytes' },
+    });
+    const exitCode = runPromoteShowcases([], {
+      workspaceRoot: '/repo',
+      targets: [target],
+      dependencies: harness.dependencies,
+    });
+
+    expect(exitCode).toBe(0);
+    expect(harness.logs.at(-1)).toBe(
+      'promoted 1 curated screenshot(s) to 1 showcase destination(s)'
+    );
+  });
+
+  it('reports Error quality analyzer failures with the original message', () => {
+    const harness = createHarness({
+      existingPaths: [target.source],
+      fileContents: { [target.source]: 'source-bytes' },
+    });
+    const dependencies: PromoteShowcasesDependencies = {
+      ...harness.dependencies,
+      analyzeScreenshotImpl: () => {
+        throw new Error('image decoder rejected the png');
+      },
+    };
+
+    const result = promoteShowcases({
+      checkOnly: true,
+      workspaceRoot: '/repo',
+      targets: [target],
+      dependencies,
+    });
+
+    expect(result.failures).toContain(
+      'showcase quality check failed for tests/browser/__screenshots__/hero.png: image decoder rejected the png'
+    );
+  });
 });
 
 function createHarness(options: {
