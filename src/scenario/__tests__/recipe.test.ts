@@ -4,6 +4,7 @@ import {
   appendGameboardRecipeSteps,
   applyGameboardRecipe,
   applyGameboardRecipeGeneration,
+  applyRecipeStep,
   createGameboardLayoutArchetypeRegistryFromRecipe,
   createGameboardLayoutArchetypeRegistryFromRecipeGeneration,
   createGameboardPieceRegistryFromRecipe,
@@ -13,6 +14,7 @@ import {
   createGameboardRecipeGenerationFillRules,
   inspectGameboardRecipe,
   mergeGameboardRecipes,
+  type GameboardRecipe,
   type GameboardRecipeStep,
   validateGameboardRecipe,
   validateGameboardRecipeGeneration,
@@ -322,6 +324,7 @@ describe('serializable gameboard recipes', () => {
     const elevation = [1, 2];
     const adjacentKinds: Array<'road' | 'structure' | 'prop'> = ['road', 'structure'];
     const adjacentLayers: Array<'surface' | 'structure' | 'feature'> = ['surface', 'structure'];
+    const footprintOffsets = [{ q: 1, r: 0 }];
     const preferenceKinds: Array<'structure' | 'prop' | 'road'> = ['structure', 'prop'];
     const preferenceTerrain: Array<'forest' | 'hill' | 'water'> = ['forest', 'hill'];
     const recipe = createGameboardRecipe(
@@ -336,12 +339,33 @@ describe('serializable gameboard recipes', () => {
             count: 1,
             criteria: {
               terrain,
+              excludeTerrain: ['water'],
               elevation,
+              tileTags: ['camp', 'supply'],
+              excludeTileTags: ['blocked'],
+              requiredAdjacentTerrain: ['grass'],
+              forbiddenAdjacentTerrain: ['grass'],
               requiredAdjacentPlacementKind: adjacentKinds,
+              forbiddenAdjacentPlacementKind: adjacentKinds,
+              requiredAdjacentPlacementLayer: adjacentLayers,
               forbiddenAdjacentPlacementLayer: adjacentLayers,
+              footprint: { kind: 'custom', offsets: footprintOffsets, includeCenter: true },
+              footprintTerrain: ['grass'],
+              excludeFootprintTerrain: ['grass'],
+              blockingPlacementKinds: ['structure'],
+              blockingPlacementLayers: ['structure'],
+              ignorePlacementIds: ['ignore-me'],
+              minDistanceFrom: [{ q: 0, r: 0 }, '1,0'],
+              maxDistanceFrom: [{ q: 2, r: 0 }, '2,1'],
               prefer: [
                 { kind: 'near-placement-kind', placementKind: preferenceKinds, radius: 3, weight: 1 },
                 { kind: 'near-terrain', terrain: preferenceTerrain, radius: 2, weight: 0.5 },
+                { kind: 'far-from-placement-kind', placementKind: 'road', radius: 4, weight: 0.25 },
+                { kind: 'far-from-terrain', terrain: 'water', radius: 4, weight: 0.25 },
+                { kind: 'center', weight: 0.1 },
+                { kind: 'edge', weight: 0.1 },
+                { kind: 'high-elevation', weight: 0.1 },
+                { kind: 'low-elevation', weight: 0.1 },
               ],
             },
           },
@@ -353,6 +377,7 @@ describe('serializable gameboard recipes', () => {
     elevation.push(3);
     adjacentKinds.push('prop');
     adjacentLayers.push('feature');
+    footprintOffsets[0] = { q: 2, r: 2 };
     preferenceKinds.push('road');
     preferenceTerrain.push('water');
 
@@ -360,10 +385,15 @@ describe('serializable gameboard recipes', () => {
     const nearPlacement = criteria?.prefer?.[0];
     const nearTerrain = criteria?.prefer?.[1];
 
-    expect(criteria?.terrain).toEqual(['grass', 'road']);
-    expect(criteria?.elevation).toEqual([1, 2]);
-    expect(criteria?.requiredAdjacentPlacementKind).toEqual(['road', 'structure']);
-    expect(criteria?.forbiddenAdjacentPlacementLayer).toEqual(['surface', 'structure']);
+    expect(criteria).toMatchObject({
+      terrain: ['grass', 'road'],
+      excludeTerrain: ['water'],
+      elevation: [1, 2],
+      tileTags: ['camp', 'supply'],
+      footprint: { kind: 'custom', offsets: [{ q: 1, r: 0 }], includeCenter: true },
+      minDistanceFrom: [{ q: 0, r: 0 }, '1,0'],
+      maxDistanceFrom: [{ q: 2, r: 0 }, '2,1'],
+    });
     expect(nearPlacement?.kind).toBe('near-placement-kind');
     if (nearPlacement?.kind === 'near-placement-kind') {
       expect(nearPlacement.placementKind).toEqual(['structure', 'prop']);
@@ -372,6 +402,156 @@ describe('serializable gameboard recipes', () => {
     if (nearTerrain?.kind === 'near-terrain') {
       expect(nearTerrain.terrain).toEqual(['forest', 'hill']);
     }
+  });
+
+  it('covers remaining cloned step and generation branch variants (E0h)', () => {
+    const tileTags = ['recipe-tile'];
+    const coastEdges: Array<0 | 1> = [0];
+    const riverPath = [
+      { q: 0, r: 1 },
+      { q: 1, r: 1 },
+    ];
+    const scatterAssets = ['tree_single_A'];
+    const scatterTerrain: Array<'grass' | 'water'> = ['grass'];
+    const placementMetadata = { fixture: 'original' };
+    const recipe = createGameboardRecipe(
+      { seed: 'recipe-remaining-branches', shape: { kind: 'rectangle', width: 4, height: 3 } },
+      [
+        { action: 'setTileAsset', at: { q: 0, r: 0 }, assetId: 'hex_grass', terrain: 'grass', tags: tileTags },
+        { action: 'setTileAsset', at: { q: 0, r: 2 }, assetId: 'hex_grass', terrain: 'grass' },
+        { action: 'setCoastEdges', at: { q: 0, r: 1 }, waterEdges: coastEdges },
+        { action: 'setCoastEdges', at: { q: 1, r: 1 }, waterEdges: 3 },
+        { action: 'addRiverPath', path: riverPath, waterless: true, curvy: true, crossing: 'A' },
+        { action: 'addTransition', at: { q: 2, r: 1 }, from: 'default', to: 'winter', rotationSteps: 2 },
+        { action: 'addPlacement', at: { q: 3, r: 1 }, assetId: 'crate_A_small', kind: 'prop', layer: 'feature', metadata: placementMetadata },
+        { action: 'scatterDecorations', assets: scatterAssets, terrain: scatterTerrain, count: 1 },
+      ] satisfies readonly GameboardRecipeStep[]
+    );
+
+    tileTags.push('mutated');
+    coastEdges.push(1);
+    riverPath[0] = { q: 9, r: 9 };
+    scatterAssets.push('crate_A_small');
+    scatterTerrain.push('water');
+    placementMetadata.fixture = 'mutated';
+
+    expect(recipe.steps[0]).toMatchObject({ tags: ['recipe-tile'] });
+    expect(Object.hasOwn(recipe.steps[1] ?? {}, 'tags')).toBe(false);
+    expect(recipe.steps[2]).toMatchObject({ waterEdges: [0] });
+    expect(recipe.steps[4]).toMatchObject({ path: [{ q: 0, r: 1 }, { q: 1, r: 1 }] });
+    expect(recipe.steps[6]).toMatchObject({ metadata: { fixture: 'original' } });
+    expect(recipe.steps[7]).toMatchObject({ assets: ['tree_single_A'], terrain: ['grass'] });
+
+    const plan = createGameboardPlanFromRecipe(recipe);
+    expect(plan.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
+    expect(applyGameboardRecipe(createGameboardBuilder({ seed: 'recipe-direct-steps', shape: { kind: 'rectangle', width: 2, height: 2 } }), [{ action: 'addFlag', at: { q: 0, r: 0 }, faction: 'green' }]).build().placements.some((placement) => placement.assetId === 'flag_green')).toBe(true);
+
+    const malformedStep = { action: 'unknownRecipeStep' } as unknown as GameboardRecipeStep;
+    expect(createGameboardRecipe(recipe.options, [malformedStep]).steps[0]).toEqual(malformedStep);
+    expect(() => applyRecipeStep(createGameboardBuilder({ seed: 'recipe-unknown-step', shape: { kind: 'rectangle', width: 1, height: 1 } }), malformedStep)).toThrow(/Unhandled gameboard recipe step/);
+  });
+
+  it('covers empty, no-seed, local-archetype, and footprint declaration generation branches (E0h)', () => {
+    const propArchetype = (id: string, label: string) => ({
+      id,
+      label,
+      kind: 'prop' as const,
+      criteria: { terrain: 'grass' as const },
+    });
+    const basePlan = createGameboardBuilder({ seed: 'recipe-no-generation', shape: { kind: 'rectangle', width: 1, height: 1 } }).build();
+    expect(createGameboardRecipeGenerationFillRules(undefined)).toEqual([]);
+    expect(applyGameboardRecipeGeneration(basePlan, undefined)).toBe(basePlan);
+
+    const rawEmptyGenerationRecipe: GameboardRecipe = {
+      schemaVersion: '1.0.0',
+      options: { seed: 'raw-empty-generation', shape: { kind: 'rectangle', width: 1, height: 1 } },
+      steps: [],
+      generation: {},
+    };
+    expect(mergeGameboardRecipes(rawEmptyGenerationRecipe, []).generation).toBeUndefined();
+
+    const noSeedRecipe = createGameboardRecipe(
+      { seed: 'recipe-generation-no-seed', shape: { kind: 'rectangle', width: 2, height: 2 } },
+      [],
+      { layoutFills: [{ id: 'no-seed-banner', archetype: 'prop', assets: ['flag_blue', 'flag_red'], count: 1 }] }
+    );
+    expect(mergeGameboardRecipes(noSeedRecipe, []).generation?.layoutFillSeed).toBeUndefined();
+    expect(
+      createGameboardPlanFromRecipe(noSeedRecipe).placements.some((placement) =>
+        ['flag_blue', 'flag_red'].includes(placement.assetId)
+      )
+    ).toBe(true);
+
+    const pieceOnlyRecipe = createGameboardRecipe(
+      { seed: 'recipe-piece-only-generation', shape: { kind: 'rectangle', width: 2, height: 2 } },
+      [],
+      {
+        pieceDeclarations: [
+          {
+            id: 'selectionless-piece',
+            assetId: 'crate_A_small',
+            source: 'Recipe fixtures',
+            role: 'custom',
+            footprint: { kind: 'custom', offsets: [{ q: 1, r: 0 }], includeCenter: true },
+          },
+        ],
+        pieceFills: [{ count: 1, criteria: { terrain: 'grass', footprint: { kind: 'adjacent', edges: [0] } } }],
+      }
+    );
+    const pieceOnlyRules = createGameboardRecipeGenerationFillRules(pieceOnlyRecipe.generation);
+    expect(pieceOnlyRules[0]).toMatchObject({ assetId: 'crate_A_small', criteria: { footprint: { kind: 'adjacent', edges: [0] } } });
+
+    const recipe = createGameboardRecipe(
+      { seed: 'recipe-local-archetype-merge', shape: { kind: 'rectangle', width: 3, height: 3 } },
+      [],
+      {
+        layoutArchetypes: { global: propArchetype('global', 'Global') },
+        pieceDeclarations: [
+          {
+            id: 'recipe-footprint-piece',
+            assetId: 'crate_A_small',
+            source: 'Recipe fixtures',
+            role: 'custom',
+            archetype: propArchetype('object-prop', 'Object Prop'),
+            footprint: { kind: 'custom', edges: [0, 1], offsets: [{ q: 1, r: 0 }], includeCenter: true },
+          },
+        ],
+        pieceFills: [
+          {
+            selection: {
+              ids: ['recipe-footprint-piece'],
+              assetIds: ['crate_A_small'],
+              roles: ['custom'],
+              sources: ['Recipe fixtures'],
+              tags: [],
+              excludeTags: ['skip'],
+              requiresExtra: false,
+            },
+            criteria: { terrain: 'grass' },
+            count: 1,
+            metadata: { source: 'recipe-fill' },
+          },
+        ],
+        layoutFills: [
+          {
+            id: 'local-banner',
+            archetype: 'local',
+            archetypes: { local: propArchetype('local', 'Local') },
+            assetId: 'flag_blue',
+            count: 1,
+          },
+        ],
+      }
+    );
+
+    expect(validateGameboardRecipeGeneration(recipe)).toEqual([]);
+    expect(mergeGameboardRecipes(recipe, []).generation?.layoutArchetypes?.global?.id).toBe('global');
+    const rules = createGameboardRecipeGenerationFillRules(recipe.generation);
+    expect(rules.find((rule) => rule.id === 'local-banner')?.archetypes).toMatchObject({
+      global: { id: 'global' },
+      local: { id: 'local' },
+    });
+    expect(recipe.generation?.pieceDeclarations?.[0]?.footprint).toEqual({ kind: 'custom', edges: [0, 1], offsets: [{ q: 1, r: 0 }], includeCenter: true });
   });
 
   it('validates recipe compile errors and manifest-backed asset references', () => {
@@ -383,10 +563,18 @@ describe('serializable gameboard recipes', () => {
       { seed: 'missing-asset-recipe', shape: { kind: 'rectangle', width: 1, height: 1 } },
       [{ action: 'addProp', at: { q: 0, r: 0 }, assetId: 'missing_prop' } as unknown as GameboardRecipeStep]
     );
+    const nonErrorStep = {} as GameboardRecipeStep;
+    Object.defineProperty(nonErrorStep, 'action', { get: () => { throw 'non-error recipe failure'; } });
+    const nonErrorRecipe: GameboardRecipe = {
+      schemaVersion: '1.0.0',
+      options: { seed: 'non-error-recipe', shape: { kind: 'rectangle', width: 1, height: 1 } },
+      steps: [nonErrorStep],
+    };
 
     expect(validateGameboardRecipe(offBoardRecipe).map((violation) => violation.code)).toEqual([
       'recipe.compile_failed',
     ]);
+    expect(validateGameboardRecipe(nonErrorRecipe)[0]?.message).toContain('non-error recipe failure');
     expect(
       inspectGameboardRecipe(missingAssetRecipe, { plan: { assetCatalog: freeManifest } }).violations.map(
         (violation) => violation.code
