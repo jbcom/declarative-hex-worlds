@@ -24,9 +24,8 @@ import {
   spawnGameboardActor,
   updateGameboardActor,
 } from '../../actors/index';
+import { axialToWorld } from '../../coordinates/index';
 import { createGameboardBuilder } from '../../gameboard/index';
-import { createGameboardPlanFromTiles, createGameboardTile } from '../../gameboard/terrain';
-import { axialToWorld } from '../../coordinates/grid';
 import {
   PlacementState,
   createGameboardWorld,
@@ -881,14 +880,18 @@ describe('gameboard actor semantics', () => {
       reason: 'Path costs 1; maximum path cost is 0',
     });
 
-    const isolatedPlan = createGameboardPlanFromTiles({
+    const widePlan = createGameboardBuilder({
       seed: 'actors-targeting-no-route',
       shape: { kind: 'rectangle', width: 6, height: 1 },
-      tiles: [
-        createGameboardTile({ q: 0, r: 0 }, 'grass', 'default'),
-        createGameboardTile({ q: 5, r: 0 }, 'grass', 'default'),
-      ],
-    });
+    }).build();
+    const isolatedTileKeys = new Set(['0,0', '5,0']);
+    const isolatedPlan = {
+      ...widePlan,
+      tiles: widePlan.tiles.filter((tile) => isolatedTileKeys.has(tile.key)),
+      placements: widePlan.placements.filter((placement) =>
+        isolatedTileKeys.has(placement.tileKey)
+      ),
+    };
     const isolatedWorld = createGameboardWorld(isolatedPlan);
     spawnGameboardActor(isolatedWorld, {
       actorId: 'isolated-hero',

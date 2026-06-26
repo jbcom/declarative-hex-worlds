@@ -1918,7 +1918,7 @@ function actorTargetApproachWeight(approach: GameboardActorTarget['approach']): 
   if (approach === 'target-tile') {
     return 1;
   }
-  /* v8 ignore next 4 -- "none" is only a target-report sentinel, not a route candidate. */
+  /* v8 ignore next 4 -- route candidates cover adjacent behavior; the fallthrough only guards the "none" report sentinel. */
   if (approach === 'adjacent') {
     return 2;
   }
