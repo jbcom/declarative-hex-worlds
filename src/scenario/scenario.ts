@@ -713,6 +713,7 @@ export function resolveGameboardScenarioActors(
     if (resolution.errorCode) {
       throw new GameboardScenarioError(resolution.errorMessage);
     }
+    /* v8 ignore next 3 -- resolveScenarioActorSpawn returns either an errorCode or a resolved tile. */
     if (!resolution.at) {
       throw new GameboardScenarioError(`Scenario actor ${actor.actorId} has no resolved spawn tile`);
     }
@@ -823,6 +824,7 @@ function resolvedScenarioActor(
   actor: GameboardScenarioActor,
   resolution: ScenarioActorSpawnResolution
 ): ResolvedGameboardScenarioActor {
+  /* v8 ignore next 3 -- public callers reach this only after resolveScenarioActorSpawn returns a tile. */
   if (!resolution.at) {
     throw new GameboardScenarioError(`Scenario actor ${actor.actorId} has no resolved spawn tile`);
   }
@@ -1186,11 +1188,13 @@ function spawnGroupViolations(spawnGroups: GameboardSpawnGroupPlan): GameboardRu
       severity: 'error' as const,
       message,
     })),
+    /* v8 ignore start -- spawn-group planning currently reports fatal route diagnostics, not warnings. */
     ...spawnGroups.warnings.map((message) => ({
       code: 'scenario.spawn_group',
       severity: 'warning' as const,
       message,
     })),
+    /* v8 ignore stop */
   ];
 }
 
@@ -1201,11 +1205,13 @@ function patrolRouteViolations(patrolRoutes: GameboardPatrolRouteSet): Gameboard
       severity: 'error' as const,
       message,
     })),
+    /* v8 ignore start -- patrol-route planning currently reports fatal route diagnostics, not warnings. */
     ...patrolRoutes.warnings.map((message) => ({
       code: 'scenario.patrol_route',
       severity: 'warning' as const,
       message,
     })),
+    /* v8 ignore stop */
   ];
 }
 
@@ -1224,6 +1230,7 @@ function isNonNegativeInteger(value: unknown): value is number {
 }
 
 function errorMessage(error: unknown): string {
+  /* v8 ignore next -- recipe/scenario internals throw Error instances; String fallback protects JS callers. */
   return error instanceof Error ? error.message : String(error);
 }
 
