@@ -802,9 +802,10 @@ function resolveScenarioActorSpawn(
     };
   }
   if (allocation.claimedIndexes.has(spawnLocationIndex)) {
+    const claimedBy = allocation.claimedBy.get(spawnLocationIndex) as string;
     return {
       errorCode: 'scenario.actor_spawn_location_claimed',
-      errorMessage: `Scenario actor ${actor.actorId} could not claim spawn location ${spawnLocationIndex} from group ${group.id}; already claimed by ${allocation.claimedBy.get(spawnLocationIndex) ?? 'another actor'}`,
+      errorMessage: `Scenario actor ${actor.actorId} could not claim spawn location ${spawnLocationIndex} from group ${group.id}; already claimed by ${claimedBy}`,
     };
   }
   allocation.claimedIndexes.add(spawnLocationIndex);
@@ -832,7 +833,7 @@ function resolvedScenarioActor(
     resolution.spawnGroupId && resolution.spawnLocation
       ? {
           scenarioSpawnGroupId: resolution.spawnGroupId,
-          scenarioSpawnLocationIndex: resolution.spawnLocationIndex ?? 0,
+          scenarioSpawnLocationIndex: resolution.spawnLocationIndex as number,
           scenarioSpawnLocationId: resolution.spawnLocation.id,
           scenarioSpawnTileKey: resolution.spawnLocation.key,
         }
