@@ -19,13 +19,19 @@ import {
   moveGameboardActor,
   planGameboardInteractionCommand,
   readGameboardActors,
+  readGameboardActorsForTile,
   selectGameboardActors,
   spawnGameboardActor,
   updateGameboardActor,
 } from '../../actors/index';
+import { axialToWorld } from '../../coordinates/index';
 import { createGameboardBuilder } from '../../gameboard/index';
-import { axialToWorld } from '../../coordinates/grid';
-import { PlacementState, createGameboardWorld, findPlacementEntity, readPlacementsForTile } from '../../koota/index';
+import {
+  PlacementState,
+  createGameboardWorld,
+  findPlacementEntity,
+  readPlacementsForTile,
+} from '../../koota/index';
 import { requestGameboardMovement } from '../../movement/index';
 
 describe('gameboard actor semantics', () => {
@@ -92,6 +98,66 @@ describe('gameboard actor semantics', () => {
     expect(npcCollision.interactiveActors.map((actor) => actor.actor.actorId)).toEqual(['elder']);
     expect(enemyCollision).toMatchObject({ canEnter: false });
     expect(enemyCollision.hostileActors.map((actor) => actor.actor.actorId)).toEqual(['raider']);
+    updateGameboardActor(world, enemy, { blocksMovement: false, hostile: true });
+    expect(inspectGameboardActorCollision(world, player, '1,1').canEnter).toBe(false);
+    expect(
+      inspectGameboardActorCollision(world, player, '1,0', {
+        treatInteractiveAsBlocking: true,
+      }).canEnter
+    ).toBe(false);
+    expect(
+      inspectGameboardActorCollision(world, player, '0,1', { treatPropsAsBlocking: true }).canEnter
+    ).toBe(false);
+  });
+
+  it('infers omitted actor kinds from placement kind defaults (E0h)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'actors-inferred-kind',
+        shape: { kind: 'rectangle', width: 5, height: 1 },
+      }).build()
+    );
+
+    const unit = spawnGameboardActor(world, {
+      actorId: 'auto-unit',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    const decoration = spawnGameboardActor(world, {
+      actorId: 'auto-decoration',
+      at: '1,0',
+      assetId: 'flowers_A',
+      kind: 'decoration',
+    });
+    const structure = spawnGameboardActor(world, {
+      actorId: 'auto-structure',
+      at: '2,0',
+      assetId: 'tower_square',
+      kind: 'structure',
+    });
+    const road = spawnGameboardActor(world, {
+      actorId: 'auto-road',
+      at: '3,0',
+      assetId: 'road_straight',
+      kind: 'road',
+      layer: 'surface',
+    });
+    const prop = spawnGameboardActor(world, {
+      actorId: 'auto-prop',
+      at: '4,0',
+      assetId: 'crate_A_small',
+      kind: 'prop',
+    });
+
+    expect(unit.get(GameboardActor)).toMatchObject({ kind: 'unit', blocksMovement: true });
+    expect(decoration.get(GameboardActor)).toMatchObject({ kind: 'prop', interactive: true });
+    expect(structure.get(GameboardActor)).toMatchObject({
+      kind: 'neutral',
+      blocksMovement: true,
+    });
+    expect(road.get(GameboardActor)).toMatchObject({ kind: 'neutral', blocksMovement: false });
+    expect(prop.get(GameboardActor)).toMatchObject({ kind: 'prop', interactive: true });
   });
 
   it('adds actor-aware collision rules to movement without changing placement kind', () => {
@@ -327,7 +393,12 @@ describe('gameboard actor semantics', () => {
         seed: 'placement-id-resolve',
         shape: { kind: 'rectangle', width: 2, height: 1 },
       })
-        .addPlacement({ at: { q: 0, r: 0 }, assetId: 'flag_yellow', kind: 'prop', layer: 'feature' })
+        .addPlacement({
+          at: { q: 0, r: 0 },
+          assetId: 'flag_yellow',
+          kind: 'prop',
+          layer: 'feature',
+        })
         .build()
     );
     spawnGameboardActor(world, {
@@ -338,7 +409,9 @@ describe('gameboard actor semantics', () => {
       assetId: 'flag_blue',
       kind: 'unit',
     });
-    const propPlacement = readPlacementsForTile(world, '0,0').find((p) => p.assetId === 'flag_yellow');
+    const propPlacement = readPlacementsForTile(world, '0,0').find(
+      (p) => p.assetId === 'flag_yellow'
+    );
     if (!propPlacement) throw new Error('flag_yellow placement missing');
     const result = inspectGameboardInteractionTarget(world, propPlacement.id, {
       sourceActor: 'hero',
@@ -421,9 +494,7 @@ describe('gameboard actor semantics', () => {
       radius: 2,
       source: { actor: { actorId: 'hero' } },
     });
-    expect(threats.byTileKey['1,1']?.map((actor) => actor.actor.actorId)).toEqual([
-      'raider',
-    ]);
+    expect(threats.byTileKey['1,1']?.map((actor) => actor.actor.actorId)).toEqual(['raider']);
     expect(threats.records).toEqual([
       expect.objectContaining({
         actorId: 'raider',
@@ -445,17 +516,173 @@ describe('gameboard actor semantics', () => {
         sort: 'tileKey',
       }).actorIds
     ).toEqual(['cache', 'elder']);
-    expect(selectGameboardActors(world, { tags: ['quest'] }).actorIds).toEqual([
-      'elder',
-      'raider',
-    ]);
+    expect(selectGameboardActors(world, { tags: ['quest'] }).actorIds).toEqual(['elder', 'raider']);
     expect(selectGameboardActors(world, { excludeTags: ['quest'] }).actorIds).toEqual([
       'cache',
       'hero',
     ]);
-    expect(gameboardActorActions(world).select({ tileKeys: ['0,1'] }).actorIds).toEqual([
-      'cache',
+    expect(gameboardActorActions(world).select({ tileKeys: ['0,1'] }).actorIds).toEqual(['cache']);
+  });
+
+  it('selects actors across missing string fields, duplicate tiles, and sort ties (E0h)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'actors-selection-edges',
+        shape: { kind: 'rectangle', width: 3, height: 2 },
+      })
+        .addPlacement({
+          at: { q: 2, r: 1 },
+          assetId: 'marker_plain',
+          kind: 'prop',
+          layer: 'feature',
+        })
+        .build()
+    );
+    const hero = spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      team: 'blue',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'alpha',
+      actorKind: 'enemy',
+      team: 'red',
+      at: '1,0',
+      assetId: 'flag_red',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'beta',
+      actorKind: 'prop',
+      at: '0,1',
+      assetId: 'crate_A_small',
+      kind: 'prop',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'gamma',
+      actorKind: 'prop',
+      at: '0,1',
+      assetId: 'crate_B_small',
+      kind: 'prop',
+    });
+
+    updateGameboardActor(world, hero, {
+      actorId: 'hero-renamed',
+      actorMetadata: { rank: 'captain' },
+    });
+
+    const marker = readPlacementsForTile(world, '2,1').find(
+      (placement) => placement.assetId === 'marker_plain'
+    );
+    if (!marker) {
+      throw new Error('Expected non-actor marker placement');
+    }
+    const markerEntity = findPlacementEntity(world, marker.id);
+    if (!markerEntity) {
+      throw new Error('Expected marker placement entity');
+    }
+
+    expect(classifyGameboardPlacement(world, markerEntity)).toBeUndefined();
+    expect(selectGameboardActors(world, { teams: 'missing-team' }).actorIds).toEqual([]);
+    expect(selectGameboardActors(world, { hostileToSource: false }).actorIds).toEqual([
+      'alpha',
+      'beta',
+      'gamma',
+      'hero-renamed',
     ]);
+    expect(selectGameboardActors(world, { center: '0,0', sort: 'distance' }).actorIds).toEqual([
+      'hero-renamed',
+      'alpha',
+      'beta',
+      'gamma',
+    ]);
+    expect(
+      readGameboardActorsForTile(world, { q: 0, r: 1 }).map((actor) => actor.actor.actorId)
+    ).toEqual(['beta', 'gamma']);
+    expect(inspectGameboardActorCollision(world, undefined, { q: 0, r: 1 }).targetTileKey).toBe(
+      '0,1'
+    );
+    expect(inspectGameboardNeighborhood(world, marker.id, { radius: 0 }).centerKey).toBe('2,1');
+    expect(
+      inspectGameboardNeighborhood(world, '0,0', { radius: 1, includeCenter: false }).tiles.some(
+        (tile) => tile.tileKey === '0,0'
+      )
+    ).toBe(false);
+    expect(
+      inspectGameboardNeighborhood(world, '0,0', {
+        includeMissing: true,
+        radius: 2,
+        terrain: 'water',
+      }).tiles
+    ).toEqual([]);
+    expect(
+      inspectGameboardNeighborhood(world, '0,0', {
+        radius: 1,
+        terrain: ['grass', 'water'],
+      }).tiles.length
+    ).toBeGreaterThan(0);
+
+    const sharedTile = selectGameboardActors(world, { tileKeys: '0,1', sort: 'tileKey' });
+    expect(sharedTile.actorIds).toEqual(['beta', 'gamma']);
+    expect(sharedTile.tileKeys).toEqual(['0,1']);
+    expect(sharedTile.byTileKey['0,1']?.map((actor) => actor.actor.actorId)).toEqual([
+      'beta',
+      'gamma',
+    ]);
+
+    expect(() =>
+      gameboardActorActions(world).register('missing-placement', {
+        actorId: 'missing',
+      })
+    ).toThrow(/No placement exists/);
+    expect(() => updateGameboardActor(world, 'missing-actor', {})).toThrow(
+      /No gameboard actor exists/
+    );
+    expect(() => updateGameboardActor(world, markerEntity, {})).toThrow(
+      /No gameboard actor exists/
+    );
+    expect(
+      gameboardActorActions(world)
+        .register(marker.id, {
+          actorId: 'marker-auto',
+        })
+        .get(GameboardActor)
+    ).toMatchObject({ kind: 'prop' });
+    expect(() =>
+      gameboardActorActions(world).register(world.spawn(), {
+        actorId: 'missing-state',
+      })
+    ).toThrow(/missing PlacementState/);
+  });
+
+  it('deduplicates repeated actor ids in neighborhood aggregate buckets (E0h)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'actors-neighborhood-deduplicate',
+        shape: { kind: 'rectangle', width: 2, height: 1 },
+      }).build()
+    );
+    spawnGameboardActor(world, {
+      actorId: 'echo',
+      actorKind: 'npc',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'prop',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'echo',
+      actorKind: 'npc',
+      at: '1,0',
+      assetId: 'flag_green',
+      kind: 'prop',
+    });
+
+    expect(
+      inspectGameboardNeighborhood(world, '0,0').actors.map((actor) => actor.actor.actorId)
+    ).toEqual(['echo']);
   });
 
   it('plans path-aware actor targets without taking over combat or interaction policy', () => {
@@ -518,10 +745,11 @@ describe('gameboard actor semantics', () => {
         record: { actorId: 'near-raider', distance: 2, hostileToSource: true },
       },
     });
-    expect(targeting.targets[0]?.path.coordinates.map((coordinates) => `${coordinates.q},${coordinates.r}`)).toEqual([
-      '0,0',
-      '1,0',
-    ]);
+    expect(
+      targeting.targets[0]?.path.coordinates.map(
+        (coordinates) => `${coordinates.q},${coordinates.r}`
+      )
+    ).toEqual(['0,0', '1,0']);
     expect(targeting.targets[1]).toMatchObject({
       actor: { actor: { actorId: 'far-raider' } },
       reachable: false,
@@ -535,6 +763,166 @@ describe('gameboard actor semantics', () => {
         includeUnreachable: false,
       }).targetActorIds
     ).toEqual(['near-raider']);
+  });
+
+  it('reports self, sorted, and no-route actor targets (E0h)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'actors-targeting-edges',
+        shape: { kind: 'rectangle', width: 4, height: 2 },
+      }).build()
+    );
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      team: 'blue',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'near-raider',
+      actorKind: 'enemy',
+      team: 'red',
+      at: '1,0',
+      assetId: 'flag_red',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'far-raider',
+      actorKind: 'enemy',
+      team: 'red',
+      at: '3,1',
+      assetId: 'flag_red',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'left-raider',
+      actorKind: 'enemy',
+      team: 'red',
+      at: '0,1',
+      assetId: 'flag_red',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'same-a',
+      actorKind: 'enemy',
+      team: 'red',
+      at: '2,1',
+      assetId: 'flag_red',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'same-b',
+      actorKind: 'enemy',
+      team: 'red',
+      at: '2,1',
+      assetId: 'flag_red',
+      kind: 'unit',
+    });
+
+    expect(
+      inspectGameboardActorTargets(world, {
+        sourceActor: 'hero',
+        actorIds: 'hero',
+        includeSource: true,
+      }).nearestTarget
+    ).toMatchObject({
+      actor: { actor: { actorId: 'hero' } },
+      approach: 'self',
+      reachable: true,
+    });
+    expect(
+      inspectGameboardActorTargets(world, {
+        sourceActor: 'hero',
+        hostileToSource: true,
+        sort: 'distance',
+      }).targetActorIds
+    ).toEqual(['left-raider', 'near-raider', 'same-a', 'same-b', 'far-raider']);
+    expect(
+      inspectGameboardActorTargets(world, {
+        sourceActor: 'hero',
+        hostileToSource: true,
+        sort: 'tileKey',
+      }).targetActorIds
+    ).toEqual(['left-raider', 'near-raider', 'same-a', 'same-b', 'far-raider']);
+    expect(
+      inspectGameboardActorTargets(world, {
+        sourceActor: 'hero',
+        hostileToSource: true,
+        sort: 'actorId',
+      }).targetActorIds
+    ).toEqual(['far-raider', 'left-raider', 'near-raider', 'same-a', 'same-b']);
+    expect(
+      inspectGameboardActorTargets(world, {
+        sourceActor: 'hero',
+        actorIds: ['left-raider', 'near-raider'],
+      }).targetActorIds
+    ).toEqual(['left-raider', 'near-raider']);
+    expect(
+      inspectGameboardActorTargets(world, {
+        sourceActor: 'hero',
+        actorIds: ['same-b', 'same-a'],
+        sort: 'tileKey',
+      }).targetActorIds
+    ).toEqual(['same-a', 'same-b']);
+    expect(
+      inspectGameboardActorTargets(world, {
+        sourceActor: 'hero',
+        actorIds: 'near-raider',
+        approach: 'target-tile',
+        maxPathCost: 0,
+      }).nearestTarget
+    ).toMatchObject({
+      actor: { actor: { actorId: 'near-raider' } },
+      approach: 'target-tile',
+      reachable: false,
+      reason: 'Path costs 1; maximum path cost is 0',
+    });
+
+    const widePlan = createGameboardBuilder({
+      seed: 'actors-targeting-no-route',
+      shape: { kind: 'rectangle', width: 6, height: 1 },
+    }).build();
+    const isolatedTileKeys = new Set(['0,0', '5,0']);
+    const isolatedPlan = {
+      ...widePlan,
+      tiles: widePlan.tiles.filter((tile) => isolatedTileKeys.has(tile.key)),
+      placements: widePlan.placements.filter((placement) =>
+        isolatedTileKeys.has(placement.tileKey)
+      ),
+    };
+    const isolatedWorld = createGameboardWorld(isolatedPlan);
+    spawnGameboardActor(isolatedWorld, {
+      actorId: 'isolated-hero',
+      actorKind: 'player',
+      team: 'blue',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(isolatedWorld, {
+      actorId: 'isolated-raider',
+      actorKind: 'enemy',
+      team: 'red',
+      at: '5,0',
+      assetId: 'flag_red',
+      kind: 'unit',
+    });
+
+    const noRoute = inspectGameboardActorTargets(isolatedWorld, {
+      sourceActor: 'isolated-hero',
+      hostileToSource: true,
+      approach: 'adjacent',
+      includeUnreachable: true,
+    });
+    expect(noRoute.nearestTarget).toMatchObject({
+      actor: { actor: { actorId: 'isolated-raider' } },
+      path: { found: false, cost: Number.POSITIVE_INFINITY },
+      approach: 'none',
+      reachable: false,
+      reason: 'No adjacent path to actor isolated-raider',
+    });
   });
 
   it('forwards runtime placement offsets and occupancy guards when spawning actors', () => {
@@ -757,6 +1145,144 @@ describe('gameboard actor semantics', () => {
     });
   });
 
+  it('resolves placement, coordinate, and inspect-only interaction edges (E0h)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'actors-interaction-edges',
+        shape: { kind: 'rectangle', width: 3, height: 2 },
+      })
+        .addPlacement({
+          at: { q: 1, r: 0 },
+          assetId: 'quest_marker',
+          kind: 'prop',
+          layer: 'feature',
+        })
+        .addPlacement({
+          at: { q: 0, r: 1 },
+          assetId: 'walkable_surface',
+          kind: 'prop',
+          layer: 'surface',
+        })
+        .addPlacement({
+          at: { q: 2, r: 0 },
+          assetId: 'blocked_surface',
+          kind: 'prop',
+          layer: 'surface',
+        })
+        .build()
+    );
+    spawnGameboardActor(world, {
+      actorId: 'hero',
+      actorKind: 'player',
+      team: 'blue',
+      at: '0,0',
+      assetId: 'flag_blue',
+      kind: 'unit',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'elder',
+      actorKind: 'npc',
+      team: 'blue',
+      at: '1,0',
+      assetId: 'flag_green',
+      kind: 'prop',
+    });
+    spawnGameboardActor(world, {
+      actorId: 'raider',
+      actorKind: 'enemy',
+      team: 'red',
+      at: '2,0',
+      assetId: 'flag_red',
+      kind: 'unit',
+    });
+
+    const questMarker = readPlacementsForTile(world, '1,0').find(
+      (placement) => placement.assetId === 'quest_marker'
+    );
+    const walkableSurface = readPlacementsForTile(world, '0,1').find(
+      (placement) => placement.assetId === 'walkable_surface'
+    );
+    const blockedSurface = readPlacementsForTile(world, '2,0').find(
+      (placement) => placement.assetId === 'blocked_surface'
+    );
+    if (!questMarker || !walkableSurface || !blockedSurface) {
+      throw new Error('Expected interaction-edge placements');
+    }
+
+    expect(
+      inspectGameboardInteractionTarget(
+        world,
+        { placementId: questMarker.id },
+        { sourceActor: 'hero' }
+      )
+    ).toMatchObject({
+      kind: 'placement',
+      intent: 'inspect',
+      actors: [expect.objectContaining({ actor: expect.objectContaining({ actorId: 'elder' }) })],
+    });
+    expect(
+      inspectGameboardInteractionTarget(
+        world,
+        { placementId: walkableSurface.id },
+        { sourceActor: 'hero' }
+      )
+    ).toMatchObject({ kind: 'placement', intent: 'move', canEnter: true });
+    expect(
+      inspectGameboardInteractionTarget(
+        world,
+        { placementId: blockedSurface.id },
+        { sourceActor: 'hero' }
+      )
+    ).toMatchObject({ kind: 'placement', intent: 'inspect', canEnter: false });
+    expect(inspectGameboardInteractionTarget(world, {})).toMatchObject({
+      kind: 'empty',
+      intent: 'inspect',
+    });
+    expect(inspectGameboardInteractionTarget(world, { coordinates: '0,1' })).toMatchObject({
+      kind: 'tile',
+      tileKey: '0,1',
+    });
+    expect(inspectGameboardInteractionTarget(world, { coordinates: { q: 2, r: 1 } })).toMatchObject(
+      {
+        kind: 'tile',
+        tileKey: '2,1',
+      }
+    );
+    expect(inspectGameboardInteractionTarget(world, { tileKey: '1,1' })).toMatchObject({
+      kind: 'tile',
+      tileKey: '1,1',
+    });
+    expect(planGameboardInteractionCommand(world, 'raider')).toMatchObject({
+      kind: 'inspect-actor',
+      intent: 'inspect',
+      actorId: 'raider',
+      canExecute: true,
+    });
+    expect(planGameboardInteractionCommand(world, { placementId: questMarker.id })).toMatchObject({
+      kind: 'inspect-placement',
+      intent: 'inspect',
+      placementId: questMarker.id,
+      canExecute: true,
+    });
+    expect(planGameboardInteractionCommand(world, '2,0', { sourceActor: 'hero' })).toMatchObject({
+      kind: 'inspect-tile',
+      intent: 'inspect',
+      tileKey: '2,0',
+      canExecute: true,
+    });
+    expect(
+      planGameboardInteractionCommand(world, 'elder', {
+        requireSourceActorForInteraction: true,
+      })
+    ).toMatchObject({
+      kind: 'interact-actor',
+      intent: 'interact',
+      actorId: 'elder',
+      canExecute: false,
+      reason: 'Interaction commands require a source actor',
+    });
+  });
+
   it('inspectGameboardActorTargets reports missing source actor (E0h)', () => {
     const world = createGameboardWorld(
       createGameboardBuilder({
@@ -790,7 +1316,10 @@ describe('gameboard actor semantics', () => {
       faction: undefined,
     };
     expect(
-      gameboardActorBlocksMovement(blockingActor, { kind: 'wall', layer: 'structure' } as unknown as Parameters<typeof gameboardActorBlocksMovement>[1])
+      gameboardActorBlocksMovement(blockingActor, {
+        kind: 'wall',
+        layer: 'structure',
+      } as unknown as Parameters<typeof gameboardActorBlocksMovement>[1])
     ).toBe(true);
   });
 });
@@ -811,6 +1340,32 @@ describe('gameboardActorActions register + navigationProfile (PRD E0a)', () => {
 
   it('areGameboardActorsHostile returns false for undefined inputs (E0a)', () => {
     expect(areGameboardActorsHostile(undefined, undefined)).toBe(false);
+    expect(
+      areGameboardActorsHostile(
+        {
+          actorId: 'blue-a',
+          kind: 'unit',
+          faction: 'blue',
+          team: undefined,
+          hostile: true,
+          blocksMovement: true,
+          interactive: false,
+          tags: [],
+          metadata: {},
+        },
+        {
+          actorId: 'blue-b',
+          kind: 'unit',
+          faction: 'blue',
+          team: undefined,
+          hostile: true,
+          blocksMovement: true,
+          interactive: false,
+          tags: [],
+          metadata: {},
+        }
+      )
+    ).toBe(false);
   });
 
   it('neighborhood accepts HexCoordinates center input (E0a)', () => {
@@ -860,12 +1415,11 @@ describe('gameboardActorActions register + navigationProfile (PRD E0a)', () => {
   });
 
   it('navigationProfile returns a profile keyed to the actor (E0a)', () => {
-    const world = createGameboardWorld(
-      createGameboardBuilder({
-        seed: 'actor-nav-profile',
-        shape: { kind: 'rectangle', width: 3, height: 1 },
-      }).build()
-    );
+    const plan = createGameboardBuilder({
+      seed: 'actor-nav-profile',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    }).build();
+    const world = createGameboardWorld(plan);
     const actions = gameboardActorActions(world);
     actions.spawn({
       actorId: 'scout',
@@ -874,7 +1428,25 @@ describe('gameboardActorActions register + navigationProfile (PRD E0a)', () => {
       assetId: 'flag_yellow',
       kind: 'unit',
     });
-    const profile = actions.navigationProfile('scout', {});
+    const profile = actions.navigationProfile('scout', {
+      baseProfile: {
+        ignorePlacementIds: [''],
+        canEnter: (tile) => tile.key !== '1,0',
+      },
+    });
     expect(profile).toBeDefined();
+    expect(profile.ignorePlacementIds).not.toContain('');
+    const rejectedTile = plan.tiles.find((tile) => tile.key === '1,0');
+    if (!rejectedTile) {
+      throw new Error('Expected navigation profile rejection tile');
+    }
+    expect(profile.canEnter?.(rejectedTile, {} as never)).toBe(false);
+
+    const missingActorProfile = createGameboardActorNavigationProfile(world, 'missing-scout');
+    const emptyTile = plan.tiles.find((tile) => tile.key === '2,0');
+    if (!emptyTile) {
+      throw new Error('Expected empty navigation tile');
+    }
+    expect(missingActorProfile.canEnter?.(emptyTile, {} as never)).toBe(true);
   });
 });
