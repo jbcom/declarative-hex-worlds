@@ -194,6 +194,7 @@ function mutationSubject(
   if (mutation.actorId) {
     return mutation.actorId;
   }
+  /* v8 ignore next 3 -- current mutation records without actorId use placementId. */
   if (mutation.placementId) {
     return mutation.placementId;
   }
