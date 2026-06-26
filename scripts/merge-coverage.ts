@@ -16,7 +16,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { COVERAGE_THRESHOLDS } from '../vitest.coverage.shared';
+import { MERGED_COVERAGE_THRESHOLDS } from '../vitest.coverage.shared';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const coverageRoot = join(repoRoot, 'coverage');
@@ -102,13 +102,13 @@ export function runCoverageMerge(): void {
         '--temp-dir',
         mergedDir,
         '--statements',
-        String(COVERAGE_THRESHOLDS.statements),
+        String(MERGED_COVERAGE_THRESHOLDS.statements),
         '--branches',
-        String(COVERAGE_THRESHOLDS.branches),
+        String(MERGED_COVERAGE_THRESHOLDS.branches),
         '--functions',
-        String(COVERAGE_THRESHOLDS.functions),
+        String(MERGED_COVERAGE_THRESHOLDS.functions),
         '--lines',
-        String(COVERAGE_THRESHOLDS.lines),
+        String(MERGED_COVERAGE_THRESHOLDS.lines),
       ],
       { cwd: repoRoot, stdio: 'inherit' }
     );

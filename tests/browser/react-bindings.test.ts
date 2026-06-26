@@ -37,7 +37,9 @@ import {
   GameboardProvider,
   GameboardRecipeProvider,
   GameboardScenarioProvider,
+  useAdjacentTileEntities,
   useCanOccupyGameboardPlacement,
+  useDecomposedTileEntities,
   useGameboardActions,
   useGameboardActor,
   useGameboardActorActions,
@@ -85,12 +87,26 @@ import {
   useGameboardSystemActions,
   useGameboardTileInspection,
   useGameboardTileEntities,
+  useHarborPlacementEntities,
   useMovementAgent,
+  useMovementPathState,
+  useMovingPlacementEntities,
+  useOriginPlacementEntitiesForTile,
   usePlacementEntitiesForTile,
+  usePlacementState,
   usePlacementOccupancyForTile,
   useProjectedGameboardPlan,
+  useRiverPlacementEntities,
+  useRoadPlacementEntities,
+  useStackedTerrainEntities,
+  useTileConnectivity,
   useTileCoordinates,
+  useTileElevation,
   useTileEntity,
+  useTileRenderState,
+  useTileState,
+  useTileTagList,
+  useTileTerrain,
 } from '../../src/react/index';
 
 interface ReactBindingReport {
@@ -141,6 +157,8 @@ interface ReactBindingReport {
   tileZeroPlacementCount: number;
   tileZeroPlacementIds: readonly string[];
   movementAgent?: MovementAgentValue;
+  firstPlacementId?: string;
+  originTileZeroPlacementIds: readonly string[];
   actions: ReturnType<typeof useGameboardActions>;
   actorActions: ReturnType<typeof useGameboardActorActions>;
   commandActions: ReturnType<typeof useGameboardCommandActions>;
@@ -197,7 +215,10 @@ describe('React bindings browser integration', () => {
         selectedPieceCount: 1,
         analysis: { errorCount: 0, placementCount: 1 },
       },
-      piecePlacementInspection: { pieceId: 'react-piece-tree', siteInspection: { selectedCount: 1 } },
+      piecePlacementInspection: {
+        pieceId: 'react-piece-tree',
+        siteInspection: { selectedCount: 1 },
+      },
       pieceRegistryAnalysis: { pieceCount: 2, roleCounts: { scatter: 1, tree: 1 } },
       pieceSelectionIds: ['react-piece-tree'],
       pieceSourceUrl: '/react-hook-fixtures/trees/react-piece-tree.gltf',
@@ -214,6 +235,8 @@ describe('React bindings browser integration', () => {
       tileZeroCoordinates: { q: 0, r: 0 },
     });
     expect(report?.placementCount).toBeGreaterThan(4);
+    expect(report?.firstPlacementId).toEqual(expect.any(String));
+    expect(report?.originTileZeroPlacementIds.length).toBeGreaterThan(0);
     expect(report?.state?.seed).toBe('react-bindings');
 
     await act(async () => {
@@ -408,9 +431,7 @@ describe('React bindings browser integration', () => {
       report?.runtime.moveActor('react-player', '0,0', { occupancyGuard: true });
       report?.runtime.advanceQuest('react-quest', { step: 2 });
     });
-    expect(report?.questSnapshotStatuses).toEqual([
-      { id: 'react-quest', status: 'completed' },
-    ]);
+    expect(report?.questSnapshotStatuses).toEqual([{ id: 'react-quest', status: 'completed' }]);
     expect(report?.runtimeSnapshotQuestStatuses).toEqual([
       { id: 'react-quest', status: 'completed' },
     ]);
@@ -492,9 +513,7 @@ async function renderReactElement(element: React.ReactElement): Promise<void> {
   host = document.createElement('div');
   document.body.replaceChildren(host);
   root = createRoot(host);
-  await act(async () => {
-    root?.render(element);
-  });
+  await act(async () => root?.render(element));
 }
 
 async function renderProbe(
@@ -504,15 +523,23 @@ async function renderProbe(
   host = document.createElement('div');
   document.body.replaceChildren(host);
   root = createRoot(host);
+  await act(async () => {
+    root?.render(
+      React.createElement(
+        WorldProviderElement,
+        { world },
+        React.createElement(ReactBindingProbe, { onReport })
+      )
+    );
+  });
+}
+
+function WorldProviderElement({ world, children }: { children?: React.ReactNode; world: World }) {
   const Provider = GameboardProvider as React.ComponentType<{
     children?: React.ReactNode;
     world: World;
   }>;
-  await act(async () => {
-    root?.render(
-      React.createElement(Provider, { world }, React.createElement(ReactBindingProbe, { onReport }))
-    );
-  });
+  return React.createElement(Provider, { world }, children);
 }
 
 function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport) => void }) {
@@ -527,13 +554,16 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
   const patrolAgentEntities = useGameboardPatrolAgentEntities();
   const placementSnapshots = useGameboardPlacementSnapshots();
   const tileZero = useTileEntity('0,0');
+  const coordinateTile = useTileEntity({ q: 0, r: 0 });
   const tileZeroCoordinates = useTileCoordinates(tileZero);
   const tileZeroPlacements = usePlacementEntitiesForTile('0,0');
+  const originTileZeroPlacements = useOriginPlacementEntitiesForTile({ q: 0, r: 0 });
   const tileZeroOccupancy = usePlacementOccupancyForTile('0,0');
   const tileOneOneInspection = useGameboardTileInspection('1,1', {
     sourceActor: 'react-player',
   });
   const actor = useGameboardActor(actorEntities[0]);
+  const firstPlacementState = usePlacementState(placementEntities[0]);
   const movementAgent = useMovementAgent(actorEntities[0]);
   const patrolAgent = useGameboardPatrolAgent(patrolAgentEntities[0]);
   const patrolState = useGameboardPatrolState(patrolAgentEntities[0]);
@@ -672,6 +702,31 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
     (violation) => violation.severity === 'error'
   );
 
+  const branchProbeResults = [
+    useDecomposedTileEntities().length,
+    useRoadPlacementEntities().length,
+    useRiverPlacementEntities().length,
+    useHarborPlacementEntities().length,
+    useStackedTerrainEntities().length,
+    useMovingPlacementEntities().length,
+    useGameboardActorsForTile({ q: 1, r: 1 }).length,
+    useTileState(coordinateTile)?.key,
+    useTileState(tileZero)?.key,
+    useTileTerrain(tileZero),
+    useTileElevation(tileZero),
+    useTileConnectivity(tileZero),
+    useTileRenderState(tileZero),
+    useTileTagList(tileZero)?.length,
+    useAdjacentTileEntities(tileZero).length,
+    usePlacementEntitiesForTile({ q: 0, r: 0 }).length,
+    usePlacementEntitiesForTile('missing').length,
+    useOriginPlacementEntitiesForTile('missing').length,
+    usePlacementOccupancyForTile({ q: 0, r: 0 }).length,
+    useGameboardTileInspection({ q: 1, r: 1 }).exists,
+    useMovementPathState(actorEntities[0]),
+  ];
+  void branchProbeResults.length;
+
   onReport({
     actor,
     actorCount: actorEntities.length,
@@ -724,7 +779,11 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
     tileZeroPlacementIds: tileZeroPlacements
       .map((entity) => entity.get(PlacementState)?.id)
       .filter((id): id is string => id !== undefined),
+    originTileZeroPlacementIds: originTileZeroPlacements
+      .map((entity) => entity.get(PlacementState)?.id)
+      .filter((id): id is string => id !== undefined),
     movementAgent,
+    firstPlacementId: firstPlacementState?.id,
     actions,
     actorActions,
     commandActions,
@@ -752,7 +811,11 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
 function RecipeRuntimeProviderProbe({
   onReport,
 }: {
-  onReport: (report: { registryCount: number; generatedPieceCount: number; sourceUrl?: string }) => void;
+  onReport: (report: {
+    registryCount: number;
+    generatedPieceCount: number;
+    sourceUrl?: string;
+  }) => void;
 }) {
   const runtime = useGameboardRuntime<GameboardRecipeGameRuntime>();
   const snapshot = runtime.snapshot({ includeInterop: false });
@@ -771,7 +834,11 @@ function RecipeRuntimeProviderProbe({
 function ScenarioRuntimeProviderProbe({
   onReport,
 }: {
-  onReport: (report: { registryCount: number; generatedPieceCount: number; sourceUrl?: string }) => void;
+  onReport: (report: {
+    registryCount: number;
+    generatedPieceCount: number;
+    sourceUrl?: string;
+  }) => void;
 }) {
   const runtime = useGameboardRuntime<GameboardScenarioGameRuntime>();
   const snapshot = runtime.snapshot({ includeInterop: false });

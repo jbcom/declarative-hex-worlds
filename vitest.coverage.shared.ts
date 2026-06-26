@@ -43,15 +43,22 @@ export const COVERAGE_EXCLUDES = [
  * `thresholdAutoUpdate: true` once the merged tree is stable so vitest
  * does the ratchet automatically.
  */
-export const COVERAGE_THRESHOLDS = {
+export const MERGED_COVERAGE_THRESHOLDS = {
   // Threshold ratchet uses the CI-measured merged unit + browser-free floor.
-  // Local runs can read higher when skip-gated reference tests execute, so each
-  // E0a/E0h commit sets the floor 0.5pp below CI-shaped proof, then confirms on PR Coverage.
-  // CLI shared-helper cleanup local merged proof: S=99.65, B=99.57, F=99.18, L=99.75.
-  statements: 99.3,
-  branches: 99.2,
-  functions: 99.0,
-  lines: 99.4,
+  // Final React cleanup local merged proof: S=100, B=100, F=100, L=100.
+  statements: 100,
+  branches: 100,
+  functions: 100,
+  lines: 100,
+};
+
+export const HARNESS_COVERAGE_THRESHOLDS = {
+  // Direct Vitest enforcement is unit-only; browser-only React/Three paths are
+  // enforced by the merged gate above after browser-free coverage is collected.
+  statements: 98,
+  branches: 98.8,
+  functions: 96.5,
+  lines: 98,
 };
 
 /**
@@ -73,6 +80,6 @@ export function harnessCoverage(harness: string): CoverageOptions {
     exclude: COVERAGE_EXCLUDES,
     clean: false, // do not wipe sibling harness output
     cleanOnRerun: false,
-    thresholds: enforce ? COVERAGE_THRESHOLDS : undefined,
+    thresholds: enforce ? HARNESS_COVERAGE_THRESHOLDS : undefined,
   };
 }

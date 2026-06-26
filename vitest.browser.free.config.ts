@@ -13,7 +13,15 @@ const browserAssetRoot = /^[a-z][a-z\d+.-]*:|^\//i.test(configuredAssetRoot)
 
 export default defineConfig({
   optimizeDeps: {
-    include: ['honeycomb-grid', 'koota', 'koota/react', 'react', 'react-dom/client', 'seedrandom', 'three'],
+    include: [
+      'honeycomb-grid',
+      'koota',
+      'koota/react',
+      'react',
+      'react-dom/client',
+      'seedrandom',
+      'three',
+    ],
   },
   resolve: {
     // Shared with the unit harness so subpath imports (e.g. `/commands` →
@@ -50,6 +58,7 @@ export default defineConfig({
       'tests/browser/free-visual.test.ts',
       'tests/browser/simple-rpg-visual.test.ts',
       'tests/browser/react-bindings.test.ts',
+      'tests/browser/react-hook-fallbacks.test.ts',
       'tests/browser/feature-gallery.spec.ts',
       'tests/browser/branch-coverage.test.ts',
     ],

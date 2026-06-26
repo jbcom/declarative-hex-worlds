@@ -422,8 +422,6 @@ function subscribeGameboardRevisionDomain(
         ...subscribeGameboardRevisionInput(world, GameboardPatrolAgent, update),
         ...subscribeGameboardRevisionInput(world, GameboardPatrolState, update),
       ];
-    default:
-      return [];
   }
 }
 
@@ -569,10 +567,8 @@ function isPlainEmptyOptions(options: unknown): options is Record<string, never>
   if (Object.getPrototypeOf(options) !== Object.prototype) {
     return false;
   }
-  for (const key in options) {
-    if (Object.hasOwn(options, key)) {
-      return false;
-    }
+  for (const _ in options) {
+    return false;
   }
   return !('toJSON' in options);
 }
