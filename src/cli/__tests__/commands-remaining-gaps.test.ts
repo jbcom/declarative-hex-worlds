@@ -12,6 +12,7 @@ import { run as runGuideAssets } from '../commands/guide-assets';
 import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runPatrolRoutes } from '../commands/patrol-routes';
+import { run as runPiece } from '../commands/piece';
 import { run as runPlacePiece } from '../commands/place-piece';
 import { run as runSimulateScenario } from '../commands/simulate-scenario';
 import { run as runSummarizePlan } from '../commands/summarize-plan';
@@ -432,6 +433,88 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
               pieceId: 'blocked-crate',
               minCount: '1',
             },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
+  it('covers piece defaults, stdout output, and report exit branches', async () => {
+    await expect(
+      runPiece({ command: 'piece', flags: {} }, '/missing-source', 'free')
+    ).rejects.toThrow(/piece requires --asset/);
+
+    await runPiece(
+      {
+        command: 'piece',
+        flags: { asset: writeGltf('piece-default.gltf', [-0.2, 0, -0.2], [0.2, 0.5, 0.2]) },
+      },
+      '/missing-source',
+      'free'
+    );
+    const declaration = JSON.parse(logs.at(-1) ?? '{}') as {
+      id: string;
+      assetId: string;
+      source: string;
+      tags: string[];
+    };
+    expect(declaration).toMatchObject({
+      id: 'piece-default',
+      assetId: 'piece-default',
+      source: 'external',
+      tags: [],
+    });
+    expect(declaration).not.toHaveProperty('declaration');
+
+    logs.length = 0;
+    await runPiece(
+      {
+        command: 'piece',
+        flags: {
+          asset: writeGltf('piece-out.gltf', [-0.2, 0, -0.2], [0.2, 0.5, 0.2]),
+          id: 'fixture:piece-out',
+          pieceId: 'fixture-piece:piece-out',
+          sourcePack: 'fixture-pack',
+          creator: 'Fixture Creator',
+          license: 'CC0-1.0',
+          role: 'prop',
+          tags: 'fixture,piece',
+          includeReport: true,
+          out: 'piece-out.json',
+        },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote piece declaration to');
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      await expect(
+        runPiece(
+          {
+            command: 'piece',
+            flags: {
+              asset: writeGltf('piece-warning.gltf', [-0.1, 0, -0.4], [0.1, 0.5, 0.4]),
+              failOnWarning: true,
+            },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+
+      await expect(
+        runPiece(
+          {
+            command: 'piece',
+            flags: { asset: writeGltf('piece-error.gltf', [0, 0, 0], [0, 0.5, 0]) },
           },
           '/missing-source',
           'free'
