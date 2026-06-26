@@ -538,6 +538,7 @@ export class GameboardBuilder {
     for (let index = 0; index < count; index += 1) {
       const assetId = assets[index];
       const site = sites[index % sites.length];
+      /* v8 ignore next 3 -- declared prop clusters have dense asset arrays and propClusterSites always returns at least one site. */
       if (!assetId || !site) {
         continue;
       }
@@ -939,12 +940,15 @@ function buildHexagonHarborBoard(
   );
   const market = firstExistingCoordinate(keys, [neighbor(town, 3), neighbor(town, 4), neighbor(town, 2)], waterKeys);
   const home = firstExistingCoordinate(keys, [neighbor(town, 0), neighbor(town, 5), neighbor(town, 1)], waterKeys);
+  /* v8 ignore next 3 -- after a hex harbor town site resolves, the non-water candidate set is non-empty. */
   const top = [...coordinates]
     .filter((coordinate) => !waterKeys.has(hexKey(coordinate)))
     .sort((left, right) => left.r - right.r || left.q - right.q)[0] ?? { q: 0, r: -shape.radius };
+  /* v8 ignore next 3 -- covered by the same non-empty candidate invariant as top. */
   const topRight = [...coordinates]
     .filter((coordinate) => !waterKeys.has(hexKey(coordinate)))
     .sort((left, right) => right.q - left.q || left.r - right.r)[0] ?? top;
+  /* v8 ignore next 3 -- covered by the same non-empty candidate invariant as top. */
   const topLeft = [...coordinates]
     .filter((coordinate) => !waterKeys.has(hexKey(coordinate)))
     .sort((left, right) => left.q - right.q || left.r - right.r)[0] ?? top;

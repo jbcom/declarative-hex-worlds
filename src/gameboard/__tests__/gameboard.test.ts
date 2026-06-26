@@ -525,6 +525,98 @@ describe('gameboard plan builder', () => {
     expect(after.build().placements.length).toBe(beforeCount);
   });
 
+  it('covers builder defaults, boundary warnings, and variant-only branches (E0h)', () => {
+    const defaultPlan = createGameboardBuilder({
+      shape: { kind: 'rectangle', width: 2, height: 2 },
+      defaultTerrain: 'water',
+    })
+      .setTerrain({ q: 0, r: 0 }, 'grass')
+      .setTileAsset({
+        at: { q: 1, r: 0 },
+        assetId: 'hex_coast_A',
+        terrain: 'coast',
+        riverEdges: [3],
+        coastEdges: [1],
+      })
+      .build();
+
+    expect(defaultPlan.seed).toBe('declarative-hex-worlds');
+    expect(defaultPlan.tiles.find((tile) => tile.key === '0,0')).toMatchObject({
+      baseAssetId: 'hex_grass',
+      elevation: 0,
+      textureSet: 'default',
+    });
+    expect(defaultPlan.tiles.find((tile) => tile.key === '1,0')).toMatchObject({
+      riverEdges: 0b001000,
+      coastEdges: 0b000010,
+    });
+
+    const variants = createGameboardBuilder({
+      seed: 'variant-branches',
+      shape: { kind: 'rectangle', width: 4, height: 2 },
+    })
+      .addMountainStack({ at: { q: 0, r: 1 }, height: 1 })
+      .addMountainStack({ at: { q: 0, r: 0 }, height: 1, variant: 'C', withGrass: false, withTrees: false })
+      .addHill({ q: 1, r: 0 }, { variant: 'B', single: true })
+      .addForest({ q: 2, r: 0 }, { species: 'B', cut: true })
+      .addUnitPreset({ at: { q: 3, r: 0 }, faction: 'red', role: 'worker' })
+      .addFortification({ at: { q: 1, r: 1 } })
+      .addFortification({ at: { q: 2, r: 1 }, material: 'wood-fence', segment: 'straight' })
+      .setElevation({ q: 3, r: 1 }, 1)
+      .addElevationRamp({ at: { q: 3, r: 1 }, direction: 'down' })
+      .addPropCluster({ at: { q: 3, r: 1 }, kind: 'stable-yard', placement: 'single' })
+      .scatterDecorations({ count: 1, assets: [] })
+      .build();
+
+    expect(variants.placements.map((placement) => placement.assetId)).toEqual(
+      expect.arrayContaining([
+        'mountain_A_grass',
+        'mountain_C',
+        'hill_single_B',
+        'trees_B_cut',
+        'unit_red_full',
+        'wall_straight',
+        'fence_wood_straight',
+        'hex_grass_sloped_low',
+      ])
+    );
+    expect(
+      variants.placements.find((placement) => placement.metadata.propClusterKind === 'stable-yard')
+    ).toMatchObject({
+      metadata: { density: 1 },
+    });
+    expect(
+      variants.placements.find((placement) => placement.assetId === 'hex_grass_sloped_low')
+    ).toMatchObject({
+      metadata: { toElevation: 0 },
+    });
+    const emptyScatter = createGameboardBuilder({
+      seed: 'empty-scatter-assets',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .scatterDecorations({ count: 1, assets: [] })
+      .build();
+    expect(emptyScatter.placements.some((placement) => placement.metadata.feature === 'scatter')).toBe(false);
+
+    const offBoardPlan = createGameboardBuilder({
+      seed: 'offboard-branches',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .addPropCluster({ at: { q: 0, r: 0 }, kind: 'camp', density: Number.POSITIVE_INFINITY })
+      .addHarbor({ at: { q: 0, r: 0 }, facing: 3, faction: 'blue' })
+      .build();
+
+    expect(offBoardPlan.placements.find((placement) => placement.assetId === 'building_docks_blue')).toMatchObject({
+      metadata: { feature: 'harbor', harborKind: 'docks' },
+    });
+    expect(offBoardPlan.warnings).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('prop cluster tile 1,0 is outside the board'),
+        expect.stringContaining('adjacent water tile -1,0 is outside the board'),
+      ])
+    );
+  });
+
 });
 
 describe('addRoadPath non-adjacent step throw (PRD E0b)', () => {
@@ -540,6 +632,36 @@ describe('addRoadPath non-adjacent step throw (PRD E0b)', () => {
         { q: 4, r: 0 },
       ])
     ).toThrow(/is not adjacent/);
+  });
+
+  it('throws when a malformed sparse path omits a coordinate', () => {
+    const builder = createGameboardBuilder({
+      seed: 'road-sparse',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    });
+    const sparsePath = new Array<{ q: number; r: number }>(2);
+    sparsePath[1] = { q: 0, r: 0 };
+
+    expect(() => builder.addRoadPath(sparsePath)).toThrow(/pathMasks index 0 out of range/);
+  });
+});
+
+describe('defensive board feature errors (PRD E0h)', () => {
+  it('throws for unsupported fence corner segments and degenerate hex harbor recipes', () => {
+    expect(() =>
+      createGameboardBuilder({
+        seed: 'unsupported-fence',
+        shape: { kind: 'rectangle', width: 1, height: 1 },
+      }).addFortification({
+        at: { q: 0, r: 0 },
+        material: 'wood-fence',
+        segment: 'corner-A-inside' as never,
+      })
+    ).toThrow(/does not support segment corner-A-inside/);
+
+    expect(() => createHarborBoard({ shape: { kind: 'hexagon', radius: 0 } })).toThrow(
+      /No available coordinate exists/
+    );
   });
 });
 
