@@ -128,20 +128,24 @@ export function runPackedConsumerSmoke(dependencies: PackedConsumerSmokeDependen
   return exitCode;
 }
 
-function isDirectRun(): boolean {
-  if (!process.argv[1]) {
+export function isDirectRun(
+  argvEntry = process.argv[1],
+  moduleUrl = import.meta.url,
+  realpath: (path: string) => string = realpathSync
+): boolean {
+  if (!argvEntry) {
     return false;
   }
   try {
     return (
-      realpathSync(resolve(process.argv[1])).toLowerCase() ===
-      realpathSync(fileURLToPath(import.meta.url)).toLowerCase()
+      realpath(resolve(argvEntry)).toLowerCase() === realpath(fileURLToPath(moduleUrl)).toLowerCase()
     );
   } catch {
     return false;
   }
 }
 
+/* v8 ignore next 3 -- thin executable entrypoint; predicate and smoke helpers are unit-tested. */
 if (isDirectRun()) {
   process.exitCode = runPackedConsumerSmoke();
 }
