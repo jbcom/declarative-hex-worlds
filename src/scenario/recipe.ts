@@ -834,8 +834,14 @@ function cloneRecipeStep<T extends GameboardRecipeStep>(step: T): T {
       waterEdges: Array.isArray(step.waterEdges) ? [...step.waterEdges] : step.waterEdges,
     } as T;
   }
+  if (step.action === 'setTileAsset') {
+    return { ...step, at: { ...step.at }, tags: step.tags ? [...step.tags] : undefined } as T;
+  }
   if ('at' in step) {
-    return { ...step, at: { ...step.at } } as T;
+    const cloned = { ...step, at: { ...step.at } } as T & {
+      metadata?: Readonly<Record<string, string | number | boolean | null>>;
+    };
+    return (cloned.metadata ? { ...cloned, metadata: { ...cloned.metadata } } : cloned) as T;
   }
   if (step.action === 'scatterDecorations') {
     return {
