@@ -98,7 +98,7 @@ export async function run(parsed: ParsedArgs, _sourceRoot: string, _edition: Pac
     assetIds: coverages.map((coverage) => coverage.assetId),
     coverage: coverages,
     ...(assetIdFilter.length === 1
-      ? { selected: describeKayKitGuideAssetCoverage(assetIdFilter[0] ?? '') }
+      ? { selected: describeKayKitGuideAssetCoverage(assetIdFilter[0] as string) }
       : {}),
   };
 
