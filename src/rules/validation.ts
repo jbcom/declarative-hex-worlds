@@ -304,7 +304,7 @@ function validatePlacement(
   }
   const facing = Number(placement.metadata.facing);
   const adjacent = Number.isFinite(facing) ? tiles.get(hexKey(neighbor(tile.coordinates, facing))) : undefined;
-  if (!adjacent || adjacent.terrain !== 'water') {
+  if (adjacent?.terrain !== 'water') {
     violations.push({
       code: 'harbor.missing_water',
       severity: 'error',
@@ -602,10 +602,11 @@ function validateChannelSource(
   channel: string,
   source: ChannelMaskSource
 ): void {
-  if (!source.declaration) {
+  const declaration = source.declaration;
+  if (!declaration) {
     return;
   }
-  const rules = source.declaration?.adjacency.filter((rule) => rule.channel === channel) ?? [];
+  const rules = declaration.adjacency.filter((rule) => rule.channel === channel);
   forEachEdge(source.mask, (edge) => {
     const adjacent = tiles.get(hexKey(neighbor(tile.coordinates, edge)));
     const matchingRules = rules.filter((rule) => (rotatedRuleMask(rule, source) & (1 << edge)) !== 0);
@@ -644,7 +645,7 @@ function validateChannelSource(
       }
     }
 
-    const reciprocal = source.declaration?.edges.find((item) => item.channel === channel)?.reciprocal ?? true;
+    const reciprocal = declaration.edges.find((item) => item.channel === channel)?.reciprocal ?? true;
     const explicitReciprocal = matchingRules.some((rule) => rule.reciprocal === true);
     const skipsReciprocal = matchingRules.some((rule) => rule.reciprocal === false);
     if (skipsReciprocal || (!reciprocal && !explicitReciprocal)) {

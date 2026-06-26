@@ -362,6 +362,266 @@ describe('engine-neutral plan validation', () => {
     const violations = validateGameboardPlan(plan, { registry });
     expect(violations.map((v) => v.code)).toContain('declaration.stack_max_elevation');
   });
+
+  it('reports built-in connectivity and placement diagnostics for invalid authored plans (E0h)', () => {
+    const edgePlan = createGameboardBuilder({
+      seed: 'built-in-edge-diagnostics',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .setTileAsset({
+        at: { q: 0, r: 0 },
+        assetId: 'hex_road_A',
+        terrain: 'road',
+        roadEdges: [0],
+        riverEdges: [0],
+      })
+      .build();
+
+    const codes = validateGameboardPlan(edgePlan).map((violation) => violation.code);
+    expect(codes).toEqual(
+      expect.arrayContaining(['road.missing_reciprocal_edge', 'river.terminates_into_tile'])
+    );
+
+    const offBoardRoad = createGameboardBuilder({
+      seed: 'built-in-off-board',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .setTileAsset({ at: { q: 0, r: 0 }, assetId: 'hex_road_A', terrain: 'road', roadEdges: [0] })
+      .build();
+    expect(validateGameboardPlan(offBoardRoad).map((violation) => violation.code)).toContain('road.edge_off_board');
+
+    const waterStructure = createGameboardBuilder({
+      seed: 'water-structure',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+      defaultTerrain: 'water',
+    })
+      .addPlacement({ at: { q: 0, r: 0 }, assetId: 'building_bridge_A', kind: 'structure', layer: 'structure' })
+      .build();
+    expect(validateGameboardPlan(waterStructure).map((violation) => violation.code)).toContain(
+      'placement.structure_on_water'
+    );
+
+    const harborMissingWater = createGameboardBuilder({
+      seed: 'harbor-missing-water',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .addHarbor({ at: { q: 0, r: 0 }, facing: 0, faction: 'blue', includeProps: false })
+      .build();
+    expect(validateGameboardPlan(harborMissingWater).map((violation) => violation.code)).toContain(
+      'harbor.missing_water'
+    );
+
+    const base = createGameboardBuilder({
+      seed: 'missing-placement-tile',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .addFlag({ q: 0, r: 0 }, 'blue')
+      .build();
+    const flag = base.placements[0];
+    if (!flag) {
+      throw new Error('Expected flag placement fixture');
+    }
+    expect(
+      validateGameboardPlan({
+        ...base,
+        placements: [{ ...flag, tileKey: '9,9' }],
+      }).map((violation) => violation.code)
+    ).toContain('placement.missing_tile');
+
+    expect(
+      validateGameboardPlan(base, {
+        validatePlacementFootprints: false,
+        validatePlacementBlockingOverlap: false,
+      })
+    ).toEqual([]);
+
+    const malformedHarborFacing = {
+      ...harborMissingWater,
+      placements: harborMissingWater.placements.map((placement) => ({
+        ...placement,
+        metadata:
+          placement.metadata.feature === 'harbor'
+            ? { ...placement.metadata, facing: 'not-a-number' }
+            : placement.metadata,
+      })),
+    };
+    expect(validateGameboardPlan(malformedHarborFacing).map((violation) => violation.code)).toContain(
+      'harbor.missing_water'
+    );
+  });
+
+  it('reports EXTRA tile assets and declaration adjacency boundary rules (E0h)', () => {
+    const extraTile = createGameboardBuilder({
+      seed: 'extra-tile-reference',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .setTileAsset({ at: { q: 0, r: 0 }, assetId: 'hex_extra_local', terrain: 'grass' })
+      .build();
+    const extraCatalog = createManifestBundle([
+      manifestFixture('extra', [assetFixture({ id: 'hex_extra_local', edition: 'extra', category: 'tiles' })]),
+    ]);
+    expect(
+      validateGameboardPlan(extraTile, { assetCatalog: extraCatalog, allowUnknownAssets: true }).map(
+        (violation) => violation.code
+      )
+    ).toContain('asset.tile_requires_extra');
+
+    const anonymousPlacementBase = createGameboardBuilder({
+      seed: 'anonymous-asset-placement',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .addFlag({ q: 0, r: 0 }, 'blue')
+      .build();
+    const anonymousPlacement = anonymousPlacementBase.placements.find((placement) => placement.assetId === 'flag_blue');
+    if (!anonymousPlacement) {
+      throw new Error('Expected anonymous asset placement fixture');
+    }
+    const assetFlagCatalog = createManifestBundle([
+      manifestFixture('free', [
+        assetFixture({ id: 'flag_blue', edition: 'free', category: 'decoration' }),
+        assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles' }),
+        assetFixture({ id: 'hex_grass_bottom', edition: 'free', category: 'tiles' }),
+      ]),
+      manifestFixture('extra', [assetFixture({ id: 'unit_blue_full', edition: 'extra', category: 'units' })]),
+    ]);
+    const anonymousExtra = {
+      ...anonymousPlacementBase,
+      placements: [
+        { ...anonymousPlacement, id: undefined as never, assetId: 'unit_blue_full', requiresExtra: false },
+      ],
+    };
+    const anonymousFree = {
+      ...anonymousPlacementBase,
+      placements: [{ ...anonymousPlacement, id: undefined as never, requiresExtra: true }],
+    };
+    expect(
+      validateGameboardPlan(anonymousExtra, { assetCatalog: assetFlagCatalog, allowUnknownAssets: true }).find(
+        (violation) => violation.code === 'asset.extra_flag_missing'
+      )?.message
+    ).toContain('<unknown>');
+    expect(
+      validateGameboardPlan(anonymousFree, { assetCatalog: assetFlagCatalog, allowUnknownAssets: true }).find(
+        (violation) => violation.code === 'asset.extra_flag_unnecessary'
+      )?.message
+    ).toContain('<unknown>');
+
+    const boundaryRegistry = createHexTileRegistry([
+      {
+        id: 'custom_base_edge',
+        assetId: 'custom_base_edge',
+        role: 'base',
+        terrain: 'grass',
+        edges: { trail: [0] },
+        adjacency: [{ channel: 'trail', mask: 1, reciprocal: false, allowOffBoard: true }],
+      },
+      {
+        id: 'custom_edge',
+        assetId: 'custom_edge',
+        role: 'surface',
+        edges: { trail: [0] },
+      },
+      {
+        id: 'custom_gate',
+        assetId: 'custom_gate',
+        role: 'surface',
+        edges: { trail: [0] },
+        adjacency: [{ channel: 'trail', mask: 1, allowOffBoard: true }],
+      },
+    ]);
+    const boundaryPlan = createGameboardBuilder({
+      seed: 'declaration-boundary',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'custom_edge',
+        kind: 'structure',
+        layer: 'structure',
+        metadata: { declarationId: 'missing-custom-edge' },
+      })
+      .addPlacement({ at: { q: 0, r: 0 }, assetId: 'custom_gate', kind: 'structure', layer: 'structure' })
+      .build();
+    expect(validateGameboardPlan(boundaryPlan, { registry: boundaryRegistry }).map((v) => v.code)).toContain(
+      'declaration.edge_off_board'
+    );
+
+    const baseDeclarationPlan = createGameboardBuilder({
+      seed: 'base-declaration-edge',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+    })
+      .setTileAsset({ at: { q: 0, r: 0 }, assetId: 'custom_base_edge', terrain: 'grass' })
+      .build();
+    expect(validateGameboardPlan(baseDeclarationPlan, { registry: boundaryRegistry })).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'declaration.edge_off_board' })])
+    );
+
+    const boundaryPlacement = boundaryPlan.placements[0];
+    if (!boundaryPlacement) {
+      throw new Error('Expected registered boundary placement fixture');
+    }
+    const missingRegisteredTilePlan = {
+      ...boundaryPlan,
+      placements: [
+        {
+          ...boundaryPlacement,
+          tileKey: '9,9',
+          assetId: 'custom_edge',
+          metadata: { declarationId: 'custom_edge' },
+        },
+      ],
+    };
+    expect(validateGameboardPlan(missingRegisteredTilePlan, { registry: boundaryRegistry }).map((v) => v.code)).toContain(
+      'placement.missing_tile'
+    );
+
+    const metadataMaskRegistry = createHexTileRegistry([
+      {
+        id: 'custom_metadata_road',
+        assetId: 'custom_metadata_road',
+        role: 'road',
+      },
+    ]);
+    const metadataMaskPlan = createGameboardBuilder({
+      seed: 'metadata-mask-reciprocal-default',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'custom_metadata_road',
+        kind: 'road',
+        layer: 'surface',
+        metadata: { edgeMask: 1, declarationId: 'custom_metadata_road' },
+      })
+      .build();
+    expect(validateGameboardPlan(metadataMaskPlan, { registry: metadataMaskRegistry }).map((v) => v.code)).toContain(
+      'declaration.missing_reciprocal_edge'
+    );
+
+    const terrainRegistry = createHexTileRegistry([
+      {
+        id: 'custom_water_forbidden',
+        assetId: 'custom_water_forbidden',
+        role: 'surface',
+        edges: { trail: [0] },
+        adjacency: [{ channel: 'trail', mask: 1, reciprocal: false, forbidsNeighborTerrain: ['water'] }],
+      },
+    ]);
+    const terrainPlan = createGameboardBuilder({
+      seed: 'declaration-forbidden-terrain',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'custom_water_forbidden',
+        kind: 'structure',
+        layer: 'structure',
+      })
+      .setTerrain({ q: 1, r: 0 }, 'water')
+      .build();
+    expect(validateGameboardPlan(terrainPlan, { registry: terrainRegistry }).map((v) => v.code)).toContain(
+      'declaration.adjacency_forbidden_terrain'
+    );
+  });
 });
 
 function freeCatalogFixture(): MedievalHexagonManifest {
