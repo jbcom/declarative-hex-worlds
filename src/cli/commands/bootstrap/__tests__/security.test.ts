@@ -16,12 +16,16 @@
  */
 
 import { EventEmitter } from 'node:events';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { PassThrough } from 'node:stream';
 import { crc32, deflateRawSync } from 'node:zlib';
+import yazl from 'yazl';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { bootstrapKayKitAssets } from '../index';
+import { KAYKIT_BOOTSTRAP_SIDECAR } from '../target';
+import { KAYKIT_MEDIEVAL_FREE_LAYOUT } from '../upstream-layout';
 
 // ---------------------------------------------------------------------------
 // vi.mock must appear at the top level so vite can hoist it.
@@ -122,6 +126,26 @@ function buildRawZip(entryName: string, rawData: Buffer, fakeUncompressedSize?: 
   ]);
 
   return Buffer.concat([localHeader, centralDir, eocd]);
+}
+
+async function buildFreePackZipBuffer(): Promise<Buffer> {
+  const zip = new yazl.ZipFile();
+  const layout = KAYKIT_MEDIEVAL_FREE_LAYOUT;
+  const folder = `${layout.packFolderName}/`;
+  for (const marker of layout.markerFiles) {
+    zip.addBuffer(Buffer.from(`marker:${marker}`), `${folder}${marker}`);
+  }
+  zip.addBuffer(Buffer.from('{}'), `${folder}${layout.relativeGltfRoot}/tiles/base/hex_grass.gltf`);
+  zip.addBuffer(Buffer.from('{}'), `${folder}${layout.relativeGltfRoot}/buildings/blue/home.gltf`);
+  zip.addBuffer(Buffer.from('{}'), `${folder}${layout.relativeGltfRoot}/decoration/nature/tree.gltf`);
+  zip.addBuffer(Buffer.from('png'), `${folder}${layout.relativeTextureRoot}/hexagons_medieval.png`);
+  zip.end();
+  const chunks: Buffer[] = [];
+  return new Promise<Buffer>((resolveBuild, rejectBuild) => {
+    zip.outputStream.on('data', (chunk: Buffer) => chunks.push(chunk));
+    zip.outputStream.on('error', rejectBuild);
+    zip.outputStream.on('end', () => resolveBuild(Buffer.concat(chunks)));
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -244,6 +268,140 @@ describe('bootstrap security — redirect allowlist (CWE-601)', () => {
     ).rejects.toThrow(/too many redirects|failed to download/i);
 
     expect(mockRequest.mock.calls.length).toBeGreaterThan(5);
+  });
+
+  it('downloads an allowlisted GitHub archive and stages it through the zip path', async () => {
+    const { request } = await import('node:https');
+    const mockRequest = vi.mocked(request);
+    const zipBuffer = await buildFreePackZipBuffer();
+
+    mockRequest.mockImplementation((_url, opts, cb) => {
+      expect(opts).toMatchObject({
+        method: 'GET',
+        headers: expect.objectContaining({ Accept: 'application/zip' }),
+      });
+      const callback = cb as unknown as (
+        res: { statusCode: number; headers: Record<string, string>; resume(): void } & PassThrough
+      ) => void;
+      const res = Object.assign(new PassThrough(), {
+        statusCode: 200,
+        headers: {} as Record<string, string>,
+      });
+      setImmediate(() => {
+        callback(res);
+        res.end(zipBuffer);
+      });
+      return Object.assign(new EventEmitter(), {
+        end() {
+          return undefined;
+        },
+      }) as unknown as ReturnType<typeof request>;
+    });
+
+    const localOut = tmp();
+    const result = await bootstrapKayKitAssets({
+      source: { kind: 'github', commit: 'main' },
+      out: localOut,
+      outRoot: '/',
+      edition: 'free',
+      libraryVersion: '0.0.0-test',
+      fetchedAt: '2030-01-01T00:00:00.000Z',
+    });
+    expect(result.fileCount).toBeGreaterThan(0);
+    expect(existsSync(join(localOut, KAYKIT_BOOTSTRAP_SIDECAR))).toBe(true);
+    expect(mockRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it('destroys the GitHub response stream when archive piping fails', async () => {
+    const { request } = await import('node:https');
+    const mockRequest = vi.mocked(request);
+    let destroySpy: ReturnType<typeof vi.spyOn> | undefined;
+
+    mockRequest.mockImplementation((_url, _opts, cb) => {
+      const callback = cb as unknown as (
+        res: { statusCode: number; headers: Record<string, string>; resume(): void } & PassThrough
+      ) => void;
+      const res = Object.assign(new PassThrough(), {
+        statusCode: 200,
+        headers: {} as Record<string, string>,
+      });
+      destroySpy = vi.spyOn(res, 'destroy');
+      setImmediate(() => {
+        callback(res);
+        setTimeout(() => res.destroy(new Error('stream failed')), 0);
+      });
+      return Object.assign(new EventEmitter(), {
+        end() {
+          return undefined;
+        },
+      }) as unknown as ReturnType<typeof request>;
+    });
+
+    const localOut = tmp();
+    await expect(
+      bootstrapKayKitAssets({
+        source: { kind: 'github' },
+        out: localOut,
+        outRoot: '/',
+        edition: 'free',
+      })
+    ).rejects.toThrow(/stream failed|failed to download/i);
+    expect(destroySpy).toHaveBeenCalled();
+  });
+
+  it('reports missing HTTP status as status 0', async () => {
+    const { request } = await import('node:https');
+    const mockRequest = vi.mocked(request);
+
+    mockRequest.mockImplementation((_url, _opts, cb) => {
+      const callback = cb as unknown as (
+        res: { headers: Record<string, string>; resume(): void } & PassThrough
+      ) => void;
+      const res = Object.assign(new PassThrough(), {
+        headers: {} as Record<string, string>,
+      });
+      setImmediate(() => callback(res));
+      return Object.assign(new EventEmitter(), {
+        end() {
+          return undefined;
+        },
+      }) as unknown as ReturnType<typeof request>;
+    });
+
+    const localOut = tmp();
+    await expect(
+      bootstrapKayKitAssets({
+        source: { kind: 'github' },
+        out: localOut,
+        outRoot: '/',
+        edition: 'free',
+      })
+    ).rejects.toThrow(/status 0|failed to download/i);
+  });
+
+  it('wraps non-Error request failures from GitHub downloads', async () => {
+    const { request } = await import('node:https');
+    const mockRequest = vi.mocked(request);
+
+    mockRequest.mockImplementation(() => {
+      const req = new EventEmitter();
+      return Object.assign(req, {
+        end() {
+          setImmediate(() => req.emit('error', 'network string failure'));
+          return undefined;
+        },
+      }) as unknown as ReturnType<typeof request>;
+    });
+
+    const localOut = tmp();
+    await expect(
+      bootstrapKayKitAssets({
+        source: { kind: 'github' },
+        out: localOut,
+        outRoot: '/',
+        edition: 'free',
+      })
+    ).rejects.toThrow(/network string failure|failed to download/i);
   });
 });
 
