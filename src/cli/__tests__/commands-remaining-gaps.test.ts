@@ -13,6 +13,7 @@ import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runPatrolRoutes } from '../commands/patrol-routes';
 import { run as runPlacePiece } from '../commands/place-piece';
+import { run as runSummarizePlan } from '../commands/summarize-plan';
 import { run as runValidateManifest } from '../commands/validate-manifest';
 import { run as runValidatePlan } from '../commands/validate-plan';
 import { run as runValidateRecipe } from '../commands/validate-recipe';
@@ -567,6 +568,97 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     }
   });
 
+  it('covers summarize-plan input variants, readable fallbacks, and warning exits', async () => {
+    const summarize = (flags: Record<string, string | boolean>): Promise<void> =>
+      runSummarizePlan({ command: 'summarize-plan', flags }, '/missing-source', 'free');
+    const expectRejects = async (
+      flags: Record<string, string | boolean>,
+      expected: string | RegExp
+    ): Promise<void> => {
+      await expect(summarize(flags)).rejects.toThrow(expected);
+    };
+    const planPath = writeJson('summary.plan.json', patrolPlan());
+
+    await expectRejects({}, /requires exactly one/);
+    await expectRejects({ plan: writeJson('summary.bad-plan.json', []) }, /must be a JSON object/);
+    await expectRejects({ recipe: writeJson('summary.bad-recipe-shape.json', []) }, /must be a JSON object/);
+    await expectRejects({ scenario: writeJson('summary.bad-scenario-shape.json', []) }, /must be a JSON object/);
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      await expectRejects({ recipe: writeJson('summary.invalid-recipe.json', invalidRecipe()) }, 'process.exit 1');
+      await expectRejects(
+        { recipe: writeJson('summary.invalid-recipe-allowed.json', invalidRecipe()), allowInvalid: true },
+        /did not compile to a GameboardPlan/
+      );
+      await expectRejects({ scenario: writeJson('summary.invalid-scenario.json', invalidScenario()) }, 'process.exit 1');
+      await expectRejects(
+        { scenario: writeJson('summary.invalid-scenario-allowed.json', invalidScenario()), allowInvalid: true },
+        /did not compile to a GameboardPlan/
+      );
+      await expectRejects({ plan: writeJson('summary.invalid-plan.json', invalidPlan()) }, 'process.exit 1');
+
+      logs.length = 0;
+      await expectRejects(
+        { plan: writeJson('summary.warning-plan.json', warningPlan()), failOnWarning: true },
+        'process.exit 1'
+      );
+      expect(logs.join('\n')).toContain('validation: 0 error(s), 1 warning(s)');
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    logs.length = 0;
+    await summarize({ plan: planPath, outPlan: 'summary.out-plan.json', out: 'summary.out.json', topAssetLimit: '0' });
+    expect(logs.join('\n')).toContain('Wrote compiled GameboardPlan to');
+    expect(logs.join('\n')).toContain('Wrote plan summary to');
+
+    logs.length = 0;
+    await summarize({ recipe: writeJson('summary.valid-recipe.json', validRecipe()), json: true });
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      source: { kind: 'recipe' },
+      validation: { errorCount: 0 },
+    });
+
+    logs.length = 0;
+    await summarize({ scenario: writeJson('summary.valid-scenario.json', validScenario()), json: true });
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      source: { kind: 'scenario' },
+      validation: { errorCount: 0 },
+    });
+
+    logs.length = 0;
+    await summarize({ plan: writeJson('summary.extra-plan.json', extraPlacementPlan()) });
+    expect(logs.join('\n')).toContain('extra assets: fixture:extra-prop');
+    expect(logs.join('\n')).toContain('top assets: fixture:extra-prop*=1, fixture:free-prop=1');
+
+    logs.length = 0;
+    await summarize({
+      config: writeJson('summary.blueprint-config.json', {
+        options: { seed: 'summary-config-seed', shape: { kind: 'rectangle', width: 1, height: 1 } },
+      }),
+      json: true,
+    });
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      source: { kind: 'blueprint' },
+      summary: { seed: 'summary-config-seed' },
+    });
+
+    logs.length = 0;
+    await summarize({
+      blueprint: writeJson('summary.blueprint.json', {
+        options: { seed: 'summary-blueprint-seed', shape: { kind: 'rectangle', width: 1, height: 1 } },
+      }),
+      json: true,
+    });
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      source: { kind: 'blueprint' },
+      summary: { seed: 'summary-blueprint-seed' },
+    });
+  });
+
   function writeSyntheticSourceRoot(name: string): string {
     writeGltf(`${name}/Assets/gltf/tiles/hex_fixture.gltf`, [-0.5, 0, -0.5], [0.5, 0.25, 0.5]);
     return resolve(root, name);
@@ -631,6 +723,87 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
       schemaVersion: '1.0.0',
       options: { seed: 'bad-recipe', shape: { kind: 'rectangle', width: 1, height: 1 } },
       steps: [{ action: 'setTerrain', at: { q: 3, r: 0 }, terrain: 'water' }],
+    };
+  }
+
+  function validRecipe(seed = 'summary-recipe'): unknown {
+    return {
+      schemaVersion: '1.0.0',
+      options: { seed, shape: { kind: 'rectangle', width: 1, height: 1 } },
+      steps: [],
+    };
+  }
+
+  function validScenario(): unknown {
+    return {
+      schemaVersion: '1.0.0',
+      id: 'summary-scenario',
+      board: validRecipe('summary-scenario-board'),
+    };
+  }
+
+  function invalidScenario(): unknown {
+    return {
+      schemaVersion: '1.0.0',
+      id: '',
+      board: invalidRecipe(),
+    };
+  }
+
+  function warningPlan(): GameboardPlan {
+    const plan = patrolPlan();
+    const tile = plan.tiles[0];
+    if (!tile) {
+      throw new Error('warningPlan fixture requires at least one tile');
+    }
+    return {
+      ...plan,
+      tiles: [{ ...tile, roadEdges: 1 }],
+    };
+  }
+
+  function extraPlacementPlan(): GameboardPlan {
+    const plan = patrolPlan();
+    return {
+      ...plan,
+      placements: [
+        {
+          id: 'extra-prop',
+          tileKey: '0,0',
+          coordinates: { q: 0, r: 0 },
+          position: { x: 0, y: 0, z: 0 },
+          assetId: 'fixture:extra-prop',
+          kind: 'prop',
+          layer: 'feature',
+          textureSet: 'default',
+          elevation: 0,
+          elevationOffset: 0,
+          rotationSteps: 0,
+          rotationRadians: 0,
+          scale: 1,
+          order: 0,
+          requiresExtra: true,
+          metadata: { feature: 'camp' },
+        },
+        {
+          id: 'free-prop',
+          tileKey: '0,0',
+          coordinates: { q: 0, r: 0 },
+          position: { x: 0, y: 0, z: 0 },
+          assetId: 'fixture:free-prop',
+          kind: 'prop',
+          layer: 'feature',
+          textureSet: 'default',
+          elevation: 0,
+          elevationOffset: 0,
+          rotationSteps: 0,
+          rotationRadians: 0,
+          scale: 1,
+          order: 1,
+          requiresExtra: false,
+          metadata: { feature: 'camp' },
+        },
+      ],
     };
   }
 
