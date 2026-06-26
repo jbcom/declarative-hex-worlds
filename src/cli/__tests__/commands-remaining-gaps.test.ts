@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { run as runAnalyzeLayout } from '../commands/analyze-layout';
+import { readBlueprintOptions, run as runBlueprint } from '../commands/blueprint';
 import { run as runCompatibility } from '../commands/compatibility';
 import { run as runDeclarations } from '../commands/declarations';
 import { run as runDoctor } from '../commands/doctor';
@@ -1017,6 +1018,79 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     }
   });
 
+  it('covers blueprint option defaults and validation warning/error exits', async () => {
+    expect(readBlueprintOptions({ shape: 'hexagon' })).toMatchObject({
+      shape: { kind: 'hexagon', radius: 4 },
+    });
+    expect(readBlueprintOptions({ shape: 'rectangle' })).toMatchObject({
+      shape: { kind: 'rectangle', width: 12, height: 9 },
+    });
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      logs.length = 0;
+      await expect(
+        runBlueprint(
+          { command: 'blueprint', flags: { shape: 'rectangle', waterFill: '1', json: true } },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(
+        (JSON.parse(logs.at(-1) ?? '{}') as { validation: { errorCount: number } }).validation
+          .errorCount
+      ).toBeGreaterThan(0);
+
+      logs.length = 0;
+      await expect(
+        runBlueprint(
+          {
+            command: 'blueprint',
+            flags: { shape: 'rectangle', defaultTerrain: 'lava', failOnWarning: true, json: true },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(
+        (JSON.parse(logs.at(-1) ?? '{}') as { validation: { warningCount: number } }).validation
+          .warningCount
+      ).toBeGreaterThan(0);
+
+      logs.length = 0;
+      await expect(
+        runBlueprint(
+          {
+            command: 'blueprint',
+            flags: {
+              blueprint: writeJson('blueprint.invalid-scenario.json', {
+                options: {
+                  seed: 'blueprint-invalid-scenario',
+                  shape: { kind: 'rectangle', width: 1, height: 1 },
+                  scenarioId: 'blueprint-invalid-scenario',
+                  actors: [
+                    { actorId: '', actorKind: 'npc', at: '0,0', assetId: 'flag_green', kind: 'unit' },
+                  ],
+                },
+              }),
+              json: true,
+            },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(
+        (JSON.parse(logs.at(-1) ?? '{}') as { scenarioValidation: { errorCount: number } })
+          .scenarioValidation.errorCount
+      ).toBeGreaterThan(0);
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
   it('covers summarize-plan input variants, readable fallbacks, and warning exits', async () => {
     const summarize = (flags: Record<string, string | boolean>): Promise<void> =>
       runSummarizePlan({ command: 'summarize-plan', flags }, '/missing-source', 'free');
@@ -1199,6 +1273,17 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     expect(logs.join('\n')).toContain('step 0: unknown source found 0/0 reachable; nearest none; no command');
     expect(logs.join('\n')).toContain('actor-removed: ghost not applied');
     expect(logs.join('\n')).toContain('placement-removed: missing-placement not applied');
+
+    logs.length = 0;
+    await simulate({
+      scenario: writeJson('simulation.target-scenario.json', targetedSimulationScenario()),
+      script: writeJson('simulation.target-script.json', targetedSimulationScript()),
+      allowUnknownAssets: true,
+    });
+    expect(logs.join('\n')).toContain(
+      'hero found 1/1 reachable; nearest enemy via adjacent 1,0; attack-actor'
+    );
+    expect(logs.join('\n')).toContain('actor-removed: enemy removed');
 
     logs.length = 0;
     await simulate({
@@ -1548,6 +1633,29 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     };
   }
 
+  function targetedSimulationScenario(): unknown {
+    return {
+      schemaVersion: '1.0.0',
+      id: 'simulation-targets',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'simulation-targets', shape: { kind: 'rectangle', width: 3, height: 1 } },
+        steps: [],
+      },
+      actors: [
+        { actorId: 'hero', actorKind: 'player', at: '0,0', assetId: 'flag_blue', kind: 'unit' },
+        {
+          actorId: 'enemy',
+          actorKind: 'enemy',
+          at: '2,0',
+          assetId: 'flag_red',
+          hostile: true,
+          kind: 'unit',
+        },
+      ],
+    };
+  }
+
   function simulationScript(
     steps: readonly unknown[],
     expectations?: Record<string, unknown>
@@ -1574,6 +1682,24 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
         action: 'remove-placement',
         id: 'remove-missing-placement',
         placementId: 'missing-placement',
+        systems: false,
+      },
+    ]);
+  }
+
+  function targetedSimulationScript(): unknown {
+    return simulationScript([
+      {
+        action: 'inspect-actor-targets',
+        sourceActor: 'hero',
+        targeting: { actorIds: ['enemy'] },
+      },
+      {
+        action: 'command',
+        id: 'attack-enemy',
+        sourceActor: 'hero',
+        target: { actorId: 'enemy' },
+        handler: 'default-rpg',
         systems: false,
       },
     ]);
