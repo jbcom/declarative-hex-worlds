@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   createGameboardBuilder,
+  createGameboardInteropSnapshot,
   createGameboardWorld,
   projectWorldToGameboardPlan,
   runGameboardScenarioSimulation,
@@ -45,6 +46,23 @@ describe('browser-free branch coverage', () => {
       assetId: 'hex_river_crossing_A_waterless',
       kind: 'river',
     });
+  });
+
+  it('creates interop spawn-location snapshots in the browser harness', () => {
+    const plan = createGameboardBuilder({
+      seed: 'browser-interop-spawns',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    }).build();
+
+    const snapshot = createGameboardInteropSnapshot(plan, {
+      spawnLocations: {
+        count: 1,
+        seed: 'browser-interop-spawns',
+        candidates: [{ q: 1, r: 0 }],
+      },
+    });
+
+    expect(snapshot.spawnLocations.map((spawn) => spawn.coordinates)).toEqual([{ q: 1, r: 0 }]);
   });
 
   it('runs direct simulation mutation branches with systems in the browser harness', () => {
