@@ -357,6 +357,51 @@ describe('CLI source-root command branch coverage (PRD E0h)', () => {
     expect(manifest.counts.total).toBe(1);
   });
 
+  it('writes a synthetic manifest when --out is supplied', async () => {
+    const sourceRoot = writeSyntheticSourceRoot('manifest-out-source');
+    const previousOutRoot = process.env.HEX_WORLDS_OUT_ROOT;
+    const out = 'manifest-out.json';
+    process.env.HEX_WORLDS_OUT_ROOT = commandOutputRoot;
+
+    try {
+      await runManifest({ command: 'manifest', flags: { out } }, sourceRoot, 'free');
+    } finally {
+      if (previousOutRoot === undefined) {
+        delete process.env.HEX_WORLDS_OUT_ROOT;
+      } else {
+        process.env.HEX_WORLDS_OUT_ROOT = previousOutRoot;
+      }
+    }
+
+    expect(readCommandOutput<{ counts: { total: number } }>(out).counts.total).toBe(1);
+    expect(logs).toEqual([`Wrote manifest to ${resolve(commandOutputRoot, out)}`]);
+  });
+
+  it('prints synthetic analysis JSON without reference assets', async () => {
+    const sourceRoot = writeSyntheticSourceRoot('analyze-json-source');
+
+    await runAnalyze({ command: 'analyze', flags: { json: true } }, sourceRoot, 'free');
+
+    const analysis = JSON.parse(logs.join('\n')) as { tileCount: number; analyzedCount: number };
+    expect(analysis.tileCount).toBe(1);
+    expect(analysis.analyzedCount).toBe(1);
+  });
+
+  it('reports validate success for a complete synthetic source', async () => {
+    const sourceRoot = resolve(commandOutputRoot, 'validate-success-source');
+    for (let index = 0; index < 221; index += 1) {
+      writeCommandGltfBounds(
+        `validate-success-source/Assets/gltf/generated/fixture_${index}.gltf`,
+        [-0.5, 0, -0.5],
+        [0.5, 0.25, 0.5]
+      );
+    }
+
+    await runValidate({ command: 'validate', flags: {} }, sourceRoot, 'free');
+
+    expect(logs).toEqual(['Validated 221 free GLTF files.']);
+  });
+
   it('reports validate count failures before exiting', async () => {
     const sourceRoot = writeSyntheticSourceRoot('validate-failure-source');
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
@@ -2202,6 +2247,27 @@ describe('CLI declaration and piece output paths (PRD E0h)', () => {
       suggestedRole: 'prop',
       placement: { modelForward: '-x' },
     });
+  });
+
+  it('prints synthetic compatibility JSON without reference assets', async () => {
+    const asset = writeCommandGltfBounds(
+      'compatibility-json-assets/camp-prop.gltf',
+      [-0.2, 0, -0.2],
+      [0.2, 0.65, 0.2]
+    );
+
+    await runCompatibilityCmd(
+      {
+        command: 'compatibility',
+        flags: { asset, json: true },
+      },
+      '/nonexistent-source-root',
+      'free'
+    );
+
+    const report = JSON.parse(logs.join('\n')) as { id: string; errors: unknown[] };
+    expect(report.id).toBe('camp-prop');
+    expect(report.errors).toEqual([]);
   });
 
   it('compatibility exits on warning when requested', async () => {
