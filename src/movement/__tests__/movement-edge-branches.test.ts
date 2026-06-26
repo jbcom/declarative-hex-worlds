@@ -126,6 +126,15 @@ describe('advanceOneGameboardMovement branch coverage (PRD E0a)', () => {
     expect(advanced.state.status).toBe('completed');
     expect(unit.get(MovementAgent)?.remainingMovement).toBe(5);
   });
+
+  it('returns the idle fallback when an entity has no path trait', () => {
+    const { world, unit } = movementUnitFixture('adv-no-path-state');
+
+    const advanced = advanceGameboardMovement(world, unit);
+
+    expect(advanced.moved).toBe(false);
+    expect(advanced.state).toMatchObject({ status: 'idle', pathKeys: [] });
+  });
 });
 
 describe('reachableGameboardMovementTiles with string id (PRD E0a)', () => {
