@@ -135,6 +135,10 @@ interface PatrolAdvanceTransition {
   advanced: boolean;
 }
 
+interface NormalizedPatrolRouteInput extends GameboardPatrolRouteInput {
+  segmentCosts: readonly number[];
+}
+
 /**
  * Koota action bundle for patrol setup, clearing, advancement, and reads.
  */
@@ -168,7 +172,7 @@ export function setGameboardPatrolAgent(
   const agent = patrolAgentValue({
     routeId: route.id,
     waypointKeys: [...route.waypointKeys],
-    segmentCosts: [...(route.segmentCosts ?? [])],
+    segmentCosts: [...route.segmentCosts],
     loop: route.loop ?? true,
     active: options.active ?? true,
     currentWaypointIndex,
@@ -576,7 +580,7 @@ function clampWaypointIndex(index: number, waypointCount: number): number {
   return Math.min(waypointCount - 1, Math.max(0, Math.floor(index)));
 }
 
-function normalizePatrolRouteInput(route: GameboardPatrolRoutePlan | GameboardPatrolRouteInput): GameboardPatrolRouteInput {
+function normalizePatrolRouteInput(route: GameboardPatrolRoutePlan | GameboardPatrolRouteInput): NormalizedPatrolRouteInput {
   if ('waypoints' in route) {
     return {
       id: route.id,
