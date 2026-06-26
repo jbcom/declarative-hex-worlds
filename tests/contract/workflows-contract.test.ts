@@ -160,6 +160,8 @@ describe('workflow contract', () => {
       ["NODE_VERSION: '22'"],
       ['pnpm/action-setup'],
       ['actions/create-github-app-token'],
+      ['Check release-please GitHub App credentials'],
+      ["steps.release-please-credentials.outputs.configured == 'true'"],
       ['vars.RELEASE_PLEASE_APP_CLIENT_ID'],
       ['secrets.RELEASE_PLEASE_APP_PRIVATE_KEY'],
       [`repositories: ${CURRENT_REPOSITORY_EXPRESSION}`],
