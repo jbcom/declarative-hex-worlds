@@ -1018,7 +1018,11 @@ function inspectLayoutSites(
       candidates.push(inspection.site);
       continue;
     }
-    rejected.push(inspection.rejected as GameboardLayoutRejectedSite);
+    /* v8 ignore next 3 -- inspectSiteForTile returns either a site or a rejected site; this guards contract drift. */
+    if (!inspection.rejected) {
+      throw new GameboardRuntimeError(`Layout inspection failed for tile ${tile.key}`);
+    }
+    rejected.push(inspection.rejected);
   }
 
   /* v8 ignore start -- seeded jitter makes score ties unreachable; tie-breakers document deterministic fallback order. */
