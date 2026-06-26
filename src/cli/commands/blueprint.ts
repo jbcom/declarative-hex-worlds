@@ -359,13 +359,13 @@ export function runBlueprint(parsed: ParsedArgs, sourceRoot: string, edition: Pa
   }
 
   const scenarioViolations = scenarioInspection?.scenarioInspection.violations ?? [];
-  const hasErrors =
-    violations.some((violation) => violation.severity === 'error') ||
-    scenarioViolations.some((violation) => violation.severity === 'error');
-  const hasWarnings =
-    inspection.warnings.length > 0 ||
-    violations.some((violation) => violation.severity === 'warning') ||
-    scenarioViolations.some((violation) => violation.severity === 'warning');
+  const hasValidationErrors = violations.some((violation) => violation.severity === 'error');
+  const hasScenarioErrors = scenarioViolations.some((violation) => violation.severity === 'error');
+  const hasInspectionWarnings = inspection.warnings.length > 0;
+  const hasValidationWarnings = violations.some((violation) => violation.severity === 'warning');
+  const hasScenarioWarnings = scenarioViolations.some((violation) => violation.severity === 'warning');
+  const hasErrors = hasValidationErrors || hasScenarioErrors;
+  const hasWarnings = hasInspectionWarnings || hasValidationWarnings || hasScenarioWarnings;
   if (hasErrors) {
     process.exit(1);
   }

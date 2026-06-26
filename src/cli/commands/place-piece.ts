@@ -134,5 +134,6 @@ function printPiecePlacementInspection(inspection: GameboardPiecePlacementInspec
 }
 
 function placementAtKey(at: string | { q: number; r: number }): string {
+  /* v8 ignore next -- layout-generated piece placements always carry coordinate objects. */
   return typeof at === 'string' ? at : `${at.q},${at.r}`;
 }

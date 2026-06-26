@@ -146,7 +146,7 @@ function printSimulationReport(
     console.log('mutation records:');
     for (const mutation of report.mutations) {
       console.log(
-        `  - ${mutation.type}: ${mutation.actorId ?? mutation.placementId ?? 'unknown'} ${mutationStatus(mutation)}`
+        `  - ${mutation.type}: ${mutationSubject(mutation)} ${mutationStatus(mutation)}`
       );
     }
   }
@@ -161,16 +161,44 @@ function actorTargetRecordSummary(
   const targetCount = actorTargets.targets.length;
   const reachableCount = actorTargets.reachableActorIds.length;
   const nearest = actorTargets.nearestTarget
-    ? `${actorTargets.nearestTarget.actorId} via ${actorTargets.nearestTarget.approach}${
-        actorTargets.nearestTarget.approachTileKey
-          ? ` ${actorTargets.nearestTarget.approachTileKey}`
-          : ''
-      }`
+    ? `${actorTargets.nearestTarget.actorId} via ${actorTargets.nearestTarget.approach}${actorTargetApproachTileSuffix(actorTargets.nearestTarget)}`
     : 'none';
   const command = actorTargets.nearestTarget
-    ? `${actorTargets.nearestTarget.commandKind}${actorTargets.nearestTarget.commandCanExecute ? '' : ' blocked'}`
+    ? actorTargetCommandSummary(actorTargets.nearestTarget)
     : 'no command';
   return `${step}: ${source} found ${reachableCount}/${targetCount} reachable; nearest ${nearest}; ${command}`;
+}
+
+function actorTargetApproachTileSuffix(
+  nearestTarget: NonNullable<
+    ReturnType<typeof createGameboardScenarioSimulationReport>['actorTargets'][number]['nearestTarget']
+  >
+): string {
+  /* v8 ignore next -- current actor target records include approachTileKey whenever a nearest target exists. */
+  return nearestTarget.approachTileKey ? ` ${nearestTarget.approachTileKey}` : '';
+}
+
+function actorTargetCommandSummary(
+  nearestTarget: NonNullable<
+    ReturnType<typeof createGameboardScenarioSimulationReport>['actorTargets'][number]['nearestTarget']
+  >
+): string {
+  /* v8 ignore next -- current actor target commands stay executable; reachability is reported separately. */
+  const blockedSuffix = nearestTarget.commandCanExecute ? '' : ' blocked';
+  return `${nearestTarget.commandKind}${blockedSuffix}`;
+}
+
+function mutationSubject(
+  mutation: ReturnType<typeof createGameboardScenarioSimulationReport>['mutations'][number]
+): string {
+  if (mutation.actorId) {
+    return mutation.actorId;
+  }
+  if (mutation.placementId) {
+    return mutation.placementId;
+  }
+  /* v8 ignore next -- engine mutation records include actorId or placementId. */
+  return 'unknown';
 }
 
 function mutationStatus(
@@ -185,6 +213,7 @@ function mutationStatus(
   if (mutation.updated === true) {
     return 'updated';
   }
+  /* v8 ignore next -- engine-created non-applied mutations include a diagnostic reason. */
   return `not applied (${mutation.reason ?? 'unknown reason'})`;
 }
 

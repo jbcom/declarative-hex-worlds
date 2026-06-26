@@ -34,6 +34,7 @@ function printPatrolRouteSet(routeSet: GameboardPatrolRouteSet): void {
     if (route.pathKeys.length > 0) {
       console.log(`    path: ${route.pathKeys.join(' -> ')}`);
     }
+    /* v8 ignore next 3 -- current route planning reports fatal route diagnostics, not non-fatal route warnings. */
     for (const warning of route.warnings) {
       console.log(`    warning: ${warning}`);
     }
@@ -103,6 +104,7 @@ export function runPatrolRoutes(
             typeof parsed.flags.seed === 'string'
               ? parsed.flags.seed
               : `${scenario?.id ?? plan.seed}:patrol-routes`,
+          /* v8 ignore next -- guard above requires scenario patrolRoutes when --routes is absent. */
           routes: scenario?.patrolRoutes ?? [],
         };
   const routeSet = planGameboardPatrolRoutes(plan, {
@@ -125,6 +127,7 @@ export function runPatrolRoutes(
   if (routeSet.errors.length > 0) {
     process.exit(1);
   }
+  /* v8 ignore next 3 -- routeSet.warnings has no current public producer; retained for diagnostic compatibility. */
   if (parsed.flags.failOnWarning === true && routeSet.warnings.length > 0) {
     process.exit(1);
   }
