@@ -10,6 +10,7 @@ import {
   readGameboardActors,
   runGameboardSystems,
   summarizeGameboardScenario,
+  type GameboardNavigationProfile,
   validateGameboardScenario,
 } from '../..';
 import { freeManifest } from '../../manifest/free';
@@ -762,6 +763,13 @@ describe('gameboard scenarios', () => {
             // biome-ignore lint/suspicious/noExplicitAny: deliberately-invalid tile
             { id: 'obj-bad-tile', kind: 'reach-tile', actor: 'hero', tile: 'not,a,key' as any },
             { id: 'obj-off-board', kind: 'reach-tile', actor: 'hero', tile: '99,99' },
+            {
+              id: 'obj-collision-tile',
+              kind: 'collision',
+              actor: 'hero',
+              targetTile: '1,0',
+              expect: 'can-enter',
+            },
           ],
         },
       ],
@@ -1236,6 +1244,106 @@ describe('gameboard scenarios', () => {
     });
     const summary = summarizeGameboardScenario(scenario);
     expect(summary.actors.some((a) => a.actorId === 'orphan')).toBe(true);
+  });
+
+  it('deep-clones scenario metadata, navigation profiles, and agent options (E0h)', () => {
+    const board = createGameboardRecipe({
+      seed: 'scenario-clone-options',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    });
+    const navigation: GameboardNavigationProfile = {
+      allowedTerrain: ['grass'],
+      blockedTerrain: ['water'],
+      blockingPlacementKinds: ['structure'],
+      blockingPlacementLayers: ['structure'],
+      ignorePlacementIds: ['blocker'],
+      terrainCosts: { grass: 1, water: 9 },
+    };
+    const movement = {
+      profile: { id: 'scout', label: 'Scout', movementBudget: 4, navigation },
+      ignorePlacementIds: ['self'],
+      navigation,
+    };
+    const options = {
+      metadata: { author: 'qa' },
+      spawnGroups: {
+        seed: 'scenario-clone-options',
+        profile: navigation,
+        groups: [
+          {
+            id: 'party',
+            count: 1,
+            profile: navigation,
+            routeProfile: navigation,
+            terrain: ['grass'],
+            tileTags: ['start'],
+            excludeTileTags: ['blocked'],
+            pathToGroups: ['enemy'],
+          },
+        ],
+      },
+      patrolRoutes: [
+        {
+          id: 'watch',
+          count: 2,
+          start: { q: 0, r: 0 },
+          profile: navigation,
+          routeProfile: navigation,
+          terrain: ['grass'],
+          tileTags: ['watch'],
+          excludeTileTags: ['blocked'],
+        },
+      ],
+      actors: [
+        {
+          actorId: 'guard',
+          actorKind: 'npc',
+          team: 'red',
+          at: { q: 0, r: 0 },
+          assetId: 'flag_blue',
+          kind: 'unit' as const,
+          tags: ['zeta', 'alpha'],
+          metadata: { note: 'original' },
+          actorMetadata: { mood: 'alert' },
+          movementAgent: movement,
+          patrolAgent: { routeId: 'watch', movement },
+        },
+        {
+          actorId: 'hero',
+          actorKind: 'player',
+          team: 'blue',
+          at: '1,0',
+          assetId: 'flag_blue',
+          kind: 'unit' as const,
+        },
+      ],
+      quests: [
+        {
+          id: 'clone-quest',
+          metadata: { stage: 'one' },
+          objectives: [{ id: 'reach', kind: 'reach-tile' as const, actor: 'hero', tile: '1,0' }],
+        },
+      ],
+    };
+
+    const scenario = createGameboardScenario('scenario:clone-options', board, options);
+    options.spawnGroups.groups[0]?.tileTags?.push('mutated');
+    options.patrolRoutes[0]?.tileTags?.push('mutated');
+    options.actors[0]?.tags?.push('mutated');
+    options.quests[0]?.objectives.push({ id: 'mutated', kind: 'reach-tile', actor: 'hero', tile: '0,0' });
+
+    expect(scenario.spawnGroups?.groups[0]?.tileTags).toEqual(['start']);
+    expect(scenario.patrolRoutes?.[0]?.tileTags).toEqual(['watch']);
+    expect(scenario.actors?.[0]?.tags).toEqual(['zeta', 'alpha']);
+    expect(scenario.quests?.[0]?.objectives).toHaveLength(1);
+
+    const summary = summarizeGameboardScenario(scenario, { topAssetLimit: 1 });
+    expect(summary.topActorAssets[0]).toMatchObject({
+      assetId: 'flag_blue',
+      actorKinds: ['npc', 'player'],
+      teams: ['blue', 'red'],
+    });
+    expect(summary.actors.find((actor) => actor.actorId === 'guard')?.movementProfileId).toBe('scout');
   });
 
   it('reports actor with out-of-range spawnLocationIndex (E0a)', () => {
