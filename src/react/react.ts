@@ -567,7 +567,7 @@ function isPlainEmptyOptions(options: unknown): options is Record<string, never>
   if (Object.getPrototypeOf(options) !== Object.prototype) {
     return false;
   }
-  if (Object.keys(options).length > 0) {
+  for (const _ in options) {
     return false;
   }
   return !('toJSON' in options);

@@ -34,6 +34,7 @@ import {
 
 let root: Root | undefined;
 let host: HTMLDivElement | undefined;
+let previousActEnvironment: boolean | undefined;
 
 describe('React hook fallback browser coverage', () => {
   afterEach(async () => {
@@ -43,10 +44,13 @@ describe('React hook fallback browser coverage', () => {
     root = undefined;
     host?.remove();
     host = undefined;
+    (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
+      previousActEnvironment;
+    previousActEnvironment = undefined;
   });
 
   it('covers plan provider and empty-world hook fallbacks', async () => {
-    (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    setReactActEnvironment();
     const plan = createGameboardBuilder({
       seed: 'react-plan-provider',
       shape: { kind: 'rectangle', width: 1, height: 1 },
@@ -116,7 +120,7 @@ describe('React hook fallback browser coverage', () => {
   });
 
   it('drops queued revision updates after unmount', async () => {
-    (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    setReactActEnvironment();
     const world = createGameboardWorld(
       createGameboardBuilder({
         seed: 'react-unmount-revision',
@@ -136,19 +140,33 @@ describe('React hook fallback browser coverage', () => {
         })
       )
     );
+    const mountedRoot = root;
+    const gameboardActions = actions;
+    expect(gameboardActions).toBeDefined();
+    expect(mountedRoot).toBeDefined();
+    if (!gameboardActions || !mountedRoot) {
+      throw new Error('QueuedRevisionProbe did not mount');
+    }
 
     await act(async () => {
-      actions?.spawnPlacement({
+      gameboardActions.spawnPlacement({
         id: 'react-unmount-marker',
         at: '0,0',
         assetId: 'flag_green',
         kind: 'prop',
       });
-      root?.unmount();
+      mountedRoot.unmount();
     });
     root = undefined;
   });
 });
+
+function setReactActEnvironment(): void {
+  previousActEnvironment = (globalThis as {
+    IS_REACT_ACT_ENVIRONMENT?: boolean;
+  }).IS_REACT_ACT_ENVIRONMENT;
+  (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+}
 
 async function renderReactElement(element: React.ReactElement): Promise<void> {
   host = document.createElement('div');
