@@ -296,11 +296,7 @@ export function setGameboardMovementAgent(
     movementBudget,
     remainingMovement: options.remainingMovement ?? movementBudget,
   };
-  if (entity.has(MovementAgent)) {
-    entity.set(MovementAgent, nextAgent);
-  } else {
-    entity.add(MovementAgent(nextAgent));
-  }
+  writeMovementAgent(entity, nextAgent);
   if (!entity.has(MovementPathState)) {
     entity.add(MovementPathState);
   }
@@ -447,7 +443,7 @@ export function resetGameboardMovementBudget(
     const profile = resolveProfileForEntity(entity, options);
     const current = entity.get(MovementAgent);
     const movementBudget = options.movementBudget ?? current?.movementBudget ?? profile.movementBudget;
-    entity.set(MovementAgent, {
+    writeMovementAgent(entity, {
       profileId: profile.id,
       movementBudget,
       remainingMovement: movementBudget,
@@ -506,7 +502,7 @@ function advanceOneGameboardMovement(
   }
 
   moveGameboardPlacement(world, entity, nextKey);
-  entity.set(MovementAgent, {
+  writeMovementAgent(entity, {
     ...agent,
     remainingMovement: agent.remainingMovement - stepCost,
   });
@@ -674,6 +670,14 @@ function requireMovementAgent(entity: Entity, profile: GameboardMovementProfile)
     movementBudget: profile.movementBudget,
     remainingMovement: profile.movementBudget,
   };
+}
+
+function writeMovementAgent(entity: Entity, agent: MovementAgentValue): void {
+  if (entity.has(MovementAgent)) {
+    entity.set(MovementAgent, agent);
+  } else {
+    entity.add(MovementAgent(agent));
+  }
 }
 
 function uniqueStrings(values: readonly string[]): string[] {
