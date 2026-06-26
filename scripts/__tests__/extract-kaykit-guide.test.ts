@@ -46,6 +46,19 @@ describe('scripts/extract-kaykit-guide', () => {
     const windowsHarness = createHarness({ platform: 'win32', spawnStatus: { where: 0 } });
     expect(commandExists('magick', resolveExtractKayKitGuideDependencies(windowsHarness.dependencies))).toBe(true);
     expect(windowsHarness.calls.at(-1)).toEqual({ kind: 'spawn', command: 'where', args: ['magick'] });
+    const fallbackHarness = createHarness({ commandStatus: { swift: 0 } });
+    const fallbackDependencies = resolveExtractKayKitGuideDependencies(fallbackHarness.dependencies);
+    expect(commandExists('swift', { spawnSync: fallbackDependencies.spawnSync })).toBe(true);
+    expect(fallbackHarness.calls.at(-1)).toEqual(
+      process.platform === 'win32'
+        ? { kind: 'spawn', command: 'where', args: ['swift'] }
+        : { kind: 'spawn', command: 'sh', args: ['-c', 'command -v "$1"', '--', 'swift'] }
+    );
+
+    const defaultDependencies = resolveExtractKayKitGuideDependencies();
+    expect(defaultDependencies.platform).toBe(process.platform);
+    expect(typeof defaultDependencies.existsSync).toBe('function');
+    expect(typeof defaultDependencies.spawnSync).toBe('function');
 
     const scriptPath = '/repo/scripts/extract-kaykit-guide.ts';
     const moduleUrl = pathToFileURL(scriptPath).href;
@@ -65,6 +78,18 @@ describe('scripts/extract-kaykit-guide', () => {
     expect(exitCode).toBe(1);
     expect(harness.errors).toEqual(['Unable to find guide PDF at /repo/guide.pdf']);
     expect(harness.calls).toEqual([]);
+  });
+
+  it('uses default repo-root fallbacks without touching real files through injected IO', () => {
+    const direct = createHarness();
+
+    expect(() => extractKayKitGuide(args, { dependencies: direct.dependencies })).toThrow(
+      'No guide PDF renderer is available'
+    );
+
+    const runner = createHarness();
+    expect(runExtractKayKitGuide(['--pdf', args.pdfPath], { dependencies: runner.dependencies })).toBe(1);
+    expect(runner.errors[0]).toContain('No guide PDF renderer is available');
   });
 
   it('uses Swift on macOS and propagates Swift exit codes', () => {
@@ -95,6 +120,14 @@ describe('scripts/extract-kaykit-guide', () => {
     });
     expect(runExtractKayKitGuide(['--pdf', args.pdfPath], { repoRoot: '/repo', dependencies: failure.dependencies })).toBe(7);
     expect(failure.errors).toEqual([]);
+
+    const nullStatus = createHarness({
+      platform: 'darwin',
+      commandStatus: { swift: 0 },
+      spawnStatus: { swift: null },
+    });
+    expect(runExtractKayKitGuide(['--pdf', args.pdfPath], { repoRoot: '/repo', dependencies: nullStatus.dependencies })).toBe(1);
+    expect(nullStatus.errors).toEqual([]);
   });
 
   it('uses the portable renderer, sorts rendered pages, and cleans temporary files', () => {
@@ -149,6 +182,19 @@ describe('scripts/extract-kaykit-guide', () => {
     expect(badMagick.errors).toEqual(['magick failed while extracting KayKit guide imagery']);
     expect(badMagick.calls).toContainEqual({ kind: 'rm', path: '/tmp/guide' });
   });
+
+  it('reports non-Error extraction failures through the runner', () => {
+    const harness = createHarness();
+    const dependencies: ExtractKayKitGuideDependencies = {
+      ...harness.dependencies,
+      existsSyncImpl: () => {
+        throw 'stat failed';
+      },
+    };
+
+    expect(runExtractKayKitGuide(['--pdf', args.pdfPath], { repoRoot: '/repo', dependencies })).toBe(1);
+    expect(harness.errors).toEqual(['stat failed']);
+  });
 });
 
 function createHarness(options: {
@@ -174,9 +220,12 @@ function createHarness(options: {
     spawnSyncImpl: (command, commandArgs) => {
       const args = [...(commandArgs ?? [])].map(String);
       calls.push({ kind: 'spawn', command: String(command), args });
-      const status = command === 'sh'
+      const commandKey = String(command);
+      const status: number | null = command === 'sh'
         ? commandStatus[String(args.at(-1))] ?? 1
-        : options.spawnStatus?.[String(command)] ?? 0;
+        : Object.hasOwn(options.spawnStatus ?? {}, commandKey)
+          ? options.spawnStatus?.[commandKey] ?? null
+          : 0;
       return spawnResult(status);
     },
     tmpdirImpl: () => '/tmp',
