@@ -815,19 +815,18 @@ export function updateGameboardActor(
 ): Entity {
   const entity = requireActorEntity(world, actor);
   const placementState = requirePlacementState(entity);
-  const current = entity.get(GameboardActor);
+  const current = requireActorState(entity);
   const next = actorValueFromOptions(
     {
-      /* v8 ignore next -- requireActorEntity guarantees current actor state when actorId is omitted. */
-      actorId: options.actorId ?? current?.actorId ?? placementState.id,
-      actorKind: options.actorKind ?? current?.kind,
-      faction: options.faction ?? current?.faction,
-      team: options.team ?? current?.team,
-      hostile: options.hostile ?? current?.hostile,
-      blocksMovement: options.blocksMovement ?? current?.blocksMovement,
-      interactive: options.interactive ?? current?.interactive,
-      tags: options.tags ?? current?.tags,
-      actorMetadata: options.actorMetadata ?? current?.metadata,
+      actorId: options.actorId ?? current.actorId,
+      actorKind: options.actorKind ?? current.kind,
+      faction: options.faction ?? current.faction,
+      team: options.team ?? current.team,
+      hostile: options.hostile ?? current.hostile,
+      blocksMovement: options.blocksMovement ?? current.blocksMovement,
+      interactive: options.interactive ?? current.interactive,
+      tags: options.tags ?? current.tags,
+      actorMetadata: options.actorMetadata ?? current.metadata,
     },
     placementState
   );
@@ -897,10 +896,7 @@ export function selectGameboardActors(
   options: GameboardActorSelectionOptions = {}
 ): GameboardActorSelection {
   const source = options.sourceActor ? findGameboardActor(world, options.sourceActor) : undefined;
-  /* v8 ignore next 3 -- actor snapshots always carry their live entity; actor-id fallback guards contract drift. */
-  const centerInput =
-    options.center ??
-    (options.radius !== undefined ? (source?.entity ?? source?.actor.actorId) : undefined);
+  const centerInput = options.center ?? (options.radius !== undefined ? source?.entity : undefined);
   const center = centerInput ? resolveNeighborhoodCenter(world, centerInput) : undefined;
   const radius = options.radius === undefined ? undefined : Math.max(0, Math.floor(options.radius));
   const actors = readGameboardActors(world)
@@ -2198,10 +2194,7 @@ function requireActorEntity(world: World, actor: Entity | string): Entity {
 function requirePlacementEntity(world: World, placement: Entity | string): Entity {
   const entity = findPlacementEntity(world, placement);
   if (!entity) {
-    throw new GameboardRuntimeError(
-      /* v8 ignore next -- findPlacementEntity returns non-string Entity inputs directly; only string ids can miss. */
-      `No placement exists with id ${typeof placement === 'string' ? placement : String(placement.id())}`
-    );
+    throw new GameboardRuntimeError(`No placement exists with id ${placement}`);
   }
   return entity;
 }
