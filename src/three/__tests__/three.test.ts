@@ -6,13 +6,21 @@ import {
   createGameboardPlacementAssetUrlResolver,
   findGameboardPlacementObjectUserData,
   findLoadedGameboardPlacementObjectForObject,
+  frameObjectPosition,
   gameboardInteractionTargetForObject,
+  type LoadedGameboardPlacementObject,
   loadGameboardPlacementObject,
+  placeObjectOnHex,
   readGameboardPlacementObjectUserData,
+  resolveAssetUrl,
   resolveGameboardPlacementAssetUrl,
   resolveGameboardPlacementAnimationUrl,
   syncGameboardPlacementObjects,
+  syncGameboardPlacementObject,
+  tagGameboardPlacementObject,
+  transformForHex,
   transformForPlacement,
+  transformForVariant,
   updateGameboardPlacementAnimation,
 } from '../../three/index';
 
@@ -25,7 +33,12 @@ describe('three placement asset URL helpers', () => {
     });
     const mappedPlacement = placement({ assetId: 'adventurer:knight' });
     const unknownPlacement = placement({ assetId: 'external:unknown' });
+    const grass = freeAsset('hex_grass');
 
+    expect(resolveAssetUrl(grass)).toBe('tiles/base/hex_grass.gltf');
+    expect(resolveAssetUrl(grass, 'https://assets.example/game/')).toBe(
+      'https://assets.example/game/tiles/base/hex_grass.gltf'
+    );
     expect(resolveGameboardPlacementAssetUrl(manifestPlacement, {
       catalog: freeManifest,
       baseUrl: '/vendor/kaykit',
@@ -40,6 +53,7 @@ describe('three placement asset URL helpers', () => {
     expect(resolveGameboardPlacementAssetUrl(unknownPlacement, {
       fallback: (placement) => `/fallback/${placement.assetId}.glb`,
     })).toBe('/fallback/external:unknown.glb');
+    expect(resolveGameboardPlacementAssetUrl(placement({ assetId: 'missing' }))).toBeUndefined();
   });
 
   it('creates reusable placement URL resolvers for render loops', () => {
@@ -79,6 +93,9 @@ describe('three placement asset URL helpers', () => {
     });
 
     expect(resolveGameboardPlacementAnimationUrl(actor)).toBe('/animations/movement.glb');
+    expect(resolveGameboardPlacementAnimationUrl(actor, {
+      animationUrls: { 'adventurer:knight': '/animations/mapped.glb' },
+    })).toBe('/animations/mapped.glb');
     expect(transformForPlacement(actor)).toEqual({
       position: { x: 1.25, y: 0.5, z: -2 },
       rotationY: Math.PI / 3,
@@ -118,6 +135,94 @@ describe('three placement asset URL helpers', () => {
       actorId: 'hero',
       tileKey: '0,0',
     });
+  });
+
+  it('covers transform helpers, preview framing, and user-data miss paths', () => {
+    const object = new Group();
+    const child = new Group();
+    const tagged = new Group();
+    const taggedChild = new Group();
+    tagged.add(taggedChild);
+    const testPlacement = placement({ assetId: 'flag_blue' });
+
+    const hexTransform = transformForHex({ q: 1, r: -1 }, {
+      elevation: 2,
+      positionOffset: { x: 0.5, y: 0.25, z: -0.5 },
+      rotationY: Math.PI / 2,
+      scale: 0.6,
+    });
+    const variantTransform = transformForVariant(
+      { q: 0, r: 0 },
+      {
+        family: 'road',
+        label: 'A',
+        assetId: 'road_A',
+        inputMask: 3,
+        canonicalMask: 3,
+        rotationSteps: 1,
+        rotationRadians: Math.PI / 3,
+      }
+    );
+
+    placeObjectOnHex(object, { q: 1, r: 0 });
+    placeObjectOnHex(child, { q: 0, r: 1 }, { scale: 1.25, positionOffset: { x: 1, y: 2, z: 3 } });
+    tagGameboardPlacementObject(tagged, testPlacement, { recursive: true });
+
+    expect(hexTransform.position).toMatchObject({ y: 2.25 });
+    expect(hexTransform.rotationY).toBe(Math.PI / 2);
+    expect(hexTransform.scale).toBe(0.6);
+    expect(variantTransform.rotationY).toBeCloseTo(Math.PI / 3);
+    expect(object.scale.x).toBe(1);
+    expect(child.scale.x).toBe(1.25);
+    expect(readGameboardPlacementObjectUserData(taggedChild)?.placementId).toBe(testPlacement.id);
+    expect(findGameboardPlacementObjectUserData(new Group())).toBeUndefined();
+    expect(findLoadedGameboardPlacementObjectForObject(new Group(), new Map())).toBeUndefined();
+    expect(findLoadedGameboardPlacementObjectForObject(taggedChild, new Map())).toBeUndefined();
+    expect(gameboardInteractionTargetForObject(new Group())).toBeUndefined();
+    const grassFrame = frameObjectPosition(freeAsset('hex_grass'));
+    expect(grassFrame.x).toBeGreaterThan(2.5);
+    expect(grassFrame.y).toBeCloseTo(grassFrame.x * 0.75);
+    expect(grassFrame.z).toBe(grassFrame.x);
+    expect(frameObjectPosition(freeAsset('hex_grass'), 2).x).toBeGreaterThan(grassFrame.x);
+  });
+
+  it('reports missing model URLs and falls back to model clips when requested clips are absent', async () => {
+    const loadedUrls: string[] = [];
+    const loader = {
+      async loadAsync(url: string) {
+        loadedUrls.push(url);
+        return {
+          scene: new Group(),
+          animations: [new AnimationClip('Idle', 1, [])],
+        };
+      },
+    };
+    const idlePlacement = placement({
+      assetId: 'flag_blue',
+      metadata: { sourceUrl: '/models/flag-blue.glb' },
+    });
+
+    await expect(loadGameboardPlacementObject(placement({ assetId: 'missing' }), { loader })).rejects.toThrow(
+      'No model URL resolved'
+    );
+    const loaded = await loadGameboardPlacementObject(idlePlacement, {
+      loader,
+      clipName: 'Missing',
+      playAnimation: false,
+    });
+    const noClipLoaded = await loadGameboardPlacementObject(idlePlacement, {
+      loader: {
+        async loadAsync() {
+          return { scene: new Group() };
+        },
+      },
+    });
+
+    expect(loadedUrls).toEqual(['/models/flag-blue.glb']);
+    expect(loaded.activeClip?.name).toBe('Idle');
+    expect(loaded.animationUrl).toBeUndefined();
+    expect(noClipLoaded.clips).toEqual([]);
+    expect(noClipLoaded.activeClip).toBeUndefined();
   });
 
   it('syncs placement objects for a Three scene graph', async () => {
@@ -247,7 +352,60 @@ describe('three placement asset URL helpers', () => {
       '/animations/walk-b.glb',
     ]);
   });
+
+  it('collects sync load errors, can rethrow them, and controls stale removal without a parent', async () => {
+    const failingLoader = {
+      async loadAsync(url: string) {
+        throw new Error(`load failed: ${url}`);
+      },
+    };
+    const idleLoader = {
+      async loadAsync() {
+        return { scene: new Group(), animations: [] };
+      },
+    };
+    const bad = placement({ id: 'bad', assetId: 'bad-model', metadata: { sourceUrl: '/models/missing.glb' } });
+    const stalePlacement = placement({ id: 'stale', assetId: 'flag_blue', metadata: { sourceUrl: '/models/stale.glb' } });
+    const staleRecord: LoadedGameboardPlacementObject = {
+      placementId: 'stale',
+      assetId: 'flag_blue',
+      object: new Group(),
+      modelUrl: '/models/stale.glb',
+      transform: transformForPlacement(stalePlacement),
+      clips: [],
+    };
+    const records = new Map<string, LoadedGameboardPlacementObject>([['stale', staleRecord]]);
+
+    syncGameboardPlacementObject(staleRecord, stalePlacement);
+    const kept = await syncGameboardPlacementObjects([], { loader: idleLoader, records, removeStale: false });
+    expect(kept.removed).toHaveLength(0);
+    expect(kept.records.has('stale')).toBe(true);
+
+    const removed = await syncGameboardPlacementObjects([], { loader: idleLoader, records });
+    const noParentLoaded = await syncGameboardPlacementObjects([
+      placement({ id: 'solo', assetId: 'solo-model', metadata: { sourceUrl: '/models/solo.glb' } }),
+    ], { loader: idleLoader });
+    const collected = await syncGameboardPlacementObjects([bad], { loader: failingLoader });
+
+    expect(removed.removed.map((item) => item.placementId)).toEqual(['stale']);
+    expect(noParentLoaded.loaded.map((item) => item.placementId)).toEqual(['solo']);
+    expect(records.size).toBe(0);
+    expect(collected.errors).toHaveLength(1);
+    expect(collected.errors[0]?.placement.id).toBe('bad');
+    await expect(syncGameboardPlacementObjects([bad], {
+      loader: failingLoader,
+      throwOnError: true,
+    })).rejects.toThrow('load failed: /models/missing.glb');
+  });
 });
+
+function freeAsset(assetId: string) {
+  const asset = freeManifest.assetsById[assetId];
+  if (!asset) {
+    throw new Error(`Expected FREE manifest fixture asset: ${assetId}`);
+  }
+  return asset;
+}
 
 function placement(input: {
   id?: string;
