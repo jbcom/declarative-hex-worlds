@@ -10,6 +10,8 @@ import {
   readGameboardActors,
   runGameboardSystems,
   summarizeGameboardScenario,
+  type GameboardScenarioActor,
+  type GameboardScenario,
   type GameboardNavigationProfile,
   validateGameboardScenario,
 } from '../..';
@@ -378,7 +380,7 @@ describe('gameboard scenarios', () => {
           assetId: 'flag_green',
           kind: 'unit',
           movementAgent: { profile: 'ground' },
-          patrolAgent: { routeId: 'guard-watch', movement: { profile: 'ground' } },
+          patrolAgent: { routeId: 'guard-watch' },
         },
       ],
     });
@@ -979,6 +981,62 @@ describe('gameboard scenarios', () => {
     ).toBe(true);
   });
 
+  it('summarizes malformed scenarios without ids or authored arrays (E0h)', () => {
+    const summary = summarizeGameboardScenario({
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately wrong and id omitted
+      schemaVersion: '0.0.1-not-current' as any,
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'x', shape: { kind: 'rectangle', width: 2, height: 2 } },
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately invalid action
+        steps: [{ action: 'not-a-real-recipe-action' } as any],
+      },
+      // biome-ignore lint/suspicious/noExplicitAny: deliberately missing id/actors/quests
+    } as any);
+
+    expect(summary.scenarioId).toBeUndefined();
+    expect(summary.board).toBeUndefined();
+    expect(summary.actorCount).toBe(0);
+    expect(summary.questCount).toBe(0);
+    expect(summary.validation.violations.map((violation) => violation.code)).toEqual(
+      expect.arrayContaining(['scenario.schema_version', 'scenario.id', 'scenario.board_compile_failed'])
+    );
+    expect(summary.validation.violations.map((violation) => violation.message)).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Scenario <unknown> uses schema'),
+        expect.stringContaining('Scenario <unknown> board failed to compile'),
+      ])
+    );
+  });
+
+  it('handles omitted runtime arrays and quest objectives (E0h)', () => {
+    const board = createGameboardRecipe({
+      seed: 'omitted-scenario-arrays',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    });
+    const scenarioWithoutArrays: GameboardScenario = {
+      schemaVersion: GAMEBOARD_SCENARIO_SCHEMA_VERSION,
+      id: 'scenario:omitted-arrays',
+      board,
+    };
+    const scenarioWithoutObjectives: GameboardScenario = {
+      ...scenarioWithoutArrays,
+      quests: [
+        // biome-ignore lint/suspicious/noExplicitAny: deliberately omitted objectives
+        { id: 'quest-without-objectives' } as any,
+      ],
+    };
+
+    const runtime = createGameboardWorldFromScenario(scenarioWithoutArrays);
+    const summary = summarizeGameboardScenario(scenarioWithoutObjectives);
+
+    expect(runtime.actors).toEqual([]);
+    expect(runtime.quests).toEqual([]);
+    expect(summary.questCount).toBe(1);
+    expect(summary.objectiveCount).toBe(0);
+    expect(validateGameboardScenario(scenarioWithoutObjectives)).toEqual([]);
+  });
+
   it('reports actor with negative spawnLocationIndex (E0a)', () => {
     const board = createGameboardRecipe({
       seed: 'bad-spawn-index',
@@ -1227,8 +1285,8 @@ describe('gameboard scenarios', () => {
   });
 
   it('falls back to unresolved actors when summary resolution throws (E0a)', () => {
-    // Covers scenario.ts line 1377 (tryResolveScenarioActors catch) + 1403
-    // (incrementSummaryCount early-return on empty key).
+    // Covers scenario.ts line 1377 (tryResolveScenarioActors catch), unresolved
+    // actor copy branches, and incrementSummaryCount early-return on empty key.
     const board = createGameboardRecipe({
       seed: 'summary-throw',
       shape: { kind: 'rectangle', width: 2, height: 1 },
@@ -1236,14 +1294,35 @@ describe('gameboard scenarios', () => {
     const scenario = createGameboardScenario('scenario:summary-throw', board, {
       spawnGroups: { groups: [{ id: 'nope', count: 1, tileTags: ['no-such-tag'] }] },
       actors: [
-        // spawnGroupId resolves to 0 locations → resolveGameboardScenarioActors throws.
-        // actorKind/kind omitted so incrementSummaryCount sees an empty key.
-        // biome-ignore lint/suspicious/noExplicitAny: deliberately under-typed actor for fallback path
-        { actorId: 'orphan', spawnGroupId: 'nope', assetId: 'flag_green' } as any,
+        // spawnGroupId resolves to 0 locations, while actorKind/kind stay omitted
+        // so incrementSummaryCount sees an empty key in the fallback summary path.
+        {
+          actorId: 'orphan',
+          spawnGroupId: 'nope',
+          assetId: 'flag_green',
+          tags: ['fallback'],
+          metadata: { note: 'copied' },
+          actorMetadata: { mood: 'copied' },
+          movementAgent: { profile: 'ground', navigation: {} },
+          patrolAgent: { routeId: 'missing-route', movement: { profile: 'ground', navigation: {} } },
+        } as unknown as GameboardScenarioActor,
+        {
+          actorId: 'plain-orphan',
+          spawnGroupId: 'nope',
+          assetId: 'flag_blue',
+        } as unknown as GameboardScenarioActor,
       ],
     });
     const summary = summarizeGameboardScenario(scenario);
-    expect(summary.actors.some((a) => a.actorId === 'orphan')).toBe(true);
+    const actor = summary.actors.find((a) => a.actorId === 'orphan');
+    const plainActor = summary.actors.find((a) => a.actorId === 'plain-orphan');
+    expect(actor).toMatchObject({
+      actorId: 'orphan',
+      tags: ['fallback'],
+      movementProfileId: 'ground',
+      patrolRouteId: 'missing-route',
+    });
+    expect(plainActor?.tags).toEqual([]);
   });
 
   it('deep-clones scenario metadata, navigation profiles, and agent options (E0h)', () => {
@@ -1344,6 +1423,54 @@ describe('gameboard scenarios', () => {
       teams: ['blue', 'red'],
     });
     expect(summary.actors.find((actor) => actor.actorId === 'guard')?.movementProfileId).toBe('scout');
+  });
+
+  it('preserves omitted scenario clone option collections (E0h)', () => {
+    const board = createGameboardRecipe({
+      seed: 'scenario-sparse-clone-options',
+      shape: { kind: 'rectangle', width: 3, height: 1 },
+    });
+    const navigation: GameboardNavigationProfile = {};
+    const scenario = createGameboardScenario('scenario:sparse-clone-options', board, {
+      spawnGroups: {
+        profile: navigation,
+        groups: [
+          {
+            id: 'party',
+            count: 1,
+            profile: navigation,
+            routeProfile: navigation,
+          },
+        ],
+      },
+      patrolRoutes: [
+        {
+          id: 'watch',
+          count: 2,
+          start: { q: 0, r: 0 },
+          profile: navigation,
+          routeProfile: navigation,
+        },
+      ],
+      actors: [
+        {
+          actorId: 'guard',
+          actorKind: 'npc',
+          at: { q: 0, r: 0 },
+          assetId: 'flag_blue',
+          kind: 'unit',
+          movementAgent: { profile: 'ground', navigation },
+          patrolAgent: { routeId: 'watch', movement: { profile: 'ground', navigation } },
+        },
+      ],
+    });
+
+    expect(scenario.spawnGroups?.profile?.allowedTerrain).toBeUndefined();
+    expect(scenario.spawnGroups?.groups[0]?.profile?.terrainCosts).toBeUndefined();
+    expect(scenario.patrolRoutes?.[0]?.tileTags).toBeUndefined();
+    expect(scenario.patrolRoutes?.[0]?.excludeTileTags).toBeUndefined();
+    expect(scenario.actors?.[0]?.movementAgent?.navigation?.allowedTerrain).toBeUndefined();
+    expect(scenario.actors?.[0]?.movementAgent?.navigation?.ignorePlacementIds).toBeUndefined();
   });
 
   it('reports actor with out-of-range spawnLocationIndex (E0a)', () => {
