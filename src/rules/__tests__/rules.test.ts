@@ -202,6 +202,51 @@ describe('Koota rules and seeded generation', () => {
     });
   });
 
+  it('covers seeded rule defaults, disabled presets, and override exclusivity branches (E0h)', () => {
+    const defaultPlan = createSeededGameboardPlan();
+    expect(defaultPlan.seed).toBe('seeded-medieval-gameboard');
+    expect(defaultPlan.shape).toEqual({ kind: 'rectangle', width: 10, height: 8 });
+
+    const tinyPlan = createSeededGameboardPlan({
+      seed: 'tiny-seeded',
+      shape: { kind: 'rectangle', width: 1, height: 1 },
+      mountainStacks: 0,
+      hillTiles: 0,
+      forestTiles: 0,
+      settlements: 0,
+      scatterProps: 0,
+    });
+    expect(tinyPlan.tiles).toHaveLength(1);
+    expect(tinyPlan.warnings).toEqual(
+      expect.arrayContaining([expect.stringContaining('adjacent water tile 0,1 is outside the board')])
+    );
+    expect(() => createSeededGameboardPlan({ shape: { kind: 'rectangle', width: 0, height: 0 } })).toThrow(
+      /non-empty shapeCoordinates/
+    );
+
+    expect(createSeededGameboardDensityFillRules(undefined)).toEqual([]);
+    const rules = createSeededGameboardDensityFillRules({
+      harbors: false,
+      landmarks: null,
+      props: undefined,
+      units: { assets: ['unit_blue_full'], count: 1 },
+      trees: { assetId: 'tree_single_A', fill: 0.2 },
+      rocks: { assets: ['rock_single_A'], count: 1 },
+    });
+
+    expect(rules.map((rule) => rule.id)).toEqual(['density:units', 'density:trees', 'density:rocks']);
+    expect(rules[0]).toMatchObject({
+      assets: ['unit_blue_full'],
+      metadata: { densityPreset: 'units' },
+    });
+    expect(rules[0]?.assetId).toBeUndefined();
+    expect(rules[1]).toMatchObject({
+      assetId: 'tree_single_A',
+      metadata: { densityPreset: 'trees' },
+    });
+    expect(rules[1]?.assets).toBeUndefined();
+  });
+
   it('applies density presets during seeded generation', () => {
     const plan = createSeededGameboardPlan({
       seed: 'density-world',
@@ -304,6 +349,92 @@ describe('Koota rules and seeded generation', () => {
         pieceId: 'kenney-round-tower',
         pieceRole: 'landmark',
       },
+    });
+
+    expect(createSeededGameboardPieceFillRules(registry, [{ mode: 'pool', selection: { ids: ['missing'] } }])).toEqual(
+      []
+    );
+    expect(() => createSeededGameboardPieceFillRules(undefined, [{ mode: 'pool', count: 1 }])).toThrow(
+      /requires a piece registry/
+    );
+  });
+
+  it('covers seeded piece-fill edge selections and object archetype pool signatures (E0h)', () => {
+    const registry = createGameboardPieceRegistry([
+      {
+        id: 'custom-banner-a',
+        assetId: 'custom:banner-a',
+        source: 'Custom Props',
+        role: 'custom',
+        archetype: { id: 'banner', label: 'Banner', kind: 'prop', layer: 'feature', criteria: {} },
+        kind: 'prop',
+        layer: 'feature',
+      },
+      {
+        id: 'custom-banner-b',
+        assetId: 'custom:banner-b',
+        source: 'Custom Props',
+        role: 'custom',
+        archetype: { id: 'banner', label: 'Banner', kind: 'prop', layer: 'feature', criteria: {} },
+        kind: 'prop',
+        layer: 'feature',
+      },
+      {
+        id: 'custom-tower',
+        assetId: 'custom:tower',
+        source: 'Custom Props',
+        role: 'landmark',
+        kind: 'structure',
+        layer: 'structure',
+      },
+    ]);
+
+    const pooled = createSeededGameboardPieceFillRules(registry, [
+      { mode: 'pool', selection: { ids: ['custom-banner-a', 'custom-banner-b'] }, count: 1 },
+    ]);
+    expect(pooled[0]).toMatchObject({
+      id: 'piece:pool:0',
+      archetype: { id: 'banner', kind: 'prop', layer: 'feature' },
+      kind: 'prop',
+      layer: 'feature',
+      assets: ['custom:banner-a', 'custom:banner-b'],
+    });
+
+    expect(() =>
+      createSeededGameboardPieceFillRules(registry, [
+        { mode: 'pool', id: 'bad-pool', selection: { sources: ['Custom Props'] }, count: 1 },
+      ])
+    ).toThrow(/bad-pool/);
+
+    const inspection = inspectSeededGameboardPieceFills(
+      createGameboardBuilder({ seed: 'empty-selection-inspection', shape: { kind: 'rectangle', width: 1, height: 1 } }).build(),
+      registry,
+      [{}],
+      {}
+    );
+    expect(inspection).toMatchObject({
+      seed: 'empty-selection-inspection:piece-fill-inspection',
+      selections: [
+        {
+          id: 'piece-fill:0',
+          mode: 'per-piece',
+          selectedCount: 3,
+          warnings: [],
+        },
+      ],
+    });
+
+    const emptyInspection = inspectSeededGameboardPieceFills(
+      createGameboardBuilder({ seed: 'missing-selection-inspection', shape: { kind: 'rectangle', width: 1, height: 1 } }).build(),
+      registry,
+      [{ mode: 'pool', selection: { ids: ['missing-piece'] } }],
+      {}
+    );
+    expect(emptyInspection).toMatchObject({
+      warnings: ['Piece fill piece-fill:0 matched no pieces'],
+      errors: [],
+      rules: [],
+      placements: [],
     });
   });
 
@@ -512,10 +643,17 @@ describe('Koota rules and seeded generation', () => {
           assetId: 'rock_single_A',
           count: 1,
         },
+        {
+          id: 'option-only-archetype',
+          archetype: 'custom-base',
+          assetId: 'crate_A_small',
+          count: 1,
+        },
       ],
     });
     expect(plan).toBeDefined();
     // Verify the merged rule-level archetype actually drove placement selection.
     expect(plan.placements.some((p) => p.metadata.layoutArchetype === 'rule-rock')).toBe(true);
+    expect(plan.placements.some((p) => p.metadata.layoutArchetype === 'custom-base')).toBe(true);
   });
 });
