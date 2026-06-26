@@ -835,7 +835,11 @@ function cloneRecipeStep<T extends GameboardRecipeStep>(step: T): T {
     } as T;
   }
   if (step.action === 'setTileAsset') {
-    return { ...step, at: { ...step.at }, tags: step.tags ? [...step.tags] : undefined } as T;
+    const cloned = { ...step, at: { ...step.at } } as T & { tags?: string[] };
+    if (step.tags) {
+      cloned.tags = [...step.tags];
+    }
+    return cloned as T;
   }
   if ('at' in step) {
     const cloned = { ...step, at: { ...step.at } } as T & {

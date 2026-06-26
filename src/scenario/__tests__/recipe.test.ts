@@ -436,6 +436,7 @@ describe('serializable gameboard recipes', () => {
     placementMetadata.fixture = 'mutated';
 
     expect(recipe.steps[0]).toMatchObject({ tags: ['recipe-tile'] });
+    expect(Object.hasOwn(recipe.steps[1] ?? {}, 'tags')).toBe(false);
     expect(recipe.steps[2]).toMatchObject({ waterEdges: [0] });
     expect(recipe.steps[4]).toMatchObject({ path: [{ q: 0, r: 1 }, { q: 1, r: 1 }] });
     expect(recipe.steps[6]).toMatchObject({ metadata: { fixture: 'original' } });
