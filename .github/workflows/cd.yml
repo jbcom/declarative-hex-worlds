@@ -22,9 +22,25 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      RELEASE_PLEASE_APP_CLIENT_ID: ${{ vars.RELEASE_PLEASE_APP_CLIENT_ID }}
+      RELEASE_PLEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
     steps:
+      - name: Check release-please GitHub App credentials
+        id: release-please-credentials
+        shell: bash
+        run: |
+          if [[ -z "$RELEASE_PLEASE_APP_CLIENT_ID" || -z "$RELEASE_PLEASE_APP_PRIVATE_KEY" ]]; then
+            echo "::notice title=Release Please skipped::Configure vars.RELEASE_PLEASE_APP_CLIENT_ID and secrets.RELEASE_PLEASE_APP_PRIVATE_KEY to enable release PR creation."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+
       - name: Create release-please GitHub App token
         id: release-please-token
+        if: steps.release-please-credentials.outputs.configured == 'true'
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ vars.RELEASE_PLEASE_APP_CLIENT_ID }}
@@ -35,6 +51,7 @@ jobs:
           permission-pull-requests: write
 
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        if: steps.release-please-credentials.outputs.configured == 'true'
         with:
           token: ${{ steps.release-please-token.outputs.token }}
           config-file: release-please-config.json
