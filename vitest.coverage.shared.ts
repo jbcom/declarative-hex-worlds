@@ -47,11 +47,11 @@ export const COVERAGE_THRESHOLDS = {
   // Threshold ratchet uses the CI-measured merged unit + browser-free floor.
   // Local runs can read higher when skip-gated reference tests execute, so each
   // E0a/E0h commit sets the floor 0.5pp below CI-shaped proof, then confirms on PR Coverage.
-  // KayKit guide extractor branch cleanup local merged proof: S=97.14, B=92.36, F=98.10, L=97.14.
-  statements: 96.7,
-  branches: 91.9,
+  // Packed consumer smoke branch cleanup local merged proof: S=97.17, B=92.52, F=98.10, L=97.17.
+  statements: 96.75,
+  branches: 92.0,
   functions: 97.9,
-  lines: 96.7,
+  lines: 96.75,
 };
 
 /**
