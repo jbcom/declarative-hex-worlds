@@ -63,7 +63,7 @@ function runValidateSimulation(
       JSON.stringify(
         {
           scenario: scenario.id,
-          steps: Array.isArray(script.steps) ? script.steps.length : 0,
+          steps: script.steps.length,
           actors: scenario.actors?.map((actor) => actor.actorId) ?? [],
           quests: scenario.quests?.map((quest) => quest.id) ?? [],
           violations,
@@ -74,7 +74,7 @@ function runValidateSimulation(
     );
   } else {
     console.log(`scenario: ${scenario.id}`);
-    console.log(`steps: ${Array.isArray(script.steps) ? script.steps.length : 0}`);
+    console.log(`steps: ${script.steps.length}`);
     console.log(`actors: ${scenario.actors?.length ?? 0}`);
     console.log(`quests: ${scenario.quests?.length ?? 0}`);
     printViolations(violations);

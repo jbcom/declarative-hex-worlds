@@ -20,6 +20,7 @@ import { run as runSummarizePlan } from '../commands/summarize-plan';
 import { run as runValidateManifest } from '../commands/validate-manifest';
 import { run as runValidatePlan } from '../commands/validate-plan';
 import { run as runValidateRecipe } from '../commands/validate-recipe';
+import { run as runValidateSimulation } from '../commands/validate-simulation';
 import type { GameboardPlan } from '../../gameboard';
 
 describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
@@ -946,6 +947,90 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
       success: true,
       quests: [{ questId: 'blocked-expectation', status: 'blocked' }],
     });
+  });
+
+  it('covers validate-simulation validation, output fallbacks, and exits', async () => {
+    const scenarioPath = writeJson('validate-simulation.scenario.json', validScenario());
+    const actorQuestScenarioPath = writeJson(
+      'validate-simulation.actor-quest-scenario.json',
+      blockedQuestScenario()
+    );
+    const scriptPath = writeJson('validate-simulation.empty-script.json', simulationScript([]));
+
+    await expect(
+      runValidateSimulation({ command: 'validate-simulation', flags: {} }, '/missing-source', 'free')
+    ).rejects.toThrow(/validate-simulation requires --scenario/);
+    await expect(
+      runValidateSimulation(
+        { command: 'validate-simulation', flags: { scenario: scenarioPath } },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/validate-simulation requires --script/);
+    await expect(
+      runValidateSimulation(
+        {
+          command: 'validate-simulation',
+          flags: { scenario: writeJson('validate-simulation.bad-scenario.json', []), script: scriptPath },
+        },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/must be a JSON object/);
+
+    await runValidateSimulation(
+      {
+        command: 'validate-simulation',
+        flags: { scenario: scenarioPath, script: scriptPath, json: true, outPlan: 'validate-simulation.plan.json' },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote compiled GameboardPlan to');
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({ steps: 0, actors: [], quests: [] });
+
+    logs.length = 0;
+    await runValidateSimulation(
+      { command: 'validate-simulation', flags: { scenario: scenarioPath, script: scriptPath } },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('scenario: summary-scenario');
+    expect(logs.join('\n')).toContain('steps: 0');
+    expect(logs.join('\n')).toContain('actors: 0');
+    expect(logs.join('\n')).toContain('quests: 0');
+
+    logs.length = 0;
+    await runValidateSimulation(
+      {
+        command: 'validate-simulation',
+        flags: { scenario: actorQuestScenarioPath, script: scriptPath, json: true, allowUnknownAssets: true },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      actors: ['hero', 'cache'],
+      quests: ['blocked-expectation'],
+    });
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      await expect(
+        runValidateSimulation(
+          {
+            command: 'validate-simulation',
+            flags: { scenario: scenarioPath, script: writeJson('validate-simulation.bad-script.json', [null]) },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
   });
 
   function writeSyntheticSourceRoot(name: string): string {
