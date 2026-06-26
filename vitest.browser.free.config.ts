@@ -51,6 +51,7 @@ export default defineConfig({
       'tests/browser/simple-rpg-visual.test.ts',
       'tests/browser/react-bindings.test.ts',
       'tests/browser/feature-gallery.spec.ts',
+      'tests/browser/branch-coverage.test.ts',
     ],
     testTimeout: 120_000,
     coverage: harnessCoverage('browser-free'),
