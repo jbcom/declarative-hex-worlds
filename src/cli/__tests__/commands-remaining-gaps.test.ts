@@ -13,6 +13,7 @@ import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runPatrolRoutes } from '../commands/patrol-routes';
 import { run as runPlacePiece } from '../commands/place-piece';
+import { run as runSimulateScenario } from '../commands/simulate-scenario';
 import { run as runSummarizePlan } from '../commands/summarize-plan';
 import { run as runValidateManifest } from '../commands/validate-manifest';
 import { run as runValidatePlan } from '../commands/validate-plan';
@@ -659,6 +660,97 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     });
   });
 
+  it('covers simulate-scenario validation, JSON, expectation, and blocked-quest exits', async () => {
+    const simulate = (flags: Record<string, string | boolean>): Promise<void> =>
+      runSimulateScenario({ command: 'simulate-scenario', flags }, '/missing-source', 'free');
+    const scenarioPath = writeJson('simulation.scenario.json', blockedQuestScenario());
+    const emptyScriptPath = writeJson('simulation.empty-script.json', simulationScript([]));
+
+    await expect(simulate({})).rejects.toThrow(/requires --scenario/);
+    await expect(simulate({ scenario: scenarioPath })).rejects.toThrow(/requires --script/);
+    await expect(
+      simulate({ scenario: writeJson('simulation.bad-scenario-shape.json', []), script: emptyScriptPath })
+    ).rejects.toThrow(/must be a JSON object/);
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      await expect(
+        simulate({
+          scenario: writeJson('simulation.invalid-scenario.json', invalidScenario()),
+          script: emptyScriptPath,
+        })
+      ).rejects.toThrow('process.exit 1');
+
+      logs.length = 0;
+      await expect(
+        simulate({
+          scenario: scenarioPath,
+          script: writeJson(
+            'simulation.failing-script.json',
+            blockedQuestScript({ expectedQuestStatus: 'completed' })
+          ),
+          json: true,
+        })
+      ).rejects.toThrow('process.exit 1');
+      expect(logs.join('\n')).toContain('"success": false');
+      expect(logs.join('\n')).toContain('expectation failures:');
+
+      logs.length = 0;
+      await expect(
+        simulate({
+          scenario: scenarioPath,
+          script: writeJson(
+            'simulation.failing-readable-script.json',
+            blockedQuestScript({ expectedQuestStatus: 'completed' })
+          ),
+        })
+      ).rejects.toThrow('process.exit 1');
+      expect(logs.join('\n')).toContain('success: no');
+      expect(logs.join('\n')).toContain('expectation failures:');
+
+      await expect(
+        simulate({
+          scenario: scenarioPath,
+          script: writeJson(
+            'simulation.blocked-script.json',
+            blockedQuestScript({ expectedQuestStatus: 'blocked' })
+          ),
+          failOnBlockedQuest: true,
+        })
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    logs.length = 0;
+    await simulate({
+      scenario: scenarioPath,
+      script: writeJson('simulation.readable-script.json', readableSimulationScript()),
+      allowInvalid: true,
+    });
+    expect(logs.join('\n')).toContain('step 0: unknown source found 0/0 reachable; nearest none; no command');
+    expect(logs.join('\n')).toContain('actor-removed: ghost not applied');
+    expect(logs.join('\n')).toContain('placement-removed: missing-placement not applied');
+
+    logs.length = 0;
+    await simulate({
+      scenario: scenarioPath,
+      script: writeJson(
+        'simulation.json-script.json',
+        blockedQuestScript({ expectedQuestStatus: 'blocked' })
+      ),
+      json: true,
+      allowExpectationFailures: true,
+    });
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      scenarioId: 'simulation-blocked-quest',
+      success: true,
+      quests: [{ questId: 'blocked-expectation', status: 'blocked' }],
+    });
+  });
+
   function writeSyntheticSourceRoot(name: string): string {
     writeGltf(`${name}/Assets/gltf/tiles/hex_fixture.gltf`, [-0.5, 0, -0.5], [0.5, 0.25, 0.5]);
     return resolve(root, name);
@@ -740,6 +832,63 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
       id: 'summary-scenario',
       board: validRecipe('summary-scenario-board'),
     };
+  }
+
+  function blockedQuestScenario(): unknown {
+    return {
+      schemaVersion: '1.0.0',
+      id: 'simulation-blocked-quest',
+      board: validRecipe('simulation-blocked-quest'),
+      actors: [
+        { actorId: 'hero', actorKind: 'player', at: '0,0', assetId: 'flag_blue', kind: 'unit' },
+        { actorId: 'cache', actorKind: 'prop', at: '0,0', assetId: 'crate_A_small', kind: 'prop' },
+      ],
+      quests: [
+        {
+          id: 'blocked-expectation',
+          objectives: [
+            {
+              id: 'cache-should-block',
+              kind: 'collision',
+              actor: 'hero',
+              targetActor: 'cache',
+              expect: 'blocked',
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  function simulationScript(
+    steps: readonly unknown[],
+    expectations?: Record<string, unknown>
+  ): unknown {
+    return {
+      schemaVersion: '1.0.0',
+      steps,
+      ...(expectations ? { expectations } : {}),
+    };
+  }
+
+  function blockedQuestScript(options: { expectedQuestStatus: 'blocked' | 'completed' }): unknown {
+    return simulationScript(
+      [{ action: 'run-systems', id: 'advance-quest', systems: { movement: false, patrols: false, quests: { step: 1 } } }],
+      { quests: [{ questId: 'blocked-expectation', status: options.expectedQuestStatus }] }
+    );
+  }
+
+  function readableSimulationScript(): unknown {
+    return simulationScript([
+      { action: 'inspect-actor-targets', sourceActor: 'missing-actor' },
+      { action: 'remove-actor', id: 'remove-missing-actor', actorId: 'ghost', systems: false },
+      {
+        action: 'remove-placement',
+        id: 'remove-missing-placement',
+        placementId: 'missing-placement',
+        systems: false,
+      },
+    ]);
   }
 
   function invalidScenario(): unknown {
