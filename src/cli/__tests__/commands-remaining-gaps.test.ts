@@ -19,6 +19,7 @@ import { run as runPieces } from '../commands/pieces';
 import { run as runPlacePiece } from '../commands/place-piece';
 import { run as runSimulateScenario } from '../commands/simulate-scenario';
 import { run as runSummarizePlan } from '../commands/summarize-plan';
+import { run as runSummarizeScenario } from '../commands/summarize-scenario';
 import { run as runValidateManifest } from '../commands/validate-manifest';
 import { run as runValidatePlan } from '../commands/validate-plan';
 import { run as runValidateRecipe } from '../commands/validate-recipe';
@@ -1107,6 +1108,24 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     });
   });
 
+  it('covers summarize-scenario readable extra actor asset output', async () => {
+    await runSummarizeScenario(
+      {
+        command: 'summarize-scenario',
+        flags: {
+          scenario: writeJson('summary.extra-actor-scenario.json', extraActorAssetScenario()),
+          allowUnknownAssets: true,
+        },
+      },
+      '/missing-source',
+      'free'
+    );
+
+    const joined = logs.join('\n');
+    expect(joined).toContain('actor extra assets: unit_red_full');
+    expect(joined).toContain('top actor assets: unit_red_full*=1');
+  });
+
   it('covers simulate-scenario validation, JSON, expectation, and blocked-quest exits', async () => {
     const simulate = (flags: Record<string, string | boolean>): Promise<void> =>
       runSimulateScenario({ command: 'simulate-scenario', flags }, '/missing-source', 'free');
@@ -1482,6 +1501,24 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
       schemaVersion: '1.0.0',
       id: 'summary-scenario',
       board: validRecipe('summary-scenario-board'),
+    };
+  }
+
+  function extraActorAssetScenario(): unknown {
+    return {
+      schemaVersion: '1.0.0',
+      id: 'summary-extra-actor',
+      board: validRecipe('summary-extra-actor'),
+      actors: [
+        {
+          actorId: 'enemy',
+          actorKind: 'enemy',
+          at: '0,0',
+          assetId: 'unit_red_full',
+          kind: 'unit',
+          requiresExtra: true,
+        },
+      ],
     };
   }
 
