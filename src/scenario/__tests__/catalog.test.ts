@@ -30,8 +30,12 @@ import {
   describeKayKitGuideRoleCoverage,
   describeKayKitGuideScenario,
   describeKayKitGuideScenarioCoverage,
+  flagAssetId,
   hasKayKitAssetTreatment,
   isKnownExtraAssetId,
+  isFaction,
+  isTextureSet,
+  isUnitStyle,
   listKayKitAssetPublicTreatments,
   listKayKitGuideAssetCoverages,
   listKayKitGuidePublicApiCoverages,
@@ -45,6 +49,7 @@ import {
   neutralUnitAssetId,
   renderKayKitGuideScenarioCoverageMarkdown,
   summarizeKayKitGuideCoverage,
+  textureFileName,
 } from '../../scenario/catalog';
 import type { NeutralStructureKind, NeutralUnitPart, PropAssetId } from '../../scenario/catalog';
 import { createKayKitAssetPublicTreatmentsFromSource } from '../../scenario/catalog-treatments';
@@ -93,6 +98,7 @@ describe('asset catalog public treatments', () => {
   });
 
   it('disambiguates neutral unit catapult from the FREE-compatible neutral building projectile', () => {
+    expect(flagAssetId('blue')).toBe('flag_blue');
     expect(neutralUnitAssetId('projectile_catapult')).toBe('units_neutral_projectile_catapult');
     expect(describeKayKitAssetTreatment('projectile_catapult')).toMatchObject({
       category: 'buildings',
@@ -108,6 +114,20 @@ describe('asset catalog public treatments', () => {
     });
     expect(isKnownExtraAssetId('projectile_catapult')).toBe(false);
     expect(isKnownExtraAssetId('units_neutral_projectile_catapult')).toBe(true);
+  });
+
+  it('exposes texture filenames and public taxonomy type guards', () => {
+    expect(textureFileName('fall')).toBe('hexagons_medieval_Fall.png');
+    expect(textureFileName('summer')).toBe('hexagons_medieval_Summer.png');
+    expect(textureFileName('winter')).toBe('hexagons_medieval_Winter.png');
+    expect(textureFileName('default')).toBe('hexagons_medieval.png');
+
+    expect(isFaction('blue')).toBe(true);
+    expect(isFaction('purple')).toBe(false);
+    expect(isTextureSet('summer')).toBe(true);
+    expect(isTextureSet('spring')).toBe(false);
+    expect(isUnitStyle('full')).toBe(true);
+    expect(isUnitStyle('armored')).toBe(false);
   });
 
   it('classifies guide-derived tile roles by public selector or builder path', () => {
@@ -264,6 +284,30 @@ describe('asset catalog public treatments', () => {
     expect(describeKayKitGuideScenarioCoverage('missing-scenario')).toBeUndefined();
   });
 
+  it('ignores guide scenario asset ids without public treatments in usage and role counts', () => {
+    const roadScenario = listKayKitGuideScenarios().find(
+      (scenario) => scenario.id === 'page-03-road-variations'
+    );
+    if (!roadScenario) {
+      throw new Error('catalog test expected road guide scenario');
+    }
+    const mutableAssetIds = roadScenario.assetIds as unknown as string[];
+    const originalAssetIds = [...mutableAssetIds];
+
+    try {
+      mutableAssetIds.push('fixture_missing_treatment');
+
+      expect(
+        listKayKitGuideScenarioAssetUsages({ scenarioIds: [roadScenario.id] }).map(
+          (usage) => usage.assetId
+        )
+      ).not.toContain('fixture_missing_treatment');
+      expect(summarizeKayKitGuideCoverage().uniqueAssetsByRole['road-tile']).toBe(15);
+    } finally {
+      mutableAssetIds.splice(0, mutableAssetIds.length, ...originalAssetIds);
+    }
+  });
+
   it('exposes renderer-ready page-level guide asset usages', () => {
     const usages = listKayKitGuideScenarioAssetUsages();
 
@@ -274,6 +318,7 @@ describe('asset catalog public treatments', () => {
     expect(listKayKitGuideScenarioAssetUsages({ pages: [16, 17, 18] })).toHaveLength(462);
     expect(listKayKitGuideScenarioAssetUsages({ pages: [2, 11, 12, 13, 14, 15] })).toHaveLength(329);
     expect(listKayKitGuideScenarioAssetUsages({ editionScope: 'reference' })).toEqual([]);
+    expect(listKayKitGuideScenarioAssetUsages({ editionScope: [] })).toHaveLength(usages.length);
     expect(listKayKitGuideScenarioAssetUsages({ editionScope: ['mixed', 'extra'] })).toHaveLength(791);
     expect(listKayKitGuideScenarioAssetUsages({ categories: ['units'] })).toHaveLength(548);
     expect(listKayKitGuideScenarioAssetUsages({ roles: ['prop'] })).toHaveLength(82);
@@ -653,6 +698,16 @@ describe('asset catalog public treatments', () => {
 
   it('renders the guide scenario coverage matrix as reproducible Markdown', () => {
     const markdown = renderKayKitGuideScenarioCoverageMarkdown();
+    const firstScenario = listKayKitGuideScenarios()[0];
+    if (!firstScenario) {
+      throw new Error('catalog test expected at least one guide scenario');
+    }
+    const onePageMarkdown = renderKayKitGuideScenarioCoverageMarkdown({
+      title: 'Single Guide Page',
+      scenarios: [firstScenario],
+      includeRoleCoverage: false,
+      includePublicApiInversion: false,
+    });
 
     expect(renderKayKitGuideScenarioCoverageMarkdownFromRoot()).toBe(markdown);
     expect(markdown).toContain('# Guide Scenario Coverage');
@@ -669,5 +724,9 @@ describe('asset catalog public treatments', () => {
     expect(markdown).toContain('Role - `prop`');
     expect(markdown).toContain('listKayKitGuidePublicApiCoverages()');
     expect(markdown.endsWith('\n')).toBe(true);
+    expect(onePageMarkdown).toContain('# Single Guide Page');
+    expect(onePageMarkdown).toContain('Scenario: `page-01-overview-and-license`');
+    expect(onePageMarkdown).not.toContain('## Role Coverage Index');
+    expect(onePageMarkdown).not.toContain('## Public API Inversion');
   });
 });

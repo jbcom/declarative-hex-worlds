@@ -992,9 +992,15 @@ export function describeKayKitGuideRoleCoverage(role: string): KayKitGuideRoleCo
 /** Lists every public asset id and the guide pages/APIs/docs/visuals that exercise it. */
 export function listKayKitGuideAssetCoverages(): KayKitGuideAssetCoverage[] {
   const scenarios = listKayKitGuideScenarios();
-  return listKayKitAssetPublicTreatments()
-    .map((treatment) => guideAssetCoverage(treatment, scenarios))
-    .sort((a, b) => (a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0));
+  const coveragesByAssetId = new Map(
+    listKayKitAssetPublicTreatments().map((treatment) => {
+      const coverage = guideAssetCoverage(treatment, scenarios);
+      return [coverage.assetId, coverage];
+    })
+  );
+  return [...coveragesByAssetId.keys()]
+    .sort()
+    .map((assetId) => coveragesByAssetId.get(assetId) as KayKitGuideAssetCoverage);
 }
 
 /** Returns guide-page, API, docs, and visual coverage for one asset id. */
@@ -1104,15 +1110,8 @@ export function renderKayKitGuideScenarioCoverageMarkdown(
   ];
 
   for (const scenario of scenarios) {
-    const coverage = describeKayKitGuideScenarioCoverage(scenario.id);
-    const assetCounts = coverage?.assetCounts ?? {
-      unique: 0,
-      free: 0,
-      extra: 0,
-      occurrences: 0,
-      freeOccurrences: 0,
-      extraOccurrences: 0,
-    };
+    const coverage = describeKayKitGuideScenarioCoverage(scenario.id) as KayKitGuideScenarioCoverage;
+    const assetCounts = coverage.assetCounts;
     const occurrenceLabel = assetCounts.occurrences === 1 ? 'occurrence' : 'occurrences';
     lines.push(
       '',
@@ -1409,14 +1408,11 @@ function pushMarkdownCodeList(
 function markdownTitleCase(value: string): string {
   return value
     .split(' ')
-    .map((word) => (word.length === 0 ? word : `${word[0]?.toUpperCase() ?? ''}${word.slice(1)}`))
+    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
     .join(' ');
 }
 
 function formatGuideScenarioPagesForMarkdown(pages: readonly number[]): string {
-  if (pages.length === 0) {
-    return 'none';
-  }
   return pages.map((page) => String(page).padStart(2, '0')).join(', ');
 }
 
