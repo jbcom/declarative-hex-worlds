@@ -20,6 +20,7 @@ import { run as runSummarizePlan } from '../commands/summarize-plan';
 import { run as runValidateManifest } from '../commands/validate-manifest';
 import { run as runValidatePlan } from '../commands/validate-plan';
 import { run as runValidateRecipe } from '../commands/validate-recipe';
+import { run as runValidateScenario } from '../commands/validate-scenario';
 import { run as runValidateSimulation } from '../commands/validate-simulation';
 import type { GameboardPlan } from '../../gameboard';
 
@@ -1028,6 +1029,126 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
           'free'
         )
       ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
+  it('covers validate-scenario validation, fallbacks, summaries, and exits', async () => {
+    await expect(
+      runValidateScenario({ command: 'validate-scenario', flags: {} }, '/missing-source', 'free')
+    ).rejects.toThrow(/validate-scenario requires --scenario/);
+
+    const richScenarioPath = writeJson('validate-scenario.rich.json', {
+      schemaVersion: '1.0.0',
+      id: 'validate-scenario-rich',
+      board: {
+        schemaVersion: '1.0.0',
+        options: { seed: 'validate-scenario-rich', shape: { kind: 'rectangle', width: 2, height: 1 } },
+        steps: [],
+      },
+      spawnGroups: {
+        groups: [
+          { id: 'home', count: 1 },
+          { id: 'away', count: 1, pathToGroups: ['home'] },
+        ],
+      },
+      patrolRoutes: [{ id: 'watch', count: 2, start: '0,0', loop: false }],
+      actors: [{ actorId: 'guard', actorKind: 'npc', at: '0,0', assetId: 'guard_asset', kind: 'unit' }],
+      quests: [{ id: 'lookout', objectives: [] }],
+    });
+
+    await runValidateScenario(
+      {
+        command: 'validate-scenario',
+        flags: { scenario: richScenarioPath, allowUnknownAssets: true, json: true, outPlan: 'validate-scenario.plan.json' },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote compiled GameboardPlan to');
+    expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+      scenario: 'validate-scenario-rich',
+      actors: ['guard'],
+      quests: ['lookout'],
+      spawnGroups: { groupCount: 2 },
+      patrolRoutes: { routeCount: 1 },
+      violations: [],
+    });
+
+    logs.length = 0;
+    await runValidateScenario(
+      { command: 'validate-scenario', flags: { scenario: richScenarioPath, allowUnknownAssets: true } },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('scenario: validate-scenario-rich');
+    expect(logs.join('\n')).toContain('spawn groups: 2 group(s), 2 location(s), 1/1 route(s)');
+    expect(logs.join('\n')).toContain('patrol routes: 1/1 complete');
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      const invalidEmptyScenarioPath = writeJson('validate-scenario.invalid-empty.json', invalidScenario());
+      const invalidAuthoredScenarioPath = writeJson('validate-scenario.invalid-authored.json', {
+        schemaVersion: '1.0.0',
+        id: 'validate-scenario-invalid-authored',
+        board: invalidRecipe(),
+        actors: [{ actorId: 'hero', actorKind: 'player', at: '0,0', assetId: 'hero_asset', kind: 'unit' }],
+        quests: [{ id: 'broken-quest', objectives: [] }],
+      });
+
+      logs.length = 0;
+      await expect(
+        runValidateScenario(
+          {
+            command: 'validate-scenario',
+            flags: { scenario: invalidEmptyScenarioPath, json: true, outPlan: 'missing-plan.json' },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({ actors: [], quests: [] });
+
+      logs.length = 0;
+      await expect(
+        runValidateScenario(
+          {
+            command: 'validate-scenario',
+            flags: { scenario: invalidAuthoredScenarioPath, json: true },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(JSON.parse(logs.at(-1) ?? '{}')).toMatchObject({
+        actors: ['hero'],
+        quests: ['broken-quest'],
+      });
+
+      logs.length = 0;
+      await expect(
+        runValidateScenario(
+          { command: 'validate-scenario', flags: { scenario: invalidEmptyScenarioPath } },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(logs.join('\n')).toContain('actors: 0');
+      expect(logs.join('\n')).toContain('quests: 0');
+
+      logs.length = 0;
+      await expect(
+        runValidateScenario(
+          { command: 'validate-scenario', flags: { scenario: invalidAuthoredScenarioPath } },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+      expect(logs.join('\n')).toContain('actors: 1');
+      expect(logs.join('\n')).toContain('quests: 1');
     } finally {
       exitSpy.mockRestore();
     }
