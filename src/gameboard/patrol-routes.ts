@@ -229,7 +229,7 @@ export function planGameboardPatrolRoute(
     waypoints.length >= Math.max(2, requestedWaypointCount) &&
     segments.every((segment) => segment.found);
 
-  if (!loop && waypoints.length > 1 && segments.length === 0) {
+  if (!loop && waypoints.length > 0 && segments.length === 0) {
     warnings.push(
       `Patrol route ${id} has no segments because loop is disabled and fewer than 2 waypoints were selected`
     );
@@ -409,6 +409,7 @@ function routePatrolWaypoints(
   for (let index = 0; index < waypoints.length - 1; index += 1) {
     const current = waypoints[index];
     const next = waypoints[index + 1];
+    /* v8 ignore next 3 -- for-loop bounds guarantee paired waypoints exist. */
     if (current === undefined || next === undefined) {
       throw new GameboardRuntimeError(`patrol waypoint pair index ${index} out of range`);
     }
@@ -417,6 +418,7 @@ function routePatrolWaypoints(
   if (loop) {
     const last = waypoints[waypoints.length - 1];
     const first = waypoints[0];
+    /* v8 ignore next 3 -- loop routing only runs after waypoints.length >= 2. */
     if (last === undefined || first === undefined) {
       throw new GameboardRuntimeError('patrol loop requires at least two waypoints');
     }

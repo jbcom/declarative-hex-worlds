@@ -494,6 +494,70 @@ describe('board-aware navigation and occupancy', () => {
     ).toBe(true);
   });
 
+  it('reports patrol route start validation branches and open-route warnings', () => {
+    const plan = createGameboardBuilder({
+      seed: 'patrol-start-validation',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    }).build();
+    const blockedStartPlan = createGameboardBuilder({
+      seed: 'patrol-blocked-start',
+      shape: { kind: 'rectangle', width: 2, height: 1 },
+    })
+      .setTerrain({ q: 0, r: 0 }, 'water')
+      .build();
+    const spawnGroups = planGameboardSpawnGroups(plan, {
+      seed: 'patrol-start-validation-groups',
+      groups: [{ id: 'base', count: 1 }],
+    });
+    const defaulted = planGameboardPatrolRoute(plan, {});
+    const objectStart = planGameboardPatrolRoute(plan, {
+      id: 'object-start',
+      count: 2,
+      start: { q: 0, r: 0 },
+      loop: false,
+    });
+    const blockedStart = planGameboardPatrolRoute(blockedStartPlan, {
+      id: 'blocked-start',
+      count: 2,
+      start: '0,0',
+    });
+    const defaultSeedRoutes = planGameboardPatrolRoutes(plan, { routes: [] });
+    const routes = planGameboardPatrolRoutes(plan, {
+      seed: 'patrol-start-validation-routes',
+      spawnGroups,
+      routes: [
+        { id: 'short-open', count: 1, loop: false },
+        { id: 'dual-start', count: 2, start: '0,0', startGroupId: 'base' },
+        { id: 'missing-start', count: 2, start: '99,99' },
+        { id: 'empty-group', count: 2, startGroupId: '' },
+        { id: 'missing-location', count: 2, startGroupId: 'base', startLocationIndex: 5 },
+      ],
+    });
+
+    expect(defaulted).toMatchObject({
+      id: 'patrol',
+      requestedWaypointCount: 4,
+    });
+    expect(objectStart.waypoints[0]).toMatchObject({
+      key: '0,0',
+      source: 'explicit-start',
+    });
+    expect(blockedStart.errors).toContain('Patrol route blocked-start start tile 0,0 is not passable');
+    expect(defaultSeedRoutes.seed).toBe('patrol-start-validation:patrol-routes');
+    expect(routes.warnings).toContain(
+      'short-open: Patrol route short-open has no segments because loop is disabled and fewer than 2 waypoints were selected'
+    );
+    expect(routes.errors).toEqual(
+      expect.arrayContaining([
+        'short-open: Patrol route short-open requires at least 2 waypoints',
+        'dual-start: Patrol route dual-start cannot define both start and startGroupId',
+        'missing-start: Patrol route missing-start references missing start tile 99,99',
+        'empty-group: Patrol route empty-group references an empty startGroupId',
+        'missing-location: Patrol route missing-location could not claim spawn location 5 from group base',
+      ])
+    );
+  });
+
   it('plans patrol route sets and reports duplicate route ids', () => {
     const plan = createGameboardBuilder({
       seed: 'patrol-route-set',
