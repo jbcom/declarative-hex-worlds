@@ -634,7 +634,9 @@ function movementAdvanceResult(
 function requirePlacementEntity(world: World, placement: Entity | string): Entity {
   const entity = findPlacementEntity(world, placement);
   if (!entity) {
-    throw new GameboardRuntimeError(`No placement exists with id ${typeof placement === 'string' ? placement : String(placement.id())}`);
+    // findPlacementEntity returns entity arguments as-is, so a miss here can
+    // only come from a string placement id lookup.
+    throw new GameboardRuntimeError(`No placement exists with id ${placement as string}`);
   }
   return entity;
 }
