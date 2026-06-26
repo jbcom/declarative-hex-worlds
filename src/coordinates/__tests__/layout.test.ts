@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createGameboardBuilder } from '../../gameboard/index';
+import type { GameboardPlacementKind } from '../../gameboard/index';
 import { createGameboardWorld, readGameboardPlacements } from '../../koota/index';
 import {
   analyzeGameboardLayoutFill,
@@ -11,6 +12,7 @@ import {
   normalizeGameboardLayoutArchetypeRegistry,
   resolveGameboardLayoutArchetype,
   selectGameboardLayoutSites,
+  spawnGameboardLayoutFill,
   spawnGameboardLayoutPlacements,
 } from '../../coordinates/layout';
 
@@ -738,6 +740,305 @@ describe('layout archetype + selection edge branches (PRD E0a)', () => {
   it('selectGameboardLayoutSites returns empty array when count is 0', () => {
     const plan = createSingleForestTilePlan();
     expect(selectGameboardLayoutSites(plan, { count: 0, seed: 'empty' })).toEqual([]);
+  });
+
+  it('covers layout fallback criteria, footprints, diagnostics, and default layers', () => {
+    const registry = createGameboardLayoutArchetypeRegistry(
+      {
+        camp: {
+          id: 'camp',
+          label: 'Camp',
+          kind: 'prop',
+          criteria: { terrain: 'grass', prefer: [{ kind: 'edge' }] },
+        },
+      },
+      { includeBuiltIns: false }
+    );
+    expect(registry.tree).toBeUndefined();
+    expect(registry.camp?.kind).toBe('prop');
+
+    const hexPlan = createGameboardBuilder({
+      seed: 'layout-e0h-hex',
+      shape: { kind: 'hexagon', radius: 2 },
+    })
+      .setElevation({ q: 0, r: 0 }, 1)
+      .setTerrain({ q: 1, r: 0 }, 'water')
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'marker',
+        kind: 'decoration',
+        layer: 'feature',
+        metadata: { layoutSlotGroup: 'other', layoutSlot: 0 },
+      })
+      .build();
+
+    const looseFootprint = inspectGameboardLayoutSites(hexPlan, {
+      criteria: {
+        elevation: [2],
+        footprint: { kind: 'custom', offsets: [{ q: 9, r: 9 }], includeCenter: true },
+        requireFootprintInBounds: false,
+        footprintTerrain: 'water',
+      },
+    });
+    expect(looseFootprint.rejectionCounts).toMatchObject({
+      elevation: expect.any(Number),
+      'footprint-terrain': expect.any(Number),
+    });
+
+    const noOffsetFootprint = inspectGameboardLayoutSites(hexPlan, {
+      criteria: { footprint: { kind: 'custom', includeCenter: false }, requireFootprintInBounds: false },
+    });
+    expect(noOffsetFootprint.rejectionCounts).toMatchObject({ 'footprint-out-of-bounds': expect.any(Number) });
+
+    const edgePadded = inspectGameboardLayoutSites(hexPlan, {
+      criteria: {
+        edgePadding: 1,
+        maxPerTile: 1,
+        slotGroup: 'wanted',
+        minDistanceFrom: ['0,0'],
+        minDistance: 1,
+        maxDistanceFrom: ['0,0'],
+        maxDistance: 0,
+        prefer: [
+          { kind: 'near-terrain', terrain: ['water'] },
+          { kind: 'near-placement-kind', placementKind: ['decoration'] },
+          { kind: 'low-elevation' },
+        ],
+      },
+    });
+    expect(edgePadded.rejectionCounts).toMatchObject({
+      'edge-padding': expect.any(Number),
+      'min-distance': expect.any(Number),
+      'max-distance': expect.any(Number),
+    });
+
+    const ring = inspectGameboardLayoutSites(hexPlan, {
+      count: 1,
+      criteria: { footprint: { kind: 'radius', radius: 1, includeCenter: false }, requireFootprintInBounds: false },
+    });
+    expect(ring.selected[0]?.footprintKeys).not.toContain(ring.selected[0]?.key);
+
+    const dryHarbor = createGameboardLayoutPlacements(
+      createGameboardBuilder({ seed: 'layout-e0h-dry-harbor', shape: { kind: 'rectangle', width: 1, height: 1 } }).build(),
+      {
+        count: 1,
+        assetId: 'dock',
+        kind: 'structure',
+        metadata: { feature: 'harbor' },
+      }
+    );
+    expect(dryHarbor[0]?.metadata?.facing).toBeUndefined();
+
+    const harborByMetadata = createGameboardLayoutPlacements(hexPlan, {
+      count: 1,
+      assetId: 'dock',
+      kind: 'structure',
+      metadata: { feature: 'harbor', facing: -1 },
+    });
+    const harborByRotation = createGameboardLayoutPlacements(hexPlan, {
+      count: 1,
+      assetId: 'dock',
+      kind: 'structure',
+      rotationSteps: 7,
+      metadata: { feature: 'harbor' },
+    });
+    expect(harborByMetadata[0]?.rotationSteps).toBe(5);
+    expect(harborByRotation[0]?.rotationSteps).toBe(7);
+    expect(harborByRotation[0]?.metadata?.facing).toBe(1);
+
+    const layerKinds: readonly GameboardPlacementKind[] = [
+      'terrain',
+      'road',
+      'river',
+      'coast',
+      'transition',
+      'structure',
+      'unit',
+      'decoration',
+      'prop',
+    ];
+    const layered = appendGameboardLayoutPlacementsToPlan(
+      createGameboardBuilder({ seed: 'layout-e0h-layers', shape: { kind: 'rectangle', width: 1, height: 1 } }).build(),
+      layerKinds.map((kind) => ({ at: '0,0', assetId: `asset:${kind}`, kind }))
+    );
+    expect(layered.placements.slice(-layerKinds.length).map((placement) => placement.layer)).toEqual([
+      'terrain',
+      'surface',
+      'surface',
+      'surface',
+      'surface',
+      'structure',
+      'unit',
+      'feature',
+      'feature',
+    ]);
+    expect(() =>
+      appendGameboardLayoutPlacementsToPlan(layered, [{ at: '9,9', assetId: 'missing', kind: 'prop' }])
+    ).toThrow(/references missing tile 9,9/);
+
+    const skippedFill = createGameboardLayoutFillPlacements(hexPlan, {
+      rules: [{ id: 'skip-me', assetId: 'crate', count: 1, maxCount: 0 }],
+    });
+    expect(skippedFill).toEqual([]);
+
+    const zeroTarget = analyzeGameboardLayoutFill(hexPlan, {
+      rules: [{ id: 'zero-target', assetId: 'crate', count: 1, maxCount: 0 }],
+    });
+    expect(zeroTarget.rules[0]?.warnings.join('\n')).toContain('resolved to zero placements');
+
+    const scarceAnalysis = analyzeGameboardLayoutFill(hexPlan, {
+      rules: [
+        {
+          id: 'scarce',
+          assetId: 'crate',
+          kind: 'prop',
+          count: 2,
+          criteria: { terrain: 'grass', maxPerTile: 1, slotGroup: 'scarce', minDistanceBetween: 99 },
+        },
+      ],
+    });
+    expect(scarceAnalysis.rules[0]?.selectedCount).toBe(1);
+    expect(scarceAnalysis.rules[0]?.warnings.join('\n')).toContain('requested 2 placement(s), but only 1 candidate');
+
+    const multiAssetAnalysis = analyzeGameboardLayoutFill(hexPlan, {
+      rules: [
+        {
+          id: 'multi-assets',
+          kind: 'prop',
+          assets: ['crate-a', 'crate-b'],
+          fill: 0.2,
+          criteria: {
+            prefer: [
+              { kind: 'far-from-placement-kind', placementKind: 'decoration', radius: 1 },
+              { kind: 'high-elevation' },
+            ],
+          },
+        },
+      ],
+    });
+    expect(multiAssetAnalysis.rules[0]?.assetIds).toEqual(['crate-a', 'crate-b']);
+
+    const defaultPlacement = createGameboardLayoutPlacements(hexPlan, {
+      assetId: 'crate',
+      kind: 'prop',
+    });
+    expect(defaultPlacement).toHaveLength(1);
+    expect(defaultPlacement[0]?.metadata?.layoutSeed).toBe('layout-e0h-hex:layout');
+
+    const noIdFill = createGameboardLayoutFillPlacements(hexPlan, {
+      rules: [{ assetId: 'crate', kind: 'prop', count: 1 }],
+    });
+    expect(noIdFill[0]?.id).toBe('layout:0:0');
+
+    const noIdAnalysis = analyzeGameboardLayoutFill(hexPlan, {
+      rules: [{ assetId: 'crate', kind: 'prop', count: 1 }],
+    });
+    expect(noIdAnalysis.rules[0]?.id).toBe('0');
+
+    const defaultFillAnalysis = analyzeGameboardLayoutFill(hexPlan, {
+      rules: [{ assetId: 'crate', kind: 'prop' }],
+    });
+    expect(defaultFillAnalysis.rules[0]).toMatchObject({ requestedCount: 0, targetCount: 0 });
+
+    const fallbackDiagnostic = analyzeGameboardLayoutFill(hexPlan, {
+      rules: [{ kind: 'prop', count: 1 }],
+    });
+    expect(fallbackDiagnostic.rules[0]?.errors).toEqual(['Layout fill rule 0 requires assetId or assets']);
+
+    const spawnFillWorld = createGameboardWorld(hexPlan);
+    const spawned = spawnGameboardLayoutFill(spawnFillWorld, {
+      rules: [{ id: 'spawned-fill', assetId: 'crate', kind: 'prop', count: 1 }],
+    });
+    expect(spawned).toHaveLength(1);
+
+    const maxElevation = inspectGameboardLayoutSites(hexPlan, {
+      criteria: { maxElevation: 0 },
+    });
+    expect(maxElevation.rejectionCounts).toMatchObject({ elevation: expect.any(Number) });
+
+    const fallbackPlanWithGeneratedTerrain = createGameboardBuilder({
+      seed: 'layout-e0h-fallbacks',
+      shape: { kind: 'rectangle', width: 3, height: 2 },
+    })
+      .setTerrain({ q: 2, r: 0 }, 'water')
+      .setElevation({ q: 1, r: 0 }, 1)
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'terrain-neighbor',
+        kind: 'prop',
+        layer: 'terrain',
+      })
+      .addPlacement({
+        at: { q: 1, r: 0 },
+        assetId: 'terrain-marker',
+        kind: 'prop',
+        layer: 'terrain',
+        metadata: { layoutSlotGroup: 'slots', layoutSlot: 'reserved' },
+      })
+      .build();
+    const fallbackPlan = {
+      ...fallbackPlanWithGeneratedTerrain,
+      placements: fallbackPlanWithGeneratedTerrain.placements.filter((placement) => placement.assetId.startsWith('terrain-')),
+    };
+    const fallbackInspection = inspectGameboardLayoutSites(fallbackPlan, {
+      criteria: {
+        allowOccupied: true,
+        elevation: 1,
+        excludeFootprintTerrain: 'water',
+        footprint: { kind: 'adjacent' },
+        requireFootprintInBounds: false,
+        requiredAdjacentPlacementLayer: ['terrain'],
+        slotGroup: 'slots',
+        prefer: [
+          { kind: 'near-terrain', terrain: 'water' },
+          { kind: 'far-from-terrain', terrain: 'water' },
+          { kind: 'near-placement-kind', placementKind: 'prop' },
+          { kind: 'far-from-placement-kind', placementKind: 'prop' },
+        ],
+      },
+    });
+    expect(fallbackInspection.rejectionCounts).toMatchObject({ 'footprint-terrain': expect.any(Number) });
+
+    const scoredFallback = inspectGameboardLayoutSites(fallbackPlan, {
+      criteria: {
+        allowOccupied: true,
+        elevation: 1,
+        requiredAdjacentPlacementLayer: ['terrain'],
+        slotGroup: 'slots',
+        prefer: [
+          { kind: 'near-terrain', terrain: 'water' },
+          { kind: 'far-from-terrain', terrain: 'water' },
+          { kind: 'near-placement-kind', placementKind: 'prop' },
+          { kind: 'far-from-placement-kind', placementKind: 'prop' },
+        ],
+      },
+    });
+    expect(scoredFallback.selected[0]?.key).toBe('1,0');
+    expect(scoredFallback.selected[0]?.reasons).toEqual(
+      expect.arrayContaining(['near-terrain:water', 'far-from-terrain:water', 'near-placement-kind:prop', 'far-from-placement-kind:prop'])
+    );
+
+    const defaultRadius = inspectGameboardLayoutSites(fallbackPlan, {
+      criteria: { footprint: { kind: 'radius' }, requireFootprintInBounds: false },
+    });
+    expect(defaultRadius.selected[0]?.footprintKeys.length).toBeGreaterThan(1);
+
+    expect(() =>
+      createGameboardLayoutFillPlacements(hexPlan, {
+        rules: [{ archetype: 'prop', count: 1 }],
+      })
+    ).toThrow(/requires assetId or assets/);
+    expect(() =>
+      createGameboardLayoutFillPlacements(hexPlan, {
+        rules: [{ archetype: 'prop', assets: [undefined as unknown as string], count: 1 }],
+      })
+    ).toThrow(/produced empty asset pick/);
+    expect(() =>
+      spawnGameboardLayoutPlacements(createGameboardWorld(), { count: 1, assetId: 'crate', kind: 'prop' })
+    ).toThrow(/World does not contain GameboardState/);
+    expect(() => spawnGameboardLayoutFill(createGameboardWorld(), { rules: [] })).toThrow(
+      /World does not contain GameboardState/
+    );
   });
 });
 
