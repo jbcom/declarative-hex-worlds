@@ -7,9 +7,9 @@
  * archive is present.
  */
 import { createHash } from 'node:crypto';
-import { createWriteStream, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createWriteStream, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import yazl from 'yazl';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
@@ -50,11 +50,13 @@ interface SyntheticPackFile {
 async function buildSyntheticZip(
   layout: KayKitUpstreamLayout,
   files: readonly SyntheticPackFile[],
-  destination: string
+  destination: string,
+  rootPrefix = ''
 ): Promise<void> {
   return new Promise<void>((resolveBuild, rejectBuild) => {
     const zip = new yazl.ZipFile();
-    const folder = `${layout.packFolderName}/`;
+    const folder = `${rootPrefix}${layout.packFolderName}/`;
+    zip.addEmptyDirectory(`${folder}${layout.relativeGltfRoot}/empty/`);
     for (const marker of layout.markerFiles) {
       zip.addBuffer(Buffer.from(`marker:${marker}`), `${folder}${marker}`);
     }
@@ -155,6 +157,25 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     expect(existsSync(join(result.outRoot, 'obj'))).toBe(false);
   });
 
+  it('defaults to FREE edition and process cwd as outRoot', async () => {
+    const cwd = process.cwd();
+    const localRoot = tmp();
+    const outName = basename(tmp());
+    process.chdir(localRoot);
+    try {
+      const result = await bootstrapKayKitAssets({
+        source: { kind: 'zip', path: zipPath },
+        out: outName,
+        libraryVersion: '0.0.0-test',
+        fetchedAt: '2030-01-01T00:00:00.000Z',
+      });
+      expect(result.edition).toBe('free');
+      expect(result.outRoot).toBe(join(process.cwd(), outName));
+    } finally {
+      process.chdir(cwd);
+    }
+  });
+
   it('writes an integrity sidecar with per-file sha256 + bytes', async () => {
     // Flat layout: sidecar is at <outRoot>/.bootstrap.json
     const sidecarPath = join(outRoot, KAYKIT_BOOTSTRAP_SIDECAR);
@@ -201,6 +222,29 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     writeFileSync(tamperedPath, original);
   });
 
+  it('verifyBootstrap detects same-size hash drift', async () => {
+    const tamperedPath = join(outRoot, 'tiles/base/hex_grass.gltf');
+    const original = readFileSync(tamperedPath);
+    writeFileSync(tamperedPath, Buffer.alloc(original.byteLength, 0x7b));
+    const report = await verifyBootstrap(outRoot);
+    expect(report.ok).toBe(false);
+    expect(report.drift.some((entry) => entry.includes('hash mismatch'))).toBe(true);
+    writeFileSync(tamperedPath, original);
+  });
+
+  it('refuses a non-empty target without a sidecar', async () => {
+    const localOut = tmp();
+    writeFileSync(join(localOut, 'sentinel.txt'), 'occupied');
+    await expect(
+      bootstrapKayKitAssets({
+        source: { kind: 'zip', path: zipPath },
+        out: localOut,
+        outRoot: '/',
+        edition: 'free',
+      })
+    ).rejects.toThrow(/is not empty; pass force: true/);
+  });
+
   it('verifyBootstrap reports a missing sidecar', async () => {
     const empty = tmp();
     const report = await verifyBootstrap(empty);
@@ -229,6 +273,31 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     expect(report.drift.some((entry) => entry.includes('missing file'))).toBe(true);
     // Restore so subsequent tests aren't impacted.
     writeFileSync(sidecarPath, original);
+  });
+
+  it('rejects unsafe, oversized, and malformed sidecars before verification', async () => {
+    const localOut = tmp();
+    const sidecarPath = join(localOut, KAYKIT_BOOTSTRAP_SIDECAR);
+    const outside = join(tmp(), 'outside-bootstrap.json');
+    writeFileSync(outside, JSON.stringify({ schemaVersion: '1.0.0', files: [] }));
+    symlinkSync(outside, sidecarPath);
+    await expect(verifyBootstrap(localOut)).rejects.toThrow(/escapes expected directory/);
+    rmSync(sidecarPath);
+
+    writeFileSync(sidecarPath, 'x'.repeat(4 * 1024 * 1024 + 1));
+    await expect(verifyBootstrap(localOut)).rejects.toThrow(/suspiciously large/);
+
+    writeFileSync(sidecarPath, JSON.stringify({ schemaVersion: '0.0.0', files: [] }));
+    await expect(verifyBootstrap(localOut)).rejects.toThrow(/unsupported bootstrap sidecar schema/);
+
+    writeFileSync(sidecarPath, JSON.stringify({ schemaVersion: '1.0.0', files: {} }));
+    await expect(verifyBootstrap(localOut)).rejects.toThrow(/malformed bootstrap sidecar/);
+
+    writeFileSync(
+      sidecarPath,
+      JSON.stringify({ schemaVersion: '1.0.0', files: Array.from({ length: 100_001 }, () => null) })
+    );
+    await expect(verifyBootstrap(localOut)).rejects.toThrow(/lists 100001 files/);
   });
 
   it('idempotent re-run with force=true produces identical sidecar files', async () => {
@@ -322,6 +391,74 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     expect(sidecar.files.every((entry) => /\.(gltf|bin|png|jpg|jpeg)$/.test(entry.path))).toBe(true);
   });
 
+  it('includes source formats inside the GLTF tree and skips unsupported extensionless and missing texture files', async () => {
+    const mixedZip = join(tmp(), 'mixed-gltf-root.zip');
+    const layout = KAYKIT_MEDIEVAL_FREE_LAYOUT;
+    await buildSyntheticZip(
+      layout,
+      [
+        {
+          relative: `${layout.relativeGltfRoot}/tiles/base/hex_grass.gltf`,
+          content: '{}',
+        },
+        {
+          relative: `${layout.relativeGltfRoot}/buildings/blue/home.gltf`,
+          content: '{}',
+        },
+        {
+          relative: `${layout.relativeGltfRoot}/decoration/nature/tree.gltf`,
+          content: '{}',
+        },
+        {
+          relative: `${layout.relativeGltfRoot}/tiles/base/source_model.fbx`,
+          content: 'FBX-in-gltf-root',
+        },
+        {
+          relative: `${layout.relativeGltfRoot}/tiles/base/README`,
+          content: 'extensionless',
+        },
+        {
+          relative: `${layout.relativeTextureRoot}/not-a-catalog-texture.png`,
+          content: 'unused texture',
+        },
+      ],
+      mixedZip
+    );
+    const localOut = tmp();
+    await bootstrapKayKitAssets({
+      source: { kind: 'zip', path: mixedZip },
+      out: localOut,
+      outRoot: '/',
+      edition: 'free',
+      includeSourceFormats: true,
+    });
+    expect(existsSync(join(localOut, 'tiles/base/source_model.fbx'))).toBe(true);
+    expect(existsSync(join(localOut, 'tiles/base/README'))).toBe(false);
+    expect(existsSync(join(localOut, KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE, 'not-a-catalog-texture.png'))).toBe(false);
+  });
+
+  it('bootstraps a valid pack without a texture directory', async () => {
+    const noTextureZip = join(tmp(), 'no-textures.zip');
+    const layout = KAYKIT_MEDIEVAL_FREE_LAYOUT;
+    await buildSyntheticZip(
+      layout,
+      [
+        { relative: `${layout.relativeGltfRoot}/tiles/base/hex_grass.gltf`, content: '{}' },
+        { relative: `${layout.relativeGltfRoot}/buildings/blue/home.gltf`, content: '{}' },
+        { relative: `${layout.relativeGltfRoot}/decoration/nature/tree.gltf`, content: '{}' },
+      ],
+      noTextureZip
+    );
+    const localOut = tmp();
+    await bootstrapKayKitAssets({
+      source: { kind: 'zip', path: noTextureZip },
+      out: localOut,
+      outRoot: '/',
+      edition: 'free',
+    });
+    expect(existsSync(join(localOut, KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE))).toBe(false);
+  });
+
   it('rejects a zip whose layout markers do not match the requested edition', async () => {
     const extraZip = join(tmp(), 'extra.zip');
     await buildSyntheticZip(
@@ -380,6 +517,20 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     ).rejects.toThrow(/does not contain a recognizable KayKit pack root/);
   });
 
+  it('rejects a valid pack nested beyond the supported archive search depth', async () => {
+    const deepZip = join(tmp(), 'deep.zip');
+    await buildSyntheticZip(KAYKIT_MEDIEVAL_FREE_LAYOUT, freeFixtureFiles(), deepZip, 'a/b/c/d/e/');
+    const localOut = tmp();
+    await expect(
+      bootstrapKayKitAssets({
+        source: { kind: 'zip', path: deepZip },
+        out: localOut,
+        outRoot: '/',
+        edition: 'free',
+      })
+    ).rejects.toThrow(/does not contain a recognizable KayKit pack root/);
+  });
+
   it('rejects a zip path that does not exist', async () => {
     const localOut = tmp();
     await expect(
@@ -390,6 +541,20 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
         edition: 'free',
       })
     ).rejects.toThrow(/zip source does not exist/);
+  });
+
+  it('rejects a corrupt zip before pack-root resolution', async () => {
+    const localOut = tmp();
+    const corruptZip = join(tmp(), 'not-a-zip.zip');
+    writeFileSync(corruptZip, 'not a zip');
+    await expect(
+      bootstrapKayKitAssets({
+        source: { kind: 'zip', path: corruptZip },
+        out: localOut,
+        outRoot: '/',
+        edition: 'free',
+      })
+    ).rejects.toThrow(/failed to extract zip/);
   });
 
   it('rejects EXTRA edition from GitHub source (CC0 covers FREE only)', async () => {
