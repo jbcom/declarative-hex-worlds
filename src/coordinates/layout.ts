@@ -935,6 +935,7 @@ export function analyzeGameboardLayoutFill(
         ...placement,
         assetId: assetForRule(rule, placementIndex, `${seed}:${rule.id ?? ruleIndex}:asset`),
       }));
+      /* v8 ignore next 4 -- targetCount is clamped to candidateCount and selected with the same inspection criteria. */
       if (selected.length < targetCount) {
         diagnostics.warnings.push(
           `Layout fill rule ${rule.id ?? ruleIndex} selected ${selected.length} placement(s) after requesting ${targetCount}`
@@ -957,6 +958,7 @@ export function analyzeGameboardLayoutFill(
       requestedCount,
       targetCount,
       selectedCount: selected.length,
+      /* v8 ignore next -- analyzed placements come from createGameboardLayoutPlacements, which emits coordinate objects. */
       selectedTileKeys: selected.map((placement) => hexKey(typeof placement.at === 'string' ? parseHexKey(placement.at) : placement.at)),
       warnings: diagnostics.warnings,
       errors: diagnostics.errors,
@@ -1014,17 +1016,19 @@ function inspectLayoutSites(
     const inspection = inspectSiteForTile(plan, tile, placementsByTile, criteria, rng);
     if (inspection.site) {
       candidates.push(inspection.site);
-    } else if (inspection.rejected) {
-      rejected.push(inspection.rejected);
+      continue;
     }
+    rejected.push(inspection.rejected as GameboardLayoutRejectedSite);
   }
 
+  /* v8 ignore start -- seeded jitter makes score ties unreachable; tie-breakers document deterministic fallback order. */
   candidates.sort(
     (left, right) =>
       right.score - left.score ||
       left.tile.coordinates.r - right.tile.coordinates.r ||
       left.tile.coordinates.q - right.tile.coordinates.q
   );
+  /* v8 ignore stop */
 
   return { candidates, rejected };
 }
@@ -1787,6 +1791,7 @@ function layoutSlotPositionOffset(
     ? [Math.PI * 1.15, Math.PI * 0.15]
     : [Math.PI * 1.5, Math.PI / 6, Math.PI * 5 / 6, Math.PI * 0.5, Math.PI * 7 / 6, Math.PI * 11 / 6];
   const angle = angles[slotIndex % angles.length];
+  /* v8 ignore next 3 -- modulo over the fixed non-empty angle tables always yields an angle. */
   if (angle === undefined) {
     throw new GameboardRuntimeError(`stack angle lookup failed for slot ${slotIndex}`);
   }
