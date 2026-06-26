@@ -13,10 +13,10 @@ import {
   type SummarizeGameboardPlanOptions,
 } from '../gameboard';
 import { generateManifestFromSource } from '../ingest';
-import {
+import type {
   analyzeExternalAssetCompatibility,
-  type ExternalAssetForwardAxis,
-  type ExternalAssetIntendedRole,
+  ExternalAssetForwardAxis,
+  ExternalAssetIntendedRole,
 } from '../interop';
 import {
   inspectMedievalHexagonManifest,
@@ -53,9 +53,9 @@ import {
   type KayKitGuideScenario,
   listKayKitGuideRoleCoverages,
 } from '../scenario';
-import {
-  type GameboardScenarioSimulationScript,
-  type GameboardScenarioSimulationStep,
+import type {
+  GameboardScenarioSimulationScript,
+  GameboardScenarioSimulationStep,
 } from '../simulation';
 import type {
   AssetBounds,
@@ -180,7 +180,6 @@ export function readJson(path: string): unknown {
 export function inspectManifestPath(path: string): MedievalHexagonManifestInspection {
   return inspectMedievalHexagonManifest(readJson(path));
 }
-
 
 export function validationCatalogFromArgs(
   parsed: ParsedArgs,
@@ -387,11 +386,16 @@ export function routePlanningPlanFromArgs(
       violations: validateGameboardPlan(plan, validationConfig),
     };
   }
-  const recipe =
-    scenario?.board ??
-    (typeof parsed.flags.recipe === 'string'
-      ? readJson(resolve(parsed.flags.recipe)) as GameboardRecipe
-      : undefined);
+  let recipe = scenario?.board;
+  if (!recipe && typeof parsed.flags.recipe === 'string') {
+    const rawRecipe = readJson(resolve(parsed.flags.recipe));
+    if (!isRecord(rawRecipe)) {
+      throw new GameboardCliError(
+        `Recipe file ${relativizePath(parsed.flags.recipe)} must be a valid JSON object`
+      );
+    }
+    recipe = rawRecipe as unknown as GameboardRecipe;
+  }
   if (!recipe) {
     throw new GameboardCliError(
       `Scenario ${relativizePath(String(parsed.flags.scenario))} did not include a board recipe`
@@ -429,6 +433,7 @@ export function patrolRouteSetFromArgs(
   edition: PackEdition,
   scenario: GameboardScenario | undefined
 ): GameboardPatrolRouteSet {
+  const scenarioPatrolRoutes = scenario?.patrolRoutes;
   if (typeof parsed.flags.routes === 'string') {
     const payload = readJson(resolve(parsed.flags.routes));
     if (isPatrolRouteSet(payload)) {
@@ -436,7 +441,7 @@ export function patrolRouteSetFromArgs(
     }
   }
 
-  if (!scenario?.patrolRoutes?.length && typeof parsed.flags.routes !== 'string') {
+  if (!scenarioPatrolRoutes?.length && typeof parsed.flags.routes !== 'string') {
     throw new GameboardCliError(
       'patrol-script requires --routes <path> or --scenario <path> with patrolRoutes'
     );
@@ -477,7 +482,7 @@ export function patrolRouteSetFromArgs(
             typeof parsed.flags.seed === 'string'
               ? parsed.flags.seed
               : `${scenario?.id ?? plan.seed}:patrol-routes`,
-          routes: scenario?.patrolRoutes ?? [],
+          routes: scenarioPatrolRoutes as readonly GameboardPatrolRouteRule[],
         };
   return planGameboardPatrolRoutes(plan, {
     ...routeOptions,
@@ -774,7 +779,6 @@ export function printViolations(
     console.log(`${violation.severity}: ${violation.code} ${location} - ${violation.message}`);
   }
 }
-
 
 export function printCompatibility(
   report: ReturnType<typeof analyzeExternalAssetCompatibility>
@@ -1157,15 +1161,12 @@ export function normalizePieceId(value: string): string {
 }
 
 export function assetIdFromPath(path: string | boolean): string {
-  return (
-    String(path)
-      .split('/')
-      .pop()
-      ?.replace(/\.(glb|gltf)$/i, '') ?? 'external-asset'
-  );
+  const stringPath = String(path);
+  const lastSlashIndex = Math.max(stringPath.lastIndexOf('/'), stringPath.lastIndexOf('\\'));
+  const fileName = lastSlashIndex === -1 ? stringPath : stringPath.slice(lastSlashIndex + 1);
+  return fileName.replace(/\.(glb|gltf)$/i, '');
 }
 
 export function round(value: number): number {
   return Math.round(value * 1000) / 1000;
 }
-
