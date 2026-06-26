@@ -9,6 +9,7 @@ import { run as runDoctor } from '../commands/doctor';
 import { run as runExtract } from '../commands/extract';
 import { run as runGuideApis } from '../commands/guide-apis';
 import { run as runGuideAssets } from '../commands/guide-assets';
+import { run as runGuideRenderRequests } from '../commands/guide-render-requests';
 import { run as runGuideRoles } from '../commands/guide-roles';
 import { run as runGuideUsages } from '../commands/guide-usages';
 import { run as runPatrolRoutes } from '../commands/patrol-routes';
@@ -143,6 +144,79 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
     await expectNoGuideAssetMatch({ editionScope: 'reference' });
     await expectNoGuideAssetMatch({ publicApi: 'missingApi' });
     await expectNoGuideAssetMatch({ role: 'missing-role' });
+  });
+
+  it('covers guide-render request filters, missing catalog assets, and readable overflow', async () => {
+    await expect(
+      runGuideRenderRequests(
+        { command: 'guide-render-requests', flags: { assetId: 'missing-guide-render-asset' } },
+        '/missing-source',
+        'free'
+      )
+    ).rejects.toThrow(/guide-render-requests selection did not match/);
+
+    await runGuideRenderRequests(
+      {
+        command: 'guide-render-requests',
+        flags: { assetId: 'barrel', assetBaseUrl: '/assets/free' },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('/assets/free/');
+
+    logs.length = 0;
+    await runGuideRenderRequests(
+      {
+        command: 'guide-render-requests',
+        flags: { assetId: 'barrel', assetBaseUrl: '/assets/free', format: 'json', groups: true },
+      },
+      '/missing-source',
+      'free'
+    );
+    const payload = JSON.parse(logs.at(-1) ?? '{}') as {
+      groups?: unknown[];
+      render: { assetBaseUrl: string; urlResolvedCount: number };
+    };
+    expect(payload.groups?.length).toBeGreaterThan(0);
+    expect(payload.render).toMatchObject({
+      assetBaseUrl: '/assets/free',
+      urlResolvedCount: expect.any(Number),
+    });
+
+    logs.length = 0;
+    await runGuideRenderRequests(
+      {
+        command: 'guide-render-requests',
+        flags: { assetId: 'barrel', editionScope: 'free', out: 'guide-render.requests.json' },
+      },
+      '/missing-source',
+      'free'
+    );
+    expect(logs.join('\n')).toContain('Wrote 1 guide render requests to');
+
+    logs.length = 0;
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit ${code}`);
+    });
+    try {
+      await expect(
+        runGuideRenderRequests(
+          {
+            command: 'guide-render-requests',
+            flags: { manifest: writeJson('guide-render.empty-manifest.json', emptyManifest()) },
+          },
+          '/missing-source',
+          'free'
+        )
+      ).rejects.toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+    const joined = logs.join('\n');
+    expect(joined).toContain('missing assets:');
+    expect(joined).toContain('  - ');
+    expect(joined).toMatch(/\.\.\.[0-9]+ more requests/);
   });
 
   it('covers source-root success and validation exit paths', async () => {
