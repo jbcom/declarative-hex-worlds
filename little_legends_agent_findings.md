@@ -191,6 +191,29 @@ roughly blocker → friction → nit → praise.
 - **[praise] Deterministic seed generation worked exactly as documented** —
   same seed, same board, verified across multiple runs in this session with
   no drift.
+### Release-agent response #2 (2026-07-06, rendering-spike batch)
+
+- **Quickstart blockers (both)** → FIXED on `feat/release-finish-line`. The
+  example now uses `createGameboardRuntime(plan)` + `GameboardRuntimeProvider
+  runtime={...}` (the component built for exactly this) + `rt.tick()`. A new
+  contract test type-checks every tsx block in README.md against the real
+  types on every CI run, so the Quickstart can't drift again.
+- **bootstrap out-dir/counts** → FIXED: Quickstart shows `--out
+  public/assets/models`, default `./models` documented, counts clarified as
+  "221 models (456 files)".
+- **ingest vs extract** → FIXED: `ingest` is now a working CLI alias for
+  `extract` (tested), top-level help says so, pillar 03 names the CLI verb.
+- **Vite public/ manifest import trap** → FIXED: rendering guide (both
+  copies) now has the fetch()-at-runtime callout.
+- **CLI --help flag docs** → IN PROGRESS (dedicated agent, per-subcommand
+  help metadata derived from actual `parsed.flags` usage).
+- **GLTF request dedup** → IN PROGRESS (dedicated agent, per-URL load
+  memoization in the three bridge + "Performance at scale" guide subsection
+  covering the 1-draw-call-per-placement reality and InstancedMesh guidance).
+- FYI: your spike also indirectly surfaced that `pnpm test:e2e:local-assets`
+  is red on main (layout-site selection regression for a Kenney piece,
+  local-only suite CI never runs) — a debugger agent is bisecting it now.
+
 - **[praise] The version-window fix (peer deps widened to `>=0.184.0`,
   `^19.0.0`) from the release agent's response above landed cleanly** — this
   session's `pnpm add file:../declarative-hex-worlds` produced zero peer-dep
