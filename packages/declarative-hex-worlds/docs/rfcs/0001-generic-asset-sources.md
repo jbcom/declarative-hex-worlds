@@ -331,6 +331,28 @@ binder, not a vendor tool. This is a distinct, sizeable capability (RFC0-CLI) th
 on G0 (the spec must exist to validate/emit) and feeds G4 (the FREE default is just the
 scanner recognizing a bootstrapped KayKit tree and emitting its spec).
 
+**Directory conventions the scanner keys off (asset role → valid formats).** The heuristics
+are grounded in a simple, predictable layout under an assets root (e.g. `public/assets/`):
+
+| Directory | Asset role | Valid formats | Notes |
+|-----------|-----------|---------------|-------|
+| `tiles/` | hex tiles | **PNG or GLB/GLTF** | a tile may be a 2D image OR a 3D model — both render a hex. The CC0 KayKit FREE pack clones here. |
+| `tilesets/` | sprite-sheet tilesets | **PNG** | a sheet + grid metadata (cols/rows/cell). |
+| `sprites/` | individual 2D sprites | **PNG** | one image per sprite. |
+| `models/` | 3D models | **GLB/GLTF** | props, buildings, units as meshes. |
+
+So `tiles/` is deliberately format-flexible (the hex surface can be image or mesh), while
+`sprites/`/`tilesets/` are PNG and `models/` is GLB/GLTF. The scanner infers the source
+kind from directory + file extension; the emitted `AssetSourceSpec` records each asset's
+role + format so the render bridge (G1) dispatches correctly (image → textured-hex mesh or
+billboard; GLTF → loaded Object3D).
+
+**Suggested-default clone.** As today (the FREE bootstrap), the CLI can offer to clone a
+recommended CC0 set — the KayKit FREE pack — into `public/assets/tiles`, giving a
+zero-config, license-clean starting point. This is one heuristic suggestion among many, not
+a hardcoded assumption: point the CLI at your own `tiles/`/`sprites/`/`tilesets/`/`models/`
+and it binds those instead.
+
 ### Asset-source interface (G1)
 
 An `AssetSource` describes how a placement's `assetId` (+ optional `edgeMask`,
