@@ -343,4 +343,4 @@ one PR → squash-merge → npm publish confirmed.
 - [ ] RFC0-11 Comprehensive local review (code/security/simplify, parallel background), fold findings forward into the branch.
 - [ ] RFC0-12 Open PR; address ALL CI + review feedback; resolve every thread; squash-merge once green.
 - [ ] RFC0-13 Confirm the new version is published on npmjs (release-please cuts it post-merge; Monitor the release, verify the registry).
-- [ ] RFC0-14 Pivot back to little-legends: adopt the new dhw version, render the 10 tilesets through `./tileset`, screenshot against `docs/design/refs/civrev2-*.jpg`, append findings.
+- [ ] RFC0-14 Pivot back to little-legends: RE-HOME its composition + interaction onto dhw's koota world (stop duplicating an engine) — register its sprites + hex tilesets as asset sources, back worldgen/placement/selection/movement/fog/camera with dhw instead of hand-rolled R3F. Render the 10 tilesets through `./tileset`, screenshot against `docs/design/refs/civrev2-*.jpg`. Each little-legends need dhw can't yet back = a NEW capability item folded back into this branch (gap-finding runs throughout, per RFC §Guiding method), not just a final port.

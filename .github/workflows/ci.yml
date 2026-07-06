@@ -72,8 +72,13 @@ jobs:
           echo "cache-key=node-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('pnpm-lock.yaml') }}" >> "$GITHUB_OUTPUT"
 
       - name: Pack node_modules
+        # Workspace: pnpm links each package's deps into packages/*/node_modules
+        # (symlinks into the root .pnpm store), so packing only the root
+        # node_modules loses them and downstream `tsc`/vitest can't find
+        # @types/node etc. Pack the root AND every package's node_modules.
         run: |
-          tar --use-compress-program=zstd -cf node_modules.tar.zst node_modules
+          tar --use-compress-program=zstd -cf node_modules.tar.zst \
+            node_modules packages/*/node_modules
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

@@ -62,6 +62,31 @@ capturable/embeddable; (c) the Astro docs-site has no React-island integration y
 (`@astrojs/react` not installed). All three are foundational and land before the
 asset-source feature proper.
 
+## Guiding method: dhw is the game engine; little-legends finds the gaps
+
+The deeper purpose of this RFC is to make **declarative-hex-worlds a 3D game engine** —
+at least in the sense of owning **composition** (worldgen → board, registering
+sprites/tilesets/asset sources, placing units/buildings/cities) and **interaction**
+(selection, movement, A\* pathfinding, commands, and viewport/camera control), rendered
+2.5D in a viewport. A consumer game should **extend dhw's koota world, not duplicate it**.
+
+Two consumers, distinct roles:
+- **SimpleRPG** (in-repo) — the exhaustive *exerciser*: proves each capability in
+  isolation across run states (see the capability matrix below), and produces the
+  visual-verification showcases.
+- **little-legends** (external) — the demanding *real game* and the **gap-finder**. Today
+  little-legends hand-rolls its own composition + interaction (worldgen, tile/sprite
+  placement, selection, movement, fog, camera) on top of raw R3F. The method of this RFC
+  is: **try to re-home each of those onto dhw's world**, and wherever dhw *can't* back it,
+  that gap becomes a dhw capability item we build here. So gap-finding runs THROUGHOUT the
+  branch (not only at the final adoption step): every little-legends composition/
+  interaction concern that shouldn't need to be written from scratch is a candidate
+  capability. The camera-command surface (RFC0-CAM) is the first such gap found this way;
+  more will surface as little-legends' needs meet dhw's current surface. The end state:
+  little-legends registers its sprites + hex tilesets as asset sources and defines only
+  its 4X rules/sim, while dhw owns the board, the koota world, interaction, and 2.5D
+  viewport rendering.
+
 ## SimpleRPG capability matrix — it exercises ALL of the library
 
 SimpleRPG is not a toy demo; it is the **exhaustive capability exerciser**. Building it
