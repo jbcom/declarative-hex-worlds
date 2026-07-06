@@ -94,9 +94,26 @@ the live web-form configurator (locked).
     usePlacement hooks, each a thin wrapper over the existing providers +
     spawnGameboardPlacement + the now-source-aware bridge. Needs @react-three/fiber (already
     an optional peer, commit addf491). Design of record:
-    docs/plans/declarative-render-surface.design.md. STATUS: the whole ENGINE half of RFC0-8
-    (resolution + geometry + integration) is DONE + CI-green; only the ergonomic React
-    composition surface remains.
+    docs/plans/declarative-render-surface.design.md.
+    KEY DECISION (recorded in design doc): <HexWorld> does NOT own the R3F <Canvas> — the
+    consumer owns Canvas/camera/renderer/lights (burden side of the line); <HexWorld> is used
+    INSIDE the consumer's <Canvas>, rendering a <GameboardObjects> bridge component that runs
+    syncGameboardPlacementObjects each frame against the source registry. Keeps dhw
+    unpresumptuous + composable with consumer R3F content. Optional <HexCanvas> convenience
+    wrapper (Canvas+2.5D camera+HexWorld) for zero-config. TESTING: use the existing BROWSER
+    harness (real @react-three/fiber Canvas + WebGL, like react-bindings.test.ts +
+    tileset-render.test.ts) rather than adding @react-three/test-renderer as a devDep — more
+    faithful + avoids a new pinned dep. Graph-level logic (placement registration, source
+    registry) unit-testable via providers/hooks without R3F.
+    STATUS: the whole ENGINE half of RFC0-8 (resolution + geometry + integration) is DONE +
+    CI-green; only the ergonomic React composition surface remains.
+
+**Decision:** <HexWorld> is Canvas-free — the consumer owns the R3F <Canvas>, dhw owns the
+board composition + render-sync bridge inside it.
+**Why:** Canvas/camera/renderer/lights/post are app+art decisions (burden side of the
+boon/burden line); owning them would presume and constrain. A Canvas-free primitive composes
+with consumer R3F content and stays testable. Optional <HexCanvas> covers zero-config.
+**Resolves:** RFC0-8b element-layer architecture (Canvas ownership).
 - [ ] RFC0-9 Generalize transition/edge-mask resolution (`AssetSource.resolveEdge`); fix `setCoastEdges` to validate/degrade non-contiguous masks at author time (the `010101` finding) + regression test.
 - [ ] RFC0-10 KayKit-as-downloadable-defaults (G4): THREE first-class downloadable CC0 packs — Medieval Hexagon (tiles/), Adventures (models/, playable), Skeletons (models/, enemies) = a full game from defaults. Fetch-on-demand for each (never tracked); default source resolution (present → use; absent → clear error to run the download); docs. Generalizes the current single-pack FREE bootstrap to the 3-pack set.
 

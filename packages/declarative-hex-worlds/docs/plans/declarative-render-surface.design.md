@@ -123,9 +123,25 @@ a Pixi stage — 3D models and 2D sprites coexist by design:
 ```
 
 - **`<HexWorld>`** — the root. Mounts the koota world (wrapping the existing
-  `GameboardRuntimeProvider`/plan/recipe/scenario providers), sets up the R3F `<Canvas>` +
-  scene, wires the `syncGameboardPlacementObjects` render loop against an `AssetSource`
-  (or the resolved default), and exposes the world through context to descendants.
+  `GameboardRuntimeProvider`/plan/recipe/scenario providers), holds the `AssetSource`
+  registry, and renders the `<GameboardObjects>` bridge that drives
+  `syncGameboardPlacementObjects` each R3F frame. It exposes the world + source registry
+  through context to descendants.
+
+  **Canvas ownership (decision):** `<HexWorld>` does **NOT** create its own R3F `<Canvas>`.
+  The consumer owns the `<Canvas>`, camera, renderer settings, lights, and post-processing —
+  those are app/art decisions on the *burden* side of the line. `<HexWorld>` is used
+  *inside* a consumer's `<Canvas>` (it is R3F children, emitting scene objects), which keeps
+  dhw unpresumptuous, lets the consumer compose dhw's board alongside their own R3F content,
+  and keeps the elements testable via `@react-three/test-renderer` (no real WebGL context
+  needed for the graph assertions). A convenience `<HexCanvas>` wrapper (Canvas +
+  sensible 2.5D camera + `<HexWorld>`) MAY be offered for the zero-config path, but the
+  primitive is Canvas-free.
+
+- **`<GameboardObjects>`** — the R3F bridge component (internal, rendered by `<HexWorld>`):
+  each frame it reconciles the scene with the projected koota placements via
+  `syncGameboardPlacementObjects` against the registered source(s) + injected loaders. This
+  is where the imperative bridge becomes a declarative R3F element.
 - **`<Tileset>` / `<Spriteset>`** — register a sheet-backed asset source (declaration, no
   direct render). A `<Tileset>` contributes a `tileset` `AssetSource`; `<Spriteset>` the
   sprite equivalent.
@@ -137,8 +153,8 @@ a Pixi stage — 3D models and 2D sprites coexist by design:
   render bridge draws them via the dispatched `AssetRenderRequest`.
 
 Each element is a thin declarative wrapper over an existing imperative capability
-(providers, `spawnGameboardPlacement`, the three bridge). The elements do **not** introduce
-a parallel state store — they drive the same koota world the hooks read.
+(providers, `spawnGameboardPlacement`, the source-aware bridge). The elements do **not**
+introduce a parallel state store — they drive the same koota world the hooks read.
 
 ## Hooks (the drive/query surface)
 
