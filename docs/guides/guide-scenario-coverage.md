@@ -14,13 +14,13 @@ and visual review coverage. Use the catalog API or CLI when a tool needs exact
 asset ids or public treatment records.
 
 ```sh
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-scenarios --page 15 --includeTreatments --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-usages --page 16,17,18 --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-render-requests --page 16,17,18 --assetBaseUrl /assets/extra --includeGroups --out /tmp/kaykit-guide-render-requests.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-assets --assetId hex_road_M --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-roles --role prop --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
+node dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md
+node dist/cli.js guide-scenarios --page 15 --includeTreatments --json
+node dist/cli.js guide-usages --page 16,17,18 --json
+node dist/cli.js guide-render-requests --page 16,17,18 --assetBaseUrl /assets/extra --includeGroups --out /tmp/kaykit-guide-render-requests.json
+node dist/cli.js guide-assets --assetId hex_road_M --json
+node dist/cli.js guide-roles --role prop --json
+node dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 ```
 
 ## Coverage Contract
@@ -80,8 +80,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `factionBuildingAssetId`,
   `flagAssetId`,
   `listPropClusterAssets`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
+- Visual artifacts: `tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
+  `tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/public-api.md`
 
 ### Page 03 - Road Variations
@@ -95,7 +95,7 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `listRoadGuidePermutations`,
   `selectRoadVariant`,
   `selectRoadVariantByLabel`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
+- Visual artifacts: `tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png`
 - Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/04-visual-verification.md`
 
 ### Page 04 - River Variations
@@ -112,8 +112,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `selectRiverCrossingVariant`,
   `selectRiverVariant`,
   `selectRiverVariantByLabel`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png`
+- Visual artifacts: `tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`,
+  `tests/browser/__screenshots__/free-guide-river-curvy-crossings-all-modes.png`
 - Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/04-visual-verification.md`
 
 ### Page 05 - Nature And Decoration Contents
@@ -136,8 +136,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `createGameboardLayoutFillRuleFromPiece`,
   `flagAssetId`,
   `listPropClusterAssets`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
+- Visual artifacts: `tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
+  `tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 06 - Nature Usage Guide
@@ -156,8 +156,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `createGameboardLayoutArchetypeRegistry`,
   `createGameboardLayoutFillRuleFromPiece`,
   `inspectGameboardBlueprint`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-generated-piece-recipe.png`
+- Visual artifacts: `tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
+  `tests/browser/__screenshots__/free-generated-piece-recipe.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 07 - Water Usage Guide
@@ -185,9 +185,9 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `selectRiverCrossingVariant`,
   `selectRiverVariant`,
   `selectRiverVariantByLabel`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-harbor-gameboard.png`
+- Visual artifacts: `tests/browser/__screenshots__/free-guide-coasts-all-labels-rotations-water-waterless.png`,
+  `tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png`,
+  `tests/browser/__screenshots__/extra-harbor-gameboard.png`
 - Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/04-visual-verification.md`
 
 ### Page 08 - Taller Hex Tiles
@@ -203,9 +203,9 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `GameboardBuilder.setTileAsset`,
   `createGameboardBlueprintRecipe`,
   `createGameboardPlanFromRecipe`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-gameboard-recipe.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-blueprint-builder-showcase.png`
+- Visual artifacts: `tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`,
+  `tests/browser/__screenshots__/free-gameboard-recipe.png`,
+  `tests/browser/__screenshots__/free-blueprint-builder-showcase.png`
 - Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 09 - World Design Example
@@ -236,11 +236,11 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `selectRoadVariant`,
   `selectRoadVariantByLabel`,
   `selectSpawnCoordinates`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-gameboard-recipe.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-blueprint-builder-showcase.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-seeded-gameboard.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/simple-rpg-fixed-completed.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
+- Visual artifacts: `tests/browser/__screenshots__/free-gameboard-recipe.png`,
+  `tests/browser/__screenshots__/free-blueprint-builder-showcase.png`,
+  `tests/browser/__screenshots__/free-seeded-gameboard.png`,
+  `tests/browser/__screenshots__/simple-rpg-fixed-completed.png`,
+  `tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
 - Docs: `docs/guides/recipes-scenarios-and-simulation.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 10 - Floating Islands
@@ -262,8 +262,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `createGameboardLayoutFillRuleFromPiece`,
   `createGameboardPlanFromRecipe`,
   `createHexagonGameboardGrid`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-seeded-hex-gameboard.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`
+- Visual artifacts: `tests/browser/__screenshots__/free-seeded-hex-gameboard.png`,
+  `tests/browser/__screenshots__/free-guide-page-nature-stacks-buildings-props.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/05-koota-runtime-rules.md`
 
 ### Page 11 - Biomes
@@ -279,9 +279,9 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `inspectGameboardBlueprint`,
   `textureFileName`,
   `validateGameboardRecipe`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-seasonal-textures.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
+  `tests/browser/__screenshots__/extra-seasonal-textures.png`,
+  `tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
 - Docs: `docs/pillars/03-editions-and-ingest.md`,
   `docs/guides/rendering-assets-and-external-packs.md`
 
@@ -299,8 +299,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `selectManifestAssets`,
   `textureFileName`,
   `validateGameboardRecipe`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-seasonal-textures.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-seasonal-textures.png`,
+  `tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`
 - Docs: `docs/pillars/03-editions-and-ingest.md`,
   `docs/guides/rendering-assets-and-external-packs.md`
 
@@ -319,9 +319,9 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `declareHexTile`,
   `validateGameboardRecipe`,
   `validateGameboardRecipeGeneration`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-seasonal-textures.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
+  `tests/browser/__screenshots__/extra-seasonal-textures.png`,
+  `tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
 - Docs: `docs/pillars/01-tiles-connectivity.md`, `docs/pillars/03-editions-and-ingest.md`
 
 ### Page 14 - Units
@@ -336,8 +336,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `coloredUnitAssetId`,
   `neutralUnitAssetId`,
   `spawnGameboardActor`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
+  `tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/runtime-integration.md`
 
 ### Page 15 - Shipyard, Harbors, And Ports
@@ -360,8 +360,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `listPropClusterAssets`,
   `selectCoastVariant`,
   `selectCoastVariantByLabel`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-harbor-gameboard.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-harbor-gameboard.png`,
+  `tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/pillars/03-editions-and-ingest.md`
 
 ### Page 16 - Stables And Horses
@@ -387,8 +387,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `neutralUnitAssetId`,
   `recommendExternalAssetFacing`,
   `spawnGameboardActor`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
+  `tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/rendering-assets-and-external-packs.md`
 
 ### Page 17 - Workshop And Siege Units
@@ -417,8 +417,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `neutralUnitAssetId`,
   `planGameboardInteractionCommand`,
   `spawnGameboardActor`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png`,
+  `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/runtime-integration.md`
 
 ### Page 18 - Unit Combinations
@@ -434,8 +434,8 @@ pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi Gam
   `createGameboardRuntimeFromScenario`,
   `neutralUnitAssetId`,
   `spawnGameboardActor`
-- Visual artifacts: `packages/declarative-hex-worlds/tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
-  `packages/declarative-hex-worlds/tests/browser/__screenshots__/simple-rpg-seeded-completed.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
+  `tests/browser/__screenshots__/simple-rpg-seeded-completed.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/recipes-scenarios-and-simulation.md`
 
 ### Page 19 - Supporters And Attribution

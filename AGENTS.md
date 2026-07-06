@@ -1,17 +1,38 @@
-# Medieval Hexagon Gameboard Agent Guide
+---
+title: declarative-hex-worlds Agent Guide
+updated: 2026-07-06
+status: current
+domain: technical
+---
 
-This repo builds `declarative-hex-worlds`, a Koota-first 2.5D
-gameboard runtime for KayKit Medieval Hexagon assets.
+# declarative-hex-worlds Agent Guide
+
+This repo builds `declarative-hex-worlds`, a Koota-first 2.5D gameboard
+runtime for KayKit Medieval Hexagon assets. It publishes from **repo root**
+(no `packages/` workspace — pnpm workspaces were dropped in the 1.0
+restructure, PRD Epic R). `dist/cli.js` is the package `bin` entry, built to
+`dist/` at repo root.
 
 Use Node 22+ and pnpm 9. The workflow and package audits enforce this runtime
 contract for CI and npm consumers.
 
 ## Source Of Truth
 
-- Start with `docs/pillars/`, especially `05-koota-runtime-rules.md`.
-- Use `docs/guides/` for the public API workflow: plan versus runtime, recipes
-  and scenarios, guide scenario coverage, simulation, rendering, manifests, and
-  external pack ingestion.
+- **`docs-site/` (Astro Starlight) is the canonical human/AI-facing docs
+  site**, deployed by `cd.yml` to `https://jonbogaty.com/declarative-hex-worlds/`
+  on every push to `main`. It builds `llms.txt`, `llms-small.txt`, and
+  `llms-full.txt` via `starlight-llms-txt` for AI consumers — check those
+  first when answering questions about the public API from outside this repo.
+  Build it locally with `pnpm docs-site:build` (runs
+  `scripts/generate-cli-reference.ts` then `cd docs-site && pnpm build`); iterate
+  with `pnpm docs-site:dev`.
+- `docs/pillars/` and `docs/guides/` are **legacy but load-bearing metadata** —
+  not superseded by docs-site. `src/scenario/catalog.ts` and contract tests
+  reference these paths directly, so they stay tracked and current even though
+  docs-site is the canonical read surface for humans/AI. Start with
+  `docs/pillars/05-koota-runtime-rules.md`. Use `docs/guides/` for the public
+  API workflow: plan versus runtime, recipes and scenarios, guide scenario
+  coverage, simulation, rendering, manifests, and external pack ingestion.
 - Use `docs/guides/release-readiness.md` and `docs/release-readiness.json` as
   the generated release ledger. Regenerate them with `pnpm coverage:ledger`
   after screenshot, docs, API, or package-gate changes; use `pnpm cli <command>`
@@ -41,20 +62,18 @@ contract for CI and npm consumers.
   in `typedoc.json` must start with top-level `@module` JSDoc, and public
   symbol docs should explain lifecycle, validation, and caller responsibility
   instead of restating a name.
-- Run `pnpm docs` or `pnpm docs:build` for docs or public API comment changes.
-  TypeDoc writes `docs/api/`, which is generated, ignored, and must remain
-  untracked; `pnpm test:workspace` also enforces ignored/untracked boundaries
-  for package `dist/`, VitePress `dist/`, browser screenshots, and local
-  `references/` assets.
-- For JSDoc completion claims, also run `pnpm test:api-docs`; it verifies that
-  TypeDoc entry points match every public object export, enforces the `@module`
-  entry-point contract, and keeps the strict TypeDoc warning count at zero.
+- Run `pnpm docs` for TypeDoc-comment changes (writes `docs/api/`, generated
+  and gitignored). Run `pnpm docs-site:build` when docs-site content, the
+  TypeDoc reference, or the generated CLI reference change.
 
 ## Asset Rules
 
 - `references/` is local-only and gitignored.
-- FREE assets under `packages/declarative-hex-worlds/assets/free/` are
-  generated, committed, and published.
+- FREE assets under `assets/free/` are generated (via `pnpm assets:free`),
+  gitignored locally for testing, and the manifest JSON (`assets/free/manifest.json`)
+  is the only piece that ships in the published tarball. The GLTF tree itself
+  is fetched at consumer install/init time by the CLI `bootstrap` subcommand —
+  never publish raw asset trees.
 - EXTRA assets are never committed or published. APIs may model EXTRA concepts,
   but generated placements must set `requiresExtra: true` when the asset is not
   in the FREE manifest.
@@ -350,19 +369,19 @@ contract for CI and npm consumers.
   into placement IDs and actor metadata.
 - Add new guide features as typed catalog/builders first, then expose them through
   Koota projections, React hooks, and visual tests.
-- Treat `tests/simple-rpg/` as the integration fixture for using the library as a
-  small game. Keep the quest-line helper runtime-first with
-  `createGameboardRuntime` so gameplay flows exercise the public facade for
-  command dispatch, movement ticks, quest advancement, actor-target interaction,
-  enemy removal, projection, and runtime reads. Extend it when adding
-  gameplay-facing APIs so fixed, seeded, and packaged scenes keep exercising
-  public imports, command timelines, movement, enemy removal, NPC interaction,
-  custom-piece generation, collisions, actor classification, and browser
-  screenshots. The fixed scene should keep every gameplay-facing guide builder
-  API represented on the board, including bridges, ramps, settlements,
-  fortifications, construction, siege, transitions, EXTRA unit parts, prop
-  clusters, scatter, coast/water, roads, rivers, hills, forests, and stacked
-  mountains.
+- Treat `tests/simple-rpg/` and `tests/integration/simple-rpg/` as the
+  integration fixtures for using the library as a small game. Keep the
+  quest-line helper runtime-first with `createGameboardRuntime` so gameplay
+  flows exercise the public facade for command dispatch, movement ticks, quest
+  advancement, actor-target interaction, enemy removal, projection, and runtime
+  reads. Extend it when adding gameplay-facing APIs so fixed, seeded, and
+  packaged scenes keep exercising public imports, command timelines, movement,
+  enemy removal, NPC interaction, custom-piece generation, collisions, actor
+  classification, and browser screenshots. The fixed scene should keep every
+  gameplay-facing guide builder API represented on the board, including
+  bridges, ramps, settlements, fortifications, construction, siege,
+  transitions, EXTRA unit parts, prop clusters, scatter, coast/water, roads,
+  rivers, hills, forests, and stacked mountains.
 - Keep `tests/integration/simple-rpg/simple-rpg.ts` as the canonical
   in-repo SimpleRPG public-API driver. Post-PRD R4 it is a test-only
   fixture (no published subpath) — consumers reach the SimpleRPG evidence
@@ -378,8 +397,8 @@ contract for CI and npm consumers.
   registries, layout pieces, recipes, blueprints, seeded generation, spawn
   selection, and external compatibility; package smoke tests import that helper
   from `node_modules`.
-- Keep `packages/declarative-hex-worlds/examples/blueprint-board-usage.ts`
-  as the repo source for the compiled public package subpath exported as
+- Keep `examples/blueprint-board-usage.ts` as the repo source for the compiled
+  public package subpath exported as
   `declarative-hex-worlds/examples/blueprint-board-usage`. It should
   remain the human-facing example for board-scale blueprint JSON, generated
   scenarios, spawn groups, patrol routes, runtime facade snapshots, and neutral
@@ -394,10 +413,14 @@ contract for CI and npm consumers.
 
 ## Public API Surfaces
 
+Every subpath below is a real `exports` entry in `package.json`, backed by
+`dist/<name>.js` + `dist/<name>.d.ts` (tsup, code splitting enabled for Koota
+trait identity — see PRD invariant on `splitting: true`).
+
 - `.` main package: manifests, catalog, builders, Koota runtime, rules, selectors,
   and grid helpers.
 - `./catalog`: typed asset-family constants, id builders, public treatment
-  metadata for every FREE/EXTRA asset id, 19 extracted guide-page scenarios,
+  metadata for every FREE/EXTRA asset id, extracted guide-page scenarios,
   scenario treatment joins, per-scenario coverage reports, and stable guide
   coverage summaries, including inverse public API coverage reports.
 - `./coordinates`: axial keys, neighbors, ranges, lines, pathfinding, and spawn
@@ -415,6 +438,10 @@ contract for CI and npm consumers.
   movement agents, and quests to the generated board recipe. The packaged
   `examples/blueprint-board.json` should stay playable and interop-ready, not
   just a static terrain recipe.
+- `./bootstrap`: CLI-equivalent programmatic API that downloads the KayKit
+  FREE/EXTRA GLTF tree from GitHub (or a user-supplied zip) into a consumer's
+  asset directory. `./bootstrap/upstream-layout` exposes the upstream tree
+  shape used to mirror assets.
 - `./commands`: command action bundles plus preview/execution helpers that turn
   interaction targets into actor-aware movement requests or handler-required
   interact/attack/inspect commands, actor-target command planners for UI/AI
@@ -466,21 +493,21 @@ contract for CI and npm consumers.
   for renderers and React consumers.
 - `./registry`: custom tile declarations, manifest-derived declarations, geometry
   analysis, and declaration application.
+- `./ingest`: Node/build-time source validation, GLTF tree copying, and manifest
+  generation helpers for app-local FREE/EXTRA bundles. Keep this out of browser
+  runtime imports because it uses Node filesystem APIs.
 - `./manifest/free`: packaged FREE KayKit manifest data for consumers that want
   the catalog without building a bundle.
 - `./manifest/schema`: attribution constants plus manifest validation,
   normalization, FREE/EXTRA bundle creation, asset filtering, and URL resolution
   for app-local EXTRA manifests.
-- `./assets/free/*`: direct published FREE GLTF, BIN, PNG, and manifest files
-  for bundlers or renderers that need package asset URLs.
+- `./assets/free/manifest.json`: the packaged FREE KayKit manifest data file
+  directly, for bundlers or tools that want the raw JSON.
 - `./examples/blueprint-board-usage`: compiled blueprint-board public-import
   walkthrough for board-scale authoring, runtime, and interop smoke tests.
   (SimpleRPG is a test driver — see `tests/integration/simple-rpg/` — and is
   NOT exposed as a published subpath post-PRD R4.)
 - `./examples/*.json`: packaged recipe, scenario, and simulation fixtures.
-- `./ingest`: Node/build-time source validation, GLTF tree copying, and manifest
-  generation helpers for app-local FREE/EXTRA bundles. Keep this out of browser
-  runtime imports because it uses Node filesystem APIs.
 - `./interop`: neutral ECS-style component snapshots, live runtime snapshots,
   scenario snapshots, simulation report snapshots, generic ECS adapter mounting,
   tile/placement-origin/placement-footprint/spawn/actor/quest/patrol/simulation
@@ -515,6 +542,9 @@ contract for CI and npm consumers.
   selectors for exact tile-variant authoring. Use `listGuideTilePermutations`
   when visual tests or editors need the full guide-labeled matrix instead of
   mask-canonicalized selector output.
+- `./traits`: koota `trait()` declarations grouped by domain (board, actors,
+  movement, combat, quests, render).
+- `./errors`: the `GameboardError` hierarchy.
 - `./react`: React bindings backed by `koota/react`.
   Keep browser coverage in `tests/browser/react-bindings.test.ts` when adding
   provider, query, action, actor, quest, patrol, movement, command, system,
@@ -537,142 +567,141 @@ contract for CI and npm consumers.
 - `./types`: shared manifest, asset, coordinate, shape, texture, faction, and
   edge types/constants.
 
+react, react-dom, three, and koota are runtime `dependencies` (also listed as
+non-optional `peerDependencies` for version-range enforcement) — there is no
+"peer guard" path; every consumer gets them.
+
 ## Verification
 
-Run the relevant narrow command while iterating, then finish with:
+Run the relevant narrow command while iterating, then finish with the full
+gate:
 
 ```bash
-pnpm lint
-pnpm typecheck
+pnpm verify
+```
+
+`pnpm verify` runs, in order: `lint`, `typecheck`, `audit --prod --audit-level=high`,
+`build`, `expectations`, `test`, `test:coverage:enforce`. This is the same
+chain `prepublishOnly` runs before every `npm publish`.
+
+Individual commands, and when to reach for them:
+
+- `pnpm lint` — biome across `.github docs scripts src tests examples *.json *.md *.ts`.
+- `pnpm typecheck` — `tsc --noEmit`.
+- `pnpm build` — tsup multi-entry build to `dist/`. Run before any CLI
+  invocation that reads `dist/cli.js`.
+- `pnpm test` — vitest unit run (`src/**/__tests__/*.test.ts`, co-located with
+  source).
+- `pnpm expectations` — vitest run of `tests/unit/simulation.test.ts`,
+  `tests/unit/examples.test.ts`, and `tests/unit/simple-rpg.test.ts`. Use this
+  when simulation reports, SimpleRPG examples, quests, actors, commands,
+  actor-target records, patrols, movement, mutations, or final placement
+  assertions change.
+- `pnpm test:browser:free` — real-Chromium vitest-browser run against the FREE
+  KayKit pack: contact sheets, extracted guide pages, road/river/coast
+  permutations, composed gameboard, blueprint builder, seeded generation,
+  SimpleRPG visuals, feature gallery, and React bindings, finishing with
+  `test:screenshots:free` to assert the resulting screenshots. This is a
+  **local-only gate** — CI's `coverage` job runs it for coverage but the full
+  visual review is a contributor responsibility before touching
+  rendering/asset-resolution/browser-facing APIs.
+- `pnpm test:browser:extra` — same shape against the EXTRA pack
+  (`HEX_WORLDS_ENABLE_EXTRA=1`), finishing with `test:screenshots:extra`.
+- `pnpm test:e2e:local-assets` — full catalog → blueprint → simulation →
+  render flow against bundled + local cross-kit fixtures
+  (`HEX_WORLDS_ENABLE_LOCAL_ASSETS=1`), finishing with
+  `test:screenshots:local-assets`.
+- `pnpm test:visual` — runs `test:browser:free`, `test:browser:extra`, and
+  `test:e2e:local-assets` in sequence; the full manual screenshot review pass.
+- `pnpm test:simple-rpg` — narrow vitest run of
+  `tests/integration/simple-rpg/simple-rpg.test.ts`.
+- `pnpm test:simple-rpg:e2e:github` / `pnpm test:simple-rpg:e2e:local` — e2e
+  SimpleRPG runs against the GitHub-sourced pack or local `references/` zip
+  respectively.
+- `pnpm test:coverage` / `pnpm test:coverage:enforce` — unit coverage, with the
+  latter enforcing the threshold (`HEX_WORLDS_COVERAGE_ENFORCE=1`).
+- `pnpm coverage:all` / `pnpm coverage:all:enforce` — clears `coverage/`, runs
+  unit + browser-free coverage, then `coverage:merge`/`coverage:merge:enforce`
+  so browser-only bindings count where they can actually run. This is what
+  CI's required `coverage` job and `release.yml`'s `Verify package` step run.
+- `pnpm coverage:ledger` — builds, then runs `dist/cli.js coverage` to
+  regenerate `docs/release-readiness.json` and
+  `docs/guides/release-readiness.md`. Run after screenshot, docs, API, or
+  package-gate changes.
+- `pnpm docs` — TypeDoc to `docs/api/` (generated, gitignored, must remain
+  untracked).
+- `pnpm docs-site:build` — regenerates the CLI reference
+  (`scripts/generate-cli-reference.ts`) then builds the Astro Starlight site
+  in `docs-site/` (its own package.json/lockfile — not a pnpm workspace
+  member). `pnpm docs-site:dev` / `pnpm docs-site:preview` for iteration.
+- `pnpm showcases:promote` / `pnpm showcases:promote -- --check` — promotes
+  curated screenshots from the ignored `tests/browser/__screenshots__/` output
+  into the committed `docs/showcases/` gallery used by the README and
+  docs-site; `--check` verifies the committed copies already match without
+  writing. Both parse PNGs through the shared quality analyzer so blank or
+  visually flat images fail.
+- `pnpm bench` / `pnpm bench:warm-start` / `pnpm bench:cli-cold-start` /
+  `pnpm bench:simulation` — vitest bench suites for perf-sensitive paths.
+
+There is no `pnpm exec packages/declarative-hex-worlds/dist/cli.js …` anymore
+— the package builds to root `dist/`. Use `node dist/cli.js <command>` after
+`pnpm build`, or `pnpm cli <command>` (defined as `node dist/cli.js`) for ad
+hoc CLI invocations:
+
+```bash
 pnpm build
-pnpm test
-pnpm expectations
-pnpm test:docs-contract
-pnpm test:assets
-pnpm test:reference-assets
-pnpm test:workspace
-pnpm test:workflows
-pnpm test:browser:free
-pnpm test:browser:extra
-pnpm test:e2e:local-assets
-pnpm test:visual
-pnpm showcases:promote
-pnpm showcases:promote -- --check
-pnpm docs:build
-pnpm test:package
-pnpm test:cli
-pnpm test:consumer
-pnpm coverage:ledger
-pnpm pack:dry-run
+pnpm cli analyze --edition free
+pnpm cli doctor --edition free
+pnpm cli manifest --edition free --out /tmp/kaykit-manifest.json
+pnpm cli validate-manifest --manifest /tmp/kaykit-manifest.json --outManifest /tmp/kaykit-manifest.normalized.json
+pnpm cli declarations --manifest assets/free/manifest.json --out /tmp/kaykit-declarations.json
+pnpm cli guide-permutations --manifest assets/free/manifest.json --out /tmp/kaykit-guide-permutations.json
+pnpm cli guide-scenarios --manifest assets/free/manifest.json --out /tmp/kaykit-guide-scenarios.json
+pnpm cli guide-scenarios --page 14 --includeTreatments --json
+pnpm cli guide-usages --page 16,17,18 --json
+pnpm cli guide-render-requests --page 16,17,18 --assetBaseUrl /assets/extra --includeGroups --out /tmp/kaykit-guide-render-requests.json
+pnpm cli guide-assets --assetId hex_road_M --json
+pnpm cli guide-roles --role prop --json
+pnpm cli guide-apis --publicApi GameboardBuilder.addHarbor --json
+pnpm cli blueprint --blueprint examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --outInterop /tmp/blueprint.interop.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
+pnpm cli summarize-plan --blueprint examples/blueprint-board.json --out /tmp/blueprint.summary.json --outPlan /tmp/blueprint.summary.plan.json --allowUnknownAssets
+pnpm cli summarize-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/simple-rpg.scenario-summary.json --allowUnknownAssets
+pnpm cli validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json
+pnpm cli analyze-layout --recipe docs/examples/generated-piece-scenario.recipe.json --rules layout-rules.json --out /tmp/layout-analysis.json --outPlan /tmp/scenario-plan.json
+pnpm cli spawn-groups --recipe docs/examples/generated-piece-scenario.recipe.json --groups spawn-groups.json --out /tmp/spawn-groups.json
+pnpm cli patrol-routes --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/simple-rpg-patrol-routes.json
+pnpm cli patrol-script --routes /tmp/simple-rpg-patrol-routes.json --routeId bandit-watch --actorId bandit --out /tmp/simple-rpg-patrol.script.json
+pnpm cli validate-recipe --recipe docs/examples/generated-piece-scenario.recipe.json --outPlan /tmp/generated-piece-scenario.plan.json
+pnpm cli validate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest assets/free/manifest.json --outPlan /tmp/simple-rpg-scenario.plan.json
+pnpm cli validate-simulation --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest assets/free/manifest.json
+pnpm cli snapshot --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest assets/free/manifest.json --spawnCount 2 --spawnSeed simple-rpg --out /tmp/simple-rpg-interop.json
+pnpm cli simulate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest assets/free/manifest.json --out /tmp/simple-rpg-simulation.json --outPlan /tmp/simple-rpg-final-plan.json --outInterop /tmp/simple-rpg-simulation-interop.json
+pnpm cli compatibility --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --intendedRole tile --sourcePack "Kenney Castle Kit" --failOnWarning
+pnpm cli piece --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --id kenney:tower-hexagon-base --intendedRole tile --sourcePack "Kenney Castle Kit" --tags castle,landmark --out /tmp/kenney-piece.json
+pnpm cli pieces-from-assets --assets "references/kenney_castle-kit/Models/GLB format" --sourcePack "Kenney Castle Kit" --intendedRole tile --assetIdPrefix kenney --pieceIdPrefix kenney-castle --tags castle --pieceOverrides docs/examples/local-piece-overrides.kenney-castle.json --includeReports --out /tmp/kenney-pieces.json
+pnpm cli pieces --pieces /tmp/kenney-piece.json --emitRules --mode pool --role landmark --count 1 --json
+pnpm cli pieces --pieces /tmp/kenney-pieces.json --emitSourceUrls --pieceSourceRoots docs/examples/local-piece-source-roots.example.json --json
+pnpm cli pieces --pieces /tmp/kenney-pieces.json --recipe docs/examples/generated-piece-scenario.recipe.json --mode pool --role tree --count 3 --seed preview --out /tmp/piece-fill-inspection.json --outPlan /tmp/piece-fill-plan.json
+pnpm cli place-piece --recipe docs/examples/generated-piece-scenario.recipe.json --pieces /tmp/kenney-pieces.json --pieceId kenney-castle:tower-hexagon-base --count 1 --seed preview --idPrefix preview:tower --out /tmp/piece-placement.json --outPlan /tmp/piece-placement-plan.json
+pnpm cli bootstrap --source github --out public/assets/models
 ```
 
-Use `pnpm test:ci` for the serialized non-browser release gate. Keep browser
-visual commands separate because EXTRA and local third-party assets are
-machine-local inputs. Use `pnpm test:visual` when a change needs the complete
-manual screenshot review pass. `pnpm test:reference-assets` must fail if an
-asset exists only as a manifest entry without `listKayKitAssetPublicTreatments()`
-coverage or without `listKayKitGuideScenarios()` page coverage. FREE guide
-screenshots include the extracted source-page matrix, FREE treatments grouped by
-guide page via `listKayKitGuideScenarioAssetUsages()`, and selector sheets
-labeled by guide label, rotation, water mode, and role; EXTRA screenshots
-include category-wide sheets for all 404 local source assets plus mixed/EXTRA
-guide-page sheets for all 791 page-level occurrences, not a sampled subset.
-Use `pnpm test:assets` when touching generated FREE assets, manifests, asset
-taxonomy, NOTICE attribution, or ingest output paths.
-Use `pnpm test:reference-assets` when local `references/` source inventory,
-EXTRA support, ingest taxonomy, seasonal textures, unit/building/prop/tile
-coverage, duplicate source basename handling, or third-party E2E fixture paths
-change. It skips local source checks when the gitignored reference folders are
-not present; when local reference packs are available, it should audit FREE and
-EXTRA sources plus the Kenney Castle Kit and KayKit Adventurers fixture
-inventories used by the local browser E2E harness.
-Use `pnpm test:workspace` when touching Nx targets, package exports, tsup
-entries, pnpm workspace settings, docs package dependency versions, or Markdown
-TypeScript examples; it also rejects duplicate object keys in documented
-snippets.
-Use `pnpm test:cli` after `pnpm build` when CLI commands, packaged examples,
-scenario simulation, compatibility scans, or custom piece declarations change;
-it executes the built `dist/cli.js` with packaged and synthetic fixture inputs.
-Use `pnpm expectations` when simulation reports, SimpleRPG examples, quests,
-actors, commands, actor-target records, patrols, movement, mutations, or final
-placement assertions change; `pnpm test:ci` runs it before the full unit suite.
-Use `pnpm test:consumer` when package exports, built examples, dependency
-metadata, CLI bin behavior, or npm tarball layout changes; it installs the
-packed tarball into a fresh temporary app, compiles a TypeScript consumer, and
-imports from `node_modules`. It must keep proving that mixed root/subpath imports
-share live Koota trait identities; the tsup build should keep ESM code splitting
-enabled for that reason.
-Use `pnpm test:package` when README images or package file lists change; it
-validates local README links, requires the published README gallery to reference
-every curated package showcase image, validates packed KayKit attribution and
-NOTICE text, and checks every packed `docs/showcases/*.png` through the shared
-PNG quality analyzer.
-Use `pnpm test:workflows` when touching GitHub Actions, Release Please,
-automerge, Dependabot, or the CI/CD release scripts.
-
-Run `pnpm build` before local CLI geometry analysis when adding or changing tile
-declarations:
-
-```bash
-pnpm exec packages/declarative-hex-worlds/dist/cli.js analyze --edition free
-pnpm exec packages/declarative-hex-worlds/dist/cli.js doctor --edition free
-pnpm exec packages/declarative-hex-worlds/dist/cli.js manifest --edition free --out /tmp/kaykit-manifest.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-manifest --manifest /tmp/kaykit-manifest.json --outManifest /tmp/kaykit-manifest.normalized.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js declarations --manifest packages/declarative-hex-worlds/assets/free/manifest.json --out /tmp/kaykit-declarations.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-permutations --manifest packages/declarative-hex-worlds/assets/free/manifest.json --out /tmp/kaykit-guide-permutations.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-scenarios --manifest packages/declarative-hex-worlds/assets/free/manifest.json --out /tmp/kaykit-guide-scenarios.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-scenarios --page 14 --includeTreatments --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-usages --page 16,17,18 --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-render-requests --page 16,17,18 --assetBaseUrl /assets/extra --includeGroups --out /tmp/kaykit-guide-render-requests.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-assets --assetId hex_road_M --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-roles --role prop --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js blueprint --blueprint packages/declarative-hex-worlds/examples/blueprint-board.json --outRecipe /tmp/blueprint.recipe.json --outPlan /tmp/blueprint.plan.json --outScenario /tmp/blueprint.scenario.json --outScenarioInspection /tmp/blueprint.scenario-inspection.json --outInterop /tmp/blueprint.interop.json --out /tmp/blueprint.inspection.json --allowUnknownAssets
-pnpm exec packages/declarative-hex-worlds/dist/cli.js summarize-plan --blueprint packages/declarative-hex-worlds/examples/blueprint-board.json --out /tmp/blueprint.summary.json --outPlan /tmp/blueprint.summary.plan.json --allowUnknownAssets
-pnpm exec packages/declarative-hex-worlds/dist/cli.js summarize-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/simple-rpg.scenario-summary.json --allowUnknownAssets
-pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-recipe --recipe scenario.json --outPlan /tmp/scenario-plan.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js analyze-layout --recipe docs/examples/generated-piece-scenario.recipe.json --rules layout-rules.json --out /tmp/layout-analysis.json --outPlan /tmp/scenario-plan.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js spawn-groups --recipe docs/examples/generated-piece-scenario.recipe.json --groups spawn-groups.json --out /tmp/spawn-groups.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js patrol-routes --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --out /tmp/package-simple-rpg-patrol-routes.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js patrol-script --routes /tmp/package-simple-rpg-patrol-routes.json --routeId bandit-watch --actorId bandit --out /tmp/package-simple-rpg-patrol.script.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-recipe --recipe docs/examples/generated-piece-scenario.recipe.json --outPlan /tmp/generated-piece-scenario.plan.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-recipe --recipe packages/declarative-hex-worlds/examples/generated-piece-scenario.recipe.json --outPlan /tmp/package-generated-piece-scenario.plan.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest packages/declarative-hex-worlds/assets/free/manifest.json --outPlan /tmp/package-simple-rpg-scenario.plan.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js validate-simulation --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest packages/declarative-hex-worlds/assets/free/manifest.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js snapshot --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --manifest packages/declarative-hex-worlds/assets/free/manifest.json --spawnCount 2 --spawnSeed simple-rpg --out /tmp/package-simple-rpg-interop.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js simulate-scenario --scenario tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json --script tests/integration/simple-rpg/fixtures/simple-rpg-simulation.script.json --manifest packages/declarative-hex-worlds/assets/free/manifest.json --out /tmp/package-simple-rpg-simulation.json --outPlan /tmp/package-simple-rpg-final-plan.json --outInterop /tmp/package-simple-rpg-simulation-interop.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js compatibility --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --intendedRole tile --sourcePack "Kenney Castle Kit" --failOnWarning
-pnpm exec packages/declarative-hex-worlds/dist/cli.js piece --asset "references/kenney_castle-kit/Models/GLB format/tower-hexagon-base.glb" --id kenney:tower-hexagon-base --intendedRole tile --sourcePack "Kenney Castle Kit" --tags castle,landmark --out /tmp/kenney-piece.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js pieces-from-assets --assets "references/kenney_castle-kit/Models/GLB format" --sourcePack "Kenney Castle Kit" --intendedRole tile --assetIdPrefix kenney --pieceIdPrefix kenney-castle --tags castle --pieceOverrides docs/examples/local-piece-overrides.kenney-castle.json --includeReports --out /tmp/kenney-pieces.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js pieces --pieces /tmp/kenney-piece.json --emitRules --mode pool --role landmark --count 1 --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js pieces --pieces /tmp/kenney-pieces.json --emitSourceUrls --pieceSourceRoots docs/examples/local-piece-source-roots.example.json --json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js pieces --pieces /tmp/kenney-pieces.json --recipe docs/examples/generated-piece-scenario.recipe.json --mode pool --role tree --count 3 --seed preview --out /tmp/piece-fill-inspection.json --outPlan /tmp/piece-fill-plan.json
-pnpm exec packages/declarative-hex-worlds/dist/cli.js place-piece --recipe docs/examples/generated-piece-scenario.recipe.json --pieces /tmp/kenney-pieces.json --pieceId kenney-castle:tower-hexagon-base --count 1 --seed preview --idPrefix preview:tower --out /tmp/piece-placement.json --outPlan /tmp/piece-placement-plan.json
-```
-
-Browser screenshots are generated under
-`packages/declarative-hex-worlds/tests/browser/__screenshots__/` and are
-ignored. The browser scripts run `tests/scripts/assert-screenshots.ts` after
-capture, so existing artifacts can be rechecked with the package-level
-`test:screenshots:free`, `test:screenshots:extra`, and
-`test:screenshots:local-assets` scripts. Review screenshots manually when
+Browser screenshots are generated under `tests/browser/__screenshots__/` and
+are gitignored. The browser scripts run `tests/scripts/assert-screenshots.ts`
+after capture, so existing artifacts can be rechecked with
+`pnpm test:screenshots:free`, `pnpm test:screenshots:extra`, and
+`pnpm test:screenshots:local-assets`. Review screenshots manually when
 selectors, manifests, public asset treatments, rules, loaders, or board recipes
 change.
 
 Every PNG asserted by those `test:screenshots:*` scripts must also be listed in
 `GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS` and appear in the generated
-release-readiness ledger. `pnpm test:workspace` compares the package scripts,
-coverage source, and `docs/release-readiness.json` so visual evidence cannot
+release-readiness ledger (`pnpm coverage:ledger`), so visual evidence cannot
 drift silently.
 
-Curated README screenshots must be promoted out of the ignored browser output.
-For blueprint board examples, keep matching copies in `docs/assets/showcases/`
-for VitePress and `packages/declarative-hex-worlds/docs/showcases/` for the
-published package README. After `pnpm test:visual`, run
-`pnpm showcases:promote` to refresh those committed copies from
-`packages/declarative-hex-worlds/tests/browser/__screenshots__/`; run
-`pnpm showcases:promote -- --check` when you only need to verify the committed
-copies already match the latest ignored screenshots. The promotion check also
-parses the source and committed PNGs through the same quality analyzer as
-`test:screenshots:*`, so blank or visually flat README images fail before
-release.
+Curated README/docs-site screenshots must be promoted out of the ignored
+browser output. After `pnpm test:visual`, run `pnpm showcases:promote` to
+refresh the committed copies in `docs/showcases/` from
+`tests/browser/__screenshots__/`; run `pnpm showcases:promote -- --check` when
+you only need to verify the committed copies already match the latest ignored
+screenshots.

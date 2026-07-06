@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-`declarative-hex-worlds` is pre-1.0; only the latest published version receives security updates. Once 1.0 ships, the last two minor versions will receive patches.
+`declarative-hex-worlds` is at 1.x; the latest published version and the two most recent minor versions receive security patches.
 
 ## Reporting a vulnerability
 

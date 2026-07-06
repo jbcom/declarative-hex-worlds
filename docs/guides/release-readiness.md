@@ -1,9 +1,3 @@
-<!-- canonical: https://jonbogaty.com/declarative-hex-worlds/guides/release-readiness/ -->
-
-> **Canonical version:** [https://jonbogaty.com/declarative-hex-worlds/guides/release-readiness/](https://jonbogaty.com/declarative-hex-worlds/guides/release-readiness/)
->
-> This file remains as scenario metadata for `src/scenario/catalog.ts`. The docs-site version is the human-facing canonical.
-
 # Release Readiness Coverage
 
 This generated ledger combines the decomposed KayKit guide coverage, manifest
@@ -22,9 +16,9 @@ pnpm coverage:ledger
 - Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences
 - Public API surfaces: 74
 - Public roles: 12
-- Visual artifacts: 70 available, 0 missing, 0 skipped
+- Visual artifacts: 60 available, 0 missing, 0 skipped
 - Local references: 4 available, 0 missing, 0 skipped
-- Release checks: 12 passed, 0 failed, 0 not run, 0 skipped
+- Release checks: 8 passed, 0 failed, 0 not run, 0 skipped
 - SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)
 
 ## Manifest Coverage
@@ -63,6 +57,8 @@ pnpm coverage:ledger
 | --- | --- | --- | ---: | --- |
 | `analyzeHexTileRegistry` | executable-smoke | 13 | 0 | Packaged SimpleRPG usage analyzes a runtime tile registry in its executable guide API smoke. |
 | `coloredUnitAssetId` | executable-smoke | 14, 16, 17, 18 | 112 | Packaged SimpleRPG usage resolves a colored unit asset id in executable smoke. |
+| `createGameboardBlueprintPlan` | executable-smoke, blueprint-recipe | 6, 10 | 0 | Packaged SimpleRPG usage compiles a blueprint plan in executable smoke. |
+| `createGameboardBlueprintRecipe` | executable-smoke, blueprint-recipe | 5, 8, 11, 13 | 0 | Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke. |
 | `createGameboardBuilder` | fixed-gameplay | 9 | 0 | Fixed SimpleRPG board starts from the public fluent builder. |
 | `createGameboardLayoutArchetypeRegistry` | executable-smoke, seeded-generation | 6 | 0 | Packaged SimpleRPG usage creates a layout archetype registry in executable smoke. |
 | `createGameboardLayoutFillRuleFromPiece` | executable-smoke, seeded-generation | 2, 5, 6, 9, 10, 15, 16, 17 | 77 | Packaged SimpleRPG usage creates a piece-backed layout fill rule in executable smoke. |
@@ -71,10 +67,9 @@ pnpm coverage:ledger
 | `createGameboardRuntimeFromScenario` | packaged-scenario | 9, 18 | 0 | Packaged SimpleRPG usage creates a runtime facade directly from the scenario JSON. |
 | `createHexagonGameboardGrid` | executable-smoke | 10 | 0 | Packaged SimpleRPG usage creates a Honeycomb hexagon grid in executable smoke. |
 | `createManifestBundle` | executable-smoke, manifest-package | 12 | 0 | Packaged SimpleRPG usage bundles the FREE manifest in executable smoke. |
-| `createGameboardBlueprintPlan` | executable-smoke, blueprint-recipe | 6, 10 | 0 | Packaged SimpleRPG usage compiles a blueprint plan in executable smoke. |
-| `createGameboardBlueprintRecipe` | executable-smoke, blueprint-recipe | 5, 8, 11, 13 | 0 | Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke. |
 | `createMedievalShowcaseBlueprintRecipe` | executable-smoke, blueprint-recipe | 9, 13 | 0 | Packaged SimpleRPG usage compiles the showcase blueprint recipe in executable smoke. |
 | `createSeededGameboardPlan` | executable-smoke, seeded-generation | 9 | 0 | Packaged SimpleRPG usage builds a seeded board in executable smoke. |
+| `declarative-hex-worlds manifest` | package-boundary, manifest-package | 12 | 0 | Package smoke validates the CLI manifest and packaged SimpleRPG imports together. |
 | `declareHexTile` | executable-smoke | 13 | 0 | Packaged SimpleRPG usage declares a tile for registry analysis in executable smoke. |
 | `executeGameboardInteractionCommand` | fixed-gameplay | 17 | 0 | SimpleRPG quest execution moves, interacts, attacks, and removes enemies through commands. |
 | `externalAssetSpawnOptions` | executable-smoke, compatibility-adapter | 15 | 0 | Packaged SimpleRPG usage converts compatibility analysis into spawn options in executable smoke. |
@@ -116,7 +111,6 @@ pnpm coverage:ledger
 | `listRiverCurvyGuidePermutations` | executable-smoke | 4, 7 | 2 | Packaged SimpleRPG usage lists curvy river permutations in executable smoke. |
 | `listRiverGuidePermutations` | executable-smoke | 4, 7 | 24 | Packaged SimpleRPG usage lists river permutations in executable smoke. |
 | `listRoadGuidePermutations` | executable-smoke | 3, 9 | 15 | Packaged SimpleRPG usage lists road permutations in executable smoke. |
-| `declarative-hex-worlds manifest` | package-boundary, manifest-package | 12 | 0 | Package smoke validates the CLI manifest and packaged SimpleRPG imports together. |
 | `neutralUnitAssetId` | executable-smoke | 14, 16, 17, 18 | 25 | Packaged SimpleRPG usage resolves a neutral unit asset id in executable smoke. |
 | `NOTICE.md` | package-boundary, manifest-package | 19 | 0 | Release/package audits keep KayKit attribution with the SimpleRPG packaged smoke. |
 | `package.json files` | package-boundary, manifest-package | 19 | 0 | Package audit verifies exports, files, examples, and SimpleRPG package imports. |
@@ -153,18 +147,14 @@ pnpm coverage:ledger
 
 | Status | Command | Summary |
 | --- | --- | --- |
-| passed | `pnpm lint` | Biome lint over workspace packages, docs scripts, and generated public TypeScript surfaces. |
-| passed | `pnpm typecheck` | Strict TypeScript validation for runtime, package tests, docs scripts, and generated examples. |
-| passed | `pnpm build` | Nx package build including tsup ESM chunks, declarations, CLI shebang preservation, and asset copies. |
-| passed | `pnpm test:ci` | Serialized non-browser release gate: docs contracts, API docs, assets, workspace/workflow audits, CLI smoke, expectations, unit tests, package audit, consumer smoke, and dry-run pack. |
-| passed | `pnpm test:docs-contract` | Pillar frontmatter/link audit plus README, pillar, and guide SimpleRPG executable coverage contract for 40 guide-facing helper APIs, 404 KayKit public treatment records, and 19 guide pages. |
-| passed | `pnpm expectations` | Behavior-drift fixtures for seeded generation, SimpleRPG quests, executable guide API smoke, movement, actor targets, patrols, mutations, and final placements. |
-| passed | `pnpm docs:build` | TypeDoc and VitePress documentation build with public JSDoc and guide-link validation. |
-| passed | `pnpm test:consumer` | Packed tarball installed into a temporary app, then compiled and executed through public subpaths, examples, and the CLI bin. |
-| passed | `pnpm test:visual` | FREE, EXTRA, SimpleRPG, Kenney Castle Kit, and KayKit Adventurers browser visual suites with screenshot quality checks. |
-| passed | `pnpm showcases:promote -- --check` | Curated browser screenshots match committed docs/package showcase copies and pass the shared PNG quality analyzer. |
-| passed | `pnpm test:workflows` | CI, Release Please, npm OIDC publish, automerge, and Dependabot workflow contract audit. |
-| passed | `pnpm pack:dry-run` | npm tarball dry run proving publish whitelist, FREE asset inclusion, local reference exclusion, README gallery links, KayKit attribution/NOTICE, and packaged showcase PNG quality. |
+| passed | `pnpm lint` | Biome lint over src/, tests/, scripts/, and docs-site/. |
+| passed | `pnpm typecheck` | Strict TypeScript validation for runtime, tests, scripts, and examples. |
+| passed | `pnpm build` | tsup multi-entry ESM build — chunks + DTS + CLI shebang + asset copies. |
+| passed | `pnpm test` | Full vitest suite — unit + integration + contract specs (the migrated former scripts/audit-*.ts checks). |
+| passed | `pnpm test:coverage:enforce` | vitest with v8 coverage gated against the ratchet thresholds in vitest.coverage.shared.ts. |
+| passed | `pnpm test:browser:free` | vitest-browser FREE-pack visual snapshot suite against bootstrap-fetched KayKit GLTFs under Chromium. |
+| passed | `pnpm docs-site:build` | Astro Starlight docs site build — emits 1100+ pages, validates typedoc-generated reference + every hand-written guide. |
+| passed | `npm pack --dry-run` | Release-time tarball dry run — emits the publish whitelist + asset inclusion bounds for the published package contract. |
 
 ## Visual Artifacts
 
@@ -190,17 +180,6 @@ pnpm coverage:ledger
 | available | guide | `docs/assets/kaykit-guide/pages/page-17.png` | 17 |
 | available | guide | `docs/assets/kaykit-guide/pages/page-18.png` | 18 |
 | available | guide | `docs/assets/kaykit-guide/pages/page-19.png` | 19 |
-| available | showcase | `docs/assets/showcases/extra-blueprint-biome-transition-showcase.png` | - |
-| available | showcase | `docs/assets/showcases/extra-harbor-gameboard.png` | - |
-| available | showcase | `docs/assets/showcases/free-blueprint-builder-showcase.png` | - |
-| available | showcase | `docs/assets/showcases/free-guide-coasts-all-labels-rotations-water-waterless.png` | - |
-| available | showcase | `docs/assets/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png` | - |
-| available | showcase | `docs/assets/showcases/free-guide-roads-all-labels-rotations.png` | - |
-| available | showcase | `docs/assets/showcases/free-guide-scenarios-by-extracted-page.png` | - |
-| available | showcase | `docs/assets/showcases/simple-rpg-fixed-completed.png` | - |
-| available | showcase | `docs/assets/showcases/simple-rpg-local-third-party-assets.png` | - |
-| available | showcase | `docs/assets/showcases/simple-rpg-seeded-completed.png` | - |
-| available | guide | `NOTICE.md` | 19 |
 | available | showcase | `docs/showcases/extra-blueprint-biome-transition-showcase.png` | - |
 | available | showcase | `docs/showcases/extra-harbor-gameboard.png` | - |
 | available | showcase | `docs/showcases/free-blueprint-builder-showcase.png` | - |
@@ -211,6 +190,7 @@ pnpm coverage:ledger
 | available | showcase | `docs/showcases/simple-rpg-fixed-completed.png` | - |
 | available | showcase | `docs/showcases/simple-rpg-local-third-party-assets.png` | - |
 | available | showcase | `docs/showcases/simple-rpg-seeded-completed.png` | - |
+| available | guide | `NOTICE.md` | 19 |
 | available | guide | `tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png` | 9, 11, 13 |
 | available | screenshot | `tests/browser/__screenshots__/extra-guide-assets-by-public-role.png` | - |
 | available | screenshot | `tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png` | - |
@@ -270,12 +250,8 @@ pnpm coverage:ledger
 - `pnpm lint`
 - `pnpm typecheck`
 - `pnpm build`
-- `pnpm test:ci`
-- `pnpm test:docs-contract`
-- `pnpm expectations`
-- `pnpm docs:build`
-- `pnpm test:consumer`
-- `pnpm test:visual`
-- `pnpm showcases:promote -- --check`
-- `pnpm test:workflows`
-- `pnpm pack:dry-run`
+- `pnpm test`
+- `pnpm test:coverage:enforce`
+- `pnpm test:browser:free`
+- `pnpm docs-site:build`
+- `npm pack --dry-run`

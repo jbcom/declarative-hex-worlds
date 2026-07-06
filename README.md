@@ -131,7 +131,7 @@ declarative-hex-worlds coverage --json # release-readiness ledger
 
 ## What ships
 
-- The npm tarball is small (~2.3 MB; ~134 files). It contains the manifest, the compiled JS + DTS, the README, and a handful of curated showcase PNGs.
+- The npm tarball is small (~2.3 MB; ~175 files). It contains the manifest, the compiled JS + DTS, the README, and a handful of curated showcase PNGs.
 - The KayKit FREE GLTF tree (~30 MB; 221 models) is bootstrap-fetched at install time. CC0 license; the bootstrap command also writes a SHA-256 integrity sidecar.
 - The EXTRA edition is a paid [itch.io](https://kaykit.itch.io/medieval-hexagon-pack) purchase. The library supports it via `bootstrap --source zip --zip <your-extra.zip>` but never bundles it.
 

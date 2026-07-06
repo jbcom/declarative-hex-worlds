@@ -712,7 +712,7 @@ describe('asset catalog public treatments', () => {
     expect(renderKayKitGuideScenarioCoverageMarkdownFromRoot()).toBe(markdown);
     expect(markdown).toContain('# Guide Scenario Coverage');
     expect(markdown).toContain(
-      'pnpm exec packages/declarative-hex-worlds/dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md'
+      'node dist/cli.js guide-scenarios --markdown > docs/guides/guide-scenario-coverage.md'
     );
     expect(markdown).toContain('Scenario: `page-03-road-variations`');
     expect(markdown).toContain('Scenario: `page-19-supporters-and-attribution`');
