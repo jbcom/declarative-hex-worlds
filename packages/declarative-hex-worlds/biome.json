@@ -1,0 +1,180 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "root": "../.."
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "src/**",
+      "tests/**",
+      "examples/**",
+      "scripts/**/*.ts",
+      "docs/**/*.md",
+      "*.json",
+      "*.ts",
+      "*.yaml",
+      "*.yml",
+      "*.md"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error",
+        "noUnusedFunctionParameters": "warn",
+        "noUnsafeFinally": "error",
+        "noConstructorReturn": "error",
+        "noInnerDeclarations": "error",
+        "noUndeclaredVariables": "error"
+      },
+      "style": {
+        "useConst": "error",
+        "useAsConstAssertion": "error",
+        "noNonNullAssertion": "error",
+        "noParameterAssign": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "../actors/actors": "Import from '../actors' (the barrel) instead of reaching into sibling sub-package internals.",
+              "../coordinates/coordinates": "Use '../coordinates' (the barrel).",
+              "../coordinates/grid": "Use '../coordinates' (the barrel).",
+              "../coordinates/layout": "Use '../coordinates' (the barrel).",
+              "../coordinates/projection": "Use '../coordinates' (the barrel).",
+              "../gameboard/gameboard": "Use '../gameboard' (the barrel).",
+              "../gameboard/navigation": "Use '../gameboard' (the barrel).",
+              "../gameboard/occupancy": "Use '../gameboard' (the barrel).",
+              "../scenario/scenario": "Use '../scenario' (the barrel).",
+              "../scenario/recipe": "Use '../scenario' (the barrel).",
+              "../scenario/blueprint": "Use '../scenario' (the barrel).",
+              "../scenario/catalog": "Use '../scenario' (the barrel).",
+              "../scenario/registry": "Use '../scenario' (the barrel).",
+              "../rules/rules": "Use '../rules' (the barrel).",
+              "../rules/rule-types": "Use '../rules' (the barrel).",
+              "../rules/validation": "Use '../rules' (the barrel).",
+              "../interop/interop": "Use '../interop' (the barrel).",
+              "../interop/compatibility": "Use '../interop' (the barrel).",
+              "../interop/coverage": "Use '../interop' (the barrel).",
+              "../simulation/simulation": "Use '../simulation' (the barrel).",
+              "../systems/systems": "Use '../systems' (the barrel).",
+              "../systems/world-rules-system": "Use '../systems' (the barrel).",
+              "../commands/commands": "Use '../commands' (the barrel).",
+              "../selectors/selectors": "Use '../selectors' (the barrel).",
+              "../manifest/schema": "Use '../manifest' (the barrel). Published consumers may import the deep path; internal modules must not.",
+              "../manifest/free": "Use '../manifest' (the barrel). Published consumers may import the deep path; internal modules must not.",
+              "../ingest/ingest": "Use '../ingest' (the barrel).",
+              "../pieces/pieces": "Use '../pieces' (the barrel).",
+              "../types/brands": "Use '../types' (the barrel).",
+              "../actors/actors.js": "Use '../actors' (the barrel).",
+              "../koota/koota": "Use '../koota' (the barrel).",
+              "../movement/movement": "Use '../movement' (the barrel).",
+              "../patrol/patrol": "Use '../patrol' (the barrel).",
+              "../quests/quests": "Use '../quests' (the barrel).",
+              "../runtime/runtime": "Use '../runtime' (the barrel).",
+              "../react/react": "Use '../react' (the barrel).",
+              "../three/three": "Use '../three' (the barrel).",
+              "../interop/internal": "Use '../interop' (the barrel) instead of reaching into sibling sub-package internals.",
+              "../internal/predicates": "Use '../internal' (the internal barrel) instead of reaching into internal module files.",
+              "../traits/actors": "Use '../traits' (the barrel) instead of reaching into trait module files.",
+              "../traits/board": "Use '../traits' (the barrel) instead of reaching into trait module files.",
+              "../traits/movement": "Use '../traits' (the barrel) instead of reaching into trait module files.",
+              "../traits/patrol": "Use '../traits' (the barrel) instead of reaching into trait module files.",
+              "../traits/quests": "Use '../traits' (the barrel) instead of reaching into trait module files.",
+              "../config/bootstrap-paths.json": "Use '../config' (the internal config barrel) instead of importing config JSON directly.",
+              "../config/kaykit-source.json": "Use '../config' (the internal config barrel) instead of importing config JSON directly.",
+              "../config/upstream-layouts.json": "Use '../config' (the internal config barrel) instead of importing config JSON directly.",
+              "../coordinates/coordinates.js": "Use '../coordinates' (the barrel).",
+              "../coordinates/grid.js": "Use '../coordinates' (the barrel).",
+              "../coordinates/layout.js": "Use '../coordinates' (the barrel).",
+              "../coordinates/projection.js": "Use '../coordinates' (the barrel).",
+              "../gameboard/gameboard.js": "Use '../gameboard' (the barrel).",
+              "../gameboard/navigation.js": "Use '../gameboard' (the barrel).",
+              "../gameboard/occupancy.js": "Use '../gameboard' (the barrel).",
+              "../scenario/scenario.js": "Use '../scenario' (the barrel).",
+              "../scenario/recipe.js": "Use '../scenario' (the barrel).",
+              "../scenario/blueprint.js": "Use '../scenario' (the barrel).",
+              "../scenario/catalog.js": "Use '../scenario' (the barrel).",
+              "../scenario/registry.js": "Use '../scenario' (the barrel).",
+              "../rules/rules.js": "Use '../rules' (the barrel).",
+              "../rules/rule-types.js": "Use '../rules' (the barrel).",
+              "../rules/validation.js": "Use '../rules' (the barrel).",
+              "../interop/interop.js": "Use '../interop' (the barrel).",
+              "../interop/compatibility.js": "Use '../interop' (the barrel).",
+              "../interop/coverage.js": "Use '../interop' (the barrel).",
+              "../simulation/simulation.js": "Use '../simulation' (the barrel).",
+              "../systems/systems.js": "Use '../systems' (the barrel).",
+              "../systems/world-rules-system.js": "Use '../systems' (the barrel).",
+              "../commands/commands.js": "Use '../commands' (the barrel).",
+              "../selectors/selectors.js": "Use '../selectors' (the barrel).",
+              "../manifest/schema.js": "Use '../manifest' (the barrel). Published consumers may import the deep path; internal modules must not.",
+              "../manifest/free.js": "Use '../manifest' (the barrel). Published consumers may import the deep path; internal modules must not.",
+              "../ingest/ingest.js": "Use '../ingest' (the barrel).",
+              "../pieces/pieces.js": "Use '../pieces' (the barrel).",
+              "../types/brands.js": "Use '../types' (the barrel).",
+              "../koota/koota.js": "Use '../koota' (the barrel).",
+              "../movement/movement.js": "Use '../movement' (the barrel).",
+              "../patrol/patrol.js": "Use '../patrol' (the barrel).",
+              "../quests/quests.js": "Use '../quests' (the barrel).",
+              "../runtime/runtime.js": "Use '../runtime' (the barrel).",
+              "../react/react.js": "Use '../react' (the barrel).",
+              "../three/three.js": "Use '../three' (the barrel).",
+              "../interop/internal.js": "Use '../interop' (the barrel) instead of reaching into sibling sub-package internals.",
+              "../internal/predicates.js": "Use '../internal' (the internal barrel) instead of reaching into internal module files.",
+              "../traits/actors.js": "Use '../traits' (the barrel) instead of reaching into trait module files.",
+              "../traits/board.js": "Use '../traits' (the barrel) instead of reaching into trait module files.",
+              "../traits/movement.js": "Use '../traits' (the barrel) instead of reaching into trait module files.",
+              "../traits/patrol.js": "Use '../traits' (the barrel) instead of reaching into trait module files.",
+              "../traits/quests.js": "Use '../traits' (the barrel) instead of reaching into trait module files."
+            }
+          }
+        }
+      },
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noGlobalAssign": "error",
+        "noPrototypeBuiltins": "error",
+        "noShadowRestrictedNames": "error",
+        "noUnsafeNegation": "error",
+        "noControlCharactersInRegex": "error",
+        "noMisleadingCharacterClass": "error"
+      },
+      "complexity": {
+        "noForEach": "off"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "es5",
+      "semicolons": "always"
+    }
+  },
+  "json": {
+    "formatter": {
+      "indentStyle": "space",
+      "indentWidth": 2
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  }
+}

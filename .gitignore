@@ -8,6 +8,7 @@ lerna-debug.log*
 
 # References
 references
+**/references/
 
 # Codex/browser scratch state
 .playwright-mcp/
@@ -161,9 +162,9 @@ ios
 # metadata; the actual GLTF tree is fetched at install time by the CLI
 # `bootstrap` subcommand. Local regeneration via `pnpm assets:free`
 # materializes them for testing but they stay out of git.
-assets/free/**
-!assets/free/manifest.json
-models/
+**/assets/free/**
+!**/assets/free/manifest.json
+**/models/
 
 # Playwright
 playwright-report
@@ -212,3 +213,6 @@ docs-site/.astro
 # Local AI-development reference material (findings loops, vendor guide PDFs
 # extracted for local reference) — never tracked. Curated output goes elsewhere.
 raw-assets/
+
+# Local review scratch archives
+.full-review*/
