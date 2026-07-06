@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.0.2](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.0.1...declarative-hex-worlds@1.0.2) (2026-07-06)
+
+
+### Bug Fixes
+
+* stabilize source cli help import ([#101](https://github.com/jbcom/declarative-hex-worlds/issues/101)) ([802f0e8](https://github.com/jbcom/declarative-hex-worlds/commit/802f0e8e585982362007acd5a2bcf6047c025c25))
+* wire browser-free coverage gate ([c6143f5](https://github.com/jbcom/declarative-hex-worlds/commit/c6143f546ebda3dba0001d93743396b41056e848))
+
+
+### Refactoring
+
+* split gameboard navigation planners ([#104](https://github.com/jbcom/declarative-hex-worlds/issues/104)) ([4c6f04e](https://github.com/jbcom/declarative-hex-worlds/commit/4c6f04e29215063b5d669975eddf69e7c60c7811))
+* split gameboard terrain construction ([#103](https://github.com/jbcom/declarative-hex-worlds/issues/103)) ([5302a48](https://github.com/jbcom/declarative-hex-worlds/commit/5302a48fc4a2e5e21b11c24d9b6dde948e6055cf))
+* split scenario catalog data builders ([#105](https://github.com/jbcom/declarative-hex-worlds/issues/105)) ([7dce5ed](https://github.com/jbcom/declarative-hex-worlds/commit/7dce5ed0c33f27af288b2d75ba034bd2d784366d))
+* split systems command and tick boundaries ([#102](https://github.com/jbcom/declarative-hex-worlds/issues/102)) ([22777cb](https://github.com/jbcom/declarative-hex-worlds/commit/22777cb2f654262632eef4938c6614a9f0d6fbbd))
+
 ## [1.0.1](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.0.0...declarative-hex-worlds@1.0.1) (2026-06-24)
 
 
