@@ -11,6 +11,31 @@ supersedes_partially:
 
 # RFC 0001 — Generic asset sources + first-class consumer package
 
+## Thesis: dhw is the React binding that unifies koota + honeycomb + three
+
+The entire point of declarative-hex-worlds is **React**. Three engines already exist and do
+their jobs well: **koota** (the ECS world, with its own React bindings), **honeycomb** (hex
+coordinate math), and **three** (rendering). What does NOT exist — and what dhw is FOR — is
+a single **React-friendly binding layer that proxies all three** so a React developer
+composes and drives a hex world declaratively, never touching raw koota queries, raw
+honeycomb math, or raw three scene graphs.
+
+Just as koota provides `useQuery`/`useWorld`, dhw provides:
+- **Declarative elements** that compose the world: `<HexWorld>`, `<Tile>`, `<Tileset>`,
+  `<Sprite>`, `<Spriteset>`, `<Model>` — the JSX vocabulary (see §API philosophy).
+- **Hooks** that drive/observe it: `useHexWorld`, `useSelection`, `useCamera`, `useHexPath`,
+  `usePlacement` — proxying koota state, honeycomb math, and three camera/scene under one
+  React-idiomatic surface.
+- A **Zod-validated `AssetSourceSpec`** (see §Foundation) describing what goes into the
+  world, source-agnostically.
+
+If a consumer still has to wire koota + honeycomb + three themselves, dhw adds nothing —
+**that is the test for every capability**: does it let the React developer stay in
+React-idiomatic, declarative code? The existing imperative surface
+(`createGameboardRuntime`, `syncGameboardPlacementObjects`, raw queries) becomes the
+*internal engine* the React layer wraps, not the surface consumers touch. Everything below
+(asset sources, tilesets, camera, interaction) serves this thesis.
+
 ## Structural reframe: pnpm workspace with SimpleRPG as a real consumer
 
 **This SUPERSEDES Epic R (docs/PRD/1.0.md §Epic R).** Epic R deliberately de-monorepo'd
@@ -240,6 +265,71 @@ Civ-Rev-2-styled 4X that wants painterly **tileset** hexes, not KayKit prisms):
   GLTFs; this RFC extends the principle to the guide PDF pages — see §Visual verification.)
 
 ## Design
+
+### Foundation: a Zod-validated canonical asset-source spec (G0 — comes FIRST)
+
+Before any source-specific code, dhw needs **its own declarative asset-source spec**,
+validated at runtime with **Zod**. This is the foundation the whole asset layer stands on,
+and it must exist before G1/G2.
+
+Today there is no canonical spec: the manifest IS the KayKit format
+(`MedievalHexagonManifest`), validated by hand-rolled `validateManifestHeader` /
+`validateManifestAssets` accumulating an `issues[]` array — brittle, verbose, and
+KayKit-shaped. And the FREE default ships as BOTH `assets/free/manifest.json` (378 KB) AND
+`src/manifest/free.ts` (16.5k-LOC TS literal duplicating it), forcing a 6 GB DTS heap and a
+drift test. All of that is the wrong foundation.
+
+The right foundation:
+
+- **`AssetSourceSpec` — a source-agnostic Zod schema** that describes any set of assets and
+  how they map into a hex world, regardless of kind. It is the canonical, validated
+  vocabulary for tiles, tilesets, sprites, spritesets, and models (the elements from the
+  API philosophy section). A source is valid iff it `parse`s against this schema — bad
+  data fails fast at the boundary with a precise Zod error, not deep in rendering.
+- **KayKit FREE/premium become INPUTS that normalize into the spec**, not the spec itself.
+  Ingest reads the upstream pack and produces an `AssetSourceSpec` (Zod-validated). The
+  KayKit-specific `MedievalHexagonManifest` becomes an internal ingest detail, not the
+  public contract.
+- **Custom sources author directly in the spec** — a tileset pack, a sprite pack, a mix of
+  models + sprites: all the same Zod-validated `AssetSourceSpec`. This is what makes
+  "load defaults for free/premium OR a specified custom source (sprites/tilesets/models)"
+  one uniform path.
+- **The FREE default stops being a hardcoded KayKit blob.** No `free.ts` literal. The FREE
+  source, once bootstrapped, is described by an `AssetSourceSpec` like any other source;
+  the only special thing about it is that dhw knows how to fetch it on demand (G4). This
+  retires `src/manifest/free.ts` (16.5k LOC), its drift test, and the 6 GB DTS heap hack —
+  not by a JSON-import trick, but because the KayKit-manifest-as-canonical concept is gone.
+
+Sequencing consequence: **G0 (the Zod spec) precedes G1** (the source interface resolves
+placements against specs) and G2 (tileset is one spec kind). Zod becomes a runtime
+dependency of the library.
+
+### The CLI becomes a source-agnostic asset binder (G0b)
+
+Once the spec is canonical, the CLI stops being a KayKit bootstrapper and becomes a
+general **"point me at your assets, I'll help you bind them to a hex world"** tool.
+Given an assets path anywhere in a repo, it:
+
+1. **Scans** the directory tree.
+2. **Assesses** what's there with heuristics that detect the source kind: KayKit FREE vs
+   premium by their file/manifest signatures; or plain layouts (`sprites/`, `tilesets/`,
+   `models/` directories, sheet images with grid metadata, GLTF trees).
+3. **Suggests an applicable default binding** — a proposed `AssetSourceSpec` (biome→sheet,
+   cells, transitions, model/sprite placement) based on what it recognized.
+4. **Produces a Zod-validated `AssetSourceSpec` JSON.**
+
+Three authoring paths converge on the same validated spec:
+- **Developer hand-writes** the JSON (Zod validates it).
+- **CLI generates** it from the scan + heuristics, with interactive terminal prompts to
+  confirm/adjust the suggested bindings.
+- **CLI serves a local web form** — spins up a web server, opens a browser config UI; the
+  developer makes visual binding choices; the CLI writes the JSON from those choices. (A
+  complex enough task that a visual configurator earns its keep.)
+
+KayKit is then just one signature the scanner recognizes; the CLI is a general asset
+binder, not a vendor tool. This is a distinct, sizeable capability (RFC0-CLI) that builds
+on G0 (the spec must exist to validate/emit) and feeds G4 (the FREE default is just the
+scanner recognizing a bootstrapped KayKit tree and emitting its spec).
 
 ### Asset-source interface (G1)
 

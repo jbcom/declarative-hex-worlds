@@ -1,6 +1,6 @@
-import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { findWorkspaceRoot } from '../../tests/setup/workspace-root';
 import {
   buildCliReference,
   cliReferenceOutputPath,
@@ -22,8 +22,10 @@ describe('scripts/generate-cli-reference', () => {
     expect(page).toContain('HEX_WORLDS_OUT_ROOT');
   });
 
-  it('resolves the default repo root and CLI reference docs path', () => {
-    expect(defaultRepoRoot()).toBe(resolve(import.meta.dirname, '../..'));
+  it('resolves the default repo root (workspace root) and CLI reference docs path', () => {
+    // docs-site/ lives at the workspace root, so defaultRepoRoot walks up to
+    // pnpm-workspace.yaml — not the package root.
+    expect(defaultRepoRoot()).toBe(findWorkspaceRoot(import.meta.dirname));
     expect(cliReferenceOutputPath('/repo')).toBe(
       '/repo/docs-site/src/content/docs/guides/cli-reference.md'
     );
