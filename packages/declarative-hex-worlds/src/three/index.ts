@@ -10,3 +10,9 @@
  */
 
 export * from './three';
+export {
+  type SheetTexture,
+  type TexturedHexMeshOptions,
+  buildHexGeometry,
+  buildTexturedHexMesh,
+} from './textured-hex';

@@ -660,6 +660,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "buildHexGeometry",
+  },
+  {
+    "kind": "function",
+    "name": "buildTexturedHexMesh",
+  },
+  {
+    "kind": "function",
     "name": "canOccupyGameboardPlacement",
   },
   {
