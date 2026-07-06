@@ -323,7 +323,7 @@ consumer rendering FREE (not the embedded KayKit guide PDF). One feature branch
 one PR → squash-merge → npm publish confirmed.
 
 ### Phase 0 — Workspace foundation
-- [ ] RFC0-1 pnpm workspace: add `pnpm-workspace.yaml`; move library to `packages/declarative-hex-worlds` with published shape/exports unchanged; all tests green through the move.
+- [x] RFC0-1 pnpm workspace: add `pnpm-workspace.yaml`; move library to `packages/declarative-hex-worlds` with published shape/exports unchanged; all tests green through the move.
 - [ ] RFC0-2 Promote SimpleRPG to `packages/simple-rpg` — a real consumer that renders through dhw (keep headless smoke/exercise tests green, add an R3F render surface). MIGRATE the library's `tests/e2e/simple-rpg*` + `tests/integration/simple-rpg*` into this package as ITS OWN e2e (SimpleRPG IS the e2e — a real game consuming the package). CI becomes layered: library isolated suite passes FIRST (needs:), THEN SimpleRPG e2e runs (real-world proof). See RFC §D-test-topology.
 - [ ] RFC0-3 Docs-site React island: add `@astrojs/react`; embed SimpleRPG live (`client:load`) on a docs page — the docs RUN the library.
 
