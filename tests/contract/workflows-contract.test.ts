@@ -15,7 +15,6 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 const workspaceRoot = resolve(import.meta.dirname, '..', '..');
 const GITHUB_RUN_ID_EXPRESSION = '$' + '{{ github.run_id }}';
-const CURRENT_REPOSITORY_EXPRESSION = '$' + '{{ github.event.repository.name }}';
 
 const files = {
   automerge: '.github/workflows/automerge.yml',
@@ -159,24 +158,24 @@ describe('workflow contract', () => {
     it.each([
       ["NODE_VERSION: '22'"],
       ['pnpm/action-setup'],
-      ['actions/create-github-app-token'],
-      ['Check release-please GitHub App credentials'],
-      ["steps.release-please-credentials.outputs.configured == 'true'"],
-      ['vars.RELEASE_PLEASE_APP_CLIENT_ID'],
-      ['secrets.RELEASE_PLEASE_APP_PRIVATE_KEY'],
-      [`repositories: ${CURRENT_REPOSITORY_EXPRESSION}`],
-      ['permission-contents: write'],
-      ['permission-pull-requests: write'],
       ['googleapis/release-please-action'],
-      ['steps.release-please-token.outputs.token'],
+      // Same pattern as every other jbcom repo: release-please runs on the
+      // org-level CI_GITHUB_TOKEN PAT so its PRs trigger downstream
+      // workflows. The GitHub App token dance was rejected (PRD A5).
+      ['token: ${{ secrets.CI_GITHUB_TOKEN }}'],
+      ['config-file: release-please-config.json'],
+      ['manifest-file: .release-please-manifest.json'],
       ['pnpm docs-site:build'],
       ['actions/deploy-pages'],
     ])('includes %s', (snippet) => {
       expect(read(files.cd)).toContain(snippet);
     });
 
-    it('does not use the org-level CI_GITHUB_TOKEN PAT for release-please', () => {
-      expect(read(files.cd)).not.toContain('secrets.CI_GITHUB_TOKEN');
+    it('does not gate release-please behind GitHub App credentials', () => {
+      const cd = read(files.cd);
+      expect(cd).not.toContain('actions/create-github-app-token');
+      expect(cd).not.toContain('RELEASE_PLEASE_APP_CLIENT_ID');
+      expect(cd).not.toContain('RELEASE_PLEASE_APP_PRIVATE_KEY');
     });
   });
 
