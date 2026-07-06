@@ -87,5 +87,7 @@ describe('README Quickstart contract', () => {
 
   it('every tsx block in README.md type-checks against the real library API', () => {
     expect(typecheckVirtualTsxBlocks(tsxBlocks)).toEqual([]);
-  });
+    // Full program construction (lib.d.ts + path-mapped project graph) runs
+    // 15-20s when the rest of the suite saturates the CPU.
+  }, 60_000);
 });
