@@ -30,6 +30,7 @@ export {
   type ResolveContext,
 } from './source';
 export { type GltfPackSourceOptions, createGltfPackSource } from './gltf-pack';
+export { type TilesetSourceOptions, cellRect, createTilesetSource } from './tileset';
 export {
   TILESET_BIOME_SELECTORS,
   TILESET_SHEET_ROLES,
