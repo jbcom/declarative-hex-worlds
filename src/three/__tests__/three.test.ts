@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { AnimationClip, Group } from 'three';
+import {
+  AnimationClip,
+  Bone,
+  BufferGeometry,
+  Group,
+  Skeleton,
+  SkinnedMesh,
+} from 'three';
 import type { GameboardPlacementSpec } from '../../gameboard/index';
 import { freeManifest } from '../../manifest/free';
 import {
@@ -184,6 +191,60 @@ describe('three placement asset URL helpers', () => {
     expect(grassFrame.y).toBeCloseTo(grassFrame.x * 0.75);
     expect(grassFrame.z).toBe(grassFrame.x);
     expect(frameObjectPosition(freeAsset('hex_grass'), 2).x).toBeGreaterThan(grassFrame.x);
+  });
+
+  it('rebinds SkinnedMesh skeletons to each cloned placement instead of sharing the cached original', async () => {
+    const buildRiggedGltf = () => {
+      const root = new Group();
+      const rootBone = new Bone();
+      rootBone.name = 'root-bone';
+      const childBone = new Bone();
+      childBone.name = 'child-bone';
+      rootBone.add(childBone);
+      root.add(rootBone);
+
+      const skinnedMesh = new SkinnedMesh(new BufferGeometry());
+      skinnedMesh.name = 'rig';
+      const skeleton = new Skeleton([rootBone, childBone]);
+      root.add(skinnedMesh);
+      skinnedMesh.bind(skeleton);
+
+      return root;
+    };
+
+    const loader = {
+      async loadAsync() {
+        return { scene: buildRiggedGltf(), animations: [] };
+      },
+    };
+    const first = placement({ id: 'unit-a', assetId: 'adventurer:knight', metadata: { sourceUrl: '/models/rig.glb' } });
+    const second = placement({ id: 'unit-b', assetId: 'adventurer:knight', metadata: { sourceUrl: '/models/rig.glb' } });
+
+    const [loadedA, loadedB] = await Promise.all([
+      loadGameboardPlacementObject(first, { loader }),
+      loadGameboardPlacementObject(second, { loader }),
+    ]);
+
+    const meshA = loadedA.object.getObjectByName('rig');
+    const meshB = loadedB.object.getObjectByName('rig');
+    expect(meshA).toBeInstanceOf(SkinnedMesh);
+    expect(meshB).toBeInstanceOf(SkinnedMesh);
+    const skinnedA = meshA as SkinnedMesh;
+    const skinnedB = meshB as SkinnedMesh;
+
+    // Each clone's skeleton bones must be descendants of THAT clone's object
+    // tree, never the cached original scene and never shared across placements.
+    for (const bone of skinnedA.skeleton.bones) {
+      expect(loadedA.object.getObjectById(bone.id)).toBe(bone);
+    }
+    for (const bone of skinnedB.skeleton.bones) {
+      expect(loadedB.object.getObjectById(bone.id)).toBe(bone);
+    }
+    expect(skinnedA.skeleton).not.toBe(skinnedB.skeleton);
+    expect(skinnedA.skeleton.bones[0]).not.toBe(skinnedB.skeleton.bones[0]);
+    for (const bone of skinnedA.skeleton.bones) {
+      expect(skinnedB.skeleton.bones).not.toContain(bone);
+    }
   });
 
   it('reports missing model URLs and falls back to model clips when requested clips are absent', async () => {
@@ -487,6 +548,79 @@ describe('three GLTF load caching', () => {
 
     expect(firstLoaderCalls).toBe(1);
     expect(secondLoaderCalls).toBe(1);
+  });
+
+  it('evicts the least-recently-used URL once the per-loader cache exceeds its capacity', async () => {
+    const CACHE_CAPACITY = 128;
+    const loadedUrls: string[] = [];
+    const loader = {
+      async loadAsync(url: string) {
+        loadedUrls.push(url);
+        return { scene: new Group(), animations: [] };
+      },
+    };
+    const fillerUrl = (index: number) => `/models/filler-${index}.glb`;
+    const loadFiller = (index: number) =>
+      loadGameboardPlacementObject(
+        placement({ id: `filler-load-${index}`, assetId: 'flag_blue', metadata: { sourceUrl: fillerUrl(index) } }),
+        { loader }
+      );
+
+    // Fill the cache to exactly its capacity, oldest (index 0) to newest.
+    for (let index = 0; index < CACHE_CAPACITY; index += 1) {
+      await loadFiller(index);
+    }
+
+    // Re-touch the oldest entry (index 0) so it becomes the most-recently-used
+    // one, moving index 1 into the least-recently-used position instead.
+    loadedUrls.length = 0;
+    await loadFiller(0);
+    expect(loadedUrls).toEqual([]); // still a cache hit, no re-load
+
+    // Inserting one new URL pushes the cache over capacity, evicting whichever
+    // entry is currently least-recently-used.
+    await loadGameboardPlacementObject(
+      placement({ id: 'overflow', assetId: 'flag_blue', metadata: { sourceUrl: '/models/overflow.glb' } }),
+      { loader }
+    );
+
+    loadedUrls.length = 0;
+    // Index 0 was refreshed and must still be cached (no reload).
+    await loadFiller(0);
+    expect(loadedUrls).toEqual([]);
+
+    // Index 1 was the least-recently-used entry at the time of overflow and
+    // must have been evicted, so loading it again calls the loader.
+    await loadFiller(1);
+    expect(loadedUrls).toEqual([fillerUrl(1)]);
+  });
+
+  it('keeps a recently-used URL cached while less recently used entries are evicted at capacity', async () => {
+    const CACHE_CAPACITY = 128;
+    const loadedUrls: string[] = [];
+    const loader = {
+      async loadAsync(url: string) {
+        loadedUrls.push(url);
+        return { scene: new Group(), animations: [] };
+      },
+    };
+    const recent = placement({ id: 'recent', assetId: 'flag_blue', metadata: { sourceUrl: '/models/recent.glb' } });
+    await loadGameboardPlacementObject(recent, { loader });
+
+    for (let index = 0; index < CACHE_CAPACITY - 1; index += 1) {
+      const filler = placement({
+        id: `pad-${index}`,
+        assetId: 'flag_blue',
+        metadata: { sourceUrl: `/models/pad-${index}.glb` },
+      });
+      await loadGameboardPlacementObject(filler, { loader });
+    }
+
+    loadedUrls.length = 0;
+    const recentAgain = placement({ id: 'recent-again', assetId: 'flag_blue', metadata: { sourceUrl: '/models/recent.glb' } });
+    await loadGameboardPlacementObject(recentAgain, { loader });
+
+    expect(loadedUrls).toEqual([]);
   });
 
   it('bypasses the cache entirely when cacheLoads is set to false', async () => {
