@@ -313,9 +313,9 @@
   },
   "peerDependencies": {
     "koota": "^0.6.6",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "three": "^0.184.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "three": ">=0.184.0"
   },
   "peerDependenciesMeta": {
     "react": {

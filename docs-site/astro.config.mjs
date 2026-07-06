@@ -103,7 +103,7 @@ export default defineConfig({
 					details: [
 						'Install with `npm install declarative-hex-worlds` (react, react-dom, three, koota are peer dependencies).',
 						'Assets are bootstrapped, not bundled: run `npx declarative-hex-worlds bootstrap` to mirror the KayKit gltf tree into your app, then resolve URLs against it at game init.',
-						'The FREE edition manifest ships with the package (`declarative-hex-worlds/manifest/free`); the EXTRA (paid itch.io) pack is ingested from a user-supplied zip via `bootstrap --zip` and validated by the same manifest schema.',
+						'The FREE edition manifest ships with the package (`declarative-hex-worlds/manifest/free`); the premium EXTRA edition (paid itch.io pack) is ingested from a user-supplied zip via `bootstrap --source zip --zip <path>` — edition auto-detected — and validated by the same manifest schema.',
 						'All randomness flows through seeded RNG — identical seeds produce identical worlds.',
 					].join('\n'),
 					// Curate the small variant to the hand-written guides;

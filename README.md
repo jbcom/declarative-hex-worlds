@@ -59,6 +59,14 @@ function Scene() {
 
 That's it. The `bootstrap` command downloads 221 KayKit FREE GLTFs into `public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/` and writes a SHA-256 sidecar for integrity verification. The plan + runtime are deterministic — same seed, same render, byte-for-byte.
 
+Bought the premium [EXTRA pack](https://kaykit.itch.io/medieval-hexagon-pack) on itch.io? Point the same command at your zip — the edition is auto-detected:
+
+```bash
+pnpm exec declarative-hex-worlds bootstrap --source zip --zip ~/Downloads/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA.zip
+```
+
+See the [asset bootstrap guide](https://jonbogaty.com/declarative-hex-worlds/guides/asset-bootstrap/) for the full FREE + EXTRA story.
+
 > [`@react-three/fiber`](https://github.com/pmndrs/react-three-fiber) is an optional companion (`pnpm add @react-three/fiber`). It's not a hard dep because some consumers prefer a different react-three layer; the library's own `/three` subpath gives you the raw helpers if you'd rather skip it.
 
 ---
