@@ -30,3 +30,16 @@ export {
   type ResolveContext,
 } from './source';
 export { type GltfPackSourceOptions, createGltfPackSource } from './gltf-pack';
+export {
+  TILESET_BIOME_SELECTORS,
+  TILESET_SHEET_ROLES,
+  type TilesetBiome,
+  type TilesetBiomeSelector,
+  type TilesetGrid,
+  type TilesetManifest,
+  type TilesetSheet,
+  type TilesetSheetRole,
+  parseTilesetManifest,
+  safeParseTilesetManifest,
+  tilesetManifestSchema,
+} from './tileset-manifest';

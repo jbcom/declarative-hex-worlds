@@ -532,6 +532,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "object",
+    "name": "TILESET_BIOME_SELECTORS",
+  },
+  {
+    "kind": "object",
+    "name": "TILESET_SHEET_ROLES",
+  },
+  {
+    "kind": "object",
     "name": "TerrainPlacementQuery",
   },
   {
@@ -1436,6 +1444,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "parseTilesetManifest",
+  },
+  {
+    "kind": "function",
     "name": "placeObjectOnHex",
   },
   {
@@ -1644,6 +1656,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "safeParseTilesetManifest",
+  },
+  {
+    "kind": "function",
     "name": "selectCoastVariant",
   },
   {
@@ -1781,6 +1797,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "textureFileName",
+  },
+  {
+    "kind": "object",
+    "name": "tilesetManifestSchema",
   },
   {
     "kind": "function",
