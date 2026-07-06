@@ -47,7 +47,10 @@ describe('scripts/generate-cli-reference', () => {
     const logs: string[] = [];
 
     const result = generateCliReference({
+      // repoRoot = workspace root (output base); packageRoot = library package
+      // (the CLI-help exec cwd, where src/cli/cli.ts + tsx resolve).
       repoRoot: '/repo',
+      packageRoot: '/repo/packages/declarative-hex-worlds',
       outputPath: '/repo/docs-site/src/content/docs/guides/cli-reference.md',
       execFileSyncImpl: (file, args, options) => {
         execCalls.push({ file, args, options });
@@ -63,7 +66,7 @@ describe('scripts/generate-cli-reference', () => {
       {
         file: 'pnpm',
         args: ['exec', 'tsx', 'src/cli/cli.ts', '--help'],
-        options: { cwd: '/repo', encoding: 'utf8' },
+        options: { cwd: '/repo/packages/declarative-hex-worlds', encoding: 'utf8' },
       },
     ]);
     expect(writes).toEqual([

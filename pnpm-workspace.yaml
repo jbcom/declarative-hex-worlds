@@ -15,3 +15,14 @@ catalog:
   react: "^19.2.7"
   react-dom: "^19.2.7"
   zod: "^4.4.3"
+
+# Supply-chain hardening (semgrep p/nodejs pnpm rules):
+# - minimumReleaseAge: a cooldown before a just-published version is installable,
+#   blunting a compromised-maintainer / typosquat window (pnpm 9.15+).
+# - onlyBuiltDependencies: allowlist for packages permitted to run install
+#   scripts; everything else is blocked from arbitrary postinstall execution.
+minimumReleaseAge: 1440
+onlyBuiltDependencies:
+  - "@biomejs/biome"
+  - esbuild
+  - sharp

@@ -24,6 +24,7 @@ type WriteTextFile = (path: string, contents: string, encoding: BufferEncoding) 
 
 interface GenerateCliReferenceOptions {
   repoRoot?: string;
+  packageRoot?: string;
   outputPath?: string;
   execFileSyncImpl?: ExecHelp;
   writeFileSyncImpl?: WriteTextFile;
@@ -37,6 +38,7 @@ interface GenerateCliReferenceResult {
 
 interface ResolvedGenerateCliReferenceOptions {
   repoRoot: string;
+  packageRoot: string;
   outputPath: string;
   execHelp: ExecHelp;
   writeTextFile: WriteTextFile;
@@ -55,6 +57,16 @@ export function defaultRepoRoot(): string {
     dir = parent;
   }
   // Fallback: the package root (pre-workspace layout).
+  return resolve(import.meta.dirname, '..');
+}
+
+/**
+ * The LIBRARY package root (packages/declarative-hex-worlds) — where
+ * `src/cli/cli.ts` lives and `tsx` resolves. Distinct from defaultRepoRoot()
+ * (the workspace root, where docs-site/ lives): the CLI-help exec must run in
+ * the package, but the reference output lands in the workspace docs-site.
+ */
+export function defaultPackageRoot(): string {
   return resolve(import.meta.dirname, '..');
 }
 
@@ -168,6 +180,9 @@ export function resolveGenerateCliReferenceOptions(
   const repoRoot = options.repoRoot ?? defaultRepoRoot();
   return {
     repoRoot,
+    // The CLI-help exec must run in the LIBRARY package (src/cli/cli.ts + tsx
+    // live there), not the workspace root where the output lands.
+    packageRoot: options.packageRoot ?? defaultPackageRoot(),
     outputPath: options.outputPath ?? cliReferenceOutputPath(repoRoot),
     execHelp: options.execFileSyncImpl ?? (execFileSync as ExecHelp),
     writeTextFile: options.writeFileSyncImpl ?? writeFileSync,
@@ -178,13 +193,13 @@ export function resolveGenerateCliReferenceOptions(
 export function generateCliReference(
   options: GenerateCliReferenceOptions = {}
 ): GenerateCliReferenceResult {
-  const { repoRoot, outputPath, execHelp, writeTextFile, log } =
+  const { packageRoot, outputPath, execHelp, writeTextFile, log } =
     resolveGenerateCliReferenceOptions(options);
   const helpOutput = execHelp(
     'pnpm',
     ['exec', 'tsx', 'src/cli/cli.ts', '--help'],
     {
-      cwd: repoRoot,
+      cwd: packageRoot,
       encoding: 'utf8',
     }
   );

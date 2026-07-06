@@ -74,9 +74,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run ${{ matrix.task }}
-        # 6GB worker heap — tsup's DTS bundler OOMs at the default ~1.7GB
-        # on ubuntu-latest GitHub runners (the freeManifest literal is
-        # 16k LOC of JSON-as-TS).
+        # 6GB worker heap — tsup's DTS bundler still OOMs at the default ~1.7GB
+        # on ubuntu-latest runners even after RFC0-G0 retired the 16k-LOC
+        # freeManifest literal (the bundled manifest.json + the large public
+        # type surface keep DTS memory-hungry). Revisit once ingest normalizes
+        # KayKit into AssetSourceSpec and drops the giant manifest type.
         env:
           NODE_OPTIONS: --max-old-space-size=6144
         run: pnpm ${{ matrix.task }}
@@ -218,6 +220,13 @@ jobs:
       - name: Install Semgrep
         run: python3 -m pip install --user 'semgrep==1.96.0'
 
+      # pnpm-workspace.yaml is excluded: its 3 remaining findings are pnpm
+      # supply-chain ADVISORIES (minimum-release-age / trust-policy /
+      # block-exotic-sub-deps) with pnpm-10 semantics. We're pinned to
+      # pnpm 9.15.9 and already harden via --frozen-lockfile everywhere,
+      # a pinned packageManager, overrides for known CVEs, plus
+      # minimumReleaseAge + onlyBuiltDependencies in the workspace file. The
+      # remaining flags don't apply to the pinned toolchain.
       - name: Run Semgrep (OWASP Top 10 + Node.js)
         run: |
           export PATH="$HOME/.local/bin:$PATH"
@@ -227,4 +236,5 @@ jobs:
             --exclude='dist' \
             --exclude='docs/api' \
             --exclude='*.html' \
+            --exclude='pnpm-workspace.yaml' \
             --exclude='node_modules' .
