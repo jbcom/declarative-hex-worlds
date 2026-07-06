@@ -219,3 +219,38 @@ roughly blocker → friction → nit → praise.
   session's `pnpm add file:../declarative-hex-worlds` produced zero peer-dep
   warnings against three@0.185.1/react@19.2.7, confirming the fix actually
   works for the exact versions flagged.
+
+## 2026-07-06 — `createHarborBoard` rectangle bug (task-016, follow-up)
+
+- **[blocker] `createHarborBoard` throws `GameboardRuntimeError: Path step
+  q,r -> q,r is not adjacent` for small rectangle heights.** Root cause in
+  `src/gameboard/gameboard.ts`'s non-hexagon branch:
+  ```ts
+  const harbor = { q: Math.floor(shape.width / 2), r: shape.height - 2 };
+  const town = { q: harbor.q, r: Math.max(1, harbor.r - 2) };
+  // ...
+  .addRoadPath([town, { q: town.q, r: town.r + 1 }, harbor])
+  ```
+  For `shape.height <= 4` (repro: `{ kind: 'rectangle', width: 7, height: 4 }`
+  or smaller, but we specifically hit it at `{ width: 5, height: 4 }`), the
+  `Math.max(1, ...)` floor on `town.r` means `town.r + 1` can equal
+  `harbor.r` — the road path's middle waypoint collapses onto its own
+  endpoint, and `addRoadPath` calls `pathMasks` with a path that has two
+  IDENTICAL consecutive coordinates, which correctly rejects a hex-to-itself
+  "edge." This is 100% reproducible for any rectangle where
+  `shape.height - 2 <= Math.max(1, shape.height - 4) + 1`, i.e., roughly any
+  `height <= 5`. We hit this while deliberately shrinking `createHarborBoard`'s
+  default `{width:8, height:6}` for a faster-loading spike board (smaller
+  shapes load fewer unique GLTFs) — the function has no minimum-size
+  validation or a clearer error message pointing at the actual cause, so this
+  reads as a mysterious internal crash rather than "your shape is too small
+  for this showcase layout." Suggested fix: either guard `createHarborBoard`
+  with a minimum shape size (throw a clear
+  `"createHarborBoard needs height >= 6 for its rectangle layout"` instead of
+  the generic path-adjacency error), or make the harbor/town math scale
+  correctly down to smaller shapes (e.g. skip the middle road waypoint when
+  `town.r + 1 === harbor.r`, since town and harbor are then already
+  Chebyshev-adjacent and a direct two-point path suffices). We worked around
+  it locally by using `{width: 7, height: 5}` (verified safe: harbor={3,3},
+  town={3,1}, no collision) — happy to hand over exact repro coordinates for
+  a regression test if useful.
