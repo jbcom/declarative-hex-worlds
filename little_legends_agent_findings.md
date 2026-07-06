@@ -254,3 +254,28 @@ roughly blocker → friction → nit → praise.
   it locally by using `{width: 7, height: 5}` (verified safe: harbor={3,3},
   town={3,1}, no collision) — happy to hand over exact repro coordinates for
   a regression test if useful.
+
+## 2026-07-06 — spike landing (main session, integrator)
+
+- **[bug] `createHarborBoard` emits non-adjacent path steps below a minimum
+  shape size.** Repro: `createHarborBoard({ seed: "little-legends-hex-spike",
+  shape: { kind: "rectangle", width: 5, height: 4 } })` → runtime rejects with
+  "Path step 2,? -> 2,2 is not adjacent". 7×5 works. Either validate/clamp the
+  path generator for small shapes or document a minimum shape per showcase
+  board.
+- **[friction] `syncGameboardPlacementObjects` result-shape semantics:**
+  `result.loaded.length + result.updated.length` counts sync outcomes (unique
+  objects — 52 for our board), NOT placements (129). We wired a progress
+  indicator as `loaded/placements.length` and it sat at "52/129 loaded"
+  forever. Document what loaded/updated/skipped count, and consider a
+  `placements`-denominated completion signal.
+- **[friction] No `onProgress` callback on `syncGameboardPlacementObjects`** —
+  a long cold load (see below) gives consumers nothing to render a progress
+  bar from; the promise is all-or-nothing. Even a coarse per-placement-settled
+  callback would do.
+- **[workaround→praise] `THREE.Cache.enabled = true` collapses the
+  per-placement fetch chatter** (~400 requests → ~52 unique files) and took
+  our headless cold load from 60-120s+ to seconds — worth documenting as the
+  interim recommendation until the per-URL memoization ships; after it ships,
+  measure whether the global cache is still worth advising (it holds decoded
+  responses in memory).
