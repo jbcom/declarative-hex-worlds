@@ -5,8 +5,8 @@ import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createGameboardBuilder } from '../../gameboard';
-import { createGameboardRecipe } from '../../scenario/recipe';
 import { createGameboardScenario } from '../../scenario';
+import { createGameboardRecipe } from '../../scenario/recipe';
 import type { MedievalHexagonManifest } from '../../types';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
@@ -39,13 +39,7 @@ describe('CLI', () => {
     const manifestPath = resolve(createTempRoot(), 'manifest.json');
     const extractRoot = resolve(createTempRoot(), 'extracted');
 
-    const manifestOutput = runCli([
-      'manifest',
-      '--source',
-      sourceRoot,
-      '--out',
-      manifestPath,
-    ]);
+    const manifestOutput = runCli(['manifest', '--source', sourceRoot, '--out', manifestPath]);
     expect(manifestOutput).toContain(`Wrote manifest to ${manifestPath}`);
 
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as MedievalHexagonManifest;
@@ -74,6 +68,14 @@ describe('CLI', () => {
     expect(extractOutput).toContain(`Extracted 1 free assets to ${extractRoot}`);
     expect(existsSync(resolve(extractRoot, 'assets/tiles/base/hex_grass.gltf'))).toBe(true);
     expect(existsSync(resolve(extractRoot, 'manifest.json'))).toBe(true);
+  }, 60_000);
+
+  it('routes the ingest alias to the extract command', () => {
+    const sourceRoot = createFixtureSourceRoot();
+    const ingestRoot = resolve(createTempRoot(), 'ingested');
+    const output = runCli(['ingest', '--source', sourceRoot, '--out', ingestRoot]);
+    expect(output).toContain(`Extracted 1 free assets to ${ingestRoot}`);
+    expect(existsSync(resolve(ingestRoot, 'assets/tiles/base/hex_grass.gltf'))).toBe(true);
   }, 60_000);
 
   it('normalizes stale manifest indexes for every manifest-consuming command', () => {
@@ -203,7 +205,14 @@ describe('CLI', () => {
           { seed: 'cli-invalid-archetype', shape: { kind: 'rectangle', width: 1, height: 1 } },
           [],
           {
-            layoutFills: [{ id: 'bad-fill', archetype: 'missing-archetype', assetId: 'crate_A_small', count: 1 }],
+            layoutFills: [
+              {
+                id: 'bad-fill',
+                archetype: 'missing-archetype',
+                assetId: 'crate_A_small',
+                count: 1,
+              },
+            ],
           }
         ),
         null,
@@ -295,7 +304,11 @@ describe('CLI', () => {
     ) as {
       source: { kind: string };
       validation: { errorCount: number };
-      summary: { tileCount: number; placementCount: number; tileTerrainCounts: Record<string, number> };
+      summary: {
+        tileCount: number;
+        placementCount: number;
+        tileTerrainCounts: Record<string, number>;
+      };
     };
     const blueprintOutput = runCli([
       'summarize-plan',
@@ -432,7 +445,13 @@ describe('CLI', () => {
         {
           id: 'cli:scenario-summary:quest',
           objectives: [
-            { id: 'spot-raider', kind: 'collision', actor: 'player', targetActor: 'raider', expect: 'hostile' },
+            {
+              id: 'spot-raider',
+              kind: 'collision',
+              actor: 'player',
+              targetActor: 'raider',
+              expect: 'hostile',
+            },
             { id: 'defeat-raider', kind: 'defeat-actor', targetActor: 'raider' },
           ],
         },
@@ -488,7 +507,9 @@ describe('CLI', () => {
     expect(textOutput).toContain(`source: scenario ${scenarioPath}`);
     expect(textOutput).toContain('actors: 2 authored, 2 resolved');
     expect(textOutput).toContain('actor extra assets: unit_red_full');
-    expect(textOutput).toContain('spawn groups: 2 group(s), 2 location(s), 1/1 route check(s) found');
+    expect(textOutput).toContain(
+      'spawn groups: 2 group(s), 2 location(s), 1/1 route check(s) found'
+    );
     expect(outOutput).toContain(`Wrote scenario summary to ${summaryPath}`);
     expect(existsSync(summaryPath)).toBe(true);
     expect(summary).toMatchObject({
@@ -582,9 +603,11 @@ describe('CLI', () => {
     );
     expect(report.references).toHaveLength(4);
     expect(report.packageChecks.every((check) => check.status === 'passed')).toBe(true);
-    expect(report.packageChecks.every((check) => typeof check.summary === 'string' && check.summary.length > 0)).toBe(
-      true
-    );
+    expect(
+      report.packageChecks.every(
+        (check) => typeof check.summary === 'string' && check.summary.length > 0
+      )
+    ).toBe(true);
     expect(report.simpleRpgEvidence).toMatchObject({
       guidePublicApiCount: 74,
       exercisedPublicApiCount: 74,
@@ -596,18 +619,22 @@ describe('CLI', () => {
       }) as Record<string, number>,
     });
     expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(74);
-    expect(report.simpleRpgEvidence?.publicApiExercises?.map((exercise) => exercise.publicApi)).toContain(
-      'GameboardBuilder.addBridge'
-    );
+    expect(
+      report.simpleRpgEvidence?.publicApiExercises?.map((exercise) => exercise.publicApi)
+    ).toContain('GameboardBuilder.addBridge');
     expect(markdown).toContain('### SimpleRPG Exercise Matrix');
-    expect(markdown).toContain('| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 |');
+    expect(markdown).toContain(
+      '| `GameboardBuilder.addBridge` | fixed-gameplay, visual-coverage | 2, 7, 9 | 2 |'
+    );
     expect(markdown).toContain('# Release Readiness Coverage');
     expect(markdown).toContain('## SimpleRPG Public API Evidence');
     expect(markdown).toContain('| Status | Command | Summary |');
     expect(markdown).toContain('Release-time tarball dry run');
     expect(doctorOutput).toContain('guide pages: 19/19');
     expect(doctorOutput).toContain('manifest: 221 asset(s), 221/221 FREE guide asset(s)');
-    expect(doctorOutput).toContain('SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)');
+    expect(doctorOutput).toContain(
+      'SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)'
+    );
   });
 
   it('compiles high-level blueprint board specs through the CLI', () => {
@@ -683,10 +710,20 @@ describe('CLI', () => {
               curvy: true,
             },
           ],
-          biomeFills: [{ id: 'fall-market', textureSet: 'fall', fill: 0.2, center: { q: 3, r: 2 }, radius: 2 }],
+          biomeFills: [
+            { id: 'fall-market', textureSet: 'fall', fill: 0.2, center: { q: 3, r: 2 }, radius: 2 },
+          ],
           propClusterDressing: {
             auto: false,
-            clusters: [{ id: 'cli-worksite', at: { q: 1, r: 3 }, kind: 'worksite', placement: 'single', density: 0.4 }],
+            clusters: [
+              {
+                id: 'cli-worksite',
+                at: { q: 1, r: 3 },
+                kind: 'worksite',
+                placement: 'single',
+                density: 0.4,
+              },
+            ],
           },
           transitionPolicy: {
             biomeTransitions: true,
@@ -739,7 +776,9 @@ describe('CLI', () => {
           quests: [
             {
               id: 'cli-blueprint-board:intro-quest',
-              objectives: [{ id: 'reach-harbor', kind: 'reach-tile', actor: 'player', tile: '5,3' }],
+              objectives: [
+                { id: 'reach-harbor', kind: 'reach-tile', actor: 'player', tile: '5,3' },
+              ],
             },
           ],
         },
@@ -813,10 +852,16 @@ describe('CLI', () => {
     expect(recipe.steps.some((step) => step.action === 'setTextureSet')).toBe(true);
     expect(recipe.steps.some((step) => step.action === 'addPropCluster')).toBe(true);
     expect(plan.tiles.some((tile) => tile.textureSet === 'fall')).toBe(true);
-    expect(plan.placements.some((placement) => placement.assetId === 'building_watermill_green')).toBe(true);
-    expect(plan.placements.some((placement) => placement.assetId.startsWith('hex_river_'))).toBe(true);
+    expect(
+      plan.placements.some((placement) => placement.assetId === 'building_watermill_green')
+    ).toBe(true);
+    expect(plan.placements.some((placement) => placement.assetId.startsWith('hex_river_'))).toBe(
+      true
+    );
     expect(plan.placements.some((placement) => placement.assetId === 'hex_transition')).toBe(true);
-    expect(plan.placements.some((placement) => placement.metadata.clusterId === 'cli-worksite')).toBe(true);
+    expect(
+      plan.placements.some((placement) => placement.metadata.clusterId === 'cli-worksite')
+    ).toBe(true);
     expect(scenario).toMatchObject({
       id: 'cli-blueprint-board:intro',
       spawnGroups: { groups: [{ id: 'party' }, { id: 'raiders' }] },
@@ -825,7 +870,9 @@ describe('CLI', () => {
       ['player', 'party'],
       ['raider', 'raiders'],
     ]);
-    expect(scenarioInspection.violations.filter((violation) => violation.severity === 'error')).toEqual([]);
+    expect(
+      scenarioInspection.violations.filter((violation) => violation.severity === 'error')
+    ).toEqual([]);
     expect(scenarioInspection.spawnGroups).toMatchObject({
       groupCount: 2,
       groups: [
@@ -1201,9 +1248,15 @@ describe('CLI', () => {
       '--out',
       scenarioScriptPath,
     ]);
-    const scenarioScriptPayload = JSON.parse(readFileSync(scenarioScriptPath, 'utf8')) as typeof scriptPayload;
-    expect(scenarioScriptOutput).toContain(`Wrote patrol simulation script to ${scenarioScriptPath}`);
-    expect(scenarioScriptPayload.steps).toHaveLength(scenarioPayload.routes[0]?.segments.length ?? 0);
+    const scenarioScriptPayload = JSON.parse(
+      readFileSync(scenarioScriptPath, 'utf8')
+    ) as typeof scriptPayload;
+    expect(scenarioScriptOutput).toContain(
+      `Wrote patrol simulation script to ${scenarioScriptPath}`
+    );
+    expect(scenarioScriptPayload.steps).toHaveLength(
+      scenarioPayload.routes[0]?.segments.length ?? 0
+    );
   }, 60_000);
 
   it('analyzes layout fill rules from recipes and scenarios through the CLI', () => {
@@ -1882,13 +1935,7 @@ describe('CLI', () => {
 
   it('emits public role guide coverage and filters scenarios by role', () => {
     const roleOutputPath = resolve(createTempRoot(), 'guide-role-road.json');
-    const roleOutput = runCli([
-      'guide-roles',
-      '--role',
-      'road-tile',
-      '--out',
-      roleOutputPath,
-    ]);
+    const roleOutput = runCli(['guide-roles', '--role', 'road-tile', '--out', roleOutputPath]);
     const rolePayload = JSON.parse(readFileSync(roleOutputPath, 'utf8')) as {
       count: number;
       roles: string[];
@@ -1914,7 +1961,12 @@ describe('CLI', () => {
       ],
     });
 
-    const scenarioOutput = runCli(['guide-scenarios', '--guideRole', 'colored-unit-part', '--json']);
+    const scenarioOutput = runCli([
+      'guide-scenarios',
+      '--guideRole',
+      'colored-unit-part',
+      '--json',
+    ]);
     const scenarioPayload = JSON.parse(scenarioOutput) as { count: number; pages: number[] };
     expect(scenarioPayload).toMatchObject({ count: 4, pages: [14, 16, 17, 18] });
   });
@@ -2948,26 +3000,13 @@ describe('CLI', () => {
     mkdirSync(assetRoot, { recursive: true });
     writeFileSync(resolve(assetRoot, 'pre-existing.txt'), 'do-not-clobber');
 
-    const stderr = runCliExpectFailure([
-      'extract',
-      '--source',
-      sourceRoot,
-      '--out',
-      extractRoot,
-    ]);
+    const stderr = runCliExpectFailure(['extract', '--source', sourceRoot, '--out', extractRoot]);
     expect(stderr).toContain('is not empty; pass --force to wipe.');
     // Sentinel file must survive the failed extract.
     expect(existsSync(resolve(assetRoot, 'pre-existing.txt'))).toBe(true);
 
     // With --force, the extract clobbers and proceeds.
-    const forced = runCli([
-      'extract',
-      '--source',
-      sourceRoot,
-      '--out',
-      extractRoot,
-      '--force',
-    ]);
+    const forced = runCli(['extract', '--source', sourceRoot, '--out', extractRoot, '--force']);
     expect(forced).toContain(`Extracted 1 free assets to ${extractRoot}`);
     expect(existsSync(resolve(assetRoot, 'pre-existing.txt'))).toBe(false);
     expect(existsSync(resolve(assetRoot, 'tiles/base/hex_grass.gltf'))).toBe(true);
@@ -2981,6 +3020,43 @@ describe('CLI', () => {
     expect(helpOutput).toContain('--verify');
   });
 
+  it('documents every bootstrap flag in `bootstrap --help` (little_legends_agent_findings.md)', () => {
+    const helpOutput = runCli(['bootstrap', '--help']);
+    expect(helpOutput).toContain('declarative-hex-worlds bootstrap [options]');
+    expect(helpOutput).toContain('Materialize KayKit GLTF assets under a consumer asset root');
+    expect(helpOutput).toContain('--source github|zip');
+    expect(helpOutput).toContain('--zip <path>');
+    expect(helpOutput).toContain('--commit <sha>');
+    expect(helpOutput).toContain('--out <path>');
+    expect(helpOutput).toContain('--edition free|extra');
+    expect(helpOutput).toContain('--force');
+    expect(helpOutput).toContain('--verify');
+    expect(helpOutput).toContain('--include-source-formats');
+    expect(helpOutput).toContain('--json');
+    // Not a global "help output" dump - flags scoped to other commands only.
+    expect(helpOutput).not.toContain('--spawnCount');
+  });
+
+  it('`bootstrap -h` is equivalent to `bootstrap --help`', () => {
+    expect(runCli(['bootstrap', '-h'])).toEqual(runCli(['bootstrap', '--help']));
+  });
+
+  it('documents every extract flag in `extract --help` and resolves the ingest alias', () => {
+    const extractHelp = runCli(['extract', '--help']);
+    expect(extractHelp).toContain('declarative-hex-worlds extract [options] (alias: ingest)');
+    expect(extractHelp).toContain('--out <path>');
+    expect(extractHelp).toContain('--force');
+
+    const ingestHelp = runCli(['ingest', '--help']);
+    expect(ingestHelp).toEqual(extractHelp);
+  });
+
+  it('prints "This command takes no flags." for a no-flags command --help (validate)', () => {
+    const helpOutput = runCli(['validate', '--help']);
+    expect(helpOutput).toContain('declarative-hex-worlds validate [options]');
+    expect(helpOutput).toContain('This command takes no flags.');
+  });
+
   it('bootstrap --verify against an absent target prints drift and exits 1 (PRD RB2)', () => {
     const missingOut = resolve(createTempRoot(), 'never-bootstrapped');
     const output = runCliExpectFailure(['bootstrap', '--verify', '--out', missingOut]);
@@ -2990,7 +3066,7 @@ describe('CLI', () => {
 
   it('bootstrap --source zip without --zip fails with a clear message (PRD RB2)', () => {
     const output = runCliExpectFailure(['bootstrap', '--source', 'zip']);
-    expect(output).toContain("bootstrap --source zip requires --zip <path>");
+    expect(output).toContain('bootstrap --source zip requires --zip <path>');
   });
 
   it('bootstrap rejects an unknown --source value (PRD RB2)', () => {

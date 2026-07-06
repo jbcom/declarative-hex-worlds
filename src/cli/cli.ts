@@ -31,7 +31,12 @@ type CommandModule = {
   run: (parsed: ParsedArgs, sourceRoot: string, edition: PackEdition) => Promise<void> | void;
 };
 
-const SUBCOMMAND_LOADERS: Record<string, () => Promise<CommandModule>> = {
+/**
+ * Exported (not just module-local) so tests can assert every dispatchable
+ * command name has matching `--help` metadata in `./usage` (completeness
+ * test) without duplicating this map.
+ */
+export const SUBCOMMAND_LOADERS: Record<string, () => Promise<CommandModule>> = {
   doctor: () => import('./commands/doctor'),
   validate: () => import('./commands/validate'),
   manifest: () => import('./commands/manifest'),
@@ -65,6 +70,9 @@ const SUBCOMMAND_LOADERS: Record<string, () => Promise<CommandModule>> = {
   pieces: () => import('./commands/pieces'),
   'place-piece': () => import('./commands/place-piece'),
   extract: () => import('./commands/extract'),
+  // The docs (pillar 03, `./ingest` subpath) call this workflow "ingest";
+  // consumers following that vocabulary should land on the same command.
+  ingest: () => import('./commands/extract'),
   bootstrap: () => import('./commands/bootstrap'),
 };
 
@@ -141,12 +149,27 @@ const main = defineCommand({
  * lists subcommand names; the existing usage doc carries per-flag reference
  * (e.g. PRD RB2's `--source github|zip`, `--verify`). Intercepting BEFORE
  * `runMain` is required because citty handles `--help` itself otherwise.
+ *
+ * `<command> --help` / `<command> -h` is intercepted the same way, one level
+ * down: when the first token names a known subcommand (or alias) and any
+ * later token is `--help`/`-h`, print that command's full per-flag reference
+ * from `./usage` instead of dispatching to the command's `run()`. Unknown
+ * subcommands fall through to `runMain`, which reports them the usual way.
  */
 async function runCli(argv: readonly string[]): Promise<void> {
   const first = argv[0];
   if (argv.length === 0 || first === '--help' || first === '-h' || first === 'help') {
     const { usage } = await import('./usage');
     usage(0);
+    return;
+  }
+  if (
+    first &&
+    first in SUBCOMMAND_LOADERS &&
+    argv.slice(1).some((arg) => arg === '--help' || arg === '-h')
+  ) {
+    const { commandUsage } = await import('./usage');
+    commandUsage(first, 0);
     return;
   }
   // Forward the explicit `argv` so programmatic invocations (and tests that
