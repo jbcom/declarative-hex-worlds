@@ -60,7 +60,9 @@ without silently overwriting either asset.
 - `manifest`: generate a manifest JSON from a source folder without copying files.
 - `validate-manifest`: validate generated manifest JSON, report schema/index
   issues, and optionally write a normalized manifest copy.
-- `extract`: copy GLTF assets to a destination and write a manifest next to them.
+- `extract` (alias `ingest`): copy GLTF assets to a destination and write a
+  manifest next to them. This is the CLI face of the ingest workflow described
+  in this pillar.
 
 The same build-time behavior is public through the Node-only `./ingest` subpath.
 Use it from scripts when a project wants to validate source counts, copy a GLTF
@@ -68,10 +70,12 @@ tree, or generate a manifest without spawning the CLI. Keep it out of browser
 runtime imports because it uses Node filesystem APIs. `writeManifestModule`
 emits edition-specific `freeManifest` or `extraManifest` names by default, with
 explicit overrides for app-specific build scripts.
-Run `pnpm test:reference-assets` on a machine with `references/` populated when
-changing ingest, taxonomy, selector coverage, or EXTRA support; the command
-regenerates local FREE/EXTRA manifests and checks exact IDs, category counts,
-texture sets, duplicate basename handling, and EXTRA-only coverage.
+Run `pnpm test` on a machine with `references/` populated when changing
+ingest, taxonomy, selector coverage, or EXTRA support; the reference-gated
+specs (`tests/contract/reference-tree-contract.test.ts` and the ingest suites)
+regenerate local FREE/EXTRA manifests and check exact IDs, category counts,
+texture sets, duplicate basename handling, and EXTRA-only coverage. They
+self-skip when `references/` is absent.
 
 The EXTRA workflow never writes purchased files into the library package unless the
 caller explicitly chooses an output path in their own project.

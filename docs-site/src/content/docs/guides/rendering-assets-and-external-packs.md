@@ -67,6 +67,13 @@ import extraManifest from './generated/kaykit-extra-manifest.json';
 const bundle = createManifestBundle([freeManifest, extraManifest]);
 ```
 
+The static `import extraManifest from '...json'` shown above assumes the
+generated manifest lives in your **source tree**. If you wrote it under a Vite
+`public/` root (the natural outcome of `extract --out public/assets/...`),
+Vite refuses to import it ("Assets in public directory cannot be imported from
+JavaScript") — `fetch()` it at runtime instead and pass the parsed JSON to
+`createManifestBundle`.
+
 Every placement that points at an EXTRA asset should keep `requiresExtra: true`.
 That lets validation and renderers distinguish missing local content from
 package bugs.
