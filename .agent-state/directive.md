@@ -333,6 +333,7 @@ one PR → squash-merge → npm publish confirmed.
 - [ ] RFC0-6 Retire `guide` source: remove the 19 KayKit PDF pages from tracked `docs/` → gitignored `raw-assets/`; delete all now-dead guide references (~2293); `coverage.test.ts` asserts the showcase backbone. Premium never in public docs.
 
 ### Phase 2 — Generic asset sources + tileset
+- [ ] RFC0-CAM Camera/viewport command surface (library capability — GAP surfaced by SimpleRPG's `viewport` run-state). Today `./three` only has `frameObjectPosition(asset)`; the react layer has NO camera control. Add a real command surface: frame-the-whole-board, fill-viewport, set perspective/angle (top-down/iso/tilted, orthographic vs perspective), orient. Exposed through `./three` + a react hook. Browser test asserts each mode; SimpleRPG's viewport run-state drives it. (Pathfinding `findHexPath` already exists — no gap there.)
 - [ ] RFC0-7 `AssetSource` interface; extract KayKit `gltf-pack` as the first impl behind it (pure refactor, existing GLTF tests are the net).
 - [ ] RFC0-8 `./tileset` subpath: tileset manifest, UV-cell math, textured-hex mesh from the coordinate module's honeycomb corners; browser test rendering a small tileset board; SimpleRPG gains a tileset render mode. (Q1 manifest shape + Q2 material: decide with RFC-leaned defaults — separate TilesetManifest, MeshBasicMaterial default.)
 - [ ] RFC0-9 Generalize transition/edge-mask resolution (`AssetSource.resolveEdge`); fix `setCoastEdges` to validate/degrade non-contiguous masks at author time (the `010101` finding) + regression test.

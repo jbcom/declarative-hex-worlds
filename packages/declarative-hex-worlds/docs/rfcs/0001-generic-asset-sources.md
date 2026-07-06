@@ -62,6 +62,48 @@ capturable/embeddable; (c) the Astro docs-site has no React-island integration y
 (`@astrojs/react` not installed). All three are foundational and land before the
 asset-source feature proper.
 
+## SimpleRPG capability matrix — it exercises ALL of the library
+
+SimpleRPG is not a toy demo; it is the **exhaustive capability exerciser**. Building it
+is how we prove the library works under real-world conditions, so it must drive every
+public capability, and it needs **multiple run states** (scenarios) because a single board
+can't exercise everything at once. Each run state is BOTH a capturable showcase (feeds the
+visual-verification backbone, G5) AND an e2e assertion set (the layered-CI real-world
+proof, D-test-topology).
+
+Capabilities SimpleRPG must exercise:
+
+1. **Full-feature world composition** — a world using all terrain/feature capabilities
+   composited together (multiple biomes, elevation, coasts/rivers/roads, decorations).
+2. **Spatial correctness invariants** — assert **no gaps** and **no overlaps** in the
+   tiling (every board cell filled exactly once; adjacent cells share edges cleanly).
+   This is a hard, checkable invariant, not an eyeball check.
+3. **Cross-pack asset placement** — buildings and units from **other CC0 packs** (baked
+   into SimpleRPG's own `assets/`, distinct from the board's pack) placed ON TOP of the
+   board and interacted with. This is the acid test of the generic asset-source layer
+   (G1): the board can be a tileset (or KayKit) while units/buildings come from a
+   *different* CC0 source, composited in one scene. SimpleRPG SHOULD bake ≥1 such CC0
+   unit/building pack for this.
+4. **A\* pathfinding** — compute and move a unit along a path (`findHexPath`), asserting
+   the traversed cells and that blocked/occupied cells are respected.
+5. **Viewport / camera command surface** — orient the viewport, **fill it totally** when
+   needed, and use any angle/perspective (top-down, iso, tilted, orthographic vs
+   perspective). Proves the render layer exposes real camera control, not a single locked
+   view. If the library lacks a camera-command API, this exercise SURFACES that gap as a
+   finding → new capability.
+6. **Interaction** — units/tiles are selectable and commandable (pick → select → command
+   → observe state change), driven through the koota runtime.
+
+Run states (initial set — grows as gaps surface):
+- `compose` — full-feature composite board + no-gaps/no-overlaps assertions.
+- `cross-pack` — base board + units/buildings from a second CC0 pack, placed + selected.
+- `pathfind` — a unit A\*-pathing across the board around obstacles.
+- `viewport` — camera orientation/fill/perspective sweeps (each a distinct capture).
+
+Where a run state reveals the library CAN'T do the thing (e.g. no camera-fill command,
+no cross-source placement API), that gap becomes a library capability item in this RFC's
+work queue — SimpleRPG is the forcing function that finds them.
+
 ## Original scope — Generic asset sources
 
 ## Problem
