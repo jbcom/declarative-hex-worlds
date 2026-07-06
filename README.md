@@ -10,13 +10,13 @@ Bootstrap KayKit assets in one command. First-class React + Three.js bindings.
 [![CI](https://github.com/jbcom/declarative-hex-worlds/actions/workflows/ci.yml/badge.svg)](https://github.com/jbcom/declarative-hex-worlds/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/declarative-hex-worlds.svg)](https://www.npmjs.com/package/declarative-hex-worlds)
 [![license](https://img.shields.io/npm/l/declarative-hex-worlds.svg)](./LICENSE)
-[![types](https://img.shields.io/npm/types/declarative-hex-worlds.svg)](https://jonbogaty.com/declarative-hex-worlds/reference/index/)
+[![types](https://img.shields.io/npm/types/declarative-hex-worlds.svg)](https://jonbogaty.com/declarative-hex-worlds/reference/readme/)
 
 </div>
 
 A deterministic gameboard runtime for TypeScript games. Declare a harbor, a procedural forest, or a multi-depth cliff once; the library compiles it through recipe → blueprint → scenario into a [koota](https://koota.dev) ECS world your React + Three.js stack renders.
 
-[**Read the docs →**](https://jonbogaty.com/declarative-hex-worlds/) ·  [**Browse features →**](https://jonbogaty.com/declarative-hex-worlds/features/) ·  [**API reference →**](https://jonbogaty.com/declarative-hex-worlds/reference/index/)
+[**Read the docs →**](https://jonbogaty.com/declarative-hex-worlds/) ·  [**Browse features →**](https://jonbogaty.com/declarative-hex-worlds/features/) ·  [**API reference →**](https://jonbogaty.com/declarative-hex-worlds/reference/readme/)
 
 ---
 
@@ -94,7 +94,7 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 | `/errors` | `GameboardError` + subclasses for `instanceof` catching |
 | `/manifest/free`, `/manifest/schema` | The FREE manifest metadata + schema |
 
-[Full subpath list with API reference →](https://jonbogaty.com/declarative-hex-worlds/reference/index/)
+[Full subpath list with API reference →](https://jonbogaty.com/declarative-hex-worlds/reference/readme/)
 
 ---
 
@@ -102,7 +102,7 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 
 | Get started | Features | Reference |
 |---|---|---|
-| [Quickstart](https://jonbogaty.com/declarative-hex-worlds/guides/getting-started/) | [Feature gallery](https://jonbogaty.com/declarative-hex-worlds/features/) | [API reference](https://jonbogaty.com/declarative-hex-worlds/reference/index/) |
+| [Quickstart](https://jonbogaty.com/declarative-hex-worlds/guides/getting-started/) | [Feature gallery](https://jonbogaty.com/declarative-hex-worlds/features/) | [API reference](https://jonbogaty.com/declarative-hex-worlds/reference/readme/) |
 | [Asset bootstrap](https://jonbogaty.com/declarative-hex-worlds/guides/asset-bootstrap/) | [CLI](https://jonbogaty.com/declarative-hex-worlds/guides/cli-reference/) | [Errors](https://jonbogaty.com/declarative-hex-worlds/guides/errors/) |
 | [Bindings + bundling](https://jonbogaty.com/declarative-hex-worlds/guides/bindings/) | [Determinism contract](https://jonbogaty.com/declarative-hex-worlds/guides/determinism/) | [Architecture](https://jonbogaty.com/declarative-hex-worlds/about/architecture/) |
 | [Testing](https://jonbogaty.com/declarative-hex-worlds/guides/testing/) | [Design rationale](https://jonbogaty.com/declarative-hex-worlds/about/design/) | [Deployment](https://jonbogaty.com/declarative-hex-worlds/about/deployment/) |
