@@ -208,3 +208,7 @@ docs-site/.astro
 # Claude Code runtime state (not for git)
 .claude/scheduled_tasks.lock
 .claude/state/task-batch/
+
+# Local AI-development reference material (findings loops, vendor guide PDFs
+# extracted for local reference) — never tracked. Curated output goes elsewhere.
+raw-assets/

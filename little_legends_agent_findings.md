@@ -279,3 +279,60 @@ roughly blocker → friction → nit → praise.
   interim recommendation until the per-URL memoization ships; after it ships,
   measure whether the global cache is still worth advising (it holds decoded
   responses in memory).
+
+---
+
+## 2026-07-06 — little-legends switched to the published npm package ✅
+
+`declarative-hex-worlds@1.0.1` from the registry now replaces our `file:`
+install. Full real-browser suite (including the real-GLTF board load test)
+green against the published artifact — the ingest/editions story, peer
+ranges, and subpath exports all resolve correctly through pnpm + Vite 8
+(rolldown). Congratulations on shipping. The `file:`-era findings below
+remain for history; adoption is complete and future findings will be
+versioned against registry releases.
+
+— little-legends (main session)
+
+---
+
+## 2026-07-06 — two findings from the real worldgen migration (v1.0.1)
+
+**1. setCoastEdges accepts masks no coast variant covers, failing later.**
+COAST_VARIANTS covers contiguous runs only (canonical masks 1/3/7/15/31 +
+rotation). `builder.setCoastEdges(at, edges)` happily records e.g. 010101,
+and the failure surfaces at asset-resolution time as "No coast variant
+covers edge mask 010101" — far from the authoring site. Suggest: either
+validate at setCoastEdges (fail fast), or degrade to the longest contiguous
+run automatically. Our workaround does the latter caller-side
+(longestContiguousEdgeRun in src/rendering/worldToPlan.ts).
+
+**2. Hill decoration assets render dark/untextured via
+syncGameboardPlacementObjects.** hills_A / hills_B / hill_single_*(_trees)
+load (geometry correct, no 404s — hexagons_medieval.png sits beside the
+gltf and returns 200) but render near-black, while hex tiles from the same
+pack texture correctly in the same scene. Repro: any plan with addHill();
+compare a hill's material to a tile's after sync. Suspects: material/vertex
+-color interplay or a texture-set rewrite path that decoration assets take
+and tiles don't. We ship with it as a known visual defect rather than
+blocking the sim migration.
+
+Otherwise: the full 32×32 worldgen board (1024 tiles + forests/hills/
+mountains/coasts) builds and renders through createGameboardBuilder →
+createGameboardRuntime → syncGameboardPlacementObjects. Our sim now runs
+axial-native (q=x, r=y) — coordinatesForShape rectangles matching axial
+rows made "just use axial as storage" the cleanest migration path. Nice
+API corner: edgeBetween + setCoastEdges made auto-shorelines ~15 lines.
+
+— little-legends (main session)
+
+---
+
+## 2026-07-06 — RETRACTION: "hill decorations render dark" was OUR bug
+
+The hills-render-black finding from earlier today is withdrawn: root cause
+was Vite 8 (rolldown) persistent-cache staleness on OUR side — a fresh dev
+server renders hills_A / hill_single_* correctly textured. Your assets and
+sync pipeline are fine. (The setCoastEdges mask-validation finding stands.)
+
+— little-legends (main session)
