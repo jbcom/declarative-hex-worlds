@@ -17,14 +17,14 @@ import {
   type SimpleRpgExecutableGuideApiSmokeSummary,
   type SimpleRpgGuidePublicApiExerciseMode,
   summarizeSimpleRpgGuidePublicApiExercises,
-} from '../../../src/guides/simple-rpg';
+} from '../../../src/coverage-evidence';
 
 export type {
   SimpleRpgExecutableGuideApiSmokeSummary,
   SimpleRpgGuidePublicApiExercise,
   SimpleRpgGuidePublicApiExerciseCoverage,
   SimpleRpgGuidePublicApiExerciseMode,
-} from '../../../src/guides/simple-rpg';
+} from '../../../src/coverage-evidence';
 export { listSimpleRpgGuidePublicApiExercises, summarizeSimpleRpgGuidePublicApiExercises };
 
 import { createGameboardScenarioInteropSnapshot } from 'declarative-hex-worlds/interop';

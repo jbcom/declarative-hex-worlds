@@ -6,7 +6,7 @@ import {
   listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgExecutableGuideApiSmoke,
   summarizeSimpleRpgGuidePublicApiExercises,
-} from '../../guides/simple-rpg';
+} from '../../coverage-evidence';
 import scenarioJson from '../../../tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json';
 import {
   createDefaultGameboardCoveragePackageChecks,
