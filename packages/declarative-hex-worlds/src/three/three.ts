@@ -13,7 +13,9 @@ import {
   Vector3,
 } from 'three';
 import { clone as cloneWithSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import type { AssetRenderRequest, AssetSource } from '../asset-source';
 import type { GameboardInteractionTargetInput } from '../actors';
+import { buildTexturedHexMesh, type SheetTexture } from './textured-hex';
 import { GameboardRuntimeError } from '../errors';
 import type { GameboardPlacementSpec } from '../gameboard';
 import { axialToWorld } from '../coordinates';
@@ -167,6 +169,59 @@ function evictLeastRecentlyUsed(cache: GameboardGltfLoadCache): void {
 }
 
 /**
+ * Minimal async loader contract for tileset sheet textures. Compatible with a
+ * three `TextureLoader` wrapped to also report the sheet's pixel dimensions
+ * (needed for per-cell UV normalization in `buildTexturedHexMesh`).
+ */
+export interface GameboardSheetTextureLoader {
+  /** Load a sheet image URL and return the texture plus its pixel dimensions. */
+  loadAsync(url: string): Promise<SheetTexture>;
+}
+
+/** Per-loader URL memoization cache for sheet textures (mirrors the GLTF cache). */
+type GameboardSheetLoadCache = Map<string, Promise<SheetTexture>>;
+const sheetLoadCachesByLoader = new WeakMap<GameboardSheetTextureLoader, GameboardSheetLoadCache>();
+
+/**
+ * Load a sheet texture through a per-loader memoization cache, deduplicating
+ * concurrent and repeated loads of the same sheet URL. Rejected loads are
+ * evicted so the next call retries; resolved entries are bounded by the same LRU
+ * cap as the GLTF cache.
+ */
+function loadSheetTextureCached(
+  loader: GameboardSheetTextureLoader,
+  url: string,
+  cacheLoads: boolean
+): Promise<SheetTexture> {
+  if (!cacheLoads) {
+    return loader.loadAsync(url);
+  }
+  let cache = sheetLoadCachesByLoader.get(loader);
+  if (!cache) {
+    cache = new Map();
+    sheetLoadCachesByLoader.set(loader, cache);
+  }
+  const cached = cache.get(url);
+  if (cached) {
+    cache.delete(url);
+    cache.set(url, cached);
+    return cached;
+  }
+  const pending = loader.loadAsync(url);
+  cache.set(url, pending);
+  if (cache.size > GLTF_LOAD_CACHE_MAX_ENTRIES) {
+    const oldestKey = cache.keys().next().value as string;
+    cache.delete(oldestKey);
+  }
+  pending.catch(() => {
+    if (cache?.get(url) === pending) {
+      cache.delete(url);
+    }
+  });
+  return pending;
+}
+
+/**
  * Options for loading one placement object.
  */
 export interface LoadGameboardPlacementObjectOptions
@@ -174,6 +229,14 @@ export interface LoadGameboardPlacementObjectOptions
     GameboardPlacementAnimationUrlOptions {
   /** GLTF-compatible async loader. */
   loader: GameboardGltfLoader;
+  /**
+   * Optional asset source (RFC0-7). When provided, a placement resolving to a
+   * `tileset-cell` request is rendered as a textured-hex mesh instead of a GLTF;
+   * a `gltf` request (or no resolution) falls through to the GLTF loader path.
+   */
+  source?: AssetSource;
+  /** Sheet-texture loader, required when `source` can emit tileset-cell requests. */
+  textureLoader?: GameboardSheetTextureLoader;
   /** Optional clip name override. Defaults to placement metadata when present. */
   clipName?: string;
   /** Whether to start the selected animation immediately. Defaults to true. */
@@ -347,10 +410,52 @@ export function resolveGameboardPlacementAnimationUrl(
  * Loads one placement model, applies the placement transform, tags user data,
  * and prepares optional animation playback.
  */
+/**
+ * Load a tileset-cell request as a textured-hex mesh placement object. Loads the
+ * sheet texture (cached), builds the mesh, positions it at the placement's world
+ * position, tags it for picking, and returns a LoadedGameboardPlacementObject
+ * with no animation state (tiles are static).
+ */
+async function loadTilesetCellObject(
+  placement: GameboardPlacementSpec,
+  request: Extract<AssetRenderRequest, { type: 'tileset-cell' }>,
+  options: LoadGameboardPlacementObjectOptions
+): Promise<LoadedGameboardPlacementObject> {
+  if (!options.textureLoader) {
+    throw new GameboardRuntimeError(
+      `Placement ${placement.id} (${placement.assetId}) resolved to a tileset-cell but no textureLoader was provided`
+    );
+  }
+  const cacheLoads = options.cacheLoads ?? true;
+  const sheet = await loadSheetTextureCached(options.textureLoader, request.sheetUrl, cacheLoads);
+  const transform = transformForPlacement(placement);
+  const mesh = buildTexturedHexMesh({ sheet, cell: request.cell, hex: request.hex });
+  applyTransform(mesh, transform);
+  tagGameboardPlacementObject(mesh, placement);
+  return {
+    placementId: placement.id,
+    assetId: placement.assetId,
+    object: mesh,
+    modelUrl: request.sheetUrl,
+    transform,
+    clips: [],
+  };
+}
+
 export async function loadGameboardPlacementObject(
   placement: GameboardPlacementSpec,
   options: LoadGameboardPlacementObjectOptions
 ): Promise<LoadedGameboardPlacementObject> {
+  // RFC0-8 dispatch: an AssetSource may resolve this placement to a tileset-cell
+  // render request, which renders as a textured-hex mesh instead of a GLTF.
+  if (options.source) {
+    const request = options.source.resolve(placement, { baseUrl: options.baseUrl });
+    if (request?.type === 'tileset-cell') {
+      return loadTilesetCellObject(placement, request, options);
+    }
+    // A 'gltf' request (or no resolution) falls through to the GLTF path below.
+  }
+
   const modelUrl = resolveGameboardPlacementAssetUrl(placement, options);
   if (!modelUrl) {
     throw new GameboardRuntimeError(`No model URL resolved for placement ${placement.id} (${placement.assetId})`);

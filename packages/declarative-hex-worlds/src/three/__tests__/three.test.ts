@@ -4,9 +4,13 @@ import {
   Bone,
   BufferGeometry,
   Group,
+  Mesh,
+  MeshBasicMaterial,
   Skeleton,
   SkinnedMesh,
+  Texture,
 } from 'three';
+import { createTilesetSource, type TilesetManifest } from '../../asset-source';
 import type { GameboardPlacementSpec } from '../../gameboard/index';
 import { freeManifest } from '../../manifest/free';
 import {
@@ -14,9 +18,11 @@ import {
   findGameboardPlacementObjectUserData,
   findLoadedGameboardPlacementObjectForObject,
   frameObjectPosition,
+  type GameboardSheetTextureLoader,
   gameboardInteractionTargetForObject,
   type LoadedGameboardPlacementObject,
   loadGameboardPlacementObject,
+  type SheetTexture,
   placeObjectOnHex,
   readGameboardPlacementObjectUserData,
   resolveAssetUrl,
@@ -721,3 +727,102 @@ function placement(input: {
     metadata: input.metadata ?? {},
   };
 }
+
+const tilesetManifest: TilesetManifest = {
+  schemaVersion: '1',
+  kind: 'tileset',
+  sheets: {
+    grassland: {
+      url: 'tiles/grassland.png',
+      grid: { cols: 5, rows: 10, cellWidth: 96, cellHeight: 83 },
+      role: 'fill',
+    },
+  },
+  biomes: { grass: { sheet: 'grassland', select: 'first' } },
+};
+
+function fakeSheetLoader(): GameboardSheetTextureLoader & { loaded: string[] } {
+  const loaded: string[] = [];
+  return {
+    loaded,
+    async loadAsync(url: string): Promise<SheetTexture> {
+      loaded.push(url);
+      return { texture: new Texture(), sheetWidth: 480, sheetHeight: 830 };
+    },
+  };
+}
+
+// A GLTF loader that resolves a trivial scene for the fall-through path.
+const gltfLoader = {
+  async loadAsync() {
+    return { scene: new Group(), animations: [] as AnimationClip[] };
+  },
+};
+
+describe('loadGameboardPlacementObject — AssetSource dispatch (RFC0-8)', () => {
+  it('renders a tileset-cell placement as a textured-hex mesh', async () => {
+    const source = createTilesetSource({ manifest: tilesetManifest });
+    const textureLoader = fakeSheetLoader();
+    const loaded = await loadGameboardPlacementObject(placement({ assetId: 'grass' }), {
+      loader: gltfLoader,
+      source,
+      textureLoader,
+    });
+    expect(loaded.object).toBeInstanceOf(Mesh);
+    expect((loaded.object as Mesh).material).toBeInstanceOf(MeshBasicMaterial);
+    expect(loaded.modelUrl).toBe('tiles/grassland.png');
+    expect(loaded.clips).toEqual([]);
+    expect(loaded.mixer).toBeUndefined();
+    expect(textureLoader.loaded).toEqual(['tiles/grassland.png']);
+  });
+
+  it('tags the tileset mesh so raycasts resolve back to the placement', async () => {
+    const source = createTilesetSource({ manifest: tilesetManifest });
+    const loaded = await loadGameboardPlacementObject(
+      placement({ id: 'p1', assetId: 'grass' }),
+      { loader: gltfLoader, source, textureLoader: fakeSheetLoader() }
+    );
+    const userData = readGameboardPlacementObjectUserData(loaded.object);
+    expect(userData?.placementId).toBe('p1');
+    expect(userData?.assetId).toBe('grass');
+  });
+
+  it('throws when a tileset-cell resolves but no textureLoader is provided', async () => {
+    const source = createTilesetSource({ manifest: tilesetManifest });
+    await expect(
+      loadGameboardPlacementObject(placement({ assetId: 'grass' }), {
+        loader: gltfLoader,
+        source,
+      })
+    ).rejects.toThrow(/no textureLoader/);
+  });
+
+  it('falls through to the GLTF path when the source does not resolve a tileset-cell', async () => {
+    const source = createTilesetSource({ manifest: tilesetManifest });
+    // assetId 'unknown' is not a manifest biome → source returns undefined →
+    // GLTF path runs; a metadata sourceUrl gives it a model to load.
+    const loaded = await loadGameboardPlacementObject(
+      placement({ assetId: 'unknown', metadata: { sourceUrl: '/models/thing.glb' } }),
+      { loader: gltfLoader, source, textureLoader: fakeSheetLoader() }
+    );
+    expect(loaded.object).toBeInstanceOf(Group);
+    expect(loaded.modelUrl).toBe('/models/thing.glb');
+  });
+
+  it('caches sheet loads across placements sharing a sheet', async () => {
+    const source = createTilesetSource({ manifest: tilesetManifest });
+    const textureLoader = fakeSheetLoader();
+    await loadGameboardPlacementObject(placement({ id: 'a', assetId: 'grass' }), {
+      loader: gltfLoader,
+      source,
+      textureLoader,
+    });
+    await loadGameboardPlacementObject(placement({ id: 'b', assetId: 'grass' }), {
+      loader: gltfLoader,
+      source,
+      textureLoader,
+    });
+    // One sheet URL, loaded exactly once despite two placements.
+    expect(textureLoader.loaded).toEqual(['tiles/grassland.png']);
+  });
+});

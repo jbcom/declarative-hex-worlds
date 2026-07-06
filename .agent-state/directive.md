@@ -81,7 +81,32 @@ the live web-form configurator (locked).
 - [ ] RFC0-8 `./tileset` subpath: tileset manifest, UV-cell math, textured-hex mesh from the coordinate module's honeycomb corners; browser test rendering a small tileset board; SimpleRPG gains a tileset render mode. (Q1 manifest shape + Q2 material: decide with RFC-leaned defaults — separate TilesetManifest, MeshBasicMaterial default.)
   - ✅ G2 manifest + cell selection DONE: commit 147cf8a (TilesetManifest Zod schema, 8 tests) + 08abd2d (createTilesetSource: biome/edge→tileset-cell, FNV-1a hash fill selection, cellRect helper, 15 tests). Both 100% covered, in `src/asset-source/`.
   - ✅ buildTexturedHexMesh DONE: commit 61487f3. `src/three/textured-hex.ts` — buildHexGeometry (center+6-corner fan BufferGeometry, pointy-top default, per-cell UVs, V-flipped) + buildTexturedHexMesh (MeshBasicMaterial, transparent, DoubleSide). Pure three, unit-covered, 10 tests, 100%. NOTE geometry math: pointy-top X-extent = halfW·cos30°, Z-extent = halfH (corner at 90°).
-  - REMAINING: (a) bridge dispatch — thread optional AssetSource through syncGameboardPlacementObjects, branch on AssetRenderRequest.type ('gltf'→loadGameboardPlacementObject, 'tileset-cell'→buildTexturedHexMesh); needs a sheet-texture loader/cache (injectable seam like the GLTF loader). (b) browser test rendering a small tileset board (real Chromium — texture upload needs WebGL). (c) `./tileset` subpath if we want it separate from ./asset-source (currently all under ./asset-source + ./three). THEN the declarative elements (own item, RFC0-8b): <HexWorld>/<Tile>/<Tileset>/<Sprite>/<Model> + useHexWorld/useTile/useSelection/useCamera/useHexPath/usePlacement. Design of record: docs/plans/declarative-render-surface.design.md. RESOLUTION (gltf-pack + tileset sources) and GEOMETRY (textured-hex) halves are both DONE; what remains is INTEGRATION (bridge dispatch + browser proof) then the JSX SURFACE.
+  - REMAINING — NEXT UNIT is bridge dispatch (design fully scoped, deps all green):
+    (a) BRIDGE DISPATCH in src/three/three.ts. Add optional `source?: AssetSource` +
+    `textureLoader?` + `textureSheetDims?` resolver to LoadGameboardPlacementObjectOptions.
+    In loadGameboardPlacementObject: if `source` resolves the placement to a
+    'tileset-cell' request → load the sheet texture via an injectable+cached loader
+    (mirror the loadGltfCached WeakMap-per-loader LRU pattern, lines ~86-167), call
+    buildTexturedHexMesh({sheet, cell, hex}), position via placement transform, tag with
+    tagGameboardPlacementObject, return a LoadedGameboardPlacementObject{object=mesh,
+    modelUrl=sheetUrl, clips:[], no mixer}. If 'gltf' or no source → existing GLTF path
+    UNCHANGED. syncGameboardPlacementObjects passes `source` through (its shouldReload
+    key already uses modelUrl+assetId, works for sheetUrl too). This file is
+    browser-covered (DOM-coupled), so unit-test the pure branches + the browser test
+    covers texture upload.
+    (b) BROWSER TEST: tests/browser/ — render a small tileset board through the source,
+    use the existing renderGameboardPlan/WebGLRenderer/assertCanvasHasRenderableContent
+    harness in tests/browser/rendering.ts, assert non-empty canvas. (NOTE: rendering.ts
+    already has its OWN local `AssetRenderRequest` iface (the guide's) — distinct from
+    src/asset-source's; don't confuse them.)
+    (c) `./tileset` subpath only if we want it split from ./asset-source (currently the
+    schema+sources live under ./asset-source, the mesh under ./three — fine as-is).
+    THEN the declarative elements (own item, RFC0-8b): <HexWorld>/<Tile>/<Tileset>/
+    <Sprite>/<Model> + useHexWorld/useTile/useSelection/useCamera/useHexPath/usePlacement,
+    each a thin wrapper over providers + spawnGameboardPlacement + the source-aware bridge.
+    Design of record: docs/plans/declarative-render-surface.design.md.
+    STATUS: RESOLUTION (gltf-pack + tileset sources) + GEOMETRY (textured-hex) DONE +
+    CI-green. Remaining = INTEGRATION (bridge dispatch + browser proof) then JSX SURFACE.
 - [ ] RFC0-9 Generalize transition/edge-mask resolution (`AssetSource.resolveEdge`); fix `setCoastEdges` to validate/degrade non-contiguous masks at author time (the `010101` finding) + regression test.
 - [ ] RFC0-10 KayKit-as-downloadable-defaults (G4): THREE first-class downloadable CC0 packs — Medieval Hexagon (tiles/), Adventures (models/, playable), Skeletons (models/, enemies) = a full game from defaults. Fetch-on-demand for each (never tracked); default source resolution (present → use; absent → clear error to run the download); docs. Generalizes the current single-pack FREE bootstrap to the 3-pack set.
 

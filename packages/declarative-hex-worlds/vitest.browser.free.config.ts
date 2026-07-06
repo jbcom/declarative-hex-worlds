@@ -61,6 +61,7 @@ export default defineConfig({
       'tests/browser/react-hook-fallbacks.test.ts',
       'tests/browser/feature-gallery.spec.ts',
       'tests/browser/branch-coverage.test.ts',
+      'tests/browser/tileset-render.test.ts',
     ],
     testTimeout: 120_000,
     coverage: harnessCoverage('browser-free'),
