@@ -217,13 +217,17 @@ jobs:
       - name: Install Semgrep
         run: python3 -m pip install --user 'semgrep==1.96.0'
 
-      # pnpm-workspace.yaml is excluded: its 3 remaining findings are pnpm
+      # pnpm-workspace.yaml + .npmrc are excluded: their findings are pnpm
       # supply-chain ADVISORIES (minimum-release-age / trust-policy /
       # block-exotic-sub-deps) with pnpm-10 semantics. We're pinned to
       # pnpm 9.15.9 and already harden via --frozen-lockfile everywhere,
       # a pinned packageManager, overrides for known CVEs, plus
-      # minimumReleaseAge + onlyBuiltDependencies in the workspace file. The
-      # remaining flags don't apply to the pinned toolchain.
+      # minimumReleaseAge + onlyBuiltDependencies in the workspace file (pnpm 9
+      # reads those from pnpm-workspace.yaml, not .npmrc — our .npmrc carries
+      # ONLY hoist-pattern lines for docs-site's typedoc plugin resolution, so
+      # the minimum-release-age rule firing on it is a false positive; the real
+      # setting lives in the workspace file). The remaining flags don't apply to
+      # the pinned toolchain.
       - name: Run Semgrep (OWASP Top 10 + Node.js)
         run: |
           export PATH="$HOME/.local/bin:$PATH"
@@ -234,4 +238,5 @@ jobs:
             --exclude='docs/api' \
             --exclude='*.html' \
             --exclude='pnpm-workspace.yaml' \
+            --exclude='.npmrc' \
             --exclude='node_modules' .

@@ -45,19 +45,31 @@ interface ResolvedGenerateCliReferenceOptions {
   log: (message: string) => void;
 }
 
-export function defaultRepoRoot(): string {
-  // docs-site/ lives at the WORKSPACE root, but this script is at
-  // packages/declarative-hex-worlds/scripts/. Walk up to the directory holding
-  // pnpm-workspace.yaml so the CLI reference lands in the real docs-site.
-  let dir = import.meta.dirname;
+/**
+ * Walk up from `startDir` to the directory holding `pnpm-workspace.yaml` (the
+ * workspace root, where docs-site/ lives). Injectable `startDir`/`fileExists`
+ * so the break-at-filesystem-root and no-workspace-found fallback paths are
+ * testable without a real detached filesystem.
+ */
+export function findRepoRoot(
+  startDir: string,
+  fileExists: (path: string) => boolean = existsSync
+): string {
+  let dir = startDir;
   for (let i = 0; i < 12; i++) {
-    if (existsSync(resolve(dir, 'pnpm-workspace.yaml'))) return dir;
+    if (fileExists(resolve(dir, 'pnpm-workspace.yaml'))) return dir;
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
-  // Fallback: the package root (pre-workspace layout).
-  return resolve(import.meta.dirname, '..');
+  // Fallback: the package root (pre-workspace layout, or workspace file absent).
+  return resolve(startDir, '..');
+}
+
+export function defaultRepoRoot(): string {
+  // docs-site/ lives at the WORKSPACE root, but this script is at
+  // packages/declarative-hex-worlds/scripts/.
+  return findRepoRoot(import.meta.dirname);
 }
 
 /**

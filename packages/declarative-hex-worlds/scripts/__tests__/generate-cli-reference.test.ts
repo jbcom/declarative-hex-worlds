@@ -5,6 +5,7 @@ import {
   buildCliReference,
   cliReferenceOutputPath,
   defaultRepoRoot,
+  findRepoRoot,
   generateCliReference,
   isDirectRun,
   resolveGenerateCliReferenceOptions,
@@ -29,6 +30,18 @@ describe('scripts/generate-cli-reference', () => {
     expect(cliReferenceOutputPath('/repo')).toBe(
       '/repo/packages/docs-site/src/content/docs/guides/cli-reference.md'
     );
+  });
+
+  it('findRepoRoot walks up to the pnpm-workspace.yaml directory', () => {
+    // Workspace file found two levels up from the start dir.
+    const exists = (p: string) => p === '/ws/pnpm-workspace.yaml';
+    expect(findRepoRoot('/ws/packages/lib', exists)).toBe('/ws');
+  });
+
+  it('findRepoRoot falls back to the parent dir when no workspace file exists', () => {
+    // No pnpm-workspace.yaml anywhere up the tree: the walk breaks at the
+    // filesystem root and the fallback returns startDir/.. (pre-workspace layout).
+    expect(findRepoRoot('/detached/pkg', () => false)).toBe('/detached');
   });
 
   it('resolves default generator options without executing IO', () => {
