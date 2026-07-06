@@ -71,7 +71,7 @@ export function defaultPackageRoot(): string {
 }
 
 export function cliReferenceOutputPath(repoRoot = defaultRepoRoot()): string {
-  return resolve(repoRoot, 'docs-site/src/content/docs/guides/cli-reference.md');
+  return resolve(repoRoot, 'packages/docs-site/src/content/docs/guides/cli-reference.md');
 }
 
 export function buildCliReference(helpOutput: string): string {

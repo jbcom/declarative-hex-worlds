@@ -22,7 +22,7 @@ import { findWorkspaceRoot } from '../setup/workspace-root';
 // docs-site lives at the WORKSPACE root (as packages/docs-site once adopted, or
 // docs-site/ at root pre-adoption) — resolve by workspace marker, not a fixed hop.
 const repoRoot = findWorkspaceRoot(import.meta.dirname);
-const docsRoot = join(repoRoot, 'docs-site/src/content/docs');
+const docsRoot = join(repoRoot, 'packages/docs-site/src/content/docs');
 const REFERENCE_PREFIX = `${docsRoot}/reference`;
 
 function walkMarkdown(root: string): string[] {
@@ -43,7 +43,7 @@ const handWrittenFiles = existsSync(docsRoot)
   : [];
 
 describe('docs-site frontmatter contract', () => {
-  it('docs-site/src/content/docs exists', () => {
+  it('packages/docs-site/src/content/docs exists', () => {
     expect(existsSync(docsRoot), `${docsRoot} missing`).toBe(true);
   });
 

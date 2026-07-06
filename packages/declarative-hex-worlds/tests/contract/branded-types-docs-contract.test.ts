@@ -17,7 +17,7 @@ const packageRoot = resolve(import.meta.dirname, '..', '..');
 const workspaceRoot = findWorkspaceRoot(import.meta.dirname);
 
 const GUIDE_PATHS = [
-  { label: 'docs-site/src/content/docs/guides/public-api.md', root: workspaceRoot },
+  { label: 'packages/docs-site/src/content/docs/guides/public-api.md', root: workspaceRoot },
   { label: 'docs/guides/public-api.md', root: packageRoot },
 ] as const;
 

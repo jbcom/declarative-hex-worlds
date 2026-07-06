@@ -13,12 +13,13 @@
     "lint": "pnpm --filter declarative-hex-worlds lint",
     "test": "pnpm --filter declarative-hex-worlds test",
     "verify": "pnpm --filter declarative-hex-worlds verify",
-    "docs-site:dev": "cd docs-site && pnpm dev",
-    "docs-site:build": "pnpm --filter declarative-hex-worlds exec tsx scripts/generate-cli-reference.ts && cd docs-site && pnpm build",
+    "docs-site:dev": "pnpm --filter docs-site dev",
+    "docs-site:build": "pnpm --filter declarative-hex-worlds exec tsx scripts/generate-cli-reference.ts && pnpm --filter docs-site build",
     "bench": "pnpm --filter declarative-hex-worlds bench",
     "coverage:all:enforce": "pnpm --filter declarative-hex-worlds coverage:all:enforce",
     "expectations": "pnpm --filter declarative-hex-worlds expectations",
-    "cli": "pnpm --filter declarative-hex-worlds cli"
+    "cli": "pnpm --filter declarative-hex-worlds cli",
+    "docs-site:preview": "pnpm --filter docs-site preview"
   },
   "pnpm": {
     "overrides": {

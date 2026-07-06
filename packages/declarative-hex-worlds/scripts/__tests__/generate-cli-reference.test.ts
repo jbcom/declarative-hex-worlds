@@ -27,7 +27,7 @@ describe('scripts/generate-cli-reference', () => {
     // pnpm-workspace.yaml — not the package root.
     expect(defaultRepoRoot()).toBe(findWorkspaceRoot(import.meta.dirname));
     expect(cliReferenceOutputPath('/repo')).toBe(
-      '/repo/docs-site/src/content/docs/guides/cli-reference.md'
+      '/repo/packages/docs-site/src/content/docs/guides/cli-reference.md'
     );
   });
 

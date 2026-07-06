@@ -67,9 +67,6 @@ jobs:
         # the library's tsconfig + node_modules in place to resolve imports.
         run: pnpm install --frozen-lockfile
 
-      - name: Install docs-site dependencies
-        run: cd docs-site && pnpm install --frozen-lockfile
-
       - name: Build docs site
         env:
           ASTRO_BASE: /declarative-hex-worlds/
@@ -79,7 +76,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: docs-site/dist
+          path: packages/docs-site/dist
 
       - name: Deploy to GitHub Pages
         id: deployment
