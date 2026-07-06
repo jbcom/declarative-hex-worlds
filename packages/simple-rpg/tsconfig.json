@@ -1,0 +1,24 @@
+{
+  "extends": "../declarative-hex-worlds/tsconfig.base.json",
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "rootDir": ".",
+    "noEmit": true,
+    "types": [
+      "node",
+      "vitest/globals"
+    ],
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
+    "*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "assets"
+  ]
+}

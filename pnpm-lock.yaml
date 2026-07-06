@@ -4,6 +4,36 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/node':
+      specifier: ^26.1.0
+      version: 26.1.0
+    '@types/react':
+      specifier: ^19.2.17
+      version: 19.2.17
+    '@types/three':
+      specifier: ^0.185.0
+      version: 0.185.0
+    koota:
+      specifier: ^0.6.6
+      version: 0.6.6
+    react:
+      specifier: ^19.2.7
+      version: 19.2.7
+    react-dom:
+      specifier: ^19.2.7
+      version: 19.2.7
+    three:
+      specifier: ^0.185.1
+      version: 0.185.1
+    typescript:
+      specifier: ^6.0.3
+      version: 6.0.3
+    vitest:
+      specifier: ^4.1.10
+      version: 4.1.10
+
 overrides:
   yaml: '>=2.8.3'
   brace-expansion: '>=5.0.6'
@@ -118,6 +148,40 @@ importers:
       yazl:
         specifier: ^3.3.1
         version: 3.3.1
+
+  packages/simple-rpg:
+    dependencies:
+      declarative-hex-worlds:
+        specifier: workspace:*
+        version: link:../declarative-hex-worlds
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.0
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/three':
+        specifier: 'catalog:'
+        version: 0.185.0
+      koota:
+        specifier: 'catalog:'
+        version: 0.6.6(@types/react@19.2.17)(react@19.2.7)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
+      three:
+        specifier: 'catalog:'
+        version: 0.185.1
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@26.1.0)(@vitest/browser-playwright@4.1.10)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1)(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(tsx@4.23.0)(yaml@2.9.0))
 
 packages:
 

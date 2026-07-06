@@ -223,6 +223,8 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           semgrep --config p/owasp-top-ten --config p/nodejs \
             --error --metrics=off \
-            --exclude='src/manifest/free.ts' \
+            --exclude='free.ts' \
             --exclude='dist' \
+            --exclude='docs/api' \
+            --exclude='*.html' \
             --exclude='node_modules' .

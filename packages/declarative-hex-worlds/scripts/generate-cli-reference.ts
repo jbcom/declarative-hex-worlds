@@ -10,8 +10,8 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 type ExecHelp = (
@@ -44,6 +44,17 @@ interface ResolvedGenerateCliReferenceOptions {
 }
 
 export function defaultRepoRoot(): string {
+  // docs-site/ lives at the WORKSPACE root, but this script is at
+  // packages/declarative-hex-worlds/scripts/. Walk up to the directory holding
+  // pnpm-workspace.yaml so the CLI reference lands in the real docs-site.
+  let dir = import.meta.dirname;
+  for (let i = 0; i < 12; i++) {
+    if (existsSync(resolve(dir, 'pnpm-workspace.yaml'))) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  // Fallback: the package root (pre-workspace layout).
   return resolve(import.meta.dirname, '..');
 }
 

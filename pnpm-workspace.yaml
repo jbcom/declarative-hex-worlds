@@ -1,2 +1,16 @@
 packages:
   - "packages/*"
+
+# Shared dependency versions — single source of truth across workspace packages
+# (the library + simple-rpg + docs-site). Reference with "catalog:" in a
+# package's dependencies. Keeps SimpleRPG's toolchain locked to the library's.
+catalog:
+  "@types/node": "^26.1.0"
+  "@types/react": "^19.2.17"
+  "@types/three": "^0.185.0"
+  typescript: "^6.0.3"
+  vitest: "^4.1.10"
+  three: "^0.185.1"
+  koota: "^0.6.6"
+  react: "^19.2.7"
+  react-dom: "^19.2.7"

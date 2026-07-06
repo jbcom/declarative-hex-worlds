@@ -62,6 +62,51 @@ capturable/embeddable; (c) the Astro docs-site has no React-island integration y
 (`@astrojs/react` not installed). All three are foundational and land before the
 asset-source feature proper.
 
+## API philosophy: declarative elements + hooks, and the boon/burden line
+
+dhw's public surface should feel like what a Node game developer already expects from
+Pixi or react-three-fiber: a **declarative, ergonomic API** — first-class JSX elements
+plus hooks — NOT an opaque "hand me a plan object, I'll render it" black box. The current
+`createGameboardRuntime` → `syncGameboardPlacementObjects` flow is imperative plumbing;
+it should be the *engine underneath* a declarative surface, not the surface itself.
+
+**First-class elements (the composition surface).** You should declare a hex world the way
+you'd compose an R3F scene or a Pixi stage:
+
+```tsx
+<HexWorld source={grasslandTileset}>
+  <Tileset id="grassland" sheet="/tiles/grassland.png" grid={{cols:5,rows:10,cell:{w:96,h:83}}} />
+  <Tile at={{q,r}} biome="forest" />                 {/* or auto-filled from worldgen */}
+  <Sprite at={{q,r}} sheet={unitsCC0} cell="warrior" />
+  <Spriteset id="units" sheet={unitsCC0} />
+  <Model at={{q,r}} src="/models/castle.glb" />      {/* 3D and 2D coexist by design */}
+</HexWorld>
+```
+
+Of course you place BOTH 3D models and 2D sprites in a hex system — that's the point; the
+engine makes it declarative. `<Tile>`, `<Tileset>`, `<Sprite>`, `<Spriteset>`, `<Model>`
+are the vocabulary; each resolves through the generic asset-source layer (G1/G2).
+
+**Hooks (the drive/query surface).** Developers drive and observe the world through hooks,
+not by reaching into the runtime: `useHexWorld`, `useTile`, `useSelection`, `useCamera`
+(the RFC0-CAM surface), `useHexPath`, `usePlacement`. This is the ergonomic contract R3F/
+Pixi users expect.
+
+**The boon/burden line — what dhw SHOULD and SHOULDN'T do.** This is the discernment that
+keeps the engine general and unpresumptuous:
+- **Boon — dhw OWNS** (every hex-game dev would dread rebuilding these): hex coordinate
+  math, tile/asset registration + placement, the no-gaps/no-overlaps tiling guarantee,
+  A\* pathfinding, selection/interaction wiring, camera/viewport control, the koota world,
+  and the 2.5D render bridge. Plus the declarative elements + hooks above.
+- **Burden — dhw must NOT do** (consumer territory; owning these would constrain and
+  presume): game rules, the simulation/economy/AI, art direction, what a unit or building
+  *means*. dhw provides the world and the verbs; the consumer provides the game.
+
+This philosophy shapes the rest of the RFC: RFC0-8 (`./tileset`) is not merely a loader —
+it delivers the `<Tileset>`/`<Tile>`/`<Sprite>`/`<Model>` elements + their hooks. Each
+capability gap little-legends surfaces is evaluated against this boon/burden line before
+it becomes a dhw feature (if it's a "burden," it stays in the consumer).
+
 ## Guiding method: dhw is the game engine; little-legends finds the gaps
 
 The deeper purpose of this RFC is to make **declarative-hex-worlds a 3D game engine** —
