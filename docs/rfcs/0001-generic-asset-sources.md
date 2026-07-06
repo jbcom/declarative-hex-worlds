@@ -13,17 +13,35 @@ supersedes_partially:
 
 ## Structural reframe: pnpm workspace with SimpleRPG as a real consumer
 
-Today SimpleRPG lives as 6 headless files under `src/guides/simple-rpg/` — conceived only
-as e2e-test logic. It should instead be a **first-class package that consumes dhw**, in a
-pnpm workspace:
+**This SUPERSEDES Epic R (docs/PRD/1.0.md §Epic R).** Epic R deliberately de-monorepo'd
+the repo (deleted `pnpm-workspace.yaml`, single package at root, SimpleRPG demoted to a
+test fixture) because "the monorepo shape is wrong" — optimizing the *published tarball's*
+devDependency hygiene. That optimization is preserved differently here: we return to a
+workspace, but **only `declarative-hex-worlds` is published** (`private: true` on every
+other member), so the published tarball stays exactly as lean as Epic R wanted while the
+repo regains the structure needed for a live-consumer docs story.
+
+**What of Epic R is KEPT vs reversed:**
+- **KEPT** — Epic R #2 (domain sub-package decomposition of `src/` with barrel-only
+  cross-domain imports, `noRestrictedImports` enforced). That internal structure is good
+  and stays; it just now lives under `packages/declarative-hex-worlds/src/`.
+- **REVERSED** — Epic R #1 (de-monorepo) and #3 (SimpleRPG-as-fixture-only). SimpleRPG
+  becomes a real rendering consumer; the workspace returns.
+
+Today SimpleRPG lives as headless files under `src/guides/simple-rpg/` — conceived only
+as e2e-test logic. It becomes a **first-class package that consumes dhw**:
 
 ```
 packages/
-  declarative-hex-worlds/   # the library (moved from repo root)
-  simple-rpg/               # a REAL rendering consumer of declarative-hex-worlds
-apps/
-  docs/                     # Astro docs-site, runs SimpleRPG LIVE in a React island
+  declarative-hex-worlds/   # THE library — the ONLY published package (npm)
+  simple-rpg/               # private: a REAL rendering consumer of declarative-hex-worlds
+  docs-site/                # private: Astro docs-site, now a workspace member so it can
+                            #   import SimpleRPG and run it LIVE in a React island
 ```
+
+Only `declarative-hex-worlds` publishes to npm. `simple-rpg` and `docs-site` are
+`private: true` — they consume the library, never ship. (docs-site currently has its own
+detached `package.json` + lockfile; it joins the workspace, dropping its separate lockfile.)
 
 Why this matters for this RFC specifically:
 
@@ -232,16 +250,19 @@ to offset via the existing conversion.
 
 ## Sequencing (docs → tests → code; coverage only goes up)
 
-**Phase 0 — Workspace foundation (structural, no feature yet):**
+**Phase 0 — Workspace foundation (structural, no feature yet; supersedes Epic R #1/#3):**
 1. **This RFC** (docs) — the spec of record. ← *you are here*
-2. **pnpm workspace**: introduce `pnpm-workspace.yaml`; move the library to
-   `packages/declarative-hex-worlds` (its public API / exports / published shape
-   unchanged); keep every test green through the move (pure relocation + path updates).
-3. **Promote SimpleRPG to `packages/simple-rpg`** as a real consumer that renders through
-   dhw (headless logic kept + a new R3F render surface). Its existing smoke/exercise
-   tests come along and stay green.
-4. **Docs-site React island**: add `@astrojs/react`; embed SimpleRPG live
-   (`client:load`) on a docs page — the docs now *run* the library.
+2. **pnpm workspace**: add `pnpm-workspace.yaml` (`packages/*`); move the library to
+   `packages/declarative-hex-worlds` (public API / exports / published shape / bin
+   unchanged; keep Epic R's internal domain decomposition). It is the ONLY package
+   without `private: true`. Every test green through the move (relocation + path updates).
+3. **Promote SimpleRPG to `packages/simple-rpg`** (`private: true`) — a real consumer that
+   renders through dhw (headless smoke/exercise logic kept + a new R3F render surface).
+   Existing integration/e2e tests come along and stay green.
+4. **Adopt docs-site as `packages/docs-site`** (`private: true`) — drop its detached
+   lockfile, make it a workspace member so it can depend on `simple-rpg` and
+   `declarative-hex-worlds` by workspace protocol. Add `@astrojs/react`; embed SimpleRPG
+   live (`client:load`) on a docs page — the docs now *run* the library.
 
 **Phase 1 — Visual-verification backbone swap (coverage UP, then vendor guide retired):**
 5. **Showcase coverage from SimpleRPG** (per-pillar set, D-showcase-scope): capture
