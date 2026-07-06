@@ -102,6 +102,8 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 | [Bindings + bundling](https://jonbogaty.com/declarative-hex-worlds/guides/bindings/) | [Determinism contract](https://jonbogaty.com/declarative-hex-worlds/guides/determinism/) | [Architecture](https://jonbogaty.com/declarative-hex-worlds/about/architecture/) |
 | [Testing](https://jonbogaty.com/declarative-hex-worlds/guides/testing/) | [Design rationale](https://jonbogaty.com/declarative-hex-worlds/about/design/) | [Deployment](https://jonbogaty.com/declarative-hex-worlds/about/deployment/) |
 
+**For AI agents** ([llms.txt standard](https://llmstxt.org)): [llms.txt](https://jonbogaty.com/declarative-hex-worlds/llms.txt) · [llms-small.txt](https://jonbogaty.com/declarative-hex-worlds/llms-small.txt) (guides, fits one context window) · [llms-full.txt](https://jonbogaty.com/declarative-hex-worlds/llms-full.txt) (guides + complete API reference). [AGENTS.md](https://github.com/jbcom/declarative-hex-worlds/blob/main/AGENTS.md) covers working *on* the repo.
+
 ---
 
 ## CLI
