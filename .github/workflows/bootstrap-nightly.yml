@@ -51,6 +51,8 @@ jobs:
         run: pnpm build
 
       - name: Bootstrap FREE assets from GitHub source
+        # dist/ is under the library package now; run node from there.
+        working-directory: packages/declarative-hex-worlds
         run: |
           mkdir -p /tmp/bootstrap-target
           node dist/cli.js bootstrap \
@@ -60,6 +62,7 @@ jobs:
           cat /tmp/bootstrap-result.json
 
       - name: Verify bootstrap integrity sidecar
+        working-directory: packages/declarative-hex-worlds
         run: node dist/cli.js bootstrap --verify --out /tmp/bootstrap-target
 
       - name: Assert expected GLTF count

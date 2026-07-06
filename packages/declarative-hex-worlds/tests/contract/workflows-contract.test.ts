@@ -74,10 +74,9 @@ describe('workflow contract', () => {
       ['pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models'],
       // browser-free visual gate remains documented as a local/full visual command
       ['pnpm test:browser:free'],
-      // docs-site build (artifact uploaded for cd.yml to deploy)
+      // docs-site build (Pages artifact uploaded for cd.yml to deploy)
       ['pnpm docs-site:build'],
-      // screenshot diff artifact upload
-      ['actions/upload-artifact'],
+      ['actions/upload-pages-artifact'],
       // dep-review job
       ['fail-on-severity: high'],
     ])('includes %s', (snippet) => {
@@ -121,7 +120,11 @@ describe('workflow contract', () => {
       // Merged coverage-enforce re-run at release for drift detection
       ['pnpm coverage:all:enforce'],
       ['pnpm exec playwright install --with-deps chromium'],
-      ['pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models'],
+      // Workspace: bootstrap runs inside the library package via --filter, out
+      // dir rooted at the package.
+      [
+        'pnpm --filter declarative-hex-worlds exec tsx src/cli/cli.ts bootstrap --source github --out packages/declarative-hex-worlds/models',
+      ],
       // Publish step explicitly hands the packed tarball to npm publish
       // so the SLSA L3 attestation in the previous step covers the exact
       // bytes that ship.
