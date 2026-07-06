@@ -66,6 +66,11 @@ jobs:
           pnpm coverage:all:enforce
 
       - name: Build package
+        env:
+          # tsup's DTS generation runs TypeScript in a worker thread; the
+          # v1.0.2 release build OOM'd its default heap on the 7 GB runner
+          # (ERR_WORKER_OUT_OF_MEMORY). Give Node explicit headroom.
+          NODE_OPTIONS: --max-old-space-size=6144
         run: pnpm build
 
       - name: Pack tarball for attestation
