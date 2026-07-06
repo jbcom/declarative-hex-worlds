@@ -47,7 +47,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Bootstrap FREE models for browser coverage
-        run: pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models
+        run: pnpm --filter declarative-hex-worlds exec tsx src/cli/cli.ts bootstrap --source github --out packages/declarative-hex-worlds/models
 
       - name: Production audit (high+)
         # Final blocking security gate before any bytes ship. Per-PR uses

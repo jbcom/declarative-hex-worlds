@@ -158,6 +158,13 @@ jobs:
     name: Coverage
     needs: install
     runs-on: ubuntu-latest
+    # Library scripts (test:coverage, coverage:merge:enforce), src/cli, and the
+    # coverage/ output are all package-level now — run this job's steps from the
+    # library package. node_modules install/pack/restore stay at the workspace
+    # root (below) since pnpm hoists there.
+    defaults:
+      run:
+        working-directory: packages/declarative-hex-worlds
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -174,11 +181,16 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: node-modules-${{ needs.install.outputs.cache-key }}
+          # Artifact was packed from the workspace root; unpack there, not in
+          # the package working-directory.
+          path: .
 
       - name: Unpack node_modules
+        working-directory: .
         run: tar --use-compress-program=unzstd -xf node_modules.tar.zst
 
       - name: Install Playwright Chromium
+        working-directory: .
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Bootstrap FREE models for browser coverage

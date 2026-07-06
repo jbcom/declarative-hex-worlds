@@ -247,6 +247,19 @@ to offset via the existing conversion.
   a single PR at the end. Phase 0 (workspace move) lands as the first commits, feature
   phases build on top in the same branch. Every commit keeps green + coverage
   non-decreasing (the discipline that makes a big branch safe).
+- **D-test-topology**: the workspace splits testing by package, and CI runs them in a
+  meaningful order. `packages/declarative-hex-worlds` keeps its unit + component +
+  integration + browser tests — proving **every capability in isolation**.
+  `packages/simple-rpg` **IS the e2e**: building SimpleRPG is making a real game that
+  consumes the package, so "test SimpleRPG end-to-end" tests the library's real-world
+  capability under production-like conditions. CI is layered: **FIRST** the library's own
+  suite (isolated proof) must pass, **THEN** SimpleRPG e2e runs (real-world integration
+  proof) — a `needs:` dependency, not parallel. The `tests/e2e/simple-rpg*` +
+  `tests/integration/simple-rpg*` currently inside the library package MIGRATE to
+  `packages/simple-rpg` as that consumer's own tests during RFC0-2 (they stop being the
+  library's internal fixtures and become the consumer's real tests). Coverage is measured
+  per-package; the library's coverage floor is unaffected by the migration because the
+  moved tests were exercising the *consumer's* integration, not internal library units.
 
 ## Sequencing (docs → tests → code; coverage only goes up)
 
