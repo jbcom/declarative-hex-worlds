@@ -309,3 +309,37 @@ Findings from full 5-phase review (`.full-review/05-final-report.md`). Ordered b
 2. Backward: any gap flagged by self-review / CI / coderabbit during this stage?
 3. Forward: what should the next commit do differently given what this one revealed?
 4. Encode forward learnings into directive items above before starting the next commit.
+
+---
+
+## Milestone RFC-0001 — Generic asset sources + first-class consumer package (2026-07-06)
+
+Spec of record: `docs/rfcs/0001-generic-asset-sources.md`. Goal: dhw becomes a general
+hex-board engine (GLTF packs AND tilesets), KayKit FREE/premium is a downloadable default
+(never shipped bytes), SimpleRPG is a first-class rendering consumer that produces the
+docs showcases + a live docs-site island, and visual verification is anchored to OUR
+consumer rendering FREE (not the embedded KayKit guide PDF). One feature branch
+(`feat/generic-asset-sources`), sequential commits, coverage monotonically non-decreasing,
+one PR → squash-merge → npm publish confirmed.
+
+### Phase 0 — Workspace foundation
+- [ ] RFC0-1 pnpm workspace: add `pnpm-workspace.yaml`; move library to `packages/declarative-hex-worlds` with published shape/exports unchanged; all tests green through the move.
+- [ ] RFC0-2 Promote SimpleRPG to `packages/simple-rpg` — a real consumer that renders through dhw (keep headless smoke/exercise tests green, add an R3F render surface).
+- [ ] RFC0-3 Docs-site React island: add `@astrojs/react`; embed SimpleRPG live (`client:load`) on a docs page — the docs RUN the library.
+
+### Phase 1 — Visual-verification backbone swap (coverage UP, then vendor guide retired)
+- [ ] RFC0-4 Capture per-pillar showcases from SimpleRPG rendering FREE through the library; `guide` source stays → coverage strictly increases.
+- [ ] RFC0-5 Repoint pillar `source_images:`, `release-readiness.json`, `docs/index.md`, `coverage.ts` from guide paths → SimpleRPG showcase paths; contract tests assert per-pillar showcase coverage.
+- [ ] RFC0-6 Retire `guide` source: remove the 19 KayKit PDF pages from tracked `docs/` → gitignored `raw-assets/`; delete all now-dead guide references (~2293); `coverage.test.ts` asserts the showcase backbone. Premium never in public docs.
+
+### Phase 2 — Generic asset sources + tileset
+- [ ] RFC0-7 `AssetSource` interface; extract KayKit `gltf-pack` as the first impl behind it (pure refactor, existing GLTF tests are the net).
+- [ ] RFC0-8 `./tileset` subpath: tileset manifest, UV-cell math, textured-hex mesh from the coordinate module's honeycomb corners; browser test rendering a small tileset board; SimpleRPG gains a tileset render mode. (Q1 manifest shape + Q2 material: decide with RFC-leaned defaults — separate TilesetManifest, MeshBasicMaterial default.)
+- [ ] RFC0-9 Generalize transition/edge-mask resolution (`AssetSource.resolveEdge`); fix `setCoastEdges` to validate/degrade non-contiguous masks at author time (the `010101` finding) + regression test.
+- [ ] RFC0-10 KayKit-as-downloadable-default: default source resolution (FREE bootstrap present → gltf-pack; absent → clear error); docs.
+
+### Phase 3 — Ship + external proof
+- [ ] RFC0-11 Comprehensive local review (code/security/simplify, parallel background), fold findings forward into the branch.
+- [ ] RFC0-12 Open PR; address ALL CI + review feedback; resolve every thread; squash-merge once green.
+- [ ] RFC0-13 Confirm the new version is published on npmjs (release-please cuts it post-merge; Monitor the release, verify the registry).
+- [ ] RFC0-14 Pivot back to little-legends: adopt the new dhw version, render the 10 tilesets through `./tileset`, screenshot against `docs/design/refs/civrev2-*.jpg`, append findings.
