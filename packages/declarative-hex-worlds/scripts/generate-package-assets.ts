@@ -120,7 +120,10 @@ export function generatePackageAssets(
   });
 
   if (args.edition === 'free') {
-    resolved.writeManifestModule(manifest, resolve(packageRoot, 'src/manifest/free.ts'));
+    // RFC 0001 (G0): only the JSON is generated now. `src/manifest/free.ts` is a
+    // hand-written thin, typed re-export of this JSON — no longer a 16.5k-LOC
+    // generated literal (that duplicated the JSON, forced a 6 GB DTS heap, and
+    // needed a drift test). The JSON is the single source of truth.
     resolved.writeManifestJson(manifest, resolve(packageRoot, 'assets/free/manifest.json'));
   }
   resolved.log(`Generated manifest for ${manifest.counts.total} ${args.edition} assets`);

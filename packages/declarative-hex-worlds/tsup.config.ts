@@ -9,6 +9,7 @@ export default defineConfig({
     compatibility: 'src/interop/compatibility.ts',
     commands: 'src/commands/index.ts',
     coverage: 'src/interop/coverage.ts',
+    'asset-source': 'src/asset-source/index.ts',
     coordinates: 'src/coordinates/index.ts',
     gameboard: 'src/gameboard/index.ts',
     grid: 'src/coordinates/grid.ts',

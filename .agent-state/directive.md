@@ -341,7 +341,15 @@ the live web-form configurator (locked).
 - [ ] RFC0-7 `AssetSource` interface; extract KayKit `gltf-pack` as the first impl behind it (pure refactor, existing GLTF tests are the net).
 - [ ] RFC0-8 `./tileset` subpath: tileset manifest, UV-cell math, textured-hex mesh from the coordinate module's honeycomb corners; browser test rendering a small tileset board; SimpleRPG gains a tileset render mode. (Q1 manifest shape + Q2 material: decide with RFC-leaned defaults — separate TilesetManifest, MeshBasicMaterial default.)
 - [ ] RFC0-9 Generalize transition/edge-mask resolution (`AssetSource.resolveEdge`); fix `setCoastEdges` to validate/degrade non-contiguous masks at author time (the `010101` finding) + regression test.
-- [ ] RFC0-10 KayKit-as-downloadable-default: default source resolution (FREE bootstrap present → gltf-pack; absent → clear error); docs.
+- [ ] RFC0-10 KayKit-as-downloadable-defaults (G4): THREE first-class downloadable CC0 packs — Medieval Hexagon (tiles/), Adventures (models/, playable), Skeletons (models/, enemies) = a full game from defaults. Fetch-on-demand for each (never tracked); default source resolution (present → use; absent → clear error to run the download); docs. Generalizes the current single-pack FREE bootstrap to the 3-pack set.
+
+### Phase 2b — Capabilities surfaced by real CC0 packs (SimpleRPG gap-finding)
+- [ ] RFC0-TEX Texture-binding: bind specific textures to specific GLB/GLTF models (KayKit Adventures ships textures for particular meshes). Spec + render bridge support explicit texture→model binding.
+- [ ] RFC0-TAG Classifier tags: first-class queryable tags (playable/non-playable/enemy/random-encounter/unit/building/prop) on assets+placements, koota-backed, queryable via hooks. Default classifiers for recognized packs (Adventures→playable, Skeletons→enemy).
+- [ ] RFC0-NORM Cross-pack size-normalization: hex tiles + props from different makers (KayKit vs Kenney) normalize to one board-cell size for seamless mixed-pack boards.
+- [ ] RFC0-OVERLAY Overlay + placement transforms: model/building from pack B onto a tile from pack A — scale-normalize + center-place + dev-controllable offset/anchor/rotation via <Model>/<Sprite>.
+- [ ] RFC0-ACC Accessory-attachment: associate accessories (helmet/weapon/shield) to a specific character model at the right node/bone. Composition primitive for the Adventures pack.
+- [ ] RFC0-PACKS Two tiers. DOWNLOADABLE DEFAULTS (first-class, fetched on demand, never tracked — G4 mechanism): KayKit Medieval Hexagon→tiles/, KayKit Adventures→models/ (playable), KayKit Skeletons→models/ (enemies) = a FULL game from defaults. CLI offers all three. BAKED into packages/simple-rpg/assets (a few Kenney pieces, tracked): Kenney Hexagon Kit→tiles/ (size-norm test), Kenney Retro Fantasy→models/ (overlay test) — proving cross-maker EXTENSION. Kenney attribution in NOTICE+docs.
 
 ### Phase 3 — Ship + external proof
 - [ ] RFC0-11 Comprehensive local review (code/security/simplify, parallel background), fold findings forward into the branch.

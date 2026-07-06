@@ -18,6 +18,7 @@
 
 export * from './actors';
 export * from './commands';
+export * from './asset-source';
 export * from './coordinates';
 export * from './errors';
 export * from './gameboard';

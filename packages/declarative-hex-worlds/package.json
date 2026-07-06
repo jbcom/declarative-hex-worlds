@@ -181,7 +181,11 @@
       "types": "./dist/examples/blueprint-board-usage.d.ts",
       "import": "./dist/examples/blueprint-board-usage.js"
     },
-    "./examples/*.json": "./examples/*.json"
+    "./examples/*.json": "./examples/*.json",
+    "./asset-source": {
+      "types": "./dist/asset-source.d.ts",
+      "import": "./dist/asset-source.js"
+    }
   },
   "bin": {
     "declarative-hex-worlds": "./dist/cli.js"
@@ -271,7 +275,8 @@
     "citty": "^0.2.2",
     "honeycomb-grid": "^4.1.5",
     "seedrandom": "^3.0.5",
-    "yauzl": "^3.4.0"
+    "yauzl": "^3.4.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.2",

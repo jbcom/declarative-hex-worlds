@@ -199,6 +199,58 @@ Where a run state reveals the library CAN'T do the thing (e.g. no camera-fill co
 no cross-source placement API), that gap becomes a library capability item in this RFC's
 work queue — SimpleRPG is the forcing function that finds them.
 
+### Two asset tiers: downloadable defaults vs baked extension fixtures
+
+**Downloadable defaults (first-class, fetched on demand, NEVER tracked — like KayKit
+Medieval today).** Three KayKit CC0 packs together form **a complete playable game's worth
+of defaults** — board + heroes + enemies + buildings — all CC0, all cloned+unpacked on
+demand through the same mechanism (G4), zero baking:
+
+| Downloadable default | CC0 source | Unpacks to | Role |
+|----------------------|-----------|-----------|------|
+| KayKit Medieval Hexagon | the FREE hex pack (+ buildings) | `tiles/` | the board + buildings |
+| KayKit Character Pack: Adventures | `KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0` | `models/` | playable characters |
+| KayKit Character Pack: Skeletons | `KayKit-Game-Assets/KayKit-Character-Pack-Skeletons-1.0` | `models/` | enemies |
+
+Adventurers + Skeletons + Medieval = **a full game from defaults in its own right.** The
+CLI offers all three as suggested downloadable sets via the same wiring as the hex pack; a
+developer gets a complete playable asset set with zero tracked bytes.
+
+**Baked extension fixtures (a FEW Kenney pieces tracked in SimpleRPG's own assets).** These
+are NOT defaults — they're deliberately a *different maker's* CC0 assets, baked into
+SimpleRPG to prove **extension** (overlay + size-normalize a foreign pack against the KayKit
+defaults). Attribution to Kenney in NOTICE + docs.
+
+| Baked fixture | CC0 source | Baked into | Proves |
+|---------------|-----------|-----------|--------|
+| Kenney Hexagon Kit (a few) | `kenney.nl/assets/hexagon-kit` | `packages/simple-rpg/assets/tiles/` | cross-pack hex **size-normalization** (KayKit + Kenney hexes line up) |
+| Kenney Retro Fantasy Kit (a few) | `kenney.nl/assets/retro-fantasy-kit` | `packages/simple-rpg/assets/models/` | **overlay + placement transforms** — a foreign-maker building on a KayKit tile, scale-normalized + center-placed |
+
+So SimpleRPG gets real units/enemies/buildings mostly FROM the downloadable KayKit defaults
+(no baking), and bakes only a handful of Kenney pieces to prove the cross-maker extension
+path. That IS the dogfooding proof: the defaults give a full game; the Kenney bake proves
+you can extend it.
+
+### First-class capabilities these packs surface (all become dhw features)
+
+1. **Texture-binding** — bind specific textures to specific GLB/GLTF models (the Adventures
+   pack ships textures meant for particular meshes). The spec + render bridge must support
+   an explicit texture→model binding, not just embedded textures.
+2. **Accessory-attachment** — associate accessories (helmets, weapons, shields) to a
+   specific character model, attached at the right node/bone. A composition primitive.
+3. **Classifier tags** — first-class, queryable tags on assets/placements: `playable`,
+   `non-playable`, `enemy`, `random-encounter`, `unit`, `building`, `prop`. Consumers query
+   "all enemies" / "playable characters" through the koota-backed hooks. Default classifiers
+   ship for the recognized packs (Adventures→playable, Skeletons→enemy).
+4. **Cross-pack size-normalization** — hex tiles (and props) from different makers (KayKit
+   vs Kenney) normalize to one board cell size, so a mixed-pack board is seamless.
+5. **Overlay + placement transforms** — place a model/building from pack B onto a tile from
+   pack A with scale-normalize + center-place, plus dev-controllable positioning
+   (offset/anchor/rotation). The `<Model>`/`<Sprite>` elements expose these.
+
+These are added to the work queue (RFC0-TEX, RFC0-TAG, RFC0-NORM, RFC0-OVERLAY) — each
+found by SimpleRPG trying to bind a real CC0 pack and hitting a wall.
+
 ## Original scope — Generic asset sources
 
 ## Problem
@@ -347,11 +399,26 @@ kind from directory + file extension; the emitted `AssetSourceSpec` records each
 role + format so the render bridge (G1) dispatches correctly (image → textured-hex mesh or
 billboard; GLTF → loaded Object3D).
 
-**Suggested-default clone.** As today (the FREE bootstrap), the CLI can offer to clone a
-recommended CC0 set — the KayKit FREE pack — into `public/assets/tiles`, giving a
-zero-config, license-clean starting point. This is one heuristic suggestion among many, not
-a hardcoded assumption: point the CLI at your own `tiles/`/`sprites/`/`tilesets/`/`models/`
-and it binds those instead.
+**Suggested-default clone.** As today (the FREE bootstrap), the CLI can offer to clone
+recommended CC0 sets — the three KayKit packs (Medieval Hexagon → `tiles/`, Adventures →
+`models/`, Skeletons → `models/`) — giving a zero-config, license-clean, *full-game*
+starting point. This is a heuristic suggestion, not a hardcoded assumption: point the CLI at
+your own `tiles/`/`sprites/`/`tilesets/`/`models/` and it binds those instead.
+
+**The CLI shapes the directory layout, two-way.** Beyond top-level roles, the CLI suggests
+**nested, classified layouts** — `models/npcs/`, `models/enemies/`, `models/playable/`,
+`tiles/terrain/`, `tiles/buildings/` — and, in the CLI/web flow, lets the developer
+**designate groupings** by suggested classifications (playable / enemy / npc / building /
+prop) AND/OR **custom** ones they define. Those groupings are reflected in BOTH:
+- the generated `AssetSourceSpec` JSON (as classifier tags — see RFC0-TAG), and
+- the **actual directory structure** — the CLI can offer to **move assets around** to match
+  the chosen layout (e.g. `models/skeleton_warrior.glb` → `models/enemies/skeleton_warrior.glb`),
+  updating the spec's paths in lockstep.
+
+So the CLI is a two-way asset organizer: read what's there → suggest a classified layout →
+dev accepts/customizes groupings (visually in the web form) → materialize the classification
+as BOTH spec metadata and real directory moves, kept coherent. Physical layout and queryable
+tags stay in sync.
 
 ### Asset-source interface (G1)
 

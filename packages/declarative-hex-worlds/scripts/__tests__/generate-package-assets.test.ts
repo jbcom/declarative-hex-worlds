@@ -90,10 +90,11 @@ describe('scripts/generate-package-assets', () => {
       packageRoot: '/repo',
       manifest,
     });
+    // RFC 0001 (G0): only the JSON is generated now — `src/manifest/free.ts` is a
+    // hand-written thin re-export of the JSON, no longer a generated TS literal.
     expect(calls).toEqual([
       { kind: 'validate', sourceRoot: '/packs/free', edition: 'free' },
       { kind: 'generate', options: { sourceRoot: '/packs/free', edition: 'free' } },
-      { kind: 'module', outputPath: '/repo/src/manifest/free.ts' },
       { kind: 'json', outputPath: '/repo/assets/free/manifest.json' },
     ]);
     expect(logs).toEqual(['Generated manifest for 7 free assets']);
