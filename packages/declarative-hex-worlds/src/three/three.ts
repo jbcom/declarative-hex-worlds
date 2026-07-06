@@ -119,15 +119,28 @@ const GLTF_LOAD_CACHE_MAX_ENTRIES = 128;
  * `GLTF_LOAD_CACHE_MAX_ENTRIES`): a cache hit refreshes the URL's recency, and
  * inserting beyond the cap evicts the least-recently-used URL.
  */
-function loadGltfCached(loader: GameboardGltfLoader, url: string, cacheLoads: boolean): Promise<GameboardGltfLike> {
+/**
+ * Generic per-loader URL memoization: dedupes concurrent/repeated loads of the
+ * same URL for a given loader identity, refreshes recency on hit, evicts the
+ * least-recently-used entry past the cap, and evicts rejects by identity so the
+ * next call retries. Shared by the GLTF loader and the sheet-texture loader — one
+ * cache implementation, two asset kinds.
+ */
+function loadUrlCached<T>(
+  cachesByLoader: WeakMap<object, Map<string, Promise<T>>>,
+  loader: object,
+  url: string,
+  cacheLoads: boolean,
+  load: (url: string) => Promise<T>
+): Promise<T> {
   if (!cacheLoads) {
-    return loader.loadAsync(url);
+    return load(url);
   }
 
-  let cache = gltfLoadCachesByLoader.get(loader);
+  let cache = cachesByLoader.get(loader);
   if (!cache) {
     cache = new Map();
-    gltfLoadCachesByLoader.set(loader, cache);
+    cachesByLoader.set(loader, cache);
   }
 
   const cached = cache.get(url);
@@ -139,9 +152,13 @@ function loadGltfCached(loader: GameboardGltfLoader, url: string, cacheLoads: bo
     return cached;
   }
 
-  const pending = loader.loadAsync(url);
+  const pending = load(url);
   cache.set(url, pending);
-  evictLeastRecentlyUsed(cache);
+  if (cache.size > GLTF_LOAD_CACHE_MAX_ENTRIES) {
+    // Guaranteed defined: size > cap (>= 1) means at least one key to iterate.
+    const oldestKey = cache.keys().next().value as string;
+    cache.delete(oldestKey);
+  }
   pending.catch(() => {
     // Evict by identity: after LRU eviction plus a fresh request for the same
     // URL, this stale rejection must not delete the newer in-flight entry.
@@ -152,20 +169,8 @@ function loadGltfCached(loader: GameboardGltfLoader, url: string, cacheLoads: bo
   return pending;
 }
 
-/**
- * Evicts the oldest (least-recently-used) entry once the cache exceeds its
- * capacity. Map keys iterate in insertion order, and reads/inserts in
- * `loadGltfCached` always re-insert on access, so the first key is always the
- * least-recently-used one.
- */
-function evictLeastRecentlyUsed(cache: GameboardGltfLoadCache): void {
-  if (cache.size <= GLTF_LOAD_CACHE_MAX_ENTRIES) {
-    return;
-  }
-  // Guaranteed defined: cache.size > GLTF_LOAD_CACHE_MAX_ENTRIES (>= 1) means
-  // at least one key exists to iterate.
-  const oldestKey = cache.keys().next().value as string;
-  cache.delete(oldestKey);
+function loadGltfCached(loader: GameboardGltfLoader, url: string, cacheLoads: boolean): Promise<GameboardGltfLike> {
+  return loadUrlCached(gltfLoadCachesByLoader, loader, url, cacheLoads, (u) => loader.loadAsync(u));
 }
 
 /**
@@ -193,32 +198,7 @@ function loadSheetTextureCached(
   url: string,
   cacheLoads: boolean
 ): Promise<SheetTexture> {
-  if (!cacheLoads) {
-    return loader.loadAsync(url);
-  }
-  let cache = sheetLoadCachesByLoader.get(loader);
-  if (!cache) {
-    cache = new Map();
-    sheetLoadCachesByLoader.set(loader, cache);
-  }
-  const cached = cache.get(url);
-  if (cached) {
-    cache.delete(url);
-    cache.set(url, cached);
-    return cached;
-  }
-  const pending = loader.loadAsync(url);
-  cache.set(url, pending);
-  if (cache.size > GLTF_LOAD_CACHE_MAX_ENTRIES) {
-    const oldestKey = cache.keys().next().value as string;
-    cache.delete(oldestKey);
-  }
-  pending.catch(() => {
-    if (cache?.get(url) === pending) {
-      cache.delete(url);
-    }
-  });
-  return pending;
+  return loadUrlCached(sheetLoadCachesByLoader, loader, url, cacheLoads, (u) => loader.loadAsync(u));
 }
 
 /**
