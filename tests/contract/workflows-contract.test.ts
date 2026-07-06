@@ -155,6 +155,12 @@ describe('workflow contract', () => {
   });
 
   describe('CD workflow shape', () => {
+    let cdContent: string;
+
+    beforeAll(() => {
+      cdContent = read(files.cd);
+    });
+
     it.each([
       ["NODE_VERSION: '22'"],
       ['pnpm/action-setup'],
@@ -168,14 +174,13 @@ describe('workflow contract', () => {
       ['pnpm docs-site:build'],
       ['actions/deploy-pages'],
     ])('includes %s', (snippet) => {
-      expect(read(files.cd)).toContain(snippet);
+      expect(cdContent).toContain(snippet);
     });
 
     it('does not gate release-please behind GitHub App credentials', () => {
-      const cd = read(files.cd);
-      expect(cd).not.toContain('actions/create-github-app-token');
-      expect(cd).not.toContain('RELEASE_PLEASE_APP_CLIENT_ID');
-      expect(cd).not.toContain('RELEASE_PLEASE_APP_PRIVATE_KEY');
+      expect(cdContent).not.toContain('actions/create-github-app-token');
+      expect(cdContent).not.toContain('RELEASE_PLEASE_APP_CLIENT_ID');
+      expect(cdContent).not.toContain('RELEASE_PLEASE_APP_PRIVATE_KEY');
     });
   });
 
