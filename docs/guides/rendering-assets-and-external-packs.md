@@ -138,8 +138,10 @@ is on by default; pass `cacheLoads: false` if a caller needs every placement
 to issue its own load.
 
 Deduping loads does not change the draw-call story: each placement still gets
-its own cloned `Object3D`, so one placement is still one draw call. For a
-98-placement showcase board this measures as 98 draw calls
+its own cloned `Object3D` subtree. A single-mesh asset is one draw call per
+placement; multi-mesh or multi-material GLTFs (rigged units especially) issue
+one draw call per mesh/material group. For a 98-placement showcase board of
+mostly single-mesh tiles this measures as 98 draw calls
 (`renderer.info.render.calls`) — fine at that scale. Boards with hundreds to
 thousands of tiles should batch per-asset-id with `THREE.InstancedMesh` on
 top of the placement snapshot the bridge already produces; the bridge

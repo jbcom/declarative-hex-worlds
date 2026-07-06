@@ -5,8 +5,7 @@ import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createGameboardBuilder } from '../../gameboard';
-import { createGameboardScenario } from '../../scenario';
-import { createGameboardRecipe } from '../../scenario/recipe';
+import { createGameboardRecipe, createGameboardScenario } from '../../scenario';
 import type { MedievalHexagonManifest } from '../../types';
 
 const testDir = dirname(fileURLToPath(import.meta.url));

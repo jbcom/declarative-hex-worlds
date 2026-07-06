@@ -595,6 +595,52 @@ describe('three GLTF load caching', () => {
     expect(loadedUrls).toEqual([fillerUrl(1)]);
   });
 
+  it('does not let a stale rejection evict a newer in-flight load for the same URL', async () => {
+    const CACHE_CAPACITY = 128;
+    const staleUrl = '/models/stale-rejection.glb';
+    let rejectFirstLoad: ((error: Error) => void) | undefined;
+    let staleUrlCalls = 0;
+    const loader = {
+      loadAsync(url: string): Promise<{ scene: Group; animations: never[] }> {
+        if (url !== staleUrl) {
+          return Promise.resolve({ scene: new Group(), animations: [] });
+        }
+        staleUrlCalls += 1;
+        if (staleUrlCalls === 1) {
+          return new Promise((_resolve, reject) => {
+            rejectFirstLoad = reject;
+          });
+        }
+        return Promise.resolve({ scene: new Group(), animations: [] });
+      },
+    };
+    const stalePlacement = (id: string) =>
+      placement({ id, assetId: 'flag_blue', metadata: { sourceUrl: staleUrl } });
+
+    // First load: stays in flight (its rejection fires later).
+    const firstLoad = loadGameboardPlacementObject(stalePlacement('stale-first'), { loader });
+    const firstLoadSettled = firstLoad.catch(() => 'rejected');
+
+    // Push the in-flight entry out of the cache via LRU overflow…
+    for (let index = 0; index < CACHE_CAPACITY; index += 1) {
+      await loadGameboardPlacementObject(
+        placement({ id: `stale-filler-${index}`, assetId: 'flag_blue', metadata: { sourceUrl: `/models/stale-filler-${index}.glb` } }),
+        { loader }
+      );
+    }
+
+    // …then re-request the same URL, creating a NEWER cache entry.
+    await loadGameboardPlacementObject(stalePlacement('stale-second'), { loader });
+    expect(staleUrlCalls).toBe(2);
+
+    // The orphaned first load now rejects. It must not evict the newer entry.
+    rejectFirstLoad?.(new Error('stale rejection'));
+    expect(await firstLoadSettled).toBe('rejected');
+
+    await loadGameboardPlacementObject(stalePlacement('stale-third'), { loader });
+    expect(staleUrlCalls).toBe(2); // still cached — stale rejection evicted nothing
+  });
+
   it('keeps a recently-used URL cached while less recently used entries are evicted at capacity', async () => {
     const CACHE_CAPACITY = 128;
     const loadedUrls: string[] = [];

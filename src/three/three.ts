@@ -141,7 +141,11 @@ function loadGltfCached(loader: GameboardGltfLoader, url: string, cacheLoads: bo
   cache.set(url, pending);
   evictLeastRecentlyUsed(cache);
   pending.catch(() => {
-    cache?.delete(url);
+    // Evict by identity: after LRU eviction plus a fresh request for the same
+    // URL, this stale rejection must not delete the newer in-flight entry.
+    if (cache?.get(url) === pending) {
+      cache.delete(url);
+    }
   });
   return pending;
 }

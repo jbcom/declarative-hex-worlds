@@ -46,6 +46,10 @@ function typecheckVirtualTsxBlocks(sources: readonly string[]): readonly string[
     // Each snippet is a standalone example, not part of the project graph.
     composite: false,
     incremental: false,
+    // Every snippet must be its own module scope — without this, a snippet
+    // with no import/export is a script and its top-level names would leak
+    // into (and collide with) the other blocks in this shared program.
+    moduleDetection: ts.ModuleDetectionKind.Force,
   };
   const virtualSources = new Map<string, string>(
     sources.map((source, index) => [

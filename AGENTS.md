@@ -413,9 +413,12 @@ contract for CI and npm consumers.
 
 ## Public API Surfaces
 
-Every subpath below is a real `exports` entry in `package.json`, backed by
-`dist/<name>.js` + `dist/<name>.d.ts` (tsup, code splitting enabled for Koota
-trait identity — see PRD invariant on `splitting: true`).
+Every code subpath below is a real `exports` entry in `package.json`, backed
+by `dist/<name>.js` + `dist/<name>.d.ts` (tsup, code splitting enabled for
+Koota trait identity — see PRD invariant on `splitting: true`). Two raw-file
+exports sit outside that rule: `./assets/free/manifest.json` and
+`./examples/*.json` map straight to files shipped in the tarball (no dist
+build, no `.d.ts`).
 
 - `.` main package: manifests, catalog, builders, Koota runtime, rules, selectors,
   and grid helpers.

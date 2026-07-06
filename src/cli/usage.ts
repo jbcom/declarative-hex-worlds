@@ -1229,7 +1229,7 @@ export const COMMANDS: readonly CommandHelp[] = [
   },
   {
     name: 'extract',
-    summary: 'Copy GLTF assets and write a manifest to an output folder (alias: ingest)',
+    summary: 'Copy GLTF assets and write a manifest to an output folder',
     aliases: ['ingest'],
     options: [
       {
