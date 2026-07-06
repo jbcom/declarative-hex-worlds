@@ -83,6 +83,52 @@ export interface GameboardGltfLoader {
 }
 
 /**
+ * Per-URL memoization cache for a given loader instance. Holds in-flight and
+ * resolved loads so N placements sharing a URL trigger exactly one
+ * `loadAsync` call. Keyed per loader (via a module-level `WeakMap`) so
+ * distinct loader instances never share results.
+ */
+type GameboardGltfLoadCache = Map<string, Promise<GameboardGltfLike>>;
+
+/**
+ * Module-level cache of per-loader URL memoization maps. Scoped by loader
+ * identity so callers using distinct loader instances (e.g. per test, per
+ * app instance) never see cross-contamination, and unreferenced loaders are
+ * eligible for garbage collection.
+ */
+const gltfLoadCachesByLoader = new WeakMap<GameboardGltfLoader, GameboardGltfLoadCache>();
+
+/**
+ * Loads a GLTF URL through the per-loader memoization cache, deduplicating
+ * concurrent and repeated loads of the same URL. Rejected loads are evicted
+ * from the cache so the next call retries instead of permanently caching a
+ * failure.
+ */
+function loadGltfCached(loader: GameboardGltfLoader, url: string, cacheLoads: boolean): Promise<GameboardGltfLike> {
+  if (!cacheLoads) {
+    return loader.loadAsync(url);
+  }
+
+  let cache = gltfLoadCachesByLoader.get(loader);
+  if (!cache) {
+    cache = new Map();
+    gltfLoadCachesByLoader.set(loader, cache);
+  }
+
+  const cached = cache.get(url);
+  if (cached) {
+    return cached;
+  }
+
+  const pending = loader.loadAsync(url);
+  cache.set(url, pending);
+  pending.catch(() => {
+    cache?.delete(url);
+  });
+  return pending;
+}
+
+/**
  * Options for loading one placement object.
  */
 export interface LoadGameboardPlacementObjectOptions
@@ -94,6 +140,13 @@ export interface LoadGameboardPlacementObjectOptions
   clipName?: string;
   /** Whether to start the selected animation immediately. Defaults to true. */
   playAnimation?: boolean;
+  /**
+   * Deduplicates loader calls by URL so multiple placements sharing an asset
+   * trigger exactly one `loadAsync` invocation. The cached GLTF source is
+   * never mutated directly — each placement still receives its own cloned
+   * `Object3D` scene instance. Defaults to `true`.
+   */
+  cacheLoads?: boolean;
 }
 
 /**
@@ -265,12 +318,13 @@ export async function loadGameboardPlacementObject(
     throw new GameboardRuntimeError(`No model URL resolved for placement ${placement.id} (${placement.assetId})`);
   }
 
-  const model = await options.loader.loadAsync(modelUrl);
+  const cacheLoads = options.cacheLoads ?? true;
+  const model = await loadGltfCached(options.loader, modelUrl, cacheLoads);
   const transform = transformForPlacement(placement);
-  const object = applyTransform(model.scene, transform);
+  const object = applyTransform(model.scene.clone(true), transform);
   tagGameboardPlacementObject(object, placement);
   const animationUrl = resolveGameboardPlacementAnimationUrl(placement, options);
-  const animation = animationUrl ? await options.loader.loadAsync(animationUrl) : undefined;
+  const animation = animationUrl ? await loadGltfCached(options.loader, animationUrl, cacheLoads) : undefined;
   const clips = [...(animation?.animations ?? []), ...(model.animations ?? [])];
   const clip = selectAnimationClip(clips, options.clipName ?? placementAnimationClipName(placement));
   const mixer = clip ? new AnimationMixer(object) : undefined;

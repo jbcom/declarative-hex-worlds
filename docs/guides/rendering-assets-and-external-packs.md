@@ -127,6 +127,24 @@ Animation loading is explicit because different games manage mixers and clips
 differently. The bridge exposes clip metadata so an app can connect the loaded
 clips to its own animation system.
 
+### Performance at scale
+
+`syncGameboardPlacementObjects` (and `loadGameboardPlacementObject`) dedupe
+GLTF loads by URL automatically: placements that resolve to the same model or
+animation URL trigger exactly one `loader.loadAsync` call per sync
+generation, no matter how many placements share it. A failed load is evicted
+from the cache so the next sync retries instead of caching the failure. This
+is on by default; pass `cacheLoads: false` if a caller needs every placement
+to issue its own load.
+
+Deduping loads does not change the draw-call story: each placement still gets
+its own cloned `Object3D`, so one placement is still one draw call. For a
+98-placement showcase board this measures as 98 draw calls
+(`renderer.info.render.calls`) — fine at that scale. Boards with hundreds to
+thousands of tiles should batch per-asset-id with `THREE.InstancedMesh` on
+top of the placement snapshot the bridge already produces; the bridge
+intentionally doesn't own that batching decision.
+
 ## External Compatibility
 
 Run compatibility checks on local GLB/GLTF files before registering them as

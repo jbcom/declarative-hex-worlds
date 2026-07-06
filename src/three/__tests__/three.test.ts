@@ -348,7 +348,6 @@ describe('three placement asset URL helpers', () => {
     expect(loadedUrls).toEqual([
       '/models/Knight.glb',
       '/animations/walk-a.glb',
-      '/models/Knight.glb',
       '/animations/walk-b.glb',
     ]);
   });
@@ -396,6 +395,114 @@ describe('three placement asset URL helpers', () => {
       loader: failingLoader,
       throwOnError: true,
     })).rejects.toThrow('load failed: /models/missing.glb');
+  });
+});
+
+describe('three GLTF load caching', () => {
+  it('dedupes concurrent loadAsync calls for placements sharing a URL', async () => {
+    let callCount = 0;
+    const loader = {
+      async loadAsync(_url: string) {
+        callCount += 1;
+        return { scene: new Group(), animations: [] };
+      },
+    };
+    const first = placement({ id: 'a', assetId: 'hex_grass', metadata: { sourceUrl: '/models/shared.glb' } });
+    const second = placement({ id: 'b', assetId: 'hex_grass', metadata: { sourceUrl: '/models/shared.glb' } });
+
+    const [loadedA, loadedB] = await Promise.all([
+      loadGameboardPlacementObject(first, { loader }),
+      loadGameboardPlacementObject(second, { loader }),
+    ]);
+
+    expect(callCount).toBe(1);
+    expect(loadedA.object).not.toBe(loadedB.object);
+  });
+
+  it('issues one loadAsync call per unique URL across a placement sync', async () => {
+    const loadedUrls: string[] = [];
+    const loader = {
+      async loadAsync(url: string) {
+        loadedUrls.push(url);
+        return { scene: new Group(), animations: [] };
+      },
+    };
+    const placements = [
+      placement({ id: 'a', assetId: 'hex_grass', metadata: { sourceUrl: '/models/shared.glb' } }),
+      placement({ id: 'b', assetId: 'hex_grass', metadata: { sourceUrl: '/models/shared.glb' } }),
+      placement({ id: 'c', assetId: 'flag_blue', metadata: { sourceUrl: '/models/other.glb' } }),
+    ];
+
+    const result = await syncGameboardPlacementObjects(placements, { loader });
+
+    expect(loadedUrls).toEqual(['/models/shared.glb', '/models/other.glb']);
+    expect(result.loaded).toHaveLength(3);
+    expect(result.loaded[0]?.object).not.toBe(result.loaded[1]?.object);
+  });
+
+  it('evicts a rejected load so the next sync retries instead of permanently failing', async () => {
+    const loadedUrls: string[] = [];
+    let shouldFail = true;
+    const loader = {
+      async loadAsync(url: string) {
+        loadedUrls.push(url);
+        if (shouldFail) {
+          throw new Error(`load failed: ${url}`);
+        }
+        return { scene: new Group(), animations: [] };
+      },
+    };
+    const flaky = placement({ id: 'flaky', assetId: 'flag_blue', metadata: { sourceUrl: '/models/flaky.glb' } });
+
+    const failed = await syncGameboardPlacementObjects([flaky], { loader });
+    expect(failed.errors).toHaveLength(1);
+
+    shouldFail = false;
+    const retried = await syncGameboardPlacementObjects([flaky], { loader });
+
+    expect(loadedUrls).toEqual(['/models/flaky.glb', '/models/flaky.glb']);
+    expect(retried.errors).toEqual([]);
+    expect(retried.loaded.map((item) => item.placementId)).toEqual(['flaky']);
+  });
+
+  it('does not share cached loads between distinct loader instances', async () => {
+    let firstLoaderCalls = 0;
+    let secondLoaderCalls = 0;
+    const firstLoader = {
+      async loadAsync(_url: string) {
+        firstLoaderCalls += 1;
+        return { scene: new Group(), animations: [] };
+      },
+    };
+    const secondLoader = {
+      async loadAsync(_url: string) {
+        secondLoaderCalls += 1;
+        return { scene: new Group(), animations: [] };
+      },
+    };
+    const shared = placement({ assetId: 'flag_blue', metadata: { sourceUrl: '/models/cross-loader.glb' } });
+
+    await loadGameboardPlacementObject(shared, { loader: firstLoader });
+    await loadGameboardPlacementObject(shared, { loader: secondLoader });
+
+    expect(firstLoaderCalls).toBe(1);
+    expect(secondLoaderCalls).toBe(1);
+  });
+
+  it('bypasses the cache entirely when cacheLoads is set to false', async () => {
+    let callCount = 0;
+    const loader = {
+      async loadAsync() {
+        callCount += 1;
+        return { scene: new Group(), animations: [] };
+      },
+    };
+    const first = placement({ id: 'a', assetId: 'hex_grass', metadata: { sourceUrl: '/models/uncached.glb' } });
+    const second = placement({ id: 'b', assetId: 'hex_grass', metadata: { sourceUrl: '/models/uncached.glb' } });
+
+    await syncGameboardPlacementObjects([first, second], { loader, cacheLoads: false });
+
+    expect(callCount).toBe(2);
   });
 });
 
