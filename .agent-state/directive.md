@@ -356,3 +356,37 @@ the live web-form configurator (locked).
 - [ ] RFC0-12 Open PR; address ALL CI + review feedback; resolve every thread; squash-merge once green.
 - [ ] RFC0-13 Confirm the new version is published on npmjs (release-please cuts it post-merge; Monitor the release, verify the registry).
 - [ ] RFC0-14 Pivot back to little-legends: RE-HOME its composition + interaction onto dhw's koota world (stop duplicating an engine) — register its sprites + hex tilesets as asset sources, back worldgen/placement/selection/movement/fog/camera with dhw instead of hand-rolled R3F. Render the 10 tilesets through `./tileset`, screenshot against `docs/design/refs/civrev2-*.jpg`. Each little-legends need dhw can't yet back = a NEW capability item folded back into this branch (gap-finding runs throughout, per RFC §Guiding method), not just a final port.
+
+### RFC-0001 resume state (2026-07-06, after G0)
+
+**Branch:** feat/generic-asset-sources, PR #220 (draft). CI green on RFC0-1 + G0
+(build/lint/typecheck/coverage/bootstrap/benchmarks pass; CodeQL is GitHub
+default-setup = neutral/flaky, NOT a real gate).
+
+**DONE + verified (local green + CI green):**
+- RFC0-1 workspace move (library → packages/declarative-hex-worlds, private root,
+  only lib publishes, native pnpm caching CI, release-please retargeted).
+- RFC0-G0 Zod AssetSourceSpec (src/asset-source/, ./asset-source subpath) +
+  free.ts retirement (16.5k→41 lines) + pnpm catalog + zod dep. 2662 tests pass.
+
+**NEXT — RFC0-2 (SimpleRPG package), a large mechanical move:**
+- packages/simple-rpg/ is SCAFFOLDED (package.json private workspace:* dep,
+  tsconfig with jsx). Empty src/ — needs the actual move.
+- MOVE src/guides/simple-rpg/{smoke,exercises,types,index}.ts → packages/simple-rpg/src/
+  (these import the library by PACKAGE NAME already — clean).
+- MOVE the scattered SimpleRPG tests into packages/simple-rpg/tests/: tests/integration/simple-rpg/*,
+  tests/e2e/simple-rpg*, tests/browser/simple-rpg-visual.test.ts, tests/unit/simple-rpg.test.ts,
+  tests/simple-rpg/*. REPOINT their relative imports (../../src, ../../../src/guides/simple-rpg)
+  to the package name 'declarative-hex-worlds' + local paths.
+- The library's src/guides/simple-rpg/__tests__/{smoke,exercises}.test.ts move too.
+- Add packages/simple-rpg/vitest.config.ts; ensure `pnpm --filter @declarative-hex-worlds/simple-rpg test` green.
+- Update the library's tsconfig include/exclude + any contract test that counted simple-rpg files.
+- CI: add a layered simple-rpg e2e job that runs AFTER the library suite (needs:), per D-test-topology.
+- Give SimpleRPG an R3F render surface + run states (compose/cross-pack/pathfind/viewport) — this is where
+  the real gap-finding + showcase capture begins (RFC0-4).
+
+**THEN (Phase 2):** RFC0-7 AssetSource interface (build on G0) → RFC0-8 ./tileset +
+declarative <Tile>/<Tileset>/<Sprite>/<Model> elements + hooks → RFC0-CAM camera →
+RFC0-CLI binder + web configurator → RFC0-TEX/TAG/NORM/OVERLAY/ACC (CC0-pack gaps) →
+RFC0-10 three downloadable KayKit defaults → Phase 1 showcase backbone swap →
+RFC0-14 little-legends re-homing. See RFC 0001 for the full design.
