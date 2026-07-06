@@ -390,3 +390,16 @@ declarative <Tile>/<Tileset>/<Sprite>/<Model> elements + hooks → RFC0-CAM came
 RFC0-CLI binder + web configurator → RFC0-TEX/TAG/NORM/OVERLAY/ACC (CC0-pack gaps) →
 RFC0-10 three downloadable KayKit defaults → Phase 1 showcase backbone swap →
 RFC0-14 little-legends re-homing. See RFC 0001 for the full design.
+
+### Gap-finding result (2026-07-06): NO declarative render surface exists yet
+SimpleRPG's first render attempt confirms the RFC thesis gap: the library ships
+React PROVIDERS + HOOKS (GameboardRuntimeProvider, useGameboardState,
+useGameboardPlacementSnapshots, action hooks) but NO ready-to-use board React
+component — no <HexWorld>/<Tile>/<Canvas>/<mesh>. A consumer must hand-wire R3F
++ syncGameboardPlacementObjects (the imperative three bridge) themselves — exactly
+what little-legends' HexBoard did. So SimpleRPG can't render declaratively until
+RFC0-8 (the <Tile>/<Tileset>/<Sprite>/<Model> + <HexWorld> elements + hooks that
+proxy koota+honeycomb+three) exists. EFFECTIVE ORDER: build RFC0-8 declarative
+elements NEXT (the core deliverable per the React thesis), with SimpleRPG as their
+first consumer + gap-finder. The imperative bridge becomes the internal engine
+under the declarative surface.
