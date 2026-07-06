@@ -30,7 +30,12 @@ function extractFencedBlocks(markdown: string, language: string): string[] {
   return blocks;
 }
 
-function typecheckVirtualTsx(source: string, virtualName: string): readonly string[] {
+/**
+ * Type-check every block in ONE program: lib.d.ts parsing and the
+ * path-mapped module graph are block-independent, so per-block programs
+ * would just repeat that bootstrap for every snippet the README gains.
+ */
+function typecheckVirtualTsxBlocks(sources: readonly string[]): readonly string[] {
   const configPath = resolve(repoRoot, 'tsconfig.json');
   const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
   const parsed = ts.parseJsonConfigFileContent(configFile.config, ts.sys, repoRoot);
@@ -38,25 +43,29 @@ function typecheckVirtualTsx(source: string, virtualName: string): readonly stri
     ...parsed.options,
     jsx: ts.JsxEmit.ReactJSX,
     noEmit: true,
-    // The snippet is a standalone example: it declares components the block
-    // itself exports, so unused-local strictness stays meaningful, but it is
-    // not part of the project graph.
+    // Each snippet is a standalone example, not part of the project graph.
     composite: false,
     incremental: false,
   };
-  const virtualPath = resolve(repoRoot, virtualName);
+  const virtualSources = new Map<string, string>(
+    sources.map((source, index) => [
+      resolve(repoRoot, `__readme-quickstart-block-${index}.tsx`),
+      source,
+    ])
+  );
   const host = ts.createCompilerHost(options);
   const defaultGetSourceFile = host.getSourceFile.bind(host);
   host.getSourceFile = (fileName, languageVersion, ...rest) => {
-    if (resolve(fileName) === virtualPath) {
-      return ts.createSourceFile(fileName, source, languageVersion, true, ts.ScriptKind.TSX);
+    const virtualSource = virtualSources.get(resolve(fileName));
+    if (virtualSource !== undefined) {
+      return ts.createSourceFile(fileName, virtualSource, languageVersion, true, ts.ScriptKind.TSX);
     }
     return defaultGetSourceFile(fileName, languageVersion, ...rest);
   };
   const defaultFileExists = host.fileExists.bind(host);
-  host.fileExists = (fileName) => resolve(fileName) === virtualPath || defaultFileExists(fileName);
+  host.fileExists = (fileName) => virtualSources.has(resolve(fileName)) || defaultFileExists(fileName);
 
-  const program = ts.createProgram([virtualPath], options, host);
+  const program = ts.createProgram([...virtualSources.keys()], options, host);
   return ts
     .getPreEmitDiagnostics(program)
     .filter((diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error)
@@ -77,9 +86,6 @@ describe('README Quickstart contract', () => {
   });
 
   it('every tsx block in README.md type-checks against the real library API', () => {
-    const failures = tsxBlocks.flatMap((block, index) =>
-      typecheckVirtualTsx(block, `__readme-quickstart-block-${index}.tsx`)
-    );
-    expect(failures).toEqual([]);
+    expect(typecheckVirtualTsxBlocks(tsxBlocks)).toEqual([]);
   });
 });
