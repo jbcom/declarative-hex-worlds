@@ -14,6 +14,7 @@ import {
   selectGameboardLayoutSites,
   spawnGameboardLayoutFill,
   spawnGameboardLayoutPlacements,
+  type GameboardLayoutPlacementDiagnostics,
 } from '../../coordinates/layout';
 
 describe('gameboard layout placement criteria', () => {
@@ -1039,6 +1040,111 @@ describe('layout archetype + selection edge branches (PRD E0a)', () => {
     expect(() => spawnGameboardLayoutFill(createGameboardWorld(), { rules: [] })).toThrow(
       /World does not contain GameboardState/
     );
+  });
+});
+
+describe('createGameboardLayoutPlacements onDiagnostics (single-placement diagnostics)', () => {
+  it('reports the archetype-resolved criteria (including an inherited field the caller omitted) when the candidate set is empty', () => {
+    // Reproduces the landmark edgePadding leak (commit c049010): the caller's
+    // override omits edgePadding, so mergeLayoutCriteria inherits the
+    // landmark archetype's edgePadding: 1. On this 5x4 board only the ring of
+    // tiles strictly inside the edge padding would ever qualify, and this
+    // fixture's placements/terrain choices leave zero survivors.
+    const plan = createLayoutFixturePlan();
+    let diagnostics: GameboardLayoutPlacementDiagnostics | undefined;
+
+    const placements = createGameboardLayoutPlacements(plan, {
+      count: 1,
+      seed: 'landmark-empty',
+      assetId: 'obelisk',
+      archetype: 'landmark',
+      criteria: {
+        // Deliberately omits edgePadding — the caller never set it.
+        terrain: 'water',
+      },
+      onDiagnostics: (report) => {
+        diagnostics = report;
+      },
+    });
+
+    expect(placements).toHaveLength(0);
+    expect(diagnostics).toBeDefined();
+    expect(diagnostics?.requestedCount).toBe(1);
+    expect(diagnostics?.selectedCount).toBe(0);
+    expect(diagnostics?.archetypeId).toBe('landmark');
+    // The key assertion: edgePadding is visible in resolvedCriteria despite
+    // the caller never setting it — inherited from the landmark archetype.
+    expect(diagnostics?.resolvedCriteria.edgePadding).toBe(1);
+    expect(diagnostics?.resolvedCriteria.terrain).toBe('water');
+  });
+
+  it('names the filter that emptied the candidate set via the rejection histogram', () => {
+    const plan = createLayoutFixturePlan();
+    let diagnostics: GameboardLayoutPlacementDiagnostics | undefined;
+
+    createGameboardLayoutPlacements(plan, {
+      count: 1,
+      seed: 'terrain-empty',
+      assetId: 'obelisk',
+      kind: 'prop',
+      // 'mountain' terrain does not exist anywhere on the fixture board, so
+      // every tile is rejected by the terrain filter and no other filter
+      // contributes any rejections.
+      criteria: { terrain: 'mountain', allowOccupied: true },
+      onDiagnostics: (report) => {
+        diagnostics = report;
+      },
+    });
+
+    expect(diagnostics?.candidateCount).toBe(0);
+    expect(diagnostics?.rejectedCount).toBe(plan.tiles.length);
+    expect(diagnostics?.rejectionCounts.terrain).toBe(plan.tiles.length);
+  });
+
+  it('never invokes onDiagnostics and produces identical placements when the option is absent (zero behavior change)', () => {
+    const plan = createLayoutFixturePlan();
+    const baseOptions = {
+      count: 2,
+      seed: 'rocks-parity',
+      idPrefix: 'layout:rock-parity',
+      assetId: 'rock_single_A',
+      kind: 'decoration' as const,
+      layer: 'feature' as const,
+      criteria: { terrain: 'grass' as const, allowOccupied: false, minDistanceBetween: 2 },
+    };
+
+    const withoutOption = createGameboardLayoutPlacements(plan, baseOptions);
+
+    let diagnosticsCalls = 0;
+    const withOptionButSatisfied = createGameboardLayoutPlacements(plan, {
+      ...baseOptions,
+      onDiagnostics: () => {
+        diagnosticsCalls += 1;
+      },
+    });
+
+    expect(withOptionButSatisfied).toEqual(withoutOption);
+    expect(diagnosticsCalls).toBe(0);
+
+    // And when onDiagnostics is entirely absent, the empty-candidate path
+    // still returns the same (empty) result as with a no-op onDiagnostics.
+    const emptyWithoutOption = createGameboardLayoutPlacements(plan, {
+      count: 1,
+      seed: 'terrain-empty-parity',
+      assetId: 'obelisk',
+      kind: 'prop',
+      criteria: { terrain: 'mountain', allowOccupied: true },
+    });
+    const emptyWithOption = createGameboardLayoutPlacements(plan, {
+      count: 1,
+      seed: 'terrain-empty-parity',
+      assetId: 'obelisk',
+      kind: 'prop',
+      criteria: { terrain: 'mountain', allowOccupied: true },
+      onDiagnostics: () => {},
+    });
+    expect(emptyWithOption).toEqual(emptyWithoutOption);
+    expect(emptyWithOption).toHaveLength(0);
   });
 });
 

@@ -76,6 +76,37 @@ Warnings are useful, not cosmetic. A low candidate count, clamped fill count, or
 large footprint rejection usually means the authored board cannot support the
 requested density.
 
+`createGameboardLayoutPlacements` — the single-placement path used for
+structures, landmarks, and other one-off pieces — returns an empty array with
+no warnings when its resolved criteria match zero sites. This is easy to
+misread as "the board is full" when the real cause is an archetype-inherited
+criteria field the caller never set (for example, the `landmark` archetype
+defaults `edgePadding` to `1`, which silently excludes edge tiles a caller's
+override criteria did not think to re-enable). Pass `onDiagnostics` to see the
+fully resolved criteria and a rejection histogram whenever the selected count
+falls short of the requested count:
+
+```ts
+import { createGameboardLayoutPlacements } from 'declarative-hex-worlds/layout';
+
+const placements = createGameboardLayoutPlacements(plan, {
+  archetype: 'landmark',
+  count: 1,
+  assetId: 'obelisk',
+  criteria: { terrain: 'grass' }, // edgePadding: 1 is still inherited from the archetype
+  onDiagnostics: (diagnostics) => {
+    console.warn(
+      `landmark placement short by ${diagnostics.requestedCount - diagnostics.selectedCount}`,
+      diagnostics.resolvedCriteria, // shows the inherited edgePadding
+      diagnostics.rejectionCounts // names which filter emptied the candidate set
+    );
+  },
+});
+```
+
+`onDiagnostics` is only invoked when `selectedCount` is less than the
+requested `count`; omitting it is a no-op with identical placement output.
+
 ## Scenarios
 
 A scenario combines a recipe with gameplay objects:

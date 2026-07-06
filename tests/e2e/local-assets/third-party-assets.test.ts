@@ -143,6 +143,10 @@ describe('local third-party asset E2E compatibility', () => {
               terrain: ['grass', 'road', 'coast'],
               allowOccupied: false,
               minDistanceBetween: 1,
+              // The `landmark` archetype defaults edgePadding to 1; this piece is meant to sit on
+              // any unoccupied tile (edges included), so it must explicitly opt out — an omitted key
+              // inherits the archetype default via mergeLayoutCriteria, not "no padding".
+              edgePadding: 0,
               prefer: [
                 { kind: 'center', weight: 1 },
                 { kind: 'far-from-placement-kind', placementKind: 'prop', radius: 2, weight: 0.4 },

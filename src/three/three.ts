@@ -12,6 +12,7 @@ import {
   type Object3D,
   Vector3,
 } from 'three';
+import { clone as cloneWithSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { GameboardInteractionTargetInput } from '../actors';
 import { GameboardRuntimeError } from '../errors';
 import type { GameboardPlacementSpec } from '../gameboard';
@@ -83,6 +84,89 @@ export interface GameboardGltfLoader {
 }
 
 /**
+ * Per-URL memoization cache for a given loader instance. Holds in-flight and
+ * resolved loads so N placements sharing a URL trigger exactly one
+ * `loadAsync` call. Keyed per loader (via a module-level `WeakMap`) so
+ * distinct loader instances never share results.
+ */
+type GameboardGltfLoadCache = Map<string, Promise<GameboardGltfLike>>;
+
+/**
+ * Module-level cache of per-loader URL memoization maps. Scoped by loader
+ * identity so callers using distinct loader instances (e.g. per test, per
+ * app instance) never see cross-contamination, and unreferenced loaders are
+ * eligible for garbage collection.
+ */
+const gltfLoadCachesByLoader = new WeakMap<GameboardGltfLoader, GameboardGltfLoadCache>();
+
+/**
+ * Maximum number of resolved-or-pending URLs retained per loader's cache.
+ * Long-lived apps that swap boards repeatedly (each with its own asset URLs)
+ * would otherwise grow this cache without bound. 128 comfortably covers a
+ * full KayKit FREE + EXTRA manifest's worth of distinct model/animation URLs
+ * in view at once while still bounding memory for apps that churn through
+ * many more boards over a session.
+ */
+const GLTF_LOAD_CACHE_MAX_ENTRIES = 128;
+
+/**
+ * Loads a GLTF URL through the per-loader memoization cache, deduplicating
+ * concurrent and repeated loads of the same URL. Rejected loads are evicted
+ * from the cache so the next call retries instead of permanently caching a
+ * failure. Resolved entries are retained as a bounded LRU (capped at
+ * `GLTF_LOAD_CACHE_MAX_ENTRIES`): a cache hit refreshes the URL's recency, and
+ * inserting beyond the cap evicts the least-recently-used URL.
+ */
+function loadGltfCached(loader: GameboardGltfLoader, url: string, cacheLoads: boolean): Promise<GameboardGltfLike> {
+  if (!cacheLoads) {
+    return loader.loadAsync(url);
+  }
+
+  let cache = gltfLoadCachesByLoader.get(loader);
+  if (!cache) {
+    cache = new Map();
+    gltfLoadCachesByLoader.set(loader, cache);
+  }
+
+  const cached = cache.get(url);
+  if (cached) {
+    // Refresh recency: Map iteration order follows insertion order, so a
+    // delete+set re-insert moves this URL to the most-recently-used end.
+    cache.delete(url);
+    cache.set(url, cached);
+    return cached;
+  }
+
+  const pending = loader.loadAsync(url);
+  cache.set(url, pending);
+  evictLeastRecentlyUsed(cache);
+  pending.catch(() => {
+    // Evict by identity: after LRU eviction plus a fresh request for the same
+    // URL, this stale rejection must not delete the newer in-flight entry.
+    if (cache?.get(url) === pending) {
+      cache.delete(url);
+    }
+  });
+  return pending;
+}
+
+/**
+ * Evicts the oldest (least-recently-used) entry once the cache exceeds its
+ * capacity. Map keys iterate in insertion order, and reads/inserts in
+ * `loadGltfCached` always re-insert on access, so the first key is always the
+ * least-recently-used one.
+ */
+function evictLeastRecentlyUsed(cache: GameboardGltfLoadCache): void {
+  if (cache.size <= GLTF_LOAD_CACHE_MAX_ENTRIES) {
+    return;
+  }
+  // Guaranteed defined: cache.size > GLTF_LOAD_CACHE_MAX_ENTRIES (>= 1) means
+  // at least one key exists to iterate.
+  const oldestKey = cache.keys().next().value as string;
+  cache.delete(oldestKey);
+}
+
+/**
  * Options for loading one placement object.
  */
 export interface LoadGameboardPlacementObjectOptions
@@ -94,6 +178,13 @@ export interface LoadGameboardPlacementObjectOptions
   clipName?: string;
   /** Whether to start the selected animation immediately. Defaults to true. */
   playAnimation?: boolean;
+  /**
+   * Deduplicates loader calls by URL so multiple placements sharing an asset
+   * trigger exactly one `loadAsync` invocation. The cached GLTF source is
+   * never mutated directly — each placement still receives its own cloned
+   * `Object3D` scene instance. Defaults to `true`.
+   */
+  cacheLoads?: boolean;
 }
 
 /**
@@ -265,12 +356,19 @@ export async function loadGameboardPlacementObject(
     throw new GameboardRuntimeError(`No model URL resolved for placement ${placement.id} (${placement.assetId})`);
   }
 
-  const model = await options.loader.loadAsync(modelUrl);
+  const cacheLoads = options.cacheLoads ?? true;
+  const model = await loadGltfCached(options.loader, modelUrl, cacheLoads);
   const transform = transformForPlacement(placement);
-  const object = applyTransform(model.scene, transform);
+  // SkeletonUtils.clone (not Object3D.clone) rebinds SkinnedMesh skeletons to
+  // the cloned bone hierarchy. Plain `.clone(true)` deep-clones bones but
+  // leaves each SkinnedMesh's skeleton pointing at the ORIGINAL cached scene's
+  // bones, so rigged GLTFs (e.g. KayKit Adventurers units) would animate/deform
+  // against the wrong (shared) skeleton once more than one placement loads the
+  // same cached model.
+  const object = applyTransform(cloneWithSkeleton(model.scene), transform);
   tagGameboardPlacementObject(object, placement);
   const animationUrl = resolveGameboardPlacementAnimationUrl(placement, options);
-  const animation = animationUrl ? await options.loader.loadAsync(animationUrl) : undefined;
+  const animation = animationUrl ? await loadGltfCached(options.loader, animationUrl, cacheLoads) : undefined;
   const clips = [...(animation?.animations ?? []), ...(model.animations ?? [])];
   const clip = selectAnimationClip(clips, options.clipName ?? placementAnimationClipName(placement));
   const mixer = clip ? new AnimationMixer(object) : undefined;

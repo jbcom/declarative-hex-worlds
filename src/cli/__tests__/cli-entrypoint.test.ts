@@ -1,12 +1,16 @@
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { COMMANDS } from '../usage';
 
 type RawArgsContext = {
   rawArgs?: string[];
 };
 
 type EntrypointCommand = {
-  subCommands?: Record<string, () => Promise<{ run: (ctx: RawArgsContext) => Promise<void> | void }>>;
+  subCommands?: Record<
+    string,
+    () => Promise<{ run: (ctx: RawArgsContext) => Promise<void> | void }>
+  >;
 };
 
 const commandModuleIds = [
@@ -46,6 +50,18 @@ const commandModuleIds = [
   'bootstrap',
 ] as const;
 
+// Subcommand names that route to a module already listed above. Driving the
+// full citty map therefore invokes `commandModuleIds.length + aliasCount`
+// run() calls even though only `commandModuleIds.length` modules exist.
+//
+// Derived from `usage.ts`'s `COMMANDS` metadata (the same source of truth
+// `cli.ts`'s `SUBCOMMAND_LOADERS` is checked against in `usage.test.ts`)
+// rather than hardcoded here, so a future alias can't silently desync this
+// call-count assertion from the real alias set.
+const commandAliases = COMMANDS.flatMap((command) =>
+  (command.aliases ?? []).map((alias) => ({ alias, target: command.name }))
+);
+
 const originalArgv = process.argv;
 const originalDebug = process.env.HEX_WORLDS_DEBUG;
 
@@ -74,6 +90,79 @@ describe('CLI entrypoint dispatcher', () => {
     expect(mocks.exitSpy).not.toHaveBeenCalled();
   });
 
+  it.each([
+    { label: '--help', flag: '--help' },
+    { label: '-h', flag: '-h' },
+  ])('intercepts `<command> $label` with per-command usage instead of dispatching', async ({
+    flag,
+  }) => {
+    const mocks = await importEntrypoint(['bootstrap', flag]);
+
+    expect(mocks.commandUsageMock).toHaveBeenCalledWith('bootstrap', 0);
+    expect(mocks.usageMock).not.toHaveBeenCalled();
+    expect(mocks.runMainMock).not.toHaveBeenCalled();
+    expect(mocks.exitSpy).not.toHaveBeenCalled();
+  });
+
+  it('intercepts `--help` anywhere after the command name, not just immediately after it', async () => {
+    const mocks = await importEntrypoint(['bootstrap', '--force', '--help']);
+
+    expect(mocks.commandUsageMock).toHaveBeenCalledWith('bootstrap', 0);
+    expect(mocks.runMainMock).not.toHaveBeenCalled();
+  });
+
+  it('intercepts `bootstrap -h` as a standalone help flag', async () => {
+    const mocks = await importEntrypoint(['bootstrap', '-h']);
+
+    expect(mocks.commandUsageMock).toHaveBeenCalledWith('bootstrap', 0);
+    expect(mocks.runMainMock).not.toHaveBeenCalled();
+  });
+
+  it('does not intercept `-h` when it is the VALUE of a preceding flag, and dispatches normally', async () => {
+    const mocks = await importEntrypoint(['guide-assets', '--assetId', '-h'], {
+      runMainImpl: async () => {},
+    });
+
+    expect(mocks.commandUsageMock).not.toHaveBeenCalled();
+    expect(mocks.usageMock).not.toHaveBeenCalled();
+    expect(mocks.runMainMock).toHaveBeenCalledWith(
+      expect.objectContaining({ subCommands: expect.any(Object) }),
+      { rawArgs: ['guide-assets', '--assetId', '-h'] }
+    );
+  });
+
+  it('does not intercept `-h` when it follows any --flag token (matches parseFlags value semantics)', async () => {
+    const mocks = await importEntrypoint(['bootstrap', '--force', '-h'], {
+      runMainImpl: async () => {},
+    });
+
+    expect(mocks.commandUsageMock).not.toHaveBeenCalled();
+    expect(mocks.runMainMock).toHaveBeenCalledWith(
+      expect.objectContaining({ subCommands: expect.any(Object) }),
+      { rawArgs: ['bootstrap', '--force', '-h'] }
+    );
+  });
+
+  it('intercepts a standalone `-h` following a non-flag positional token', async () => {
+    const mocks = await importEntrypoint(['bootstrap', 'positional', '-h']);
+
+    expect(mocks.commandUsageMock).toHaveBeenCalledWith('bootstrap', 0);
+    expect(mocks.runMainMock).not.toHaveBeenCalled();
+  });
+
+  it('falls through to normal dispatch for an unknown command name even with --help present', async () => {
+    const mocks = await importEntrypoint(['not-a-real-command', '--help'], {
+      runMainImpl: async () => {},
+    });
+
+    expect(mocks.commandUsageMock).not.toHaveBeenCalled();
+    expect(mocks.usageMock).not.toHaveBeenCalled();
+    expect(mocks.runMainMock).toHaveBeenCalledWith(
+      expect.objectContaining({ subCommands: expect.any(Object) }),
+      { rawArgs: ['not-a-real-command', '--help'] }
+    );
+  });
+
   it('lazy-loads every subcommand and forwards parsed flags, source root, and edition', async () => {
     const mocks = await importEntrypoint(['doctor', '--json'], {
       runMainImpl: async (main) => {
@@ -98,7 +187,9 @@ describe('CLI entrypoint dispatcher', () => {
       expect.objectContaining({ subCommands: expect.any(Object) }),
       { rawArgs: ['doctor', '--json'] }
     );
-    expect(mocks.commandRunMock).toHaveBeenCalledTimes(commandModuleIds.length);
+    expect(mocks.commandRunMock).toHaveBeenCalledTimes(
+      commandModuleIds.length + commandAliases.length
+    );
     expect(mocks.commandRunMock).toHaveBeenCalledWith(
       {
         command: 'doctor',
@@ -216,6 +307,7 @@ async function importEntrypoint(
   } = {}
 ): Promise<{
   commandRunMock: ReturnType<typeof vi.fn>;
+  commandUsageMock: ReturnType<typeof vi.fn>;
   errorSpy: ReturnType<typeof vi.spyOn>;
   exitSpy: ReturnType<typeof vi.spyOn>;
   runMainMock: ReturnType<typeof vi.fn>;
@@ -232,6 +324,7 @@ async function importEntrypoint(
     }
   );
   const usageMock = vi.fn();
+  const commandUsageMock = vi.fn();
   const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
@@ -241,6 +334,7 @@ async function importEntrypoint(
   }));
   vi.doMock('../usage', () => ({
     usage: usageMock,
+    commandUsage: commandUsageMock,
   }));
   for (const moduleId of commandModuleIds) {
     vi.doMock(`../commands/${moduleId}`, () => ({
@@ -251,7 +345,7 @@ async function importEntrypoint(
   await import('../cli');
   await flushEntrypoint();
 
-  return { commandRunMock, errorSpy, exitSpy, runMainMock, usageMock };
+  return { commandRunMock, commandUsageMock, errorSpy, exitSpy, runMainMock, usageMock };
 }
 
 async function flushEntrypoint(): Promise<void> {

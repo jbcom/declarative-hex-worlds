@@ -67,6 +67,13 @@ import extraManifest from './generated/kaykit-extra-manifest.json';
 const bundle = createManifestBundle([freeManifest, extraManifest]);
 ```
 
+The static `import extraManifest from '...json'` shown above assumes the
+generated manifest lives in your **source tree**. If you wrote it under a Vite
+`public/` root (the natural outcome of `extract --out public/assets/...`),
+Vite refuses to import it ("Assets in public directory cannot be imported from
+JavaScript") — `fetch()` it at runtime instead and pass the parsed JSON to
+`createManifestBundle`.
+
 Every placement that points at an EXTRA asset should keep `requiresExtra: true`.
 That lets validation and renderers distinguish missing local content from
 package bugs.
@@ -115,6 +122,26 @@ const target = gameboardInteractionTargetForObject(raycasterHit.object);
 Animation loading is explicit because different games manage mixers and clips
 differently. The bridge exposes clip metadata so an app can connect the loaded
 clips to its own animation system.
+
+### Performance at scale
+
+`syncGameboardPlacementObjects` (and `loadGameboardPlacementObject`) dedupe
+GLTF loads by URL automatically: placements that resolve to the same model or
+animation URL trigger exactly one `loader.loadAsync` call per sync
+generation, no matter how many placements share it. A failed load is evicted
+from the cache so the next sync retries instead of caching the failure. This
+is on by default; pass `cacheLoads: false` if a caller needs every placement
+to issue its own load.
+
+Deduping loads does not change the draw-call story: each placement still gets
+its own cloned `Object3D` subtree. A single-mesh asset is one draw call per
+placement; multi-mesh or multi-material GLTFs (rigged units especially) issue
+one draw call per mesh/material group. For a 98-placement showcase board of
+mostly single-mesh tiles this measures as 98 draw calls
+(`renderer.info.render.calls`) — fine at that scale. Boards with hundreds to
+thousands of tiles should batch per-asset-id with `THREE.InstancedMesh` on
+top of the placement snapshot the bridge already produces; the bridge
+intentionally doesn't own that batching decision.
 
 ## External Compatibility
 

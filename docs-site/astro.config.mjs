@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightThemeFlexoki from 'starlight-theme-flexoki';
 import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
+import starlightLlmsTxt from 'starlight-llms-txt';
 
 // GitHub Pages deploys under the repo path. CI sets ASTRO_BASE based on the
 // repo's pages config; locally + on PR builds, base is `/`.
@@ -91,6 +92,27 @@ export default defineConfig({
 				// gives the bare Starlight chrome a real visual identity for
 				// the 1.0 release. See https://delucis.github.io/starlight-theme-flexoki/
 				starlightThemeFlexoki(),
+				// llms.txt (https://llmstxt.org) — the industry-standard entry
+				// point for AI agents consuming the docs. Emits /llms.txt
+				// (index), /llms-small.txt (curated core), and /llms-full.txt
+				// (entire docs incl. typedoc reference) at build time.
+				starlightLlmsTxt({
+					projectName: 'declarative-hex-worlds',
+					description:
+						'Deterministic KayKit Medieval Hexagon gameboard runtime for TypeScript games — Koota ECS state, declarative recipe → blueprint → scenario compilation, seeded RNG determinism, first-class React + Three.js bindings, and a CLI that bootstraps FREE (GitHub) or EXTRA (itch.io zip) KayKit asset packs into the consumer app.',
+					details: [
+						'Install with `npm install declarative-hex-worlds` (react, react-dom, three, koota are peer dependencies).',
+						'Assets are bootstrapped, not bundled: run `npx declarative-hex-worlds bootstrap` to mirror the KayKit gltf tree into your app, then resolve URLs against it at game init.',
+						'The FREE edition manifest ships with the package (`declarative-hex-worlds/manifest/free`); the premium EXTRA edition (paid itch.io pack) is ingested from a user-supplied zip via `bootstrap --source zip --zip <path>` — edition auto-detected — and validated by the same manifest schema.',
+						'All randomness flows through seeded RNG — identical seeds produce identical worlds.',
+					].join('\n'),
+					// Curate the small variant to the hand-written guides;
+					// the full variant includes the typedoc reference too.
+					promote: ['index*', 'guides/**'],
+					// The typedoc reference is ~1100 pages; llms-small.txt is
+					// the fits-in-one-context variant, so keep it prose-only.
+					exclude: ['reference/**'],
+				}),
 				starlightTypeDoc({
 					entryPoints,
 					tsconfig: './tsconfig.typedoc.json',

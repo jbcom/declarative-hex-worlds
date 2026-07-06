@@ -396,6 +396,37 @@ export interface GameboardLayoutSiteInspection {
 }
 
 /**
+ * Diagnostics reported when a single-placement layout call finds fewer
+ * candidate sites than requested (including zero). Surfaces the fully
+ * resolved criteria (post archetype merge) so archetype-inherited fields the
+ * caller never set — e.g. the `landmark` archetype's `edgePadding: 1` — are
+ * visible instead of silently emptying the candidate set.
+ */
+export interface GameboardLayoutPlacementDiagnostics {
+  /** Number of placements requested via `count`. */
+  requestedCount: number;
+  /** Number of placements actually selected. */
+  selectedCount: number;
+  /** Number of candidate sites that satisfied criteria, before `count` limits. */
+  candidateCount: number;
+  /** Number of rejected sites. */
+  rejectedCount: number;
+  /** Rejection counts grouped by code — names which filter emptied the set. */
+  rejectionCounts: Readonly<Partial<Record<GameboardLayoutSiteRejectionCode, number>>>;
+  /**
+   * Fully resolved criteria used for site selection, i.e. archetype defaults
+   * merged with caller-supplied overrides via `mergeLayoutCriteria`. Fields
+   * present here but absent from the caller's `criteria` were inherited from
+   * the archetype.
+   */
+  resolvedCriteria: GameboardLayoutCriteria;
+  /** Archetype id used to resolve defaults, if any. */
+  archetypeId?: GameboardLayoutArchetypeId;
+  /** Seed used for deterministic tie-breaking. */
+  seed: string;
+}
+
+/**
  * Options for creating placement specs from selected layout sites.
  */
 export interface GameboardLayoutPlacementOptions
@@ -418,6 +449,14 @@ export interface GameboardLayoutPlacementOptions
   rotationSteps?: number | 'random';
   /** Criteria merged over archetype defaults. */
   criteria?: GameboardLayoutCriteria;
+  /**
+   * Called when the selected site count is less than the requested `count`
+   * (including zero). Reports the resolved criteria and a rejection
+   * histogram so an empty result is distinguishable from "board is full".
+   * Never called when `selectedCount >= requestedCount`. No-op by default —
+   * absent option means zero behavior change.
+   */
+  onDiagnostics?: (diagnostics: GameboardLayoutPlacementDiagnostics) => void;
 }
 
 /**
@@ -751,6 +790,40 @@ export function inspectGameboardLayoutSites(
   };
 }
 
+/**
+ * Select layout sites for a single-placement call, routed through
+ * `inspectGameboardLayoutSites` so counting/rejection bookkeeping is never
+ * duplicated. Reports diagnostics via `onDiagnostics` whenever the selected
+ * count falls short of `requestedCount` (including zero).
+ */
+function reportGameboardLayoutPlacementDiagnostics(
+  plan: GameboardPlan,
+  options: GameboardLayoutPlacementOptions,
+  archetype: GameboardLayoutArchetype | undefined,
+  resolvedCriteria: GameboardLayoutCriteria,
+  requestedCount: number,
+  onDiagnostics: (diagnostics: GameboardLayoutPlacementDiagnostics) => void
+): readonly GameboardLayoutSite[] {
+  const inspection = inspectGameboardLayoutSites(plan, {
+    count: requestedCount,
+    seed: options.seed,
+    criteria: resolvedCriteria,
+  });
+  if (inspection.selectedCount < requestedCount) {
+    onDiagnostics({
+      requestedCount,
+      selectedCount: inspection.selectedCount,
+      candidateCount: inspection.candidateCount,
+      rejectedCount: inspection.rejectedCount,
+      rejectionCounts: inspection.rejectionCounts,
+      resolvedCriteria,
+      archetypeId: archetype?.id,
+      seed: inspection.seed,
+    });
+  }
+  return inspection.selected;
+}
+
 function selectLayoutCandidates(
   candidates: readonly GameboardLayoutSite[],
   count: number,
@@ -804,11 +877,21 @@ export function createGameboardLayoutPlacements(
   }
   const layer = options.layer ?? archetype?.layer;
   const rotation = options.rotationSteps ?? archetype?.rotationSteps;
-  const sites = selectGameboardLayoutSites(plan, {
-    count: options.count ?? 1,
-    seed: options.seed,
-    criteria,
-  });
+  const requestedCount = Math.max(0, Math.floor(options.count ?? 1));
+  const sites = options.onDiagnostics
+    ? reportGameboardLayoutPlacementDiagnostics(
+        plan,
+        options,
+        archetype,
+        criteria,
+        requestedCount,
+        options.onDiagnostics
+      )
+    : selectGameboardLayoutSites(plan, {
+        count: requestedCount,
+        seed: options.seed,
+        criteria,
+      });
   const rng = seedrandom(String(options.seed ?? `${plan.seed}:${options.assetId}:layout`));
   return sites.map((site, index) => {
     const baseMetadata = {

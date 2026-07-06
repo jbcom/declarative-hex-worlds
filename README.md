@@ -24,7 +24,7 @@ A deterministic gameboard runtime for TypeScript games. Declare a harbor, a proc
 
 ```bash
 pnpm add declarative-hex-worlds
-pnpm exec declarative-hex-worlds bootstrap
+pnpm exec declarative-hex-worlds bootstrap --out public/assets/models
 ```
 
 ```tsx
@@ -37,27 +37,32 @@ const plan = HexWorld.createGameboardBuilder({
   shape: { kind: 'rectangle', width: 6, height: 6 },
 }).build();
 
-const runtime = HexWorld.createGameboardRuntimeFromScenario({
-  plan,
-  scenario: { actors: [], quests: [] },
-});
+const runtime = HexWorld.createGameboardRuntime(plan);
 
 export function HarborBoard() {
   return (
-    <HexWorld.GameboardProvider runtime={runtime}>
+    <HexWorld.GameboardRuntimeProvider runtime={runtime}>
       <Canvas><Scene /></Canvas>
-    </HexWorld.GameboardProvider>
+    </HexWorld.GameboardRuntimeProvider>
   );
 }
 
 function Scene() {
   const rt = HexWorld.useGameboardRuntime();
-  useEffect(() => { rt.tick(1 / 60); }, [rt]);
-  return null; // your three.js render of rt.snapshot() goes here
+  useEffect(() => { rt.tick(); }, [rt]);
+  return null; // render rt.snapshot().plan.placements with your three.js layer
 }
 ```
 
-That's it. The `bootstrap` command downloads 221 KayKit FREE GLTFs into `public/assets/models/addons/kaykit_medieval_hexagon_pack/Assets/gltf/` and writes a SHA-256 sidecar for integrity verification. The plan + runtime are deterministic — same seed, same render, byte-for-byte.
+That's it. The `bootstrap` command mirrors the 221 KayKit FREE models (456 files including buffers and textures) into `<out>/addons/kaykit_medieval_hexagon_pack/Assets/gltf/` and writes a SHA-256 sidecar for integrity verification. Without `--out` it defaults to `./models` (or an existing `public/models/`). The plan + runtime are deterministic — same seed, same render, byte-for-byte.
+
+Bought the premium [EXTRA pack](https://kaykit.itch.io/medieval-hexagon-pack) on itch.io? Point the same command at your zip — the edition is auto-detected:
+
+```bash
+pnpm exec declarative-hex-worlds bootstrap --source zip --zip ~/Downloads/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA.zip
+```
+
+See the [asset bootstrap guide](https://jonbogaty.com/declarative-hex-worlds/guides/asset-bootstrap/) for the full FREE + EXTRA story.
 
 > [`@react-three/fiber`](https://github.com/pmndrs/react-three-fiber) is an optional companion (`pnpm add @react-three/fiber`). It's not a hard dep because some consumers prefer a different react-three layer; the library's own `/three` subpath gives you the raw helpers if you'd rather skip it.
 
@@ -102,6 +107,8 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 | [Bindings + bundling](https://jonbogaty.com/declarative-hex-worlds/guides/bindings/) | [Determinism contract](https://jonbogaty.com/declarative-hex-worlds/guides/determinism/) | [Architecture](https://jonbogaty.com/declarative-hex-worlds/about/architecture/) |
 | [Testing](https://jonbogaty.com/declarative-hex-worlds/guides/testing/) | [Design rationale](https://jonbogaty.com/declarative-hex-worlds/about/design/) | [Deployment](https://jonbogaty.com/declarative-hex-worlds/about/deployment/) |
 
+**For AI agents** ([llms.txt standard](https://llmstxt.org)): [llms.txt](https://jonbogaty.com/declarative-hex-worlds/llms.txt) · [llms-small.txt](https://jonbogaty.com/declarative-hex-worlds/llms-small.txt) (guides, fits one context window) · [llms-full.txt](https://jonbogaty.com/declarative-hex-worlds/llms-full.txt) (guides + complete API reference). [AGENTS.md](https://github.com/jbcom/declarative-hex-worlds/blob/main/AGENTS.md) covers working *on* the repo.
+
 ---
 
 ## CLI
@@ -121,7 +128,7 @@ declarative-hex-worlds coverage --json # release-readiness ledger
 
 ## What ships
 
-- The npm tarball is small (~2.3 MB; ~134 files). It contains the manifest, the compiled JS + DTS, the README, and a handful of curated showcase PNGs.
+- The npm tarball is small (~2.3 MB; ~175 files). It contains the manifest, the compiled JS + DTS, the README, and a handful of curated showcase PNGs.
 - The KayKit FREE GLTF tree (~30 MB; 221 models) is bootstrap-fetched at install time. CC0 license; the bootstrap command also writes a SHA-256 integrity sidecar.
 - The EXTRA edition is a paid [itch.io](https://kaykit.itch.io/medieval-hexagon-pack) purchase. The library supports it via `bootstrap --source zip --zip <your-extra.zip>` but never bundles it.
 
