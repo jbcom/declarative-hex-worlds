@@ -320,7 +320,9 @@ hex-board engine (GLTF packs AND tilesets), KayKit FREE/premium is a downloadabl
 docs showcases + a live docs-site island, and visual verification is anchored to OUR
 consumer rendering FREE (not the embedded KayKit guide PDF). One feature branch
 (`feat/generic-asset-sources`), sequential commits, coverage monotonically non-decreasing,
-one PR → squash-merge → npm publish confirmed.
+ONE GIANT PR at the very end → squash-merge → npm publish confirmed (locked 2026-07-06: no
+incremental merges; the whole re-architecture lands together). CLI scope: FULL binder incl.
+the live web-form configurator (locked).
 
 ### Phase 0 — Workspace foundation
 - [x] RFC0-1 pnpm workspace: add `pnpm-workspace.yaml`; move library to `packages/declarative-hex-worlds` with published shape/exports unchanged; all tests green through the move.
