@@ -22,3 +22,11 @@ export {
   parseAssetSourceSpec,
   safeParseAssetSourceSpec,
 } from './spec';
+export {
+  type AssetRenderRequest,
+  type AssetSource,
+  type CellRect,
+  type HexDims,
+  type ResolveContext,
+} from './source';
+export { type GltfPackSourceOptions, createGltfPackSource } from './gltf-pack';
