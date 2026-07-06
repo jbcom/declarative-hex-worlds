@@ -151,11 +151,36 @@ const main = defineCommand({
  * `runMain` is required because citty handles `--help` itself otherwise.
  *
  * `<command> --help` / `<command> -h` is intercepted the same way, one level
- * down: when the first token names a known subcommand (or alias) and any
- * later token is `--help`/`-h`, print that command's full per-flag reference
- * from `./usage` instead of dispatching to the command's `run()`. Unknown
- * subcommands fall through to `runMain`, which reports them the usual way.
+ * down: when the first token names a known subcommand (or alias) and a later
+ * token is genuinely a help request, print that command's full per-flag
+ * reference from `./usage` instead of dispatching to the command's `run()`.
+ * Unknown subcommands fall through to `runMain`, which reports them the usual
+ * way.
+ *
+ * `--help` always parses as a boolean flag under {@link parseFlags} (a
+ * following `--x` token is never consumed as its value, and a following
+ * bare-word token IS consumed as its value, but `--help`'s value is never
+ * inspected downstream) - so any `--help` token anywhere after the command
+ * name is unambiguously a help request. `-h` is not `--`-prefixed, so
+ * `parseFlags` treats it as a VALUE when it immediately follows a `--flag`
+ * token (e.g. `guide-assets --assetId -h` means "asset id literally '-h'",
+ * not "show help"). Only intercept a bare `-h` when the preceding token does
+ * NOT start with `--` (i.e. `-h` is itself a standalone token, as in
+ * `bootstrap -h` or `bootstrap --force -h`... the latter's `-h` follows a
+ * boolean `--force`, so it is not consumed as a value either).
  */
+function isHelpToken(argv: readonly string[], index: number): boolean {
+  const arg = argv[index];
+  if (arg === '--help') {
+    return true;
+  }
+  if (arg !== '-h') {
+    return false;
+  }
+  const previous = argv[index - 1];
+  return previous === undefined || !previous.startsWith('--');
+}
+
 async function runCli(argv: readonly string[]): Promise<void> {
   const first = argv[0];
   if (argv.length === 0 || first === '--help' || first === '-h' || first === 'help') {
@@ -166,7 +191,7 @@ async function runCli(argv: readonly string[]): Promise<void> {
   if (
     first &&
     first in SUBCOMMAND_LOADERS &&
-    argv.slice(1).some((arg) => arg === '--help' || arg === '-h')
+    argv.slice(1).some((_arg, offset) => isHelpToken(argv, offset + 1))
   ) {
     const { commandUsage } = await import('./usage');
     commandUsage(first, 0);

@@ -41,6 +41,26 @@ export interface CommandHelp {
   readonly aliases?: readonly string[];
 }
 
+/**
+ * Global flags parsed by `cli.ts`'s dispatch wrapper for EVERY subcommand
+ * (see `readEdition`/`defaultSourceRoot` in `src/cli/cli.ts`), before the
+ * subcommand's own `run()` ever sees `parsed.flags`. These are never listed
+ * in an individual command's {@link CommandOption} array — they apply
+ * uniformly — so they get their own top-level section instead.
+ */
+const GLOBAL_DISPATCH_OPTIONS: readonly CommandOption[] = [
+  {
+    flag: '--source <path>',
+    description:
+      'Override the source root every command resolves against (default: ./references/KayKit_Medieval_Hexagon_Pack_1.0_<FREE|EXTRA>, chosen by --edition).',
+  },
+  {
+    flag: '--edition free|extra',
+    description:
+      'Pack edition used to pick the default --source root and validate assets (default: free).',
+  },
+];
+
 /** Flags shared by every command that resolves a plan-validation catalog via `validationConfigFromArgs`. */
 const VALIDATION_OPTIONS: readonly CommandOption[] = [
   {
@@ -76,6 +96,43 @@ const BOARD_SOURCE_OPTIONS: readonly CommandOption[] = [
     flag: '--scenario <path>',
     description:
       'GameboardScenario JSON input, compiled to a plan (exactly one of --plan/--recipe/--scenario).',
+  },
+];
+
+/**
+ * `--excludePlacements`/`--excludeActors`/`--excludeQuests`/`--excludeSpawnGroups`
+ * interop-snapshot omission flags, shared verbatim by every command that builds
+ * its snapshot via `snapshotOptionsFromFlags` (`blueprint` and `snapshot`).
+ */
+const INTEROP_SNAPSHOT_EXCLUDE_OPTIONS: readonly CommandOption[] = [
+  { flag: '--excludePlacements', description: 'Omit placements from the interop snapshot.' },
+  { flag: '--excludeActors', description: 'Omit actors from the interop snapshot.' },
+  { flag: '--excludeQuests', description: 'Omit quests from the interop snapshot.' },
+  { flag: '--excludeSpawnGroups', description: 'Omit spawn groups from the interop snapshot.' },
+];
+
+/**
+ * `--excludePlacements`/`--excludeActors`/`--excludeQuests`/`--excludeTimeline`
+ * interop-snapshot omission flags read by `simulate-scenario` (which has no
+ * spawn groups to omit, unlike {@link INTEROP_SNAPSHOT_EXCLUDE_OPTIONS}, but
+ * does have a timeline).
+ */
+const SIMULATION_INTEROP_SNAPSHOT_EXCLUDE_OPTIONS: readonly CommandOption[] = [
+  {
+    flag: '--excludePlacements',
+    description: 'Omit placements from the interop snapshot (used with --outInterop).',
+  },
+  {
+    flag: '--excludeActors',
+    description: 'Omit actors from the interop snapshot (used with --outInterop).',
+  },
+  {
+    flag: '--excludeQuests',
+    description: 'Omit quests from the interop snapshot (used with --outInterop).',
+  },
+  {
+    flag: '--excludeTimeline',
+    description: 'Omit the timeline from the interop snapshot (used with --outInterop).',
   },
 ];
 
@@ -464,22 +521,7 @@ export const COMMANDS: readonly CommandHelp[] = [
         flag: '--failOnWarning',
         description: 'Exit 1 if any warnings are present and there are no errors.',
       },
-      {
-        flag: '--excludePlacements',
-        description: 'Omit placements from the interop snapshot (when generated).',
-      },
-      {
-        flag: '--excludeActors',
-        description: 'Omit actors from the interop snapshot (when generated).',
-      },
-      {
-        flag: '--excludeQuests',
-        description: 'Omit quests from the interop snapshot (when generated).',
-      },
-      {
-        flag: '--excludeSpawnGroups',
-        description: 'Omit spawn groups from the interop snapshot (when generated).',
-      },
+      ...INTEROP_SNAPSHOT_EXCLUDE_OPTIONS,
       {
         flag: '--spawnCount <number>',
         description: 'Number of spawn locations to generate for the interop snapshot.',
@@ -981,18 +1023,7 @@ export const COMMANDS: readonly CommandHelp[] = [
     summary: 'Emit a neutral ECS interop snapshot from a plan, recipe, or scenario',
     options: [
       ...BOARD_SOURCE_OPTIONS,
-      {
-        flag: '--allowUnknownAssets',
-        description: 'Do not fail validation on asset ids missing from the catalog.',
-      },
-      {
-        flag: '--allowUnknownAssetIds <comma,separated,assetIds>',
-        description: 'Specific asset ids to allow even when missing from the catalog.',
-      },
-      { flag: '--excludePlacements', description: 'Omit placements from the snapshot.' },
-      { flag: '--excludeActors', description: 'Omit actors from the snapshot.' },
-      { flag: '--excludeQuests', description: 'Omit quests from the snapshot.' },
-      { flag: '--excludeSpawnGroups', description: 'Omit spawn groups from the snapshot.' },
+      ...INTEROP_SNAPSHOT_EXCLUDE_OPTIONS,
       {
         flag: '--spawnCount <number>',
         description: 'Number of spawn locations to compute and include as spawnLocations.',
@@ -1015,14 +1046,7 @@ export const COMMANDS: readonly CommandHelp[] = [
         flag: '--out <path>',
         description: 'Write the JSON snapshot to this path (default: print to stdout).',
       },
-      {
-        flag: '--registry <path>',
-        description: 'HexTileRegistry JSON used instead of one derived from the manifest.',
-      },
-      {
-        flag: '--manifest <path>',
-        description: 'Manifest JSON used to build the asset validation catalog.',
-      },
+      ...VALIDATION_OPTIONS,
     ],
   },
   {
@@ -1044,22 +1068,7 @@ export const COMMANDS: readonly CommandHelp[] = [
         flag: '--outInterop <path>',
         description: 'Write a simulation interop snapshot JSON to this path.',
       },
-      {
-        flag: '--excludePlacements',
-        description: 'Omit placements from the interop snapshot (used with --outInterop).',
-      },
-      {
-        flag: '--excludeActors',
-        description: 'Omit actors from the interop snapshot (used with --outInterop).',
-      },
-      {
-        flag: '--excludeQuests',
-        description: 'Omit quests from the interop snapshot (used with --outInterop).',
-      },
-      {
-        flag: '--excludeTimeline',
-        description: 'Omit the timeline from the interop snapshot (used with --outInterop).',
-      },
+      ...SIMULATION_INTEROP_SNAPSHOT_EXCLUDE_OPTIONS,
       {
         flag: '--out <path>',
         description: 'Write the full scenario simulation report JSON to this path.',
@@ -1296,6 +1305,10 @@ export function findCommandHelp(name: string): CommandHelp | undefined {
 /**
  * Global options reference: every option flag from every command, de-duplicated
  * by flag spelling and sorted for a stable, readable top-level `--help` output.
+ * Does NOT include {@link GLOBAL_DISPATCH_OPTIONS} - those are rendered in
+ * their own dedicated section (see {@link HELP_TEXT} and
+ * {@link renderCommandHelp}) since they apply to every command uniformly
+ * rather than being one more per-command flag.
  */
 function globalOptionLines(): string[] {
   const seen = new Map<string, string>();
@@ -1307,6 +1320,15 @@ function globalOptionLines(): string[] {
     }
   }
   return [...seen.keys()].sort((a, b) => a.localeCompare(b)).map((flag) => `  ${flag}`);
+}
+
+/** Render a `Global options:` section listing {@link GLOBAL_DISPATCH_OPTIONS} with descriptions. */
+function globalDispatchOptionLines(): string[] {
+  const lines: string[] = [];
+  for (const option of GLOBAL_DISPATCH_OPTIONS) {
+    lines.push(`  ${option.flag}`, `      ${option.description}`);
+  }
+  return lines;
 }
 
 function commandSummaryLine(command: CommandHelp): string {
@@ -1322,6 +1344,9 @@ export const HELP_TEXT = [
   ...COMMANDS.map(commandSummaryLine),
   '',
   "Run `declarative-hex-worlds <command> --help` for that command's full flag reference.",
+  '',
+  'Global options (accepted by every command):',
+  ...globalDispatchOptionLines(),
   '',
   'Options:',
   ...globalOptionLines(),
@@ -1359,6 +1384,7 @@ export function renderCommandHelp(name: string): string | undefined {
       lines.push(`  ${option.flag}`, `      ${option.description}`);
     }
   }
+  lines.push('', 'Global options (accepted by every command):', ...globalDispatchOptionLines());
   return lines.join('\n');
 }
 

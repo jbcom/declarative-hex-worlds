@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { COMMANDS } from '../usage';
 
 type RawArgsContext = {
   rawArgs?: string[];
@@ -52,7 +53,14 @@ const commandModuleIds = [
 // Subcommand names that route to a module already listed above. Driving the
 // full citty map therefore invokes `commandModuleIds.length + aliasCount`
 // run() calls even though only `commandModuleIds.length` modules exist.
-const commandAliases = [{ alias: 'ingest', target: 'extract' }] as const;
+//
+// Derived from `usage.ts`'s `COMMANDS` metadata (the same source of truth
+// `cli.ts`'s `SUBCOMMAND_LOADERS` is checked against in `usage.test.ts`)
+// rather than hardcoded here, so a future alias can't silently desync this
+// call-count assertion from the real alias set.
+const commandAliases = COMMANDS.flatMap((command) =>
+  (command.aliases ?? []).map((alias) => ({ alias, target: command.name }))
+);
 
 const originalArgv = process.argv;
 const originalDebug = process.env.HEX_WORLDS_DEBUG;
@@ -98,6 +106,45 @@ describe('CLI entrypoint dispatcher', () => {
 
   it('intercepts `--help` anywhere after the command name, not just immediately after it', async () => {
     const mocks = await importEntrypoint(['bootstrap', '--force', '--help']);
+
+    expect(mocks.commandUsageMock).toHaveBeenCalledWith('bootstrap', 0);
+    expect(mocks.runMainMock).not.toHaveBeenCalled();
+  });
+
+  it('intercepts `bootstrap -h` as a standalone help flag', async () => {
+    const mocks = await importEntrypoint(['bootstrap', '-h']);
+
+    expect(mocks.commandUsageMock).toHaveBeenCalledWith('bootstrap', 0);
+    expect(mocks.runMainMock).not.toHaveBeenCalled();
+  });
+
+  it('does not intercept `-h` when it is the VALUE of a preceding flag, and dispatches normally', async () => {
+    const mocks = await importEntrypoint(['guide-assets', '--assetId', '-h'], {
+      runMainImpl: async () => {},
+    });
+
+    expect(mocks.commandUsageMock).not.toHaveBeenCalled();
+    expect(mocks.usageMock).not.toHaveBeenCalled();
+    expect(mocks.runMainMock).toHaveBeenCalledWith(
+      expect.objectContaining({ subCommands: expect.any(Object) }),
+      { rawArgs: ['guide-assets', '--assetId', '-h'] }
+    );
+  });
+
+  it('does not intercept `-h` when it follows any --flag token (matches parseFlags value semantics)', async () => {
+    const mocks = await importEntrypoint(['bootstrap', '--force', '-h'], {
+      runMainImpl: async () => {},
+    });
+
+    expect(mocks.commandUsageMock).not.toHaveBeenCalled();
+    expect(mocks.runMainMock).toHaveBeenCalledWith(
+      expect.objectContaining({ subCommands: expect.any(Object) }),
+      { rawArgs: ['bootstrap', '--force', '-h'] }
+    );
+  });
+
+  it('intercepts a standalone `-h` following a non-flag positional token', async () => {
+    const mocks = await importEntrypoint(['bootstrap', 'positional', '-h']);
 
     expect(mocks.commandUsageMock).toHaveBeenCalledWith('bootstrap', 0);
     expect(mocks.runMainMock).not.toHaveBeenCalled();

@@ -52,6 +52,24 @@ describe('CLI usage help text (E0h)', () => {
     expect(HELP_TEXT).toContain('--include-source-formats');
   });
 
+  it('documents the global --source/--edition dispatch flags in the top-level banner', () => {
+    expect(HELP_TEXT).toContain('Global options (accepted by every command):');
+    expect(HELP_TEXT).toContain('--source <path>');
+    expect(HELP_TEXT).toContain('--edition free|extra');
+    expect(HELP_TEXT).toContain('Override the source root every command resolves against');
+  });
+
+  it('appends the global --source/--edition dispatch section to every per-command help', () => {
+    for (const command of COMMANDS) {
+      const text = renderCommandHelp(command.name);
+      expect(text, `missing global options section for "${command.name}"`).toContain(
+        'Global options (accepted by every command):'
+      );
+      expect(text).toContain('--source <path>');
+      expect(text).toContain('--edition free|extra');
+    }
+  });
+
   it('prints help text and exits with the requested code', () => {
     const logs: string[] = [];
     vi.spyOn(console, 'log').mockImplementation((message: unknown) => {
