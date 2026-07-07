@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "SimpleRPG — the in-repo reference game that exercises every declarative-hex-worlds capability. Not published; it is the library's real-world exerciser + the source of the docs-site live island and visual-verification showcases.",
+  "description": "SimpleRPG \u2014 the in-repo reference game that exercises every declarative-hex-worlds capability. Not published; it is the library's real-world exerciser + the source of the docs-site live island and visual-verification showcases.",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
@@ -27,6 +27,7 @@
     "react-dom": "catalog:",
     "three": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@react-three/fiber": "catalog:"
   }
 }
