@@ -41,6 +41,9 @@ const CORE_ENTRYPOINTS = [
   'src/coordinates/index.ts',
   'src/interop/index.ts',
   'src/asset-source/index.ts',
+  // The canvas-2D binding is itself renderer-free (a 2D context is a web standard,
+  // not a renderer LIBRARY) — it must never pull in three/pixi.
+  'src/canvas2d/index.ts',
 ];
 
 /** Binding subpaths that SHOULD reach their renderer (positive check). */

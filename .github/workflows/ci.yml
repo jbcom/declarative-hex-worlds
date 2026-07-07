@@ -143,6 +143,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build the library (simple-rpg consumes its built subpaths)
+        # 6GB worker heap — tsup's DTS bundler OOMs at the default ~1.7GB on
+        # ubuntu-latest (same reason the `check` job's build sets this). Without
+        # it the DTS worker dies with ERR_WORKER_OUT_OF_MEMORY after the JS build.
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
         run: pnpm build
 
       - name: Typecheck SimpleRPG

@@ -94,7 +94,8 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 | `/koota` | ECS world + actor / placement spawn helpers |
 | `/runtime` | Runtime facade + snapshot |
 | `/react` | React provider + hooks |
-| `/three` | three.js loaders + scene helpers |
+| `/three` | three.js renderer binding — GLTF loaders + scene reconciliation (3D) |
+| `/canvas2d` | canvas-2D renderer binding — tileset sprite blitting (2D), **zero renderer deps** |
 | `/react-elements` | Declarative JSX elements (`<HexWorld>`/`<Tile>`/`<Model>`) + hooks |
 | `/bootstrap` | Programmatic asset bootstrap (CLI alternative) |
 | `/errors` | `GameboardError` + subclasses for `instanceof` catching |
@@ -110,7 +111,8 @@ Every engine is an **optional peer** — you install only what the entrypoint yo
 |---|---|
 | `declarative-hex-worlds/core` | just this package (it bundles `honeycomb-grid` + `zod`) — **no `koota`, no `three`, no `react`** |
 | `declarative-hex-worlds` (main) / runtime subpaths | `+ koota` (`+ react` for the React bindings) |
-| `declarative-hex-worlds/three` | `+ three` |
+| `declarative-hex-worlds/three` | `+ three` (the 3D renderer binding) |
+| `declarative-hex-worlds/canvas2d` | nothing extra — the 2D renderer binding draws to a standard 2D canvas context |
 | `declarative-hex-worlds/react` | `+ react react-dom` |
 | `declarative-hex-worlds/react-elements` | `+ react react-dom three @react-three/fiber` |
 

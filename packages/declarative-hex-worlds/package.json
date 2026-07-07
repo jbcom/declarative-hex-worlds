@@ -193,6 +193,10 @@
     "./asset-source": {
       "types": "./dist/asset-source.d.ts",
       "import": "./dist/asset-source.js"
+    },
+    "./canvas2d": {
+      "types": "./dist/canvas2d.d.ts",
+      "import": "./dist/canvas2d.js"
     }
   },
   "bin": {
