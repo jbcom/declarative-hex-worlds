@@ -1079,18 +1079,11 @@ export function useProjectedGameboardPlan(): GameboardPlan | undefined {
  */
 export function usePlacementsByClassifier(tag: ClassifierTag): readonly GameboardPlacementSpec[] {
   const plan = useProjectedGameboardPlan();
-  return useMemo(() => {
-    // Hoist the `?? []` coalesce onto its OWN line. react.ts is measured by both
-    // the unit and browser harnesses; when the coalesce shared a line with the
-    // `.filter` predicate, two istanbul statements collided on one lineLocationKey
-    // and the by-url coverage merge's line-span fallback (which requires a UNIQUE
-    // line key) couldn't reconcile the browser-covered statement with the unit
-    // harness's column-drifted phantom — stranding a false 0-hit in the merged
-    // tree. On its own line the coalesce keeps a unique line key. (RFC0-TAG; see
-    // the merge notes in vitest.coverage.shared.ts.)
-    const placements = plan?.placements ?? [];
-    return placements.filter((placement) => placementHasClassifier(placement.metadata, tag));
-  }, [plan, tag]);
+  return useMemo(
+    () =>
+      plan?.placements.filter((placement) => placementHasClassifier(placement.metadata, tag)) ?? [],
+    [plan, tag]
+  );
 }
 
 /**

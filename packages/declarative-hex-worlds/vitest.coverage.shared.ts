@@ -6,16 +6,12 @@
  * Each harness writes to its own `coverage/<harness>/` directory; the root
  * `pnpm coverage` script merges them via vitest's `--merge-coverage` flag.
  *
- * `src/react/react.ts` + `src/three/three.ts` are measured by BOTH the unit
- * and the browser harnesses: the unit run instruments them (they are inside
- * `include: ['src/**']`) but never renders the hooks / three scenes, so it
- * emits phantom 0-hit records; the browser run supplies the real hits; and the
- * by-url merge reconciles them per statement/branch (see scripts/merge-coverage.ts).
- * That reconciliation depends on each statement owning a UNIQUE line key — a
- * single source line packing two istanbul statements defeats the merge's
- * line-span fallback and strands the unit phantom as a false 0-hit (see the
- * `usePlacementsByClassifier` note in react.ts). The merged report is what we
- * ratchet against (A8, E0-E10).
+ * `src/react/react.ts` is a hook-only module measured ONLY by the browser
+ * harness (it is in UNIT_ONLY_COVERAGE_EXCLUDES): the unit run can't render a
+ * hook, so instrumenting it there only produces phantom 0-hit records that the
+ * v8 by-url merge can't reliably reconcile. `src/three/three.ts` runs headless
+ * (pure three.js math, no DOM) so it stays measured by both harnesses. The
+ * merged report is what we ratchet against (A8, E0-E10).
  */
 import type { CoverageOptions } from 'vitest/node';
 
@@ -121,6 +117,16 @@ const BROWSER_ONLY_COVERAGE_EXCLUDES = [
  * `objects-sync.ts` is NOT here — it is R3F-free and unit-tested.
  */
 const UNIT_ONLY_COVERAGE_EXCLUDES = [
+  // The React hook module: every export is a hook (verified — no non-hook runtime
+  // in the file), so it is exercised ONLY by the browser harness that renders it.
+  // The unit run instruments it (it is inside `include: ['src/**']`) but never
+  // renders a hook, emitting phantom 0-hit statement/branch records. Under the v8
+  // coverage provider those phantoms don't reliably reconcile with the browser's
+  // covered records in the by-url merge (the exact line/statement that phantoms
+  // shifts with any edit — a whack-a-mole), so we exclude react.ts from the UNIT
+  // harness entirely. Its real coverage comes from tests/browser/*. This makes the
+  // file-header comment ("react.ts … measured only where DOM exists") literally true.
+  'src/react/react.ts',
   'src/react-elements/context.ts',
   'src/react-elements/hex-world.ts',
   'src/react-elements/placements.ts',
