@@ -30,27 +30,31 @@ pnpm exec declarative-hex-worlds bootstrap --out public/assets/models
 ```tsx
 import { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import * as HexWorld from 'declarative-hex-worlds';
+// Core (renderer-free): worldgen + runtime signals. No renderer installed for this import.
+import { createGameboardBuilder, createGameboardRuntime } from 'declarative-hex-worlds';
+// React bindings subscribe to the runtime's koota signals — the `/react` subpath
+// (react is an OPTIONAL peer; you only install it if you import a binding subpath).
+import { GameboardRuntimeProvider, useGameboardRuntime } from 'declarative-hex-worlds/react';
 
-const plan = HexWorld.createGameboardBuilder({
+const plan = createGameboardBuilder({
   seed: 'harbor-village-1',
   shape: { kind: 'rectangle', width: 6, height: 6 },
 }).build();
 
-const runtime = HexWorld.createGameboardRuntime(plan);
+const runtime = createGameboardRuntime(plan);
 
 export function HarborBoard() {
   return (
-    <HexWorld.GameboardRuntimeProvider runtime={runtime}>
+    <GameboardRuntimeProvider runtime={runtime}>
       <Canvas><Scene /></Canvas>
-    </HexWorld.GameboardRuntimeProvider>
+    </GameboardRuntimeProvider>
   );
 }
 
 function Scene() {
-  const rt = HexWorld.useGameboardRuntime();
+  const rt = useGameboardRuntime();
   useEffect(() => { rt.tick(); }, [rt]);
-  return null; // render rt.snapshot().plan.placements with your three.js layer
+  return null; // subscribe to rt signals via a binding (declarative-hex-worlds/three) to draw
 }
 ```
 

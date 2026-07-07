@@ -18,10 +18,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   createGameboardBuilder,
   type GameboardPlan,
-  type GameboardSheetTextureLoader,
-  type SheetTexture,
   type TilesetManifest,
 } from '../../src/index';
+import type { GameboardSheetTextureLoader, SheetTexture } from '../../src/three';
 import { createGameboardRuntime } from '../../src/index';
 import { createTilesetSource } from '../../src/index';
 import {

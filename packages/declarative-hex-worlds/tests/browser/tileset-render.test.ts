@@ -19,12 +19,14 @@ import {
 import { describe, expect, it } from 'vitest';
 import {
   createTilesetSource,
-  type GameboardSheetTextureLoader,
   type GameboardPlacementSpec,
-  type SheetTexture,
-  syncGameboardPlacementObjects,
   type TilesetManifest,
 } from '../../src';
+import {
+  type GameboardSheetTextureLoader,
+  type SheetTexture,
+  syncGameboardPlacementObjects,
+} from '../../src/three';
 
 const SHEET_W = 480;
 const SHEET_H = 830;

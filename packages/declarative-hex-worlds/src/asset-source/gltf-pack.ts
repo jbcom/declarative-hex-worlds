@@ -17,7 +17,7 @@ import {
   type GameboardPlacementAssetUrlOptions,
   resolveGameboardPlacementAssetUrl,
   transformForPlacement,
-} from '../three';
+} from './placement-resolution';
 import type { AssetRenderRequest, AssetSource, ResolveContext } from './source';
 
 /**

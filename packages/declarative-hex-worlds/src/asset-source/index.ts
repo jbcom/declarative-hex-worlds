@@ -31,7 +31,20 @@ export {
   type HexDims,
   type ResolveContext,
 } from './source';
-export { type RenderBackend, type RenderedPlacement } from './render-backend';
+// NOTE: the imperative RenderBackend seam (render-backend.ts) was superseded by the
+// signals+bindings architecture (koota traits ARE the signals; bindings subscribe).
+export {
+  type GameboardPlacementAnimationUrlOptions,
+  type GameboardPlacementAssetUrlOptions,
+  type GameboardPlacementAssetUrlResolver,
+  createGameboardPlacementAssetUrlResolver,
+  resolveAssetUrl,
+  resolveGameboardPlacementAnimationUrl,
+  resolveGameboardPlacementAssetUrl,
+  transformForHex,
+  transformForPlacement,
+  transformForVariant,
+} from './placement-resolution';
 export { type GltfPackSourceOptions, createGltfPackSource } from './gltf-pack';
 export { type TilesetSourceOptions, cellRect, createTilesetSource } from './tileset';
 export {

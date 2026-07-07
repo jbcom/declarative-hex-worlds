@@ -65,11 +65,13 @@ export interface HexDims {
 }
 
 /**
- * A resolved, backend-agnostic render request. A `RenderBackend` (three today,
- * Pixi tomorrow) dispatches on `type` + `dimension`. New source kinds add new
- * members here (a discriminated union), and each backend grows a matching arm.
- * Every request carries its `dimension` so a backend can place/sort/orient a 2D
- * sprite and a 3D model correctly on the same board.
+ * A resolved, renderer-agnostic render request. A renderer BINDING (the
+ * `declarative-hex-worlds/three` subpath today, `/pixi` tomorrow) subscribes to
+ * the koota placement signals and dispatches on `type` + `dimension` to reconcile
+ * its own scene nodes. New source kinds add new members here (a discriminated
+ * union), and each binding grows a matching arm. Every request carries its
+ * `dimension` so a binding can place/sort/orient a 2D sprite and a 3D model
+ * correctly on the same board.
  */
 export type AssetRenderRequest =
   | { type: 'gltf'; dimension: '3d'; url: string; transform?: AssetTransform }

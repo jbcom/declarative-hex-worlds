@@ -29,11 +29,15 @@ export * from './movement';
 export * from './patrol';
 export * from './pieces';
 export * from './quests';
-export * from './react';
 export * from './rules';
 export * from './runtime';
 export * from './scenario';
 export * from './selectors';
 export * from './simulation';
 export * from './systems';
-export * from './three';
+// NOTE: renderer bindings (./three) and React bindings (./react, ./react-elements)
+// are intentionally NOT re-exported here. The main entrypoint is renderer-free so
+// three / @react-three/fiber / react stay OPTIONAL peers — import them via the
+// dedicated subpaths (`declarative-hex-worlds/three`, `/react`, `/react-elements`).
+// The signals the bindings subscribe to ARE the koota traits exported above.
+// Enforced by tests/contract/renderer-optionality-contract.test.ts.
