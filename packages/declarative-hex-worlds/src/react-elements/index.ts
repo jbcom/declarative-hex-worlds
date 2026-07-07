@@ -47,3 +47,5 @@ export {
 } from './placements';
 export { type TilesetProps, Tileset } from './tileset';
 export { type TileQuery, useHexPath, usePlacement, useTile } from './hooks';
+export { useCamera } from './camera';
+export { type DrivableCamera, applyCameraFraming } from './camera-apply';

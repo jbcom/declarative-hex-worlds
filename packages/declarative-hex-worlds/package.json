@@ -197,6 +197,10 @@
     "./canvas2d": {
       "types": "./dist/canvas2d.d.ts",
       "import": "./dist/canvas2d.js"
+    },
+    "./camera": {
+      "types": "./dist/camera.d.ts",
+      "import": "./dist/camera.js"
     }
   },
   "bin": {

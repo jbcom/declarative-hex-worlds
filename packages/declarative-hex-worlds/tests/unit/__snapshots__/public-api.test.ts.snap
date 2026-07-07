@@ -59,6 +59,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
     "name": "CompletedGameboardQuestQuery",
   },
   {
+    "kind": "object",
+    "name": "DEFAULT_CAMERA_STATE",
+  },
+  {
     "kind": "string",
     "name": "DEFAULT_GAMEBOARD_ASSET_ROOT",
   },
@@ -680,6 +684,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "computeBoardBounds",
+  },
+  {
+    "kind": "function",
+    "name": "computeCameraFraming",
+  },
+  {
+    "kind": "function",
     "name": "containsHex",
   },
   {
@@ -1073,6 +1085,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "flagAssetId",
+  },
+  {
+    "kind": "function",
+    "name": "frameBoard",
   },
   {
     "kind": "object",

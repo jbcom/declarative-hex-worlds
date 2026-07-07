@@ -6,9 +6,10 @@
  * elements the concise drive/query surface an R3F/Pixi developer expects. They
  * add no new state authority — they read the same koota world.
  *
- * `useSelection` and `useCamera` from the design surface land with their backing
- * features (a selection-state model and the RFC0-CAM camera command surface); the
- * hooks below wrap capabilities that already exist.
+ * `useCamera` (RFC0-CAM) now ships in `./camera` — it drives the R3F camera to frame
+ * the live board via the renderer-neutral `camera` framing signal. `useSelection` from
+ * the design surface still lands with its backing selection-state model; the hooks below
+ * wrap capabilities that already exist.
  *
  * @module
  */

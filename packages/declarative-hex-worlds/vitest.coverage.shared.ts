@@ -79,6 +79,7 @@ export const HARNESS_COVERAGE_THRESHOLDS = {
  */
 const BROWSER_ONLY_COVERAGE_EXCLUDES = [
   'src/react-elements/objects.ts',
+  'src/react-elements/camera.ts', // R3F useCamera hook — v8-ignored; camera-apply.ts (pure) is unit-covered
   'src/react-elements/objects-sync.ts',
   // These pure-TS game-flow modules are 100% covered by the UNIT harness. The
   // browser-free harness only imports them transitively (via `../../src` barrel)

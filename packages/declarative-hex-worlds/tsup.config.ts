@@ -20,6 +20,7 @@ export default defineConfig([
     commands: 'src/commands/index.ts',
     coverage: 'src/interop/coverage.ts',
     'asset-source': 'src/asset-source/index.ts',
+    camera: 'src/camera/index.ts',
     canvas2d: 'src/canvas2d/index.ts',
     core: 'src/core/index.ts',
     coordinates: 'src/coordinates/index.ts',
