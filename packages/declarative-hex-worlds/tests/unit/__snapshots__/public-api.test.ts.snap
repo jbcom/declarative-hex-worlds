@@ -984,6 +984,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "createThreeRenderBackend",
+  },
+  {
+    "kind": "function",
     "name": "createTilesetSource",
   },
   {

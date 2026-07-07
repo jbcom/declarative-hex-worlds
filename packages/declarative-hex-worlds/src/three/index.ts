@@ -16,3 +16,4 @@ export {
   buildHexGeometry,
   buildTexturedHexMesh,
 } from './textured-hex';
+export { type ThreeRenderBackendOptions, createThreeRenderBackend } from './three-backend';

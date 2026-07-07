@@ -31,6 +31,7 @@ export {
   type HexDims,
   type ResolveContext,
 } from './source';
+export { type RenderBackend, type RenderedPlacement } from './render-backend';
 export { type GltfPackSourceOptions, createGltfPackSource } from './gltf-pack';
 export { type TilesetSourceOptions, cellRect, createTilesetSource } from './tileset';
 export {
