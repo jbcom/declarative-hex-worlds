@@ -6,9 +6,16 @@
  * Each harness writes to its own `coverage/<harness>/` directory; the root
  * `pnpm coverage` script merges them via vitest's `--merge-coverage` flag.
  *
- * `react.ts` + `three.ts` are excluded from unit coverage (Node lacks DOM)
- * but ARE measured by browser-free + browser-extra, so the merged report
- * is what we ratchet against (A8, E0-E10).
+ * `src/react/react.ts` + `src/three/three.ts` are measured by BOTH the unit
+ * and the browser harnesses: the unit run instruments them (they are inside
+ * `include: ['src/**']`) but never renders the hooks / three scenes, so it
+ * emits phantom 0-hit records; the browser run supplies the real hits; and the
+ * by-url merge reconciles them per statement/branch (see scripts/merge-coverage.ts).
+ * That reconciliation depends on each statement owning a UNIQUE line key — a
+ * single source line packing two istanbul statements defeats the merge's
+ * line-span fallback and strands the unit phantom as a false 0-hit (see the
+ * `usePlacementsByClassifier` note in react.ts). The merged report is what we
+ * ratchet against (A8, E0-E10).
  */
 import type { CoverageOptions } from 'vitest/node';
 
@@ -107,8 +114,11 @@ const BROWSER_ONLY_COVERAGE_EXCLUDES = [
  * factories) v8-in-Node and v8-in-Chromium report slightly different columns, so
  * the unit's 0-hit `anonymous` and the browser's covered `anonymous` DON'T unify
  * — the merged tree keeps BOTH and the 0-hit one fails the gate. Excluding these
- * from UNIT coverage (symmetric to react.ts/three.ts) leaves only the browser's
- * covered records. `objects-sync.ts` is NOT here — it is R3F-free and unit-tested.
+ * from UNIT coverage leaves only the browser's covered records. (react.ts and
+ * three.ts are NOT excluded — they merge cleanly because their statements sit on
+ * unique lines; these element modules can't, because the drift is in anonymous
+ * FUNCTION locations, not statements, so the line-key fallback doesn't apply.)
+ * `objects-sync.ts` is NOT here — it is R3F-free and unit-tested.
  */
 const UNIT_ONLY_COVERAGE_EXCLUDES = [
   'src/react-elements/context.ts',

@@ -4,91 +4,31 @@
  *
  * @module
  */
+
+import type { Entity, World } from 'koota';
 import {
+  WorldProvider as GameboardProvider,
+  useQuery,
+  useTargets,
+  useTrait,
+  useWorld,
+} from 'koota/react';
+import {
+  type ComponentType,
   createContext,
   createElement,
+  type ReactNode,
   useContext,
   useEffect,
   useMemo,
   useReducer,
   useRef,
-  type ComponentType,
-  type ReactNode,
 } from 'react';
 import {
-  useQuery,
-  useTargets,
-  useTrait,
-  useWorld,
-  WorldProvider as GameboardProvider,
-} from 'koota/react';
-import { hexKey } from '../coordinates';
-import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
-import { type ClassifierTag, placementHasClassifier } from '../classifiers';
-import {
-  AdjacentTo,
-  GameboardState,
-  HexTileState,
-  IsGameboardPlacement,
-  IsGameboardTile,
-  IsHarborPlacement,
-  IsRoadPlacement,
-  IsRiverPlacement,
-  IsStackedTerrain,
-  PlacementOnTile,
-  PlacementOccupiesTile,
-  PlacementState,
-  TileConnectivity,
-  TileCoordinates,
-  TileElevation,
-  TileRenderState,
-  TileTagList,
-  TileTerrain,
-  gameboardActions,
-  inspectGameboardPlacementOccupancy,
-  readGameboardPlacementOccupancy,
-  readGameboardPlacements,
-  readPlacementOccupancyForTile,
-  type GameboardPlacementOccupancyInspection,
-  type GameboardStateValue,
-  type HexTileStateValue,
-  type InspectGameboardPlacementOccupancyOptions,
-  type PlacementOccupancySnapshot,
-  type PlacementStateValue,
-  type SpawnGameboardPlacementOptions,
-  type TileConnectivityValue,
-  type TileCoordinatesValue,
-  type TileElevationValue,
-  type TileRenderStateValue,
-  type TileTagListValue,
-  type TileTerrainValue,
-} from '../koota';
-import { projectWorldToGameboardPlan } from '../coordinates';
-import type { GameboardRuleConfig, GameboardRuleViolation } from '../rules';
-import { validateGameboardRules } from '../systems';
-import {
-  IsMoving,
-  MovementAgent,
-  MovementPathState,
-  gameboardMovementActions,
-  type MovementAgentValue,
-  type MovementPathStateValue,
-} from '../movement';
-import {
   GameboardActor,
-  IsGameboardActor,
-  gameboardActorActions,
-  inspectGameboardActorTargets,
-  inspectGameboardNeighborhood,
-  inspectGameboardTile,
-  inspectGameboardInteractionTarget,
-  planGameboardInteractionCommand,
-  readGameboardActors,
-  readGameboardActorsForTile,
-  selectGameboardActors,
-  type GameboardActorSnapshot,
   type GameboardActorSelection,
   type GameboardActorSelectionOptions,
+  type GameboardActorSnapshot,
   type GameboardActorTargetingOptions,
   type GameboardActorTargetingReport,
   type GameboardActorValue,
@@ -102,33 +42,140 @@ import {
   type GameboardNeighborhoodInspectionOptions,
   type GameboardTileInspection,
   type GameboardTileInspectionOptions,
+  gameboardActorActions,
+  IsGameboardActor,
+  inspectGameboardActorTargets,
+  inspectGameboardInteractionTarget,
+  inspectGameboardNeighborhood,
+  inspectGameboardTile,
+  planGameboardInteractionCommand,
+  readGameboardActors,
+  readGameboardActorsForTile,
+  selectGameboardActors,
 } from '../actors';
+import { type ClassifierTag, placementHasClassifier } from '../classifiers';
 import {
-  gameboardCommandActions,
-  planGameboardActorTargetCommand,
   type GameboardActorTargetCommandOptions,
   type GameboardActorTargetCommandPlan,
-  previewGameboardInteractionCommand,
   type GameboardInteractionCommandInput,
   type GameboardInteractionCommandPreview,
   type GameboardInteractionCommandPreviewOptions,
+  gameboardCommandActions,
+  planGameboardActorTargetCommand,
+  previewGameboardInteractionCommand,
 } from '../commands';
+import type { SpawnLocation } from '../coordinates';
 import {
-  GameboardQuest,
-  IsGameboardQuest,
-  gameboardQuestActions,
-  readGameboardQuests,
-  type GameboardQuestSnapshot,
-  type GameboardQuestValue,
-} from '../quests';
+  analyzeGameboardLayoutFill,
+  createGameboardLayoutPlacements,
+  type GameboardLayoutFillAnalysis,
+  type GameboardLayoutFillOptions,
+  type GameboardLayoutPlacementOptions,
+  type GameboardLayoutSiteInspection,
+  hexKey,
+  type InspectGameboardLayoutSitesOptions,
+  inspectGameboardLayoutSites,
+  projectWorldToGameboardPlan,
+} from '../coordinates';
+import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
+import {
+  createGameboardNavigation,
+  createGameboardOccupancyIndex,
+  type GameboardNavigation,
+  type GameboardNavigationProfile,
+  type GameboardOccupancyIndex,
+  type GameboardPatrolRouteOptions,
+  type GameboardPatrolRoutePlan,
+  type GameboardPatrolRouteSet,
+  type GameboardPatrolRouteSetOptions,
+  type GameboardSpawnLocationOptions,
+  planGameboardPatrolRoute,
+  planGameboardPatrolRoutes,
+  selectGameboardSpawnLocations,
+} from '../gameboard';
+import {
+  AdjacentTo,
+  type GameboardPlacementOccupancyInspection,
+  GameboardState,
+  type GameboardStateValue,
+  gameboardActions,
+  HexTileState,
+  type HexTileStateValue,
+  type InspectGameboardPlacementOccupancyOptions,
+  IsGameboardPlacement,
+  IsGameboardTile,
+  IsHarborPlacement,
+  IsRiverPlacement,
+  IsRoadPlacement,
+  IsStackedTerrain,
+  inspectGameboardPlacementOccupancy,
+  type PlacementOccupancySnapshot,
+  PlacementOccupiesTile,
+  PlacementOnTile,
+  PlacementState,
+  type PlacementStateValue,
+  readGameboardPlacementOccupancy,
+  readGameboardPlacements,
+  readPlacementOccupancyForTile,
+  type SpawnGameboardPlacementOptions,
+  TileConnectivity,
+  type TileConnectivityValue,
+  TileCoordinates,
+  type TileCoordinatesValue,
+  TileElevation,
+  type TileElevationValue,
+  TileRenderState,
+  type TileRenderStateValue,
+  TileTagList,
+  type TileTagListValue,
+  TileTerrain,
+  type TileTerrainValue,
+} from '../koota';
+import {
+  gameboardMovementActions,
+  IsMoving,
+  MovementAgent,
+  type MovementAgentValue,
+  MovementPathState,
+  type MovementPathStateValue,
+} from '../movement';
 import {
   GameboardPatrolAgent,
-  GameboardPatrolState,
-  IsGameboardPatrolAgent,
-  gameboardPatrolActions,
   type GameboardPatrolAgentValue,
+  GameboardPatrolState,
   type GameboardPatrolStateValue,
+  gameboardPatrolActions,
+  IsGameboardPatrolAgent,
 } from '../patrol';
+import {
+  type AnalyzeGameboardPieceRegistryOptions,
+  analyzeGameboardPieceRegistry,
+  createGameboardPieceSourceUrlMap,
+  type GameboardPieceDeclaration,
+  type GameboardPiecePlacementInspection,
+  type GameboardPiecePlacementOptions,
+  type GameboardPieceRegistry,
+  type GameboardPieceRegistryAnalysis,
+  type GameboardPieceRegistrySelection,
+  type GameboardPieceSourceUrlOptions,
+  inspectGameboardPiecePlacement,
+  selectGameboardPieces,
+} from '../pieces';
+import {
+  GameboardQuest,
+  type GameboardQuestSnapshot,
+  type GameboardQuestValue,
+  gameboardQuestActions,
+  IsGameboardQuest,
+  readGameboardQuests,
+} from '../quests';
+import type { GameboardRuleConfig, GameboardRuleViolation } from '../rules';
+import {
+  type InspectSeededGameboardPieceFillsOptions,
+  inspectSeededGameboardPieceFills,
+  type SeededGameboardPieceFillInspection,
+  type SeededGameboardPieceFillOptions,
+} from '../rules';
 import {
   createGameboardRuntime,
   createGameboardRuntimeFromRecipe,
@@ -139,67 +186,26 @@ import {
   type GameboardRuntimeSnapshotOptions,
   type GameboardScenarioGameRuntime,
 } from '../runtime';
-import { gameboardSystemActions } from '../systems';
-import {
-  createGameboardNavigation,
-  createGameboardOccupancyIndex,
-  planGameboardPatrolRoute,
-  planGameboardPatrolRoutes,
-  selectGameboardSpawnLocations,
-  type GameboardNavigation,
-  type GameboardNavigationProfile,
-  type GameboardOccupancyIndex,
-  type GameboardPatrolRouteOptions,
-  type GameboardPatrolRoutePlan,
-  type GameboardPatrolRouteSet,
-  type GameboardPatrolRouteSetOptions,
-  type GameboardSpawnLocationOptions,
-} from '../gameboard';
-import {
-  analyzeGameboardLayoutFill,
-  createGameboardLayoutPlacements,
-  inspectGameboardLayoutSites,
-  type GameboardLayoutFillAnalysis,
-  type GameboardLayoutFillOptions,
-  type GameboardLayoutPlacementOptions,
-  type GameboardLayoutSiteInspection,
-  type InspectGameboardLayoutSitesOptions,
-} from '../coordinates';
-import {
-  analyzeGameboardPieceRegistry,
-  createGameboardPieceSourceUrlMap,
-  inspectGameboardPiecePlacement,
-  selectGameboardPieces,
-  type AnalyzeGameboardPieceRegistryOptions,
-  type GameboardPieceDeclaration,
-  type GameboardPiecePlacementInspection,
-  type GameboardPiecePlacementOptions,
-  type GameboardPieceRegistry,
-  type GameboardPieceRegistryAnalysis,
-  type GameboardPieceRegistrySelection,
-  type GameboardPieceSourceUrlOptions,
-} from '../pieces';
-import {
-  inspectSeededGameboardPieceFills,
-  type InspectSeededGameboardPieceFillsOptions,
-  type SeededGameboardPieceFillInspection,
-  type SeededGameboardPieceFillOptions,
-} from '../rules';
-import type { Entity, World } from 'koota';
-import type { SpawnLocation } from '../coordinates';
+import type {
+  GameboardRecipe,
+  GameboardRecipePlanOptionsOverride,
+  GameboardScenario,
+} from '../scenario';
+import { gameboardSystemActions, validateGameboardRules } from '../systems';
 import type { HexCoordinates } from '../types';
-import type { GameboardRecipe, GameboardRecipePlanOptionsOverride } from '../scenario';
-import type { GameboardScenario } from '../scenario';
 
 export { GameboardProvider, useWorld as useGameboardWorld };
 
 const DEFAULT_RULE_CONFIG = {} as const satisfies GameboardRuleConfig;
 const DEFAULT_NAVIGATION_PROFILE_OPTIONS = {} as const satisfies GameboardNavigationProfile;
-const DEFAULT_LAYOUT_SITE_INSPECTION_OPTIONS = {} as const satisfies InspectGameboardLayoutSitesOptions;
-const DEFAULT_PIECE_REGISTRY_ANALYSIS_OPTIONS = {} as const satisfies AnalyzeGameboardPieceRegistryOptions;
+const DEFAULT_LAYOUT_SITE_INSPECTION_OPTIONS =
+  {} as const satisfies InspectGameboardLayoutSitesOptions;
+const DEFAULT_PIECE_REGISTRY_ANALYSIS_OPTIONS =
+  {} as const satisfies AnalyzeGameboardPieceRegistryOptions;
 const DEFAULT_PIECE_REGISTRY_SELECTION = {} as const satisfies GameboardPieceRegistrySelection;
 const DEFAULT_PIECE_PLACEMENT_OPTIONS = {} as const satisfies GameboardPiecePlacementOptions;
-const DEFAULT_PIECE_FILL_INSPECTION_OPTIONS = {} as const satisfies InspectSeededGameboardPieceFillsOptions;
+const DEFAULT_PIECE_FILL_INSPECTION_OPTIONS =
+  {} as const satisfies InspectSeededGameboardPieceFillsOptions;
 const DEFAULT_PIECE_SOURCE_URL_OPTIONS = {} as const satisfies GameboardPieceSourceUrlOptions;
 const DEFAULT_RUNTIME_SNAPSHOT_OPTIONS = {} as const satisfies GameboardRuntimeSnapshotOptions;
 const EMPTY_PLACEMENT_OPTIONS = [] as const satisfies readonly SpawnGameboardPlacementOptions[];
@@ -231,7 +237,9 @@ const PROJECTED_PLAN_REVISION_DOMAINS = [
   'tiles',
   'placements',
 ] as const satisfies GameboardDerivedRevisionDomains;
-const PLACEMENT_REVISION_DOMAINS = ['placements'] as const satisfies GameboardDerivedRevisionDomains;
+const PLACEMENT_REVISION_DOMAINS = [
+  'placements',
+] as const satisfies GameboardDerivedRevisionDomains;
 const ACTOR_REVISION_DOMAINS = [
   'placements',
   'actors',
@@ -264,7 +272,9 @@ const OCCUPANCY_REVISION_DOMAINS = [
  * creation and React should consume the same Koota world plus recipe/scenario
  * helpers.
  */
-export interface GameboardRuntimeProviderProps<TRuntime extends GameboardRuntime = GameboardRuntime> {
+export interface GameboardRuntimeProviderProps<
+  TRuntime extends GameboardRuntime = GameboardRuntime,
+> {
   /** Runtime facade for the board instance mounted below this provider. */
   runtime: TRuntime;
   /** React children that should read the runtime's Koota world. */
@@ -370,7 +380,11 @@ export function GameboardScenarioProvider({
     () => createGameboardRuntimeFromScenario(scenario, overrides),
     [scenario, overrides]
   );
-  return createElement(GameboardRuntimeProvider<GameboardScenarioGameRuntime>, { runtime }, children);
+  return createElement(
+    GameboardRuntimeProvider<GameboardScenarioGameRuntime>,
+    { runtime },
+    children
+  );
 }
 
 function subscribeGameboardRevisionInput(
@@ -378,11 +392,7 @@ function subscribeGameboardRevisionInput(
   input: GameboardRevisionInput,
   update: () => void
 ): (() => void)[] {
-  return [
-    world.onAdd(input, update),
-    world.onRemove(input, update),
-    world.onChange(input, update),
-  ];
+  return [world.onAdd(input, update), world.onRemove(input, update), world.onChange(input, update)];
 }
 
 function subscribeGameboardRevisionDomain(
@@ -542,7 +552,9 @@ export function useGameboardSystemActions(): ReturnType<typeof gameboardSystemAc
  * providers when components need runtime-specific helpers such as source URL
  * maps, scenario indexes, or saved recipe registries.
  */
-export function useGameboardRuntime<TRuntime extends GameboardRuntime = GameboardRuntime>(): TRuntime {
+export function useGameboardRuntime<
+  TRuntime extends GameboardRuntime = GameboardRuntime,
+>(): TRuntime {
   const world = useWorld();
   const providedRuntime = useContext(GameboardRuntimeContext);
   return useMemo(
@@ -1065,15 +1077,20 @@ export function useProjectedGameboardPlan(): GameboardPlan | undefined {
  * projected plan's placements by classifier metadata — re-runs when the board changes.
  * e.g. `usePlacementsByClassifier('enemy')` drives an enemy overlay.
  */
-export function usePlacementsByClassifier(
-  tag: ClassifierTag
-): readonly GameboardPlacementSpec[] {
+export function usePlacementsByClassifier(tag: ClassifierTag): readonly GameboardPlacementSpec[] {
   const plan = useProjectedGameboardPlan();
-  return useMemo(
-    () =>
-      plan?.placements.filter((placement) => placementHasClassifier(placement.metadata, tag)) ?? [],
-    [plan, tag]
-  );
+  return useMemo(() => {
+    // Hoist the `?? []` coalesce onto its OWN line. react.ts is measured by both
+    // the unit and browser harnesses; when the coalesce shared a line with the
+    // `.filter` predicate, two istanbul statements collided on one lineLocationKey
+    // and the by-url coverage merge's line-span fallback (which requires a UNIQUE
+    // line key) couldn't reconcile the browser-covered statement with the unit
+    // harness's column-drifted phantom — stranding a false 0-hit in the merged
+    // tree. On its own line the coalesce keeps a unique line key. (RFC0-TAG; see
+    // the merge notes in vitest.coverage.shared.ts.)
+    const placements = plan?.placements ?? [];
+    return placements.filter((placement) => placementHasClassifier(placement.metadata, tag));
+  }, [plan, tag]);
 }
 
 /**
@@ -1149,7 +1166,10 @@ export function useGameboardLayoutSiteInspection(
   options: InspectGameboardLayoutSitesOptions = DEFAULT_LAYOUT_SITE_INSPECTION_OPTIONS
 ): GameboardLayoutSiteInspection | undefined {
   const plan = useProjectedGameboardPlan();
-  return useMemo(() => (plan ? inspectGameboardLayoutSites(plan, options) : undefined), [plan, options]);
+  return useMemo(
+    () => (plan ? inspectGameboardLayoutSites(plan, options) : undefined),
+    [plan, options]
+  );
 }
 
 /**
@@ -1159,7 +1179,10 @@ export function useGameboardLayoutFillAnalysis(
   options: GameboardLayoutFillOptions | undefined
 ): GameboardLayoutFillAnalysis | undefined {
   const plan = useProjectedGameboardPlan();
-  return useMemo(() => (plan && options ? analyzeGameboardLayoutFill(plan, options) : undefined), [plan, options]);
+  return useMemo(
+    () => (plan && options ? analyzeGameboardLayoutFill(plan, options) : undefined),
+    [plan, options]
+  );
 }
 
 /**
@@ -1171,7 +1194,8 @@ export function useGameboardLayoutPlacements(
 ): readonly SpawnGameboardPlacementOptions[] {
   const plan = useProjectedGameboardPlan();
   return useMemo(
-    () => (plan && options ? createGameboardLayoutPlacements(plan, options) : EMPTY_PLACEMENT_OPTIONS),
+    () =>
+      plan && options ? createGameboardLayoutPlacements(plan, options) : EMPTY_PLACEMENT_OPTIONS,
     [plan, options]
   );
 }
@@ -1183,7 +1207,10 @@ export function useGameboardPieceRegistryAnalysis(
   registry: GameboardPieceRegistry | undefined,
   options: AnalyzeGameboardPieceRegistryOptions = DEFAULT_PIECE_REGISTRY_ANALYSIS_OPTIONS
 ): GameboardPieceRegistryAnalysis | undefined {
-  return useMemo(() => (registry ? analyzeGameboardPieceRegistry(registry, options) : undefined), [registry, options]);
+  return useMemo(
+    () => (registry ? analyzeGameboardPieceRegistry(registry, options) : undefined),
+    [registry, options]
+  );
 }
 
 /**
@@ -1224,7 +1251,10 @@ export function useGameboardPieceFillInspection(
 ): SeededGameboardPieceFillInspection | undefined {
   const plan = useProjectedGameboardPlan();
   return useMemo(
-    () => (plan && registry && fills ? inspectSeededGameboardPieceFills(plan, registry, fills, options) : undefined),
+    () =>
+      plan && registry && fills
+        ? inspectSeededGameboardPieceFills(plan, registry, fills, options)
+        : undefined,
     [plan, registry, fills, options]
   );
 }

@@ -94,7 +94,9 @@ describe('browser-free coverage excludes line-drifting game-flow modules', () =>
       {
         statementMap: {},
         fnMap: {},
-        branchMap: { '3': { type: 'cond-expr', loc: browserLoc, locations: [browserArmA, browserArmB] } },
+        branchMap: {
+          '3': { type: 'cond-expr', loc: browserLoc, locations: [browserArmA, browserArmB] },
+        },
         s: {},
         f: {},
         b: { '3': [5, 0] }, // browser only hit the truthy arm → phantom 0-arm
@@ -106,6 +108,79 @@ describe('browser-free coverage excludes line-drifting game-flow modules', () =>
     const branchArms = Object.values(merged.b as Record<string, number[]>);
     expect(branchArms).toContainEqual([29, 70]); // unit branch preserved
     expect(branchArms.some((arms) => arms.includes(0))).toBe(true); // phantom 0-arm kept
+  });
+});
+
+describe('statement merge reconciles column drift only when the line key is unique', () => {
+  // Regression for `stmt src/react/react.ts:1074` (RFC0-TAG). react.ts is included
+  // by the UNIT harness (it is NOT in the exclude list) but its hook bodies are
+  // never RENDERED under Node, so the unit run emits a phantom 0-hit statement
+  // record. The browser harness emits the real covered record. The by-url merge
+  // keys statements by exact column (locationKey) with a line-only fallback
+  // (lineLocationKey) — but that fallback is refused when MORE THAN ONE statement
+  // shares the same line key. usePlacementsByClassifier packed the coalesce
+  // statement AND the nested predicate arrow onto ONE physical line, so two
+  // statements shared line key "1074-1074"; the browser's column-drifted covered
+  // statement could not unify with the unit's 0-hit phantom, and the phantom
+  // survived → false <100% statement gate. Splitting the statements onto distinct
+  // lines restores line-key uniqueness so the fallback rescues them.
+
+  it('keeps a phantom 0-hit statement when two statements share one (non-unique) line', () => {
+    // Two statements both on line 1074 → lineLocationKey "1074-1074" NOT unique.
+    const unitCoalesce = loc(1074, 6, 60); // covered nowhere in unit (phantom)
+    const unitPredicate = loc(1074, 40, 90);
+    const browserCoalesce = loc(1074, 7, 61); // +1 column drift (Chromium vs Node)
+    const browserPredicate = loc(1074, 41, 91);
+    const merged = mergeIstanbulRecord(
+      {
+        statementMap: { '0': unitCoalesce, '1': unitPredicate },
+        fnMap: {},
+        branchMap: {},
+        s: { '0': 0, '1': 0 }, // unit never renders the hook → phantom zeros
+        f: {},
+        b: {},
+      },
+      {
+        statementMap: { '5': browserCoalesce, '6': browserPredicate },
+        fnMap: {},
+        branchMap: {},
+        s: { '5': 3, '6': 3 }, // browser genuinely executed both
+        f: {},
+        b: {},
+      }
+    );
+    // Column drift + non-unique line key ⇒ the phantom 0-hit statements survive.
+    const counts = Object.values(merged.s as Record<string, number>);
+    expect(counts.filter((c) => c === 0).length).toBeGreaterThan(0);
+  });
+
+  it('reconciles the same column-drifted statement when it owns a unique line', () => {
+    // The fix: each statement on its own line ⇒ each lineLocationKey is unique ⇒
+    // the line fallback unifies the browser-covered record with the unit phantom.
+    const unitCoalesce = loc(1080, 4, 40); // own line
+    const unitPredicate = loc(1082, 6, 60); // own line
+    const browserCoalesce = loc(1080, 5, 41); // +1 column drift
+    const browserPredicate = loc(1082, 7, 61);
+    const merged = mergeIstanbulRecord(
+      {
+        statementMap: { '0': unitCoalesce, '1': unitPredicate },
+        fnMap: {},
+        branchMap: {},
+        s: { '0': 0, '1': 0 },
+        f: {},
+        b: {},
+      },
+      {
+        statementMap: { '5': browserCoalesce, '6': browserPredicate },
+        fnMap: {},
+        branchMap: {},
+        s: { '5': 3, '6': 3 },
+        f: {},
+        b: {},
+      }
+    );
+    const counts = Object.values(merged.s as Record<string, number>);
+    expect(counts.every((c) => c > 0)).toBe(true); // no phantom survives
   });
 });
 
