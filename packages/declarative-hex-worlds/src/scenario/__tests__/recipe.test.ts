@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createGameboardBuilder } from '../../gameboard/index';
+import { applyGameboardRecipeGeneration } from '../recipe-generation';
 import {
   appendGameboardRecipeSteps,
   applyGameboardRecipe,
-  applyGameboardRecipeGeneration,
   applyRecipeStep,
   createGameboardLayoutArchetypeRegistryFromRecipe,
   createGameboardLayoutArchetypeRegistryFromRecipeGeneration,
@@ -14,6 +14,7 @@ import {
   createGameboardRecipeGenerationFillRules,
   inspectGameboardRecipe,
   mergeGameboardRecipes,
+  pureRecipeGenerationApplier,
   type GameboardRecipe,
   type GameboardRecipeStep,
   validateGameboardRecipe,
@@ -726,5 +727,37 @@ describe('serializable gameboard recipes', () => {
     );
     const plan = createGameboardPlanFromRecipe(recipe);
     expect(plan.placements.length).toBeGreaterThan(0);
+  });
+
+  describe('pureRecipeGenerationApplier (the ./core tier default)', () => {
+    it('passes a plan through unchanged when the generation has no fill rules', () => {
+      const plan = createGameboardBuilder({
+        seed: 'pure-applier-no-gen',
+        shape: { kind: 'rectangle', width: 2, height: 2 },
+      }).build();
+      // No generation, and an empty generation block, both no-op through.
+      expect(pureRecipeGenerationApplier(plan, undefined)).toBe(plan);
+      expect(pureRecipeGenerationApplier(plan, {})).toBe(plan);
+    });
+
+    it('throws a clear runtime-tier error when generation declares fill rules', () => {
+      const plan = createGameboardBuilder({
+        seed: 'pure-applier-with-gen',
+        shape: { kind: 'rectangle', width: 3, height: 3 },
+      }).build();
+      const generation = {
+        layoutFills: [
+          {
+            archetype: 'tree',
+            terrain: 'grassland' as const,
+            count: 1,
+            assetId: 'tree_a',
+          },
+        ],
+      };
+      // Sanity: this generation DOES produce fill rules (so the throw path is real).
+      expect(createGameboardRecipeGenerationFillRules(generation).length).toBeGreaterThan(0);
+      expect(() => pureRecipeGenerationApplier(plan, generation)).toThrow(/runtime tier/);
+    });
   });
 });

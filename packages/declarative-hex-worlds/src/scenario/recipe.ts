@@ -34,10 +34,8 @@ import type {
   UnitPlacementOptions,
   UnitPresetOptions,
 } from '../gameboard';
-import { createGameboardWorld } from '../koota';
 import {
   createGameboardLayoutArchetypeRegistry,
-  spawnGameboardLayoutFill,
   type GameboardLayoutArchetype,
   type GameboardLayoutArchetypeInput,
   type GameboardLayoutArchetypeRegistry,
@@ -53,7 +51,6 @@ import {
   createSeededGameboardPieceFillRules,
   type SeededGameboardPieceFillOptions,
 } from '../rules';
-import { projectWorldToGameboardPlan } from '../coordinates';
 import type { GameboardRuleViolation } from '../rules';
 import type { Faction, HexCoordinates, HexEdgeIndex, TextureSet } from '../types';
 import { validateGameboardPlan, type GameboardPlanValidationConfig } from '../rules';
@@ -428,14 +425,58 @@ export function mergeGameboardRecipes(base: GameboardRecipe, recipes: readonly G
   };
 }
 
+/**
+ * Applies a recipe's seeded generation block to a built plan. The runtime tier
+ * injects a koota-backed applier (`applyGameboardRecipeGeneration` from
+ * `./recipe-generation`); `./core` uses the pure default below.
+ */
+export type RecipeGenerationApplier = (
+  plan: GameboardPlan,
+  generation: GameboardRecipeGeneration | undefined
+) => GameboardPlan;
+
+/**
+ * The pure (koota-free) generation applier used by the `./core` tier. Seeded
+ * recipe generation requires a koota world to run layout-fill, which core does
+ * not depend on — so if a recipe declares generation fill rules, this throws a
+ * clear "use the runtime tier" error rather than silently dropping them. A
+ * generation block with no fill rules (or none at all) passes through unchanged.
+ */
+export function pureRecipeGenerationApplier(
+  plan: GameboardPlan,
+  generation: GameboardRecipeGeneration | undefined
+): GameboardPlan {
+  if (createGameboardRecipeGenerationFillRules(generation).length > 0) {
+    throw new GameboardScenarioError(
+      'Recipe generation fill rules require the runtime tier — import createGameboardPlanFromRecipe from "declarative-hex-worlds" (not "declarative-hex-worlds/core"), or pass an applyGeneration function.'
+    );
+  }
+  return plan;
+}
+
+/**
+ * The generation applier used when a caller doesn't pass one. Defaults to the
+ * pure (koota-free) applier so `./core` stays runtime-free; the main/runtime tier
+ * calls `setDefaultRecipeGenerationApplier` on import to wire the koota applier,
+ * so `createGameboardPlanFromRecipe(recipe)` compiles generation for the ~10
+ * existing runtime callers without threading an argument through each.
+ */
+let defaultRecipeGenerationApplier: RecipeGenerationApplier = pureRecipeGenerationApplier;
+
+/** Set the process-wide default generation applier (the runtime tier wires koota). */
+export function setDefaultRecipeGenerationApplier(applier: RecipeGenerationApplier): void {
+  defaultRecipeGenerationApplier = applier;
+}
+
 /** Compiles a recipe into a concrete gameboard plan. */
 export function createGameboardPlanFromRecipe(
   recipe: GameboardRecipe,
-  overrides: GameboardRecipePlanOptionsOverride = {}
+  overrides: GameboardRecipePlanOptionsOverride = {},
+  applyGeneration: RecipeGenerationApplier = defaultRecipeGenerationApplier
 ): GameboardPlan {
   const builder = createGameboardBuilder({ ...recipe.options, ...overrides });
   applyGameboardRecipe(builder, recipe);
-  return applyGameboardRecipeGeneration(builder.build(), recipe.generation);
+  return applyGeneration(builder.build(), recipe.generation);
 }
 
 /** Compiles and validates a recipe, returning errors instead of throwing. */
@@ -658,27 +699,6 @@ function cloneRecipeOptions(options: GameboardPlanOptions): GameboardPlanOptions
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
-}
-
-/** Runs seeded recipe generation over a built plan and returns the projected result. */
-export function applyGameboardRecipeGeneration(
-  plan: GameboardPlan,
-  generation: GameboardRecipeGeneration | undefined
-): GameboardPlan {
-  const rules = createGameboardRecipeGenerationFillRules(generation);
-  if (rules.length === 0) {
-    return plan;
-  }
-  const world = createGameboardWorld(plan);
-  try {
-    spawnGameboardLayoutFill(world, {
-      seed: generation?.layoutFillSeed ?? `${plan.seed}:recipe-layout-fill`,
-      rules,
-    });
-    return projectWorldToGameboardPlan(world);
-  } finally {
-    world.destroy();
-  }
 }
 
 /** Creates the piece registry declared by a recipe, when any pieces are present. */

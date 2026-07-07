@@ -13,5 +13,8 @@
 export * from './blueprint';
 export * from './catalog';
 export * from './recipe';
+// Runtime tier: importing this wires the koota generation applier as the default
+// (side-effect) and re-exports applyGameboardRecipeGeneration. `./core` omits it.
+export * from './recipe-generation';
 export * from './registry';
 export * from './scenario';
