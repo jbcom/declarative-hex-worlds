@@ -1,9 +1,10 @@
 /**
- * SimpleRPG GitHub-bootstrap e2e (PRD RS2, RB7).
+ * Asset-bootstrap CLI e2e — FREE pack from GitHub (PRD RS2, RB7).
  *
- * Scheduled-CI only. Per-PR runs would hit GitHub's anonymous-tarball
- * rate limit. Gated behind `HEX_WORLDS_E2E_GITHUB=1` so the default
- * `pnpm test` loop stays offline-clean.
+ * Exercises `src/cli/commands/bootstrap` (the library's asset-bootstrap CLI, NOT
+ * the SimpleRPG game — that moved to packages/examples). Scheduled-CI only:
+ * per-PR runs would hit GitHub's anonymous-tarball rate limit. Gated behind
+ * `HEX_WORLDS_E2E_GITHUB=1` so the default `pnpm test` loop stays offline-clean.
  *
  * What it asserts:
  *
@@ -15,8 +16,8 @@
  *    matches the integrity sidecar.
  * 4. The bootstrapped file count matches the FREE manifest's asset count.
  *
- * Rendering assertions land in RS3 once the SimpleRPG `game/` directory's
- * scene/UI builders exist.
+ * Rendering assertions live with the game in the examples package's per-binding
+ * visual tests; this file covers only the bootstrap CLI's download/verify contract.
  *
  * @module
  */
@@ -57,7 +58,7 @@ afterAll(() => {
   }
 });
 
-describe.skipIf(!RUN)('SimpleRPG e2e — bootstrap from GitHub (PRD RS2 / RB7)', () => {
+describe.skipIf(!RUN)('bootstrap CLI e2e — FREE pack from GitHub (PRD RS2 / RB7)', () => {
   it('downloads + extracts the FREE pack and reports verification clean', async () => {
     const result = await bootstrapKayKitAssets({
       source: { kind: 'github' },

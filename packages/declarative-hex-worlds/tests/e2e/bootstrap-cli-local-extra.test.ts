@@ -1,5 +1,5 @@
 /**
- * SimpleRPG local-zip bootstrap e2e (PRD RS2).
+ * Asset-bootstrap CLI e2e — FREE pack from a local zip (PRD RS2).
  *
  * Gated behind `HEX_WORLDS_LOCAL_REFERENCES=1`. Designed for local
  * developer machines that have the FREE pack zip cached under
@@ -44,7 +44,7 @@ afterAll(() => {
   }
 });
 
-describe.skipIf(!ZIP_AVAILABLE)('SimpleRPG e2e — bootstrap from local FREE zip (PRD RS2)', () => {
+describe.skipIf(!ZIP_AVAILABLE)('bootstrap CLI e2e — FREE pack from local zip (PRD RS2)', () => {
   it('extracts the FREE pack from a local zip and reports verification clean', async () => {
     const result = await bootstrapKayKitAssets({
       source: { kind: 'zip', path: FREE_ZIP_PATH },

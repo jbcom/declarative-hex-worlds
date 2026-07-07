@@ -862,9 +862,10 @@ Every guide feature should be represented at one of these levels:
 - React: hook/query surface when interactive UI would need it.
 - Visual tests: composed screenshot or contact sheet.
 
-`tests/simple-rpg/` is the integration fixture for proving the public API works
-as a small game, not only as isolated helpers. It builds a fixed golden quest
-map and a locked seedrandom map, spawns player/NPC/prop/enemy actors through
+The `@declarative-hex-worlds/examples` package (`packages/examples/src/game`) is the
+consumer fixture proving the public API works as a small game, not only as isolated
+helpers. It builds a fixed golden quest map and a locked seedrandom map, spawns
+player/NPC/prop/enemy actors through
 `./actors`, verifies that registered props are passable while registered enemies
 block movement, resolves the quest line through `./quests` plus actor-aware
 movement systems, projects the final Koota world back to a plan, and captures
