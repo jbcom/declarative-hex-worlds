@@ -84,6 +84,37 @@ describe('./core tier purity contract', () => {
     ).toEqual([]);
   });
 
+  it('the built dist/core.js + its chunks import ZERO koota/three/react (when built)', () => {
+    const distDir = join(packageRoot, 'dist');
+    const coreDist = join(distDir, 'core.js');
+    if (!existsSync(coreDist)) {
+      // dist is a build artifact; skip when not built (unit run without a prior build).
+      return;
+    }
+    const seen = new Set<string>();
+    const externals = new Set<string>();
+    const walk = (file: string): void => {
+      if (seen.has(file) || !existsSync(file)) return;
+      seen.add(file);
+      const src = readFileSync(file, 'utf8');
+      // Only real import/export-from statements, not string literals.
+      const re = /(?:^|[;{}\n])\s*(?:import|export)\b[^;'"]*?from\s*['"]([^'"]+)['"]/g;
+      for (const match of src.matchAll(re)) {
+        const spec = match[1] as string;
+        if (spec.startsWith('./')) {
+          walk(join(distDir, spec.replace('./', '')));
+        } else if (!spec.startsWith('node:')) {
+          externals.add(spec);
+        }
+      }
+    };
+    walk(coreDist);
+    const forbidden = [...externals].filter(
+      (e) => e.includes('koota') || e.includes('three') || e === 'react' || e === 'react-dom'
+    );
+    expect(forbidden, `built ./core leaks: ${forbidden.join(', ')}`).toEqual([]);
+  });
+
   it('walks a non-trivial graph (guards against the walk silently finding nothing)', () => {
     // If the resolver breaks and visits ~0 files, the purity check passes
     // vacuously — assert we actually traversed the tree.

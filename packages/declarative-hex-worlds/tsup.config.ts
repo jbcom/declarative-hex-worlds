@@ -1,6 +1,16 @@
 import { defineConfig } from 'tsup';
 
-export default defineConfig({
+const external = [
+  'declarative-hex-worlds',
+  /^declarative-hex-worlds\//,
+  'koota',
+  'koota/react',
+  'react',
+  'three',
+];
+
+export default defineConfig([
+  {
   entry: {
     index: 'src/index.ts',
     actors: 'src/actors/index.ts',
@@ -10,7 +20,6 @@ export default defineConfig({
     commands: 'src/commands/index.ts',
     coverage: 'src/interop/coverage.ts',
     'asset-source': 'src/asset-source/index.ts',
-    core: 'src/core/index.ts',
     coordinates: 'src/coordinates/index.ts',
     gameboard: 'src/gameboard/index.ts',
     grid: 'src/coordinates/grid.ts',
@@ -62,16 +71,32 @@ export default defineConfig({
   esbuildOptions(options) {
     options.sourcesContent = false;
   },
-  // Bundling model: dependencies are BUNDLED, peerDependencies are EXTERNAL.
-  // - honeycomb-grid, seedrandom, citty, yauzl: runtime dependencies → bundled (no `external` entry)
-  // - koota, koota/react, react, three: peerDependencies → external (consumers supply these)
-  // - declarative-hex-worlds/* self-references: external to avoid duplication across subpath chunks
-  external: [
-    'declarative-hex-worlds',
-    /^declarative-hex-worlds\//,
-    'koota',
-    'koota/react',
-    'react',
-    'three',
-  ],
-});
+    // Bundling model: dependencies are BUNDLED, peerDependencies are EXTERNAL.
+    // - honeycomb-grid, seedrandom, citty, yauzl: runtime dependencies → bundled (no `external` entry)
+    // - koota, koota/react, react, three: peerDependencies → external (consumers supply these)
+    // - declarative-hex-worlds/* self-references: external to avoid duplication across subpath chunks
+    external,
+  },
+  // The `./core` tier is built STANDALONE with splitting DISABLED so it never
+  // shares a chunk with a koota/three-importing module. The main build uses
+  // splitting:true to keep Koota trait identities stable across subpaths — but
+  // `./core` has no koota traits to stabilize, so an isolated single-file build
+  // is safe AND is the only way to guarantee `dist/core.js` transitively pulls
+  // only honeycomb-grid + zod (the core-purity promise). A shared chunk that does
+  // `import { createWorld } from 'koota'` at load would crash a koota-less
+  // `./core` consumer even though core's own code never calls it.
+  {
+    entry: { core: 'src/core/index.ts' },
+    format: ['esm'],
+    dts: true,
+    sourcemap: true,
+    clean: false, // don't wipe the main build's output
+    target: 'es2022',
+    splitting: false,
+    treeshake: true,
+    esbuildOptions(options) {
+      options.sourcesContent = false;
+    },
+    external,
+  },
+]);
