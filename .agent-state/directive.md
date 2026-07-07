@@ -63,127 +63,87 @@ ONE GIANT PR at the very end → squash-merge → npm publish confirmed (locked 
 incremental merges; the whole re-architecture lands together). CLI scope: FULL binder incl.
 the live web-form configurator (locked).
 
-### Phase 0 — Workspace foundation
-- [x] RFC0-1 pnpm workspace: add `pnpm-workspace.yaml`; move library to `packages/declarative-hex-worlds` with published shape/exports unchanged; all tests green through the move.
-- [ ] RFC0-2 Promote SimpleRPG to `packages/simple-rpg` — a real consumer that renders through dhw (keep headless smoke/exercise tests green, add an R3F render surface). MIGRATE the library's `tests/e2e/simple-rpg*` + `tests/integration/simple-rpg*` into this package as ITS OWN e2e (SimpleRPG IS the e2e — a real game consuming the package). CI becomes layered: library isolated suite passes FIRST (needs:), THEN SimpleRPG e2e runs (real-world proof). See RFC §D-test-topology.
-  - UNBLOCKED (2026-07-06): the gap that stalled SimpleRPG's render — no declarative surface — is CLOSED by RFC0-8b (commit e708ce1). SimpleRPG can now render its board declaratively via `declarative-hex-worlds/react-elements`: `<Canvas><HexWorld plan=… source=… loader=… textureLoader=…><Tileset/><Tile/><Model/><GameboardObjects/></HexWorld></Canvas>`. This is the NEXT high-value unit: it's the exhaustive exerciser AND the e2e AND the showcase producer, and the first real consumer of the whole RFC0-7/8 stack (will surface the next capability gaps — RFC0-CAM camera is already one). packages/simple-rpg/ is scaffolded (workspace:* dep, jsx tsconfig, 2 consumes-library tests). Build its actual game + R3F render surface + run states (compose/cross-pack/pathfind/viewport) on the element layer.
-- [ ] RFC0-3 Docs-site React island: add `@astrojs/react`; embed SimpleRPG live (`client:load`) on a docs page — the docs RUN the library.
+## Milestone RFC-0001 — Generic asset sources + declarative render surface (2026-07-06)
 
-### Phase 1 — Visual-verification backbone swap (coverage UP, then vendor guide retired)
+Spec of record: `docs/rfcs/0001-generic-asset-sources.md`. dhw becomes a general
+hex-world engine with **pluggable 2D/3D render backends** (three today, Pixi future),
+GLTF packs AND tilesets, KayKit as a downloadable default (never shipped bytes), SimpleRPG
+the first-class rendering consumer producing docs showcases + a live island, visual
+verification anchored to OUR consumer. One branch (`feat/generic-asset-sources`), sequential
+commits, coverage monotonically non-decreasing, **ONE GIANT PR (#220) at the end** →
+squash-merge → npm publish confirmed (locked: no incremental merges). CLI scope: FULL binder
+incl. the live web-form configurator (locked).
+
+**DONE so far** (workspace move, G0 Zod spec, RFC0-7 AssetSource+gltf-pack, RFC0-8 tileset
+manifest+source+textured-hex+bridge-dispatch+JSX element layer, docs-site as a workspace
+member, repo description+ruleset hygiene) — all CI-green on PR #220. Per-commit WHY +
+resume context: [RFC-0001 build log](../../packages/docs-site/src/content/docs/about/history/rfc-0001-render-surface.md).
+Full suite 2723 pass. **Compression rule (standing):** when items complete, migrate their
+record into that build-log doc and keep only `[ ]` here — the directive tracks REMAINING work.
+
+### Standing decisions (2026-07-06, extracted to decisions.ndjson)
+
+**Decision:** dep manifest is CORRECTED — koota, react, react-dom, three are REQUIRED peers
+(drop the current false `optional:true`); only `@react-three/fiber` stays optional. **Why:**
+the main entry statically pulls koota+react+three (verified: `export * from './koota'` etc.);
+marking them optional is a lying "optional" that gives a consumer an unresolved-import crash
+with no install-time warning. Matches the 2026-05-26 bundled-bindings correction. **Resolves:**
+RFC0-DEP.
+
+**Decision:** add a **`./core` tier** — koota-free AND three-free: AssetSourceSpec/TilesetManifest,
+Recipe/Scenario/Blueprint→GameboardPlan compilers (pure), coordinates/grid/navigation/occupancy
+(hex math + A*), validateGameboardPlan, interop snapshots. A `./core`-only consumer installs
+just honeycomb-grid + zod. **Why:** the neutral surface already exists but is scattered; some
+files (recipe.ts, coordinates/projection.ts + layout.ts) statically import koota via
+co-located `createWorldFrom*` helpers, so a guaranteed koota-free import isn't packaged.
+**How (verified feasibility):** 8 modules already koota-free (asset-source, coordinates,
+grid, navigation, occupancy, plan, validation, manifest/schema); the 3 mixed files must be
+SPLIT — pure `createPlanFrom*`/projection/layout-analysis into koota-free modules, the koota
+`createWorldFrom*` stay in the runtime tier. **Resolves:** RFC0-CORE.
+
+**Decision:** rendering is a **pluggable RenderBackend seam with 2D/3D first-class**. **Why:**
+the asset-source/resolution layer is ALREADY 100% backend-neutral (zero three imports); the
+only 3D bias is `AssetTransform` (lives in src/three, is x/y/z + rotationY). Generalizing lets
+a Pixi (2D) backend reuse the same world+hex+sources with the same declarative+hooks ergonomics
+— "an engine with pluggable renderers," not an R3F-only lib. **How:** move AssetTransform to
+neutral core + make it dimension-aware (2D: x/y+z-order+rotation; 3D: full); add
+`dimension:'2d'|'3d'` to AssetRenderRequest/sources; define a `RenderBackend` interface
+(`mount(request)→native node`); `./three` becomes the reference impl, `./pixi` a future one;
+`<HexWorld>`/`<Sprite>`(2D)/`<Model>`(3D)/hooks stay backend-agnostic + select a backend the
+way you pick `<Canvas>` vs a Pixi `<Stage>`. **Resolves:** RFC0-RENDER.
+
+### Open queue
+
+**Foundation refactors (do BEFORE more render features — they reshape the contract):**
+- [ ] RFC0-DEP Correct the dependency manifest per the decision above: koota/react/react-dom/three → required peers (remove `optional:true`); R3F stays optional. Add a contract test asserting the peer/optional shape so it can't silently drift again.
+- [ ] RFC0-RENDER RenderBackend seam + 2D/3D first-class: (a) move AssetTransform out of src/three into neutral core, make it dimension-aware; (b) add `dimension:'2d'|'3d'` to AssetRenderRequest + source metadata; (c) define the `RenderBackend` interface; (d) refit the current three bridge as the reference `./three` backend behind it; (e) `<HexWorld backend=…>` selects a backend, `<Sprite>`=2D-first, `<Model>`=3D-first, hooks unchanged. Browser test proves a board renders through the backend seam. (Pixi impl is a FUTURE item once this lands.)
+- [ ] RFC0-CORE `./core` entrypoint (koota-free + three-free): SPLIT recipe.ts / coordinates/projection.ts / coordinates/layout.ts into pure (`createPlanFrom*`, pure projection/layout-analysis) + koota (`createWorldFrom*`) modules; barrel the 8-already-pure + newly-split-pure modules into `./core`; koota lazy/absent for this path; contract test asserts `./core` imports pull ZERO koota/three. A `./core` consumer does declarations + JSON + validation + hex math + interop, bring-your-own runtime/renderer.
+
+**Phase A — SimpleRPG as first consumer + gap-finder (unblocked by the element layer):**
+- [ ] RFC0-2 Promote SimpleRPG to `packages/simple-rpg` — a real consumer that renders through dhw's element surface (`declarative-hex-worlds/react-elements`). MIGRATE the library's `tests/e2e/simple-rpg*` + `tests/integration/simple-rpg*` + `src/guides/simple-rpg/*` into the package as ITS OWN e2e (SimpleRPG IS the e2e). Layered CI: library suite passes FIRST (needs:), THEN SimpleRPG e2e. Build the actual game + R3F render surface + run states (compose/cross-pack/pathfind/viewport). See RFC §D-test-topology. packages/simple-rpg/ is scaffolded (workspace:* dep, jsx tsconfig, 2 consumes-library tests). Add @react-three/fiber devDep.
+- [ ] RFC0-3 Docs-site React island: add `@astrojs/react`; embed SimpleRPG live (`client:load`) on a docs page — the docs RUN the library. (docs-site is already a workspace member — the prerequisite is done.)
+- [ ] RFC0-CAM Camera/viewport command surface (GAP from SimpleRPG's `viewport` run-state): frame-board, fill-viewport, set perspective/angle (top-down/iso/tilted, ortho vs perspective), orient. Through the RenderBackend + a `useCamera` hook. Browser test per mode. (Backs the `useCamera` hook the element layer stubbed as a follow-on.)
+
+**Phase B — Visual-verification backbone swap (coverage UP, then vendor guide retired):**
 - [ ] RFC0-4 Capture per-pillar showcases from SimpleRPG rendering FREE through the library; `guide` source stays → coverage strictly increases.
 - [ ] RFC0-5 Repoint pillar `source_images:`, `release-readiness.json`, `docs/index.md`, `coverage.ts` from guide paths → SimpleRPG showcase paths; contract tests assert per-pillar showcase coverage.
 - [ ] RFC0-6 Retire `guide` source: remove the 19 KayKit PDF pages from tracked `docs/` → gitignored `raw-assets/`; delete all now-dead guide references (~2293); `coverage.test.ts` asserts the showcase backbone. Premium never in public docs.
 
-### Phase 2 — Generic asset sources + tileset
-- [x] RFC0-G0 Zod-validated canonical `AssetSourceSpec` (the FOUNDATION — precedes G1/G2). Add zod as a library dependency. Define ONE source-agnostic schema for tiles/tilesets/sprites/spritesets/models + how they map to the hex world; a source is valid iff it parses. Replace the hand-rolled `validateManifestHeader`/`validateManifestAssets` issue-accumulators. KayKit FREE/premium become INPUTS normalized INTO the spec (ingest detail), not the public contract. This RETIRES `src/manifest/free.ts` (16.5k-LOC KayKit blob), its drift test, and the 6GB DTS heap hack — because KayKit-manifest-as-canonical is GONE, not via a JSON-import trick. Custom sources (tilesets/sprites/models) author directly in this Zod spec. See RFC §Foundation + §Thesis (dhw = React binding proxying koota+honeycomb+three).
-- [ ] RFC0-CLI Source-agnostic asset-binder CLI: point at ANY assets path → scan → heuristic source-kind detection (KayKit free/premium signatures; or sprites/tilesets/models dir layouts) → SUGGEST a default binding → emit a Zod-validated AssetSourceSpec JSON. Three converging authoring paths: developer hand-writes JSON, CLI generates from scan+interactive prompts, or CLI serves a local web form (spins up a server, opens a browser configurator, writes JSON from visual choices). KayKit becomes one recognized signature, not the tool's purpose. Builds on RFC0-G0; feeds RFC0-10 (FREE default = scanner recognizing a bootstrapped KayKit tree). See RFC §CLI.
-- [ ] RFC0-CAM Camera/viewport command surface (library capability — GAP surfaced by SimpleRPG's `viewport` run-state). Today `./three` only has `frameObjectPosition(asset)`; the react layer has NO camera control. Add a real command surface: frame-the-whole-board, fill-viewport, set perspective/angle (top-down/iso/tilted, orthographic vs perspective), orient. Exposed through `./three` + a react hook. Browser test asserts each mode; SimpleRPG's viewport run-state drives it. (Pathfinding `findHexPath` already exists — no gap there.)
-- [x] RFC0-7 `AssetSource` interface; extract KayKit `gltf-pack` as the first impl behind it (pure refactor, existing GLTF tests are the net). ✅ commit b06c7bb: `src/asset-source/source.ts` (AssetSource iface + AssetRenderRequest union 'gltf'|'tileset-cell' + ResolveContext + CellRect/HexDims, type-only → coverage-excluded), `gltf-pack.ts` (createGltfPackSource wraps resolveGameboardPlacementAssetUrl+transformForPlacement → {type:'gltf'}, 100% covered, 7 tests). Design: docs/plans/declarative-render-surface.design.md. Umbrella + ./asset-source + public-api snapshot updated. Suite 2674 pass.
-- [x] RFC0-8 `./tileset` + declarative render surface — DONE. Tileset manifest + UV-cell math + textured-hex mesh + bridge dispatch + the full JSX element surface, all CI-green. (SimpleRPG tileset render mode + <HexCanvas> zero-config wrapper are follow-ons under RFC0-2/showcase work.)
-  - ✅ G2 manifest + cell selection DONE: commit 147cf8a (TilesetManifest Zod schema, 8 tests) + 08abd2d (createTilesetSource: biome/edge→tileset-cell, FNV-1a hash fill selection, cellRect helper, 15 tests). Both 100% covered, in `src/asset-source/`.
-  - ✅ buildTexturedHexMesh DONE: commit 61487f3. `src/three/textured-hex.ts` — buildHexGeometry (center+6-corner fan BufferGeometry, pointy-top default, per-cell UVs, V-flipped) + buildTexturedHexMesh (MeshBasicMaterial, transparent, DoubleSide). Pure three, unit-covered, 10 tests, 100%. NOTE geometry math: pointy-top X-extent = halfW·cos30°, Z-extent = halfH (corner at 90°).
-  - ✅ BRIDGE DISPATCH DONE: commit 61f6076. src/three/three.ts loadGameboardPlacementObject
-    now dispatches on an optional `source?: AssetSource`: tileset-cell → loadTilesetCellObject
-    (GameboardSheetTextureLoader injectable+LRU-cached via loadSheetTextureCached →
-    buildTexturedHexMesh → transform → tag → LoadedGameboardPlacementObject{mesh, clips:[]});
-    gltf/no-source → unchanged GLTF path. 5 unit tests + tests/browser/tileset-render.test.ts
-    (3×3 board in real Chromium/WebGL, canvas-backed sheet, asserts 9 meshes + non-empty
-    pixels — covers three.ts dispatch for the merged strict-100 gate; registered in
-    vitest.browser.free.config.ts). No import cycle (type-only asset-source↔three).
-  - ✅ JSX SURFACE (RFC0-8b) DONE: `src/react-elements/` + `./react-elements` subpath
-    (subpath-only, NOT umbrella — keeps @react-three/fiber an optional peer for consumers who
-    don't want the elements). `<HexWorld>` (Canvas-free: koota providers + source registry),
-    `<GameboardObjects>` (R3F bridge — useFrame → the extracted pure syncHexWorldPlacements),
-    `<Tile>`/`<Model>`/`<Sprite>` (spawn/remove koota placements on mount/unmount),
-    `<Tileset>` (registers a tileset source), + hooks useHexWorld/useTile/usePlacement/
-    useHexPath. combineSources (first-match composite) + syncHexWorldPlacements extracted as
-    pure fns → unit-tested (src/react-elements/__tests__/objects.test.ts, 8 tests); the R3F
-    component wrapper is /* v8 ignore */ (untraceable through R3F's reconciler, logic covered).
-    Element logic browser-tested via plain createRoot (tests/browser/react-elements.test.ts,
-    13 tests — NOT inside <Canvas>, since only <GameboardObjects> needs R3F; that's a Canvas
-    smoke). Needed vitest.browser config: React dedup + @react-three/fiber in optimizeDeps
-    (R3F's own reconciler was loading a 2nd React → useMemo null). All files 100% covered,
-    full suite 2723 pass, build+DTS green.
-    FOLLOW-ONS (not blocking RFC0-8): useSelection + useCamera hooks land with their backing
-    features (a selection-state model + RFC0-CAM); <HexCanvas> zero-config wrapper; SimpleRPG
-    tileset render mode (RFC0-2).
-
-**Decision:** <HexWorld> is Canvas-free — the consumer owns the R3F <Canvas>, dhw owns the
-board composition + render-sync bridge inside it.
-**Why:** Canvas/camera/renderer/lights/post are app+art decisions (burden side of the
-boon/burden line); owning them would presume and constrain. A Canvas-free primitive composes
-with consumer R3F content and stays testable. Optional <HexCanvas> covers zero-config.
-**Resolves:** RFC0-8b element-layer architecture (Canvas ownership).
+**Phase C — Generic asset sources + CLI + defaults:**
+- [ ] RFC0-CLI Source-agnostic asset-binder CLI: point at ANY assets path → scan → heuristic source-kind detection → SUGGEST a default binding → emit a Zod-validated AssetSourceSpec JSON. Three authoring paths: hand-written JSON, CLI scan+prompts, or a local web-form configurator (spins up a server + browser). KayKit = one recognized signature. Builds on G0; feeds RFC0-10. See RFC §CLI.
 - [ ] RFC0-9 Generalize transition/edge-mask resolution (`AssetSource.resolveEdge`); fix `setCoastEdges` to validate/degrade non-contiguous masks at author time (the `010101` finding) + regression test.
-- [ ] RFC0-10 KayKit-as-downloadable-defaults (G4): THREE first-class downloadable CC0 packs — Medieval Hexagon (tiles/), Adventures (models/, playable), Skeletons (models/, enemies) = a full game from defaults. Fetch-on-demand for each (never tracked); default source resolution (present → use; absent → clear error to run the download); docs. Generalizes the current single-pack FREE bootstrap to the 3-pack set.
+- [ ] RFC0-10 KayKit-as-downloadable-defaults (G4): THREE first-class downloadable CC0 packs — Medieval Hexagon (tiles/), Adventures (models/, playable), Skeletons (models/, enemies) = a full game from defaults. Fetch-on-demand, never tracked; default source resolution (present→use; absent→clear error); docs. Generalizes the single-pack FREE bootstrap to the 3-pack set.
 
-### Phase 2b — Capabilities surfaced by real CC0 packs (SimpleRPG gap-finding)
-- [ ] RFC0-TEX Texture-binding: bind specific textures to specific GLB/GLTF models (KayKit Adventures ships textures for particular meshes). Spec + render bridge support explicit texture→model binding.
+**Phase C2 — Capabilities surfaced by real CC0 packs (SimpleRPG gap-finding):**
+- [ ] RFC0-TEX Texture-binding: bind specific textures to specific GLB/GLTF models (KayKit Adventures ships textures per mesh). Spec + render bridge support explicit texture→model binding.
 - [ ] RFC0-TAG Classifier tags: first-class queryable tags (playable/non-playable/enemy/random-encounter/unit/building/prop) on assets+placements, koota-backed, queryable via hooks. Default classifiers for recognized packs (Adventures→playable, Skeletons→enemy).
-- [ ] RFC0-NORM Cross-pack size-normalization: hex tiles + props from different makers (KayKit vs Kenney) normalize to one board-cell size for seamless mixed-pack boards.
-- [ ] RFC0-OVERLAY Overlay + placement transforms: model/building from pack B onto a tile from pack A — scale-normalize + center-place + dev-controllable offset/anchor/rotation via <Model>/<Sprite>.
-- [ ] RFC0-ACC Accessory-attachment: associate accessories (helmet/weapon/shield) to a specific character model at the right node/bone. Composition primitive for the Adventures pack.
-- [ ] RFC0-PACKS Two tiers. DOWNLOADABLE DEFAULTS (first-class, fetched on demand, never tracked — G4 mechanism): KayKit Medieval Hexagon→tiles/, KayKit Adventures→models/ (playable), KayKit Skeletons→models/ (enemies) = a FULL game from defaults. CLI offers all three. BAKED into packages/simple-rpg/assets (a few Kenney pieces, tracked): Kenney Hexagon Kit→tiles/ (size-norm test), Kenney Retro Fantasy→models/ (overlay test) — proving cross-maker EXTENSION. Kenney attribution in NOTICE+docs.
+- [ ] RFC0-NORM Cross-pack size-normalization: hex tiles + props from different makers (KayKit vs Kenney) normalize to one board-cell size for mixed-pack boards.
+- [ ] RFC0-OVERLAY Overlay + placement transforms: model/building from pack B onto a tile from pack A — scale-normalize + center-place + dev-controllable offset/anchor/rotation via `<Model>`/`<Sprite>`.
+- [ ] RFC0-ACC Accessory-attachment: associate accessories (helmet/weapon/shield) to a character model at the right node/bone. Composition primitive for the Adventures pack.
+- [ ] RFC0-PACKS Two tiers. DOWNLOADABLE DEFAULTS (first-class, fetched on demand, never tracked — G4): KayKit Medieval Hexagon→tiles/, Adventures→models/ (playable), Skeletons→models/ (enemies) = a FULL game from defaults; CLI offers all three. BAKED into packages/simple-rpg/assets (a few Kenney pieces, tracked): Kenney Hexagon Kit→tiles/ (size-norm test), Kenney Retro Fantasy→models/ (overlay test) — proving cross-maker EXTENSION. Kenney attribution in NOTICE+docs.
 
-### Phase 3 — Ship + external proof
-- [ ] RFC0-11 Comprehensive local review (code/security/simplify, parallel background), fold findings forward into the branch.
-- [ ] RFC0-12 Open PR; address ALL CI + review feedback; resolve every thread; squash-merge once green.
+**Phase D — Ship + external proof:**
+- [ ] RFC0-11 Comprehensive local review (code/security/simplify, parallel background), fold findings forward.
+- [ ] RFC0-12 Open the PR fully (it's #220, draft today); address ALL CI + review feedback; resolve every thread; squash-merge once green (the "main protection" ruleset now gates this: PR + resolved threads + up-to-date + 8 checks).
 - [ ] RFC0-13 Confirm the new version is published on npmjs (release-please cuts it post-merge; Monitor the release, verify the registry).
-- [ ] RFC0-14 Pivot back to little-legends: RE-HOME its composition + interaction onto dhw's koota world (stop duplicating an engine) — register its sprites + hex tilesets as asset sources, back worldgen/placement/selection/movement/fog/camera with dhw instead of hand-rolled R3F. Render the 10 tilesets through `./tileset`, screenshot against `docs/design/refs/civrev2-*.jpg`. Each little-legends need dhw can't yet back = a NEW capability item folded back into this branch (gap-finding runs throughout, per RFC §Guiding method), not just a final port.
-
-### RFC-0001 resume state (2026-07-06, after G0)
-
-**Branch:** feat/generic-asset-sources, PR #220 (draft). CI green on RFC0-1 + G0
-(build/lint/typecheck/coverage/bootstrap/benchmarks pass; CodeQL is GitHub
-default-setup = neutral/flaky, NOT a real gate).
-
-**DONE + verified (local green + CI green):**
-- RFC0-1 workspace move (library → packages/declarative-hex-worlds, private root,
-  only lib publishes, native pnpm caching CI, release-please retargeted).
-- RFC0-G0 Zod AssetSourceSpec (src/asset-source/, ./asset-source subpath) +
-  free.ts retirement (16.5k→41 lines) + pnpm catalog + zod dep. 2662 tests pass.
-- docs-site adopted as `packages/docs-site` workspace member (commit c619ec0) —
-  the STRUCTURAL PREREQUISITE for RFC0-4's live SimpleRPG React island: only a
-  member can `workspace:*`-depend on the library + `@declarative-hex-worlds/simple-rpg`.
-  pnpm typedoc-plugin-markdown strict-isolation failure solved via root `.npmrc`
-  (`hoist-pattern[]=*` to keep defaults + `*typedoc-plugin*` + `starlight-typedoc`).
-  astro/tsconfig.typedoc entryPoints repointed to sibling lib; cli-reference +
-  docs-frontmatter/branded-types contract tests repointed under packages/docs-site;
-  ci/cd docs-site jobs collapsed to one workspace install. 2683 tests pass; docs
-  build 1194 pages; frozen install clean. (RFC0-4 showcase-CAPTURE still open —
-  waits on RFC0-8 declarative surface + RFC0-2 SimpleRPG render.)
-
-**NEXT — RFC0-2 (SimpleRPG package), a large mechanical move:**
-- packages/simple-rpg/ is SCAFFOLDED (package.json private workspace:* dep,
-  tsconfig with jsx). Empty src/ — needs the actual move.
-- MOVE src/guides/simple-rpg/{smoke,exercises,types,index}.ts → packages/simple-rpg/src/
-  (these import the library by PACKAGE NAME already — clean).
-- MOVE the scattered SimpleRPG tests into packages/simple-rpg/tests/: tests/integration/simple-rpg/*,
-  tests/e2e/simple-rpg*, tests/browser/simple-rpg-visual.test.ts, tests/unit/simple-rpg.test.ts,
-  tests/simple-rpg/*. REPOINT their relative imports (../../src, ../../../src/guides/simple-rpg)
-  to the package name 'declarative-hex-worlds' + local paths.
-- The library's src/guides/simple-rpg/__tests__/{smoke,exercises}.test.ts move too.
-- Add packages/simple-rpg/vitest.config.ts; ensure `pnpm --filter @declarative-hex-worlds/simple-rpg test` green.
-- Update the library's tsconfig include/exclude + any contract test that counted simple-rpg files.
-- CI: add a layered simple-rpg e2e job that runs AFTER the library suite (needs:), per D-test-topology.
-- Give SimpleRPG an R3F render surface + run states (compose/cross-pack/pathfind/viewport) — this is where
-  the real gap-finding + showcase capture begins (RFC0-4).
-
-**THEN (Phase 2):** RFC0-7 AssetSource interface (build on G0) → RFC0-8 ./tileset +
-declarative <Tile>/<Tileset>/<Sprite>/<Model> elements + hooks → RFC0-CAM camera →
-RFC0-CLI binder + web configurator → RFC0-TEX/TAG/NORM/OVERLAY/ACC (CC0-pack gaps) →
-RFC0-10 three downloadable KayKit defaults → Phase 1 showcase backbone swap →
-RFC0-14 little-legends re-homing. See RFC 0001 for the full design.
-
-### Gap-finding result (2026-07-06): NO declarative render surface exists yet
-SimpleRPG's first render attempt confirms the RFC thesis gap: the library ships
-React PROVIDERS + HOOKS (GameboardRuntimeProvider, useGameboardState,
-useGameboardPlacementSnapshots, action hooks) but NO ready-to-use board React
-component — no <HexWorld>/<Tile>/<Canvas>/<mesh>. A consumer must hand-wire R3F
-+ syncGameboardPlacementObjects (the imperative three bridge) themselves — exactly
-what little-legends' HexBoard did. So SimpleRPG can't render declaratively until
-RFC0-8 (the <Tile>/<Tileset>/<Sprite>/<Model> + <HexWorld> elements + hooks that
-proxy koota+honeycomb+three) exists. EFFECTIVE ORDER: build RFC0-8 declarative
-elements NEXT (the core deliverable per the React thesis), with SimpleRPG as their
-first consumer + gap-finder. The imperative bridge becomes the internal engine
-under the declarative surface.
+- [ ] RFC0-14 Pivot back to little-legends: RE-HOME its composition + interaction onto dhw's koota world — register its sprites + hex tilesets as asset sources, back worldgen/placement/selection/movement/fog/camera with dhw instead of hand-rolled R3F. Render the 10 tilesets through the tileset source, screenshot against `docs/design/refs/civrev2-*.jpg`. Each little-legends need dhw can't yet back = a NEW capability item folded back into this branch (gap-finding runs throughout, per RFC §Guiding method).
