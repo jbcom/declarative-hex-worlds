@@ -9,6 +9,17 @@ The included files under `assets/free/` are from KayKit: Medieval Hexagon Pack
 - KayKit: https://kaylousberg.itch.io
 - CC0-1.0: https://creativecommons.org/publicdomain/zero/1.0/
 
+## Baked cross-maker example assets (RFC0-PACKS)
+
+The `@declarative-hex-worlds/examples` package (not published to npm) bakes a few
+tracked pieces from **Kenney Hexagon Kit 2.0** by Kenney under CC0-1.0, to prove
+cross-maker extension — a different asset maker than KayKit composing through the
+same library seams (size normalization + overlay). Credited by courtesy; CC0
+requires no attribution.
+
+- Kenney: https://www.kenney.nl
+- CC0-1.0: https://creativecommons.org/publicdomain/zero/1.0/
+
 ## Downloadable default packs (RFC0-10)
 
 These first-class default packs are **not** distributed in this package's npm
