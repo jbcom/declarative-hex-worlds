@@ -368,6 +368,31 @@ describe('declarative elements (RFC0-8b)', () => {
     expect(spawned).toBe(baseline + 1);
   });
 
+  it('unregisters a <Tileset> source when it unmounts (registry cleanup)', async () => {
+    const counts: number[] = [];
+    function Probe(): null {
+      const { sources } = useHexWorld();
+      React.useEffect(() => {
+        counts.push(sources.length);
+      });
+      return null;
+    }
+    const tree = (withTileset: boolean) =>
+      React.createElement(
+        HexWorld,
+        { plan: plan(), loader: gltfLoader },
+        withTileset ? React.createElement(Tileset, { manifest }) : null,
+        React.createElement(Probe, null)
+      );
+    // Mount with the Tileset (source registered), then re-render without it —
+    // the Tileset unmounts and its registerSource cleanup runs (the unregister fn).
+    await render(tree(true));
+    await act(async () => root?.render(tree(false)));
+    // Source count went up (register) then back down (unregister cleanup fired).
+    expect(Math.max(...counts)).toBeGreaterThanOrEqual(1);
+    expect(counts.at(-1)).toBe(0);
+  });
+
   it('<Tileset hex> override is registered', async () => {
     let sourceCount = -1;
     function Probe(): null {
