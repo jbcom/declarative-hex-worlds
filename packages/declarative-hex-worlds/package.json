@@ -205,6 +205,10 @@
     "./classifiers": {
       "types": "./dist/classifiers.d.ts",
       "import": "./dist/classifiers.js"
+    },
+    "./normalize": {
+      "types": "./dist/normalize.d.ts",
+      "import": "./dist/normalize.js"
     }
   },
   "bin": {

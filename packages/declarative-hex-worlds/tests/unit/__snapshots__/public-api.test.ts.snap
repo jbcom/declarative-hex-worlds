@@ -1440,6 +1440,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "normalizeAssetToCell",
+  },
+  {
+    "kind": "function",
     "name": "normalizeGameboardLayoutArchetypeRegistry",
   },
   {
@@ -1449,6 +1453,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "normalizeMedievalHexagonManifest",
+  },
+  {
+    "kind": "function",
+    "name": "normalizedFootprint",
   },
   {
     "kind": "function",

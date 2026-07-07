@@ -21,6 +21,7 @@ export default defineConfig([
     coverage: 'src/interop/coverage.ts',
     'asset-source': 'src/asset-source/index.ts',
     camera: 'src/camera/index.ts',
+    normalize: 'src/normalize/index.ts',
     classifiers: 'src/classifiers/index.ts',
     canvas2d: 'src/canvas2d/index.ts',
     core: 'src/core/index.ts',
