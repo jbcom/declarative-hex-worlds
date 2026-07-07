@@ -106,3 +106,29 @@ proxy koota+honeycomb+three) exists. EFFECTIVE ORDER: build RFC0-8 declarative
 elements NEXT (the core deliverable per the React thesis), with SimpleRPG as their
 first consumer + gap-finder. The imperative bridge becomes the internal engine
 under the declarative surface.
+
+## RFC0-CORE — the `./core` koota-free + three-free tier (complete)
+
+The "declare + JSON + validate + hex math + interop, bring-your-own runtime/renderer"
+tier. Three source splits + an isolated build + a source-and-built purity contract.
+
+- **Recipe split** (commit 237874f): `recipe.ts`'s only koota use — `applyGameboardRecipeGeneration`
+  (seeded layout-fill via a koota world) — moved to `src/scenario/recipe-generation.ts`.
+  `createGameboardPlanFromRecipe` gained an injectable `applyGeneration` param defaulting to
+  a module-level applier: `pureRecipeGenerationApplier` (koota-free; passes no-fill-rule
+  generation through, throws a clear "requires the runtime tier" if fill rules present). The
+  runtime tier wires the koota applier as the default on import (side-effect via the scenario
+  barrel), so all ~10 callers keep today's behavior. recipe.ts → zero koota.
+- **Layout split** (commit 0ac4f4f): layout.ts's 2 koota-spawning exports
+  (`spawnGameboardLayoutPlacements`, `spawnGameboardLayoutFill`) + `projectWorldForLayout`
+  moved to `src/coordinates/layout-runtime.ts`; the 10 pure layout fns stay. projection.ts
+  needed NO split — all 3 exports take a World (runtime-only module `./core` omits).
+- **`./core` barrel + subpath** (commit a87f180): `src/core/index.ts` re-exports the pure
+  modules directly (bypassing the runtime-mixed barrels), `./core` subpath added.
+- **Isolated build** (commit 205f7de): tsup.config is now an array — main build
+  (splitting:true, for koota trait-identity stability) + a standalone `core` build
+  (splitting:false), so `dist/core.js` never shares a koota-importing chunk. Verified: the
+  built core imports only honeycomb-grid + seedrandom + zod; `import('./dist/core.js')` loads
+  112 exports in a koota-less context.
+- **Contract**: `tests/contract/core-tier-purity-contract.test.ts` asserts BOTH the source
+  import graph AND the built dist/core.js are koota/three/react-free (4 tests, regression-locked).
