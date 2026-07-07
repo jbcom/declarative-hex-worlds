@@ -10,6 +10,7 @@ export default defineConfig({
     commands: 'src/commands/index.ts',
     coverage: 'src/interop/coverage.ts',
     'asset-source': 'src/asset-source/index.ts',
+    core: 'src/core/index.ts',
     coordinates: 'src/coordinates/index.ts',
     gameboard: 'src/gameboard/index.ts',
     grid: 'src/coordinates/grid.ts',
