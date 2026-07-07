@@ -656,6 +656,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "bindingTargetsMesh",
+  },
+  {
+    "kind": "function",
     "name": "canOccupyGameboardPlacement",
   },
   {
@@ -1221,6 +1225,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "indexGameboardInteropSnapshot",
+  },
+  {
+    "kind": "function",
+    "name": "indexTextureBindings",
   },
   {
     "kind": "function",
@@ -1889,6 +1897,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "validateMedievalHexagonManifest",
+  },
+  {
+    "kind": "function",
+    "name": "validateTextureBindings",
   },
   {
     "kind": "function",

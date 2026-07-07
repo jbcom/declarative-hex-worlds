@@ -23,3 +23,4 @@ export {
   buildTexturedHexMesh,
 } from './textured-hex';
 export { type AccessoryAttachmentResult, attachAccessoryToModel, detachAccessory } from './accessories';
+export { type TextureBindingResult, applyTextureBinding } from './texture-binding';

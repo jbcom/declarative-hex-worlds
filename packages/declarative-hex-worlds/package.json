@@ -217,6 +217,10 @@
     "./accessories": {
       "types": "./dist/accessories.d.ts",
       "import": "./dist/accessories.js"
+    },
+    "./texture-binding": {
+      "types": "./dist/texture-binding.d.ts",
+      "import": "./dist/texture-binding.js"
     }
   },
   "bin": {
