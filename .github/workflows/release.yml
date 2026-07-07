@@ -47,7 +47,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Bootstrap FREE models for browser coverage
-        run: pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models
+        run: pnpm --filter declarative-hex-worlds exec tsx src/cli/cli.ts bootstrap --source github --out packages/declarative-hex-worlds/models
 
       - name: Production audit (high+)
         # Final blocking security gate before any bytes ship. Per-PR uses
@@ -76,12 +76,16 @@ jobs:
       - name: Pack tarball for attestation
         # Pack BEFORE publishing so we can attest the exact bytes that ship.
         # `npm pack --json` writes the tarball into the cwd; capture its
-        # filename for the attestation + release-assets steps.
+        # filename for the attestation + release-assets steps. Runs in the
+        # LIBRARY package (the workspace root is private + not published).
         id: pack
+        working-directory: packages/declarative-hex-worlds
         run: |
           PACK_JSON=$(npm pack --json)
           TARBALL=$(echo "$PACK_JSON" | node -e 'let d=""; process.stdin.on("data", c=>d+=c).on("end", ()=>{const a=JSON.parse(d); process.stdout.write(a[0].filename)})')
-          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+          # Emit a workspace-root-relative path so downstream steps (which run
+          # from the repo root) can find the tarball.
+          echo "tarball=packages/declarative-hex-worlds/$TARBALL" >> "$GITHUB_OUTPUT"
 
       - name: Attest build provenance (SLSA L3)
         # PRD G1. Cryptographically attests that this exact tarball was built
@@ -94,10 +98,11 @@ jobs:
       - name: Generate SBOM (CycloneDX)
         # PRD G2. CycloneDX 1.6 SBOM listing the full prod-dep tree of the
         # published package. Attached as a release asset by the next step.
+        working-directory: packages/declarative-hex-worlds
         run: |
           pnpm exec cyclonedx-npm \
             --output-format json \
-            --output-file sbom.cdx.json \
+            --output-file ../../sbom.cdx.json \
             --omit dev
 
       - name: Attach SBOM + tarball to release

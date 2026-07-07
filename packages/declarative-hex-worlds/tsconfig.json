@@ -1,0 +1,151 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "rootDir": ".",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    "paths": {
+      "declarative-hex-worlds": [
+        "./src/index.ts"
+      ],
+      "declarative-hex-worlds/actors": [
+        "./src/actors/index.ts"
+      ],
+      "declarative-hex-worlds/blueprint": [
+        "./src/scenario/blueprint.ts"
+      ],
+      "declarative-hex-worlds/catalog": [
+        "./src/scenario/catalog.ts"
+      ],
+      "declarative-hex-worlds/cli": [
+        "./src/cli/index.ts"
+      ],
+      "declarative-hex-worlds/commands": [
+        "./src/commands/index.ts"
+      ],
+      "declarative-hex-worlds/compatibility": [
+        "./src/interop/compatibility.ts"
+      ],
+      "declarative-hex-worlds/coordinates": [
+        "./src/coordinates/index.ts"
+      ],
+      "declarative-hex-worlds/coverage": [
+        "./src/interop/coverage.ts"
+      ],
+      "declarative-hex-worlds/errors": [
+        "./src/errors/index.ts"
+      ],
+      "declarative-hex-worlds/gameboard": [
+        "./src/gameboard/index.ts"
+      ],
+      "declarative-hex-worlds/grid": [
+        "./src/coordinates/grid.ts"
+      ],
+      "declarative-hex-worlds/ingest": [
+        "./src/ingest/index.ts"
+      ],
+      "declarative-hex-worlds/interop": [
+        "./src/interop/index.ts"
+      ],
+      "declarative-hex-worlds/koota": [
+        "./src/koota/index.ts"
+      ],
+      "declarative-hex-worlds/layout": [
+        "./src/coordinates/layout.ts"
+      ],
+      "declarative-hex-worlds/manifest/free": [
+        "./src/manifest/free.ts"
+      ],
+      "declarative-hex-worlds/manifest/schema": [
+        "./src/manifest/schema.ts"
+      ],
+      "declarative-hex-worlds/movement": [
+        "./src/movement/index.ts"
+      ],
+      "declarative-hex-worlds/navigation": [
+        "./src/gameboard/navigation.ts"
+      ],
+      "declarative-hex-worlds/occupancy": [
+        "./src/gameboard/occupancy.ts"
+      ],
+      "declarative-hex-worlds/patrol": [
+        "./src/patrol/index.ts"
+      ],
+      "declarative-hex-worlds/pieces": [
+        "./src/pieces/index.ts"
+      ],
+      "declarative-hex-worlds/projection": [
+        "./src/coordinates/projection.ts"
+      ],
+      "declarative-hex-worlds/quests": [
+        "./src/quests/index.ts"
+      ],
+      "declarative-hex-worlds/react": [
+        "./src/react/index.ts"
+      ],
+      "declarative-hex-worlds/recipe": [
+        "./src/scenario/recipe.ts"
+      ],
+      "declarative-hex-worlds/registry": [
+        "./src/scenario/registry.ts"
+      ],
+      "declarative-hex-worlds/rule-types": [
+        "./src/rules/rule-types.ts"
+      ],
+      "declarative-hex-worlds/rules": [
+        "./src/rules/index.ts"
+      ],
+      "declarative-hex-worlds/runtime": [
+        "./src/runtime/index.ts"
+      ],
+      "declarative-hex-worlds/scenario": [
+        "./src/scenario/index.ts"
+      ],
+      "declarative-hex-worlds/selectors": [
+        "./src/selectors/index.ts"
+      ],
+      "declarative-hex-worlds/simulation": [
+        "./src/simulation/index.ts"
+      ],
+      "declarative-hex-worlds/systems": [
+        "./src/systems/index.ts"
+      ],
+      "declarative-hex-worlds/three": [
+        "./src/three/index.ts"
+      ],
+      "declarative-hex-worlds/traits": [
+        "./src/traits/index.ts"
+      ],
+      "declarative-hex-worlds/types": [
+        "./src/types/index.ts"
+      ],
+      "declarative-hex-worlds/validation": [
+        "./src/rules/validation.ts"
+      ],
+      "declarative-hex-worlds/world-rules": [
+        "./src/systems/world-rules-system.ts"
+      ],
+      "declarative-hex-worlds/asset-source": [
+        "./src/asset-source/index.ts"
+      ]
+    },
+    "types": [
+      "node",
+      "vitest/globals"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "examples/**/*.ts",
+    "scripts/**/*.ts",
+    "*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "coverage",
+    "assets/free",
+    "node_modules"
+  ]
+}

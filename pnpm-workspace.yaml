@@ -1,0 +1,32 @@
+packages:
+  - "packages/*"
+
+# Shared dependency versions — single source of truth across workspace packages
+# (the library + simple-rpg + docs-site). Reference with "catalog:" in a
+# package's dependencies. Keeps SimpleRPG's toolchain locked to the library's.
+catalog:
+  "@types/node": "^26.1.0"
+  "@types/react": "^19.2.17"
+  "@types/react-dom": "^19.2.0"
+  "@types/three": "^0.185.0"
+  typescript: "^6.0.3"
+  vitest: "^4.1.10"
+  "@vitest/browser": "4.1.10"
+  playwright: "^1.61.1"
+  three: "^0.185.1"
+  koota: "^0.6.6"
+  react: "^19.2.7"
+  react-dom: "^19.2.7"
+  "@react-three/fiber": "^9.6.1"
+  zod: "^4.4.3"
+
+# Supply-chain hardening (semgrep p/nodejs pnpm rules):
+# - minimumReleaseAge: a cooldown before a just-published version is installable,
+#   blunting a compromised-maintainer / typosquat window (pnpm 9.15+).
+# - onlyBuiltDependencies: allowlist for packages permitted to run install
+#   scripts; everything else is blocked from arbitrary postinstall execution.
+minimumReleaseAge: 1440
+onlyBuiltDependencies:
+  - "@biomejs/biome"
+  - esbuild
+  - sharp

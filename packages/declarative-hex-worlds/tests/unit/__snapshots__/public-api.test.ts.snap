@@ -1,0 +1,1942 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`public API surface (PRD E2) > snapshot of every umbrella export name + typeof 1`] = `
+[
+  {
+    "kind": "object",
+    "name": "ASSET_CATEGORIES",
+  },
+  {
+    "kind": "object",
+    "name": "ASSET_FORMATS",
+  },
+  {
+    "kind": "object",
+    "name": "ASSET_ROLES",
+  },
+  {
+    "kind": "object",
+    "name": "ActiveGameboardQuestQuery",
+  },
+  {
+    "kind": "object",
+    "name": "ActiveMovementQuery",
+  },
+  {
+    "kind": "function",
+    "name": "AdjacentTo",
+  },
+  {
+    "kind": "object",
+    "name": "BASE_TILE_ASSET_IDS",
+  },
+  {
+    "kind": "object",
+    "name": "BlockedGameboardQuestQuery",
+  },
+  {
+    "kind": "object",
+    "name": "BlockingActorQuery",
+  },
+  {
+    "kind": "object",
+    "name": "CLASSIFIER_TAGS",
+  },
+  {
+    "kind": "string",
+    "name": "CLASSIFIER_TAG_PREFIX",
+  },
+  {
+    "kind": "object",
+    "name": "COAST_TILE_ASSET_IDS",
+  },
+  {
+    "kind": "object",
+    "name": "COAST_VARIANTS",
+  },
+  {
+    "kind": "object",
+    "name": "COLORED_UNIT_PARTS",
+  },
+  {
+    "kind": "object",
+    "name": "CoastPlacementQuery",
+  },
+  {
+    "kind": "object",
+    "name": "CompletedGameboardQuestQuery",
+  },
+  {
+    "kind": "object",
+    "name": "DEFAULT_CAMERA_STATE",
+  },
+  {
+    "kind": "string",
+    "name": "DEFAULT_GAMEBOARD_ASSET_ROOT",
+  },
+  {
+    "kind": "object",
+    "name": "DEFAULT_PLACEMENT_CLASSIFIERS",
+  },
+  {
+    "kind": "object",
+    "name": "DecomposedGameboardTileQuery",
+  },
+  {
+    "kind": "object",
+    "name": "EXTRA_FACTION_BUILDING_KINDS",
+  },
+  {
+    "kind": "object",
+    "name": "EXTRA_PROP_ASSET_IDS",
+  },
+  {
+    "kind": "object",
+    "name": "EXTRA_TRANSITION_TILE_ASSET_IDS",
+  },
+  {
+    "kind": "object",
+    "name": "EXTRA_UNIT_STYLES",
+  },
+  {
+    "kind": "object",
+    "name": "EnemyActorQuery",
+  },
+  {
+    "kind": "object",
+    "name": "ExtraPlacementQuery",
+  },
+  {
+    "kind": "object",
+    "name": "FACTIONS",
+  },
+  {
+    "kind": "object",
+    "name": "FACTION_BUILDING_KINDS",
+  },
+  {
+    "kind": "object",
+    "name": "FREE_FACTION_BUILDING_KINDS",
+  },
+  {
+    "kind": "object",
+    "name": "FREE_PROP_ASSET_IDS",
+  },
+  {
+    "kind": "string",
+    "name": "GAMEBOARD_ASSET_ROOT_ENV_VAR",
+  },
+  {
+    "kind": "string",
+    "name": "GAMEBOARD_ASSET_ROOT_GLOBAL_KEY",
+  },
+  {
+    "kind": "string",
+    "name": "GAMEBOARD_COVERAGE_SCHEMA_VERSION",
+  },
+  {
+    "kind": "object",
+    "name": "GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS",
+  },
+  {
+    "kind": "object",
+    "name": "GAMEBOARD_INTERACTION_HANDLER_PRESETS",
+  },
+  {
+    "kind": "object",
+    "name": "GAMEBOARD_LAYOUT_ARCHETYPES",
+  },
+  {
+    "kind": "object",
+    "name": "GAMEBOARD_MOVEMENT_PROFILES",
+  },
+  {
+    "kind": "string",
+    "name": "GAMEBOARD_QUEST_SCHEMA_VERSION",
+  },
+  {
+    "kind": "string",
+    "name": "GAMEBOARD_RECIPE_SCHEMA_VERSION",
+  },
+  {
+    "kind": "object",
+    "name": "GAMEBOARD_RELEASE_GATE_COMMANDS",
+  },
+  {
+    "kind": "object",
+    "name": "GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS",
+  },
+  {
+    "kind": "string",
+    "name": "GAMEBOARD_SCENARIO_SCHEMA_VERSION",
+  },
+  {
+    "kind": "string",
+    "name": "GAMEBOARD_SCENARIO_SIMULATION_SCHEMA_VERSION",
+  },
+  {
+    "kind": "object",
+    "name": "GAMEBOARD_SCENARIO_SIMULATION_STEP_ACTIONS",
+  },
+  {
+    "kind": "string",
+    "name": "GAMEBOARD_SCHEMA_VERSION",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardActor",
+  },
+  {
+    "kind": "object",
+    "name": "GameboardActorQuery",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardBuilder",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardCliError",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardError",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardIoError",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardManifestError",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardPatrolAgent",
+  },
+  {
+    "kind": "object",
+    "name": "GameboardPatrolAgentQuery",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardPatrolState",
+  },
+  {
+    "kind": "object",
+    "name": "GameboardPlacementQuery",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardQuest",
+  },
+  {
+    "kind": "object",
+    "name": "GameboardQuestQuery",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardRuntimeError",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardScenarioError",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardState",
+  },
+  {
+    "kind": "object",
+    "name": "GameboardTileQuery",
+  },
+  {
+    "kind": "function",
+    "name": "GameboardValidationError",
+  },
+  {
+    "kind": "object",
+    "name": "HEX_DIRECTIONS",
+  },
+  {
+    "kind": "number",
+    "name": "HEX_EDGE_COUNT",
+  },
+  {
+    "kind": "number",
+    "name": "HEX_ROTATION_RADIANS",
+  },
+  {
+    "kind": "object",
+    "name": "HEX_ROTATION_STEPS",
+  },
+  {
+    "kind": "string",
+    "name": "HEX_WORLDS_SCHEMA_VERSION",
+  },
+  {
+    "kind": "object",
+    "name": "HarborPlacementQuery",
+  },
+  {
+    "kind": "function",
+    "name": "HexTileState",
+  },
+  {
+    "kind": "object",
+    "name": "HostileActorQuery",
+  },
+  {
+    "kind": "object",
+    "name": "InteractiveActorQuery",
+  },
+  {
+    "kind": "function",
+    "name": "IsActiveGameboardQuest",
+  },
+  {
+    "kind": "function",
+    "name": "IsBlockedGameboardQuest",
+  },
+  {
+    "kind": "function",
+    "name": "IsBlockingActor",
+  },
+  {
+    "kind": "function",
+    "name": "IsCoastPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "IsCompletedGameboardQuest",
+  },
+  {
+    "kind": "function",
+    "name": "IsDecorationPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "IsEnemyActor",
+  },
+  {
+    "kind": "function",
+    "name": "IsGameboardActor",
+  },
+  {
+    "kind": "function",
+    "name": "IsGameboardPatrolAgent",
+  },
+  {
+    "kind": "function",
+    "name": "IsGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "IsGameboardQuest",
+  },
+  {
+    "kind": "function",
+    "name": "IsGameboardTile",
+  },
+  {
+    "kind": "function",
+    "name": "IsHarborPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "IsHostileActor",
+  },
+  {
+    "kind": "function",
+    "name": "IsInteractiveActor",
+  },
+  {
+    "kind": "function",
+    "name": "IsMoving",
+  },
+  {
+    "kind": "function",
+    "name": "IsNpcActor",
+  },
+  {
+    "kind": "function",
+    "name": "IsPlayerActor",
+  },
+  {
+    "kind": "function",
+    "name": "IsPropActor",
+  },
+  {
+    "kind": "function",
+    "name": "IsPropPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "IsRiverPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "IsRoadPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "IsStackedTerrain",
+  },
+  {
+    "kind": "function",
+    "name": "IsStructurePlacement",
+  },
+  {
+    "kind": "function",
+    "name": "IsTerrainPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "IsUnitPlacement",
+  },
+  {
+    "kind": "object",
+    "name": "KAYKIT_ATTRIBUTION",
+  },
+  {
+    "kind": "number",
+    "name": "KAYKIT_ELEVATION_STEP",
+  },
+  {
+    "kind": "number",
+    "name": "KAYKIT_HEX_DEPTH",
+  },
+  {
+    "kind": "object",
+    "name": "KAYKIT_HEX_GEOMETRY",
+  },
+  {
+    "kind": "number",
+    "name": "KAYKIT_HEX_ROW_SPACING",
+  },
+  {
+    "kind": "number",
+    "name": "KAYKIT_HEX_SIDE",
+  },
+  {
+    "kind": "number",
+    "name": "KAYKIT_HEX_WIDTH",
+  },
+  {
+    "kind": "string",
+    "name": "KAYKIT_PACK_VERSION",
+  },
+  {
+    "kind": "function",
+    "name": "KayKitHex",
+  },
+  {
+    "kind": "function",
+    "name": "MovementAgent",
+  },
+  {
+    "kind": "object",
+    "name": "MovementAgentQuery",
+  },
+  {
+    "kind": "function",
+    "name": "MovementPathState",
+  },
+  {
+    "kind": "object",
+    "name": "NATURE_ASSET_IDS",
+  },
+  {
+    "kind": "object",
+    "name": "NEUTRAL_STRUCTURE_KINDS",
+  },
+  {
+    "kind": "object",
+    "name": "NEUTRAL_UNIT_PARTS",
+  },
+  {
+    "kind": "object",
+    "name": "NpcActorQuery",
+  },
+  {
+    "kind": "object",
+    "name": "PACK_EDITIONS",
+  },
+  {
+    "kind": "object",
+    "name": "PROP_ASSET_IDS",
+  },
+  {
+    "kind": "function",
+    "name": "PlacementOccupiesTile",
+  },
+  {
+    "kind": "function",
+    "name": "PlacementOnTile",
+  },
+  {
+    "kind": "function",
+    "name": "PlacementState",
+  },
+  {
+    "kind": "object",
+    "name": "PlayerActorQuery",
+  },
+  {
+    "kind": "object",
+    "name": "PropActorQuery",
+  },
+  {
+    "kind": "object",
+    "name": "RIVER_TILE_ASSET_IDS",
+  },
+  {
+    "kind": "object",
+    "name": "RIVER_VARIANTS",
+  },
+  {
+    "kind": "object",
+    "name": "ROAD_TILE_ASSET_IDS",
+  },
+  {
+    "kind": "object",
+    "name": "ROAD_VARIANTS",
+  },
+  {
+    "kind": "function",
+    "name": "RequiresExtraAsset",
+  },
+  {
+    "kind": "object",
+    "name": "RiverPlacementQuery",
+  },
+  {
+    "kind": "object",
+    "name": "RoadPlacementQuery",
+  },
+  {
+    "kind": "object",
+    "name": "StackedTerrainQuery",
+  },
+  {
+    "kind": "object",
+    "name": "StructurePlacementQuery",
+  },
+  {
+    "kind": "object",
+    "name": "TEXTURE_SETS",
+  },
+  {
+    "kind": "object",
+    "name": "TILESET_BIOME_SELECTORS",
+  },
+  {
+    "kind": "object",
+    "name": "TILESET_SHEET_ROLES",
+  },
+  {
+    "kind": "object",
+    "name": "TRANSITION_VARIANTS",
+  },
+  {
+    "kind": "object",
+    "name": "TerrainPlacementQuery",
+  },
+  {
+    "kind": "function",
+    "name": "TileConnectivity",
+  },
+  {
+    "kind": "function",
+    "name": "TileCoordinates",
+  },
+  {
+    "kind": "function",
+    "name": "TileElevation",
+  },
+  {
+    "kind": "function",
+    "name": "TileRenderState",
+  },
+  {
+    "kind": "function",
+    "name": "TileTagList",
+  },
+  {
+    "kind": "function",
+    "name": "TileTerrain",
+  },
+  {
+    "kind": "object",
+    "name": "UNIT_STYLES",
+  },
+  {
+    "kind": "object",
+    "name": "UnitMovementQuery",
+  },
+  {
+    "kind": "function",
+    "name": "advanceAllGameboardQuests",
+  },
+  {
+    "kind": "function",
+    "name": "advanceGameboardMovement",
+  },
+  {
+    "kind": "function",
+    "name": "advanceGameboardPatrol",
+  },
+  {
+    "kind": "function",
+    "name": "advanceGameboardQuest",
+  },
+  {
+    "kind": "function",
+    "name": "analyzeExternalAssetCompatibility",
+  },
+  {
+    "kind": "function",
+    "name": "analyzeGameboardLayoutFill",
+  },
+  {
+    "kind": "function",
+    "name": "analyzeGameboardPieceRegistry",
+  },
+  {
+    "kind": "function",
+    "name": "analyzeHexTileRegistry",
+  },
+  {
+    "kind": "function",
+    "name": "analyzeTileGeometry",
+  },
+  {
+    "kind": "function",
+    "name": "appendGameboardLayoutPlacementsToPlan",
+  },
+  {
+    "kind": "function",
+    "name": "appendGameboardRecipeSteps",
+  },
+  {
+    "kind": "function",
+    "name": "applyGameboardRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "applyGameboardRecipeGeneration",
+  },
+  {
+    "kind": "function",
+    "name": "applyRecipeStep",
+  },
+  {
+    "kind": "function",
+    "name": "applyTileDeclaration",
+  },
+  {
+    "kind": "function",
+    "name": "areGameboardActorsHostile",
+  },
+  {
+    "kind": "function",
+    "name": "assertCoverableCoastMask",
+  },
+  {
+    "kind": "function",
+    "name": "assertGameboardScenarioSimulationExpectations",
+  },
+  {
+    "kind": "function",
+    "name": "assetIdFromPath",
+  },
+  {
+    "kind": "object",
+    "name": "assetSchema",
+  },
+  {
+    "kind": "object",
+    "name": "assetSourceSpecSchema",
+  },
+  {
+    "kind": "function",
+    "name": "axialToWorld",
+  },
+  {
+    "kind": "function",
+    "name": "bindingTargetsMesh",
+  },
+  {
+    "kind": "function",
+    "name": "buildAssetSourceSpec",
+  },
+  {
+    "kind": "function",
+    "name": "canOccupyGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "canPlaceHarborAt",
+  },
+  {
+    "kind": "function",
+    "name": "canStackAt",
+  },
+  {
+    "kind": "function",
+    "name": "canStackInPlan",
+  },
+  {
+    "kind": "function",
+    "name": "cellRect",
+  },
+  {
+    "kind": "function",
+    "name": "classifierMetadata",
+  },
+  {
+    "kind": "function",
+    "name": "classifierMetadataKey",
+  },
+  {
+    "kind": "function",
+    "name": "classifierTagsOf",
+  },
+  {
+    "kind": "function",
+    "name": "classifyGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "classifyPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "clearGameboardMovement",
+  },
+  {
+    "kind": "function",
+    "name": "clearGameboardPatrolAgent",
+  },
+  {
+    "kind": "function",
+    "name": "clearGameboardWorld",
+  },
+  {
+    "kind": "function",
+    "name": "coloredUnitAssetId",
+  },
+  {
+    "kind": "function",
+    "name": "computeBoardBounds",
+  },
+  {
+    "kind": "function",
+    "name": "computeCameraFraming",
+  },
+  {
+    "kind": "function",
+    "name": "containsHex",
+  },
+  {
+    "kind": "function",
+    "name": "coordinatesForShape",
+  },
+  {
+    "kind": "function",
+    "name": "createDefaultGameboardCoveragePackageChecks",
+  },
+  {
+    "kind": "function",
+    "name": "createDefaultGameboardCoverageReferences",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardActorNavigationProfile",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardBlueprintPlan",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardBlueprintRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardBlueprintScenario",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardBuilder",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardCoordinateSystem",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardGrid",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardInteractionHandlerPreset",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardInteropSnapshot",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardInteropSnapshotIndex",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutArchetypeRegistry",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutArchetypeRegistryFromRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutArchetypeRegistryFromRecipeGeneration",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutFillPlacements",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutFillRuleFromPiece",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutFillRuleFromPieces",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutFillRulesFromRegistry",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutPlacementOptionsFromPiece",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutPlacements",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardLayoutPlacementsFromPiece",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardMovementNavigation",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardNavigation",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardOccupancyIndex",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPatrolSimulationScript",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPatrolSimulationSteps",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPieceRegistry",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPieceRegistryFromCompatibilityReports",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPieceRegistryFromRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPieceRegistryFromRecipeGeneration",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPieceSourceUrlMap",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPlacementAssetUrlResolver",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPlan",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPlanFromRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardPlanFromTiles",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardQuest",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardRecipeGenerationFillRules",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardRuntime",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardRuntimeFromRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardRuntimeFromScenario",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardRuntimeInteropSnapshot",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardScenario",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardScenarioInteropSnapshot",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardScenarioSimulationReport",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardSimulationInteropSnapshot",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardWorld",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardWorldFromBlueprint",
+  },
+  {
+    "kind": "function",
+    "name": "createGameboardWorldFromScenario",
+  },
+  {
+    "kind": "function",
+    "name": "createGltfPackSource",
+  },
+  {
+    "kind": "function",
+    "name": "createHarborBoard",
+  },
+  {
+    "kind": "function",
+    "name": "createHexTileRegistry",
+  },
+  {
+    "kind": "function",
+    "name": "createHexTileRegistryFromManifest",
+  },
+  {
+    "kind": "function",
+    "name": "createHexagonGameboardGrid",
+  },
+  {
+    "kind": "function",
+    "name": "createInMemoryGameboardEcs",
+  },
+  {
+    "kind": "function",
+    "name": "createManifestBundle",
+  },
+  {
+    "kind": "function",
+    "name": "createMarkTargetActorInteractedHandler",
+  },
+  {
+    "kind": "function",
+    "name": "createMedievalShowcaseBlueprintRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "createRectangleGameboardGrid",
+  },
+  {
+    "kind": "function",
+    "name": "createRemoveTargetActorHandler",
+  },
+  {
+    "kind": "function",
+    "name": "createRemoveTargetPlacementHandler",
+  },
+  {
+    "kind": "function",
+    "name": "createSeededGameboardDensityFillRules",
+  },
+  {
+    "kind": "function",
+    "name": "createSeededGameboardPieceFillRules",
+  },
+  {
+    "kind": "function",
+    "name": "createSeededGameboardPlan",
+  },
+  {
+    "kind": "function",
+    "name": "createSeededGameboardWorld",
+  },
+  {
+    "kind": "function",
+    "name": "createSpawnLocations",
+  },
+  {
+    "kind": "function",
+    "name": "createTilesetSource",
+  },
+  {
+    "kind": "function",
+    "name": "declareGameboardPiece",
+  },
+  {
+    "kind": "function",
+    "name": "declareGameboardPieceFromCompatibility",
+  },
+  {
+    "kind": "function",
+    "name": "declareGameboardPiecesFromCompatibilityReports",
+  },
+  {
+    "kind": "function",
+    "name": "declareHexTile",
+  },
+  {
+    "kind": "function",
+    "name": "describeKayKitAssetTreatment",
+  },
+  {
+    "kind": "function",
+    "name": "describeKayKitGuideAssetCoverage",
+  },
+  {
+    "kind": "function",
+    "name": "describeKayKitGuidePublicApiCoverage",
+  },
+  {
+    "kind": "function",
+    "name": "describeKayKitGuideRoleCoverage",
+  },
+  {
+    "kind": "function",
+    "name": "describeKayKitGuideScenario",
+  },
+  {
+    "kind": "function",
+    "name": "describeKayKitGuideScenarioCoverage",
+  },
+  {
+    "kind": "function",
+    "name": "dispatchGameboardActorTargetCommand",
+  },
+  {
+    "kind": "function",
+    "name": "dispatchGameboardInteractionCommand",
+  },
+  {
+    "kind": "function",
+    "name": "edgeBetween",
+  },
+  {
+    "kind": "function",
+    "name": "edgeMask",
+  },
+  {
+    "kind": "function",
+    "name": "evaluateGameboardQuestObjective",
+  },
+  {
+    "kind": "function",
+    "name": "evaluateGameboardScenarioSimulationExpectations",
+  },
+  {
+    "kind": "function",
+    "name": "executeGameboardInteractionCommand",
+  },
+  {
+    "kind": "function",
+    "name": "externalAssetSpawnOptions",
+  },
+  {
+    "kind": "function",
+    "name": "factionBuildingAssetId",
+  },
+  {
+    "kind": "function",
+    "name": "findGameboardActor",
+  },
+  {
+    "kind": "function",
+    "name": "findGameboardActorEntity",
+  },
+  {
+    "kind": "function",
+    "name": "findGameboardMovementPath",
+  },
+  {
+    "kind": "function",
+    "name": "findGameboardPath",
+  },
+  {
+    "kind": "function",
+    "name": "findGameboardQuest",
+  },
+  {
+    "kind": "function",
+    "name": "findGameboardQuestEntity",
+  },
+  {
+    "kind": "function",
+    "name": "findHexPath",
+  },
+  {
+    "kind": "function",
+    "name": "findPlacementEntity",
+  },
+  {
+    "kind": "function",
+    "name": "findTileEntity",
+  },
+  {
+    "kind": "function",
+    "name": "flagAssetId",
+  },
+  {
+    "kind": "function",
+    "name": "frameBoard",
+  },
+  {
+    "kind": "object",
+    "name": "freeManifest",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardActions",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardActorActions",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardActorBlocksMovement",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardAssetUrl",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardCommandActions",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardMovementActions",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardPatrolActions",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardPlacementBlocksOccupancy",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardPlacementFootprintKeys",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardPlacementOccupancyGroup",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardPlacementOccupiesTile",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardPlanIndex",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardQuestActions",
+  },
+  {
+    "kind": "function",
+    "name": "gameboardSystemActions",
+  },
+  {
+    "kind": "function",
+    "name": "getGameboardAssetRootOverride",
+  },
+  {
+    "kind": "function",
+    "name": "getManifestAsset",
+  },
+  {
+    "kind": "function",
+    "name": "getPlacementAsset",
+  },
+  {
+    "kind": "function",
+    "name": "guessTileBiome",
+  },
+  {
+    "kind": "function",
+    "name": "hasKayKitAssetTreatment",
+  },
+  {
+    "kind": "function",
+    "name": "hasManifestAsset",
+  },
+  {
+    "kind": "function",
+    "name": "hexDistance",
+  },
+  {
+    "kind": "function",
+    "name": "hexKey",
+  },
+  {
+    "kind": "function",
+    "name": "hexLine",
+  },
+  {
+    "kind": "function",
+    "name": "hexRange",
+  },
+  {
+    "kind": "function",
+    "name": "hexRing",
+  },
+  {
+    "kind": "function",
+    "name": "indexGameboardInteropSnapshot",
+  },
+  {
+    "kind": "function",
+    "name": "indexTextureBindings",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardActorCollision",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardActorTargets",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardBlueprint",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardBlueprintScenario",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardInteractionTarget",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardLayoutSites",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardNeighborhood",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardPiecePlacement",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardPlacementOccupancy",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardScenario",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardScenarioSimulationScript",
+  },
+  {
+    "kind": "function",
+    "name": "inspectGameboardTile",
+  },
+  {
+    "kind": "function",
+    "name": "inspectMedievalHexagonManifest",
+  },
+  {
+    "kind": "function",
+    "name": "inspectSeededGameboardPieceFillSelections",
+  },
+  {
+    "kind": "function",
+    "name": "inspectSeededGameboardPieceFills",
+  },
+  {
+    "kind": "function",
+    "name": "isCoverableCoastMask",
+  },
+  {
+    "kind": "function",
+    "name": "isFaction",
+  },
+  {
+    "kind": "function",
+    "name": "isGameboardInteractionHandlerPreset",
+  },
+  {
+    "kind": "function",
+    "name": "isKnownExtraAssetId",
+  },
+  {
+    "kind": "function",
+    "name": "isTextureSet",
+  },
+  {
+    "kind": "function",
+    "name": "isTransitionFamily",
+  },
+  {
+    "kind": "function",
+    "name": "isUnitStyle",
+  },
+  {
+    "kind": "function",
+    "name": "linkAdjacentTiles",
+  },
+  {
+    "kind": "function",
+    "name": "listClassifiersInWorld",
+  },
+  {
+    "kind": "function",
+    "name": "listCoastGuidePermutations",
+  },
+  {
+    "kind": "function",
+    "name": "listGuideTilePermutations",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitAssetPublicTreatments",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitGuideAssetCoverages",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitGuidePublicApiCoverages",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitGuideRoleCoverages",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitGuideScenarioAssetRenderGroups",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitGuideScenarioAssetRenderRequests",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitGuideScenarioAssetUsages",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitGuideScenarioAssetUsagesForScenario",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitGuideScenarioTreatments",
+  },
+  {
+    "kind": "function",
+    "name": "listKayKitGuideScenarios",
+  },
+  {
+    "kind": "function",
+    "name": "listPropClusterAssets",
+  },
+  {
+    "kind": "function",
+    "name": "listRiverCrossingGuidePermutations",
+  },
+  {
+    "kind": "function",
+    "name": "listRiverCurvyGuidePermutations",
+  },
+  {
+    "kind": "function",
+    "name": "listRiverGuidePermutations",
+  },
+  {
+    "kind": "function",
+    "name": "listRoadGuidePermutations",
+  },
+  {
+    "kind": "function",
+    "name": "loadFreeManifest",
+  },
+  {
+    "kind": "function",
+    "name": "loadPlacementAsset",
+  },
+  {
+    "kind": "function",
+    "name": "manifestAssetRequiresExtra",
+  },
+  {
+    "kind": "function",
+    "name": "mergeGameboardRecipes",
+  },
+  {
+    "kind": "function",
+    "name": "minHeapCreate",
+  },
+  {
+    "kind": "function",
+    "name": "minHeapPop",
+  },
+  {
+    "kind": "function",
+    "name": "minHeapPush",
+  },
+  {
+    "kind": "function",
+    "name": "mountGameboardInteropSnapshot",
+  },
+  {
+    "kind": "function",
+    "name": "moveGameboardActor",
+  },
+  {
+    "kind": "function",
+    "name": "moveGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "neighbor",
+  },
+  {
+    "kind": "function",
+    "name": "neighbors",
+  },
+  {
+    "kind": "function",
+    "name": "neutralUnitAssetId",
+  },
+  {
+    "kind": "function",
+    "name": "normalizeAssetToCell",
+  },
+  {
+    "kind": "function",
+    "name": "normalizeGameboardLayoutArchetypeRegistry",
+  },
+  {
+    "kind": "function",
+    "name": "normalizeHexRotationSteps",
+  },
+  {
+    "kind": "function",
+    "name": "normalizeMedievalHexagonManifest",
+  },
+  {
+    "kind": "function",
+    "name": "normalizedFootprint",
+  },
+  {
+    "kind": "function",
+    "name": "oppositeEdge",
+  },
+  {
+    "kind": "function",
+    "name": "overlayTransform",
+  },
+  {
+    "kind": "function",
+    "name": "parseAssetSourceSpec",
+  },
+  {
+    "kind": "function",
+    "name": "parseHexKey",
+  },
+  {
+    "kind": "function",
+    "name": "parseTilesetManifest",
+  },
+  {
+    "kind": "function",
+    "name": "placementHasClassifier",
+  },
+  {
+    "kind": "function",
+    "name": "planGameboardActorTargetCommand",
+  },
+  {
+    "kind": "function",
+    "name": "planGameboardInteractionCommand",
+  },
+  {
+    "kind": "function",
+    "name": "planGameboardPatrolRoute",
+  },
+  {
+    "kind": "function",
+    "name": "planGameboardPatrolRoutes",
+  },
+  {
+    "kind": "function",
+    "name": "planGameboardSpawnGroups",
+  },
+  {
+    "kind": "function",
+    "name": "previewGameboardInteractionCommand",
+  },
+  {
+    "kind": "function",
+    "name": "projectWorldToGameboardPlan",
+  },
+  {
+    "kind": "function",
+    "name": "pureRecipeGenerationApplier",
+  },
+  {
+    "kind": "function",
+    "name": "reachableGameboardMovementTiles",
+  },
+  {
+    "kind": "function",
+    "name": "reachableGameboardTiles",
+  },
+  {
+    "kind": "function",
+    "name": "readDecomposedTileSpecs",
+  },
+  {
+    "kind": "function",
+    "name": "readGameboardActors",
+  },
+  {
+    "kind": "function",
+    "name": "readGameboardActorsForTile",
+  },
+  {
+    "kind": "function",
+    "name": "readGameboardPatrolAgents",
+  },
+  {
+    "kind": "function",
+    "name": "readGameboardPlacementOccupancy",
+  },
+  {
+    "kind": "function",
+    "name": "readGameboardPlacements",
+  },
+  {
+    "kind": "function",
+    "name": "readGameboardQuests",
+  },
+  {
+    "kind": "function",
+    "name": "readGameboardSnapshot",
+  },
+  {
+    "kind": "function",
+    "name": "readGameboardTiles",
+  },
+  {
+    "kind": "function",
+    "name": "readPlacementOccupancyForTile",
+  },
+  {
+    "kind": "function",
+    "name": "readPlacementsForTile",
+  },
+  {
+    "kind": "function",
+    "name": "readValidationGameboardPlanFromWorld",
+  },
+  {
+    "kind": "function",
+    "name": "recommendExternalAssetFacing",
+  },
+  {
+    "kind": "function",
+    "name": "registerGameboardActor",
+  },
+  {
+    "kind": "function",
+    "name": "removeGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "renderGameboardCoverageMarkdown",
+  },
+  {
+    "kind": "function",
+    "name": "renderKayKitGuideScenarioCoverageMarkdown",
+  },
+  {
+    "kind": "function",
+    "name": "requestGameboardMovement",
+  },
+  {
+    "kind": "function",
+    "name": "requiresExtraAsset",
+  },
+  {
+    "kind": "function",
+    "name": "resetGameboardMovementBudget",
+  },
+  {
+    "kind": "function",
+    "name": "resolveAccessoryTransform",
+  },
+  {
+    "kind": "function",
+    "name": "resolveAssetUrl",
+  },
+  {
+    "kind": "function",
+    "name": "resolveAssetUrlById",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardAssetRoot",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardLayoutArchetype",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardLayoutCriteria",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardMovementProfile",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardPieceSourceUrl",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardPlacementAnimationUrl",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardPlacementAssetUrl",
+  },
+  {
+    "kind": "function",
+    "name": "resolveGameboardScenarioActors",
+  },
+  {
+    "kind": "function",
+    "name": "resolveManifestAssetUrl",
+  },
+  {
+    "kind": "function",
+    "name": "rewriteToBootstrapPath",
+  },
+  {
+    "kind": "function",
+    "name": "rotateMask",
+  },
+  {
+    "kind": "function",
+    "name": "rowSpacingForGeometry",
+  },
+  {
+    "kind": "function",
+    "name": "runGameboardActorTargetInteraction",
+  },
+  {
+    "kind": "function",
+    "name": "runGameboardInteraction",
+  },
+  {
+    "kind": "function",
+    "name": "runGameboardMovementSystem",
+  },
+  {
+    "kind": "function",
+    "name": "runGameboardPatrolSystem",
+  },
+  {
+    "kind": "function",
+    "name": "runGameboardScenarioSimulation",
+  },
+  {
+    "kind": "function",
+    "name": "runGameboardScenarioSimulationScript",
+  },
+  {
+    "kind": "function",
+    "name": "runGameboardSystems",
+  },
+  {
+    "kind": "function",
+    "name": "safeParseAssetSourceSpec",
+  },
+  {
+    "kind": "function",
+    "name": "safeParseTilesetManifest",
+  },
+  {
+    "kind": "function",
+    "name": "scanAssetFiles",
+  },
+  {
+    "kind": "function",
+    "name": "selectCoastVariant",
+  },
+  {
+    "kind": "function",
+    "name": "selectCoastVariantByLabel",
+  },
+  {
+    "kind": "function",
+    "name": "selectGameboardActors",
+  },
+  {
+    "kind": "function",
+    "name": "selectGameboardInteropRelations",
+  },
+  {
+    "kind": "function",
+    "name": "selectGameboardLayoutSites",
+  },
+  {
+    "kind": "function",
+    "name": "selectGameboardPieces",
+  },
+  {
+    "kind": "function",
+    "name": "selectGameboardSpawnLocations",
+  },
+  {
+    "kind": "function",
+    "name": "selectManifestAssets",
+  },
+  {
+    "kind": "function",
+    "name": "selectPlacementsByClassifier",
+  },
+  {
+    "kind": "function",
+    "name": "selectRiverCrossingVariant",
+  },
+  {
+    "kind": "function",
+    "name": "selectRiverVariant",
+  },
+  {
+    "kind": "function",
+    "name": "selectRiverVariantByLabel",
+  },
+  {
+    "kind": "function",
+    "name": "selectRoadVariant",
+  },
+  {
+    "kind": "function",
+    "name": "selectRoadVariantByLabel",
+  },
+  {
+    "kind": "function",
+    "name": "selectSpawnCoordinates",
+  },
+  {
+    "kind": "function",
+    "name": "selectTransitionVariant",
+  },
+  {
+    "kind": "function",
+    "name": "setDefaultRecipeGenerationApplier",
+  },
+  {
+    "kind": "function",
+    "name": "setGameboardAssetRoot",
+  },
+  {
+    "kind": "function",
+    "name": "setGameboardMovementAgent",
+  },
+  {
+    "kind": "function",
+    "name": "setGameboardPatrolAgent",
+  },
+  {
+    "kind": "function",
+    "name": "setTileElevation",
+  },
+  {
+    "kind": "function",
+    "name": "setTileTerrain",
+  },
+  {
+    "kind": "function",
+    "name": "snapshotGameboardSystemEvent",
+  },
+  {
+    "kind": "function",
+    "name": "snapshotGameboardSystemEvents",
+  },
+  {
+    "kind": "function",
+    "name": "spawnGameboardActor",
+  },
+  {
+    "kind": "function",
+    "name": "spawnGameboardLayoutFill",
+  },
+  {
+    "kind": "function",
+    "name": "spawnGameboardLayoutPlacements",
+  },
+  {
+    "kind": "function",
+    "name": "spawnGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "spawnGameboardPlan",
+  },
+  {
+    "kind": "function",
+    "name": "spawnGameboardQuest",
+  },
+  {
+    "kind": "function",
+    "name": "summarizeGameboardCoverage",
+  },
+  {
+    "kind": "function",
+    "name": "summarizeGameboardPlan",
+  },
+  {
+    "kind": "function",
+    "name": "summarizeGameboardScenario",
+  },
+  {
+    "kind": "function",
+    "name": "summarizeKayKitGuideCoverage",
+  },
+  {
+    "kind": "function",
+    "name": "textureFileName",
+  },
+  {
+    "kind": "object",
+    "name": "tilesetManifestSchema",
+  },
+  {
+    "kind": "function",
+    "name": "transformForHex",
+  },
+  {
+    "kind": "function",
+    "name": "transformForPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "transformForVariant",
+  },
+  {
+    "kind": "function",
+    "name": "tryParseHexKey",
+  },
+  {
+    "kind": "function",
+    "name": "updateGameboardActor",
+  },
+  {
+    "kind": "function",
+    "name": "updateGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "validateAccessoryAttachments",
+  },
+  {
+    "kind": "function",
+    "name": "validateGameboardPlan",
+  },
+  {
+    "kind": "function",
+    "name": "validateGameboardRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "validateGameboardRecipeGeneration",
+  },
+  {
+    "kind": "function",
+    "name": "validateGameboardRules",
+  },
+  {
+    "kind": "function",
+    "name": "validateGameboardScenario",
+  },
+  {
+    "kind": "function",
+    "name": "validateGameboardScenarioSimulationScript",
+  },
+  {
+    "kind": "function",
+    "name": "validateMedievalHexagonManifest",
+  },
+  {
+    "kind": "function",
+    "name": "validateTextureBindings",
+  },
+  {
+    "kind": "function",
+    "name": "worldToAxial",
+  },
+]
+`;

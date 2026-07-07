@@ -44,7 +44,7 @@
     }
   ],
   "packages": {
-    ".": {
+    "packages/declarative-hex-worlds": {
       "component": "declarative-hex-worlds"
     }
   }

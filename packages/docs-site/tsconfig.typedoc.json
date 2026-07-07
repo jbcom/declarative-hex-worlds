@@ -1,0 +1,31 @@
+{
+  "extends": "../declarative-hex-worlds/tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "../declarative-hex-worlds",
+    "ignoreDeprecations": "6.0",
+    "types": [
+      "node"
+    ],
+    "baseUrl": "../declarative-hex-worlds",
+    "paths": {
+      "declarative-hex-worlds": [
+        "src/index.ts"
+      ],
+      "declarative-hex-worlds/*": [
+        "src/*"
+      ]
+    }
+  },
+  "include": [
+    "../declarative-hex-worlds/src/**/*.ts",
+    "../declarative-hex-worlds/tests/integration/**/*.ts"
+  ],
+  "exclude": [
+    "../declarative-hex-worlds/dist",
+    "../declarative-hex-worlds/coverage",
+    "../declarative-hex-worlds/node_modules",
+    "../declarative-hex-worlds/assets/free",
+    "../declarative-hex-worlds/src/**/__tests__/**",
+    "../declarative-hex-worlds/tests/**/__tests__/**"
+  ]
+}

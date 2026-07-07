@@ -1,0 +1,44 @@
+{
+  "name": "@declarative-hex-worlds/examples",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Reference examples that exercise every declarative-hex-worlds renderer binding. A shared renderer-free game (src/game) is rendered by each binding example (src/three via /three, src/canvas2d via /canvas2d). Not published; it is the library's real-world exerciser + the source of the docs-site live islands and visual-verification showcases.",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./three": "./src/three/board.tsx",
+    "./canvas2d": "./src/canvas2d/board.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "lint": "pnpm exec biome lint src tests",
+    "test:browser": "vitest run --config vitest.browser.config.ts"
+  },
+  "dependencies": {
+    "declarative-hex-worlds": "workspace:*"
+  },
+  "peerDependencies": {
+    "koota": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "three": "catalog:"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.2",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/three": "catalog:",
+    "@vitest/browser": "catalog:",
+    "koota": "catalog:",
+    "playwright": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "three": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "@react-three/fiber": "catalog:",
+    "@vitest/browser-playwright": "^4.1.10"
+  }
+}
