@@ -27,17 +27,18 @@
  */
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { GameboardCliError } from '../../../errors';
+import type { PackEdition } from '../../../types';
+import { defaultOutRoot, type ParsedArgs, relativizePath, safeResolveOutput } from '../../_shared';
 import type {
   BootstrapKayKitAssetsSource,
   BootstrapResult,
   BootstrapVerificationReport,
 } from './core';
 import { bootstrapKayKitAssets, verifyBootstrap } from './core';
-import { GameboardCliError } from '../../../errors';
-import type { PackEdition } from '../../../types';
-import { type ParsedArgs, defaultOutRoot, relativizePath, safeResolveOutput } from '../../_shared';
 
 export * from './core';
+export * from './registry';
 export * from './target';
 export * from './upstream-layout';
 
