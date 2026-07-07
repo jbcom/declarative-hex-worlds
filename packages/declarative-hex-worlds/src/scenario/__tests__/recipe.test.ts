@@ -15,6 +15,7 @@ import {
   inspectGameboardRecipe,
   mergeGameboardRecipes,
   pureRecipeGenerationApplier,
+  setDefaultRecipeGenerationApplier,
   type GameboardRecipe,
   type GameboardRecipeStep,
   validateGameboardRecipe,
@@ -738,6 +739,38 @@ describe('serializable gameboard recipes', () => {
       // No generation, and an empty generation block, both no-op through.
       expect(pureRecipeGenerationApplier(plan, undefined)).toBe(plan);
       expect(pureRecipeGenerationApplier(plan, {})).toBe(plan);
+    });
+
+    it('falls back to the pure applier when no runtime applier is registered (./core path)', () => {
+      // The scenario barrel wires the koota applier globally; clear it to exercise
+      // the unregistered fallback (resolveGenerationApplier's `?? pure`), then restore.
+      const restore = applyGameboardRecipeGeneration;
+      setDefaultRecipeGenerationApplier(undefined);
+      try {
+        const recipe = createGameboardRecipe(
+          { seed: 'core-fallback', shape: { kind: 'rectangle', width: 2, height: 2 } },
+          [{ action: 'setTerrain', at: { q: 0, r: 0 }, terrain: 'grass' }]
+        );
+        // No generation fill rules → the pure default passes the plan through.
+        const plan = createGameboardPlanFromRecipe(recipe);
+        expect(plan.tiles.length).toBeGreaterThan(0);
+      } finally {
+        setDefaultRecipeGenerationApplier(restore);
+      }
+    });
+
+    it('createGameboardPlanFromRecipe accepts an explicitly injected applyGeneration', () => {
+      const recipe = createGameboardRecipe(
+        { seed: 'explicit-applier', shape: { kind: 'rectangle', width: 2, height: 2 } },
+        [{ action: 'setTerrain', at: { q: 0, r: 0 }, terrain: 'grass' }]
+      );
+      let applierCalled = false;
+      const plan = createGameboardPlanFromRecipe(recipe, {}, (built) => {
+        applierCalled = true;
+        return built; // pass-through applier, exercising the explicit-arg branch
+      });
+      expect(applierCalled).toBe(true);
+      expect(plan.tiles.length).toBeGreaterThan(0);
     });
 
     it('throws a clear runtime-tier error when generation declares fill rules', () => {

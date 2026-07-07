@@ -469,8 +469,14 @@ export function pureRecipeGenerationApplier(
 // if it runs before this line during the module-init import cycle.
 var registeredGenerationApplier: RecipeGenerationApplier | undefined;
 
-/** Set the process-wide default generation applier (the runtime tier wires koota). */
-export function setDefaultRecipeGenerationApplier(applier: RecipeGenerationApplier): void {
+/**
+ * Set the process-wide default generation applier (the runtime tier wires koota).
+ * Pass `undefined` to clear it back to the pure default — mainly for tests that
+ * exercise the `./core`-tier (unregistered) code path.
+ */
+export function setDefaultRecipeGenerationApplier(
+  applier: RecipeGenerationApplier | undefined
+): void {
   registeredGenerationApplier = applier;
 }
 
