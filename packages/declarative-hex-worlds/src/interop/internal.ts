@@ -26,10 +26,9 @@ export const GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS = [
   'tests/browser/__screenshots__/free-seeded-gameboard.png',
   'tests/browser/__screenshots__/free-seeded-hex-gameboard.png',
   'tests/browser/__screenshots__/free-generated-piece-recipe.png',
-  'tests/browser/__screenshots__/simple-rpg-fixed-completed.png',
-  'tests/browser/__screenshots__/simple-rpg-seeded-completed.png',
-  'tests/browser/__screenshots__/simple-rpg-packaged-scenario.png',
-  'tests/browser/__screenshots__/simple-rpg-simulation-report.png',
+  // simple-rpg-* showcases moved to packages/examples (the three example's own
+  // visual tests own + verify them). The library's release-readiness contract
+  // covers only the library's OWN free/extra showcase baselines.
   'tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png',
   'tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png',
   'tests/browser/__screenshots__/extra-local-all-decoration-nature-props.png',
@@ -40,5 +39,4 @@ export const GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS = [
   'tests/browser/__screenshots__/extra-seasonal-textures.png',
   'tests/browser/__screenshots__/extra-harbor-gameboard.png',
   'tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png',
-  'tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png',
 ] as const;

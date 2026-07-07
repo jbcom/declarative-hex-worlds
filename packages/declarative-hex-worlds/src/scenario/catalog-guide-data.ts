@@ -217,7 +217,6 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
       'tests/browser/__screenshots__/free-gameboard-recipe.png',
       'tests/browser/__screenshots__/free-blueprint-builder-showcase.png',
       'tests/browser/__screenshots__/free-seeded-gameboard.png',
-      'tests/browser/__screenshots__/simple-rpg-fixed-completed.png',
       'tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png',
     ],
     docs: [
@@ -336,7 +335,6 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     ],
     visualArtifacts: [
       'tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png',
-      'tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png',
     ],
     docs: ['docs/pillars/02-asset-taxonomy.md', 'docs/guides/runtime-integration.md'],
   },
@@ -422,7 +420,6 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     ],
     visualArtifacts: [
       'tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png',
-      'tests/browser/__screenshots__/simple-rpg-seeded-completed.png',
     ],
     docs: ['docs/pillars/02-asset-taxonomy.md', 'docs/guides/recipes-scenarios-and-simulation.md'],
   },

@@ -165,7 +165,9 @@ describe('release-readiness coverage', () => {
       byFilename.set(filename ?? '', [...(byFilename.get(filename ?? '') ?? []), path]);
     }
 
-    expect(byFilename.size).toBe(10);
+    // 7 library-owned curated showcases (the 3 simple-rpg-* showcases moved to
+    // packages/examples — the three example owns + verifies them there).
+    expect(byFilename.size).toBe(7);
     for (const [filename, paths] of byFilename) {
       // Post-R1: each showcase lives at exactly one canonical path.
       expect(paths.sort()).toEqual([`docs/showcases/${filename}`]);

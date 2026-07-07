@@ -325,9 +325,7 @@ export const GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS = [
   'docs/showcases/free-blueprint-builder-showcase.png',
   'docs/showcases/extra-blueprint-biome-transition-showcase.png',
   'docs/showcases/extra-harbor-gameboard.png',
-  'docs/showcases/simple-rpg-fixed-completed.png',
-  'docs/showcases/simple-rpg-seeded-completed.png',
-  'docs/showcases/simple-rpg-local-third-party-assets.png',
+  // simple-rpg-* showcases moved to packages/examples (the three example owns them).
 ] as const;
 
 /**

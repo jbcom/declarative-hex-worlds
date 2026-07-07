@@ -117,14 +117,15 @@ jobs:
         with:
           path: packages/docs-site/dist
 
-  simple-rpg:
-    # The in-repo reference game consumes declarative-hex-worlds as a REAL
-    # consumer (by package name, through the public subpaths). This job is the
-    # library's real-world e2e — it LAYERS on `check` (needs: [check]) so the
-    # library's own gates pass FIRST, then SimpleRPG proves the public API
-    # actually composes into a working game (per RFC 0001 §D-test-topology). A
-    # green library but red simple-rpg means the public surface regressed.
-    name: SimpleRPG (consumer e2e)
+  examples:
+    # The in-repo examples consume declarative-hex-worlds as REAL consumers (by
+    # package name, through the public subpaths). A shared renderer-free game is
+    # rendered by each binding example (three, canvas2d). This job is the library's
+    # real-world e2e — it LAYERS on `check` (needs: [check]) so the library's own
+    # gates pass FIRST, then the examples prove the public API + each binding
+    # actually composes into a working game (per RFC 0001 §D-test-topology). A green
+    # library but red examples means the public surface or a binding regressed.
+    name: Examples (consumer e2e)
     needs: [check]
     runs-on: ubuntu-latest
     steps:
@@ -142,7 +143,7 @@ jobs:
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build the library (simple-rpg consumes its built subpaths)
+      - name: Build the library (examples consume its built subpaths)
         # 6GB worker heap — tsup's DTS bundler OOMs at the default ~1.7GB on
         # ubuntu-latest (same reason the `check` job's build sets this). Without
         # it the DTS worker dies with ERR_WORKER_OUT_OF_MEMORY after the JS build.
@@ -150,14 +151,14 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=6144
         run: pnpm build
 
-      - name: Typecheck SimpleRPG
-        run: pnpm typecheck:simple-rpg
+      - name: Typecheck examples
+        run: pnpm typecheck:examples
 
-      - name: Lint SimpleRPG
-        run: pnpm lint:simple-rpg
+      - name: Lint examples
+        run: pnpm lint:examples
 
-      - name: Test SimpleRPG (consumes declarative-hex-worlds)
-        run: pnpm test:simple-rpg
+      - name: Test examples (consume declarative-hex-worlds)
+        run: pnpm test:examples
 
   coverage:
     name: Coverage

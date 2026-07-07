@@ -1,7 +1,7 @@
 import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
-import simpleRpgScenario from '../integration/simple-rpg/fixtures/simple-rpg-scenario.json';
-import simpleRpgSimulationScript from '../integration/simple-rpg/fixtures/simple-rpg-simulation.script.json';
+import simpleRpgScenario from '../../game/fixtures/scenario.json';
+import simpleRpgSimulationScript from '../../game/fixtures/simulation.script.json';
 import {
   advanceGameboardQuest,
   createGameboardWorldFromScenario,
@@ -10,15 +10,15 @@ import {
   runGameboardScenarioSimulationScript,
   type GameboardScenario,
   type GameboardScenarioSimulationScript,
-} from '../../src';
+} from 'declarative-hex-worlds';
 import {
   SIMPLE_RPG_RANDOM_SEED,
   assertSimpleRpgGameValid,
   createFixedSimpleRpgGame,
   createSeededSimpleRpgGame,
   runSimpleRpgQuestLine,
-} from '../simple-rpg/simple-rpg';
-import { assertCanvasHasRenderableContent, renderGameboardPlan } from './rendering';
+} from '../../game/quest-game';
+import { assertCanvasHasRenderableContent, renderGameboardPlan } from '../rendering';
 
 describe('SimpleRPG browser integration', () => {
   it('captures the fixed golden quest map after public API gameplay completion', async () => {

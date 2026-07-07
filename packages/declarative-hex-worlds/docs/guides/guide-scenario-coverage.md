@@ -239,7 +239,6 @@ node dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 - Visual artifacts: `tests/browser/__screenshots__/free-gameboard-recipe.png`,
   `tests/browser/__screenshots__/free-blueprint-builder-showcase.png`,
   `tests/browser/__screenshots__/free-seeded-gameboard.png`,
-  `tests/browser/__screenshots__/simple-rpg-fixed-completed.png`,
   `tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png`
 - Docs: `docs/guides/recipes-scenarios-and-simulation.md`, `docs/pillars/05-koota-runtime-rules.md`
 
@@ -336,8 +335,7 @@ node dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
   `coloredUnitAssetId`,
   `neutralUnitAssetId`,
   `spawnGameboardActor`
-- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
-  `tests/browser/__screenshots__/simple-rpg-local-third-party-assets.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/runtime-integration.md`
 
 ### Page 15 - Shipyard, Harbors, And Ports
@@ -434,8 +432,7 @@ node dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
   `createGameboardRuntimeFromScenario`,
   `neutralUnitAssetId`,
   `spawnGameboardActor`
-- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`,
-  `tests/browser/__screenshots__/simple-rpg-seeded-completed.png`
+- Visual artifacts: `tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png`
 - Docs: `docs/pillars/02-asset-taxonomy.md`, `docs/guides/recipes-scenarios-and-simulation.md`
 
 ### Page 19 - Supporters And Attribution

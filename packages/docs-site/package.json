@@ -15,7 +15,7 @@
     "sharp": "^0.35.3",
     "starlight-llms-txt": "^0.11.0",
     "declarative-hex-worlds": "workspace:*",
-    "@declarative-hex-worlds/simple-rpg": "workspace:*"
+    "@declarative-hex-worlds/examples": "workspace:*"
   },
   "devDependencies": {
     "satteri": "^0.9.4",

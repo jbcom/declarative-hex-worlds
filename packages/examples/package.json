@@ -1,13 +1,13 @@
 {
-  "name": "@declarative-hex-worlds/simple-rpg",
+  "name": "@declarative-hex-worlds/examples",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "SimpleRPG \u2014 the in-repo reference game that exercises every declarative-hex-worlds capability. Not published; it is the library's real-world exerciser + the source of the docs-site live island and visual-verification showcases.",
+  "description": "Reference examples that exercise every declarative-hex-worlds renderer binding. A shared renderer-free game (src/game) is rendered by each binding example (src/three via /three, src/canvas2d via /canvas2d). Not published; it is the library's real-world exerciser + the source of the docs-site live islands and visual-verification showcases.",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
-    "lint": "biome lint src tests *.ts *.json"
+    "lint": "pnpm exec biome lint src tests"
   },
   "dependencies": {
     "declarative-hex-worlds": "workspace:*"
@@ -22,7 +22,9 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/three": "catalog:",
+    "@vitest/browser": "catalog:",
     "koota": "catalog:",
+    "playwright": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "three": "catalog:",

@@ -62,7 +62,8 @@ export default defineConfig({
     include: [
       'tests/browser/browser-harness-smoke.test.ts',
       'tests/browser/free-visual.test.ts',
-      'tests/browser/simple-rpg-visual.test.ts',
+      // simple-rpg-visual.test.ts moved to packages/examples/src/three (it renders
+      // the game through the PUBLIC /three binding — it's the three example's test).
       'tests/browser/react-bindings.test.ts',
       'tests/browser/react-hook-fallbacks.test.ts',
       'tests/browser/feature-gallery.spec.ts',

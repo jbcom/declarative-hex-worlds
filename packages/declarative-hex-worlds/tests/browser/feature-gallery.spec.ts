@@ -16,7 +16,7 @@
 
 import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
-import { createFixedSimpleRpgGame } from '../simple-rpg/game';
+import { createFeatureGalleryWorld } from '../fixtures/feature-gallery-world';
 import { projectWorldToGameboardPlan } from '../../src/coordinates/projection';
 import { assertCanvasHasRenderableContent, renderGameboardPlan } from './rendering';
 
@@ -28,15 +28,14 @@ interface GalleryScenario {
 }
 
 const SCENARIOS: readonly GalleryScenario[] = [
-  { id: 'fixed-harbor', title: 'SimpleRPG — Fixed Harbor' },
+  { id: 'fixed-harbor', title: 'Feature Gallery — Harbor Board' },
 ];
 
 describe('feature-gallery screenshot harness (PRD F-Gallery-1)', () => {
   for (const scenario of SCENARIOS) {
     it(`renders ${scenario.id} into feature-gallery/${scenario.id}.png`, async () => {
       await page.viewport(1200, 800);
-      const game = createFixedSimpleRpgGame();
-      const projected = projectWorldToGameboardPlan(game.world);
+      const projected = projectWorldToGameboardPlan(createFeatureGalleryWorld());
 
       const canvas = await renderGameboardPlan(projected, {
         title: scenario.title,

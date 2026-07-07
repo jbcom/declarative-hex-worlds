@@ -14,7 +14,7 @@ import { Canvas } from '@react-three/fiber';
 import type { GameboardGltfLoader } from 'declarative-hex-worlds/three';
 import { GameboardObjects, HexWorld } from 'declarative-hex-worlds/react-elements';
 import type { ReactElement, ReactNode } from 'react';
-import { createSimpleRpgRuntime } from './game/scenario';
+import { createSimpleRpgRuntime } from '../game/scenario';
 
 /** Props for `<SimpleRpgBoard>`. */
 export interface SimpleRpgBoardProps {

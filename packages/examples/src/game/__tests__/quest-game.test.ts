@@ -12,7 +12,7 @@ import {
   createFixedSimpleRpgGame,
   createSeededSimpleRpgGame,
   runSimpleRpgQuestLine,
-} from '../simple-rpg/simple-rpg';
+} from '../quest-game';
 
 describe('SimpleRPG public API integration fixture', () => {
   it('completes a fixed golden quest map while differentiating props and enemies', () => {

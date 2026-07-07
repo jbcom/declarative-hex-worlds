@@ -22,8 +22,8 @@ import {
   loadGameboardPlacementObject,
   updateGameboardPlacementAnimation,
 } from 'declarative-hex-worlds/three';
-import { createFixedSimpleRpgGame } from '../../simple-rpg/game';
-import { assertCanvasHasRenderableContent, renderGameboardPlan } from '../../browser/rendering';
+import { createFixedSimpleRpgGame } from '../../game/quest-game';
+import { assertCanvasHasRenderableContent, renderGameboardPlan } from '../rendering';
 
 declare const __KENNEY_CASTLE_ROOT__: string;
 declare const __KAYKIT_ADVENTURERS_ROOT__: string;

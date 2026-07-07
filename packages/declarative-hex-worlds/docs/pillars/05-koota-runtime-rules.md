@@ -89,8 +89,6 @@ test_links:
   - tests/unit/examples.test.ts
   - tests/browser/free-visual.test.ts
   - tests/browser/react-bindings.test.ts
-  - tests/browser/simple-rpg-visual.test.ts
-  - tests/e2e/local-assets/third-party-assets.test.ts
   - tests/browser/extra-visual.test.ts
   - scripts/smoke-packed-consumer.ts
 ---
