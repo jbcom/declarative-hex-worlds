@@ -45,6 +45,15 @@ export {
   transformForPlacement,
   transformForVariant,
 } from './placement-resolution';
+export {
+  type ScanResult,
+  type ScannedAsset,
+  type ScannedFile,
+  assetIdFromPath,
+  buildAssetSourceSpec,
+  guessTileBiome,
+  scanAssetFiles,
+} from './scan';
 export { type GltfPackSourceOptions, createGltfPackSource } from './gltf-pack';
 export { type TilesetSourceOptions, cellRect, createTilesetSource } from './tileset';
 export {

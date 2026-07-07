@@ -1228,6 +1228,28 @@ export const COMMANDS: readonly CommandHelp[] = [
     ],
   },
   {
+    name: 'bind',
+    summary: 'Scan an assets directory and emit a Zod-validated AssetSourceSpec JSON',
+    options: [
+      {
+        flag: '--dir <path>',
+        description: 'Assets root to scan (required). Subdirs tiles/models/sprites/tilesets/ set roles.',
+      },
+      {
+        flag: '--name <name>',
+        description: "Source name recorded in the spec (default: the dir's basename).",
+      },
+      {
+        flag: '--asset-root <path>',
+        description: 'assetRoot recorded in the spec (default: the scanned --dir).',
+      },
+      {
+        flag: '--out <path>',
+        description: 'Write the JSON here (default: print to stdout).',
+      },
+    ],
+  },
+  {
     name: 'extract',
     summary: 'Copy GLTF assets and write a manifest to an output folder',
     aliases: ['ingest'],

@@ -643,6 +643,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
     "name": "assertGameboardScenarioSimulationExpectations",
   },
   {
+    "kind": "function",
+    "name": "assetIdFromPath",
+  },
+  {
     "kind": "object",
     "name": "assetSchema",
   },
@@ -657,6 +661,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "bindingTargetsMesh",
+  },
+  {
+    "kind": "function",
+    "name": "buildAssetSourceSpec",
   },
   {
     "kind": "function",
@@ -1196,6 +1204,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "guessTileBiome",
+  },
+  {
+    "kind": "function",
     "name": "hasKayKitAssetTreatment",
   },
   {
@@ -1701,6 +1713,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "safeParseTilesetManifest",
+  },
+  {
+    "kind": "function",
+    "name": "scanAssetFiles",
   },
   {
     "kind": "function",

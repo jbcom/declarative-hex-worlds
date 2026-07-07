@@ -44,6 +44,7 @@ const commandModuleIds = [
   'compatibility',
   'piece',
   'pieces-from-assets',
+  'bind',
   'pieces',
   'place-piece',
   'extract',
