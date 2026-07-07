@@ -71,30 +71,49 @@ export const HARNESS_COVERAGE_THRESHOLDS = {
  * own — only the merged tree should be threshold-checked).
  */
 /**
- * The R3F render bridge (`src/react-elements/objects*.ts`) is unit-covered:
- * `objects-sync.ts` holds the R3F-free logic (unit tests), and `objects.ts` is a
- * v8-ignored R3F component. The BROWSER harnesses load these modules (via the
- * element imports) but never execute the sync functions, so v8 emits a phantom
- * 0%-hit record for `objects-sync.ts` under a Vite-served url the by-url merge
- * can't union with the unit's absolute-path 100% record — dragging the merged
- * gate below 100. Excluding them from browser coverage leaves the unit record as
- * the sole (fully-covered) entry.
+ * The R3F render bridge `objects.ts` (a v8-ignored R3F component) and
+ * `objects-sync.ts` (its R3F-free, unit-tested logic) are excluded from BROWSER
+ * coverage: the browser loads them via the element imports but never executes the
+ * sync functions, emitting a phantom 0%-hit record that the by-url merge can't
+ * reconcile. objects-sync stays unit-covered; objects.ts is v8-ignored.
  */
 const BROWSER_ONLY_COVERAGE_EXCLUDES = [
   'src/react-elements/objects.ts',
   'src/react-elements/objects-sync.ts',
 ];
 
+/**
+ * The React-rendering element modules are exercised only in the BROWSER harness
+ * (they call React hooks / render). The UNIT harness includes src/** but never
+ * renders them, so it emits phantom 0%-hit records. The merge is by-url and keys
+ * functions by source location; for anonymous arrows (useMemo/useCallback
+ * factories) v8-in-Node and v8-in-Chromium report slightly different columns, so
+ * the unit's 0-hit `anonymous` and the browser's covered `anonymous` DON'T unify
+ * — the merged tree keeps BOTH and the 0-hit one fails the gate. Excluding these
+ * from UNIT coverage (symmetric to react.ts/three.ts) leaves only the browser's
+ * covered records. `objects-sync.ts` is NOT here — it is R3F-free and unit-tested.
+ */
+const UNIT_ONLY_COVERAGE_EXCLUDES = [
+  'src/react-elements/context.ts',
+  'src/react-elements/hex-world.ts',
+  'src/react-elements/placements.ts',
+  'src/react-elements/tileset.ts',
+  'src/react-elements/hooks.ts',
+];
+
 export function harnessCoverage(harness: string): CoverageOptions {
   const enforce = process.env.HEX_WORLDS_COVERAGE_ENFORCE === '1';
   const isBrowser = harness.startsWith('browser');
+  const exclude = isBrowser
+    ? [...COVERAGE_EXCLUDES, ...BROWSER_ONLY_COVERAGE_EXCLUDES]
+    : [...COVERAGE_EXCLUDES, ...UNIT_ONLY_COVERAGE_EXCLUDES];
   return {
     provider: 'v8',
     enabled: process.env.HEX_WORLDS_COVERAGE === '1',
     reporter: ['json', 'lcov', 'text'],
     reportsDirectory: `./coverage/${harness}`,
     include: ['src/**/*.ts', 'scripts/**/*.ts'],
-    exclude: isBrowser ? [...COVERAGE_EXCLUDES, ...BROWSER_ONLY_COVERAGE_EXCLUDES] : COVERAGE_EXCLUDES,
+    exclude,
     clean: false, // do not wipe sibling harness output
     cleanOnRerun: false,
     thresholds: enforce ? HARNESS_COVERAGE_THRESHOLDS : undefined,

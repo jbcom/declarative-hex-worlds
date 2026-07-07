@@ -93,6 +93,10 @@ export function runCoverageMerge(): void {
   }
 
   if (enforce) {
+    // Diagnostic: before nyc's summary-only threshold check, list the exact
+    // uncovered functions/statements/branches per file from the merged tree, so a
+    // sub-100 merged gate points at the precise gap instead of just a percentage.
+    reportMergedGaps(mergedFinal);
     execFileSync(
       'pnpm',
       [
@@ -115,6 +119,44 @@ export function runCoverageMerge(): void {
   }
 
   console.log(`coverage merge: combined ${harnessDirs.length} harness reports into ${mergedDir}/coverage-final.json`);
+}
+
+/**
+ * Print every uncovered function, statement, and branch in the merged tree with
+ * its file + line, so a sub-100 merged gate is actionable. Purely diagnostic.
+ */
+function reportMergedGaps(merged: Record<string, unknown>): void {
+  const lines: string[] = [];
+  for (const [url, rawRec] of Object.entries(merged)) {
+    const rec = rawRec as Record<string, unknown>;
+    const rel = url.includes('/src/') ? `src/${url.split('/src/')[1]}` : url;
+    const fnMap = (rec.fnMap ?? {}) as Record<string, { name?: string; decl?: { start?: { line?: number } } }>;
+    const f = (rec.f ?? {}) as Record<string, number>;
+    for (const [id, entry] of Object.entries(fnMap)) {
+      if ((f[id] ?? 0) === 0) {
+        lines.push(`  fn   ${rel}:${entry.decl?.start?.line ?? '?'} ${entry.name ?? '(anonymous)'}`);
+      }
+    }
+    const statementMap = (rec.statementMap ?? {}) as Record<string, { start?: { line?: number } }>;
+    const s = (rec.s ?? {}) as Record<string, number>;
+    for (const [id, loc] of Object.entries(statementMap)) {
+      if ((s[id] ?? 0) === 0) {
+        lines.push(`  stmt ${rel}:${loc.start?.line ?? '?'}`);
+      }
+    }
+    const branchMap = (rec.branchMap ?? {}) as Record<string, { line?: number; loc?: { start?: { line?: number } } }>;
+    const b = (rec.b ?? {}) as Record<string, number[]>;
+    for (const [id, entry] of Object.entries(branchMap)) {
+      const counts = b[id] ?? [];
+      if (counts.some((c) => c === 0)) {
+        lines.push(`  br   ${rel}:${entry.line ?? entry.loc?.start?.line ?? '?'}`);
+      }
+    }
+  }
+  if (lines.length > 0) {
+    console.log(`coverage merge: ${lines.length} uncovered element(s) in the merged tree:`);
+    console.log(lines.join('\n'));
+  }
 }
 
 export function mergeIstanbulRecord(
