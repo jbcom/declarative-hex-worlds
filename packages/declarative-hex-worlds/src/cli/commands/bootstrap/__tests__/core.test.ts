@@ -660,34 +660,34 @@ describe('bootstrap edge cases — PRD RB5', () => {
 });
 
 describe('bootstrapKayKitAssets — character pack (RFC0-10b)', () => {
-  // A character pack's flat Assets/gltf tree with textures inline, no markers,
-  // no category dirs, no separate Textures/ — the KayKit Adventurers/Skeletons shape.
-  function characterFixtureFiles(layout: KayKitUpstreamLayout): SyntheticPackFile[] {
+  // The REAL character-pack shape (verified against the cloned repos): TWO
+  // renderable gltf trees — `Assets/gltf/` (weapons/accessories, `.gltf`) AND
+  // `Characters/gltf/` (the character BODIES as self-contained `.glb` with a
+  // sibling `*_texture.png`). Source-format (`Assets/fbx`) + preview (`Samples/`)
+  // trees are filtered. The mirror SCANS for both renderable roots — a single
+  // hardcoded `Assets/gltf` root used to silently drop every body.
+  function characterFixtureFiles(): SyntheticPackFile[] {
     return [
-      {
-        relative: `${layout.relativeGltfRoot}/knight.gltf`,
-        content: JSON.stringify({ asset: { version: '2.0' } }),
-      },
-      { relative: `${layout.relativeGltfRoot}/knight.bin`, content: Buffer.from([1, 2, 3]) },
-      {
-        relative: `${layout.relativeGltfRoot}/mage.gltf`,
-        content: JSON.stringify({ asset: { version: '2.0' } }),
-      },
-      // Texture lives INLINE in Assets/gltf (no separate Textures/ dir).
-      {
-        relative: `${layout.relativeGltfRoot}/knight_texture.png`,
-        content: Buffer.from([9, 9, 9]),
-      },
-      // fbx sibling — filtered unless --include-source-formats.
+      // Weapons/accessories under Assets/gltf.
+      { relative: 'Assets/gltf/sword.gltf', content: JSON.stringify({ asset: { version: '2.0' } }) },
+      { relative: 'Assets/gltf/sword.bin', content: Buffer.from([1, 2, 3]) },
+      { relative: 'Assets/gltf/shield.gltf', content: JSON.stringify({ asset: { version: '2.0' } }) },
+      // Character BODIES under Characters/gltf (.glb with a sibling texture).
+      { relative: 'Characters/gltf/Knight.glb', content: Buffer.from([10, 11, 12, 13]) },
+      { relative: 'Characters/gltf/knight_texture.png', content: Buffer.from([9, 9, 9]) },
+      { relative: 'Characters/gltf/Mage.glb', content: Buffer.from([14, 15, 16]) },
+      // Source-format sibling — filtered unless --include-source-formats.
       { relative: 'Assets/fbx/knight_texture.png', content: Buffer.from([7]) },
+      // Preview art — filtered by the Samples/ exclusion.
+      { relative: 'Samples/knight.png', content: Buffer.from([8]) },
     ];
   }
 
-  it('mirrors a character pack from a zip (flat gltf tree, inline textures)', async () => {
+  it('mirrors BOTH gltf trees (Assets/gltf weapons + Characters/gltf bodies)', async () => {
     const layout = characterPackLayout('kaykit_character_pack_adventures');
     const zipPath = join(tmp(), 'adventurers.zip');
     // GitHub archives nest under <repo>-<ref>/; emulate that prefix.
-    await buildSyntheticZip(layout, characterFixtureFiles(layout), zipPath, 'repo-main/');
+    await buildSyntheticZip(layout, characterFixtureFiles(), zipPath, 'repo-main/');
     const outRoot = tmp();
     const result = await bootstrapKayKitAssets({
       source: { kind: 'zip', path: zipPath },
@@ -697,20 +697,24 @@ describe('bootstrapKayKitAssets — character pack (RFC0-10b)', () => {
       layout,
       libraryVersion: '0.0.0-test',
     });
-    // knight.gltf + knight.bin + mage.gltf + knight_texture.png = 4 mirrored files.
-    expect(result.fileCount).toBe(4);
+    // sword.gltf + sword.bin + shield.gltf (Assets/gltf) +
+    // Knight.glb + knight_texture.png + Mage.glb (Characters/gltf) = 6.
+    // The Assets/fbx png and Samples/ png are excluded.
+    expect(result.fileCount).toBe(6);
     const gltfDir = join(outRoot, KAYKIT_BOOTSTRAP_GLTF_RELATIVE);
-    const names = readdirSync(gltfDir).sort();
-    // The four assets land flat in the asset root (gltfRelative is ''); the
-    // sidecar sits alongside them and NO empty Textures/ dir is created.
-    expect(names.filter((n) => n !== KAYKIT_BOOTSTRAP_SIDECAR)).toEqual([
-      'knight.bin',
-      'knight.gltf',
-      'knight_texture.png',
-      'mage.gltf',
-    ]);
-    expect(names).toContain(KAYKIT_BOOTSTRAP_SIDECAR);
-    expect(names).not.toContain(KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE);
+    // Pack-relative paths are preserved so both trees stay distinct on disk.
+    expect(existsSync(join(gltfDir, 'Assets/gltf/sword.gltf'))).toBe(true);
+    expect(existsSync(join(gltfDir, 'Assets/gltf/sword.bin'))).toBe(true);
+    expect(existsSync(join(gltfDir, 'Assets/gltf/shield.gltf'))).toBe(true);
+    // The character body .glb + its sibling texture actually landed (the defect
+    // regression — a single hardcoded Assets/gltf root dropped these).
+    expect(existsSync(join(gltfDir, 'Characters/gltf/Knight.glb'))).toBe(true);
+    expect(existsSync(join(gltfDir, 'Characters/gltf/Mage.glb'))).toBe(true);
+    expect(existsSync(join(gltfDir, 'Characters/gltf/knight_texture.png'))).toBe(true);
+    expect(existsSync(join(gltfDir, KAYKIT_BOOTSTRAP_SIDECAR))).toBe(true);
+    // Source-format + preview trees were filtered.
+    expect(existsSync(join(gltfDir, 'Assets/fbx'))).toBe(false);
+    expect(existsSync(join(gltfDir, 'Samples'))).toBe(false);
   });
 
   it('derives the character-pack layout from a registry descriptor', () => {
@@ -718,6 +722,6 @@ describe('bootstrapKayKitAssets — character pack (RFC0-10b)', () => {
     const layout = characterPackLayout('kaykit_character_pack_adventures');
     expect(descriptor.role).toBe('model');
     expect(layout.detection).toBe('character');
-    expect(layout.relativeGltfRoot).toBe('Assets/gltf');
+    expect(layout.mirrorAllGltfDirs).toBe(true);
   });
 });

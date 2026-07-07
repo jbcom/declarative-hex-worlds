@@ -3,6 +3,6 @@
   "textureRelative": "Textures",
   "sidecarFileName": ".bootstrap.json",
   "sidecarSchemaVersion": "1.0.0",
-  "includedExtensions": [".gltf", ".bin", ".png", ".jpg", ".jpeg"],
+  "includedExtensions": [".gltf", ".glb", ".bin", ".png", ".jpg", ".jpeg"],
   "sourceFormatExtensions": [".fbx", ".obj", ".mtl"]
 }

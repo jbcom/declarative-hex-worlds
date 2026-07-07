@@ -12,12 +12,21 @@
  *   `Assets/gltf/` (tiles/buildings/decoration, +units/ for EXTRA), and textures
  *   in a separate `Textures/`. Detected via markers OR the primary texture.
  * - **Character pack** (`detection: 'character'`, via {@link characterPackLayout}):
- *   the Adventurers/Skeletons shape — a flat `Assets/gltf/` with `.gltf`/`.bin`
- *   and textures inline, no category dirs, no edition markers. Detected by the
- *   presence of any `.gltf` under the gltf root.
+ *   the Adventurers/Skeletons shape. Verified against the real cloned repos
+ *   (2026-07): a character pack ships TWO renderable gltf trees —
+ *   `Assets/gltf/` (weapons/shields/accessories, `.gltf`+`.bin`+inline `.png`)
+ *   AND `Characters/gltf/` (the character BODIES: `Barbarian.glb`, `Knight.glb`,
+ *   `Mage.glb`, `Rogue.glb`, … as self-contained `.glb` with embedded textures,
+ *   plus sibling `*_texture.png`). Because a single hardcoded `relativeGltfRoot`
+ *   silently DROPPED every character body, a character layout sets
+ *   `mirrorAllGltfDirs: true`: the mirror SCANS the pack root and mirrors every
+ *   directory that contains a renderable `.gltf`/`.glb`, deriving the shape from
+ *   the actual tree rather than a guessed constant. Detected by the presence of
+ *   any `.gltf`/`.glb` under {@link relativeGltfRoot}.
  *
- * Only the `gltf` tree is mirrored by the bootstrap step. Source-format dirs
- * (`fbx`, `obj`) are filtered out unless `includeSourceFormats` is set.
+ * Renderable trees (`.gltf`/`.glb` + `.bin` + inline `.png`) are mirrored;
+ * source-format trees (`fbx`, `fbx(unity)`, `obj`) and `Samples/` are filtered
+ * out unless `includeSourceFormats` is set.
  *
  * @module
  */
@@ -59,6 +68,16 @@ export interface KayKitUpstreamLayout {
    * textures inline in `Assets/gltf/` and carry no edition markers.
    */
   readonly detection?: 'medieval' | 'character';
+  /**
+   * When `true`, the mirror ignores {@link relativeGltfRoot} as a single source
+   * and instead SCANS the pack root for every directory containing a renderable
+   * `.gltf`/`.glb`, mirroring each (path preserved relative to the pack root).
+   * This is how a character pack captures BOTH `Assets/gltf/` (weapons) and
+   * `Characters/gltf/` (bodies) — the layout is derived from the real tree, not a
+   * declared constant. Source-format dirs (`fbx`, `obj`, `Samples`) are excluded
+   * by extension/name during the walk.
+   */
+  readonly mirrorAllGltfDirs?: boolean;
 }
 
 /**
@@ -89,11 +108,14 @@ export const KAYKIT_UPSTREAM_LAYOUTS: readonly KayKitUpstreamLayout[] = [
 
 /**
  * Build an upstream layout for a KayKit CHARACTER pack (Adventurers, Skeletons —
- * RFC0-10). These ship a flat `addons/<packFolderName>/Assets/gltf/` tree with
- * textures inline (no separate `Textures/`), no category subdirs, and no edition
- * markers — so `detection: 'character'` matches on "gltf root exists with ≥1
- * `.gltf`" alone. Counts are 0 (unknown/irrelevant for character packs); the
- * mirror walks the tree recursively regardless.
+ * RFC0-10). Verified against the cloned repos: a character pack has TWO
+ * renderable gltf trees under `addons/<packFolderName>/` — `Assets/gltf/`
+ * (weapons/accessories) and `Characters/gltf/` (the `.glb` character bodies with
+ * embedded textures). `detection: 'character'` matches on "the `Assets/gltf`
+ * root exists with ≥1 `.gltf`/`.glb`"; `mirrorAllGltfDirs: true` then makes the
+ * mirror SCAN for every renderable-gltf directory (so `Characters/gltf/` is
+ * captured too — a single hardcoded root dropped the bodies). Counts are 0
+ * (irrelevant for character packs); the mirror walks recursively regardless.
  */
 export function characterPackLayout(packFolderName: string): KayKitUpstreamLayout {
   return {
@@ -108,6 +130,7 @@ export function characterPackLayout(packFolderName: string): KayKitUpstreamLayou
     expectedBinCount: 0,
     textureFiles: [],
     detection: 'character',
+    mirrorAllGltfDirs: true,
   };
 }
 
@@ -171,12 +194,17 @@ function matchesLayout(rootPath: string, layout: KayKitUpstreamLayout): boolean 
   if (!isDirectory(gltfRoot)) {
     return false;
   }
-  // Character packs (RFC0-10): a flat gltf tree with ≥1 .gltf, no markers or
-  // category dirs. Match on the presence of any .gltf under the gltf root.
+  // Character packs (RFC0-10): the Assets/gltf tree with ≥1 renderable model, no
+  // markers or category dirs. Match on any .gltf/.glb under the gltf root (the
+  // Characters/gltf bodies are captured later by the mirrorAllGltfDirs scan).
   if (layout.detection === 'character') {
-    return readdirSync(gltfRoot, { withFileTypes: true }).some(
-      (entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.gltf')
-    );
+    return readdirSync(gltfRoot, { withFileTypes: true }).some((entry) => {
+      if (!entry.isFile()) {
+        return false;
+      }
+      const lower = entry.name.toLowerCase();
+      return lower.endsWith('.gltf') || lower.endsWith('.glb');
+    });
   }
   // Two verification strategies:
   //   A) itch.io zip — includes all marker files (License.txt, PDFs, etc.)
