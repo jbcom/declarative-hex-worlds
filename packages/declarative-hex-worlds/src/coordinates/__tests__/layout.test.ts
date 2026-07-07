@@ -12,10 +12,12 @@ import {
   normalizeGameboardLayoutArchetypeRegistry,
   resolveGameboardLayoutArchetype,
   selectGameboardLayoutSites,
-  spawnGameboardLayoutFill,
-  spawnGameboardLayoutPlacements,
   type GameboardLayoutPlacementDiagnostics,
 } from '../../coordinates/layout';
+import {
+  spawnGameboardLayoutFill,
+  spawnGameboardLayoutPlacements,
+} from '../../coordinates/layout-runtime';
 
 describe('gameboard layout placement criteria', () => {
   it('selects deterministic open sites from terrain and occupancy rules', () => {

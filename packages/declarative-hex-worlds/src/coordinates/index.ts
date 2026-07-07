@@ -18,4 +18,7 @@
 export * from './coordinates';
 export * from './grid';
 export * from './layout';
+// Runtime tier: the koota-spawning layout helpers (world-taking). `./core` omits
+// this; the pure layout generation stays in `./layout`.
+export * from './layout-runtime';
 export * from './projection';
