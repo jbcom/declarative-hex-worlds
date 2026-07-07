@@ -36,3 +36,10 @@ export {
 
 // three (3D) binding example.
 export { type SimpleRpgBoardProps, SimpleRpgBoard } from './three/board';
+
+// canvas-2D binding example — the SAME game rendered in 2D.
+export {
+  createCanvas2dExamplePlan,
+  createCanvas2dExampleSource,
+  renderCanvas2dExample,
+} from './canvas2d/board';
