@@ -63,6 +63,8 @@ export const packDescriptorSchema = z.object({
   role: z.enum(PACK_ROLES),
   /** Gameplay category the pack fills. */
   category: z.enum(PACK_CATEGORIES),
+  /** Upstream `addons/<packFolder>/` directory name the pack publishes under. */
+  packFolder: z.string().min(1),
   /** Upstream GitHub source. */
   github: packGithubSourceSchema,
   /** Attribution string (CC0 — no attribution required, but credited by courtesy). */
@@ -86,6 +88,7 @@ export const PACK_REGISTRY: Readonly<Record<PackId, PackDescriptor>> = {
     displayName: 'KayKit Medieval Hexagon Pack',
     role: 'tile',
     category: 'terrain',
+    packFolder: 'kaykit_medieval_hexagon_pack',
     github: {
       owner: 'KayKit-Game-Assets',
       repo: 'KayKit-Medieval-Hexagon-Pack-1.0',
@@ -99,6 +102,7 @@ export const PACK_REGISTRY: Readonly<Record<PackId, PackDescriptor>> = {
     displayName: 'KayKit Character Pack: Adventurers',
     role: 'model',
     category: 'playable',
+    packFolder: 'kaykit_character_pack_adventures',
     github: {
       owner: 'KayKit-Game-Assets',
       repo: 'KayKit-Character-Pack-Adventures-1.0',
@@ -112,6 +116,7 @@ export const PACK_REGISTRY: Readonly<Record<PackId, PackDescriptor>> = {
     displayName: 'KayKit Character Pack: Skeletons',
     role: 'model',
     category: 'enemy',
+    packFolder: 'kaykit_character_pack_skeletons',
     github: {
       owner: 'KayKit-Game-Assets',
       repo: 'KayKit-Character-Pack-Skeletons-1.0',

@@ -36,8 +36,10 @@ import type {
   BootstrapVerificationReport,
 } from './core';
 import { bootstrapKayKitAssets, verifyBootstrap } from './core';
+import { bootstrapPack } from './pack-bootstrap';
 
 export * from './core';
+export * from './pack-bootstrap';
 export * from './registry';
 export * from './target';
 export * from './upstream-layout';
@@ -72,6 +74,23 @@ export async function runBootstrap(parsed: ParsedArgs, edition: PackEdition): Pr
     }
     if (!report.ok) {
       process.exit(1);
+    }
+    return;
+  }
+
+  // `--pack <id>`: fetch one of the registered downloadable packs (RFC0-10) from
+  // its upstream github source. Bypasses the medieval-only edition/source flags.
+  if (typeof parsed.flags.pack === 'string') {
+    const packResult = await bootstrapPack(parsed.flags.pack, {
+      out: outAbsolute,
+      outRoot: defaultOutRoot(),
+      force: parsed.flags.force === true,
+      ...(typeof parsed.flags.commit === 'string' ? { ref: parsed.flags.commit } : {}),
+    });
+    if (jsonMode) {
+      console.log(JSON.stringify(packResult, null, 2));
+    } else {
+      printBootstrapResult(packResult);
     }
     return;
   }

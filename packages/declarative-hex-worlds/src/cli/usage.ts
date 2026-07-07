@@ -1233,7 +1233,8 @@ export const COMMANDS: readonly CommandHelp[] = [
     options: [
       {
         flag: '--dir <path>',
-        description: 'Assets root to scan (required). Subdirs tiles/models/sprites/tilesets/ set roles.',
+        description:
+          'Assets root to scan (required). Subdirs tiles/models/sprites/tilesets/ set roles.',
       },
       {
         flag: '--name <name>',
@@ -1269,6 +1270,11 @@ export const COMMANDS: readonly CommandHelp[] = [
     name: 'bootstrap',
     summary: 'Materialize KayKit GLTF assets under a consumer asset root (PRD RB)',
     options: [
+      {
+        flag: '--pack <id>',
+        description:
+          'Fetch a registered downloadable pack from its github source: medieval-hexagon (tiles), adventurers (playable models), or skeletons (enemy models). Bypasses --source/edition.',
+      },
       {
         flag: '--verify',
         description:
