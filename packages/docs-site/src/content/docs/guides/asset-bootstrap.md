@@ -56,10 +56,14 @@ Beyond the FREE tile pack, three first-class CC0 packs by
 [Kay Lousberg](https://kaylousberg.com) compose into a full game from defaults —
 a hex board, playable characters, and enemies. Fetch any of them by id:
 
+`--out` names the raw-assets **root**; each pack lands in `<out>/<id>/`, so
+the default-source resolvers below always find it:
+
 ```bash
-pnpm exec declarative-hex-worlds bootstrap --pack medieval-hexagon --out raw-assets/medieval-hexagon
-pnpm exec declarative-hex-worlds bootstrap --pack adventurers      --out raw-assets/adventurers
-pnpm exec declarative-hex-worlds bootstrap --pack skeletons        --out raw-assets/skeletons
+pnpm exec declarative-hex-worlds bootstrap --pack medieval-hexagon --out raw-assets
+pnpm exec declarative-hex-worlds bootstrap --pack adventurers      --out raw-assets
+pnpm exec declarative-hex-worlds bootstrap --pack skeletons        --out raw-assets
+# → raw-assets/{medieval-hexagon,adventurers,skeletons}/
 ```
 
 | Pack id | Role | Fills |
@@ -78,8 +82,8 @@ import {
   assertPackPresent,
 } from 'declarative-hex-worlds/bootstrap';
 
-// Fetch a pack.
-await bootstrapPack('adventurers', { out: 'raw-assets/adventurers' });
+// Fetch a pack (lands in raw-assets/adventurers/).
+await bootstrapPack('adventurers', { rawAssetsRoot: 'raw-assets' });
 
 // Compose defaults from whatever is downloaded.
 for (const pack of resolveDefaultPackKit('raw-assets')) {

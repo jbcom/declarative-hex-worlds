@@ -35,11 +35,26 @@ export function layoutForPack(descriptor: PackDescriptor): KayKitUpstreamLayout 
   return characterPackLayout(descriptor.packFolder);
 }
 
+/**
+ * The single source of truth for where a pack lives under a raw-assets root:
+ * `<rawAssetsRoot>/<packId>/`. `bootstrapPack` WRITES here and the default-source
+ * resolvers READ here, so a pack fetched by the CLI is always found by
+ * `resolveDefaultPackKit`/`assertPackPresent` — the convention can't diverge.
+ * Uses the validated `descriptor.id` (never a raw caller string) in the join.
+ */
+export function packDir(rawAssetsRoot: string, id: string): string {
+  return join(rawAssetsRoot, packDescriptor(id).id);
+}
+
 /** Options for {@link bootstrapPack}. */
 export interface BootstrapPackOptions {
-  /** Directory the pack materializes into (a gitignored raw-assets root). */
-  readonly out: string;
-  /** Jail root for `out` resolution (defaults to cwd inside core). */
+  /**
+   * Gitignored raw-assets ROOT. The pack materializes into
+   * `<rawAssetsRoot>/<packId>/` — the id subdir is appended internally so the
+   * write location always matches {@link resolveDefaultPackKit}/{@link assertPackPresent}.
+   */
+  readonly rawAssetsRoot: string;
+  /** Jail root for path resolution (defaults to cwd inside core). */
   readonly outRoot?: string;
   /** Git ref to fetch (defaults to the descriptor's default ref). */
   readonly ref?: string;
@@ -52,8 +67,10 @@ export interface BootstrapPackOptions {
 }
 
 /**
- * Fetch a registered pack by id from its upstream GitHub archive into `out`.
- * Throws a clear error for an unknown pack id (via {@link packDescriptor}).
+ * Fetch a registered pack by id from its upstream GitHub archive into
+ * `<rawAssetsRoot>/<packId>/`. Throws a clear error for an unknown pack id (via
+ * {@link packDescriptor}). The per-pack subdir is computed here (not caller-chosen)
+ * so the fetched pack is always locatable by the default-source resolvers.
  */
 export async function bootstrapPack(
   id: string,
@@ -62,7 +79,7 @@ export async function bootstrapPack(
   const descriptor = packDescriptor(id);
   return bootstrapKayKitAssets({
     source: { kind: 'github', commit: options.ref },
-    out: options.out,
+    out: packDir(options.rawAssetsRoot, descriptor.id),
     outRoot: options.outRoot,
     edition: 'free',
     layout: layoutForPack(descriptor),
@@ -73,9 +90,13 @@ export async function bootstrapPack(
   });
 }
 
-/** Whether a pack is materialized at `<rawAssetsRoot>/<packId>` (sidecar present). */
-export function isPackMaterialized(id: PackId, rawAssetsRoot: string): boolean {
-  return existsSync(join(rawAssetsRoot, id, KAYKIT_BOOTSTRAP_SIDECAR));
+/**
+ * Whether a pack is materialized at `<rawAssetsRoot>/<packId>` (sidecar present).
+ * Validates the id at runtime (not just by the `PackId` type) so an external
+ * caller passing an unknown/hostile id gets a clear error, never a stray path.
+ */
+export function isPackMaterialized(id: string, rawAssetsRoot: string): boolean {
+  return existsSync(join(packDir(rawAssetsRoot, id), KAYKIT_BOOTSTRAP_SIDECAR));
 }
 
 /** A pack's default-resolution status against a raw-assets root. */
@@ -97,7 +118,7 @@ export interface PackResolution {
 export function resolveDefaultPackKit(rawAssetsRoot: string): readonly PackResolution[] {
   return PACK_IDS.map((id) => ({
     id,
-    dir: join(rawAssetsRoot, id),
+    dir: packDir(rawAssetsRoot, id),
     present: isPackMaterialized(id, rawAssetsRoot),
   }));
 }
@@ -109,11 +130,12 @@ export function resolveDefaultPackKit(rawAssetsRoot: string): readonly PackResol
  */
 export function assertPackPresent(id: string, rawAssetsRoot: string): string {
   const descriptor = packDescriptor(id);
-  const dir = join(rawAssetsRoot, descriptor.id);
+  const dir = packDir(rawAssetsRoot, descriptor.id);
   if (!existsSync(join(dir, KAYKIT_BOOTSTRAP_SIDECAR))) {
     throw new GameboardIoError(
       `Pack "${descriptor.id}" (${descriptor.displayName}) is not downloaded. ` +
-        `Run \`declarative-hex-worlds bootstrap --pack ${descriptor.id} --out ${dir}\` to fetch it.`
+        `Run \`declarative-hex-worlds bootstrap --pack ${descriptor.id} --out ${rawAssetsRoot}\` to fetch it ` +
+        `(it materializes into ${dir}).`
     );
   }
   return dir;

@@ -86,19 +86,25 @@ describe('bootstrapPack (RFC0-10c)', () => {
       >;
     });
 
-    const out = tmp();
+    const rawAssetsRoot = tmp();
     const result = await bootstrapPack('adventurers', {
-      out,
+      rawAssetsRoot,
       outRoot: '/',
       libraryVersion: '0.0.0-test',
       fetchedAt: '2030-01-01T00:00:00.000Z',
     });
     expect(url).toContain('KayKit-Character-Pack-Adventures-1.0');
     expect(result.fileCount).toBe(1);
+    // Round-trip: the pack bootstrapPack just wrote is found by the resolvers at
+    // <rawAssetsRoot>/<packId> — the write location matches the read convention.
+    expect(isPackMaterialized('adventurers', rawAssetsRoot)).toBe(true);
+    expect(assertPackPresent('adventurers', rawAssetsRoot)).toBe(
+      join(rawAssetsRoot, 'adventurers')
+    );
   });
 
   it('throws a clear error for an unknown pack id', async () => {
-    await expect(bootstrapPack('nope', { out: tmp(), outRoot: '/' })).rejects.toThrow(
+    await expect(bootstrapPack('nope', { rawAssetsRoot: tmp(), outRoot: '/' })).rejects.toThrow(
       /Unknown pack "nope"/
     );
   });
@@ -121,20 +127,23 @@ describe('bootstrapPack (RFC0-10c)', () => {
       >;
     });
 
-    const out = tmp();
+    const root = tmp();
     const prevRoot = process.env.HEX_WORLDS_OUT_ROOT;
-    process.env.HEX_WORLDS_OUT_ROOT = out;
+    process.env.HEX_WORLDS_OUT_ROOT = root;
     const logs: string[] = [];
     const logSpy = vi.spyOn(console, 'log').mockImplementation((m: unknown) => {
       logs.push(String(m));
     });
     try {
+      // --out names the raw-assets ROOT; the pack lands in <root>/skeletons/.
       await runBootstrap(
-        { command: 'bootstrap', flags: { pack: 'skeletons', out: 'skeletons', json: true } },
+        { command: 'bootstrap', flags: { pack: 'skeletons', out: 'raw', json: true } },
         'free'
       );
       const printed = JSON.parse(logs.join('\n'));
       expect(printed.fileCount).toBe(1);
+      // The CLI-fetched pack is found by the resolver at <rawRoot>/skeletons.
+      expect(isPackMaterialized('skeletons', join(root, 'raw'))).toBe(true);
     } finally {
       logSpy.mockRestore();
       process.env.HEX_WORLDS_OUT_ROOT = prevRoot;

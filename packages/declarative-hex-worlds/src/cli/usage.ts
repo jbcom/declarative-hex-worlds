@@ -1273,7 +1273,7 @@ export const COMMANDS: readonly CommandHelp[] = [
       {
         flag: '--pack <id>',
         description:
-          'Fetch a registered downloadable pack from its github source: medieval-hexagon (tiles), adventurers (playable models), or skeletons (enemy models). Bypasses --source/edition.',
+          'Fetch a registered downloadable pack from its github source: medieval-hexagon (tiles), adventurers (playable models), or skeletons (enemy models). With --pack, --out names the raw-assets ROOT and the pack lands in <out>/<id>/. Bypasses --source/edition.',
       },
       {
         flag: '--verify',

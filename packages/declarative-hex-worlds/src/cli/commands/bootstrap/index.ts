@@ -79,10 +79,12 @@ export async function runBootstrap(parsed: ParsedArgs, edition: PackEdition): Pr
   }
 
   // `--pack <id>`: fetch one of the registered downloadable packs (RFC0-10) from
-  // its upstream github source. Bypasses the medieval-only edition/source flags.
+  // its upstream github source. `--out` is the raw-assets ROOT; the pack lands in
+  // `<out>/<packId>/` so `resolveDefaultPackKit`/`assertPackPresent` find it.
+  // Bypasses the medieval-only edition/source flags.
   if (typeof parsed.flags.pack === 'string') {
     const packResult = await bootstrapPack(parsed.flags.pack, {
-      out: outAbsolute,
+      rawAssetsRoot: outAbsolute,
       outRoot: defaultOutRoot(),
       force: parsed.flags.force === true,
       ...(typeof parsed.flags.commit === 'string' ? { ref: parsed.flags.commit } : {}),
