@@ -40,6 +40,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "object",
+    "name": "CLASSIFIER_TAGS",
+  },
+  {
+    "kind": "string",
+    "name": "CLASSIFIER_TAG_PREFIX",
+  },
+  {
+    "kind": "object",
     "name": "COAST_TILE_ASSET_IDS",
   },
   {
@@ -65,6 +73,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "string",
     "name": "DEFAULT_GAMEBOARD_ASSET_ROOT",
+  },
+  {
+    "kind": "object",
+    "name": "DEFAULT_PLACEMENT_CLASSIFIERS",
   },
   {
     "kind": "object",
@@ -664,7 +676,23 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "classifierMetadata",
+  },
+  {
+    "kind": "function",
+    "name": "classifierMetadataKey",
+  },
+  {
+    "kind": "function",
+    "name": "classifierTagsOf",
+  },
+  {
+    "kind": "function",
     "name": "classifyGameboardPlacement",
+  },
+  {
+    "kind": "function",
+    "name": "classifyPlacement",
   },
   {
     "kind": "function",
@@ -1288,6 +1316,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "listClassifiersInWorld",
+  },
+  {
+    "kind": "function",
     "name": "listCoastGuidePermutations",
   },
   {
@@ -1433,6 +1465,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "parseTilesetManifest",
+  },
+  {
+    "kind": "function",
+    "name": "placementHasClassifier",
   },
   {
     "kind": "function",
@@ -1673,6 +1709,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "selectManifestAssets",
+  },
+  {
+    "kind": "function",
+    "name": "selectPlacementsByClassifier",
   },
   {
     "kind": "function",

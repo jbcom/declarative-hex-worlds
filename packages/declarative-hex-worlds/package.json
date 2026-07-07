@@ -201,6 +201,10 @@
     "./camera": {
       "types": "./dist/camera.d.ts",
       "import": "./dist/camera.js"
+    },
+    "./classifiers": {
+      "types": "./dist/classifiers.d.ts",
+      "import": "./dist/classifiers.js"
     }
   },
   "bin": {

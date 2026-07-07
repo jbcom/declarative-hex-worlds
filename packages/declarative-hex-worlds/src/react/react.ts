@@ -23,7 +23,8 @@ import {
   WorldProvider as GameboardProvider,
 } from 'koota/react';
 import { hexKey } from '../coordinates';
-import type { GameboardPlan } from '../gameboard';
+import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
+import { type ClassifierTag, placementHasClassifier } from '../classifiers';
 import {
   AdjacentTo,
   GameboardState,
@@ -1057,6 +1058,22 @@ export function useProjectedGameboardPlan(): GameboardPlan | undefined {
     void placements.length;
     return state ? projectWorldToGameboardPlan(world) : undefined;
   }, [world, state, tiles, placements, revision]);
+}
+
+/**
+ * Live placements carrying a gameplay classifier tag (RFC0-TAG). Reactively filters the
+ * projected plan's placements by classifier metadata — re-runs when the board changes.
+ * e.g. `usePlacementsByClassifier('enemy')` drives an enemy overlay.
+ */
+export function usePlacementsByClassifier(
+  tag: ClassifierTag
+): readonly GameboardPlacementSpec[] {
+  const plan = useProjectedGameboardPlan();
+  return useMemo(
+    () =>
+      plan?.placements.filter((placement) => placementHasClassifier(placement.metadata, tag)) ?? [],
+    [plan, tag]
+  );
 }
 
 /**

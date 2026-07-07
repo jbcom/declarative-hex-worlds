@@ -95,6 +95,7 @@ import {
   usePlacementEntitiesForTile,
   usePlacementState,
   usePlacementOccupancyForTile,
+  usePlacementsByClassifier,
   useProjectedGameboardPlan,
   useRiverPlacementEntities,
   useRoadPlacementEntities,
@@ -145,6 +146,7 @@ interface ReactBindingReport {
   patrolAgentCount: number;
   patrolState?: GameboardPatrolStateValue;
   projectedPlacementIds: readonly string[];
+  enemyPlacementCount: number;
   ruleErrorCount: number;
   spawnKeys: readonly string[];
   state?: GameboardStateValue;
@@ -235,6 +237,9 @@ describe('React bindings browser integration', () => {
       tileZeroCoordinates: { q: 0, r: 0 },
     });
     expect(report?.placementCount).toBeGreaterThan(4);
+    // usePlacementsByClassifier ran and returned a count (this fixture has no
+    // enemy-classified placements, so 0) — RFC0-TAG.
+    expect(report?.enemyPlacementCount).toBe(0);
     expect(report?.firstPlacementId).toEqual(expect.any(String));
     expect(report?.originTileZeroPlacementIds.length).toBeGreaterThan(0);
     expect(report?.state?.seed).toBe('react-bindings');
@@ -572,6 +577,7 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
   const moveCommand = useGameboardInteractionCommand('0,0', { sourceActor: 'react-player' });
   const movePreview = useGameboardInteractionCommandPreview('0,0', { sourceActor: 'react-player' });
   const projectedPlan = useProjectedGameboardPlan();
+  const enemyPlacements = usePlacementsByClassifier('enemy');
   const occupancy = useGameboardOccupancyIndex();
   const occupancySnapshots = useGameboardPlacementOccupancy();
   const originNeighborhood = useGameboardNeighborhoodInspection('0,0', {
@@ -766,6 +772,7 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
     patrolAgentCount: patrolAgentEntities.length,
     patrolState,
     projectedPlacementIds: projectedPlan?.placements.map((placement) => placement.id) ?? [],
+    enemyPlacementCount: enemyPlacements.length,
     ruleErrorCount: ruleErrors.length,
     spawnKeys: spawns.map((spawn) => spawn.key),
     state,

@@ -17,6 +17,7 @@
  */
 
 export * from './actors';
+export * from './classifiers';
 export * from './commands';
 export * from './asset-source';
 export * from './camera';
