@@ -1,10 +1,16 @@
 /**
- * `src/three/` — Three.js bindings (first-class, NOT peer-dep gated).
+ * `src/three/` — the three.js RENDERER BINDING (RFC 0001 signals+bindings).
  *
- * Per the PRD bundled-bindings correction (2026-05-26): three is a hard
- * `dependency`, not an optional peer. PRD Epic D6b also surfaces
- * `disposeGameboardThreeResources(ctx)` here so consumers have a guided
- * cleanup path for geometry/material allocations.
+ * In the koota-native signals+bindings model, the core is renderer-free and koota
+ * traits ARE the signals; this module is the 3D binding that subscribes to the
+ * placement signals and reconciles a three scene. It is reachable ONLY via the
+ * `declarative-hex-worlds/three` subpath, and `three` / `@react-three/fiber` are
+ * OPTIONAL peer dependencies — a consumer installs them only if they import this
+ * binding (the renderer-optionality contract enforces the core never pulls them in).
+ * `src/canvas2d` is the sibling 2D binding subscribing to the same signals.
+ *
+ * `disposeGameboardThreeResources(ctx)` gives consumers a guided cleanup path for
+ * geometry/material allocations.
  *
  * @module
  */

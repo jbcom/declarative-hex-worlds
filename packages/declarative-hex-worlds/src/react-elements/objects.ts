@@ -3,10 +3,13 @@
  * component (RFC 0001 RFC0-8b).
  *
  * Rendered inside `<HexWorld>` (which is itself inside a consumer's `<Canvas>`),
- * this component reconciles the R3F scene with the live koota placements each
- * frame via `syncHexWorldPlacements`, resolving each placement through the
- * world's registered asset source(s). It is where the imperative render bridge
- * becomes a declarative R3F element — no consumer wiring of the sync loop.
+ * this component is the three.js RENDERER BINDING in the signals+bindings model
+ * (koota traits ARE the signals): it reactively subscribes to the koota placement
+ * signals through `useProjectedGameboardPlan` (which re-projects when
+ * `PlacementState`/tiles/world change) and reconciles the R3F scene, resolving each
+ * placement through the world's registered asset source(s). The per-frame `useFrame`
+ * only advances animation mixers — the DATA is signal-driven, not frame-polled. This
+ * is the 3D binding; `src/canvas2d` is the 2D binding subscribing to the same signals.
  *
  * The per-frame WORK lives in `./objects-sync` (no R3F dependency, unit-tested);
  * this file is the thin `useFrame(() => syncHexWorldPlacements(...))` wrapper and
