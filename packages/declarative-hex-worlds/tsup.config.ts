@@ -22,6 +22,7 @@ export default defineConfig([
     'asset-source': 'src/asset-source/index.ts',
     camera: 'src/camera/index.ts',
     normalize: 'src/normalize/index.ts',
+    overlay: 'src/overlay/index.ts',
     classifiers: 'src/classifiers/index.ts',
     canvas2d: 'src/canvas2d/index.ts',
     core: 'src/core/index.ts',

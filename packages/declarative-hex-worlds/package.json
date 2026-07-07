@@ -209,6 +209,10 @@
     "./normalize": {
       "types": "./dist/normalize.d.ts",
       "import": "./dist/normalize.js"
+    },
+    "./overlay": {
+      "types": "./dist/overlay.d.ts",
+      "import": "./dist/overlay.js"
     }
   },
   "bin": {

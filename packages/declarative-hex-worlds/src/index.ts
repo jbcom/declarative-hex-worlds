@@ -29,6 +29,7 @@ export * from './koota';
 export * from './manifest';
 export * from './movement';
 export * from './normalize';
+export * from './overlay';
 export * from './patrol';
 export * from './pieces';
 export * from './quests';
