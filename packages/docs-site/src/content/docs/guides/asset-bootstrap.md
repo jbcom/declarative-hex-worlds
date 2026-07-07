@@ -50,6 +50,46 @@ lives at:
 └── .bootstrap.json
 ```
 
+## Downloadable default packs
+
+Beyond the FREE tile pack, three first-class CC0 packs by
+[Kay Lousberg](https://kaylousberg.com) compose into a full game from defaults —
+a hex board, playable characters, and enemies. Fetch any of them by id:
+
+```bash
+pnpm exec declarative-hex-worlds bootstrap --pack medieval-hexagon --out raw-assets/medieval-hexagon
+pnpm exec declarative-hex-worlds bootstrap --pack adventurers      --out raw-assets/adventurers
+pnpm exec declarative-hex-worlds bootstrap --pack skeletons        --out raw-assets/skeletons
+```
+
+| Pack id | Role | Fills |
+|---|---|---|
+| `medieval-hexagon` | tiles | the terrain board |
+| `adventurers` | models | playable characters |
+| `skeletons` | models | enemies |
+
+Packs are **never** tracked in git — keep `raw-assets/` gitignored. They download
+from their upstream GitHub archives on demand. Programmatically:
+
+```ts
+import {
+  bootstrapPack,
+  resolveDefaultPackKit,
+  assertPackPresent,
+} from 'declarative-hex-worlds/bootstrap';
+
+// Fetch a pack.
+await bootstrapPack('adventurers', { out: 'raw-assets/adventurers' });
+
+// Compose defaults from whatever is downloaded.
+for (const pack of resolveDefaultPackKit('raw-assets')) {
+  if (pack.present) console.log(`${pack.id} → ${pack.dir}`);
+}
+
+// Or require one, failing clearly (with the fetch command) if it is missing.
+const dir = assertPackPresent('skeletons', 'raw-assets');
+```
+
 ## EXTRA edition (purchased)
 
 The EXTRA edition is sold on [kaylousberg.itch.io](https://kaylousberg.itch.io)
