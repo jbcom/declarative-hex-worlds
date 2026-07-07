@@ -21,11 +21,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { crc32, deflateRawSync } from 'node:zlib';
-import yazl from 'yazl';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import yazl from 'yazl';
 import { bootstrapKayKitAssets } from '../index';
+import { PACK_REGISTRY } from '../registry';
 import { KAYKIT_BOOTSTRAP_SIDECAR } from '../target';
-import { KAYKIT_MEDIEVAL_FREE_LAYOUT } from '../upstream-layout';
+import { characterPackLayout, KAYKIT_MEDIEVAL_FREE_LAYOUT } from '../upstream-layout';
 
 // ---------------------------------------------------------------------------
 // vi.mock must appear at the top level so vite can hoist it.
@@ -137,8 +138,26 @@ async function buildFreePackZipBuffer(): Promise<Buffer> {
   }
   zip.addBuffer(Buffer.from('{}'), `${folder}${layout.relativeGltfRoot}/tiles/base/hex_grass.gltf`);
   zip.addBuffer(Buffer.from('{}'), `${folder}${layout.relativeGltfRoot}/buildings/blue/home.gltf`);
-  zip.addBuffer(Buffer.from('{}'), `${folder}${layout.relativeGltfRoot}/decoration/nature/tree.gltf`);
+  zip.addBuffer(
+    Buffer.from('{}'),
+    `${folder}${layout.relativeGltfRoot}/decoration/nature/tree.gltf`
+  );
   zip.addBuffer(Buffer.from('png'), `${folder}${layout.relativeTextureRoot}/hexagons_medieval.png`);
+  zip.end();
+  const chunks: Buffer[] = [];
+  return new Promise<Buffer>((resolveBuild, rejectBuild) => {
+    zip.outputStream.on('data', (chunk: Buffer) => chunks.push(chunk));
+    zip.outputStream.on('error', rejectBuild);
+    zip.outputStream.on('end', () => resolveBuild(Buffer.concat(chunks)));
+  });
+}
+
+/** A character pack (Adventurers) zip buffer — flat gltf tree, inline texture. */
+async function buildCharacterPackZipBuffer(): Promise<Buffer> {
+  const zip = new yazl.ZipFile();
+  const folder = 'repo-main/addons/kaykit_character_pack_adventures/';
+  zip.addBuffer(Buffer.from('{}'), `${folder}Assets/gltf/knight.gltf`);
+  zip.addBuffer(Buffer.from('png'), `${folder}Assets/gltf/knight_texture.png`);
   zip.end();
   const chunks: Buffer[] = [];
   return new Promise<Buffer>((resolveBuild, rejectBuild) => {
@@ -310,6 +329,52 @@ describe('bootstrap security — redirect allowlist (CWE-601)', () => {
     expect(result.fileCount).toBeGreaterThan(0);
     expect(existsSync(join(localOut, KAYKIT_BOOTSTRAP_SIDECAR))).toBe(true);
     expect(mockRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it('downloads a character pack from its descriptor github source (RFC0-10b)', async () => {
+    const { request } = await import('node:https');
+    const mockRequest = vi.mocked(request);
+    const zipBuffer = await buildCharacterPackZipBuffer();
+    const descriptor = PACK_REGISTRY.adventurers;
+    let requestedUrl = '';
+
+    mockRequest.mockImplementation((url, _opts, cb) => {
+      requestedUrl = String(url);
+      const callback = cb as unknown as (
+        res: { statusCode: number; headers: Record<string, string>; resume(): void } & PassThrough
+      ) => void;
+      const res = Object.assign(new PassThrough(), {
+        statusCode: 200,
+        headers: {} as Record<string, string>,
+      });
+      setImmediate(() => {
+        callback(res);
+        res.end(zipBuffer);
+      });
+      return Object.assign(new EventEmitter(), {
+        end() {
+          return undefined;
+        },
+      }) as unknown as ReturnType<typeof request>;
+    });
+
+    const localOut = tmp();
+    const result = await bootstrapKayKitAssets({
+      source: { kind: 'github' },
+      out: localOut,
+      outRoot: '/',
+      edition: 'free',
+      layout: characterPackLayout('kaykit_character_pack_adventures'),
+      githubSource: descriptor.github,
+      libraryVersion: '0.0.0-test',
+      fetchedAt: '2030-01-01T00:00:00.000Z',
+    });
+    // The formatted URL points at the descriptor's repo (formatGithubArchiveUrl).
+    expect(requestedUrl).toBe(
+      'https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/archive/refs/heads/main.zip'
+    );
+    // knight.gltf + knight_texture.png mirrored.
+    expect(result.fileCount).toBe(2);
   });
 
   it('destroys the GitHub response stream when archive piping fails', async () => {

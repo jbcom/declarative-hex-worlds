@@ -1,25 +1,27 @@
 /**
- * Typed description of the KayKit Medieval Hexagon Pack upstream layouts.
+ * Typed description of the KayKit pack upstream layouts (RFC0-10).
  *
  * @remarks
  * The library bootstraps assets at install time by mirroring the upstream
  * GitHub source tree (or a user-supplied zip with identical layout) into the
- * consumer's asset root. Both editions share the same shape: a top-level pack
- * directory containing `Assets/`, `Textures/`, `Samples/`, marker files
- * (`License.txt`, `Medieval_Hexagon_UserGuide_v1.pdf`, `contents_*.jpg`), and
- * social `.url` shortcuts. Asset binaries live under `Assets/<format>/...`
- * where format is one of `gltf`, `fbx`, `fbx(unity)`, or `obj`.
+ * consumer's asset root. Two layout SHAPES are supported:
+ *
+ * - **Medieval Hexagon** (`detection: 'medieval'`, the default): a top-level pack
+ *   directory containing `Assets/`, `Textures/`, `Samples/`, marker files
+ *   (`License.txt`, PDFs, `contents_*.jpg`), category subdirs under
+ *   `Assets/gltf/` (tiles/buildings/decoration, +units/ for EXTRA), and textures
+ *   in a separate `Textures/`. Detected via markers OR the primary texture.
+ * - **Character pack** (`detection: 'character'`, via {@link characterPackLayout}):
+ *   the Adventurers/Skeletons shape — a flat `Assets/gltf/` with `.gltf`/`.bin`
+ *   and textures inline, no category dirs, no edition markers. Detected by the
+ *   presence of any `.gltf` under the gltf root.
  *
  * Only the `gltf` tree is mirrored by the bootstrap step. Source-format dirs
  * (`fbx`, `obj`) are filtered out unless `includeSourceFormats` is set.
  *
  * @module
  */
-import {
-  existsSync,
-  readdirSync,
-  statSync,
-} from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { UPSTREAM_LAYOUTS } from '../../../config';
 import type { PackEdition } from '../../../types';
@@ -49,6 +51,14 @@ export interface KayKitUpstreamLayout {
   readonly expectedBinCount: number;
   /** Texture filenames published with this edition's `Textures/` directory. */
   readonly textureFiles: readonly string[];
+  /**
+   * Detection strategy (RFC0-10). `'medieval'` (default) uses the marker/texture +
+   * required-category rules below — the Medieval Hexagon shape. `'character'`
+   * matches a flat `Assets/gltf/` with ≥1 `.gltf` and no category/marker
+   * requirements — the KayKit character packs (Adventurers/Skeletons), which ship
+   * textures inline in `Assets/gltf/` and carry no edition markers.
+   */
+  readonly detection?: 'medieval' | 'character';
 }
 
 /**
@@ -78,6 +88,30 @@ export const KAYKIT_UPSTREAM_LAYOUTS: readonly KayKitUpstreamLayout[] = [
 ] as const;
 
 /**
+ * Build an upstream layout for a KayKit CHARACTER pack (Adventurers, Skeletons —
+ * RFC0-10). These ship a flat `addons/<packFolderName>/Assets/gltf/` tree with
+ * textures inline (no separate `Textures/`), no category subdirs, and no edition
+ * markers — so `detection: 'character'` matches on "gltf root exists with ≥1
+ * `.gltf`" alone. Counts are 0 (unknown/irrelevant for character packs); the
+ * mirror walks the tree recursively regardless.
+ */
+export function characterPackLayout(packFolderName: string): KayKitUpstreamLayout {
+  return {
+    editionName: 'free',
+    displayName: 'CHARACTER',
+    packFolderName,
+    relativeGltfRoot: 'Assets/gltf',
+    relativeTextureRoot: 'Assets/gltf',
+    assetCategories: [],
+    markerFiles: [],
+    expectedGltfCount: 0,
+    expectedBinCount: 0,
+    textureFiles: [],
+    detection: 'character',
+  };
+}
+
+/**
  * Resolve the canonical layout descriptor for a known pack edition.
  */
 export function kayKitLayoutForEdition(edition: PackEdition): KayKitUpstreamLayout {
@@ -96,11 +130,23 @@ export function kayKitLayoutForEdition(edition: PackEdition): KayKitUpstreamLayo
  * EXTRA is tested before FREE (EXTRA categories are a superset of FREE's).
  */
 export function detectKayKitLayout(rootPath: string): KayKitUpstreamLayout | undefined {
+  return detectLayoutFrom(rootPath, [KAYKIT_MEDIEVAL_EXTRA_LAYOUT, KAYKIT_MEDIEVAL_FREE_LAYOUT]);
+}
+
+/**
+ * Detect which of the given candidate layouts a pack root matches (RFC0-10).
+ * `detectKayKitLayout` is the medieval-hexagon-only default; the pack bootstrap
+ * passes its specific target layout (e.g. a character-pack layout) so a
+ * non-medieval pack is detected against the right shape.
+ */
+export function detectLayoutFrom(
+  rootPath: string,
+  candidates: readonly KayKitUpstreamLayout[]
+): KayKitUpstreamLayout | undefined {
   if (!isDirectory(rootPath)) {
     return undefined;
   }
-  const ordered = [KAYKIT_MEDIEVAL_EXTRA_LAYOUT, KAYKIT_MEDIEVAL_FREE_LAYOUT];
-  for (const layout of ordered) {
+  for (const layout of candidates) {
     if (matchesLayout(rootPath, layout)) {
       return layout;
     }
@@ -125,13 +171,19 @@ function matchesLayout(rootPath: string, layout: KayKitUpstreamLayout): boolean 
   if (!isDirectory(gltfRoot)) {
     return false;
   }
+  // Character packs (RFC0-10): a flat gltf tree with ≥1 .gltf, no markers or
+  // category dirs. Match on the presence of any .gltf under the gltf root.
+  if (layout.detection === 'character') {
+    return readdirSync(gltfRoot, { withFileTypes: true }).some(
+      (entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.gltf')
+    );
+  }
   // Two verification strategies:
   //   A) itch.io zip — includes all marker files (License.txt, PDFs, etc.)
   //   B) GitHub archive — omits markers but always includes Textures/<textureFile>
   // Accept a root when it passes at least one of the two strategies.
   const allMarkersPresent =
-    layout.markerFiles.length > 0 &&
-    layout.markerFiles.every((m) => existsSync(join(rootPath, m)));
+    layout.markerFiles.length > 0 && layout.markerFiles.every((m) => existsSync(join(rootPath, m)));
   const primaryTexturePresent =
     layout.textureFiles.length > 0 &&
     existsSync(join(rootPath, layout.relativeTextureRoot, layout.textureFiles[0] as string));

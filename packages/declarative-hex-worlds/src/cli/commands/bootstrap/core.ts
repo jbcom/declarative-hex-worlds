@@ -21,8 +21,8 @@ import {
   mkdirSync,
   openSync,
   readdirSync,
-  realpathSync,
   readFileSync,
+  realpathSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -34,11 +34,6 @@ import { pipeline } from 'node:stream/promises';
 import yauzl from 'yauzl';
 import { BOOTSTRAP_PATHS, KAYKIT_SOURCE, kaykitGithubArchiveUrl } from '../../../config';
 import { GameboardIoError, GameboardManifestError } from '../../../errors';
-import {
-  detectKayKitLayout,
-  kayKitLayoutForEdition,
-  type KayKitUpstreamLayout,
-} from './upstream-layout';
 import type { PackEdition } from '../../../types';
 import {
   KAYKIT_BOOTSTRAP_GLTF_RELATIVE,
@@ -46,6 +41,13 @@ import {
   KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE,
   resolveBootstrapSidecarPath,
 } from './target';
+import {
+  detectLayoutFrom,
+  KAYKIT_MEDIEVAL_EXTRA_LAYOUT,
+  KAYKIT_MEDIEVAL_FREE_LAYOUT,
+  type KayKitUpstreamLayout,
+  kayKitLayoutForEdition,
+} from './upstream-layout';
 
 /**
  * Canonical GitHub organization holding the FREE edition source tree.
@@ -121,6 +123,24 @@ export interface BootstrapKayKitAssetsOptions {
    * the value resolved from the closest `package.json`.
    */
   readonly libraryVersion?: string;
+  /**
+   * Target upstream layout (RFC0-10). Defaults to the edition-derived KayKit
+   * Medieval Hexagon layout. Pass a `characterPackLayout(...)` to bootstrap a
+   * character pack (Adventurers/Skeletons) instead. When set, detection and
+   * mirroring use THIS layout rather than the medieval-hexagon detection list.
+   */
+  readonly layout?: KayKitUpstreamLayout;
+  /**
+   * GitHub archive source for the pack (RFC0-10). Defaults to the KayKit
+   * Medieval Hexagon repo. Pass a pack descriptor's `github` to fetch a different
+   * pack's archive. Only used when `source.kind === 'github'`.
+   */
+  readonly githubSource?: {
+    readonly owner: string;
+    readonly repo: string;
+    readonly defaultRef: string;
+    readonly archiveUrlTemplate: string;
+  };
 }
 
 /**
@@ -199,7 +219,7 @@ export async function bootstrapKayKitAssets(
       'EXTRA edition cannot be bootstrapped from GitHub (CC0 license covers FREE only). Pass --source zip with a purchased archive.'
     );
   }
-  const layout = kayKitLayoutForEdition(edition);
+  const layout = options.layout ?? kayKitLayoutForEdition(edition);
   const outAbsolute = resolveOutAbsolute(options.out, options.outRoot);
   const targetRoot = outAbsolute;
   const sidecarPath = resolveBootstrapSidecarPath(outAbsolute);
@@ -236,16 +256,21 @@ export async function bootstrapKayKitAssets(
   }
   mkdirSync(targetRoot, { recursive: true });
 
-  const stagingRoot = await stageUpstreamSource(options.source, layout, edition);
+  const stagingRoot = await stageUpstreamSource(
+    options.source,
+    layout,
+    edition,
+    options.githubSource
+  );
   try {
-    const packRoot = await resolvePackRoot(stagingRoot, edition);
+    const packRoot = await resolvePackRoot(stagingRoot, layout);
     const includeSourceFormats = options.includeSourceFormats === true;
     const files = mirrorPackTree(packRoot, layout, targetRoot, includeSourceFormats);
     const sidecar: BootstrapSidecar = {
       schemaVersion: KAYKIT_SIDECAR_SCHEMA_VERSION,
       edition,
       libraryVersion,
-      sourceUrl: describeSourceUrl(options.source, edition),
+      sourceUrl: describeSourceUrl(options.source, edition, options.githubSource),
       fetchedAt,
       files,
     };
@@ -335,7 +360,8 @@ function resolveOutAbsolute(value: string, outRoot: string | undefined): string 
 async function stageUpstreamSource(
   source: BootstrapKayKitAssetsSource,
   layout: KayKitUpstreamLayout,
-  edition: PackEdition
+  edition: PackEdition,
+  githubSource?: BootstrapKayKitAssetsOptions['githubSource']
 ): Promise<string> {
   if (source.kind !== 'github') {
     return stageFromZip(source.path, layout, edition);
@@ -343,9 +369,11 @@ async function stageUpstreamSource(
   // GitHub source: download the stable archive zip into a temp dir, extract
   // via the shared stageFromZip path, then unconditionally clean up the temp
   // download dir (the staging root from stageFromZip is cleaned by the caller).
-  const url = kayKitFreeGithubTarballUrl(source.commit);
+  const url = githubSource
+    ? formatGithubArchiveUrl(githubSource, source.commit)
+    : kayKitFreeGithubTarballUrl(source.commit);
   const downloadRoot = mkStagingRoot('github-zip');
-  const zipPath = join(downloadRoot, 'kaykit-medieval-hexagon-free.zip');
+  const zipPath = join(downloadRoot, `${layout.packFolderName}.zip`);
   try {
     const incoming = await openHttpsStream(url);
     try {
@@ -364,7 +392,7 @@ async function stageUpstreamSource(
   } catch (error) {
     /* v8 ignore next -- filesystem/yauzl/bootstrap failures are Error instances; String fallback is for JS interop. */
     const message = error instanceof Error ? error.message : String(error);
-    throw new GameboardIoError(`failed to download KayKit FREE archive ${url}: ${message}`);
+    throw new GameboardIoError(`failed to download archive ${url}: ${message}`);
   } finally {
     rmSync(downloadRoot, { recursive: true, force: true });
   }
@@ -383,19 +411,26 @@ async function stageFromZip(
   let succeeded = false;
   try {
     await extractZipTo(absoluteZip, stagingRoot);
-    // Reject obvious edition mismatches early.
-    const detectedRoot = findPackRoot(stagingRoot);
+    // Reject obvious edition mismatches early. Detect against the TARGET layout
+    // (medieval editions or a character pack) rather than the medieval-only list.
+    const detectedRoot = findPackRoot(stagingRoot, layout);
     if (detectedRoot) {
-      const detectedLayout = detectKayKitLayout(detectedRoot);
-      if (detectedLayout && detectedLayout.editionName !== edition) {
+      const detectedLayout = detectLayoutFrom(detectedRoot, layoutCandidates(layout));
+      // Edition mismatch only applies to the medieval packs (character packs are
+      // single-edition CC0, so detection === 'character' skips the check).
+      if (
+        detectedLayout &&
+        layout.detection !== 'character' &&
+        detectedLayout.editionName !== edition
+      ) {
         throw new GameboardIoError(
           `zip contains the ${detectedLayout.editionName.toUpperCase()} edition but bootstrap was asked for ${edition.toUpperCase()}.`
         );
       }
-      /* v8 ignore next 5 -- findPackRoot only returns directories after detectKayKitLayout succeeds; this protects filesystem races. */
+      /* v8 ignore next 5 -- findPackRoot only returns directories after detection succeeds; this protects filesystem races. */
       if (!detectedLayout) {
         throw new GameboardIoError(
-          `zip ${absoluteZip} does not look like a KayKit Medieval Hexagon Pack root (expected ${layout.packFolderName}/).`
+          `zip ${absoluteZip} does not look like a ${layout.displayName} pack root (expected ${layout.packFolderName}/).`
         );
       }
     }
@@ -416,32 +451,36 @@ async function stageFromZip(
 
 async function resolvePackRoot(
   stagingRoot: string,
-  edition: PackEdition
+  targetLayout: KayKitUpstreamLayout
 ): Promise<string> {
-  const detected = findPackRoot(stagingRoot);
+  const detected = findPackRoot(stagingRoot, targetLayout);
   if (!detected) {
     throw new GameboardIoError(
-      `staged source under ${stagingRoot} does not contain a recognizable KayKit pack root.`
+      `staged source under ${stagingRoot} does not contain a recognizable KayKit pack root (expected ${targetLayout.packFolderName}/).`
     );
   }
-  const layout = detectKayKitLayout(detected);
-  /* v8 ignore next 10 -- stageFromZip prevalidates layout/edition and findPackRoot guarantees a detected layout; these protect filesystem races/future callers. */
+  const layout = detectLayoutFrom(detected, layoutCandidates(targetLayout));
+  /* v8 ignore next 10 -- stageFromZip prevalidates layout and findPackRoot guarantees a detected layout; these protect filesystem races/future callers. */
   if (!layout) {
     throw new GameboardIoError(
-      `staged source under ${detected} does not match a known KayKit layout (missing markers).`
+      `staged source under ${detected} does not match a known layout (missing markers).`
     );
   }
-  /* v8 ignore next 5 -- stageFromZip rejects edition mismatches before resolvePackRoot returns; this protects future callers. */
-  if (layout.editionName !== edition) {
+  /* v8 ignore next 5 -- stageFromZip rejects edition mismatches before resolvePackRoot returns; character layouts have no edition axis. */
+  if (targetLayout.detection !== 'character' && layout.editionName !== targetLayout.editionName) {
     throw new GameboardIoError(
-      `staged source is ${layout.editionName.toUpperCase()} edition; bootstrap was asked for ${edition.toUpperCase()}.`
+      `staged source is ${layout.editionName.toUpperCase()} edition; bootstrap was asked for ${targetLayout.editionName.toUpperCase()}.`
     );
   }
   return detected;
 }
 
-function findPackRoot(stagingRoot: string, maxDepth = 4): string | undefined {
-  if (detectKayKitLayout(stagingRoot)) {
+function findPackRoot(
+  stagingRoot: string,
+  targetLayout: KayKitUpstreamLayout,
+  maxDepth = 4
+): string | undefined {
+  if (detectLayoutFrom(stagingRoot, layoutCandidates(targetLayout))) {
     return stagingRoot;
   }
   if (maxDepth <= 0) {
@@ -460,7 +499,7 @@ function findPackRoot(stagingRoot: string, maxDepth = 4): string | undefined {
     }
     // GitHub archives nest the pack under `<repo>-<ref>/addons/<pack>/`;
     // recurse up to maxDepth levels to handle varying nesting depths.
-    const found = findPackRoot(join(stagingRoot, entry.name), maxDepth - 1);
+    const found = findPackRoot(join(stagingRoot, entry.name), targetLayout, maxDepth - 1);
     if (found) {
       return found;
     }
@@ -492,8 +531,12 @@ function mirrorPackTree(
       bytes: bytes.size,
     });
   }
+  // Separate texture pass only for layouts that publish a distinct Textures/
+  // dir (medieval hexagon). Character packs list no textureFiles — their textures
+  // live inline in Assets/gltf and are already mirrored by the walk above, so we
+  // skip this pass entirely (else it would create an empty Textures/ dir).
   const textureSource = join(packRoot, layout.relativeTextureRoot);
-  if (existsSync(textureSource)) {
+  if (layout.textureFiles.length > 0 && existsSync(textureSource)) {
     const textureTarget = join(targetRoot, KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE);
     mkdirSync(textureTarget, { recursive: true });
     for (const fileName of layout.textureFiles) {
@@ -530,11 +573,7 @@ function walkFiles(root: string): string[] {
   return walkFilesInternal(root, real);
 }
 
-function walkFilesInternal(
-  dir: string,
-  rootReal: string,
-  symlinkCount = { n: 0 }
-): string[] {
+function walkFilesInternal(dir: string, rootReal: string, symlinkCount = { n: 0 }): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     /* v8 ignore next 10 -- yauzl extraction materializes regular files/directories; this guard protects future directory sources and malformed filesystems. */
@@ -589,9 +628,7 @@ function readSidecar(path: string, expectedDir: string): BootstrapSidecar {
   const realPath = realpathSync(path);
   const realDir = realpathSync(expectedDir);
   if (!realPath.startsWith(realDir + sep) && realPath !== realDir) {
-    throw new GameboardManifestError(
-      `bootstrap sidecar path escapes expected directory: ${path}`
-    );
+    throw new GameboardManifestError(`bootstrap sidecar path escapes expected directory: ${path}`);
   }
   // Open once and keep the fd for both size check and read — eliminates the
   // TOCTOU window between a statSync confinement check and a separate readFileSync.
@@ -625,15 +662,40 @@ function readSidecar(path: string, expectedDir: string): BootstrapSidecar {
   return parsed;
 }
 
-
 function describeSourceUrl(
   source: BootstrapKayKitAssetsSource,
-  edition: PackEdition
+  edition: PackEdition,
+  githubSource?: BootstrapKayKitAssetsOptions['githubSource']
 ): string {
   if (source.kind === 'github') {
-    return kayKitFreeGithubTarballUrl(source.commit);
+    return githubSource
+      ? formatGithubArchiveUrl(githubSource, source.commit)
+      : kayKitFreeGithubTarballUrl(source.commit);
   }
   return `file://${resolve(source.path)}#${edition}`;
+}
+
+/**
+ * The layout candidates detection tries for a given target layout. A character
+ * layout is matched only against itself; a medieval layout keeps the
+ * EXTRA-before-FREE ordering so a superset EXTRA root isn't mis-read as FREE.
+ */
+function layoutCandidates(targetLayout: KayKitUpstreamLayout): readonly KayKitUpstreamLayout[] {
+  if (targetLayout.detection === 'character') {
+    return [targetLayout];
+  }
+  return [KAYKIT_MEDIEVAL_EXTRA_LAYOUT, KAYKIT_MEDIEVAL_FREE_LAYOUT];
+}
+
+/** Format a pack's GitHub archive URL from its source descriptor + optional ref. */
+function formatGithubArchiveUrl(
+  githubSource: NonNullable<BootstrapKayKitAssetsOptions['githubSource']>,
+  ref?: string
+): string {
+  return githubSource.archiveUrlTemplate
+    .replace('{owner}', githubSource.owner)
+    .replace('{repo}', githubSource.repo)
+    .replace('{ref}', ref ?? githubSource.defaultRef);
 }
 
 function resolveLibraryVersion(): string {
@@ -643,7 +705,10 @@ function resolveLibraryVersion(): string {
   for (let depth = 0; depth < 8; depth += 1) {
     const candidate = join(dir, 'package.json');
     if (existsSync(candidate)) {
-      const parsed = JSON.parse(readFileSync(candidate, 'utf8')) as { version?: string; name?: string };
+      const parsed = JSON.parse(readFileSync(candidate, 'utf8')) as {
+        version?: string;
+        name?: string;
+      };
       /* v8 ignore next 3 -- the package-local package.json is the supported install shape. */
       if (parsed.name === 'declarative-hex-worlds' && typeof parsed.version === 'string') {
         return parsed.version;

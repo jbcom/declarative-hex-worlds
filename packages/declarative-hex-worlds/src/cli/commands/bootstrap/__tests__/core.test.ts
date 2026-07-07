@@ -7,26 +7,33 @@
  * archive is present.
  */
 import { createHash } from 'node:crypto';
-import { createWriteStream, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import {
+  createWriteStream,
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
-import yazl from 'yazl';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import {
-  KAYKIT_MEDIEVAL_FREE_LAYOUT,
-  KAYKIT_MEDIEVAL_EXTRA_LAYOUT,
-  type KayKitUpstreamLayout,
-} from '../upstream-layout';
-import {
-  bootstrapKayKitAssets,
-  verifyBootstrap,
-  type BootstrapSidecar,
-} from '../index';
+import yazl from 'yazl';
+import { type BootstrapSidecar, bootstrapKayKitAssets, verifyBootstrap } from '../index';
+import { PACK_REGISTRY } from '../registry';
 import {
   KAYKIT_BOOTSTRAP_GLTF_RELATIVE,
   KAYKIT_BOOTSTRAP_SIDECAR,
   KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE,
 } from '../target';
+import {
+  characterPackLayout,
+  KAYKIT_MEDIEVAL_EXTRA_LAYOUT,
+  KAYKIT_MEDIEVAL_FREE_LAYOUT,
+  type KayKitUpstreamLayout,
+} from '../upstream-layout';
 
 const TMP_ROOTS: string[] = [];
 
@@ -310,7 +317,9 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
       libraryVersion: '0.0.0-test',
       fetchedAt: '2030-01-01T00:00:00.000Z',
     });
-    const firstSidecar = JSON.parse(readFileSync(first.integritySidecar, 'utf8')) as BootstrapSidecar;
+    const firstSidecar = JSON.parse(
+      readFileSync(first.integritySidecar, 'utf8')
+    ) as BootstrapSidecar;
     const second = await bootstrapKayKitAssets({
       source: { kind: 'zip', path: zipPath },
       out: localOut,
@@ -320,7 +329,9 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
       fetchedAt: '2030-01-01T00:00:00.000Z',
       force: true,
     });
-    const secondSidecar = JSON.parse(readFileSync(second.integritySidecar, 'utf8')) as BootstrapSidecar;
+    const secondSidecar = JSON.parse(
+      readFileSync(second.integritySidecar, 'utf8')
+    ) as BootstrapSidecar;
     expect(secondSidecar.files).toEqual(firstSidecar.files);
     expect(second.totalBytes).toBe(first.totalBytes);
     expect(second.fileCount).toBe(first.fileCount);
@@ -388,7 +399,9 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     // OUTSIDE the gltf root the mirror walks. The flag's primary effect is
     // future-proofing for upstream packs that interleave formats in gltf/.
     // Assert the sidecar shape is still valid.
-    expect(sidecar.files.every((entry) => /\.(gltf|bin|png|jpg|jpeg)$/.test(entry.path))).toBe(true);
+    expect(sidecar.files.every((entry) => /\.(gltf|bin|png|jpg|jpeg)$/.test(entry.path))).toBe(
+      true
+    );
   });
 
   it('includes source formats inside the GLTF tree and skips unsupported extensionless and missing texture files', async () => {
@@ -434,7 +447,9 @@ describe('bootstrapKayKitAssets (zip source) — PRD RB5', () => {
     });
     expect(existsSync(join(localOut, 'tiles/base/source_model.fbx'))).toBe(true);
     expect(existsSync(join(localOut, 'tiles/base/README'))).toBe(false);
-    expect(existsSync(join(localOut, KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE, 'not-a-catalog-texture.png'))).toBe(false);
+    expect(
+      existsSync(join(localOut, KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE, 'not-a-catalog-texture.png'))
+    ).toBe(false);
   });
 
   it('bootstraps a valid pack without a texture directory', async () => {
@@ -641,5 +656,68 @@ describe('bootstrap edge cases — PRD RB5', () => {
       .map((entry) => entry.name)
       .sort();
     expect(subdirs).toEqual(['Textures', 'buildings', 'decoration', 'tiles']);
+  });
+});
+
+describe('bootstrapKayKitAssets — character pack (RFC0-10b)', () => {
+  // A character pack's flat Assets/gltf tree with textures inline, no markers,
+  // no category dirs, no separate Textures/ — the KayKit Adventurers/Skeletons shape.
+  function characterFixtureFiles(layout: KayKitUpstreamLayout): SyntheticPackFile[] {
+    return [
+      {
+        relative: `${layout.relativeGltfRoot}/knight.gltf`,
+        content: JSON.stringify({ asset: { version: '2.0' } }),
+      },
+      { relative: `${layout.relativeGltfRoot}/knight.bin`, content: Buffer.from([1, 2, 3]) },
+      {
+        relative: `${layout.relativeGltfRoot}/mage.gltf`,
+        content: JSON.stringify({ asset: { version: '2.0' } }),
+      },
+      // Texture lives INLINE in Assets/gltf (no separate Textures/ dir).
+      {
+        relative: `${layout.relativeGltfRoot}/knight_texture.png`,
+        content: Buffer.from([9, 9, 9]),
+      },
+      // fbx sibling — filtered unless --include-source-formats.
+      { relative: 'Assets/fbx/knight_texture.png', content: Buffer.from([7]) },
+    ];
+  }
+
+  it('mirrors a character pack from a zip (flat gltf tree, inline textures)', async () => {
+    const layout = characterPackLayout('kaykit_character_pack_adventures');
+    const zipPath = join(tmp(), 'adventurers.zip');
+    // GitHub archives nest under <repo>-<ref>/; emulate that prefix.
+    await buildSyntheticZip(layout, characterFixtureFiles(layout), zipPath, 'repo-main/');
+    const outRoot = tmp();
+    const result = await bootstrapKayKitAssets({
+      source: { kind: 'zip', path: zipPath },
+      out: outRoot,
+      outRoot: '/',
+      edition: 'free',
+      layout,
+      libraryVersion: '0.0.0-test',
+    });
+    // knight.gltf + knight.bin + mage.gltf + knight_texture.png = 4 mirrored files.
+    expect(result.fileCount).toBe(4);
+    const gltfDir = join(outRoot, KAYKIT_BOOTSTRAP_GLTF_RELATIVE);
+    const names = readdirSync(gltfDir).sort();
+    // The four assets land flat in the asset root (gltfRelative is ''); the
+    // sidecar sits alongside them and NO empty Textures/ dir is created.
+    expect(names.filter((n) => n !== KAYKIT_BOOTSTRAP_SIDECAR)).toEqual([
+      'knight.bin',
+      'knight.gltf',
+      'knight_texture.png',
+      'mage.gltf',
+    ]);
+    expect(names).toContain(KAYKIT_BOOTSTRAP_SIDECAR);
+    expect(names).not.toContain(KAYKIT_BOOTSTRAP_TEXTURE_RELATIVE);
+  });
+
+  it('derives the character-pack layout from a registry descriptor', () => {
+    const descriptor = PACK_REGISTRY.adventurers;
+    const layout = characterPackLayout('kaykit_character_pack_adventures');
+    expect(descriptor.role).toBe('model');
+    expect(layout.detection).toBe('character');
+    expect(layout.relativeGltfRoot).toBe('Assets/gltf');
   });
 });
