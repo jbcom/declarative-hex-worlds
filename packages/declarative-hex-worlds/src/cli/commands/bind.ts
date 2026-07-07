@@ -28,11 +28,19 @@ function collectFiles(root: string, current: string = root): string[] {
   const files: string[] = [];
   for (const entry of readdirSync(current, { withFileTypes: true })) {
     const full = join(current, entry.name);
+    // Symlinks are skipped deliberately: `Dirent.isDirectory()` is false for a
+    // symlinked dir (Node doesn't follow links for the type flag), so following
+    // them would risk cycles and escapes outside the scanned root. An assets
+    // tree is expected to be plain files/dirs.
+    if (entry.isSymbolicLink()) {
+      continue;
+    }
     if (entry.isDirectory()) {
       files.push(...collectFiles(root, full));
     } else {
-      // Regular files (and, harmlessly, any other non-dir entry) become scan candidates;
-      // scanAssetFiles filters anything without a recognized role/extension.
+      // Symlinks were already skipped above; anything else in a real assets tree
+      // is a regular file. It becomes a scan candidate — scanAssetFiles filters
+      // anything without a recognized role/extension.
       files.push(relative(root, full).replace(/\\/g, '/'));
     }
   }

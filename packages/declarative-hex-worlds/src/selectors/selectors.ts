@@ -124,9 +124,14 @@ export const TRANSITION_VARIANTS = {
 /** A transition family key (`'road' | 'river' | 'coast'`). */
 export type TransitionFamily = keyof typeof TRANSITION_VARIANTS;
 
-/** True if `value` names a known transition family. */
+/**
+ * True if `value` names a known transition family. Uses `Object.hasOwn` (not
+ * `in`) so inherited `Object.prototype` keys (`constructor`, `toString`, …) don't
+ * spuriously match — a `selectTransitionVariant`/`resolveEdge` miss must fall
+ * through, and matching an inherited key would index the table with a non-array.
+ */
 export function isTransitionFamily(value: string): value is TransitionFamily {
-  return value in TRANSITION_VARIANTS;
+  return Object.hasOwn(TRANSITION_VARIANTS, value);
 }
 
 /**

@@ -28,6 +28,16 @@ import type { AssetRenderRequest, AssetSource, ResolveContext } from './source';
  */
 export type GltfPackSourceOptions = GameboardPlacementAssetUrlOptions;
 
+/** Merges a per-call `ctx.baseUrl` into the source's options, without overriding an explicit one. */
+function resolveOptionsFor(
+  options: GltfPackSourceOptions,
+  ctx?: ResolveContext
+): GameboardPlacementAssetUrlOptions {
+  return ctx?.baseUrl === undefined
+    ? options
+    : { ...options, baseUrl: options.baseUrl ?? ctx.baseUrl };
+}
+
 /**
  * Create a `gltf-pack` AssetSource. Resolves a placement to a `{ type: 'gltf' }`
  * request via the existing URL resolver + placement transform, or `undefined`
@@ -40,11 +50,7 @@ export function createGltfPackSource(options: GltfPackSourceOptions = {}): Asset
       placement: GameboardPlacementSpec,
       ctx?: ResolveContext
     ): AssetRenderRequest | undefined {
-      const resolveOptions: GameboardPlacementAssetUrlOptions =
-        ctx?.baseUrl === undefined
-          ? options
-          : { ...options, baseUrl: options.baseUrl ?? ctx.baseUrl };
-      const url = resolveGameboardPlacementAssetUrl(placement, resolveOptions);
+      const url = resolveGameboardPlacementAssetUrl(placement, resolveOptionsFor(options, ctx));
       if (!url) {
         return undefined;
       }
@@ -63,11 +69,7 @@ export function createGltfPackSource(options: GltfPackSourceOptions = {}): Asset
       if (!variant) {
         return undefined;
       }
-      const resolveOptions: GameboardPlacementAssetUrlOptions =
-        ctx?.baseUrl === undefined
-          ? options
-          : { ...options, baseUrl: options.baseUrl ?? ctx.baseUrl };
-      const url = resolveAssetUrlById(variant.assetId, resolveOptions);
+      const url = resolveAssetUrlById(variant.assetId, resolveOptionsFor(options, ctx));
       if (!url) {
         return undefined;
       }

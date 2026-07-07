@@ -181,6 +181,16 @@ describe('transition-variant seam (RFC0-9b)', () => {
     expect(isTransitionFamily('')).toBe(false);
   });
 
+  it('rejects Object.prototype member names (uses Object.hasOwn, not `in`)', () => {
+    // `'constructor' in TRANSITION_VARIANTS` is true (inherited); Object.hasOwn is not.
+    expect(isTransitionFamily('constructor')).toBe(false);
+    expect(isTransitionFamily('toString')).toBe(false);
+    expect(isTransitionFamily('hasOwnProperty')).toBe(false);
+    // …and selectTransitionVariant must fall through (undefined), not throw on a
+    // non-array TRANSITION_VARIANTS['constructor'].
+    expect(selectTransitionVariant('constructor', [0])).toBeUndefined();
+  });
+
   it('selectTransitionVariant selects the rotated variant for a coast mask', () => {
     // A single water edge at index 0 → coast variant A, unrotated.
     const selection = selectTransitionVariant('coast', [0]);

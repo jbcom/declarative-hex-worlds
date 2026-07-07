@@ -9,6 +9,8 @@ describe('asset-directory scan → AssetSourceSpec (RFC0-CLI)', () => {
       expect(assetIdFromPath('tiles/hex grass (A).png')).toBe('hex_grass_A_');
       // No extension in the basename → the whole basename is the stem.
       expect(assetIdFromPath('models/README')).toBe('README');
+      // A dotfile (leading dot, no stem) → empty id (the scanner skips these).
+      expect(assetIdFromPath('models/.glb')).toBe('');
     });
   });
 
@@ -45,6 +47,29 @@ describe('asset-directory scan → AssetSourceSpec (RFC0-CLI)', () => {
         'models/LICENSE',
         'models/tile.png',
       ]);
+    });
+
+    it('skips files under a dir named after an Object.prototype member (no proto lookup crash)', () => {
+      // `DIR_ROLE['constructor']` on a plain object would return the inherited
+      // Object constructor (truthy) and crash on ROLE_FORMATS[role].includes;
+      // with Maps these are clean misses → the file is skipped, not a throw.
+      const { assets, skipped } = scanAssetFiles([
+        { path: 'constructor/thing.glb' },
+        { path: 'toString/x.png' },
+        { path: 'models/knight.glb' },
+      ]);
+      expect(assets.map((a) => a.id)).toEqual(['knight']);
+      expect(skipped).toEqual(['constructor/thing.glb', 'toString/x.png']);
+    });
+
+    it('skips a dotfile with no stem (empty id would fail the spec schema)', () => {
+      // `models/.glb` → extname '.glb' (valid model format) but stem '' → empty id.
+      const { assets, skipped } = scanAssetFiles([
+        { path: 'models/.glb' },
+        { path: 'models/real.glb' },
+      ]);
+      expect(assets.map((a) => a.id)).toEqual(['real']);
+      expect(skipped).toEqual(['models/.glb']);
     });
 
     it('flags tilesets as needing grid dimensions', () => {

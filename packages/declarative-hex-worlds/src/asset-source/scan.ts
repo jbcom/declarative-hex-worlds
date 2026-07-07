@@ -38,39 +38,50 @@ export interface ScanResult {
   readonly tilesNeedingBiome: readonly string[];
 }
 
+// These lookups are `Map`s, not plain objects, so a directory or extension
+// literally named after an `Object.prototype` member (`constructor`, `toString`,
+// …) can't return an inherited value and crash the scan — a `Map` miss is a
+// clean `undefined`, letting the file fall through to `skipped`.
+
 /** Top-level subdir → asset role (the source-layout convention). */
-const DIR_ROLE: Record<string, AssetRole> = {
-  tiles: 'tile',
-  tilesets: 'tileset',
-  sprites: 'sprite',
-  models: 'model',
-};
+const DIR_ROLE = new Map<string, AssetRole>([
+  ['tiles', 'tile'],
+  ['tilesets', 'tileset'],
+  ['sprites', 'sprite'],
+  ['models', 'model'],
+]);
 
 /** Extension → format. */
-const EXT_FORMAT: Record<string, 'png' | 'glb' | 'gltf'> = {
-  '.png': 'png',
-  '.glb': 'glb',
-  '.gltf': 'gltf',
-};
+const EXT_FORMAT = new Map<string, 'png' | 'glb' | 'gltf'>([
+  ['.png', 'png'],
+  ['.glb', 'glb'],
+  ['.gltf', 'gltf'],
+]);
 
 /** Formats each role accepts (mirrors the spec's per-role schema). */
-const ROLE_FORMATS: Record<AssetRole, readonly ('png' | 'glb' | 'gltf')[]> = {
-  tile: ['png', 'glb', 'gltf'],
-  tileset: ['png'],
-  sprite: ['png'],
-  model: ['glb', 'gltf'],
-};
+const ROLE_FORMATS = new Map<AssetRole, readonly ('png' | 'glb' | 'gltf')[]>([
+  ['tile', ['png', 'glb', 'gltf']],
+  ['tileset', ['png']],
+  ['sprite', ['png']],
+  ['model', ['glb', 'gltf']],
+]);
 
 function extname(path: string): string {
   const dot = path.lastIndexOf('.');
   return dot === -1 ? '' : path.slice(dot).toLowerCase();
 }
 
-/** Derive a stable asset id from a path: the basename without extension, slug-safe. */
+/**
+ * Derive a stable asset id from a path: the basename without extension, slug-safe.
+ * Returns `''` when the basename has no stem (e.g. a dotfile like `.glb`, whose
+ * only `.` starts the name) — the scanner treats an empty id as unclassifiable
+ * and routes it to `skipped` rather than emitting an id the spec schema rejects.
+ */
 export function assetIdFromPath(path: string): string {
   const base = path.slice(path.lastIndexOf('/') + 1);
   const dot = base.lastIndexOf('.');
-  const stem = dot === -1 ? base : base.slice(0, dot);
+  // A leading dot (dot === 0) means the whole name is an extension → no stem.
+  const stem = dot <= 0 ? (dot === 0 ? '' : base) : base.slice(0, dot);
   return stem.replace(/[^a-zA-Z0-9_-]+/g, '_');
 }
 
@@ -118,17 +129,24 @@ export function scanAssetFiles(files: readonly ScannedFile[]): ScanResult {
     const normalized = file.path.replace(/\\/g, '/').replace(/^\.?\//, '');
     /* v8 ignore next -- split always yields ≥1 element, so [0] is never undefined; defensive. */
     const topDir = normalized.split('/')[0] ?? '';
-    const role = DIR_ROLE[topDir];
-    const format = EXT_FORMAT[extname(normalized)];
-    if (!role || !format || !ROLE_FORMATS[role].includes(format)) {
+    const role = DIR_ROLE.get(topDir);
+    const format = EXT_FORMAT.get(extname(normalized));
+    if (!role || !format || !ROLE_FORMATS.get(role)?.includes(format)) {
+      skipped.push(file.path);
+      continue;
+    }
+    // An empty id (dotfile with no stem) can't satisfy the spec's id schema —
+    // treat it as unclassifiable rather than emitting an invalid asset.
+    const baseId = assetIdFromPath(normalized);
+    if (baseId === '') {
       skipped.push(file.path);
       continue;
     }
     // Ensure a unique id (suffix on collision so the spec's uniqueness holds).
-    let id = assetIdFromPath(normalized);
+    let id = baseId;
     let suffix = 2;
     while (seenIds.has(id)) {
-      id = `${assetIdFromPath(normalized)}_${suffix++}`;
+      id = `${baseId}_${suffix++}`;
     }
     seenIds.add(id);
     assets.push({ id, role, format, path: normalized });

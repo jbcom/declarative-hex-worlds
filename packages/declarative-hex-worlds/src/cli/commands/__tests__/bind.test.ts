@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -96,6 +96,15 @@ describe('bind CLI command (RFC0-CLI)', () => {
     mkdirSync(empty, { recursive: true });
     writeFileSync(join(empty, 'notes.txt'), ''); // unclassifiable → zero assets
     expect(() => runBind({ command: 'bind', flags: { dir: empty } })).toThrow(/did not validate/);
+  });
+
+  it('skips symlinked entries during the directory walk', () => {
+    // A symlink (to a file or dir) is skipped so the walk can't cycle or escape.
+    symlinkSync(join(assets, 'models', 'knight.glb'), join(assets, 'models', 'link.glb'));
+    runBind({ command: 'bind', flags: { dir: assets } });
+    const spec = JSON.parse(stdout);
+    // Only the real knight.glb is present — the symlink 'link.glb' was skipped.
+    expect(spec.assets.filter((a: { role: string }) => a.role === 'model')).toHaveLength(1);
   });
 
   it('run() delegates to runBind (CLI entrypoint)', () => {

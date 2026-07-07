@@ -149,6 +149,14 @@ describe('gltf-pack resolveEdge (transition models — RFC0-9b)', () => {
     expect(source.resolveEdge?.('not-a-family', edgeMask([0]))).toBeUndefined();
   });
 
+  it('returns undefined (never throws) for an Object.prototype family name', () => {
+    // resolveEdge's contract: a miss falls through. A family named 'constructor'
+    // must not index a non-array off the prototype chain and throw.
+    const source = createGltfPackSource({ assetUrls: { hex_coast_A: '/c.glb' } });
+    expect(source.resolveEdge?.('constructor', edgeMask([0]))).toBeUndefined();
+    expect(source.resolveEdge?.('toString', edgeMask([0]))).toBeUndefined();
+  });
+
   it('returns undefined for a mask no variant covers', () => {
     const source = createGltfPackSource({ assetUrls: { hex_coast_A: '/c.glb' } });
     expect(source.resolveEdge?.('coast', edgeMask([0, 1, 2, 3, 4, 5]))).toBeUndefined();
