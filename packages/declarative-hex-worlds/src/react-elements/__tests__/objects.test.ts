@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { AssetRenderRequest, AssetSource } from '../../asset-source';
 import type { GameboardPlacementSpec } from '../../gameboard';
 import type { HexWorldContextValue } from '../context';
-import { combineSources, syncHexWorldPlacements } from '../objects';
+import { combineSources, syncHexWorldPlacements } from '../objects-sync';
 
 function placement(assetId: string): GameboardPlacementSpec {
   return {

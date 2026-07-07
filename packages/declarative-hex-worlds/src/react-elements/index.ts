@@ -36,12 +36,8 @@ export {
   HexWorld,
   useHexWorld,
 } from './hex-world';
-export {
-  type GameboardObjectsProps,
-  GameboardObjects,
-  combineSources,
-  syncHexWorldPlacements,
-} from './objects';
+export { type GameboardObjectsProps, GameboardObjects } from './objects';
+export { combineSources, syncHexWorldPlacements } from './objects-sync';
 export {
   type HexAt,
   type PlacementElementProps,

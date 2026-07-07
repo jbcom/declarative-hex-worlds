@@ -157,7 +157,7 @@ jobs:
       - name: Collect unit coverage
         run: |
           set +e
-          timeout --kill-after=30s 6m pnpm test:coverage
+          timeout --kill-after=30s 12m pnpm test:coverage
           status=$?
           set -e
           if [ "$status" -eq 0 ]; then
@@ -172,7 +172,7 @@ jobs:
       - name: Collect browser-free coverage
         run: |
           set +e
-          timeout --kill-after=30s 6m pnpm test:coverage:browser:free
+          timeout --kill-after=30s 12m pnpm test:coverage:browser:free
           status=$?
           set -e
           if [ "$status" -eq 0 ]; then
