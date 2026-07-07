@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
 import starlight from '@astrojs/starlight';
 import starlightThemeFlexoki from 'starlight-theme-flexoki';
 import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
@@ -155,5 +156,9 @@ export default defineConfig({
 				},
 			],
 		}),
+		// React island support — the live binding demos (the examples package's
+		// boards) mount as client-only React islands so R3F's <Canvas> runs only in
+		// the browser (never SSR'd).
+		react(),
 	],
 });

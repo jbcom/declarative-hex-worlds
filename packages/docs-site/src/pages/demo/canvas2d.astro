@@ -1,0 +1,59 @@
+---
+// Standalone live demo of the canvas-2D renderer binding.
+//
+// This is a plain Astro page (outside the Starlight docs content collection) so the
+// llms-txt generator — which serializes docs pages to text and cannot render an
+// interactive React island — never touches it. Docs pages LINK here.
+import Canvas2dBoardIsland from '../../components/Canvas2dBoardIsland.tsx';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Live demo — canvas-2D binding · declarative-hex-worlds</title>
+		<style>
+			:root { color-scheme: light dark; }
+			body {
+				margin: 0;
+				font-family: system-ui, sans-serif;
+				background: #14171a;
+				color: #e8e6df;
+				display: flex;
+				justify-content: center;
+			}
+			main { max-width: 900px; padding: 2rem 1.25rem; width: 100%; }
+			a { color: #a7c957; }
+			h1 { font-size: 1.5rem; }
+			.frame { margin: 1.5rem 0; }
+			p { line-height: 1.6; }
+			code { background: rgba(255,255,255,0.08); padding: 0.1em 0.35em; border-radius: 4px; }
+		</style>
+	</head>
+	<body>
+		<main>
+			<p><a href={base}>← declarative-hex-worlds docs</a></p>
+			<h1>Live demo — the canvas-2D binding</h1>
+			<p>
+				The board below is <strong>not a screenshot</strong>. It is the reference example
+				game — the same deterministic world used throughout the docs — compiled from a JSON
+				scenario into a live Koota runtime and rendered in your browser through the
+				<code>declarative-hex-worlds/canvas2d</code> binding.
+			</p>
+			<div class="frame">
+				<Canvas2dBoardIsland client:only="react" />
+			</div>
+			<p>
+				The signals-and-bindings architecture means one world drives any renderer. The core
+				is renderer-free — it emits reactive Koota-trait signals; a binding subscribes and
+				reconciles its own scene. <code>/canvas2d</code> turns each 2D placement into a
+				sprite blit (zero renderer dependency); <code>/three</code> takes the same signals
+				and reconciles a Three.js scene for 3D GLTF models. The sprite sheet here is
+				generated procedurally so the demo needs no downloaded art.
+			</p>
+		</main>
+	</body>
+</html>
