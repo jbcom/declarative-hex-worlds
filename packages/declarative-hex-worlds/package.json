@@ -213,6 +213,10 @@
     "./overlay": {
       "types": "./dist/overlay.d.ts",
       "import": "./dist/overlay.js"
+    },
+    "./accessories": {
+      "types": "./dist/accessories.d.ts",
+      "import": "./dist/accessories.js"
     }
   },
   "bin": {

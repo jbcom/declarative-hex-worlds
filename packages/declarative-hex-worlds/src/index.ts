@@ -16,6 +16,7 @@
  * @module
  */
 
+export * from './accessories';
 export * from './actors';
 export * from './classifiers';
 export * from './commands';

@@ -13,6 +13,7 @@ export default defineConfig([
   {
   entry: {
     index: 'src/index.ts',
+    accessories: 'src/accessories/index.ts',
     actors: 'src/actors/index.ts',
     blueprint: 'src/scenario/blueprint.ts',
     catalog: 'src/scenario/catalog.ts',

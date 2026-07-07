@@ -22,3 +22,4 @@ export {
   buildHexGeometry,
   buildTexturedHexMesh,
 } from './textured-hex';
+export { type AccessoryAttachmentResult, attachAccessoryToModel, detachAccessory } from './accessories';
