@@ -26,6 +26,7 @@ export default defineConfig({
     recipe: 'src/scenario/recipe.ts',
     registry: 'src/scenario/registry.ts',
     react: 'src/react/index.ts',
+    'react-elements': 'src/react-elements/index.ts',
     'rule-types': 'src/rules/rule-types.ts',
     rules: 'src/rules/index.ts',
     runtime: 'src/runtime/index.ts',

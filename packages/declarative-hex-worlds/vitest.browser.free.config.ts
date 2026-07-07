@@ -14,11 +14,13 @@ const browserAssetRoot = /^[a-z][a-z\d+.-]*:|^\//i.test(configuredAssetRoot)
 export default defineConfig({
   optimizeDeps: {
     include: [
+      '@react-three/fiber',
       'honeycomb-grid',
       'koota',
       'koota/react',
       'react',
       'react-dom/client',
+      'react/jsx-runtime',
       'seedrandom',
       'three',
     ],
@@ -28,6 +30,10 @@ export default defineConfig({
     // `src/commands/index.ts`) resolve identically. The old `src/$1.ts`
     // wildcard here broke react-bindings.test.ts at import time.
     alias: packageAliases(),
+    // R3F's <Canvas> uses its own reconciler; without deduping React it loads a
+    // second React copy and hooks throw "Cannot read properties of null". Force
+    // a single React/React-DOM instance across the app + @react-three/fiber.
+    dedupe: ['react', 'react-dom'],
   },
   define: {
     __WORKSPACE_ROOT__: JSON.stringify(packageRoot),
@@ -62,6 +68,7 @@ export default defineConfig({
       'tests/browser/feature-gallery.spec.ts',
       'tests/browser/branch-coverage.test.ts',
       'tests/browser/tileset-render.test.ts',
+      'tests/browser/react-elements.test.ts',
     ],
     testTimeout: 120_000,
     coverage: harnessCoverage('browser-free'),

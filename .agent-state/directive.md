@@ -78,7 +78,7 @@ the live web-form configurator (locked).
 - [ ] RFC0-CLI Source-agnostic asset-binder CLI: point at ANY assets path → scan → heuristic source-kind detection (KayKit free/premium signatures; or sprites/tilesets/models dir layouts) → SUGGEST a default binding → emit a Zod-validated AssetSourceSpec JSON. Three converging authoring paths: developer hand-writes JSON, CLI generates from scan+interactive prompts, or CLI serves a local web form (spins up a server, opens a browser configurator, writes JSON from visual choices). KayKit becomes one recognized signature, not the tool's purpose. Builds on RFC0-G0; feeds RFC0-10 (FREE default = scanner recognizing a bootstrapped KayKit tree). See RFC §CLI.
 - [ ] RFC0-CAM Camera/viewport command surface (library capability — GAP surfaced by SimpleRPG's `viewport` run-state). Today `./three` only has `frameObjectPosition(asset)`; the react layer has NO camera control. Add a real command surface: frame-the-whole-board, fill-viewport, set perspective/angle (top-down/iso/tilted, orthographic vs perspective), orient. Exposed through `./three` + a react hook. Browser test asserts each mode; SimpleRPG's viewport run-state drives it. (Pathfinding `findHexPath` already exists — no gap there.)
 - [x] RFC0-7 `AssetSource` interface; extract KayKit `gltf-pack` as the first impl behind it (pure refactor, existing GLTF tests are the net). ✅ commit b06c7bb: `src/asset-source/source.ts` (AssetSource iface + AssetRenderRequest union 'gltf'|'tileset-cell' + ResolveContext + CellRect/HexDims, type-only → coverage-excluded), `gltf-pack.ts` (createGltfPackSource wraps resolveGameboardPlacementAssetUrl+transformForPlacement → {type:'gltf'}, 100% covered, 7 tests). Design: docs/plans/declarative-render-surface.design.md. Umbrella + ./asset-source + public-api snapshot updated. Suite 2674 pass.
-- [ ] RFC0-8 `./tileset` subpath: tileset manifest, UV-cell math, textured-hex mesh from the coordinate module's honeycomb corners; browser test rendering a small tileset board; SimpleRPG gains a tileset render mode. (Q1 manifest shape + Q2 material: decide with RFC-leaned defaults — separate TilesetManifest, MeshBasicMaterial default.)
+- [x] RFC0-8 `./tileset` + declarative render surface — DONE. Tileset manifest + UV-cell math + textured-hex mesh + bridge dispatch + the full JSX element surface, all CI-green. (SimpleRPG tileset render mode + <HexCanvas> zero-config wrapper are follow-ons under RFC0-2/showcase work.)
   - ✅ G2 manifest + cell selection DONE: commit 147cf8a (TilesetManifest Zod schema, 8 tests) + 08abd2d (createTilesetSource: biome/edge→tileset-cell, FNV-1a hash fill selection, cellRect helper, 15 tests). Both 100% covered, in `src/asset-source/`.
   - ✅ buildTexturedHexMesh DONE: commit 61487f3. `src/three/textured-hex.ts` — buildHexGeometry (center+6-corner fan BufferGeometry, pointy-top default, per-cell UVs, V-flipped) + buildTexturedHexMesh (MeshBasicMaterial, transparent, DoubleSide). Pure three, unit-covered, 10 tests, 100%. NOTE geometry math: pointy-top X-extent = halfW·cos30°, Z-extent = halfH (corner at 90°).
   - ✅ BRIDGE DISPATCH DONE: commit 61f6076. src/three/three.ts loadGameboardPlacementObject
@@ -89,24 +89,23 @@ the live web-form configurator (locked).
     (3×3 board in real Chromium/WebGL, canvas-backed sheet, asserts 9 meshes + non-empty
     pixels — covers three.ts dispatch for the merged strict-100 gate; registered in
     vitest.browser.free.config.ts). No import cycle (type-only asset-source↔three).
-  - REMAINING = ONLY the JSX SURFACE (RFC0-8b, next unit): <HexWorld>/<Tile>/<Tileset>/
-    <Sprite>/<Model> elements + useHexWorld/useTile/useSelection/useCamera/useHexPath/
-    usePlacement hooks, each a thin wrapper over the existing providers +
-    spawnGameboardPlacement + the now-source-aware bridge. Needs @react-three/fiber (already
-    an optional peer, commit addf491). Design of record:
-    docs/plans/declarative-render-surface.design.md.
-    KEY DECISION (recorded in design doc): <HexWorld> does NOT own the R3F <Canvas> — the
-    consumer owns Canvas/camera/renderer/lights (burden side of the line); <HexWorld> is used
-    INSIDE the consumer's <Canvas>, rendering a <GameboardObjects> bridge component that runs
-    syncGameboardPlacementObjects each frame against the source registry. Keeps dhw
-    unpresumptuous + composable with consumer R3F content. Optional <HexCanvas> convenience
-    wrapper (Canvas+2.5D camera+HexWorld) for zero-config. TESTING: use the existing BROWSER
-    harness (real @react-three/fiber Canvas + WebGL, like react-bindings.test.ts +
-    tileset-render.test.ts) rather than adding @react-three/test-renderer as a devDep — more
-    faithful + avoids a new pinned dep. Graph-level logic (placement registration, source
-    registry) unit-testable via providers/hooks without R3F.
-    STATUS: the whole ENGINE half of RFC0-8 (resolution + geometry + integration) is DONE +
-    CI-green; only the ergonomic React composition surface remains.
+  - ✅ JSX SURFACE (RFC0-8b) DONE: `src/react-elements/` + `./react-elements` subpath
+    (subpath-only, NOT umbrella — keeps @react-three/fiber an optional peer for consumers who
+    don't want the elements). `<HexWorld>` (Canvas-free: koota providers + source registry),
+    `<GameboardObjects>` (R3F bridge — useFrame → the extracted pure syncHexWorldPlacements),
+    `<Tile>`/`<Model>`/`<Sprite>` (spawn/remove koota placements on mount/unmount),
+    `<Tileset>` (registers a tileset source), + hooks useHexWorld/useTile/usePlacement/
+    useHexPath. combineSources (first-match composite) + syncHexWorldPlacements extracted as
+    pure fns → unit-tested (src/react-elements/__tests__/objects.test.ts, 8 tests); the R3F
+    component wrapper is /* v8 ignore */ (untraceable through R3F's reconciler, logic covered).
+    Element logic browser-tested via plain createRoot (tests/browser/react-elements.test.ts,
+    13 tests — NOT inside <Canvas>, since only <GameboardObjects> needs R3F; that's a Canvas
+    smoke). Needed vitest.browser config: React dedup + @react-three/fiber in optimizeDeps
+    (R3F's own reconciler was loading a 2nd React → useMemo null). All files 100% covered,
+    full suite 2723 pass, build+DTS green.
+    FOLLOW-ONS (not blocking RFC0-8): useSelection + useCamera hooks land with their backing
+    features (a selection-state model + RFC0-CAM); <HexCanvas> zero-config wrapper; SimpleRPG
+    tileset render mode (RFC0-2).
 
 **Decision:** <HexWorld> is Canvas-free — the consumer owns the R3F <Canvas>, dhw owns the
 board composition + render-sync bridge inside it.

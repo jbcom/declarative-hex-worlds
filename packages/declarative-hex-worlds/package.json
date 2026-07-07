@@ -160,6 +160,10 @@
       "types": "./dist/react.d.ts",
       "import": "./dist/react.js"
     },
+    "./react-elements": {
+      "types": "./dist/react-elements.d.ts",
+      "import": "./dist/react-elements.js"
+    },
     "./three": {
       "types": "./dist/three.d.ts",
       "import": "./dist/three.js"
