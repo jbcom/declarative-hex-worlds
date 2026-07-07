@@ -70,15 +70,31 @@ export const HARNESS_COVERAGE_THRESHOLDS = {
  * floor (browser/e2e harnesses don't exercise every src/ file on their
  * own — only the merged tree should be threshold-checked).
  */
+/**
+ * The R3F render bridge (`src/react-elements/objects*.ts`) is unit-covered:
+ * `objects-sync.ts` holds the R3F-free logic (unit tests), and `objects.ts` is a
+ * v8-ignored R3F component. The BROWSER harnesses load these modules (via the
+ * element imports) but never execute the sync functions, so v8 emits a phantom
+ * 0%-hit record for `objects-sync.ts` under a Vite-served url the by-url merge
+ * can't union with the unit's absolute-path 100% record — dragging the merged
+ * gate below 100. Excluding them from browser coverage leaves the unit record as
+ * the sole (fully-covered) entry.
+ */
+const BROWSER_ONLY_COVERAGE_EXCLUDES = [
+  'src/react-elements/objects.ts',
+  'src/react-elements/objects-sync.ts',
+];
+
 export function harnessCoverage(harness: string): CoverageOptions {
   const enforce = process.env.HEX_WORLDS_COVERAGE_ENFORCE === '1';
+  const isBrowser = harness.startsWith('browser');
   return {
     provider: 'v8',
     enabled: process.env.HEX_WORLDS_COVERAGE === '1',
     reporter: ['json', 'lcov', 'text'],
     reportsDirectory: `./coverage/${harness}`,
     include: ['src/**/*.ts', 'scripts/**/*.ts'],
-    exclude: COVERAGE_EXCLUDES,
+    exclude: isBrowser ? [...COVERAGE_EXCLUDES, ...BROWSER_ONLY_COVERAGE_EXCLUDES] : COVERAGE_EXCLUDES,
     clean: false, // do not wipe sibling harness output
     cleanOnRerun: false,
     thresholds: enforce ? HARNESS_COVERAGE_THRESHOLDS : undefined,
