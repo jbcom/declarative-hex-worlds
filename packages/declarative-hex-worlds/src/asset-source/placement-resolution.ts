@@ -16,9 +16,9 @@ import { axialToWorld } from '../coordinates';
 import type { GameboardPlacementSpec } from '../gameboard';
 import type { GameboardPlacementPositionOffset } from '../koota';
 import {
+  getManifestAsset,
   type ManifestAssetCatalog,
   type ManifestAssetUrlOptions,
-  getManifestAsset,
   resolveManifestAssetUrl,
 } from '../manifest';
 import type { HexCoordinates, MedievalHexagonAsset, VariantSelection } from '../types';
@@ -76,6 +76,28 @@ export function resolveGameboardPlacementAssetUrl(
     return resolveManifestAssetUrl(asset, options);
   }
   return options.fallback?.(placement);
+}
+
+/**
+ * Resolve a model URL for a bare asset id (no placement) from the explicit
+ * `assetUrls` map or the manifest catalog. Used by transition-edge resolution
+ * (RFC0-9b), where the input is a variant asset id (e.g. `hex_coast_B`) rather
+ * than a placement — so the placement-only paths (metadata.sourceUrl, fallback)
+ * don't apply. Returns `undefined` when neither the map nor the catalog resolves.
+ */
+export function resolveAssetUrlById(
+  assetId: string,
+  options: GameboardPlacementAssetUrlOptions = {}
+): string | undefined {
+  const mappedUrl = options.assetUrls?.[assetId];
+  if (mappedUrl) {
+    return mappedUrl;
+  }
+  const asset = options.catalog ? getManifestAsset(options.catalog, assetId) : undefined;
+  if (asset) {
+    return resolveManifestAssetUrl(asset, options);
+  }
+  return undefined;
 }
 
 /** Creates a reusable placement-to-model URL resolver. */

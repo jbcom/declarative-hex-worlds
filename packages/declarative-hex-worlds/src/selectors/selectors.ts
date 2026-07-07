@@ -18,7 +18,12 @@ export interface CanonicalVariant {
 }
 
 /** Guide permutation families that must be covered by visual tests. */
-export type GuideTilePermutationKind = 'road' | 'river' | 'river-curvy' | 'river-crossing' | 'coast';
+export type GuideTilePermutationKind =
+  | 'road'
+  | 'river'
+  | 'river-curvy'
+  | 'river-crossing'
+  | 'coast';
 
 /** One concrete guide-described tile variant, modifier, and rotation. */
 export interface GuideTilePermutation {
@@ -102,6 +107,60 @@ export const COAST_VARIANTS = [
   variant('D', 'hex_coast_D', [0, 1, 2, 3]),
   variant('E', 'hex_coast_E', [0, 1, 2, 3, 4]),
 ] as const satisfies readonly CanonicalVariant[];
+
+/**
+ * The transition families that resolve an edge mask to a rotated variant (RFC0-9b).
+ * Any AssetSource can drive its `resolveEdge` off this table: it is the
+ * renderer-neutral edge → variant seam. A tileset maps the chosen variant's
+ * canonical mask to a sheet cell; a gltf-pack maps the variant's assetId to a
+ * model URL and bakes the rotation into the transform.
+ */
+export const TRANSITION_VARIANTS = {
+  road: ROAD_VARIANTS,
+  river: RIVER_VARIANTS,
+  coast: COAST_VARIANTS,
+} as const satisfies Record<VariantSelection['family'], readonly CanonicalVariant[]>;
+
+/** A transition family key (`'road' | 'river' | 'coast'`). */
+export type TransitionFamily = keyof typeof TRANSITION_VARIANTS;
+
+/** True if `value` names a known transition family. */
+export function isTransitionFamily(value: string): value is TransitionFamily {
+  return value in TRANSITION_VARIANTS;
+}
+
+/**
+ * Select the variant covering `edges` for a transition `family`, or `undefined`
+ * when the family is unknown or no variant covers the mask (a NON-throwing
+ * counterpart to `selectVariant`, for the `AssetSource.resolveEdge` seam where a
+ * miss must fall through rather than error). RFC0-9b.
+ */
+export function selectTransitionVariant(
+  family: string,
+  edges: HexEdgeInput
+): VariantSelection | undefined {
+  if (!isTransitionFamily(family)) {
+    return undefined;
+  }
+  const mask = edgeMask(edges);
+  const variants = TRANSITION_VARIANTS[family];
+  for (const candidate of variants) {
+    for (let rotationSteps = 0; rotationSteps < HEX_EDGE_COUNT; rotationSteps += 1) {
+      if (rotateMask(candidate.canonicalMask, rotationSteps) === mask) {
+        return {
+          family,
+          label: candidate.label,
+          assetId: candidate.assetId,
+          inputMask: mask,
+          canonicalMask: candidate.canonicalMask,
+          rotationSteps,
+          rotationRadians: rotationSteps * HEX_ROTATION_RADIANS,
+        };
+      }
+    }
+  }
+  return undefined;
+}
 
 /** Converts an edge, edge list, or bit mask into a normalized six-bit edge mask. */
 export function edgeMask(edges: HexEdgeInput): number {
@@ -214,7 +273,10 @@ export function isCoverableCoastMask(edges: HexEdgeInput): boolean {
  * at the authoring call — naming the tile + the offending mask — rather than deep
  * in projection with an opaque "no coast variant covers …" runtime error.
  */
-export function assertCoverableCoastMask(edges: HexEdgeInput, context?: { tileKey?: string }): void {
+export function assertCoverableCoastMask(
+  edges: HexEdgeInput,
+  context?: { tileKey?: string }
+): void {
   if (isCoverableCoastMask(edges)) {
     return;
   }
@@ -239,7 +301,9 @@ export function selectCoastVariantByLabel(
 }
 
 /** Lists every requested road guide variant/rotation permutation. */
-export function listRoadGuidePermutations(options: Pick<GuidePermutationOptions, 'rotationSteps'> = {}): GuideTilePermutation[] {
+export function listRoadGuidePermutations(
+  options: Pick<GuidePermutationOptions, 'rotationSteps'> = {}
+): GuideTilePermutation[] {
   return ROAD_VARIANTS.flatMap((variant) =>
     normalizedRotationSteps(options.rotationSteps).map((rotationSteps) =>
       guidePermutation({
@@ -253,7 +317,9 @@ export function listRoadGuidePermutations(options: Pick<GuidePermutationOptions,
 }
 
 /** Lists every requested river guide variant/rotation/waterless permutation. */
-export function listRiverGuidePermutations(options: GuidePermutationOptions = {}): GuideTilePermutation[] {
+export function listRiverGuidePermutations(
+  options: GuidePermutationOptions = {}
+): GuideTilePermutation[] {
   return RIVER_VARIANTS.flatMap((variant) =>
     normalizedRotationSteps(options.rotationSteps).flatMap((rotationSteps) =>
       waterlessOptions(options.waterless).map((waterless) =>
@@ -270,7 +336,9 @@ export function listRiverGuidePermutations(options: GuidePermutationOptions = {}
 }
 
 /** Lists every requested curvy river guide rotation/waterless permutation. */
-export function listRiverCurvyGuidePermutations(options: GuidePermutationOptions = {}): GuideTilePermutation[] {
+export function listRiverCurvyGuidePermutations(
+  options: GuidePermutationOptions = {}
+): GuideTilePermutation[] {
   const [variant] = RIVER_VARIANTS;
   return normalizedRotationSteps(options.rotationSteps).flatMap((rotationSteps) =>
     waterlessOptions(options.waterless).map((waterless) =>
@@ -312,7 +380,9 @@ export function listRiverCrossingGuidePermutations(
 }
 
 /** Lists every requested coast guide variant/rotation/waterless permutation. */
-export function listCoastGuidePermutations(options: GuidePermutationOptions = {}): GuideTilePermutation[] {
+export function listCoastGuidePermutations(
+  options: GuidePermutationOptions = {}
+): GuideTilePermutation[] {
   return COAST_VARIANTS.flatMap((variant) =>
     normalizedRotationSteps(options.rotationSteps).flatMap((rotationSteps) =>
       waterlessOptions(options.waterless).map((waterless) =>
@@ -360,7 +430,9 @@ function selectVariant(
     }
   }
 
-  throw new GameboardRuntimeError(`No ${family} variant covers edge mask ${mask.toString(2).padStart(6, '0')}`);
+  throw new GameboardRuntimeError(
+    `No ${family} variant covers edge mask ${mask.toString(2).padStart(6, '0')}`
+  );
 }
 
 function selectVariantByLabel(
@@ -409,7 +481,12 @@ function guidePermutation(input: {
   const waterless = input.waterless ?? false;
   const assetId = withWaterless(input.assetId ?? input.variant.assetId, waterless);
   return {
-    id: [input.kind, input.variant.label, waterless ? 'waterless' : 'water', `r${rotationSteps}`].join(':'),
+    id: [
+      input.kind,
+      input.variant.label,
+      waterless ? 'waterless' : 'water',
+      `r${rotationSteps}`,
+    ].join(':'),
     kind: input.kind,
     family: input.family,
     label: input.variant.label,

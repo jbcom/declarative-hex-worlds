@@ -39,6 +39,7 @@ export {
   type GameboardPlacementAssetUrlResolver,
   createGameboardPlacementAssetUrlResolver,
   resolveAssetUrl,
+  resolveAssetUrlById,
   resolveGameboardPlacementAnimationUrl,
   resolveGameboardPlacementAssetUrl,
   transformForHex,

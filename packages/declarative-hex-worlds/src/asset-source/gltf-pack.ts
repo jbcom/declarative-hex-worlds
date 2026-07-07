@@ -13,8 +13,10 @@
  */
 
 import type { GameboardPlacementSpec } from '../gameboard';
+import { selectTransitionVariant } from '../selectors';
 import {
   type GameboardPlacementAssetUrlOptions,
+  resolveAssetUrlById,
   resolveGameboardPlacementAssetUrl,
   transformForPlacement,
 } from './placement-resolution';
@@ -47,6 +49,34 @@ export function createGltfPackSource(options: GltfPackSourceOptions = {}): Asset
         return undefined;
       }
       return { type: 'gltf', dimension: '3d', url, transform: transformForPlacement(placement) };
+    },
+    resolveEdge(
+      assetId: string,
+      edgeMask: number,
+      ctx?: ResolveContext
+    ): AssetRenderRequest | undefined {
+      // `assetId` names the transition family (coast/road/river). Select the
+      // rotated variant covering the mask, resolve the variant's model URL by id
+      // through the same options, and bake the variant rotation into the
+      // transform. RFC0-9b — the 3D analog of the tileset's mask→cell resolveEdge.
+      const variant = selectTransitionVariant(assetId, edgeMask);
+      if (!variant) {
+        return undefined;
+      }
+      const resolveOptions: GameboardPlacementAssetUrlOptions =
+        ctx?.baseUrl === undefined
+          ? options
+          : { ...options, baseUrl: options.baseUrl ?? ctx.baseUrl };
+      const url = resolveAssetUrlById(variant.assetId, resolveOptions);
+      if (!url) {
+        return undefined;
+      }
+      return {
+        type: 'gltf',
+        dimension: '3d',
+        url,
+        transform: { position: { x: 0, y: 0, z: 0 }, rotationY: variant.rotationRadians, scale: 1 },
+      };
     },
   };
 }

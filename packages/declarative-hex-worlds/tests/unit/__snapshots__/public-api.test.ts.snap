@@ -536,6 +536,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "object",
+    "name": "TRANSITION_VARIANTS",
+  },
+  {
+    "kind": "object",
     "name": "TerrainPlacementQuery",
   },
   {
@@ -1328,6 +1332,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "isTransitionFamily",
+  },
+  {
+    "kind": "function",
     "name": "isUnitStyle",
   },
   {
@@ -1632,6 +1640,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "resolveAssetUrlById",
+  },
+  {
+    "kind": "function",
     "name": "resolveGameboardAssetRoot",
   },
   {
@@ -1777,6 +1789,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "selectSpawnCoordinates",
+  },
+  {
+    "kind": "function",
+    "name": "selectTransitionVariant",
   },
   {
     "kind": "function",

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GameboardPlacementSpec } from '../../gameboard';
+import { freeManifest } from '../../manifest/free';
+import { edgeMask } from '../../selectors';
 import { createGltfPackSource } from '../gltf-pack';
 import type { AssetSource } from '../source';
 
@@ -108,5 +110,53 @@ describe('gltf-pack AssetSource', () => {
     // Explicit assetUrls win regardless; the point is resolve() does not throw
     // and the own-baseUrl branch (options.baseUrl ?? ctx.baseUrl) is exercised.
     expect(request).toMatchObject({ type: 'gltf', url: 'grass.glb' });
+  });
+});
+
+describe('gltf-pack resolveEdge (transition models — RFC0-9b)', () => {
+  it('resolves a coast edge mask to the rotated variant model + baked rotation', () => {
+    const source = createGltfPackSource({
+      assetUrls: { hex_coast_A: '/models/coast_A.glb' },
+    });
+    // A single water edge at index 2 → coast variant A, rotated 2 hex steps.
+    const request = source.resolveEdge?.('coast', edgeMask([2]));
+    expect(request).toEqual({
+      type: 'gltf',
+      dimension: '3d',
+      url: '/models/coast_A.glb',
+      transform: {
+        position: { x: 0, y: 0, z: 0 },
+        rotationY: 2 * (Math.PI / 3),
+        scale: 1,
+      },
+    });
+  });
+
+  it('honors a ctx.baseUrl for the variant model URL', () => {
+    const source = createGltfPackSource({ catalog: freeManifest });
+    // freeManifest carries hex_coast_* assets; baseUrl joins the model path.
+    const request = source.resolveEdge?.('coast', edgeMask([0]), {
+      baseUrl: 'https://cdn.example/packs/',
+    });
+    expect(request?.type).toBe('gltf');
+    if (request?.type === 'gltf') {
+      expect(request.url.startsWith('https://cdn.example/packs/')).toBe(true);
+    }
+  });
+
+  it('returns undefined for an unknown transition family', () => {
+    const source = createGltfPackSource({ assetUrls: { hex_coast_A: '/c.glb' } });
+    expect(source.resolveEdge?.('not-a-family', edgeMask([0]))).toBeUndefined();
+  });
+
+  it('returns undefined for a mask no variant covers', () => {
+    const source = createGltfPackSource({ assetUrls: { hex_coast_A: '/c.glb' } });
+    expect(source.resolveEdge?.('coast', edgeMask([0, 1, 2, 3, 4, 5]))).toBeUndefined();
+  });
+
+  it('returns undefined when the variant asset has no resolvable URL', () => {
+    // Valid family + mask, but no assetUrls/catalog entry for the variant id.
+    const source = createGltfPackSource();
+    expect(source.resolveEdge?.('coast', edgeMask([0]))).toBeUndefined();
   });
 });

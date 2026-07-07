@@ -3,16 +3,17 @@ import { listGuideTilePermutations as listGuideTilePermutationsFromRoot } from '
 import { freeManifest } from '../../manifest/free';
 import {
   COAST_VARIANTS,
-  HEX_EDGE_COUNT,
-  RIVER_VARIANTS,
-  ROAD_VARIANTS,
   edgeMask,
+  HEX_EDGE_COUNT,
+  isTransitionFamily,
   listCoastGuidePermutations,
   listGuideTilePermutations,
   listRiverCrossingGuidePermutations,
   listRiverCurvyGuidePermutations,
   listRiverGuidePermutations,
   listRoadGuidePermutations,
+  RIVER_VARIANTS,
+  ROAD_VARIANTS,
   rotateMask,
   selectCoastVariant,
   selectCoastVariantByLabel,
@@ -21,6 +22,8 @@ import {
   selectRiverVariantByLabel,
   selectRoadVariant,
   selectRoadVariantByLabel,
+  selectTransitionVariant,
+  TRANSITION_VARIANTS,
 } from '../../selectors';
 
 describe('tile selectors', () => {
@@ -43,7 +46,9 @@ describe('tile selectors', () => {
     }
 
     expect(freeManifest.assetsById[selectRiverCrossingVariant('A').assetId]).toBeTruthy();
-    expect(freeManifest.assetsById[selectRiverCrossingVariant('B', { waterless: true }).assetId]).toBeTruthy();
+    expect(
+      freeManifest.assetsById[selectRiverCrossingVariant('B', { waterless: true }).assetId]
+    ).toBeTruthy();
   });
 
   it('points every coast guide label and waterless variant at published FREE assets', () => {
@@ -86,24 +91,34 @@ describe('tile selectors', () => {
   it('keeps permutation metadata aligned with selector helpers', () => {
     for (const permutation of listRoadGuidePermutations()) {
       const selected = selectRoadVariant(permutation.inputMask);
-      expect(rotateMask(selected.canonicalMask, selected.rotationSteps)).toBe(permutation.inputMask);
+      expect(rotateMask(selected.canonicalMask, selected.rotationSteps)).toBe(
+        permutation.inputMask
+      );
     }
     for (const permutation of listRiverGuidePermutations()) {
-      const selected = selectRiverVariant(permutation.inputMask, { waterless: permutation.waterless });
-      expect(rotateMask(selected.canonicalMask, selected.rotationSteps)).toBe(permutation.inputMask);
+      const selected = selectRiverVariant(permutation.inputMask, {
+        waterless: permutation.waterless,
+      });
+      expect(rotateMask(selected.canonicalMask, selected.rotationSteps)).toBe(
+        permutation.inputMask
+      );
       expect(selected.assetId.endsWith('_waterless')).toBe(permutation.waterless);
     }
     for (const permutation of listRiverCurvyGuidePermutations()) {
-      expect(selectRiverVariant(permutation.inputMask, {
-        curvy: true,
-        waterless: permutation.waterless,
-      })).toMatchObject({
+      expect(
+        selectRiverVariant(permutation.inputMask, {
+          curvy: true,
+          waterless: permutation.waterless,
+        })
+      ).toMatchObject({
         assetId: permutation.assetId,
         label: permutation.label,
       });
     }
     for (const permutation of listCoastGuidePermutations()) {
-      expect(selectCoastVariant(permutation.inputMask, { waterless: permutation.waterless })).toMatchObject({
+      expect(
+        selectCoastVariant(permutation.inputMask, { waterless: permutation.waterless })
+      ).toMatchObject({
         assetId: permutation.assetId,
         label: permutation.label,
       });
@@ -146,8 +161,46 @@ describe('tile selectors', () => {
   it('selectRoadVariant throws when mask has no canonical variant (E0a)', () => {
     // 0b111111 (all edges) is not a canonical road variant — road variants
     // cover 1, 2, or 3 edges in specific patterns.
-    expect(() => selectRoadVariant([0, 1, 2, 3, 4, 5])).toThrow(
-      /No road variant covers edge mask/
-    );
+    expect(() => selectRoadVariant([0, 1, 2, 3, 4, 5])).toThrow(/No road variant covers edge mask/);
+  });
+});
+
+describe('transition-variant seam (RFC0-9b)', () => {
+  it('exposes a family→variants table for all three transition families', () => {
+    expect(Object.keys(TRANSITION_VARIANTS).sort()).toEqual(['coast', 'river', 'road']);
+    expect(TRANSITION_VARIANTS.coast).toBe(COAST_VARIANTS);
+    expect(TRANSITION_VARIANTS.road).toBe(ROAD_VARIANTS);
+    expect(TRANSITION_VARIANTS.river).toBe(RIVER_VARIANTS);
+  });
+
+  it('isTransitionFamily recognizes the three families and rejects others', () => {
+    expect(isTransitionFamily('coast')).toBe(true);
+    expect(isTransitionFamily('road')).toBe(true);
+    expect(isTransitionFamily('river')).toBe(true);
+    expect(isTransitionFamily('unit')).toBe(false);
+    expect(isTransitionFamily('')).toBe(false);
+  });
+
+  it('selectTransitionVariant selects the rotated variant for a coast mask', () => {
+    // A single water edge at index 0 → coast variant A, unrotated.
+    const selection = selectTransitionVariant('coast', [0]);
+    expect(selection).toMatchObject({ family: 'coast', label: 'A', rotationSteps: 0 });
+    // A single water edge at index 2 → the same canonical A, rotated 2 steps.
+    const rotated = selectTransitionVariant('coast', [2]);
+    expect(rotated).toMatchObject({ family: 'coast', label: 'A', rotationSteps: 2 });
+  });
+
+  it('selectTransitionVariant dispatches by family (road, river)', () => {
+    expect(selectTransitionVariant('road', [0, 3])).toMatchObject({ family: 'road', label: 'A' });
+    expect(selectTransitionVariant('river', [0, 1])).toMatchObject({ family: 'river', label: 'B' });
+  });
+
+  it('returns undefined for an unknown family (falls through instead of throwing)', () => {
+    expect(selectTransitionVariant('unit', [0])).toBeUndefined();
+  });
+
+  it('returns undefined for a mask no variant covers (non-throwing)', () => {
+    // 0b111111 (all six edges) has no coast variant — max coast is 5 contiguous.
+    expect(selectTransitionVariant('coast', [0, 1, 2, 3, 4, 5])).toBeUndefined();
   });
 });
