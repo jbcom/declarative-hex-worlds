@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "docs-simple-rpg-scenario",
+  "title": "Docs SimpleRPG Scenario",
+  "board": {
+    "schemaVersion": "1.0.0",
+    "options": {
+      "seed": "docs-simple-rpg-scenario",
+      "shape": {
+        "kind": "rectangle",
+        "width": 5,
+        "height": 4
+      }
+    },
+    "steps": [
+      {
+        "action": "addRoadPath",
+        "path": [
+          { "q": 0, "r": 1 },
+          { "q": 1, "r": 1 },
+          { "q": 2, "r": 1 },
+          { "q": 3, "r": 1 }
+        ]
+      },
+      {
+        "action": "addFactionBuilding",
+        "at": { "q": 3, "r": 1 },
+        "faction": "green",
+        "building": "market"
+      },
+      {
+        "action": "addMountainStack",
+        "at": { "q": 4, "r": 0 },
+        "height": 2,
+        "variant": "A",
+        "withTrees": true
+      },
+      {
+        "action": "setTileAsset",
+        "at": { "q": 0, "r": 1 },
+        "assetId": "hex_grass",
+        "terrain": "grass",
+        "tags": ["player-spawn"]
+      },
+      {
+        "action": "setTileAsset",
+        "at": { "q": 2, "r": 1 },
+        "assetId": "hex_grass",
+        "terrain": "grass",
+        "tags": ["elder-spawn"]
+      },
+      {
+        "action": "setTileAsset",
+        "at": { "q": 1, "r": 2 },
+        "assetId": "hex_grass",
+        "terrain": "grass",
+        "tags": ["enemy-spawn"]
+      },
+      {
+        "action": "setTileAsset",
+        "at": { "q": 3, "r": 2 },
+        "assetId": "hex_grass",
+        "terrain": "grass",
+        "tags": ["watch-point"]
+      },
+      {
+        "action": "setTileAsset",
+        "at": { "q": 4, "r": 1 },
+        "assetId": "hex_grass",
+        "terrain": "grass",
+        "tags": ["watch-point"]
+      }
+    ]
+  },
+  "spawnGroups": {
+    "seed": "docs-simple-rpg-spawns",
+    "groups": [
+      {
+        "id": "player-start",
+        "count": 1,
+        "tileTags": ["player-spawn"]
+      },
+      {
+        "id": "elder",
+        "count": 1,
+        "tileTags": ["elder-spawn"],
+        "pathToGroups": ["player-start"]
+      },
+      {
+        "id": "enemy",
+        "count": 1,
+        "tileTags": ["enemy-spawn"],
+        "pathToGroups": ["player-start"]
+      }
+    ]
+  },
+  "patrolRoutes": [
+    {
+      "id": "bandit-watch",
+      "count": 3,
+      "startGroupId": "enemy",
+      "tileTags": ["watch-point"],
+      "loop": true
+    }
+  ],
+  "actors": [
+    {
+      "actorId": "player",
+      "actorKind": "player",
+      "team": "allies",
+      "spawnGroupId": "player-start",
+      "assetId": "flag_blue",
+      "kind": "unit",
+      "movementAgent": {
+        "profile": "worker",
+        "movementBudget": 5
+      }
+    },
+    {
+      "actorId": "elder",
+      "actorKind": "npc",
+      "team": "allies",
+      "interactive": true,
+      "spawnGroupId": "elder",
+      "assetId": "flag_green",
+      "kind": "prop"
+    },
+    {
+      "actorId": "bandit",
+      "actorKind": "enemy",
+      "team": "enemies",
+      "hostile": true,
+      "spawnGroupId": "enemy",
+      "assetId": "flag_red",
+      "kind": "unit",
+      "patrolAgent": {
+        "routeId": "bandit-watch",
+        "movement": {
+          "profile": "ground"
+        }
+      }
+    }
+  ],
+  "quests": [
+    {
+      "id": "docs-simple-rpg-scenario:intro",
+      "title": "SimpleRPG Intro",
+      "objectives": [
+        {
+          "id": "elder-is-reachable",
+          "kind": "reach-actor",
+          "actor": "player",
+          "targetActor": "elder",
+          "maxDistance": 2
+        },
+        {
+          "id": "bandit-blocks",
+          "kind": "collision",
+          "actor": "player",
+          "targetActor": "bandit",
+          "expect": "blocked"
+        },
+        {
+          "id": "defeat-bandit",
+          "kind": "defeat-actor",
+          "targetActor": "bandit"
+        },
+        {
+          "id": "walk-to-elder",
+          "kind": "reach-actor",
+          "actor": "player",
+          "targetActor": "elder",
+          "maxDistance": 0
+        },
+        {
+          "id": "greet-elder",
+          "kind": "interact-actor",
+          "actor": "player",
+          "targetActor": "elder",
+          "maxDistance": 0
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "example": "simple-rpg-scenario"
+  }
+}

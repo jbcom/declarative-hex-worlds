@@ -5,9 +5,9 @@ import {
   summarizeGameboardCoverage as summarizeGameboardCoverageFromRoot,
 } from '../..';
 import {
-  runSimpleRpgExecutableGuideApiSmoke,
+  runSimpleRpgGuideApiSmoke,
   summarizeSimpleRpgGuidePublicApiExercises,
-} from '../../../tests/integration/simple-rpg/simple-rpg';
+} from '../../coverage-evidence';
 import {
   GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
   GAMEBOARD_RELEASE_GATE_COMMANDS,
@@ -256,7 +256,7 @@ describe('release-readiness coverage', () => {
 
 function createSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence {
   const exerciseCoverage = summarizeSimpleRpgGuidePublicApiExercises();
-  const executableSmoke = runSimpleRpgExecutableGuideApiSmoke();
+  const executableSmoke = runSimpleRpgGuideApiSmoke();
   const evidenceModeCounts = exerciseCoverage.exerciseModeCounts;
   const evidenceModeEntries = Object.entries(evidenceModeCounts) as Array<
     [GameboardCoverageSimpleRpgEvidenceMode, number]

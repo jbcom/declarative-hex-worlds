@@ -4,10 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { GameboardCliError } from '../../errors';
 import {
   listSimpleRpgGuidePublicApiExercises,
-  runSimpleRpgExecutableGuideApiSmoke,
+  runSimpleRpgGuideApiSmoke,
   summarizeSimpleRpgGuidePublicApiExercises,
 } from '../../coverage-evidence';
-import scenarioJson from '../../../tests/integration/simple-rpg/fixtures/simple-rpg-scenario.json';
 import {
   createDefaultGameboardCoveragePackageChecks,
   createDefaultGameboardCoverageReferences,
@@ -22,7 +21,7 @@ import {
   renderGameboardCoverageMarkdown,
   summarizeGameboardCoverage,
 } from '../../interop';
-import { listKayKitGuideScenarios, type GameboardScenario } from '../../scenario';
+import { listKayKitGuideScenarios } from '../../scenario';
 import type { PackEdition } from '../../types';
 import { type ParsedArgs, readManifest, safeResolveOutput, uniqueStrings } from '../_shared';
 
@@ -108,7 +107,7 @@ export function runCoverage(parsed: ParsedArgs): void {
 
 export function createCliSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence {
   const exerciseCoverage = summarizeSimpleRpgGuidePublicApiExercises();
-  const executableSmoke = runSimpleRpgExecutableGuideApiSmoke(scenarioJson as GameboardScenario);
+  const executableSmoke = runSimpleRpgGuideApiSmoke();
   const evidenceModeCounts = exerciseCoverage.exerciseModeCounts;
   const evidenceModeEntries = Object.entries(evidenceModeCounts) as Array<
     [GameboardCoverageSimpleRpgEvidenceMode, number]
