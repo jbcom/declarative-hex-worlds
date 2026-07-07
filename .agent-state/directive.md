@@ -83,12 +83,17 @@ record into that build-log doc and keep only `[ ]` here — the directive tracks
 
 ### Standing decisions (2026-07-06, extracted to decisions.ndjson)
 
-**Decision:** dep manifest is CORRECTED — koota, react, react-dom, three are REQUIRED peers
-(drop the current false `optional:true`); only `@react-three/fiber` stays optional. **Why:**
-the main entry statically pulls koota+react+three (verified: `export * from './koota'` etc.);
-marking them optional is a lying "optional" that gives a consumer an unresolved-import crash
-with no install-time warning. Matches the 2026-05-26 bundled-bindings correction. **Resolves:**
-RFC0-DEP.
+**Decision (REFRAMED after enumeration — DEP depends on CORE):** the current
+`optional:true` peers are actually CORRECT *once `./core` exists* — a `./core`-only consumer
+legitimately skips koota/react/three, so a REQUIRED peer would wrongly warn them. The real
+gap is not the flag but the lack of a CLEAR signal when a MAIN-entry consumer forgets koota
+(`import 'koota'` fails with an opaque ERR_MODULE_NOT_FOUND). **Why:** naive flip
+optional→required breaks the core tier; tiered requirements are the honest model —
+`./core` = honeycomb+zod only; main/runtime = +koota+react; `./three` = +three;
+`./react-elements` = +R3F. **How:** keep optional peers; add per-tier "requires" docs on each
+entrypoint; OPTIONAL friendly guard on the main entry ("install koota for the runtime"); a
+contract test asserting the tier→dep matrix. This lands WITH RFC0-CORE (co-dependent), not
+before it. **Resolves:** RFC0-DEP (folded under RFC0-CORE ordering).
 
 **Decision:** add a **`./core` tier** — koota-free AND three-free: AssetSourceSpec/TilesetManifest,
 Recipe/Scenario/Blueprint→GameboardPlan compilers (pure), coordinates/grid/navigation/occupancy
@@ -114,10 +119,10 @@ way you pick `<Canvas>` vs a Pixi `<Stage>`. **Resolves:** RFC0-RENDER.
 
 ### Open queue
 
-**Foundation refactors (do BEFORE more render features — they reshape the contract):**
-- [ ] RFC0-DEP Correct the dependency manifest per the decision above: koota/react/react-dom/three → required peers (remove `optional:true`); R3F stays optional. Add a contract test asserting the peer/optional shape so it can't silently drift again.
-- [ ] RFC0-RENDER RenderBackend seam + 2D/3D first-class: (a) move AssetTransform out of src/three into neutral core, make it dimension-aware; (b) add `dimension:'2d'|'3d'` to AssetRenderRequest + source metadata; (c) define the `RenderBackend` interface; (d) refit the current three bridge as the reference `./three` backend behind it; (e) `<HexWorld backend=…>` selects a backend, `<Sprite>`=2D-first, `<Model>`=3D-first, hooks unchanged. Browser test proves a board renders through the backend seam. (Pixi impl is a FUTURE item once this lands.)
-- [ ] RFC0-CORE `./core` entrypoint (koota-free + three-free): SPLIT recipe.ts / coordinates/projection.ts / coordinates/layout.ts into pure (`createPlanFrom*`, pure projection/layout-analysis) + koota (`createWorldFrom*`) modules; barrel the 8-already-pure + newly-split-pure modules into `./core`; koota lazy/absent for this path; contract test asserts `./core` imports pull ZERO koota/three. A `./core` consumer does declarations + JSON + validation + hex math + interop, bring-your-own runtime/renderer.
+**Foundation refactors (do BEFORE more render features — they reshape the contract). Order: CORE → DEP → RENDER.**
+- [ ] RFC0-CORE `./core` entrypoint (koota-free + three-free) — do FIRST (DEP + RENDER build on the neutral boundary it establishes): SPLIT recipe.ts / coordinates/projection.ts / coordinates/layout.ts into pure (`createPlanFrom*`, pure projection/layout-analysis) + koota (`createWorldFrom*`) modules; barrel the 8-already-pure (asset-source, coordinates, grid, navigation, occupancy, plan, validation, manifest/schema) + newly-split-pure modules into `./core`; contract test asserts `./core` imports pull ZERO koota/three. A `./core` consumer does declarations + JSON + validation + hex math + interop, bring-your-own runtime/renderer.
+- [ ] RFC0-DEP Tier-aware dependency contract (co-lands with CORE): keep koota/react/react-dom/three as OPTIONAL peers (correct — `./core` consumers skip them), R3F optional. Add: per-entrypoint "requires" docs (core=honeycomb+zod; main=+koota+react; ./three=+three; ./react-elements=+R3F); an OPTIONAL friendly "install koota" guard on the main runtime path; a contract test asserting the tier→dep matrix so it can't drift.
+- [ ] RFC0-RENDER RenderBackend seam + 2D/3D first-class (after CORE — AssetTransform moves INTO the core it establishes): (a) move AssetTransform out of src/three into neutral core, make it dimension-aware; (b) add `dimension:'2d'|'3d'` to AssetRenderRequest + source metadata; (c) define the `RenderBackend` interface; (d) refit the current three bridge as the reference `./three` backend behind it; (e) `<HexWorld backend=…>` selects a backend, `<Sprite>`=2D-first, `<Model>`=3D-first, hooks unchanged. Browser test proves a board renders through the backend seam. (Pixi impl is a FUTURE item once this lands.)
 
 **Phase A — SimpleRPG as first consumer + gap-finder (unblocked by the element layer):**
 - [ ] RFC0-2 Promote SimpleRPG to `packages/simple-rpg` — a real consumer that renders through dhw's element surface (`declarative-hex-worlds/react-elements`). MIGRATE the library's `tests/e2e/simple-rpg*` + `tests/integration/simple-rpg*` + `src/guides/simple-rpg/*` into the package as ITS OWN e2e (SimpleRPG IS the e2e). Layered CI: library suite passes FIRST (needs:), THEN SimpleRPG e2e. Build the actual game + R3F render surface + run states (compose/cross-pack/pathfind/viewport). See RFC §D-test-topology. packages/simple-rpg/ is scaffolded (workspace:* dep, jsx tsconfig, 2 consumes-library tests). Add @react-three/fiber devDep.
