@@ -20,13 +20,16 @@ import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
-// FREE models live in the library package (bootstrapped by CI). Default there;
-// allow an absolute/URL override via HEX_WORLDS_ASSET_ROOT.
-const libraryModels = resolve(packageRoot, '..', 'declarative-hex-worlds', 'models');
-const configuredAssetRoot = process.env.HEX_WORLDS_ASSET_ROOT ?? libraryModels;
-const browserAssetRoot = /^[a-z][a-z\d+.-]*:|^\//i.test(configuredAssetRoot)
+const libraryRoot = resolve(packageRoot, '..', 'declarative-hex-worlds');
+// FREE models live in the library package (bootstrapped by CI into <lib>/models).
+// The browser fetches filesystem paths through Vite's `/@fs/` prefix, so an absolute
+// path must be wrapped — NOT passed bare (a bare /home/... path 404s). A `scheme://`
+// override (e.g. an http CDN) is used as-is; any other path (relative or absolute) is
+// `/@fs/`-wrapped against its absolute form.
+const configuredAssetRoot = process.env.HEX_WORLDS_ASSET_ROOT ?? resolve(libraryRoot, 'models');
+const browserAssetRoot = /^[a-z][a-z\d+.-]*:\/\//i.test(configuredAssetRoot)
   ? configuredAssetRoot
-  : `/@fs/${packageRoot}/${configuredAssetRoot}`;
+  : `/@fs/${resolve(packageRoot, configuredAssetRoot)}`;
 
 export default defineConfig({
   optimizeDeps: {
