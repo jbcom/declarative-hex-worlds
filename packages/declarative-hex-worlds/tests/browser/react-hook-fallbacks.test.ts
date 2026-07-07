@@ -29,6 +29,7 @@ import {
   useGameboardRuntimeSnapshot,
   useGameboardSpawnLocations,
   useGameboardState,
+  usePlacementsByClassifier,
   useProjectedGameboardPlan,
 } from '../../src/react/index';
 
@@ -85,7 +86,7 @@ describe('React hook fallback browser coverage', () => {
     );
 
     expect(planReport).toEqual({ seed: 'react-plan-provider', tileCount: 1 });
-    expect(fallbackReport).toEqual({ allEmpty: true, counts: [0, 0, 0, 0] });
+    expect(fallbackReport).toEqual({ allEmpty: true, counts: [0, 0, 0, 0, 0] });
 
     await act(async () => root?.unmount());
     root = undefined;
@@ -229,6 +230,8 @@ function EmptyWorldFallbackProbe({
     useGameboardActorTargetCommand(undefined),
   ];
   const pieceSourceUrls = useGameboardPieceSourceUrlMap(undefined);
+  // usePlacementsByClassifier on an empty world exercises the no-plan `?? []` fallback.
+  const enemyPlacements = usePlacementsByClassifier('enemy');
   onReport({
     allEmpty: optionResults.every((result) => result === undefined),
     counts: [
@@ -237,6 +240,7 @@ function EmptyWorldFallbackProbe({
       useGameboardLayoutPlacements({ assetId: 'tree_single_A', count: 1 }).length,
       useGameboardPieceSelection(undefined).length,
       Object.keys(pieceSourceUrls).length,
+      enemyPlacements.length,
     ],
   });
   return null;
