@@ -17,7 +17,6 @@ import type { GameboardPlan } from '../gameboard';
 import {
   type GameboardRecipeGeneration,
   createGameboardRecipeGenerationFillRules,
-  setDefaultRecipeGenerationApplier,
 } from './recipe';
 
 /**
@@ -44,9 +43,3 @@ export function applyGameboardRecipeGeneration(
     world.destroy();
   }
 }
-
-// Wire the koota applier as the process-wide default when the runtime tier is
-// loaded, so `createGameboardPlanFromRecipe(recipe)` compiles generation for
-// runtime consumers. `./core` never imports this module, so it keeps the pure
-// default (which errors clearly if a recipe declares generation fill rules).
-setDefaultRecipeGenerationApplier(applyGameboardRecipeGeneration);

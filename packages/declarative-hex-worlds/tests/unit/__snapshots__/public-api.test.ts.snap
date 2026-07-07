@@ -1496,6 +1496,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "pureRecipeGenerationApplier",
+  },
+  {
+    "kind": "function",
     "name": "reachableGameboardMovementTiles",
   },
   {
@@ -1729,6 +1733,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "selectSpawnCoordinates",
+  },
+  {
+    "kind": "function",
+    "name": "setDefaultRecipeGenerationApplier",
   },
   {
     "kind": "function",

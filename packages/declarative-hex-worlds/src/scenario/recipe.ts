@@ -455,24 +455,34 @@ export function pureRecipeGenerationApplier(
 }
 
 /**
- * The generation applier used when a caller doesn't pass one. Defaults to the
- * pure (koota-free) applier so `./core` stays runtime-free; the main/runtime tier
- * calls `setDefaultRecipeGenerationApplier` on import to wire the koota applier,
- * so `createGameboardPlanFromRecipe(recipe)` compiles generation for the ~10
- * existing runtime callers without threading an argument through each.
+ * The registered runtime generation applier, or undefined until the runtime tier
+ * wires one. Stored via hoisted `function` accessors (NOT a `let`/`const`) so the
+ * runtime tier's `setDefaultRecipeGenerationApplier` side-effect is safe even
+ * when it runs mid-cycle during module initialization — a `let`/`const` binding
+ * would be in its temporal dead zone at that point and throw. The default stays
+ * the pure (koota-free) applier so `./core` is runtime-free; the runtime tier
+ * registers the koota applier so the ~10 existing `createGameboardPlanFromRecipe`
+ * callers compile generation without threading an argument through each.
  */
-let defaultRecipeGenerationApplier: RecipeGenerationApplier = pureRecipeGenerationApplier;
+// `var` (not `let`/`const`): hoisted and initialized to `undefined` with NO
+// temporal dead zone, so the runtime tier's registration side-effect is safe even
+// if it runs before this line during the module-init import cycle.
+var registeredGenerationApplier: RecipeGenerationApplier | undefined;
 
 /** Set the process-wide default generation applier (the runtime tier wires koota). */
 export function setDefaultRecipeGenerationApplier(applier: RecipeGenerationApplier): void {
-  defaultRecipeGenerationApplier = applier;
+  registeredGenerationApplier = applier;
+}
+
+function resolveGenerationApplier(): RecipeGenerationApplier {
+  return registeredGenerationApplier ?? pureRecipeGenerationApplier;
 }
 
 /** Compiles a recipe into a concrete gameboard plan. */
 export function createGameboardPlanFromRecipe(
   recipe: GameboardRecipe,
   overrides: GameboardRecipePlanOptionsOverride = {},
-  applyGeneration: RecipeGenerationApplier = defaultRecipeGenerationApplier
+  applyGeneration: RecipeGenerationApplier = resolveGenerationApplier()
 ): GameboardPlan {
   const builder = createGameboardBuilder({ ...recipe.options, ...overrides });
   applyGameboardRecipe(builder, recipe);

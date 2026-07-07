@@ -138,7 +138,7 @@ const main = defineCommand({
   meta: {
     name: 'declarative-hex-worlds',
     description:
-      'KayKit Medieval Hexagon gameboard runtime CLI — manifest, validate, bootstrap, and scenario tools.',
+      'declarative-hex-worlds CLI — asset-source binding, manifest, validate, bootstrap, and scenario tools.',
   },
   subCommands,
 });

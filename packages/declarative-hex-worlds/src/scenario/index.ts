@@ -13,8 +13,12 @@
 export * from './blueprint';
 export * from './catalog';
 export * from './recipe';
-// Runtime tier: importing this wires the koota generation applier as the default
-// (side-effect) and re-exports applyGameboardRecipeGeneration. `./core` omits it.
+// Runtime tier: re-export the koota generation applier. `./core` omits it.
 export * from './recipe-generation';
 export * from './registry';
 export * from './scenario';
+// LAST: side-effect module that wires the koota applier as the default. Imported
+// after ./recipe + ./recipe-generation are fully initialized to avoid the
+// import-cycle TDZ. `./core` never pulls this (it imports ../scenario/recipe
+// directly, not the barrel).
+import './recipe-generation-wiring';

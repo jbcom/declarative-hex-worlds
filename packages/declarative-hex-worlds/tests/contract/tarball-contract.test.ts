@@ -65,11 +65,14 @@ const PRIVATE_SUBPATHS = new Set(['.', 'cli', 'config', 'internal', 'manifest'])
  */
 function parseTsupEntries(): Map<string, string> {
   const tsupConfig = readFileSync(join(repoRoot, 'tsup.config.ts'), 'utf8');
-  const entryBlock = tsupConfig.match(/entry:\s*\{([^}]+)\}/s)?.[1] ?? '';
   const map = new Map<string, string>();
-  for (const line of entryBlock.split('\n')) {
-    const m = line.match(/['"]?([\w/.-]+)['"]?\s*:\s*['"]([^'"]+)['"]/);
-    if (m?.[1] && m?.[2]) map.set(m[1], m[2]);
+  // tsup.config.ts is an ARRAY of configs (main build + the isolated ./core
+  // build), each with its own `entry: { … }` block — match them all.
+  for (const block of tsupConfig.matchAll(/entry:\s*\{([^}]+)\}/gs)) {
+    for (const line of (block[1] ?? '').split('\n')) {
+      const m = line.match(/['"]?([\w/.-]+)['"]?\s*:\s*['"]([^'"]+)['"]/);
+      if (m?.[1] && m?.[2]) map.set(m[1], m[2]);
+    }
   }
   return map;
 }

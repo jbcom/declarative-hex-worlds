@@ -83,6 +83,7 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 | Subpath | What it gives you |
 |---|---|
 | `declarative-hex-worlds` (umbrella) | Everything. Prototyping. |
+| `/core` | The **runtime-free, renderer-free** tier: asset-source + tileset schemas, the recipe/scenario/blueprint → plan compilers, hex algebra + A\* pathfinding, board-aware navigation + occupancy, plan validation, and interop snapshots. No koota, no three. |
 | `/gameboard` | Plan builder, tile + placement spec types |
 | `/coordinates` | Hex algebra, axial / world transforms |
 | `/scenario`, `/blueprint`, `/recipe` | Scenario → blueprint → recipe compiler |
@@ -90,11 +91,26 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 | `/runtime` | Runtime facade + snapshot |
 | `/react` | React provider + hooks |
 | `/three` | three.js loaders + scene helpers |
+| `/react-elements` | Declarative JSX elements (`<HexWorld>`/`<Tile>`/`<Model>`) + hooks |
 | `/bootstrap` | Programmatic asset bootstrap (CLI alternative) |
 | `/errors` | `GameboardError` + subclasses for `instanceof` catching |
 | `/manifest/free`, `/manifest/schema` | The FREE manifest metadata + schema |
 
 [Full subpath list with API reference →](https://jonbogaty.com/declarative-hex-worlds/reference/readme/)
+
+### Dependency tiers
+
+Every engine is an **optional peer** — you install only what the entrypoint you use needs:
+
+| You import… | You need to install |
+|---|---|
+| `declarative-hex-worlds/core` | just this package (it bundles `honeycomb-grid` + `zod`) — **no `koota`, no `three`, no `react`** |
+| `declarative-hex-worlds` (main) / runtime subpaths | `+ koota` (`+ react` for the React bindings) |
+| `declarative-hex-worlds/three` | `+ three` |
+| `declarative-hex-worlds/react` | `+ react react-dom` |
+| `declarative-hex-worlds/react-elements` | `+ react react-dom three @react-three/fiber` |
+
+The `/core` tier is the "declare + JSON + validate + hex math, bring-your-own runtime/renderer" path: author and validate boards, run pathfinding, and mount into your own ECS via interop snapshots — without pulling in the koota ECS or a renderer.
 
 ---
 

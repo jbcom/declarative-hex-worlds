@@ -1,7 +1,7 @@
 {
   "name": "declarative-hex-worlds",
   "version": "1.0.2",
-  "description": "Deterministic KayKit Medieval Hexagon gameboard runtime with Koota ECS, first-class React + Three.js bindings, and a CLI bootstrap subcommand that fetches the FREE GLTF assets at install time",
+  "description": "Declarative React Three Fiber binding for 2.5D hex worlds \u2014 proxies koota (ECS) + honeycomb (hex math) + three/R3F behind first-class <HexWorld>/<Tile>/<Model> elements and a source-agnostic GLTF/tileset asset layer. Includes a runtime-free ./core tier (koota-free, three-free).",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
