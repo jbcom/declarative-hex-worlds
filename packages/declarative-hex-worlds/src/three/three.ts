@@ -13,7 +13,7 @@ import {
   Vector3,
 } from 'three';
 import { clone as cloneWithSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import type { AssetRenderRequest, AssetSource } from '../asset-source';
+import type { AssetRenderRequest, AssetSource, AssetTransform } from '../asset-source';
 import type { GameboardInteractionTargetInput } from '../actors';
 import { buildTexturedHexMesh, type SheetTexture } from './textured-hex';
 import { GameboardRuntimeError } from '../errors';
@@ -26,19 +26,12 @@ import {
   type ManifestAssetCatalog,
   type ManifestAssetUrlOptions,
 } from '../manifest';
-import type { HexCoordinates, MedievalHexagonAsset, VariantSelection, WorldPosition } from '../types';
+import type { HexCoordinates, MedievalHexagonAsset, VariantSelection } from '../types';
 
-/**
- * Render transform for a placement or tile in Three.js coordinates.
- */
-export interface AssetTransform {
-  /** World-space position for the object origin. */
-  position: WorldPosition;
-  /** Y-axis rotation in radians. */
-  rotationY: number;
-  /** Uniform object scale. */
-  scale: number;
-}
+// AssetTransform moved to `src/asset-source` (RFC0-RENDER) so the render-request
+// contract is backend-agnostic; re-exported here so `./three` keeps exporting it.
+export type { AssetTransform } from '../asset-source';
+
 
 /**
  * URL resolution inputs for gameboard placement models.

@@ -46,7 +46,7 @@ export function createGltfPackSource(options: GltfPackSourceOptions = {}): Asset
       if (!url) {
         return undefined;
       }
-      return { type: 'gltf', url, transform: transformForPlacement(placement) };
+      return { type: 'gltf', dimension: '3d', url, transform: transformForPlacement(placement) };
     },
   };
 }

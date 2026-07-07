@@ -80,6 +80,7 @@ describe('tileset AssetSource', () => {
     const request = source.resolve(placement({ assetId: 'grass', tileKey: '2,3' }));
     expect(request?.type).toBe('tileset-cell');
     if (request?.type === 'tileset-cell') {
+      expect(request.dimension).toBe('2d'); // tileset cells are 2D-first (RFC0-RENDER)
       expect(request.sheetUrl).toBe('tiles/grassland.png');
       expect(request.cell.width).toBe(96);
       expect(request.hex).toEqual({ width: 1, height: 83 / 96 });

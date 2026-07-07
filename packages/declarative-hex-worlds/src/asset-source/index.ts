@@ -23,8 +23,10 @@ export {
   safeParseAssetSourceSpec,
 } from './spec';
 export {
+  type AssetDimension,
   type AssetRenderRequest,
   type AssetSource,
+  type AssetTransform,
   type CellRect,
   type HexDims,
   type ResolveContext,

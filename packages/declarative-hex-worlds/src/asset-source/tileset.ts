@@ -97,6 +97,7 @@ export function createTilesetSource(options: TilesetSourceOptions): AssetSource 
     ctx?: ResolveContext
   ): AssetRenderRequest => ({
     type: 'tileset-cell',
+    dimension: '2d',
     sheetUrl: sheetUrl(sheet, ctx),
     cell: cellRect(sheet.grid, cellIndex),
     hex: hexDimsForSheet(sheet.grid),

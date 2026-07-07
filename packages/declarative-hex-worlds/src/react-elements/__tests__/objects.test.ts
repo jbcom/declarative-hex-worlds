@@ -26,7 +26,7 @@ function placement(assetId: string): GameboardPlacementSpec {
   };
 }
 
-const gltfReq: AssetRenderRequest = { type: 'gltf', url: '/a.glb' };
+const gltfReq: AssetRenderRequest = { type: 'gltf', dimension: '3d', url: '/a.glb' };
 
 function sourceThatResolves(assetId: string): AssetSource {
   return {

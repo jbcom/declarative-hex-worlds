@@ -44,6 +44,7 @@ describe('gltf-pack AssetSource', () => {
     );
     expect(request).toEqual({
       type: 'gltf',
+      dimension: '3d',
       url: '/models/castle.glb',
       transform: {
         position: { x: 1, y: 2, z: 3 },

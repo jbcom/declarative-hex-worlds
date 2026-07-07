@@ -18,7 +18,31 @@
  */
 
 import type { GameboardPlacementSpec } from '../gameboard';
-import type { AssetTransform } from '../three';
+import type { WorldPosition } from '../types';
+
+/**
+ * The dimensionality of a rendered asset — a first-class concept so a backend
+ * (three for 3D/2.5D, a future Pixi backend for 2D) knows how to place, sort, and
+ * orient it. A `'3d'` asset is a volumetric mesh; a `'2d'` asset is a planar sprite
+ * whose depth is a z-order, not a world Y. `<Model>` is 3D-first, `<Sprite>` 2D-first,
+ * and both can coexist on one board (2.5D).
+ */
+export type AssetDimension = '2d' | '3d';
+
+/**
+ * Render transform for a placement, in world space. Neutral of any renderer
+ * (moved here from `src/three` for RFC0-RENDER so the render-request contract is
+ * backend-agnostic). A 3D backend uses the full x/y/z + rotationY; a 2D backend
+ * projects to screen space and treats the depth axis as z-order.
+ */
+export interface AssetTransform {
+  /** World-space position for the object origin. */
+  position: WorldPosition;
+  /** Y-axis rotation in radians (the board-plane rotation both 2D and 3D share). */
+  rotationY: number;
+  /** Uniform scale. */
+  scale: number;
+}
 
 /**
  * A rectangular sub-region of a sprite/tile sheet, in pixels. The origin is the
@@ -41,13 +65,22 @@ export interface HexDims {
 }
 
 /**
- * A resolved, engine-facing render request. The `src/three` bridge dispatches on
- * `type`. New source kinds add new members here (a discriminated union), and the
- * bridge grows a matching arm.
+ * A resolved, backend-agnostic render request. A `RenderBackend` (three today,
+ * Pixi tomorrow) dispatches on `type` + `dimension`. New source kinds add new
+ * members here (a discriminated union), and each backend grows a matching arm.
+ * Every request carries its `dimension` so a backend can place/sort/orient a 2D
+ * sprite and a 3D model correctly on the same board.
  */
 export type AssetRenderRequest =
-  | { type: 'gltf'; url: string; transform?: AssetTransform }
-  | { type: 'tileset-cell'; sheetUrl: string; cell: CellRect; hex: HexDims; transform?: AssetTransform };
+  | { type: 'gltf'; dimension: '3d'; url: string; transform?: AssetTransform }
+  | {
+      type: 'tileset-cell';
+      dimension: '2d';
+      sheetUrl: string;
+      cell: CellRect;
+      hex: HexDims;
+      transform?: AssetTransform;
+    };
 
 /**
  * Context passed to an `AssetSource` when resolving a placement. Carries the
