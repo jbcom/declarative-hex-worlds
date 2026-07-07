@@ -26,7 +26,7 @@ import {
   parseHexKey,
 } from '../coordinates';
 import { axialToWorld } from '../coordinates';
-import { edgeMask } from '../selectors';
+import { assertCoverableCoastMask, edgeMask } from '../selectors';
 import type {
   Faction,
   GameboardShape,
@@ -193,6 +193,9 @@ export class GameboardBuilder {
     options: { waterless?: boolean } = {}
   ): this {
     const tile = this.requireTile(coordinates);
+    // Validate at author time: a non-contiguous mask has no coast tile and would
+    // otherwise throw far away in projection. Fail here, naming the tile.
+    assertCoverableCoastMask(waterEdges, { tileKey: tile.key });
     tile.terrain = 'coast';
     tile.coastEdges = edgeMask(waterEdges);
     tile.coastWaterless = options.waterless ?? false;

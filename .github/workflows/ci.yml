@@ -107,7 +107,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build docs site
+        # docs-site:build now builds the library FIRST — the RFC0-3 binding-demo
+        # islands import declarative-hex-worlds/* subpaths at runtime, which resolve
+        # to dist/. 6GB heap for tsup's DTS bundler (same as the check/examples jobs).
         env:
+          NODE_OPTIONS: --max-old-space-size=6144
           ASTRO_BASE: /declarative-hex-worlds/
           ASTRO_SITE: https://jonbogaty.com/declarative-hex-worlds
         run: pnpm docs-site:build

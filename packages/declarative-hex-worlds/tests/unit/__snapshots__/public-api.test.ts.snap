@@ -620,6 +620,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "assertCoverableCoastMask",
+  },
+  {
+    "kind": "function",
     "name": "assertGameboardScenarioSimulationExpectations",
   },
   {
@@ -1237,6 +1241,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "inspectSeededGameboardPieceFills",
+  },
+  {
+    "kind": "function",
+    "name": "isCoverableCoastMask",
   },
   {
     "kind": "function",

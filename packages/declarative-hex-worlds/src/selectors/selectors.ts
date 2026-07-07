@@ -187,6 +187,48 @@ export function selectCoastVariant(
   return { ...selection, assetId: withWaterless(selection.assetId, options.waterless) };
 }
 
+/**
+ * True if `mask` is coverable by a coast tile — i.e. it is 0 (no coast) or a
+ * rotation of some COAST_VARIANT canonical mask (a CONTIGUOUS run of 1-5 water
+ * edges). Non-contiguous masks (e.g. `0b010101` from edges [0,2,4]) have no coast
+ * tile: a single hex tile can only depict one unbroken coastline arc.
+ */
+export function isCoverableCoastMask(edges: HexEdgeInput): boolean {
+  const mask = edgeMask(edges);
+  if (mask === 0) {
+    return true;
+  }
+  for (const candidate of COAST_VARIANTS) {
+    for (let rotationSteps = 0; rotationSteps < HEX_EDGE_COUNT; rotationSteps += 1) {
+      if (rotateMask(candidate.canonicalMask, rotationSteps) === mask) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Assert that `edges` form a coverable coast mask, throwing a clear author-time
+ * error otherwise. Called by `GameboardBuilder.setCoastEdges` so a bad mask fails
+ * at the authoring call — naming the tile + the offending mask — rather than deep
+ * in projection with an opaque "no coast variant covers …" runtime error.
+ */
+export function assertCoverableCoastMask(edges: HexEdgeInput, context?: { tileKey?: string }): void {
+  if (isCoverableCoastMask(edges)) {
+    return;
+  }
+  const mask = edgeMask(edges);
+  const where = context?.tileKey ? ` on tile ${context.tileKey}` : '';
+  throw new GameboardRuntimeError(
+    `Coast edges${where} form a non-contiguous mask ${mask
+      .toString(2)
+      .padStart(HEX_EDGE_COUNT, '0')} — a hex coast tile can only depict ONE unbroken ` +
+      'coastline arc (a contiguous run of 1-5 water edges). Split the water into separate ' +
+      'tiles, or pass contiguous edges.'
+  );
+}
+
 /** Selects an unrotated coast guide asset by KayKit label. */
 export function selectCoastVariantByLabel(
   label: string,
