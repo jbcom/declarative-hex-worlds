@@ -80,6 +80,22 @@ export const HARNESS_COVERAGE_THRESHOLDS = {
 const BROWSER_ONLY_COVERAGE_EXCLUDES = [
   'src/react-elements/objects.ts',
   'src/react-elements/objects-sync.ts',
+  // These pure-TS game-flow modules are 100% covered by the UNIT harness. The
+  // browser-free harness only imports them transitively (via `../../src` barrel)
+  // and never exercises the `: undefined` arm of their ternaries, so it emits a
+  // phantom record. Because Vite's browser transform SHIFTS LINE NUMBERS (esbuild
+  // + module wrapping), the phantom's branch loc drifts on BOTH column AND line —
+  // defeating even merge-coverage's branchLineKey fallback — so the by-url merge
+  // keeps it as a separate 0-hit entry that fails the 100% branch gate. Excluding
+  // them from BROWSER coverage leaves only the unit's fully-covered records.
+  // (These were previously covered in-browser by simple-rpg-visual.test.ts, which
+  // moved to packages/examples; the library now owns their coverage via the unit
+  // suite — tests/unit/game-flow-branch-coverage.test.ts.)
+  'src/scenario/scenario.ts',
+  'src/scenario/recipe.ts',
+  'src/simulation/engine.ts',
+  'src/commands/commands.ts',
+  'src/gameboard/gameboard.ts',
 ];
 
 /**

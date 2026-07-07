@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { harnessCoverage } from '../../vitest.coverage.shared';
 import { mergeIstanbulRecord } from '../merge-coverage';
 
 describe('coverage merge helpers', () => {
@@ -41,6 +42,70 @@ describe('coverage merge helpers', () => {
     expect(merged.s).toEqual({ '0': 3, '1': 0, '2': 3 });
     expect(merged.f).toEqual({ '0': 3, '1': 1 });
     expect(merged.b).toEqual({ '0': [1, 4], '1': [1, 0] });
+  });
+});
+
+describe('browser-free coverage excludes line-drifting game-flow modules', () => {
+  // Regression: after simple-rpg-visual.test.ts moved to packages/examples, the
+  // browser-free harness still imports these pure-TS modules transitively but only
+  // exercises one ternary arm. Vite's browser transform shifts LINE numbers, so
+  // the phantom branch record drifts on both column AND line — defeating
+  // merge-coverage's branchLineKey line-only fallback (see below) — and the by-url
+  // merge keeps a 0-hit arm that fails the 100% branch gate. They must be excluded
+  // from BROWSER coverage so only the unit harness's full coverage survives.
+  const gameFlowModules = [
+    'src/scenario/scenario.ts',
+    'src/scenario/recipe.ts',
+    'src/simulation/engine.ts',
+    'src/commands/commands.ts',
+    'src/gameboard/gameboard.ts',
+  ];
+
+  it.each(gameFlowModules)('excludes %s from browser-free coverage', (mod) => {
+    expect(harnessCoverage('browser-free').exclude).toContain(mod);
+  });
+
+  it('keeps these modules IN unit coverage (the unit harness owns them)', () => {
+    for (const mod of gameFlowModules) {
+      expect(harnessCoverage('unit').exclude).not.toContain(mod);
+    }
+  });
+
+  it('demonstrates the line+column drift that defeats the merge line-key fallback', () => {
+    // A unit branch with BOTH arms covered ([29,70]) plus a browser phantom of the
+    // SAME logical ternary but LINE-drifted (Vite preamble) with only one arm hit.
+    // Because the line-key differs, the merge cannot unify them and keeps the
+    // phantom's 0-arm — proving exclusion (not keying) is the correct fix.
+    const unitLoc = loc(647, 22, 40);
+    const unitArmA = loc(647, 31, 60);
+    const unitArmB = loc(649, 6, 20);
+    const browserLoc = loc(654, 25, 43); // +7 lines (Vite injects a preamble)
+    const browserArmA = loc(654, 34, 63);
+    const browserArmB = loc(656, 9, 23);
+    const merged = mergeIstanbulRecord(
+      {
+        statementMap: {},
+        fnMap: {},
+        branchMap: { '0': { type: 'cond-expr', loc: unitLoc, locations: [unitArmA, unitArmB] } },
+        s: {},
+        f: {},
+        b: { '0': [29, 70] },
+      },
+      {
+        statementMap: {},
+        fnMap: {},
+        branchMap: { '3': { type: 'cond-expr', loc: browserLoc, locations: [browserArmA, browserArmB] } },
+        s: {},
+        f: {},
+        b: { '3': [5, 0] }, // browser only hit the truthy arm → phantom 0-arm
+      }
+    );
+    // The phantom did NOT unify with the unit branch; a 0-hit arm is present in the
+    // merged tree. This is exactly the state that fails the 100% branch gate and is
+    // why the modules are excluded from browser coverage instead.
+    const branchArms = Object.values(merged.b as Record<string, number[]>);
+    expect(branchArms).toContainEqual([29, 70]); // unit branch preserved
+    expect(branchArms.some((arms) => arms.includes(0))).toBe(true); // phantom 0-arm kept
   });
 });
 

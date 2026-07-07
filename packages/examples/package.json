@@ -7,7 +7,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
-    "lint": "pnpm exec biome lint src tests"
+    "lint": "pnpm exec biome lint src tests",
+    "test:browser": "vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
     "declarative-hex-worlds": "workspace:*"
@@ -31,6 +32,7 @@
     "three": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
-    "@react-three/fiber": "catalog:"
+    "@react-three/fiber": "catalog:",
+    "@vitest/browser-playwright": "^4.1.10"
   }
 }

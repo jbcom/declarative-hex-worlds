@@ -160,6 +160,18 @@ jobs:
       - name: Test examples (consume declarative-hex-worlds)
         run: pnpm test:examples
 
+      - name: Install Playwright Chromium
+        run: pnpm --filter @declarative-hex-worlds/examples exec playwright install --with-deps chromium
+
+      - name: Bootstrap FREE models (the three example renders them)
+        # The three binding example loads FREE GLTFs; bootstrap them into the library
+        # package's models/ dir, which the examples browser config points at.
+        working-directory: packages/declarative-hex-worlds
+        run: pnpm exec tsx src/cli/cli.ts bootstrap --source github --out models
+
+      - name: Test examples in a real browser (per-binding visual tests)
+        run: pnpm --filter @declarative-hex-worlds/examples test:browser
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
