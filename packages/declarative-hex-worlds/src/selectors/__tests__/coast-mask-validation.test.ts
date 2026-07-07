@@ -31,6 +31,18 @@ describe('coast edge-mask validation (RFC0-9, the 010101 finding)', () => {
     expect(() => assertCoverableCoastMask([0, 1, 2])).not.toThrow();
   });
 
+  it('throws without tile context too (no "on tile" clause when context is omitted)', () => {
+    // Exercises the no-context branch: the message omits the tile clause.
+    let message = '';
+    try {
+      assertCoverableCoastMask([0, 2, 4]);
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    expect(message).toMatch(/non-contiguous mask 010101/);
+    expect(message).not.toMatch(/on tile/);
+  });
+
   it('setCoastEdges fails at the AUTHOR call for a non-contiguous mask (not deep in projection)', () => {
     const builder = createGameboardBuilder({
       seed: 'coast-validation',
