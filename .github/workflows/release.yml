@@ -106,24 +106,6 @@ jobs:
         with:
           subject-path: ${{ steps.pack.outputs.tarball }}
 
-      - name: Generate SBOM (CycloneDX)
-        # PRD G2. CycloneDX 1.6 SBOM listing the full prod-dep tree of the
-        # published package. Attached as a release asset by the next step.
-        working-directory: packages/declarative-hex-worlds
-        run: |
-          pnpm exec cyclonedx-npm \
-            --output-format json \
-            --output-file ../../sbom.cdx.json \
-            --omit dev
-
-      - name: Attach SBOM + tarball to release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v2.4.1
-        with:
-          files: |
-            ${{ steps.pack.outputs.tarball }}
-            sbom.cdx.json
-
       - name: Publish to npm with OIDC trusted publishing
         if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         # The first `declarative-hex-worlds@1.0.0` publish was issued
@@ -138,7 +120,35 @@ jobs:
         # provenance statement to the publish; the `attest-build-provenance`
         # step above attaches the SLSA L3 build provenance to the tarball
         # bytes for `npm audit signatures` verification.
+        #
+        # Publish runs BEFORE the SBOM/attach steps: the SBOM is supplementary
+        # provenance (PRD G2), so a cyclonedx hiccup must never block shipping
+        # the actual bytes — the previous ordering let an `npm ls` failure in
+        # the pnpm workspace skip the publish entirely.
         run: npm publish ${{ steps.pack.outputs.tarball }} --access public --provenance
+
+      - name: Generate SBOM (CycloneDX)
+        # PRD G2. CycloneDX 1.6 SBOM listing the full prod-dep tree of the
+        # published package. Runs AFTER publish (supplementary). `--ignore-npm-errors`
+        # because cyclonedx-npm shells out to `npm ls`, which reports ELSPROBLEMS
+        # against the pnpm workspace's node_modules layout (invalid/missing peer
+        # metadata) even though the tree is valid — those are npm-ls-vs-pnpm noise,
+        # not real SBOM gaps.
+        working-directory: packages/declarative-hex-worlds
+        run: |
+          pnpm exec cyclonedx-npm \
+            --ignore-npm-errors \
+            --output-format json \
+            --output-file ../../sbom.cdx.json \
+            --omit dev
+
+      - name: Attach SBOM + tarball to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v2.4.1
+        with:
+          files: |
+            ${{ steps.pack.outputs.tarball }}
+            sbom.cdx.json
 
       - name: Verify published package signatures
         if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
