@@ -23,9 +23,12 @@ const extraTreatments = listKayKitAssetPublicTreatments();
 // skip the whole suite rather than fail or overwrite baselines with blank frames.
 async function extraAssetsReachable(): Promise<boolean> {
   try {
+    // Encode spaces — licensed pack roots on macOS/NAS commonly contain them
+    // (e.g. ".../Castle Kit/"), and a raw space breaks the `/@fs/` fetch URL.
+    const fsUrl = (root: string, rel: string) => `/@fs/${root}/${rel}`.replaceAll(' ', '%20');
     const [source, texture] = await Promise.all([
-      fetch(`/@fs/${__EXTRA_SOURCE_ROOT__}/tiles/base/hex_grass.gltf`, { method: 'HEAD' }),
-      fetch(`/@fs/${__EXTRA_TEXTURE_ROOT__}/hexagons_medieval.png`, { method: 'HEAD' }),
+      fetch(fsUrl(__EXTRA_SOURCE_ROOT__, 'tiles/base/hex_grass.gltf'), { method: 'HEAD' }),
+      fetch(fsUrl(__EXTRA_TEXTURE_ROOT__, 'hexagons_medieval.png'), { method: 'HEAD' }),
     ]);
     return source.ok && texture.ok;
   } catch {

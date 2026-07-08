@@ -726,6 +726,10 @@ describe('bootstrapKayKitAssets — character pack (RFC0-10b)', () => {
     await buildSyntheticZip(
       layout,
       [
+        // A stray non-renderable FILE at an intermediate (non-gltf) level — the
+        // scan must descend past it (exercises the `!isDirectory()` skip) to
+        // reach the gltf roots below.
+        { relative: 'icon.png', content: Buffer.from([0]) },
         { relative: 'Assets/gltf/sword.gltf', content: JSON.stringify({ asset: { version: '2.0' } }) },
         { relative: 'Characters/gltf/Knight.glb', content: Buffer.from([1, 2, 3]) },
         { relative: 'Characters/gltf/variants/Knight_LOD1.glb', content: Buffer.from([4, 5, 6]) },
