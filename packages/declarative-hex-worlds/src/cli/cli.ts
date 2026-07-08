@@ -69,6 +69,7 @@ export const SUBCOMMAND_LOADERS: Record<string, () => Promise<CommandModule>> = 
   'pieces-from-assets': () => import('./commands/pieces-from-assets'),
   bind: () => import('./commands/bind'),
   init: () => import('./commands/init'),
+  web: () => import('./commands/web'),
   pieces: () => import('./commands/pieces'),
   'place-piece': () => import('./commands/place-piece'),
   extract: () => import('./commands/extract'),

@@ -1281,6 +1281,34 @@ export const COMMANDS: readonly CommandHelp[] = [
     ],
   },
   {
+    name: 'web',
+    summary:
+      'Bind an assets directory via a local web form (the visual path — a loopback config UI)',
+    options: [
+      {
+        flag: '--dir <path>',
+        description:
+          'Assets root to scan (required). Serves a 127.0.0.1 form to confirm/override bindings, then writes on Save.',
+      },
+      {
+        flag: '--name <name>',
+        description: "Source name recorded in the spec (default: the dir's basename).",
+      },
+      {
+        flag: '--asset-root <path>',
+        description: 'assetRoot recorded in the spec (default: the scanned --dir).',
+      },
+      {
+        flag: '--port <n>',
+        description: 'Loopback port to listen on (default: 0 → an OS-assigned free port).',
+      },
+      {
+        flag: '--out <path>',
+        description: 'Write the JSON here (default: <name>.assets.json in the cwd).',
+      },
+    ],
+  },
+  {
     name: 'extract',
     summary: 'Copy GLTF assets and write a manifest to an output folder',
     aliases: ['ingest'],
