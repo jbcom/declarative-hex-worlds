@@ -596,6 +596,13 @@ const NON_RENDERABLE_DIR_NAMES = new Set(['fbx', 'fbx(unity)', 'obj', 'mtl', 'sa
  * `Characters/gltf/`) instead of a single guessed root. Source-format /
  * preview directories ({@link NON_RENDERABLE_DIR_NAMES}) are skipped; their gltf
  * siblings are still found because the scan descends into every OTHER directory.
+ *
+ * Returns only the TOP-MOST renderable directory of each subtree: once a dir is
+ * recorded, the scan does NOT descend further, because the caller mirrors each
+ * returned root with a RECURSIVE walk that already captures every nested
+ * renderable file. Returning both a parent and its descendant would mirror the
+ * nested files twice (inflating the sidecar / fileCount) — the layout is derived
+ * from the real tree, which may nest renderable dirs (e.g. LOD sub-folders).
  */
 function findRenderableGltfDirs(packRoot: string, includeSourceFormats: boolean): string[] {
   const found = new Set<string>();
@@ -607,17 +614,18 @@ function findRenderableGltfDirs(packRoot: string, includeSourceFormats: boolean)
       /* v8 ignore next 2 -- extraction-created directories are readable; guards a filesystem race. */
       return;
     }
-    let hasRenderable = false;
-    for (const entry of dirents) {
-      if (entry.isFile()) {
-        const ext = lowercaseExtension(entry.name);
-        if (ext === '.gltf' || ext === '.glb') {
-          hasRenderable = true;
-        }
+    const hasRenderable = dirents.some((entry) => {
+      if (!entry.isFile()) {
+        return false;
       }
-    }
+      const ext = lowercaseExtension(entry.name);
+      return ext === '.gltf' || ext === '.glb';
+    });
     if (hasRenderable) {
+      // This dir is a renderable root; the caller's recursive walk covers every
+      // nested renderable, so stop descending — never record a descendant too.
       found.add(dir);
+      return;
     }
     for (const entry of dirents) {
       if (!entry.isDirectory() || entry.isSymbolicLink()) {

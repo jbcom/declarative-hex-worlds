@@ -717,6 +717,46 @@ describe('bootstrapKayKitAssets — character pack (RFC0-10b)', () => {
     expect(existsSync(join(gltfDir, 'Samples'))).toBe(false);
   });
 
+  it('mirrors a NESTED renderable dir exactly once (no duplicate sidecar entries)', async () => {
+    // A pack whose Characters/gltf ALSO has a nested LOD subfolder with a .glb.
+    // The scan must return only the TOP-most renderable dir per subtree, else the
+    // caller's recursive walk mirrors the nested file twice — a malformed sidecar.
+    const layout = characterPackLayout('kaykit_character_pack_adventures');
+    const zipPath = join(tmp(), 'nested.zip');
+    await buildSyntheticZip(
+      layout,
+      [
+        { relative: 'Assets/gltf/sword.gltf', content: JSON.stringify({ asset: { version: '2.0' } }) },
+        { relative: 'Characters/gltf/Knight.glb', content: Buffer.from([1, 2, 3]) },
+        { relative: 'Characters/gltf/variants/Knight_LOD1.glb', content: Buffer.from([4, 5, 6]) },
+      ],
+      zipPath,
+      'repo-main/'
+    );
+    const outRoot = tmp();
+    const result = await bootstrapKayKitAssets({
+      source: { kind: 'zip', path: zipPath },
+      out: outRoot,
+      outRoot: '/',
+      edition: 'free',
+      layout,
+      libraryVersion: '0.0.0-test',
+    });
+    // sword + Knight + Knight_LOD1 = 3 files, EACH exactly once.
+    expect(result.fileCount).toBe(3);
+    const sidecar = JSON.parse(
+      readFileSync(join(outRoot, KAYKIT_BOOTSTRAP_GLTF_RELATIVE, KAYKIT_BOOTSTRAP_SIDECAR), 'utf8')
+    ) as { files: { path: string }[] };
+    const paths = sidecar.files.map((f) => f.path).sort();
+    expect(paths).toEqual([
+      'Assets/gltf/sword.gltf',
+      'Characters/gltf/Knight.glb',
+      'Characters/gltf/variants/Knight_LOD1.glb',
+    ]);
+    // No path appears twice.
+    expect(new Set(paths).size).toBe(paths.length);
+  });
+
   it('derives the character-pack layout from a registry descriptor', () => {
     const descriptor = PACK_REGISTRY.adventurers;
     const layout = characterPackLayout('kaykit_character_pack_adventures');
