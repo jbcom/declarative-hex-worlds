@@ -6,7 +6,9 @@ import {
   KAYKIT_MEDIEVAL_EXTRA_LAYOUT,
   KAYKIT_MEDIEVAL_FREE_LAYOUT,
   KAYKIT_UPSTREAM_LAYOUTS,
+  characterPackLayout,
   detectKayKitLayout,
+  detectLayoutFrom,
   expectedTexturePaths,
   kayKitLayoutForEdition,
 } from '../upstream-layout';
@@ -164,6 +166,49 @@ describe('KayKit upstream layouts', () => {
         expect(existsSync(join(root, marker))).toBe(false);
       }
       expect(detectKayKitLayout(root)).toBe(KAYKIT_MEDIEVAL_FREE_LAYOUT);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('detects a character pack whose Assets/gltf holds a .gltf model', () => {
+    const layout = characterPackLayout('kaykit_character_pack_adventures');
+    const root = mkdtempSync(join(tmpdir(), 'character-gltf-'));
+    try {
+      const gltfRoot = join(root, layout.relativeGltfRoot);
+      mkdirSync(gltfRoot, { recursive: true });
+      writeFileSync(join(gltfRoot, 'sword.gltf'), '{}');
+      expect(detectLayoutFrom(root, [layout])).toBe(layout);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('detects a character pack whose Assets/gltf holds a .glb model (bodies)', () => {
+    // The character bodies (Knight.glb, …) are .glb — detection must accept .glb
+    // in the gltf root, not just .gltf (upstream-layout.ts:206 branch).
+    const layout = characterPackLayout('kaykit_character_pack_skeletons');
+    const root = mkdtempSync(join(tmpdir(), 'character-glb-'));
+    try {
+      const gltfRoot = join(root, layout.relativeGltfRoot);
+      mkdirSync(gltfRoot, { recursive: true });
+      writeFileSync(join(gltfRoot, 'Skeleton_Warrior.glb'), 'glb-bytes');
+      expect(detectLayoutFrom(root, [layout])).toBe(layout);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('does NOT detect a character pack whose Assets/gltf holds only a non-model file', () => {
+    // A gltf root that exists but contains only a stray .txt (no .gltf/.glb) must
+    // fail character detection — covers the `false` side of the .glb/.gltf test.
+    const layout = characterPackLayout('kaykit_character_pack_adventures');
+    const root = mkdtempSync(join(tmpdir(), 'character-empty-'));
+    try {
+      const gltfRoot = join(root, layout.relativeGltfRoot);
+      mkdirSync(gltfRoot, { recursive: true });
+      writeFileSync(join(gltfRoot, 'readme.txt'), 'not a model');
+      expect(detectLayoutFrom(root, [layout])).toBeUndefined();
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
