@@ -17,6 +17,7 @@
  * @module
  */
 import { z } from 'zod';
+import { buildArchiveUrl } from '../../../config';
 
 /** A stable pack identifier used by the CLI (`bootstrap --pack <id>`) and resolution. */
 export const PACK_IDS = ['medieval-hexagon', 'adventurers', 'skeletons'] as const;
@@ -151,8 +152,12 @@ export function listPackDescriptors(): readonly PackDescriptor[] {
 
 /** Format a pack's upstream archive URL for a given ref (or its default ref). */
 export function packArchiveUrl(descriptor: PackDescriptor, ref?: string): string {
-  return descriptor.github.archiveUrlTemplate
-    .replace('{owner}', descriptor.github.owner)
-    .replace('{repo}', descriptor.github.repo)
-    .replace('{ref}', ref ?? descriptor.github.defaultRef);
+  // Route through the shared builder so a `--commit` ref on the `--pack` path is
+  // SAFE_REF-validated + URL-encoded (CWE-74/CWE-918) — the old raw `.replace`
+  // skipped both, the last unguarded download URL builder.
+  return buildArchiveUrl(descriptor.github.archiveUrlTemplate, {
+    owner: descriptor.github.owner,
+    repo: descriptor.github.repo,
+    ref: ref ?? descriptor.github.defaultRef,
+  });
 }

@@ -41,8 +41,18 @@ export interface TexturedHexMeshOptions {
   cell: CellRect;
   hex: HexDims;
   /**
-   * Hex orientation. `'pointy'` (default) has a vertex at the top (matches the
-   * pointy-top tileset sheets); `'flat'` has a flat edge at the top.
+   * Draw shape (see `AssetRenderRequest['shape']`):
+   *   - `'quad'` (default): the full cell rect is a rectangle spanning
+   *     `hex.width × hex.height`. Painterly hex atlases paint each cell as a
+   *     flattened hex with TRANSPARENT corners; a full quad lets neighbours' opaque
+   *     bodies fill each other's transparent corners, tessellating SEAMLESSLY. This
+   *     matches the canvas-2D binding, which always blits the whole cell.
+   *   - `'hex'`: clip to a hexagon silhouette. Only for opaque edge-to-edge cells.
+   */
+  shape?: 'quad' | 'hex';
+  /**
+   * Hex orientation (only meaningful for `shape: 'hex'`). `'pointy'` (default) has
+   * a vertex at the top; `'flat'` has a flat edge at the top.
    */
   orientation?: 'pointy' | 'flat';
   /** Whether the mesh is double-sided (default: true, so top-down cameras see it). */
@@ -109,23 +119,70 @@ export function buildHexGeometry(
 }
 
 /**
- * Build a textured hex `Mesh` for a tileset-cell render request: a hexagon
- * geometry (UV-mapped to the cell) with a `MeshBasicMaterial` sampling the sheet.
- * The caller owns the returned mesh's lifecycle (position it on the board, add to
- * the scene, dispose on removal).
+ * Build a QUAD `BufferGeometry` in the XZ plane (Y=0): a flat rectangle spanning
+ * `hex.width` on X and `hex.height` on Z, UV-mapped to the cell's sub-rect. This is
+ * the seamless-tessellation path — the full cell (including its transparent hex
+ * corners) is drawn, so neighbouring cells' opaque bodies fill each other's corners
+ * into continuous terrain. The 3D analogue of the canvas-2D binding's `drawImage`.
+ */
+export function buildQuadGeometry(
+  cell: CellRect,
+  hex: HexDims,
+  sheetWidth: number,
+  sheetHeight: number
+): BufferGeometry {
+  const halfW = hex.width / 2;
+  const halfH = hex.height / 2;
+
+  // Cell UV bounds (three UV origin is bottom-left; image rows go top-down, so
+  // flip V).
+  const u0 = cell.x / sheetWidth;
+  const u1 = (cell.x + cell.width) / sheetWidth;
+  const v0 = 1 - (cell.y + cell.height) / sheetHeight;
+  const v1 = 1 - cell.y / sheetHeight;
+
+  // Four corners in the XZ plane: (-x,-z)…(+x,+z). The -Z corners map to the cell's
+  // TOP row (v1) and the +Z corners to the BOTTOM (v0), so the sprite is upright
+  // when viewed from a top-down / iso camera (consistent with buildHexGeometry).
+  const positions = [-halfW, 0, -halfH, halfW, 0, -halfH, halfW, 0, halfH, -halfW, 0, halfH];
+  const uvs = [u0, v1, u1, v1, u1, v0, u0, v0];
+  // CCW winding (viewed from +Y) so the FRONT face points up — tiles stay visible to
+  // a top-down / iso camera even when a consumer sets `doubleSide: false`.
+  const indices = [0, 1, 2, 0, 2, 3];
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+/**
+ * Build a textured `Mesh` for a tileset-cell render request. Defaults to a full
+ * quad (`shape: 'quad'`) — the seamless path for transparent-corner painterly hex
+ * atlases; `shape: 'hex'` clips to a hexagon for opaque edge-to-edge cells. Sampled
+ * with a `MeshBasicMaterial` over the cell. The caller owns the returned mesh's
+ * lifecycle (position it on the board, add to the scene, dispose on removal).
  */
 export function buildTexturedHexMesh(options: TexturedHexMeshOptions): Mesh {
-  const { sheet, cell, hex, orientation = 'pointy', doubleSide = true } = options;
-  const geometry = buildHexGeometry(
-    cell,
-    hex,
-    sheet.sheetWidth,
-    sheet.sheetHeight,
-    orientation
-  );
+  const { sheet, cell, hex, shape = 'quad', orientation = 'pointy', doubleSide = true } = options;
+  const geometry =
+    shape === 'hex'
+      ? buildHexGeometry(cell, hex, sheet.sheetWidth, sheet.sheetHeight, orientation)
+      : buildQuadGeometry(cell, hex, sheet.sheetWidth, sheet.sheetHeight);
+  // A full-cell quad's TRANSPARENT hex corners must not show the clear colour
+  // (ocean blue) as diamond gaps between tiles. Use ALPHA-CUTOUT, not alpha
+  // BLENDING: `transparent: false` + `alphaTest` renders in the OPAQUE queue and the
+  // GPU hard-`discard`s corner fragments below the threshold — they never write
+  // colour OR depth, so the neighbour's opaque body shows through and tiles still
+  // z-sort by elevation. (Alpha blending — `transparent: true` — sorts back-to-front
+  // and, combined with alphaTest, gave inconsistent corner discard for the painterly
+  // atlas; the cutout path is the reliable one for its hard-edged alpha.)
   const material = new MeshBasicMaterial({
     map: sheet.texture,
-    transparent: true,
+    transparent: false,
+    alphaTest: 0.5,
     side: doubleSide ? DoubleSide : undefined,
   });
   return new Mesh(geometry, material);

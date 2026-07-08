@@ -75,6 +75,7 @@ import {
   hexKey,
   type InspectGameboardLayoutSitesOptions,
   inspectGameboardLayoutSites,
+  type ProjectWorldOptions,
   projectWorldToGameboardPlan,
 } from '../coordinates';
 import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
@@ -1058,18 +1059,34 @@ export function useGameboardPatrolState(
 /**
  * Project the live Koota world back into a serializable `GameboardPlan`.
  */
-export function useProjectedGameboardPlan(): GameboardPlan | undefined {
+export function useProjectedGameboardPlan(
+  options?: ProjectWorldOptions
+): GameboardPlan | undefined {
   const world = useWorld();
   const state = useGameboardState();
   const tiles = useDecomposedTileEntities();
   const placements = useGameboardPlacementEntities();
   const revision = useGameboardDerivedRevision(PROJECTED_PLAN_REVISION_DOMAINS);
+  const geometry = options?.geometry;
+  // Depend on the geometry's PRIMITIVE fields, not the object reference: a consumer
+  // passing an inline `geometry={{…}}` mints a new object each render, which would
+  // otherwise re-project the whole board every render. Same numbers → same plan.
+  const geomWidth = geometry?.width;
+  const geomDepth = geometry?.depth;
+  const geomElevationStep = geometry?.elevationStep;
   return useMemo(() => {
     void revision;
     void tiles.length;
     void placements.length;
-    return state ? projectWorldToGameboardPlan(world) : undefined;
-  }, [world, state, tiles, placements, revision]);
+    const geom =
+      geomWidth === undefined || geomDepth === undefined || geomElevationStep === undefined
+        ? undefined
+        : { width: geomWidth, depth: geomDepth, elevationStep: geomElevationStep };
+    return state
+      ? projectWorldToGameboardPlan(world, geom === undefined ? undefined : { geometry: geom })
+      : undefined;
+    // biome-ignore lint/correctness/useExhaustiveDependencies: geometry is decomposed into its primitive fields above to avoid re-projecting on an inline-object reference change.
+  }, [world, state, tiles, placements, revision, geomWidth, geomDepth, geomElevationStep]);
 }
 
 /**

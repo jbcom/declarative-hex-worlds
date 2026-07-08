@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GameboardPlacementSpec } from '../../gameboard';
-import { cellRect, createTilesetSource } from '../tileset';
+import { cellRect, createTilesetSource, tilesetHexGeometry } from '../tileset';
 import type { TilesetManifest } from '../tileset-manifest';
 
 const manifest: TilesetManifest = {
@@ -83,8 +83,22 @@ describe('tileset AssetSource', () => {
       expect(request.dimension).toBe('2d'); // tileset cells are 2D-first (RFC0-RENDER)
       expect(request.sheetUrl).toBe('tiles/grassland.png');
       expect(request.cell.width).toBe(96);
-      expect(request.hex).toEqual({ width: 1, height: 83 / 96 });
+      // Quad footprint = board hex width (2) × overlap (1.3) so cutout hexes
+      // overlap into seamless terrain, with height keeping the CELL ASPECT
+      // (width · 83/96) so the foreshortened painterly hex isn't distorted — NOT
+      // the old unit hex (gaps), NOT the regular-hex depth 2.3094 (squishes the art).
+      const expectedWidth = 2 * 1.3;
+      expect(request.hex.width).toBeCloseTo(expectedWidth);
+      expect(request.hex.height).toBeCloseTo((expectedWidth * 83) / 96);
+      // Defaults to the 'quad' shape (full cell drawn) for seamless painterly terrain.
+      expect(request.shape).toBe('quad');
     }
+  });
+
+  it('emits shape:"hex" when the source is created with shape:"hex"', () => {
+    const source = createTilesetSource({ manifest, shape: 'hex' });
+    const request = source.resolve(placement({ assetId: 'grass', tileKey: '2,3' }));
+    expect(request?.type === 'tileset-cell' && request.shape).toBe('hex');
   });
 
   it('picks the same fill cell for the same tileKey (deterministic hash)', () => {
@@ -104,9 +118,7 @@ describe('tileset AssetSource', () => {
 
   it('prefers a metadata biome hint over the assetId', () => {
     const source = createTilesetSource({ manifest });
-    const request = source.resolve(
-      placement({ assetId: 'ignored', metadata: { biome: 'field' } })
-    );
+    const request = source.resolve(placement({ assetId: 'ignored', metadata: { biome: 'field' } }));
     expect(request?.type).toBe('tileset-cell');
     if (request?.type === 'tileset-cell') {
       expect(request.sheetUrl).toBe('tiles/plains.png');
@@ -193,5 +205,28 @@ describe('tileset AssetSource', () => {
     if (request?.type === 'tileset-cell') {
       expect(request.hex).toEqual({ width: 2, height: 2 });
     }
+  });
+});
+
+describe('tilesetHexGeometry', () => {
+  it('derives foreshortened row spacing from the first sheet cell aspect', () => {
+    const geom = tilesetHexGeometry(manifest);
+    // width stays the board default; depth = (2/3) · (width · cellH/cellW) so that
+    // rowSpacing = 1.5·(depth/2) = height/2, the interlock spacing.
+    expect(geom.width).toBeCloseTo(2);
+    expect(geom.depth).toBeCloseTo((2 / 3) * ((2 * 83) / 96));
+    expect(geom.elevationStep).toBe(1);
+  });
+
+  it('honours an explicit grid override', () => {
+    const geom = tilesetHexGeometry(manifest, { cols: 1, rows: 1, cellWidth: 64, cellHeight: 64 });
+    // square cell → depth = (2/3)·(width·1) = (2/3)·2
+    expect(geom.depth).toBeCloseTo((2 / 3) * 2);
+  });
+
+  it('falls back to the regular-hex depth when the manifest has no sheets', () => {
+    const empty: TilesetManifest = { schemaVersion: '1', kind: 'tileset', sheets: {}, biomes: {} };
+    const geom = tilesetHexGeometry(empty);
+    expect(geom.depth).toBeCloseTo(2.3094);
   });
 });

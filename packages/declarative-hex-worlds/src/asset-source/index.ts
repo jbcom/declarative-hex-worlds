@@ -9,35 +9,15 @@
  *
  * @module
  */
-export {
-  ASSET_FORMATS,
-  ASSET_ROLES,
-  type AssetFormat,
-  type AssetGrid,
-  type AssetRole,
-  type AssetSpec,
-  type AssetSourceSpec,
-  assetSchema,
-  assetSourceSpecSchema,
-  parseAssetSourceSpec,
-  safeParseAssetSourceSpec,
-} from './spec';
-export {
-  type AssetDimension,
-  type AssetRenderRequest,
-  type AssetSource,
-  type AssetTransform,
-  type CellRect,
-  type HexDims,
-  type ResolveContext,
-} from './source';
+
+export { createGltfPackSource, type GltfPackSourceOptions } from './gltf-pack';
 // NOTE: the imperative RenderBackend seam (render-backend.ts) was superseded by the
 // signals+bindings architecture (koota traits ARE the signals; bindings subscribe).
 export {
+  createGameboardPlacementAssetUrlResolver,
   type GameboardPlacementAnimationUrlOptions,
   type GameboardPlacementAssetUrlOptions,
   type GameboardPlacementAssetUrlResolver,
-  createGameboardPlacementAssetUrlResolver,
   resolveAssetUrl,
   resolveAssetUrlById,
   resolveGameboardPlacementAnimationUrl,
@@ -47,17 +27,45 @@ export {
   transformForVariant,
 } from './placement-resolution';
 export {
-  type ScanResult,
-  type ScannedAsset,
-  type ScannedFile,
   assetIdFromPath,
   buildAssetSourceSpec,
   guessTileBiome,
+  type ScannedAsset,
+  type ScannedFile,
+  type ScanResult,
   scanAssetFiles,
 } from './scan';
-export { type GltfPackSourceOptions, createGltfPackSource } from './gltf-pack';
-export { type TilesetSourceOptions, cellRect, createTilesetSource } from './tileset';
+export type {
+  AssetDimension,
+  AssetRenderRequest,
+  AssetSource,
+  AssetTransform,
+  CellRect,
+  HexDims,
+  ResolveContext,
+} from './source';
 export {
+  ASSET_FORMATS,
+  ASSET_ROLES,
+  type AssetFormat,
+  type AssetGrid,
+  type AssetRole,
+  type AssetSourceSpec,
+  type AssetSpec,
+  assetSchema,
+  assetSourceSpecSchema,
+  parseAssetSourceSpec,
+  safeParseAssetSourceSpec,
+} from './spec';
+export {
+  cellRect,
+  createTilesetSource,
+  type TilesetSourceOptions,
+  tilesetHexGeometry,
+} from './tileset';
+export {
+  parseTilesetManifest,
+  safeParseTilesetManifest,
   TILESET_BIOME_SELECTORS,
   TILESET_SHEET_ROLES,
   type TilesetBiome,
@@ -66,7 +74,5 @@ export {
   type TilesetManifest,
   type TilesetSheet,
   type TilesetSheetRole,
-  parseTilesetManifest,
-  safeParseTilesetManifest,
   tilesetManifestSchema,
 } from './tileset-manifest';

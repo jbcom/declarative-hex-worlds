@@ -13,9 +13,9 @@ import { createGameboardBuilder } from '../../gameboard/index';
 import { createGameboardWorld, spawnGameboardPlacement } from '../../koota/index';
 import {
   findHexPath,
+  hexKey,
   hexLine,
   hexRing,
-  hexKey,
   minHeapCreate,
   minHeapPop,
   selectSpawnCoordinates,
@@ -128,6 +128,36 @@ describe('projectWorldToGameboardPlan empty-world throw (PRD E0a)', () => {
         .filter((placement) => placement.id.startsWith('custom:'))
         .map((placement) => placement.id)
     ).toEqual(['custom:a', 'custom:b']);
+  });
+
+  it('places tiles using a supplied geometry override (custom row spacing)', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'projection-geometry-override',
+        shape: { kind: 'rectangle', width: 1, height: 2 },
+      }).build()
+    );
+
+    // A geometry whose depth (and thus rowSpacing = 1.5·depth/2) differs from the
+    // default: the r=1 row's world Z must scale to the override, not the default.
+    const geometry = { width: 2, depth: 20, elevationStep: 1 };
+    const projected = projectWorldToGameboardPlan(world, { geometry });
+    const defaultProjected = projectWorldToGameboardPlan(world);
+
+    const terrainAt = (plan: typeof projected, r: number) =>
+      plan.placements.find(
+        (placement) => placement.layer === 'terrain' && placement.coordinates.r === r
+      );
+
+    const overrideRow1 = terrainAt(projected, 1);
+    const defaultRow1 = terrainAt(defaultProjected, 1);
+    expect(overrideRow1).toBeDefined();
+    expect(defaultRow1).toBeDefined();
+
+    // rowSpacing = 1.5·(depth/2): override 15 vs default 1.5·(2.3094/2) ≈ 1.732.
+    expect(overrideRow1?.position.z).toBeCloseTo(1.5 * (20 / 2));
+    // The override moved the row: its Z is not the default row spacing.
+    expect(overrideRow1?.position.z).not.toBeCloseTo(defaultRow1?.position.z ?? 0);
   });
 });
 

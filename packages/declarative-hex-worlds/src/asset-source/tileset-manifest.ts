@@ -110,9 +110,12 @@ export const tilesetManifestSchema = z
         path: ['sheets'],
       });
     }
-    // Every biome must reference a declared sheet.
+    // Every biome must reference a declared sheet. Use Object.hasOwn, NOT `in`:
+    // `in` walks the prototype chain, so a manifest whose biome names a sheet
+    // like "constructor" or "toString" would spuriously validate against
+    // Object.prototype (a validation bypass on attacker-supplied manifest JSON).
     for (const [biomeKey, biome] of Object.entries(manifest.biomes)) {
-      if (!(biome.sheet in manifest.sheets)) {
+      if (!Object.hasOwn(manifest.sheets, biome.sheet)) {
         ctx.addIssue({
           code: 'custom',
           message: `biome "${biomeKey}" references unknown sheet "${biome.sheet}"`,

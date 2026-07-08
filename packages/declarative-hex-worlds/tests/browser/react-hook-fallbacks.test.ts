@@ -1,6 +1,6 @@
+import type { World } from 'koota';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import type { World } from 'koota';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createGameboardBuilder, createGameboardWorld } from '../../src';
 import {
@@ -120,6 +120,34 @@ describe('React hook fallback browser coverage', () => {
     expect(unserializableRenderCount).toBeGreaterThanOrEqual(2);
   });
 
+  it('projects the live plan with a geometry override (custom row spacing)', async () => {
+    setReactActEnvironment();
+    const world = createGameboardWorld(
+      createGameboardBuilder({
+        seed: 'react-projected-geometry',
+        shape: { kind: 'rectangle', width: 1, height: 2 },
+      }).build()
+    );
+    let report: { overrideRowZ?: number; defaultRowZ?: number } | undefined;
+
+    await renderReactElement(
+      React.createElement(
+        WorldProviderElement,
+        { world },
+        React.createElement(ProjectedGeometryProbe, {
+          onReport: (value) => {
+            report = value;
+          },
+        })
+      )
+    );
+
+    expect(report).toBeDefined();
+    // rowSpacing = 1.5·(depth/2); override depth 20 → 15, distinct from the default.
+    expect(report?.overrideRowZ).toBeCloseTo(1.5 * (20 / 2));
+    expect(report?.overrideRowZ).not.toBeCloseTo(report?.defaultRowZ ?? 0);
+  });
+
   it('drops queued revision updates after unmount', async () => {
     setReactActEnvironment();
     const world = createGameboardWorld(
@@ -163,9 +191,11 @@ describe('React hook fallback browser coverage', () => {
 });
 
 function setReactActEnvironment(): void {
-  previousActEnvironment = (globalThis as {
-    IS_REACT_ACT_ENVIRONMENT?: boolean;
-  }).IS_REACT_ACT_ENVIRONMENT;
+  previousActEnvironment = (
+    globalThis as {
+      IS_REACT_ACT_ENVIRONMENT?: boolean;
+    }
+  ).IS_REACT_ACT_ENVIRONMENT;
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 }
 
@@ -260,5 +290,24 @@ function QueuedRevisionProbe({
   const actions = useGameboardActions();
   useProjectedGameboardPlan();
   onReport({ actions });
+  return null;
+}
+
+function ProjectedGeometryProbe({
+  onReport,
+}: {
+  onReport: (report: { overrideRowZ?: number; defaultRowZ?: number }) => void;
+}) {
+  // Passing a geometry override exercises the `geometry === undefined ? … : { geometry }`
+  // truthy arm of useProjectedGameboardPlan — the tileset-render row-spacing path.
+  const override = useProjectedGameboardPlan({
+    geometry: { width: 2, depth: 20, elevationStep: 1 },
+  });
+  const fallback = useProjectedGameboardPlan();
+  const rowZ = (plan: typeof override) =>
+    plan?.placements.find(
+      (placement) => placement.layer === 'terrain' && placement.coordinates.r === 1
+    )?.position.z;
+  onReport({ overrideRowZ: rowZ(override), defaultRowZ: rowZ(fallback) });
   return null;
 }

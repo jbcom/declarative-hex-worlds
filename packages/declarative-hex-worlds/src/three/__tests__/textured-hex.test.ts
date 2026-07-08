@@ -1,7 +1,12 @@
 import { BufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, Texture } from 'three';
 import { describe, expect, it } from 'vitest';
 import type { CellRect, HexDims } from '../../asset-source';
-import { buildHexGeometry, buildTexturedHexMesh, type SheetTexture } from '../textured-hex';
+import {
+  buildHexGeometry,
+  buildQuadGeometry,
+  buildTexturedHexMesh,
+  type SheetTexture,
+} from '../textured-hex';
 
 const cell: CellRect = { x: 96, y: 83, width: 96, height: 83 };
 const hex: HexDims = { width: 2, height: 2 };
@@ -91,6 +96,42 @@ describe('buildHexGeometry', () => {
   });
 });
 
+describe('buildQuadGeometry', () => {
+  it('produces a full 4-corner quad (4 vertices, 2 triangles) spanning the hex dims', () => {
+    const geometry = buildQuadGeometry(cell, { width: 4, height: 6 }, sheetWidth, sheetHeight);
+    const pos = geometry.getAttribute('position');
+    expect(pos.count).toBe(4);
+    expect(geometry.getIndex()?.count).toBe(6); // 2 triangles * 3
+    // Corners at ±halfW (=2) on X and ±halfH (=3) on Z, all on Y=0.
+    let maxX = 0;
+    let maxZ = 0;
+    for (let i = 0; i < pos.count; i++) {
+      expect(pos.getY(i)).toBe(0);
+      maxX = Math.max(maxX, Math.abs(pos.getX(i)));
+      maxZ = Math.max(maxZ, Math.abs(pos.getZ(i)));
+    }
+    expect(maxX).toBeCloseTo(2);
+    expect(maxZ).toBeCloseTo(3);
+  });
+
+  it('maps the four corner UVs to the exact cell rect (full cell, no hex clipping)', () => {
+    const geometry = buildQuadGeometry(cell, hex, sheetWidth, sheetHeight);
+    const uv = geometry.getAttribute('uv');
+    const u0 = 96 / 480;
+    const u1 = 192 / 480;
+    const v0 = 1 - 166 / 830;
+    const v1 = 1 - 83 / 830;
+    // Corners span the full [u0,u1]×[v0,v1] rect — the whole cell is drawn, so
+    // transparent hex corners of neighbouring cells overlap into seamless terrain.
+    const us = Array.from({ length: uv.count }, (_, i) => uv.getX(i));
+    const vs = Array.from({ length: uv.count }, (_, i) => uv.getY(i));
+    expect(Math.min(...us)).toBeCloseTo(u0);
+    expect(Math.max(...us)).toBeCloseTo(u1);
+    expect(Math.min(...vs)).toBeCloseTo(v0);
+    expect(Math.max(...vs)).toBeCloseTo(v1);
+  });
+});
+
 describe('buildTexturedHexMesh', () => {
   it('builds a Mesh with a MeshBasicMaterial sampling the sheet texture', () => {
     const s = sheet();
@@ -100,8 +141,19 @@ describe('buildTexturedHexMesh', () => {
     expect(mesh.material).toBeInstanceOf(MeshBasicMaterial);
     const material = mesh.material as MeshBasicMaterial;
     expect(material.map).toBe(s.texture);
-    expect(material.transparent).toBe(true);
+    expect(material.alphaTest).toBeGreaterThan(0); // cutout
     expect(material.side).toBe(DoubleSide);
+  });
+
+  it('defaults to the quad shape (full cell, 4 vertices) for seamless tessellation', () => {
+    const mesh = buildTexturedHexMesh({ sheet: sheet(), cell, hex });
+    // Quad = 4 vertices; hex would be 7 (center + 6 corners).
+    expect(mesh.geometry.getAttribute('position').count).toBe(4);
+  });
+
+  it('builds a clipped hexagon (7 vertices) when shape:"hex" is requested', () => {
+    const mesh = buildTexturedHexMesh({ sheet: sheet(), cell, hex, shape: 'hex' });
+    expect(mesh.geometry.getAttribute('position').count).toBe(7);
   });
 
   it('respects doubleSide:false (single-sided material)', () => {
@@ -110,8 +162,24 @@ describe('buildTexturedHexMesh', () => {
     expect(material.side).not.toBe(DoubleSide);
   });
 
-  it('honors an explicit flat orientation', () => {
-    const mesh = buildTexturedHexMesh({ sheet: sheet(), cell, hex, orientation: 'flat' });
+  it('discards transparent corners (alphaTest) so they cannot depth-occlude neighbours', () => {
+    // The blue-diamond bug: a full-cell quad's transparent hex corners must NOT
+    // write depth over the opaque body of the neighbour behind them. Satisfied by
+    // alphaTest > 0 (fragment discard) or depthWrite:false.
+    const material = buildTexturedHexMesh({ sheet: sheet(), cell, hex })
+      .material as MeshBasicMaterial;
+    expect(material.alphaTest).toBeGreaterThan(0); // cutout
+    expect(material.alphaTest > 0 || material.depthWrite === false).toBe(true);
+  });
+
+  it('honors an explicit flat orientation on the hex shape', () => {
+    const mesh = buildTexturedHexMesh({
+      sheet: sheet(),
+      cell,
+      hex,
+      shape: 'hex',
+      orientation: 'flat',
+    });
     const pos = mesh.geometry.getAttribute('position');
     expect(pos.getX(1)).toBeCloseTo(hex.width / 2);
     expect(pos.getZ(1)).toBeCloseTo(0);

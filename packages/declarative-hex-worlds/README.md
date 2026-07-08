@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/jbcom/declarative-hex-worlds/main/docs-site/public/hero.png" alt="Declarative Hex Worlds" width="540">
+<img src="https://raw.githubusercontent.com/jbcom/declarative-hex-worlds/main/packages/docs-site/public/hero.png" alt="Declarative Hex Worlds" width="540">
 
 # declarative-hex-worlds
 
@@ -126,6 +126,7 @@ The `/core` tier is the "declare + JSON + validate + hex math, bring-your-own ru
 |---|---|---|
 | [Quickstart](https://jonbogaty.com/declarative-hex-worlds/guides/getting-started/) | [Feature gallery](https://jonbogaty.com/declarative-hex-worlds/features/) | [API reference](https://jonbogaty.com/declarative-hex-worlds/reference/readme/) |
 | [Asset bootstrap](https://jonbogaty.com/declarative-hex-worlds/guides/asset-bootstrap/) | [CLI](https://jonbogaty.com/declarative-hex-worlds/guides/cli-reference/) | [Errors](https://jonbogaty.com/declarative-hex-worlds/guides/errors/) |
+| [Tilesets](https://jonbogaty.com/declarative-hex-worlds/guides/tilesets/) | [Bindings + bundling](https://jonbogaty.com/declarative-hex-worlds/guides/bindings/) | [Determinism](https://jonbogaty.com/declarative-hex-worlds/guides/determinism/) |
 | [Bindings + bundling](https://jonbogaty.com/declarative-hex-worlds/guides/bindings/) | [Determinism contract](https://jonbogaty.com/declarative-hex-worlds/guides/determinism/) | [Architecture](https://jonbogaty.com/declarative-hex-worlds/about/architecture/) |
 | [Testing](https://jonbogaty.com/declarative-hex-worlds/guides/testing/) | [Design rationale](https://jonbogaty.com/declarative-hex-worlds/about/design/) | [Deployment](https://jonbogaty.com/declarative-hex-worlds/about/deployment/) |
 

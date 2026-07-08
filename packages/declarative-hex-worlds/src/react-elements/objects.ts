@@ -19,8 +19,8 @@
  */
 import { useFrame, useThree } from '@react-three/fiber';
 import { useRef } from 'react';
-import type { LoadedGameboardPlacementObject } from '../three';
 import { useProjectedGameboardPlan } from '../react';
+import type { LoadedGameboardPlacementObject } from '../three';
 import { useHexWorldContext } from './context';
 import { syncHexWorldPlacements } from './objects-sync';
 
@@ -44,11 +44,45 @@ export interface GameboardObjectsProps {
 export function GameboardObjects({ animate = true }: GameboardObjectsProps = {}): null {
   const context = useHexWorldContext();
   const scene = useThree((state) => state.scene);
-  const plan = useProjectedGameboardPlan();
+  // Project with the world's geometry override (a foreshortened tileset board packs
+  // its rows tighter so full-cell quads interlock — see HexWorldProps.geometry).
+  const plan = useProjectedGameboardPlan(
+    context.geometry === undefined ? undefined : { geometry: context.geometry }
+  );
   const records = useRef<Map<string, LoadedGameboardPlacementObject>>(new Map());
+  const inFlight = useRef(false);
 
   useFrame((_, delta) => {
-    void syncHexWorldPlacements(plan, context, scene, records.current, animate ? delta : undefined);
+    // syncHexWorldPlacements is ASYNC: a placement's record is only stored in
+    // `records` AFTER its awaited texture/GLTF load resolves. Without an in-flight
+    // guard, every frame between a pass kicking off and its loads resolving sees an
+    // empty `records`, treats every placement as new, and re-adds a FULL board of
+    // meshes — leaking ~one board per frame (e.g. 21k+ meshes for a 2.3k-tile board)
+    // until the promises settle, exhausting draw calls and losing the GL context.
+    // Serialize passes: never start a new reconcile while one is still pending, so a
+    // pass completes and populates `records` before the next begins and dedupes.
+    if (inFlight.current) {
+      return;
+    }
+    const pass = syncHexWorldPlacements(
+      plan,
+      context,
+      scene,
+      records.current,
+      animate ? delta : undefined
+    );
+    if (pass === undefined) {
+      return;
+    }
+    inFlight.current = true;
+    // Clear the guard when the pass settles. `.finally` re-raises a rejection, so
+    // chain `.catch` too: a rejected reconcile (a bad load) must clear the guard AND
+    // be swallowed here rather than surface as an unhandled promise rejection.
+    void pass
+      .finally(() => {
+        inFlight.current = false;
+      })
+      .catch(() => {});
   });
 
   return null;

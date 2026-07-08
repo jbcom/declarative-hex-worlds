@@ -1,0 +1,7 @@
+{
+  "$comment": "Default hex-grid world geometry for declarative-hex-worlds. These are DATA, not engine constants — the agnostic core loads them so no pack's numbers are hardcoded. The defaults happen to match the KayKit Medieval Hexagon pack (the reference asset pack), but any pack/board overrides them via createGameboardCoordinateSystem({ geometry }) or a tileset source's `hex`. width = flat-to-flat tile width (world X); depth = point-to-point tile depth (world Z) for a pointy-top hex; elevationStep = world-unit rise per elevation level; orientation = hex vertex layout.",
+  "width": 2,
+  "depth": 2.3094,
+  "elevationStep": 1,
+  "orientation": "pointy"
+}
