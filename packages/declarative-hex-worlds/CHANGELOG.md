@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.1.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.0.2...declarative-hex-worlds@1.1.0) (2026-07-08)
+
+
+### Features
+
+* generic asset sources + first-class consumer package (RFC 0001) ([#220](https://github.com/jbcom/declarative-hex-worlds/issues/220)) ([2eb4571](https://github.com/jbcom/declarative-hex-worlds/commit/2eb4571ffbf9dedb620a8f5cb7044e5056ee7e42))
+* real asset provisioning — scan-derived pack layout, pack classifiers, showcase pillars, 2D sprites ([#222](https://github.com/jbcom/declarative-hex-worlds/issues/222)) ([6763589](https://github.com/jbcom/declarative-hex-worlds/commit/6763589fd3af9ee191c51b319f4be4dfa83e6469))
+
 ## [1.0.2](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.0.1...declarative-hex-worlds@1.0.2) (2026-07-06)
 
 
