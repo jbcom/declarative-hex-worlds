@@ -20,37 +20,15 @@
  *
  * @module
  */
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename, join, relative, resolve } from 'node:path';
-import {
-  buildAssetSourceSpec,
-  inferTilesetGrid,
-  readPngDimensions,
-  safeParseAssetSourceSpec,
-} from '../../../asset-source';
+import { writeFileSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
+import { buildAssetSourceSpec, safeParseAssetSourceSpec } from '../../../asset-source';
 import { GameboardCliError } from '../../../errors';
 import type { PackEdition } from '../../../types';
 import { type ParsedArgs, safeResolveOutput } from '../../_shared';
+import { collectFiles, measureTilesetGrid } from '../_scan-fs';
 import { createReadlinePrompter, type Prompter } from './prompter';
-import { type MeasuredGrid, runInitWizard } from './wizard';
-
-/** Recursively collect every file path under `root`, relative to `root` (forward slashes). */
-function collectFiles(root: string, current: string = root): string[] {
-  const files: string[] = [];
-  for (const entry of readdirSync(current, { withFileTypes: true })) {
-    const full = join(current, entry.name);
-    // Symlinks are skipped (see bind.ts) so the walk can't cycle or escape the root.
-    if (entry.isSymbolicLink()) {
-      continue;
-    }
-    if (entry.isDirectory()) {
-      files.push(...collectFiles(root, full));
-    } else {
-      files.push(relative(root, full).replace(/\\/g, '/'));
-    }
-  }
-  return files;
-}
+import { runInitWizard } from './wizard';
 
 /**
  * Run the interactive init flow against an already-constructed `Prompter`. Split from the
@@ -75,14 +53,8 @@ export async function runInitWith(prompter: Prompter, parsed: ParsedArgs): Promi
 
   // Injected measurer: read the atlas PNG + derive the exact cell size for the human's
   // chosen cols/rows (keeps the pure wizard free of fs/image-decode).
-  const measureGrid = (assetPath: string, cols: number, rows: number): MeasuredGrid | undefined => {
-    try {
-      const bytes = readFileSync(join(dir, assetPath));
-      return inferTilesetGrid(readPngDimensions(bytes), cols, rows);
-    } catch {
-      return undefined;
-    }
-  };
+  const measureGrid = (assetPath: string, cols: number, rows: number) =>
+    measureTilesetGrid(dir, assetPath, cols, rows);
 
   const refined = await runInitWizard(prompter, { spec, measureGrid });
 

@@ -173,6 +173,23 @@ export function guessGameplayCategory(path: string): GameplayCategory | undefine
 }
 
 /**
+ * Return a copy of an asset with any `category` field removed. Used by the `init` and `web`
+ * authoring flows when the developer clears a suggested gameplay category (choosing "none").
+ */
+export function stripAssetCategory(
+  asset: AssetSourceSpec['assets'][number]
+): AssetSourceSpec['assets'][number] {
+  if ('category' in asset) {
+    const { category: _drop, ...rest } = asset as { category?: GameplayCategory } & Record<
+      string,
+      unknown
+    >;
+    return rest as AssetSourceSpec['assets'][number];
+  }
+  return asset;
+}
+
+/**
  * Classify a scanned file list into candidate assets. A file's role comes from its
  * top-level directory; its format from its extension. Files under an unknown directory,
  * with an unsupported extension, or whose extension doesn't fit the role, are skipped.

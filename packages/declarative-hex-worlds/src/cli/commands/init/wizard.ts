@@ -23,16 +23,10 @@ import {
   BIOME_KEYWORDS,
   GAMEPLAY_CATEGORIES,
   type GameplayCategory,
+  stripAssetCategory,
 } from '../../../asset-source';
+import type { MeasuredGrid } from '../_scan-fs';
 import type { Prompter } from './prompter';
-
-/** A measured tileset grid — cols/rows chosen by the human, cell size derived from pixels. */
-export interface MeasuredGrid {
-  cols: number;
-  rows: number;
-  cellWidth: number;
-  cellHeight: number;
-}
 
 /** Options for {@link runInitWizard}. */
 export interface InitWizardOptions {
@@ -42,7 +36,9 @@ export interface InitWizardOptions {
    * Measure a tileset's cell grid from a chosen cols×rows by reading the atlas PNG. The
    * command injects this (it reads bytes + calls `readPngDimensions`/`inferTilesetGrid`);
    * returns `undefined` when the PNG can't be measured (missing/oversized/etc.), in which
-   * case the wizard keeps the chosen cols/rows with a `0` cell size flagged to the author.
+   * case the wizard keeps the tileset's SUGGESTED (placeholder) grid — which still
+   * validates — and flags the failure, rather than emitting a zero-size cell that would
+   * abort the whole spec write.
    */
   readonly measureGrid: (assetPath: string, cols: number, rows: number) => MeasuredGrid | undefined;
 }
@@ -87,7 +83,7 @@ async function refineAsset(
   // Only model + sprite remain (tile + tileset returned above) — both carry an optional
   // gameplay category the developer confirms/overrides/clears.
   const category = await pickCategory(prompter, asset.id, asset.category);
-  return category === undefined ? stripCategory(asset) : { ...asset, category };
+  return category === undefined ? stripAssetCategory(asset) : { ...asset, category };
 }
 
 /** Prompt for a tile's biome, pre-selecting the heuristic's guess. */
@@ -127,13 +123,14 @@ async function pickCategory(
 /**
  * Prompt for a tileset's atlas grid: ask cols/rows, measure the cell size from the PNG.
  * A non-positive or non-integer entry re-prompts. When the PNG can't be measured the
- * chosen cols/rows are kept with a `0` cell size (surfaced to the author).
+ * tileset keeps its SUGGESTED (placeholder) grid — which still validates — and the
+ * failure is surfaced, rather than a zero-size cell that would abort the spec write.
  */
 async function pickTilesetGrid(
   prompter: Prompter,
   asset: Extract<AssetSpec, { role: 'tileset' }>,
   options: InitWizardOptions
-): Promise<MeasuredGrid> {
+): Promise<Extract<AssetSpec, { role: 'tileset' }>['grid']> {
   prompter.note(`Tileset "${asset.id}" (${asset.path}) — how many cells across × down?`);
   const cols = await askPositiveInt(prompter, 'Columns', asset.grid.cols);
   const rows = await askPositiveInt(prompter, 'Rows', asset.grid.rows);
@@ -145,9 +142,9 @@ async function pickTilesetGrid(
     return measured;
   }
   prompter.note(
-    `  ! Could not measure "${asset.path}" — kept ${cols}×${rows} with an unknown cell size (edit the JSON).`
+    `  ! Could not measure "${asset.path}" — kept the suggested grid (edit the JSON to fix "${asset.id}").`
   );
-  return { cols, rows, cellWidth: 0, cellHeight: 0 };
+  return asset.grid;
 }
 
 /** Ask for a positive integer, re-prompting until one is entered (default pre-filled). */
@@ -165,13 +162,4 @@ async function askPositiveInt(
     }
     prompter.note(`  Enter a positive whole number for ${label}.`);
   }
-}
-
-/** Return a copy of a model/sprite asset with any `category` field removed. */
-function stripCategory(asset: AssetSpec): AssetSpec {
-  if ('category' in asset) {
-    const { category: _drop, ...rest } = asset as AssetSpec & { category?: GameplayCategory };
-    return rest as AssetSpec;
-  }
-  return asset;
 }

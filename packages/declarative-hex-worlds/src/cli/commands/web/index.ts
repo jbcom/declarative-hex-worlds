@@ -24,13 +24,14 @@
  * @module
  */
 
-import { readdirSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import { basename, join, relative, resolve } from 'node:path';
+import { basename, resolve } from 'node:path';
 import { buildAssetSourceSpec, safeParseAssetSourceSpec } from '../../../asset-source';
 import { GameboardCliError } from '../../../errors';
 import type { PackEdition } from '../../../types';
 import { type ParsedArgs, safeResolveOutput } from '../../_shared';
+import { collectFiles, measureTilesetGrid } from '../_scan-fs';
 import {
   applyWebChoices,
   buildWebConfigPayload,
@@ -40,23 +41,6 @@ import {
 
 /** Max accepted POST body — a spec of choices is tiny; anything larger is rejected. */
 const MAX_BODY_BYTES = 1_000_000;
-
-/** Recursively collect every file path under `root`, relative to `root` (see bind.ts). */
-function collectFiles(root: string, current: string = root): string[] {
-  const files: string[] = [];
-  for (const entry of readdirSync(current, { withFileTypes: true })) {
-    const full = join(current, entry.name);
-    if (entry.isSymbolicLink()) {
-      continue;
-    }
-    if (entry.isDirectory()) {
-      files.push(...collectFiles(root, full));
-    } else {
-      files.push(relative(root, full).replace(/\\/g, '/'));
-    }
-  }
-  return files;
-}
 
 /** Read a request body up to the cap, rejecting an oversized stream. */
 function readBody(req: IncomingMessage): Promise<string> {
@@ -168,7 +152,11 @@ export async function run(
   const outFlag = typeof parsed.flags.out === 'string' ? parsed.flags.out : `${name}.assets.json`;
 
   const save = (choices: readonly WebAssetChoice[]): { path: string } => {
-    const refined = applyWebChoices(spec, choices);
+    // Measure each chosen tileset grid from its atlas PNG (the browser only picks
+    // cols/rows; the cell size is derived server-side — same as bind/init).
+    const refined = applyWebChoices(spec, choices, (assetPath, cols, rows) =>
+      measureTilesetGrid(dir, assetPath, cols, rows)
+    );
     const validation = safeParseAssetSourceSpec(refined);
     if (!validation.success) {
       /* v8 ignore next -- a failed parse always carries ≥1 issue; the ?? is defensive. */

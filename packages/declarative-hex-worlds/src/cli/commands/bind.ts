@@ -19,42 +19,17 @@
  *
  * @module
  */
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename, join, relative, resolve } from 'node:path';
+import { writeFileSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
 import {
   buildAssetSourceSpec,
-  inferTilesetGrid,
-  readPngDimensions,
   type ScannedAsset,
   safeParseAssetSourceSpec,
 } from '../../asset-source';
 import { GameboardCliError } from '../../errors';
 import type { PackEdition } from '../../types';
 import { type ParsedArgs, safeResolveOutput } from '../_shared';
-
-/** Recursively collect every file path under `root`, relative to `root` (forward slashes). */
-function collectFiles(root: string, current: string = root): string[] {
-  const files: string[] = [];
-  for (const entry of readdirSync(current, { withFileTypes: true })) {
-    const full = join(current, entry.name);
-    // Symlinks are skipped deliberately: `Dirent.isDirectory()` is false for a
-    // symlinked dir (Node doesn't follow links for the type flag), so following
-    // them would risk cycles and escapes outside the scanned root. An assets
-    // tree is expected to be plain files/dirs.
-    if (entry.isSymbolicLink()) {
-      continue;
-    }
-    if (entry.isDirectory()) {
-      files.push(...collectFiles(root, full));
-    } else {
-      // Symlinks were already skipped above; anything else in a real assets tree
-      // is a regular file. It becomes a scan candidate — scanAssetFiles filters
-      // anything without a recognized role/extension.
-      files.push(relative(root, full).replace(/\\/g, '/'));
-    }
-  }
-  return files;
-}
+import { collectFiles, measureTilesetGrid } from './_scan-fs';
 
 /**
  * Read a positive-integer CLI flag, throwing on a present-but-invalid value. A bare
@@ -103,16 +78,11 @@ export function runBind(parsed: ParsedArgs): void {
   const resolveTilesetGrid =
     cols !== undefined && rows !== undefined
       ? (asset: ScannedAsset) => {
-          try {
-            const bytes = readFileSync(join(dir, asset.path));
-            return inferTilesetGrid(readPngDimensions(bytes), cols, rows);
-          } catch (error) {
-            console.error(
-              /* v8 ignore next -- readFileSync/readPngDimensions/inferTilesetGrid all throw Error; the String() arm is defensive. */
-              `Could not measure tileset "${asset.id}" (${asset.path}): ${error instanceof Error ? error.message : String(error)}`
-            );
-            return undefined;
+          const measured = measureTilesetGrid(dir, asset.path, cols, rows);
+          if (!measured) {
+            console.error(`Could not measure tileset "${asset.id}" (${asset.path}).`);
           }
+          return measured;
         }
       : undefined;
 

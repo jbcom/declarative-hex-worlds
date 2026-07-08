@@ -11,6 +11,7 @@
  * @module
  */
 import { createInterface, type Interface } from 'node:readline/promises';
+import { GameboardCliError } from '../../../errors';
 
 /** One choice in a {@link Prompter.select} list. */
 export interface PrompterChoice<T extends string> {
@@ -52,19 +53,42 @@ export function createReadlinePrompter(
 ): Prompter & { close(): void } {
   const rl: Interface = createInterface({ input, output });
 
+  // On stdin EOF (Ctrl-D / a closed pipe) `rl.question` neither resolves nor rejects — it
+  // would hang the wizard forever, and a re-prompt loop would never exit. Track the close
+  // and make any in-flight (or subsequent) question reject with EOF so the flow aborts
+  // cleanly instead of wedging the process.
+  let closed = false;
+  const eofWaiters: Array<() => void> = [];
+  rl.on('close', () => {
+    closed = true;
+    for (const notify of eofWaiters.splice(0)) {
+      notify();
+    }
+  });
+
   const note = (message: string): void => {
     output.write(`${message}\n`);
   };
 
+  const question = async (prompt: string): Promise<string> => {
+    if (closed) {
+      throw new GameboardCliError('input closed (EOF) — aborting');
+    }
+    const eof = new Promise<never>((_res, reject) => {
+      eofWaiters.push(() => reject(new GameboardCliError('input closed (EOF) — aborting')));
+    });
+    return Promise.race([rl.question(prompt), eof]);
+  };
+
   const text = async (message: string, defaultValue?: string): Promise<string> => {
     const suffix = defaultValue ? ` (${defaultValue})` : '';
-    const answer = (await rl.question(`${message}${suffix}: `)).trim();
+    const answer = (await question(`${message}${suffix}: `)).trim();
     return answer.length > 0 ? answer : (defaultValue ?? '');
   };
 
   const confirm = async (message: string, defaultValue: boolean): Promise<boolean> => {
     const hint = defaultValue ? 'Y/n' : 'y/N';
-    const answer = (await rl.question(`${message} [${hint}]: `)).trim().toLowerCase();
+    const answer = (await question(`${message} [${hint}]: `)).trim().toLowerCase();
     if (answer.length === 0) {
       return defaultValue;
     }

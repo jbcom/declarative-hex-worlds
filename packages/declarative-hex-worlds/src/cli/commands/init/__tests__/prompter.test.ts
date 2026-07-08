@@ -19,10 +19,28 @@ function harness() {
     prompter,
     output: () => out,
     type: (line: string) => input.write(`${line}\n`),
+    // End the input stream — the readline interface emits 'close' (EOF / Ctrl-D).
+    close: () => input.end(),
   };
 }
 
 describe('createReadlinePrompter', () => {
+  it('rejects a pending question on stdin EOF instead of hanging', async () => {
+    const h = harness();
+    const pending = h.prompter.text('Name');
+    // Close the input stream (EOF / Ctrl-D) — the question must reject, not hang forever.
+    h.close();
+    await expect(pending).rejects.toThrow(/EOF/);
+  });
+
+  it('rejects a fresh question issued after the stream already closed', async () => {
+    const h = harness();
+    h.close();
+    // Give the close event a tick to flip the closed flag.
+    await new Promise((r) => setTimeout(r, 0));
+    await expect(h.prompter.text('Name')).rejects.toThrow(/EOF/);
+  });
+
   it('note() writes a line', () => {
     const h = harness();
     h.prompter.note('hello');

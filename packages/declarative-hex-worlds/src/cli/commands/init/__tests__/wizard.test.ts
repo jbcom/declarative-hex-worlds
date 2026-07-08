@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { AssetSourceSpec } from '../../../../asset-source';
+import type { MeasuredGrid } from '../../_scan-fs';
 import type { Prompter, PrompterChoice } from '../prompter';
-import { type MeasuredGrid, runInitWizard } from '../wizard';
+import { runInitWizard } from '../wizard';
 
 /**
  * A scripted `Prompter`: `selects`/`texts`/`confirms` are consumed in order. Each
@@ -108,24 +109,16 @@ describe('runInitWizard (RFC0-CLI interactive authoring)', () => {
     expect(p.notes.some((n) => n.includes('positive whole number'))).toBe(true);
   });
 
-  it('keeps chosen cols/rows with a 0 cell size when the PNG cannot be measured', async () => {
+  it('keeps the SUGGESTED grid (still valid) when the PNG cannot be measured', async () => {
+    // A measurement failure must NOT emit a zero-size cell (which fails schema validation
+    // and aborts the whole write) — it keeps the placeholder grid + flags the tileset.
+    const suggested = { cols: 1, rows: 1, cellWidth: 1, cellHeight: 1 };
     const spec = specWith([
-      {
-        id: 'sheet',
-        role: 'tileset',
-        format: 'png',
-        path: 'tilesets/sheet.png',
-        grid: { cols: 1, rows: 1, cellWidth: 1, cellHeight: 1 },
-      },
+      { id: 'sheet', role: 'tileset', format: 'png', path: 'tilesets/sheet.png', grid: suggested },
     ]);
     const p = scripted({ texts: ['3', '3'] });
     const out = await runInitWizard(p, { spec, measureGrid: () => undefined });
-    expect((out.assets[0] as { grid: MeasuredGrid }).grid).toEqual({
-      cols: 3,
-      rows: 3,
-      cellWidth: 0,
-      cellHeight: 0,
-    });
+    expect((out.assets[0] as { grid: MeasuredGrid }).grid).toEqual(suggested);
     expect(p.notes.some((n) => n.includes('Could not measure'))).toBe(true);
   });
 

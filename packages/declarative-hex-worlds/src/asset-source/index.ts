@@ -41,6 +41,7 @@ export {
   type ScannedFile,
   type ScanResult,
   scanAssetFiles,
+  stripAssetCategory,
 } from './scan';
 export type {
   AssetDimension,

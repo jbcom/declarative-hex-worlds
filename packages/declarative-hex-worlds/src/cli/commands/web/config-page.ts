@@ -16,6 +16,7 @@ import {
   BIOME_KEYWORDS,
   GAMEPLAY_CATEGORIES,
   type GameplayCategory,
+  stripAssetCategory,
 } from '../../../asset-source';
 
 /** The JSON the config page fetches on load: the suggested spec + the choice vocabularies. */
@@ -36,7 +37,20 @@ export interface WebAssetChoice {
   readonly biome?: string;
   /** `null` explicitly clears a category; `undefined` leaves it unchanged. */
   readonly category?: GameplayCategory | null;
-  readonly grid?: { cols: number; rows: number; cellWidth: number; cellHeight: number };
+  /**
+   * The chosen atlas layout for a tileset (cols × rows). The cell SIZE is measured
+   * server-side from the PNG — the browser only picks how many cells across/down, exactly
+   * like `bind --cols/--rows` and the `init` wizard. (The page never sees pixel sizes.)
+   */
+  readonly grid?: { cols: number; rows: number };
+}
+
+/** A measured tileset grid — cols/rows chosen by the human, cell size derived from pixels. */
+export interface MeasuredGrid {
+  cols: number;
+  rows: number;
+  cellWidth: number;
+  cellHeight: number;
 }
 
 /**
@@ -44,10 +58,16 @@ export interface WebAssetChoice {
  * are matched to assets by id; an asset with no matching choice is left as suggested. Only
  * the field valid for an asset's role is applied (a biome on a tile, a category on a
  * model/sprite, a grid on a tileset).
+ *
+ * A tileset's chosen cols/rows are turned into a full grid by `measureGrid` (the command
+ * injects it — it reads the atlas PNG and derives the cell size, keeping this pure of fs).
+ * If measurement fails (unreadable/oversized PNG) the tileset keeps its SUGGESTED grid so
+ * the spec still validates — the failure is surfaced, never a silent zero-size cell.
  */
 export function applyWebChoices(
   spec: AssetSourceSpec,
-  choices: readonly WebAssetChoice[]
+  choices: readonly WebAssetChoice[],
+  measureGrid: (assetPath: string, cols: number, rows: number) => MeasuredGrid | undefined
 ): AssetSourceSpec {
   const byId = new Map(choices.map((c) => [c.id, c]));
   const assets = spec.assets.map((asset): AssetSpec => {
@@ -59,11 +79,13 @@ export function applyWebChoices(
       return { ...asset, biome: choice.biome };
     }
     if (asset.role === 'tileset' && choice.grid) {
-      return { ...asset, grid: choice.grid };
+      const measured = measureGrid(asset.path, choice.grid.cols, choice.grid.rows);
+      // Fall back to the suggested grid (not a zero-size cell) when the PNG can't be read.
+      return measured ? { ...asset, grid: measured } : asset;
     }
     if (asset.role === 'model' || asset.role === 'sprite') {
       if (choice.category === null) {
-        return stripCategory(asset);
+        return stripAssetCategory(asset);
       }
       if (choice.category !== undefined) {
         return { ...asset, category: choice.category };
@@ -72,15 +94,6 @@ export function applyWebChoices(
     return asset;
   });
   return { ...spec, assets };
-}
-
-/** Return a copy of a model/sprite asset with any `category` field removed. */
-function stripCategory(asset: AssetSpec): AssetSpec {
-  if ('category' in asset) {
-    const { category: _drop, ...rest } = asset as AssetSpec & { category?: GameplayCategory };
-    return rest as AssetSpec;
-  }
-  return asset;
 }
 
 /** Escape a string for safe embedding inside an HTML text node / attribute. */
@@ -169,7 +182,7 @@ for (const asset of payload.spec.assets) {
     const cols = document.createElement('input'); cols.type = 'number'; cols.min = '1'; cols.value = asset.grid.cols || 1;
     const rowsIn = document.createElement('input'); rowsIn.type = 'number'; rowsIn.min = '1'; rowsIn.value = asset.grid.rows || 1;
     binding.append(cols, document.createTextNode(' × '), rowsIn, document.createTextNode(' cells'));
-    controls.set(asset.id, () => ({ id: asset.id, grid: { cols: Number(cols.value), rows: Number(rowsIn.value), cellWidth: 0, cellHeight: 0 } }));
+    controls.set(asset.id, () => ({ id: asset.id, grid: { cols: Number(cols.value), rows: Number(rowsIn.value) } }));
   } else {
     const sel = document.createElement('select');
     sel.append(option('', '(none)', !asset.category));
