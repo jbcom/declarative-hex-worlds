@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/jbcom/declarative-hex-worlds/main/docs-site/public/hero.png" alt="Declarative Hex Worlds" width="540">
+<img src="https://raw.githubusercontent.com/jbcom/declarative-hex-worlds/main/packages/docs-site/public/hero.png" alt="Declarative Hex Worlds" width="540">
 
 # declarative-hex-worlds
 
