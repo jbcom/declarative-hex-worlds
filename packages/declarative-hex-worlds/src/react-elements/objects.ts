@@ -75,9 +75,14 @@ export function GameboardObjects({ animate = true }: GameboardObjectsProps = {})
       return;
     }
     inFlight.current = true;
-    void pass.finally(() => {
-      inFlight.current = false;
-    });
+    // Clear the guard when the pass settles. `.finally` re-raises a rejection, so
+    // chain `.catch` too: a rejected reconcile (a bad load) must clear the guard AND
+    // be swallowed here rather than surface as an unhandled promise rejection.
+    void pass
+      .finally(() => {
+        inFlight.current = false;
+      })
+      .catch(() => {});
   });
 
   return null;

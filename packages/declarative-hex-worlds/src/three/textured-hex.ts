@@ -145,7 +145,9 @@ export function buildQuadGeometry(
   // (v1) so the sprite is upright when viewed from a top-down / iso camera.
   const positions = [-halfW, 0, -halfH, halfW, 0, -halfH, halfW, 0, halfH, -halfW, 0, halfH];
   const uvs = [u0, v1, u1, v1, u1, v0, u0, v0];
-  const indices = [0, 2, 1, 0, 3, 2];
+  // CCW winding (viewed from +Y) so the FRONT face points up — tiles stay visible to
+  // a top-down / iso camera even when a consumer sets `doubleSide: false`.
+  const indices = [0, 1, 2, 0, 2, 3];
 
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
