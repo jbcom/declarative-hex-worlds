@@ -692,6 +692,13 @@ export function applyPlacementShading(
       if (opacity !== undefined && opacity < 1) {
         cloned.transparent = true;
         cloned.opacity = opacity;
+        // Mirror the textured-hex fix: a MASK-style material (alphaTest > 0, e.g. a
+        // KayKit cutout) would discard its whole body once the fragment's final alpha
+        // (texel × opacity) drops below a FIXED alphaTest — the model vanishes under a
+        // low-opacity shroud. Scale the cutoff by opacity so only near-zero texels clip.
+        if (cloned.alphaTest > 0) {
+          cloned.alphaTest *= opacity;
+        }
       }
       return cloned;
     });

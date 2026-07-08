@@ -1026,6 +1026,28 @@ describe('loadGameboardPlacementObject — AssetSource dispatch (RFC0-8)', () =>
       expect(() => applyPlacementShading(root, { r: 0, g: 0, b: 0 }, undefined)).not.toThrow();
     });
 
+    it('scales a MASK-style material alphaTest by opacity so the body survives a shroud', () => {
+      // A cutout material (alphaTest > 0) with a low shroud opacity: a FIXED alphaTest
+      // would discard the whole body (final alpha = texel × opacity < cutoff). Scaling by
+      // opacity (0.5 × 0.4 = 0.2) keeps the body visible while the corners still clip.
+      const material = new MeshBasicMaterial();
+      material.alphaTest = 0.5;
+      const mesh = new Mesh(new BufferGeometry(), material);
+      const root = new Group();
+      root.add(mesh);
+      applyPlacementShading(root, undefined, 0.4);
+      expect((mesh.material as MeshBasicMaterial).alphaTest).toBeCloseTo(0.2);
+    });
+
+    it('leaves alphaTest at 0 for a BLEND-style material (no cutout to scale)', () => {
+      const material = new MeshBasicMaterial(); // alphaTest defaults to 0
+      const mesh = new Mesh(new BufferGeometry(), material);
+      const root = new Group();
+      root.add(mesh);
+      applyPlacementShading(root, undefined, 0.4);
+      expect((mesh.material as MeshBasicMaterial).alphaTest).toBe(0);
+    });
+
     it('skips the tint on a material with no color, still applying opacity', () => {
       // The base Material has no `.color` — the tint branch must guard on it (no throw),
       // while opacity still applies.
