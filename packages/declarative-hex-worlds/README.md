@@ -96,7 +96,7 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 | `/react` | React provider + hooks |
 | `/three` | three.js renderer binding — GLTF loaders + scene reconciliation (3D) |
 | `/canvas2d` | canvas-2D renderer binding — tileset sprite blitting (2D), **zero renderer deps** |
-| `/react-elements` | Declarative JSX elements (`<HexWorld>`/`<Tile>`/`<Tileset>`/`<Model>`/`<GameboardObjects>`) + hooks |
+| `/react-elements` | Declarative JSX elements (`<HexWorld>`/`<Tile>`/`<Tileset>`/`<Model>`/`<GameboardObjects>`) + hooks. A `metadata` prop drives per-placement shading (`tintR/G/B`/`opacity`) for fog-of-war / season / team colors |
 | `/asset-source` | The `AssetSourceSpec` schema + sources (`createSourceFromSpec`, `createTilesetSource`, `tilesetHexGeometry`), the `bind`/`init`/`web` scan core, and PNG atlas measurement |
 | `/bootstrap` | Programmatic asset bootstrap (CLI alternative) |
 | `/errors` | `GameboardError` + subclasses for `instanceof` catching |

@@ -119,6 +119,32 @@ Key points a renderer must respect:
 - **Biomes come from `<Tile biome>`**, not from the plan. The plan is the bare grid; the
   `<Tile>` children paint each cell's biome, resolved against the tileset manifest.
 
+## Per-placement shading: fog-of-war, day/season, team colors
+
+A game shades individual tiles/units over the SHARED atlas — no second texture — with a
+per-placement **tint** (multiplicative RGB, `[0,1]`, white = untinted) and **opacity**
+(`[0,1]`, `< 1` = translucent). Drive both from flat `<Tile>`/`<Model>`/`<Sprite>`
+`metadata` (`tintR`/`tintG`/`tintB`/`opacity`). The tileset binding reads them
+(`readTintOpacity`) onto the render request; the mesh material is colour-multiplied and,
+for `opacity < 1`, made translucent — with `alphaTest` scaled by opacity so a low-opacity
+shroud does NOT discard the whole hex (a fixed cutout would make the tile vanish). GLTF
+models shade the same way, so a unit can be shrouded too.
+
+```tsx
+// Fog-of-war: dim explored-not-visible tiles, dark-shroud the unseen. Compute the fog
+// state per tile from your own visibility, then set the metadata:
+const fog = (state) =>
+  state === 'visible'  ? {}                                                   // untinted, opaque
+  : state === 'explored' ? { tintR: 0.45, tintG: 0.47, tintB: 0.5 }           // dim grey memory
+  : { tintR: 0.1, tintG: 0.12, tintB: 0.16, opacity: 0.85 };                  // dark shroud
+
+<Tile at={`${q},${r}`} assetId={biome} biome={biome} metadata={fog(fogState)} />
+```
+
+Both are OPT-IN: a placement with no tint/opacity metadata renders byte-identically to the
+default seamless path. `metadata` is a flat `Record<string, string|number|boolean|null>`;
+a `<Tile>`'s own `biome` key wins over a metadata `biome` on a clash.
+
 ## Public subpaths (import map)
 
 - `declarative-hex-worlds` — core: `createGameboardBuilder`, `createGameboardRuntime`,
