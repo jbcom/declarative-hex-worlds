@@ -11,7 +11,7 @@
  *
  * @module
  */
-import type { AssetRole, AssetSourceSpec } from './spec';
+import type { AssetRole, AssetSourceSpec, GameplayCategory } from './spec';
 
 /** A discovered asset file, path relative to the source root (forward slashes). */
 export interface ScannedFile {
@@ -114,6 +114,54 @@ export function guessTileBiome(path: string): string {
 }
 
 /**
+ * Filename keyword → suggested gameplay category, most-specific first. Downloadable
+ * packs use recognizable names (KayKit Adventurers = knight/rogue/mage → `pc`;
+ * Skeletons = skeleton/zombie → `enemy`), so a filename heuristic gives useful
+ * DEFAULTS the developer can override. Order matters: `skeleton_mage` is an enemy,
+ * not a pc, so enemy keywords are checked before the generic character ones.
+ */
+const CATEGORY_KEYWORDS: ReadonlyArray<readonly [string, GameplayCategory]> = [
+  ['skeleton', 'enemy'],
+  ['zombie', 'enemy'],
+  ['enemy', 'enemy'],
+  ['monster', 'enemy'],
+  ['goblin', 'enemy'],
+  ['orc', 'enemy'],
+  ['knight', 'pc'],
+  ['rogue', 'pc'],
+  ['mage', 'pc'],
+  ['barbarian', 'pc'],
+  ['warrior', 'pc'],
+  ['adventurer', 'pc'],
+  ['hero', 'pc'],
+  ['villager', 'npc'],
+  ['merchant', 'npc'],
+  ['npc', 'npc'],
+  ['unit', 'unit'],
+  ['soldier', 'unit'],
+  ['tower', 'structure'],
+  ['house', 'structure'],
+  ['castle', 'structure'],
+  ['building', 'structure'],
+  ['wall', 'structure'],
+  ['tree', 'prop'],
+  ['rock', 'prop'],
+  ['bush', 'prop'],
+  ['barrel', 'prop'],
+  ['crate', 'prop'],
+];
+
+/**
+ * Guess a model/sprite asset's SUGGESTED gameplay category from its filename, or
+ * `undefined` when no keyword matches (an uncategorized model). A default the dev
+ * accepts or overrides — never authoritative.
+ */
+export function guessGameplayCategory(path: string): GameplayCategory | undefined {
+  const lower = path.toLowerCase();
+  return CATEGORY_KEYWORDS.find(([keyword]) => lower.includes(keyword))?.[1];
+}
+
+/**
  * Classify a scanned file list into candidate assets. A file's role comes from its
  * top-level directory; its format from its extension. Files under an unknown directory,
  * with an unsupported extension, or whose extension doesn't fit the role, are skipped.
@@ -207,7 +255,15 @@ export function buildAssetSourceSpec(
         biome: guessTileBiome(asset.path),
       };
     }
-    return { id: asset.id, role: asset.role, format: asset.format, path: asset.path };
+    // model + sprite: carry a SUGGESTED gameplay category when the filename hints one.
+    const category = guessGameplayCategory(asset.path);
+    return {
+      id: asset.id,
+      role: asset.role,
+      format: asset.format,
+      path: asset.path,
+      ...(category ? { category } : {}),
+    };
   });
   const spec = {
     specVersion: 1 as const,

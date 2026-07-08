@@ -34,6 +34,7 @@ export {
 export {
   assetIdFromPath,
   buildAssetSourceSpec,
+  guessGameplayCategory,
   guessTileBiome,
   type ScannedAsset,
   type ScannedFile,
@@ -60,6 +61,8 @@ export {
   type AssetSpec,
   assetSchema,
   assetSourceSpecSchema,
+  GAMEPLAY_CATEGORIES,
+  type GameplayCategory,
   parseAssetSourceSpec,
   safeParseAssetSourceSpec,
 } from './spec';
