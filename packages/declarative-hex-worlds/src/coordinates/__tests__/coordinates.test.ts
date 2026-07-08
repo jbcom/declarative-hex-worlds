@@ -13,9 +13,9 @@ import { createGameboardBuilder } from '../../gameboard/index';
 import { createGameboardWorld, spawnGameboardPlacement } from '../../koota/index';
 import {
   findHexPath,
+  hexKey,
   hexLine,
   hexRing,
-  hexKey,
   minHeapCreate,
   minHeapPop,
   selectSpawnCoordinates,

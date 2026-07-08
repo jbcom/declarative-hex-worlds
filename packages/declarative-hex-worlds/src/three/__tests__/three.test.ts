@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import {
   AnimationClip,
   Bone,
@@ -10,6 +9,7 @@ import {
   SkinnedMesh,
   Texture,
 } from 'three';
+import { describe, expect, it } from 'vitest';
 import {
   type AssetRenderRequest,
   type AssetSource,
@@ -27,14 +27,14 @@ import {
   gameboardInteractionTargetForObject,
   type LoadedGameboardPlacementObject,
   loadGameboardPlacementObject,
-  type SheetTexture,
   placeObjectOnHex,
   readGameboardPlacementObjectUserData,
   resolveAssetUrl,
-  resolveGameboardPlacementAssetUrl,
   resolveGameboardPlacementAnimationUrl,
-  syncGameboardPlacementObjects,
+  resolveGameboardPlacementAssetUrl,
+  type SheetTexture,
   syncGameboardPlacementObject,
+  syncGameboardPlacementObjects,
   tagGameboardPlacementObject,
   transformForHex,
   transformForPlacement,
@@ -57,20 +57,26 @@ describe('three placement asset URL helpers', () => {
     expect(resolveAssetUrl(grass, 'https://assets.example/game/')).toBe(
       'https://assets.example/game/tiles/base/hex_grass.gltf'
     );
-    expect(resolveGameboardPlacementAssetUrl(manifestPlacement, {
-      catalog: freeManifest,
-      baseUrl: '/vendor/kaykit',
-    })).toBe('/vendor/kaykit/tiles/base/hex_grass.gltf');
+    expect(
+      resolveGameboardPlacementAssetUrl(manifestPlacement, {
+        catalog: freeManifest,
+        baseUrl: '/vendor/kaykit',
+      })
+    ).toBe('/vendor/kaykit/tiles/base/hex_grass.gltf');
     expect(resolveGameboardPlacementAssetUrl(externalPlacement, { catalog: freeManifest })).toBe(
       '/@fs/references/kenney/tower-hexagon-base.glb'
     );
-    expect(resolveGameboardPlacementAssetUrl(mappedPlacement, {
-      assetUrls: { 'adventurer:knight': '/@fs/references/adventurers/Knight.glb' },
-      catalog: freeManifest,
-    })).toBe('/@fs/references/adventurers/Knight.glb');
-    expect(resolveGameboardPlacementAssetUrl(unknownPlacement, {
-      fallback: (placement) => `/fallback/${placement.assetId}.glb`,
-    })).toBe('/fallback/external:unknown.glb');
+    expect(
+      resolveGameboardPlacementAssetUrl(mappedPlacement, {
+        assetUrls: { 'adventurer:knight': '/@fs/references/adventurers/Knight.glb' },
+        catalog: freeManifest,
+      })
+    ).toBe('/@fs/references/adventurers/Knight.glb');
+    expect(
+      resolveGameboardPlacementAssetUrl(unknownPlacement, {
+        fallback: (placement) => `/fallback/${placement.assetId}.glb`,
+      })
+    ).toBe('/fallback/external:unknown.glb');
     expect(resolveGameboardPlacementAssetUrl(placement({ assetId: 'missing' }))).toBeUndefined();
   });
 
@@ -80,7 +86,9 @@ describe('three placement asset URL helpers', () => {
       assetUrls: { 'kenney:tree-large': '/@fs/references/kenney/tree-large.glb' },
     });
 
-    expect(resolve(placement({ assetId: 'kenney:tree-large' }))).toBe('/@fs/references/kenney/tree-large.glb');
+    expect(resolve(placement({ assetId: 'kenney:tree-large' }))).toBe(
+      '/@fs/references/kenney/tree-large.glb'
+    );
     expect(resolve(placement({ assetId: 'flag_blue' }))).toBe('decoration/props/flag_blue.gltf');
   });
 
@@ -111,9 +119,11 @@ describe('three placement asset URL helpers', () => {
     });
 
     expect(resolveGameboardPlacementAnimationUrl(actor)).toBe('/animations/movement.glb');
-    expect(resolveGameboardPlacementAnimationUrl(actor, {
-      animationUrls: { 'adventurer:knight': '/animations/mapped.glb' },
-    })).toBe('/animations/mapped.glb');
+    expect(
+      resolveGameboardPlacementAnimationUrl(actor, {
+        animationUrls: { 'adventurer:knight': '/animations/mapped.glb' },
+      })
+    ).toBe('/animations/mapped.glb');
     expect(transformForPlacement(actor)).toEqual({
       position: { x: 1.25, y: 0.5, z: -2 },
       rotationY: Math.PI / 3,
@@ -147,7 +157,9 @@ describe('three placement asset URL helpers', () => {
       actorKind: 'player',
       sourcePack: 'KayKit Adventurers 2.0 FREE',
     });
-    expect(findGameboardPlacementObjectUserData(child)?.placementId).toBe('placement:adventurer:knight');
+    expect(findGameboardPlacementObjectUserData(child)?.placementId).toBe(
+      'placement:adventurer:knight'
+    );
     expect(gameboardInteractionTargetForObject(child)).toEqual({
       placementId: 'placement:adventurer:knight',
       actorId: 'hero',
@@ -163,12 +175,15 @@ describe('three placement asset URL helpers', () => {
     tagged.add(taggedChild);
     const testPlacement = placement({ assetId: 'flag_blue' });
 
-    const hexTransform = transformForHex({ q: 1, r: -1 }, {
-      elevation: 2,
-      positionOffset: { x: 0.5, y: 0.25, z: -0.5 },
-      rotationY: Math.PI / 2,
-      scale: 0.6,
-    });
+    const hexTransform = transformForHex(
+      { q: 1, r: -1 },
+      {
+        elevation: 2,
+        positionOffset: { x: 0.5, y: 0.25, z: -0.5 },
+        rotationY: Math.PI / 2,
+        scale: 0.6,
+      }
+    );
     const variantTransform = transformForVariant(
       { q: 0, r: 0 },
       {
@@ -228,8 +243,16 @@ describe('three placement asset URL helpers', () => {
         return { scene: buildRiggedGltf(), animations: [] };
       },
     };
-    const first = placement({ id: 'unit-a', assetId: 'adventurer:knight', metadata: { sourceUrl: '/models/rig.glb' } });
-    const second = placement({ id: 'unit-b', assetId: 'adventurer:knight', metadata: { sourceUrl: '/models/rig.glb' } });
+    const first = placement({
+      id: 'unit-a',
+      assetId: 'adventurer:knight',
+      metadata: { sourceUrl: '/models/rig.glb' },
+    });
+    const second = placement({
+      id: 'unit-b',
+      assetId: 'adventurer:knight',
+      metadata: { sourceUrl: '/models/rig.glb' },
+    });
 
     const [loadedA, loadedB] = await Promise.all([
       loadGameboardPlacementObject(first, { loader }),
@@ -274,9 +297,9 @@ describe('three placement asset URL helpers', () => {
       metadata: { sourceUrl: '/models/flag-blue.glb' },
     });
 
-    await expect(loadGameboardPlacementObject(placement({ assetId: 'missing' }), { loader })).rejects.toThrow(
-      'No model URL resolved'
-    );
+    await expect(
+      loadGameboardPlacementObject(placement({ assetId: 'missing' }), { loader })
+    ).rejects.toThrow('No model URL resolved');
     const loaded = await loadGameboardPlacementObject(idlePlacement, {
       loader,
       clipName: 'Missing',
@@ -370,7 +393,9 @@ describe('three placement asset URL helpers', () => {
     expect(records.get('tree')?.object.scale.x).toBeCloseTo(0.8);
     const towerChild = new Group();
     records.get('tower')?.object.add(towerChild);
-    expect(findLoadedGameboardPlacementObjectForObject(towerChild, records)?.placementId).toBe('tower');
+    expect(findLoadedGameboardPlacementObjectForObject(towerChild, records)?.placementId).toBe(
+      'tower'
+    );
     expect(loadedUrls).toEqual([
       '/models/tree-large.glb',
       '/models/Knight.glb',
@@ -410,7 +435,11 @@ describe('three placement asset URL helpers', () => {
     });
 
     await syncGameboardPlacementObjects([firstPlacement], { loader, parent, records });
-    const second = await syncGameboardPlacementObjects([secondPlacement], { loader, parent, records });
+    const second = await syncGameboardPlacementObjects([secondPlacement], {
+      loader,
+      parent,
+      records,
+    });
 
     expect(second.loaded.map((item) => item.animationUrl)).toEqual(['/animations/walk-b.glb']);
     expect(second.updated).toHaveLength(0);
@@ -435,8 +464,16 @@ describe('three placement asset URL helpers', () => {
         return { scene: new Group(), animations: [] };
       },
     };
-    const bad = placement({ id: 'bad', assetId: 'bad-model', metadata: { sourceUrl: '/models/missing.glb' } });
-    const stalePlacement = placement({ id: 'stale', assetId: 'flag_blue', metadata: { sourceUrl: '/models/stale.glb' } });
+    const bad = placement({
+      id: 'bad',
+      assetId: 'bad-model',
+      metadata: { sourceUrl: '/models/missing.glb' },
+    });
+    const stalePlacement = placement({
+      id: 'stale',
+      assetId: 'flag_blue',
+      metadata: { sourceUrl: '/models/stale.glb' },
+    });
     const staleRecord: LoadedGameboardPlacementObject = {
       placementId: 'stale',
       assetId: 'flag_blue',
@@ -448,14 +485,25 @@ describe('three placement asset URL helpers', () => {
     const records = new Map<string, LoadedGameboardPlacementObject>([['stale', staleRecord]]);
 
     syncGameboardPlacementObject(staleRecord, stalePlacement);
-    const kept = await syncGameboardPlacementObjects([], { loader: idleLoader, records, removeStale: false });
+    const kept = await syncGameboardPlacementObjects([], {
+      loader: idleLoader,
+      records,
+      removeStale: false,
+    });
     expect(kept.removed).toHaveLength(0);
     expect(kept.records.has('stale')).toBe(true);
 
     const removed = await syncGameboardPlacementObjects([], { loader: idleLoader, records });
-    const noParentLoaded = await syncGameboardPlacementObjects([
-      placement({ id: 'solo', assetId: 'solo-model', metadata: { sourceUrl: '/models/solo.glb' } }),
-    ], { loader: idleLoader });
+    const noParentLoaded = await syncGameboardPlacementObjects(
+      [
+        placement({
+          id: 'solo',
+          assetId: 'solo-model',
+          metadata: { sourceUrl: '/models/solo.glb' },
+        }),
+      ],
+      { loader: idleLoader }
+    );
     const collected = await syncGameboardPlacementObjects([bad], { loader: failingLoader });
 
     expect(removed.removed.map((item) => item.placementId)).toEqual(['stale']);
@@ -463,10 +511,12 @@ describe('three placement asset URL helpers', () => {
     expect(records.size).toBe(0);
     expect(collected.errors).toHaveLength(1);
     expect(collected.errors[0]?.placement.id).toBe('bad');
-    await expect(syncGameboardPlacementObjects([bad], {
-      loader: failingLoader,
-      throwOnError: true,
-    })).rejects.toThrow('load failed: /models/missing.glb');
+    await expect(
+      syncGameboardPlacementObjects([bad], {
+        loader: failingLoader,
+        throwOnError: true,
+      })
+    ).rejects.toThrow('load failed: /models/missing.glb');
   });
 });
 
@@ -479,8 +529,16 @@ describe('three GLTF load caching', () => {
         return { scene: new Group(), animations: [] };
       },
     };
-    const first = placement({ id: 'a', assetId: 'hex_grass', metadata: { sourceUrl: '/models/shared.glb' } });
-    const second = placement({ id: 'b', assetId: 'hex_grass', metadata: { sourceUrl: '/models/shared.glb' } });
+    const first = placement({
+      id: 'a',
+      assetId: 'hex_grass',
+      metadata: { sourceUrl: '/models/shared.glb' },
+    });
+    const second = placement({
+      id: 'b',
+      assetId: 'hex_grass',
+      metadata: { sourceUrl: '/models/shared.glb' },
+    });
 
     const [loadedA, loadedB] = await Promise.all([
       loadGameboardPlacementObject(first, { loader }),
@@ -524,7 +582,11 @@ describe('three GLTF load caching', () => {
         return { scene: new Group(), animations: [] };
       },
     };
-    const flaky = placement({ id: 'flaky', assetId: 'flag_blue', metadata: { sourceUrl: '/models/flaky.glb' } });
+    const flaky = placement({
+      id: 'flaky',
+      assetId: 'flag_blue',
+      metadata: { sourceUrl: '/models/flaky.glb' },
+    });
 
     const failed = await syncGameboardPlacementObjects([flaky], { loader });
     expect(failed.errors).toHaveLength(1);
@@ -552,7 +614,10 @@ describe('three GLTF load caching', () => {
         return { scene: new Group(), animations: [] };
       },
     };
-    const shared = placement({ assetId: 'flag_blue', metadata: { sourceUrl: '/models/cross-loader.glb' } });
+    const shared = placement({
+      assetId: 'flag_blue',
+      metadata: { sourceUrl: '/models/cross-loader.glb' },
+    });
 
     await loadGameboardPlacementObject(shared, { loader: firstLoader });
     await loadGameboardPlacementObject(shared, { loader: secondLoader });
@@ -573,7 +638,11 @@ describe('three GLTF load caching', () => {
     const fillerUrl = (index: number) => `/models/filler-${index}.glb`;
     const loadFiller = (index: number) =>
       loadGameboardPlacementObject(
-        placement({ id: `filler-load-${index}`, assetId: 'flag_blue', metadata: { sourceUrl: fillerUrl(index) } }),
+        placement({
+          id: `filler-load-${index}`,
+          assetId: 'flag_blue',
+          metadata: { sourceUrl: fillerUrl(index) },
+        }),
         { loader }
       );
 
@@ -591,7 +660,11 @@ describe('three GLTF load caching', () => {
     // Inserting one new URL pushes the cache over capacity, evicting whichever
     // entry is currently least-recently-used.
     await loadGameboardPlacementObject(
-      placement({ id: 'overflow', assetId: 'flag_blue', metadata: { sourceUrl: '/models/overflow.glb' } }),
+      placement({
+        id: 'overflow',
+        assetId: 'flag_blue',
+        metadata: { sourceUrl: '/models/overflow.glb' },
+      }),
       { loader }
     );
 
@@ -635,7 +708,11 @@ describe('three GLTF load caching', () => {
     // Push the in-flight entry out of the cache via LRU overflow…
     for (let index = 0; index < CACHE_CAPACITY; index += 1) {
       await loadGameboardPlacementObject(
-        placement({ id: `stale-filler-${index}`, assetId: 'flag_blue', metadata: { sourceUrl: `/models/stale-filler-${index}.glb` } }),
+        placement({
+          id: `stale-filler-${index}`,
+          assetId: 'flag_blue',
+          metadata: { sourceUrl: `/models/stale-filler-${index}.glb` },
+        }),
         { loader }
       );
     }
@@ -661,7 +738,11 @@ describe('three GLTF load caching', () => {
         return { scene: new Group(), animations: [] };
       },
     };
-    const recent = placement({ id: 'recent', assetId: 'flag_blue', metadata: { sourceUrl: '/models/recent.glb' } });
+    const recent = placement({
+      id: 'recent',
+      assetId: 'flag_blue',
+      metadata: { sourceUrl: '/models/recent.glb' },
+    });
     await loadGameboardPlacementObject(recent, { loader });
 
     for (let index = 0; index < CACHE_CAPACITY - 1; index += 1) {
@@ -674,7 +755,11 @@ describe('three GLTF load caching', () => {
     }
 
     loadedUrls.length = 0;
-    const recentAgain = placement({ id: 'recent-again', assetId: 'flag_blue', metadata: { sourceUrl: '/models/recent.glb' } });
+    const recentAgain = placement({
+      id: 'recent-again',
+      assetId: 'flag_blue',
+      metadata: { sourceUrl: '/models/recent.glb' },
+    });
     await loadGameboardPlacementObject(recentAgain, { loader });
 
     expect(loadedUrls).toEqual([]);
@@ -688,8 +773,16 @@ describe('three GLTF load caching', () => {
         return { scene: new Group(), animations: [] };
       },
     };
-    const first = placement({ id: 'a', assetId: 'hex_grass', metadata: { sourceUrl: '/models/uncached.glb' } });
-    const second = placement({ id: 'b', assetId: 'hex_grass', metadata: { sourceUrl: '/models/uncached.glb' } });
+    const first = placement({
+      id: 'a',
+      assetId: 'hex_grass',
+      metadata: { sourceUrl: '/models/uncached.glb' },
+    });
+    const second = placement({
+      id: 'b',
+      assetId: 'hex_grass',
+      metadata: { sourceUrl: '/models/uncached.glb' },
+    });
 
     await syncGameboardPlacementObjects([first, second], { loader, cacheLoads: false });
 
@@ -783,10 +876,11 @@ describe('loadGameboardPlacementObject — AssetSource dispatch (RFC0-8)', () =>
 
   it('tags the tileset mesh so raycasts resolve back to the placement', async () => {
     const source = createTilesetSource({ manifest: tilesetManifest });
-    const loaded = await loadGameboardPlacementObject(
-      placement({ id: 'p1', assetId: 'grass' }),
-      { loader: gltfLoader, source, textureLoader: fakeSheetLoader() }
-    );
+    const loaded = await loadGameboardPlacementObject(placement({ id: 'p1', assetId: 'grass' }), {
+      loader: gltfLoader,
+      source,
+      textureLoader: fakeSheetLoader(),
+    });
     const userData = readGameboardPlacementObjectUserData(loaded.object);
     expect(userData?.placementId).toBe('p1');
     expect(userData?.assetId).toBe('grass');
