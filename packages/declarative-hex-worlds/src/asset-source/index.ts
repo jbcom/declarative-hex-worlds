@@ -47,6 +47,7 @@ export type {
   AssetDimension,
   AssetRenderRequest,
   AssetSource,
+  AssetTint,
   AssetTransform,
   CellRect,
   HexDims,
@@ -72,6 +73,7 @@ export { type CreateSourceFromSpecOptions, createSourceFromSpec } from './spec-s
 export {
   cellRect,
   createTilesetSource,
+  readTintOpacity,
   type TilesetSourceOptions,
   tilesetHexGeometry,
 } from './tileset';

@@ -65,6 +65,26 @@ export interface HexDims {
 }
 
 /**
+ * A multiplicative RGB tint applied to a rendered placement. Each channel is in
+ * `[0, 1]`; white (`{ r: 1, g: 1, b: 1 }`) is the identity (no change). Because
+ * it multiplies the sampled texel colour, it lets a consuming GAME shade a shared
+ * tileset atlas per placement WITHOUT re-authoring art:
+ *   - fog-of-war: dim explored-but-unseen tiles toward grey (`{r:.5,g:.5,b:.5}`);
+ *   - season: warm autumn (`{r:1,g:.85,b:.6}`) or cool winter wash over the board;
+ *   - team/ownership: tint a captured tile toward the owner's colour.
+ * The tint is a render concern — the sim stores the intent, the binding applies
+ * it to the material's `color`, and the same atlas serves every shading state.
+ */
+export interface AssetTint {
+  /** Red channel multiplier, `[0, 1]`. */
+  r: number;
+  /** Green channel multiplier, `[0, 1]`. */
+  g: number;
+  /** Blue channel multiplier, `[0, 1]`. */
+  b: number;
+}
+
+/**
  * A resolved, renderer-agnostic render request. A renderer BINDING (the
  * `declarative-hex-worlds/three` subpath today, `/pixi` tomorrow) subscribes to
  * the koota placement signals and dispatches on `type` + `dimension` to reconcile
@@ -74,13 +94,41 @@ export interface HexDims {
  * correctly on the same board.
  */
 export type AssetRenderRequest =
-  | { type: 'gltf'; dimension: '3d'; url: string; transform?: AssetTransform }
+  | {
+      type: 'gltf';
+      dimension: '3d';
+      url: string;
+      transform?: AssetTransform;
+      /**
+       * Optional per-placement multiplicative tint (fog/season/team shading). White
+       * ⇒ identity. Applied by the binding to the resolved object's material colour.
+       */
+      tint?: AssetTint;
+      /**
+       * Optional per-placement opacity in `[0, 1]`. `< 1` makes the placement
+       * translucent (e.g. a fog shroud over an explored tile); omitted or `>= 1`
+       * leaves it fully opaque.
+       */
+      opacity?: number;
+    }
   | {
       type: 'tileset-cell';
       dimension: '2d';
       sheetUrl: string;
       cell: CellRect;
       hex: HexDims;
+      /**
+       * Optional per-placement multiplicative tint (fog/season/team shading). White
+       * ⇒ identity. Multiplies the sampled cell colour, so one atlas serves every
+       * shading state without re-authoring art.
+       */
+      tint?: AssetTint;
+      /**
+       * Optional per-placement opacity in `[0, 1]`. `< 1` makes the cell translucent
+       * (e.g. a fog shroud over an explored tile); omitted or `>= 1` leaves the
+       * opaque-queue path (seamless cutout tessellation) unchanged.
+       */
+      opacity?: number;
       /**
        * How the sheet cell is drawn onto the board plane:
        *   - `'quad'` (default): the FULL cell rect is drawn as a rectangle spanning

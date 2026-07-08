@@ -341,6 +341,9 @@ async function loadTilesetCellObject(
     cell: request.cell,
     hex: request.hex,
     ...(request.shape === undefined ? {} : { shape: request.shape }),
+    // Per-placement fog/season/team shading carried on the request (RFC tint/opacity).
+    ...(request.tint === undefined ? {} : { tint: request.tint }),
+    ...(request.opacity === undefined ? {} : { opacity: request.opacity }),
   });
   applyTransform(mesh, transform);
   tagGameboardPlacementObject(mesh, placement);

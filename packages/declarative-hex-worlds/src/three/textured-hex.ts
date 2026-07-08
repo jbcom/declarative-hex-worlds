@@ -57,6 +57,20 @@ export interface TexturedHexMeshOptions {
   orientation?: 'pointy' | 'flat';
   /** Whether the mesh is double-sided (default: true, so top-down cameras see it). */
   doubleSide?: boolean;
+  /**
+   * Optional multiplicative RGB tint (channels `[0, 1]`, white ⇒ identity), applied
+   * to the material `color` so a game can shade a shared atlas per placement
+   * (fog-of-war / season / team). Omitted ⇒ the material keeps its default white
+   * colour (no tint).
+   */
+  tint?: { r: number; g: number; b: number };
+  /**
+   * Optional opacity in `[0, 1]`. `< 1` switches the material to the TRANSPARENT
+   * queue (a translucent shroud) while KEEPING `alphaTest` so the hex corners still
+   * cut out. Omitted or `>= 1` leaves the default OPAQUE-queue cutout path
+   * (`transparent: false`) byte-for-byte unchanged, preserving seamless tessellation.
+   */
+  opacity?: number;
 }
 
 /**
@@ -166,7 +180,16 @@ export function buildQuadGeometry(
  * lifecycle (position it on the board, add to the scene, dispose on removal).
  */
 export function buildTexturedHexMesh(options: TexturedHexMeshOptions): Mesh {
-  const { sheet, cell, hex, shape = 'quad', orientation = 'pointy', doubleSide = true } = options;
+  const {
+    sheet,
+    cell,
+    hex,
+    shape = 'quad',
+    orientation = 'pointy',
+    doubleSide = true,
+    tint,
+    opacity,
+  } = options;
   const geometry =
     shape === 'hex'
       ? buildHexGeometry(cell, hex, sheet.sheetWidth, sheet.sheetHeight, orientation)
@@ -185,5 +208,21 @@ export function buildTexturedHexMesh(options: TexturedHexMeshOptions): Mesh {
     alphaTest: 0.5,
     side: doubleSide ? DoubleSide : undefined,
   });
+  // Per-placement shading (fog/season/team). Both are OPT-IN: the default (no tint,
+  // no opacity < 1) leaves the opaque-queue cutout material above untouched, so
+  // untinted/opaque tiles keep their byte-identical seamless-tessellation path.
+  if (tint) {
+    // Multiplicative tint = the material's base colour (MeshBasicMaterial multiplies
+    // `color` by the sampled texel), so white is identity and a dimmed/warmed colour
+    // shades the shared atlas without re-authoring art.
+    material.color.setRGB(tint.r, tint.g, tint.b);
+  }
+  if (opacity !== undefined && opacity < 1) {
+    // A translucent shroud: move to the transparent queue (accepting its back-to-front
+    // sort) but KEEP alphaTest so the hex corners still hard-discard and don't show
+    // the clear colour as diamonds.
+    material.transparent = true;
+    material.opacity = opacity;
+  }
   return new Mesh(geometry, material);
 }

@@ -15,7 +15,14 @@
 
 import { DEFAULT_HEX_GEOMETRY } from '../coordinates';
 import type { GameboardPlacementSpec } from '../gameboard';
-import type { AssetRenderRequest, AssetSource, CellRect, HexDims, ResolveContext } from './source';
+import type {
+  AssetRenderRequest,
+  AssetSource,
+  AssetTint,
+  CellRect,
+  HexDims,
+  ResolveContext,
+} from './source';
 import type { TilesetGrid, TilesetManifest, TilesetSheet } from './tileset-manifest';
 
 /**
@@ -123,6 +130,39 @@ function hashString(value: string): number {
   return hash >>> 0;
 }
 
+/**
+ * The per-placement tint + opacity read off flat placement metadata, so a game can
+ * drive fog-of-war / season / team shading over a shared atlas from the sim.
+ * Metadata is flat (`Record<string, string|number|boolean|null>`), so the tint is
+ * carried as three sibling keys:
+ *   - `tintR` / `tintG` / `tintB` (channels `[0, 1]`) → `tint` — ONLY when ALL three
+ *     are present AND finite numbers (a partial/typo'd tint is ignored, never a
+ *     half-applied colour);
+ *   - `opacity` (a number) → `opacity` — ONLY when it's a finite number in `[0, 1]`.
+ * Anything else is omitted, leaving the request on its default opaque/untinted path.
+ */
+export function readTintOpacity(metadata: GameboardPlacementSpec['metadata']): {
+  tint?: AssetTint;
+  opacity?: number;
+} {
+  const result: { tint?: AssetTint; opacity?: number } = {};
+  const { tintR, tintG, tintB, opacity } = metadata;
+  if (
+    typeof tintR === 'number' &&
+    Number.isFinite(tintR) &&
+    typeof tintG === 'number' &&
+    Number.isFinite(tintG) &&
+    typeof tintB === 'number' &&
+    Number.isFinite(tintB)
+  ) {
+    result.tint = { r: tintR, g: tintG, b: tintB };
+  }
+  if (typeof opacity === 'number' && Number.isFinite(opacity) && opacity >= 0 && opacity <= 1) {
+    result.opacity = opacity;
+  }
+  return result;
+}
+
 /** The biome key a placement represents: assetId, then a metadata biome hint. */
 function biomeKeyForPlacement(placement: GameboardPlacementSpec): string {
   const metadataBiome = placement.metadata.biome;
@@ -177,7 +217,10 @@ export function createTilesetSource(options: TilesetSourceOptions): AssetSource 
   const requestForCell = (
     sheet: TilesetSheet,
     cellIndex: number,
-    ctx?: ResolveContext
+    ctx?: ResolveContext,
+    // Per-placement shading (fog/season/team). Only `resolve` supplies it (it has the
+    // placement); `resolveEdge` has no placement, so its cells stay untinted/opaque.
+    shading?: { tint?: AssetTint; opacity?: number }
   ): AssetRenderRequest => ({
     type: 'tileset-cell',
     dimension: '2d',
@@ -185,6 +228,7 @@ export function createTilesetSource(options: TilesetSourceOptions): AssetSource 
     sheetUrl: sheetUrl(sheet, ctx),
     cell: cellRect(sheet.grid, cellIndex),
     hex: hexDimsForSheet(sheet.grid),
+    ...shading,
   });
 
   return {
@@ -204,7 +248,7 @@ export function createTilesetSource(options: TilesetSourceOptions): AssetSource 
       const cells = fillCells(sheet);
       const cellIndex =
         biome.select === 'first' ? cells[0] : cells[hashString(placement.tileKey) % cells.length];
-      return requestForCell(sheet, cellIndex as number, ctx);
+      return requestForCell(sheet, cellIndex as number, ctx, readTintOpacity(placement.metadata));
     },
     resolveEdge(assetId, edgeMask, ctx): AssetRenderRequest | undefined {
       const biome = manifest.biomes[assetId];

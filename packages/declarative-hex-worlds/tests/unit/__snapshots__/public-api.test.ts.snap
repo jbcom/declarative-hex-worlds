@@ -32,10 +32,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "object",
-    "name": "BIOME_KEYWORDS",
-  },
-  {
-    "kind": "object",
     "name": "BlockedGameboardQuestQuery",
   },
   {
@@ -193,10 +189,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "string",
     "name": "GAMEBOARD_SCHEMA_VERSION",
-  },
-  {
-    "kind": "object",
-    "name": "GAMEPLAY_CATEGORIES",
   },
   {
     "kind": "function",
@@ -748,10 +740,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
-    "name": "combineSources",
-  },
-  {
-    "kind": "function",
     "name": "computeBoardBounds",
   },
   {
@@ -1032,10 +1020,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
-    "name": "createSourceFromSpec",
-  },
-  {
-    "kind": "function",
     "name": "createSpawnLocations",
   },
   {
@@ -1236,10 +1220,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
-    "name": "guessGameplayCategory",
-  },
-  {
-    "kind": "function",
     "name": "guessTileBiome",
   },
   {
@@ -1277,10 +1257,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "indexTextureBindings",
-  },
-  {
-    "kind": "function",
-    "name": "inferTilesetGrid",
   },
   {
     "kind": "function",
@@ -1640,7 +1616,7 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
-    "name": "readPngDimensions",
+    "name": "readTintOpacity",
   },
   {
     "kind": "function",
@@ -1897,10 +1873,6 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "spawnGameboardQuest",
-  },
-  {
-    "kind": "function",
-    "name": "stripAssetCategory",
   },
   {
     "kind": "function",
