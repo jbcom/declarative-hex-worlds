@@ -83,12 +83,13 @@ describe('tileset AssetSource', () => {
       expect(request.dimension).toBe('2d'); // tileset cells are 2D-first (RFC0-RENDER)
       expect(request.sheetUrl).toBe('tiles/grassland.png');
       expect(request.cell.width).toBe(96);
-      // Defaults to the board hex width (2) with height derived from the CELL
-      // ASPECT (2 · 83/96 ≈ 1.729) so the vertically-foreshortened painterly hex
-      // renders at its baked proportions and tessellates seamlessly — NOT the old
-      // unit hex (gaps), NOT the regular-hex depth 2.3094 (squishes the art).
-      expect(request.hex.width).toBeCloseTo(2);
-      expect(request.hex.height).toBeCloseTo((2 * 83) / 96);
+      // Quad footprint = board hex width (2) × overlap (1.3) so cutout hexes
+      // overlap into seamless terrain, with height keeping the CELL ASPECT
+      // (width · 83/96) so the foreshortened painterly hex isn't distorted — NOT
+      // the old unit hex (gaps), NOT the regular-hex depth 2.3094 (squishes the art).
+      const expectedWidth = 2 * 1.3;
+      expect(request.hex.width).toBeCloseTo(expectedWidth);
+      expect(request.hex.height).toBeCloseTo((expectedWidth * 83) / 96);
       // Defaults to the 'quad' shape (full cell drawn) for seamless painterly terrain.
       expect(request.shape).toBe('quad');
     }

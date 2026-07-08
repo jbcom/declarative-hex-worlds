@@ -31,6 +31,19 @@ import type { TilesetGrid, TilesetManifest, TilesetSheet } from './tileset-manif
 const DEFAULT_TILESET_WIDTH = DEFAULT_HEX_GEOMETRY.width;
 
 /**
+ * Quad-overlap factor for the default cell footprint. The cutout hex a painterly
+ * atlas paints inside its cell (transparent corners, `alphaTest` discard) is
+ * inscribed with a soft/ragged edge, so a quad sized exactly to the grid PITCH
+ * leaves hairline gaps at the shared edges. Oversizing the quad to `pitch ×
+ * OVERLAP` makes neighbours overlap enough for the opaque bodies to meet, forming
+ * continuous terrain. 1.3 closes the gaps for the JackleEarth atlas without the
+ * overlap reading as tiles clipping through each other (verified in-app). The grid
+ * PITCH itself (tile centres, via `tilesetHexGeometry`) is unchanged — only the
+ * drawn quad grows.
+ */
+const DEFAULT_TILESET_OVERLAP = 1.3;
+
+/**
  * Derive the board PLACEMENT geometry a tileset needs for seamless quad
  * tessellation, from the manifest's cell aspect. Pass the result to
  * `<HexWorld geometry>` (or `projectWorldToGameboardPlan({ geometry })`).
@@ -144,11 +157,15 @@ export function createTilesetSource(options: TilesetSourceOptions): AssetSource 
   // instead of being squished by the regular-hex depth. A full-cell quad at this size
   // tessellates seamlessly on axialToWorld spacing; the old unit-hex fallback was HALF
   // the width and left blue gaps between every tile. Override via `options.hex`.
-  const hexDimsForSheet = (grid: TilesetGrid): HexDims =>
-    options.hex ?? {
-      width: DEFAULT_TILESET_WIDTH,
-      height: (DEFAULT_TILESET_WIDTH * grid.cellHeight) / grid.cellWidth,
-    };
+  const hexDimsForSheet = (grid: TilesetGrid): HexDims => {
+    if (options.hex) {
+      return options.hex;
+    }
+    // Oversize the quad past the grid pitch (× OVERLAP) so cutout hexes overlap into
+    // seamless terrain; keep the cell's baked aspect (width : height = cellW : cellH).
+    const width = DEFAULT_TILESET_WIDTH * DEFAULT_TILESET_OVERLAP;
+    return { width, height: (width * grid.cellHeight) / grid.cellWidth };
+  };
 
   const sheetUrl = (sheet: TilesetSheet, ctx?: ResolveContext): string => {
     if (ctx?.baseUrl === undefined) {

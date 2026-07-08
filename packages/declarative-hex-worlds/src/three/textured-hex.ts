@@ -168,20 +168,19 @@ export function buildTexturedHexMesh(options: TexturedHexMeshOptions): Mesh {
     shape === 'hex'
       ? buildHexGeometry(cell, hex, sheet.sheetWidth, sheet.sheetHeight, orientation)
       : buildQuadGeometry(cell, hex, sheet.sheetWidth, sheet.sheetHeight);
+  // A full-cell quad's TRANSPARENT hex corners must not show the clear colour
+  // (ocean blue) as diamond gaps between tiles. Use ALPHA-CUTOUT, not alpha
+  // BLENDING: `transparent: false` + `alphaTest` renders in the OPAQUE queue and the
+  // GPU hard-`discard`s corner fragments below the threshold — they never write
+  // colour OR depth, so the neighbour's opaque body shows through and tiles still
+  // z-sort by elevation. (Alpha blending — `transparent: true` — sorts back-to-front
+  // and, combined with alphaTest, gave inconsistent corner discard for the painterly
+  // atlas; the cutout path is the reliable one for its hard-edged alpha.)
   const material = new MeshBasicMaterial({
     map: sheet.texture,
-    transparent: true,
-    side: doubleSide ? DoubleSide : undefined,
-    // A full-cell quad's TRANSPARENT hex corners must not depth-occlude the opaque
-    // body of the neighbour behind them. Without alphaTest the transparent fragments
-    // still write depth, so whichever quad renders first at a shared corner wins the
-    // depth test and the neighbour's opaque pixels are rejected — the clear colour
-    // (ocean blue) shows through as diamond-shaped gaps between otherwise-seamless
-    // tiles. alphaTest discards sub-threshold fragments BEFORE the depth test, so
-    // corners never write depth; depthWrite stays on for the opaque body so tiles
-    // still z-sort by elevation (which depthWrite:false would sacrifice). 0.5 suits
-    // the hard-edged painterly atlas; soft-edged art can lower it.
+    transparent: false,
     alphaTest: 0.5,
+    side: doubleSide ? DoubleSide : undefined,
   });
   return new Mesh(geometry, material);
 }

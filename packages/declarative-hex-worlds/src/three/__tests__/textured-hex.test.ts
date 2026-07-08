@@ -141,7 +141,7 @@ describe('buildTexturedHexMesh', () => {
     expect(mesh.material).toBeInstanceOf(MeshBasicMaterial);
     const material = mesh.material as MeshBasicMaterial;
     expect(material.map).toBe(s.texture);
-    expect(material.transparent).toBe(true);
+    expect(material.alphaTest).toBeGreaterThan(0); // cutout
     expect(material.side).toBe(DoubleSide);
   });
 
@@ -168,7 +168,7 @@ describe('buildTexturedHexMesh', () => {
     // alphaTest > 0 (fragment discard) or depthWrite:false.
     const material = buildTexturedHexMesh({ sheet: sheet(), cell, hex })
       .material as MeshBasicMaterial;
-    expect(material.transparent).toBe(true);
+    expect(material.alphaTest).toBeGreaterThan(0); // cutout
     expect(material.alphaTest > 0 || material.depthWrite === false).toBe(true);
   });
 
