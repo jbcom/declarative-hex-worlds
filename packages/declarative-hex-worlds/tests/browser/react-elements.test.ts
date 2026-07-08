@@ -17,12 +17,11 @@ import { CanvasTexture, Group } from 'three';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   createGameboardBuilder,
+  createGameboardRuntime,
+  createTilesetSource,
   type GameboardPlan,
   type TilesetManifest,
 } from '../../src/index';
-import type { GameboardSheetTextureLoader, SheetTexture } from '../../src/three';
-import { createGameboardRuntime } from '../../src/index';
-import { createTilesetSource } from '../../src/index';
 import {
   GameboardObjects,
   HexWorld,
@@ -35,6 +34,7 @@ import {
   usePlacement,
   useTile,
 } from '../../src/react-elements';
+import type { GameboardSheetTextureLoader, SheetTexture } from '../../src/three';
 
 let root: Root | undefined;
 let host: HTMLDivElement | undefined;
@@ -82,10 +82,18 @@ function drawSheet(): SheetTexture {
 
 function sheetLoader(): GameboardSheetTextureLoader {
   const sheet = drawSheet();
-  return { async loadAsync() { return sheet; } };
+  return {
+    async loadAsync() {
+      return sheet;
+    },
+  };
 }
 
-const gltfLoader = { async loadAsync() { return { scene: new Group(), animations: [] }; } };
+const gltfLoader = {
+  async loadAsync() {
+    return { scene: new Group(), animations: [] };
+  },
+};
 
 async function render(element: React.ReactElement): Promise<void> {
   host = document.createElement('div');
@@ -135,6 +143,37 @@ describe('declarative elements (RFC0-8b)', () => {
     );
     // Two elements → two more placements than the board baseline.
     expect(withElements).toBe(baseline + 2);
+  });
+
+  it("merges a <Tile>'s metadata prop with its biome (biome wins on a key clash)", async () => {
+    // A game drives per-tile render hints (fog tint/opacity) via the metadata prop; the
+    // tile\'s own biome must survive the merge so the tileset source still resolves it.
+    let captured: Record<string, unknown> | undefined;
+    function Probe(): null {
+      const { runtime } = useHexWorld();
+      React.useEffect(() => {
+        const spawned = runtime.plan().placements.find((p) => p.metadata && 'tintR' in p.metadata);
+        captured = spawned?.metadata as Record<string, unknown> | undefined;
+      });
+      return null;
+    }
+    await render(
+      React.createElement(
+        HexWorld,
+        { plan: plan(), loader: gltfLoader },
+        React.createElement(Tile, {
+          at: { q: 0, r: 0 },
+          assetId: 'grass',
+          biome: 'grass',
+          // biome:'meadow' here must NOT override the real biome prop; tint keys pass through.
+          metadata: { tintR: 0.5, tintG: 0.5, tintB: 0.5, opacity: 0.4, biome: 'meadow' },
+        }),
+        React.createElement(Probe, null)
+      )
+    );
+    expect(captured).toMatchObject({ tintR: 0.5, tintG: 0.5, tintB: 0.5, opacity: 0.4 });
+    // The element's own biome ('grass') wins over the metadata's biome ('meadow').
+    expect(captured?.biome).toBe('grass');
   });
 
   it('<Tileset> registers a source into the world; useHexWorld exposes it', async () => {
@@ -283,8 +322,18 @@ describe('declarative elements (RFC0-8b)', () => {
         React.createElement(Probe, { report })
       );
 
-    await render(withChild(true, (n) => { withModel = n; }));
-    await act(async () => root?.render(withChild(false, (n) => { withoutModel = n; })));
+    await render(
+      withChild(true, (n) => {
+        withModel = n;
+      })
+    );
+    await act(async () =>
+      root?.render(
+        withChild(false, (n) => {
+          withoutModel = n;
+        })
+      )
+    );
     // Removing the <Model> element removed its placement.
     expect(withoutModel).toBe(withModel - 1);
   });
@@ -332,12 +381,16 @@ describe('declarative elements (RFC0-8b)', () => {
     let baseline = -1;
     function Baseline(): null {
       const { runtime } = useHexWorld();
-      React.useEffect(() => { baseline = runtime.plan().placements.length; });
+      React.useEffect(() => {
+        baseline = runtime.plan().placements.length;
+      });
       return null;
     }
     function Probe(): null {
       const { runtime } = useHexWorld();
-      React.useEffect(() => { spawned = runtime.plan().placements.length; });
+      React.useEffect(() => {
+        spawned = runtime.plan().placements.length;
+      });
       return null;
     }
     await render(
