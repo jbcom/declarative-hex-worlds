@@ -32,6 +32,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "object",
+    "name": "BIOME_KEYWORDS",
+  },
+  {
+    "kind": "object",
     "name": "BlockedGameboardQuestQuery",
   },
   {

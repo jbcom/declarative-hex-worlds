@@ -235,7 +235,8 @@
     "examples/*.json",
     "LICENSE",
     "README.md",
-    "NOTICE.md"
+    "NOTICE.md",
+    "llms.txt"
   ],
   "scripts": {
     "assets:guide": "tsx scripts/extract-kaykit-guide.ts",
