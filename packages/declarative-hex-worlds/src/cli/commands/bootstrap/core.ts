@@ -32,7 +32,12 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import yauzl from 'yauzl';
-import { BOOTSTRAP_PATHS, KAYKIT_SOURCE, kaykitGithubArchiveUrl } from '../../../config';
+import {
+  BOOTSTRAP_PATHS,
+  buildArchiveUrl,
+  KAYKIT_SOURCE,
+  kaykitGithubArchiveUrl,
+} from '../../../config';
 import { GameboardIoError, GameboardManifestError } from '../../../errors';
 import type { PackEdition } from '../../../types';
 import {
@@ -766,10 +771,13 @@ function formatGithubArchiveUrl(
   githubSource: NonNullable<BootstrapKayKitAssetsOptions['githubSource']>,
   ref?: string
 ): string {
-  return githubSource.archiveUrlTemplate
-    .replace('{owner}', githubSource.owner)
-    .replace('{repo}', githubSource.repo)
-    .replace('{ref}', ref ?? githubSource.defaultRef);
+  // Route through the shared builder so the `--commit` ref is SAFE_REF-validated +
+  // URL-encoded (CWE-74/CWE-918) — the old raw `.replace` skipped both.
+  return buildArchiveUrl(githubSource.archiveUrlTemplate, {
+    owner: githubSource.owner,
+    repo: githubSource.repo,
+    ref: ref ?? githubSource.defaultRef,
+  });
 }
 
 function resolveLibraryVersion(): string {

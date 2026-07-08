@@ -66,15 +66,29 @@ export const UPSTREAM_LAYOUTS: Readonly<Record<PackEdition, UpstreamLayoutConfig
  */
 const SAFE_REF = /^(?!.*\.\.)(?!\.)(?!.*\/$)[a-zA-Z0-9._\-/]{1,200}$/;
 
+/**
+ * Build a GitHub archive-zip URL from a `{owner}`/`{repo}`/`{ref}` template. The
+ * SINGLE URL builder every download path routes through (CWE-74/CWE-918): it
+ * validates the ref against `SAFE_REF` and throws on failure, and
+ * `encodeURIComponent`s the owner/repo + each `/`-split ref segment so a crafted
+ * `--commit` value can't inject a different host/path. Callers must NOT hand-roll
+ * `.replace('{ref}', …)` — that skips both the check and the encoding.
+ */
+export function buildArchiveUrl(
+  template: string,
+  params: { owner: string; repo: string; ref: string }
+): string {
+  if (!SAFE_REF.test(params.ref)) {
+    throw new Error(`unsafe git ref rejected: "${params.ref}"`);
+  }
+  return template
+    .replace('{owner}', encodeURIComponent(params.owner))
+    .replace('{repo}', encodeURIComponent(params.repo))
+    .replace('{ref}', params.ref.split('/').map(encodeURIComponent).join('/'));
+}
+
 /** Resolve the stable GitHub archive-zip URL for a ref (defaults to `main`). */
 export function kaykitGithubArchiveUrl(ref?: string): string {
   const { owner, repo, defaultRef, archiveUrlTemplate } = KAYKIT_SOURCE.github;
-  const resolvedRef = ref ?? defaultRef;
-  if (!SAFE_REF.test(resolvedRef)) {
-    throw new Error(`unsafe git ref rejected: "${resolvedRef}"`);
-  }
-  return archiveUrlTemplate
-    .replace('{owner}', encodeURIComponent(owner))
-    .replace('{repo}', encodeURIComponent(repo))
-    .replace('{ref}', resolvedRef.split('/').map(encodeURIComponent).join('/'));
+  return buildArchiveUrl(archiveUrlTemplate, { owner, repo, ref: ref ?? defaultRef });
 }
