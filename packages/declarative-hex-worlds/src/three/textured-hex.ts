@@ -141,8 +141,9 @@ export function buildQuadGeometry(
   const v0 = 1 - (cell.y + cell.height) / sheetHeight;
   const v1 = 1 - cell.y / sheetHeight;
 
-  // Four corners in the XZ plane: (-x,-z)…(+x,+z). +Z maps to the cell's TOP row
-  // (v1) so the sprite is upright when viewed from a top-down / iso camera.
+  // Four corners in the XZ plane: (-x,-z)…(+x,+z). The -Z corners map to the cell's
+  // TOP row (v1) and the +Z corners to the BOTTOM (v0), so the sprite is upright
+  // when viewed from a top-down / iso camera (consistent with buildHexGeometry).
   const positions = [-halfW, 0, -halfH, halfW, 0, -halfH, halfW, 0, halfH, -halfW, 0, halfH];
   const uvs = [u0, v1, u1, v1, u1, v0, u0, v0];
   // CCW winding (viewed from +Y) so the FRONT face points up — tiles stay visible to
