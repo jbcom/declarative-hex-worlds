@@ -5,7 +5,7 @@
 # declarative-hex-worlds
 
 **Declarative, deterministic hex worlds for TypeScript games.**
-Bootstrap KayKit assets in one command. First-class React + Three.js bindings.
+Bind any assets — your own, or the suggested CC0 KayKit packs — to a hex world. First-class React + Three.js bindings.
 
 [![CI](https://github.com/jbcom/declarative-hex-worlds/actions/workflows/ci.yml/badge.svg)](https://github.com/jbcom/declarative-hex-worlds/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/declarative-hex-worlds.svg)](https://www.npmjs.com/package/declarative-hex-worlds)
@@ -96,7 +96,8 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 | `/react` | React provider + hooks |
 | `/three` | three.js renderer binding — GLTF loaders + scene reconciliation (3D) |
 | `/canvas2d` | canvas-2D renderer binding — tileset sprite blitting (2D), **zero renderer deps** |
-| `/react-elements` | Declarative JSX elements (`<HexWorld>`/`<Tile>`/`<Model>`) + hooks |
+| `/react-elements` | Declarative JSX elements (`<HexWorld>`/`<Tile>`/`<Tileset>`/`<Model>`/`<GameboardObjects>`) + hooks |
+| `/asset-source` | The `AssetSourceSpec` schema + sources (`createSourceFromSpec`, `createTilesetSource`, `tilesetHexGeometry`), the `bind`/`init`/`web` scan core, and PNG atlas measurement |
 | `/bootstrap` | Programmatic asset bootstrap (CLI alternative) |
 | `/errors` | `GameboardError` + subclasses for `instanceof` catching |
 | `/manifest/free`, `/manifest/schema` | The FREE manifest metadata + schema |
@@ -139,13 +140,25 @@ The `/core` tier is the "declare + JSON + validate + hex math, bring-your-own ru
 The library ships a Node binary. Common commands:
 
 ```bash
-declarative-hex-worlds bootstrap       # download FREE pack assets (run once)
+declarative-hex-worlds bootstrap       # download the suggested CC0 KayKit packs (run once)
 declarative-hex-worlds doctor          # check local setup
 declarative-hex-worlds validate-scenario --scenario ./my-scenario.json
 declarative-hex-worlds coverage --json # release-readiness ledger
 ```
 
-[Full CLI reference →](https://jonbogaty.com/declarative-hex-worlds/guides/cli-reference/)
+**Bind your own assets → an `AssetSourceSpec`** (three front-ends, one validated spec):
+
+```bash
+declarative-hex-worlds bind --dir public/assets --cols 5 --rows 10  # agent: flags in, JSON out
+declarative-hex-worlds init --dir public/assets                     # human: a TTY wizard
+declarative-hex-worlds web  --dir public/assets                     # human: a local web form
+```
+
+`bind` is non-interactive (scriptable, CI/agent-friendly); `init` walks you through the
+bindings in the terminal; `web` serves a loopback config UI. Downloadable packs are
+*suggested defaults* in the same flow as scanning your own assets — never a special path.
+
+[Full CLI reference →](https://jonbogaty.com/declarative-hex-worlds/guides/cli-reference/) · [llms.txt](./llms.txt) (agent quickstart)
 
 ---
 
