@@ -11,52 +11,14 @@
  * @module
  */
 import type { Object3D } from 'three';
-import type { AssetRenderRequest, AssetSource, ResolveContext } from '../asset-source';
-import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
+// combineSources is renderer-neutral and now lives in the asset-source core;
+// re-exported here so `declarative-hex-worlds/react-elements` keeps surfacing it.
+import { combineSources } from '../asset-source';
+import type { GameboardPlan } from '../gameboard';
 import { type LoadedGameboardPlacementObject, syncGameboardPlacementObjects } from '../three';
 import type { HexWorldContextValue } from './context';
 
-/**
- * Compose registered sources into one first-match `AssetSource`: the first source
- * to resolve a placement wins. Returns the single source directly, or `undefined`
- * for an empty registry (the bridge then falls back to the plain GLTF URL path).
- */
-export function combineSources(sources: readonly AssetSource[]): AssetSource | undefined {
-  if (sources.length === 0) {
-    return undefined;
-  }
-  if (sources.length === 1) {
-    return sources[0];
-  }
-  return {
-    kind: 'composite',
-    resolve(
-      placement: GameboardPlacementSpec,
-      ctx?: ResolveContext
-    ): AssetRenderRequest | undefined {
-      for (const source of sources) {
-        const request = source.resolve(placement, ctx);
-        if (request) {
-          return request;
-        }
-      }
-      return undefined;
-    },
-    resolveEdge(
-      assetId: string,
-      edgeMask: number,
-      ctx?: ResolveContext
-    ): AssetRenderRequest | undefined {
-      for (const source of sources) {
-        const request = source.resolveEdge?.(assetId, edgeMask, ctx);
-        if (request) {
-          return request;
-        }
-      }
-      return undefined;
-    },
-  };
-}
+export { combineSources };
 
 /**
  * Reconcile a scene parent with a projected board's placements through the world

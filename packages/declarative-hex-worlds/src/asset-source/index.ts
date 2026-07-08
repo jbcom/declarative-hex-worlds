@@ -27,13 +27,21 @@ export {
   transformForVariant,
 } from './placement-resolution';
 export {
+  inferTilesetGrid,
+  type PngDimensions,
+  readPngDimensions,
+} from './png-dimensions';
+export {
   assetIdFromPath,
+  BIOME_KEYWORDS,
   buildAssetSourceSpec,
+  guessGameplayCategory,
   guessTileBiome,
   type ScannedAsset,
   type ScannedFile,
   type ScanResult,
   scanAssetFiles,
+  stripAssetCategory,
 } from './scan';
 export type {
   AssetDimension,
@@ -44,6 +52,7 @@ export type {
   HexDims,
   ResolveContext,
 } from './source';
+export { combineSources } from './source';
 export {
   ASSET_FORMATS,
   ASSET_ROLES,
@@ -54,9 +63,12 @@ export {
   type AssetSpec,
   assetSchema,
   assetSourceSpecSchema,
+  GAMEPLAY_CATEGORIES,
+  type GameplayCategory,
   parseAssetSourceSpec,
   safeParseAssetSourceSpec,
 } from './spec';
+export { type CreateSourceFromSpecOptions, createSourceFromSpec } from './spec-source';
 export {
   cellRect,
   createTilesetSource,

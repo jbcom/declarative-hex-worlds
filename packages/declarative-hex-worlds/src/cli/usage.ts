@@ -1229,7 +1229,8 @@ export const COMMANDS: readonly CommandHelp[] = [
   },
   {
     name: 'bind',
-    summary: 'Scan an assets directory and emit a Zod-validated AssetSourceSpec JSON',
+    summary:
+      'Scan an assets directory and emit a Zod-validated AssetSourceSpec JSON (the agent path — no prompts)',
     options: [
       {
         flag: '--dir <path>',
@@ -1245,8 +1246,65 @@ export const COMMANDS: readonly CommandHelp[] = [
         description: 'assetRoot recorded in the spec (default: the scanned --dir).',
       },
       {
+        flag: '--cols <n> --rows <n>',
+        description:
+          'Tileset atlas cell layout; each tileset PNG is measured and its cell size derived. Supply both or neither.',
+      },
+      {
         flag: '--out <path>',
         description: 'Write the JSON here (default: print to stdout).',
+      },
+    ],
+  },
+  {
+    name: 'init',
+    summary:
+      'Interactively bind an assets directory to an AssetSourceSpec (the human path — a TTY wizard)',
+    options: [
+      {
+        flag: '--dir <path>',
+        description:
+          'Assets root to scan (required). The wizard confirms/overrides each biome, category, and tileset grid.',
+      },
+      {
+        flag: '--name <name>',
+        description: "Source name recorded in the spec (default: the dir's basename).",
+      },
+      {
+        flag: '--asset-root <path>',
+        description: 'assetRoot recorded in the spec (default: the scanned --dir).',
+      },
+      {
+        flag: '--out <path>',
+        description: 'Write the JSON here (default: <name>.assets.json in the cwd).',
+      },
+    ],
+  },
+  {
+    name: 'web',
+    summary:
+      'Bind an assets directory via a local web form (the visual path — a loopback config UI)',
+    options: [
+      {
+        flag: '--dir <path>',
+        description:
+          'Assets root to scan (required). Serves a 127.0.0.1 form to confirm/override bindings, then writes on Save.',
+      },
+      {
+        flag: '--name <name>',
+        description: "Source name recorded in the spec (default: the dir's basename).",
+      },
+      {
+        flag: '--asset-root <path>',
+        description: 'assetRoot recorded in the spec (default: the scanned --dir).',
+      },
+      {
+        flag: '--port <n>',
+        description: 'Loopback port to listen on (default: 0 → an OS-assigned free port).',
+      },
+      {
+        flag: '--out <path>',
+        description: 'Write the JSON here (default: <name>.assets.json in the cwd).',
       },
     ],
   },

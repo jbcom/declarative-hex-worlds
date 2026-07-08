@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { assetIdFromPath, buildAssetSourceSpec, guessTileBiome, scanAssetFiles } from '../scan';
+import {
+  assetIdFromPath,
+  buildAssetSourceSpec,
+  guessGameplayCategory,
+  guessTileBiome,
+  scanAssetFiles,
+} from '../scan';
 import { safeParseAssetSourceSpec } from '../spec';
 
 describe('asset-directory scan → AssetSourceSpec (RFC0-CLI)', () => {
@@ -99,6 +105,17 @@ describe('asset-directory scan → AssetSourceSpec (RFC0-CLI)', () => {
     });
   });
 
+  describe('guessGameplayCategory', () => {
+    it('maps character/enemy/prop/structure keywords to a suggested category', () => {
+      expect(guessGameplayCategory('models/knight_A.glb')).toBe('pc');
+      expect(guessGameplayCategory('models/skeleton_warrior.glb')).toBe('enemy'); // enemy wins over warrior→pc
+      expect(guessGameplayCategory('models/villager.glb')).toBe('npc');
+      expect(guessGameplayCategory('models/watchtower.glb')).toBe('structure');
+      expect(guessGameplayCategory('models/oak_tree.glb')).toBe('prop');
+      expect(guessGameplayCategory('models/mystery_thing.glb')).toBeUndefined();
+    });
+  });
+
   describe('guessTileBiome', () => {
     it('matches a known biome keyword in the filename, else unknown', () => {
       expect(guessTileBiome('tiles/hex_grass_A.png')).toBe('grass');
@@ -132,6 +149,59 @@ describe('asset-directory scan → AssetSourceSpec (RFC0-CLI)', () => {
         rows: 10,
         cellWidth: 96,
         cellHeight: 83,
+      });
+    });
+
+    it('attaches a suggested gameplay category to model/sprite assets', () => {
+      const { spec } = buildAssetSourceSpec(
+        [
+          { path: 'models/skeleton.glb' },
+          { path: 'sprites/knight.png' },
+          { path: 'models/plain_thing.glb' }, // no keyword → no category
+        ],
+        { name: 'p', assetRoot: 'assets' }
+      );
+      const skeleton = spec.assets.find((a) => a.id === 'skeleton');
+      const knight = spec.assets.find((a) => a.id === 'knight');
+      const plain = spec.assets.find((a) => a.id === 'plain_thing');
+      expect(skeleton && 'category' in skeleton && skeleton.category).toBe('enemy');
+      expect(knight && 'category' in knight && knight.category).toBe('pc');
+      expect(plain && 'category' in plain).toBe(false);
+      expect(safeParseAssetSourceSpec(spec).success).toBe(true);
+    });
+
+    it('uses a per-tileset resolved grid over the fallback', () => {
+      const { spec } = buildAssetSourceSpec([{ path: 'tilesets/grassland.png' }], {
+        name: 'p',
+        assetRoot: 'assets',
+        tilesetGrid: { cols: 1, rows: 1, cellWidth: 1, cellHeight: 1 }, // fallback
+        // The CLI supplies this (reading + measuring the PNG); here a stub.
+        resolveTilesetGrid: (asset) =>
+          asset.id === 'grassland'
+            ? { cols: 5, rows: 10, cellWidth: 96, cellHeight: 83 }
+            : undefined,
+      });
+      const tileset = spec.assets.find((a) => a.role === 'tileset');
+      expect(tileset && 'grid' in tileset && tileset.grid).toEqual({
+        cols: 5,
+        rows: 10,
+        cellWidth: 96,
+        cellHeight: 83,
+      });
+    });
+
+    it('falls back to the placeholder grid when the resolver returns undefined', () => {
+      const { spec } = buildAssetSourceSpec([{ path: 'tilesets/grassland.png' }], {
+        name: 'p',
+        assetRoot: 'assets',
+        resolveTilesetGrid: () => undefined,
+      });
+      const tileset = spec.assets.find((a) => a.role === 'tileset');
+      expect(tileset && 'grid' in tileset && tileset.grid).toEqual({
+        cols: 1,
+        rows: 1,
+        cellWidth: 1,
+        cellHeight: 1,
       });
     });
   });

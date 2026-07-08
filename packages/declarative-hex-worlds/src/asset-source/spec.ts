@@ -27,6 +27,26 @@ export type AssetRole = (typeof ASSET_ROLES)[number];
 export const ASSET_FORMATS = ['png', 'glb', 'gltf'] as const;
 export type AssetFormat = (typeof ASSET_FORMATS)[number];
 
+/**
+ * A SUGGESTED gameplay category for a model/sprite asset — what it should be in a
+ * game, orthogonal to its `role` (which is the asset TYPE). A downloaded pack (e.g.
+ * KayKit Adventurers → `pc`, Skeletons → `enemy`) or a `bind` scan declares these as
+ * DEFAULTS the developer accepts or overrides; the engine never forces a category.
+ * `unit` = a player/AI-controlled piece; `pc`/`npc` = playable/non-playable
+ * character; `enemy` = hostile; `encounter` = a random-encounter spawn; `prop` =
+ * decoration; `structure` = a building. `undefined` = uncategorized (a plain model).
+ */
+export const GAMEPLAY_CATEGORIES = [
+  'unit',
+  'pc',
+  'npc',
+  'enemy',
+  'encounter',
+  'prop',
+  'structure',
+] as const;
+export type GameplayCategory = (typeof GAMEPLAY_CATEGORIES)[number];
+
 /** Grid metadata for a sprite-sheet tileset: how cells tile the sheet image. */
 const gridSchema = z.object({
   cols: z.number().int().positive(),
@@ -81,6 +101,8 @@ const spriteAssetSchema = z.object({
   role: z.literal('sprite'),
   format: z.literal('png'),
   path: pathSchema,
+  /** Suggested gameplay category (unit/pc/npc/enemy/…); a default the dev may override. */
+  category: z.enum(GAMEPLAY_CATEGORIES).optional(),
 });
 
 /** A 3D model — a glb/gltf mesh placed on a tile. */
@@ -89,6 +111,8 @@ const modelAssetSchema = z.object({
   role: z.literal('model'),
   format: z.enum(['glb', 'gltf']),
   path: pathSchema,
+  /** Suggested gameplay category (unit/pc/npc/enemy/…); a default the dev may override. */
+  category: z.enum(GAMEPLAY_CATEGORIES).optional(),
 });
 
 /** One asset, discriminated by role so per-role format/field rules apply. */

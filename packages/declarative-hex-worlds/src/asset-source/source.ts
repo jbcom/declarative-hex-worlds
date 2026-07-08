@@ -110,6 +110,43 @@ export interface ResolveContext {
 }
 
 /**
+ * Compose sources into one first-match `AssetSource`: the first source to resolve
+ * a placement (or edge) wins. Returns the single source directly, or `undefined`
+ * for an empty list. Renderer-neutral, so it lives in the core alongside the
+ * `AssetSource` contract (a binding then registers the composite). Re-exported from
+ * `declarative-hex-worlds/react-elements` for back-compat.
+ */
+export function combineSources(sources: readonly AssetSource[]): AssetSource | undefined {
+  if (sources.length === 0) {
+    return undefined;
+  }
+  if (sources.length === 1) {
+    return sources[0];
+  }
+  return {
+    kind: 'composite',
+    resolve(placement, ctx) {
+      for (const source of sources) {
+        const request = source.resolve(placement, ctx);
+        if (request) {
+          return request;
+        }
+      }
+      return undefined;
+    },
+    resolveEdge(assetId, edgeMask, ctx) {
+      for (const source of sources) {
+        const request = source.resolveEdge?.(assetId, edgeMask, ctx);
+        if (request) {
+          return request;
+        }
+      }
+      return undefined;
+    },
+  };
+}
+
+/**
  * The resolution contract. An implementation turns a placement (and, for
  * transition tiles, an edge mask) into an `AssetRenderRequest` the render bridge
  * understands — or `undefined` when this source can't resolve it (letting a

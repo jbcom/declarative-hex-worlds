@@ -119,4 +119,69 @@ describe('bind CLI command (RFC0-CLI)', () => {
     runBind({ command: 'bind', flags: { dir: assets, 'asset-root': 'public/assets' } });
     expect(JSON.parse(stdout).assetRoot).toBe('public/assets');
   });
+
+  it('measures each tileset PNG when --cols/--rows are given, deriving its cell grid', () => {
+    // Overwrite the placeholder empty tileset with a real PNG head (480×830), so
+    // readPngDimensions + inferTilesetGrid derive an exact 96×83 cell for a 5×10 grid.
+    writeFileSync(join(assets, 'tilesets', 'grassland.png'), pngHead(480, 830));
+    runBind({ command: 'bind', flags: { dir: assets, cols: '5', rows: '10' } });
+
+    const spec = JSON.parse(stdout);
+    const grassland = spec.assets.find((a: { id: string }) => a.id === 'grassland');
+    expect(grassland.grid).toEqual({ cols: 5, rows: 10, cellWidth: 96, cellHeight: 83 });
+    // A successfully measured tileset does not trigger the "could not measure" report.
+    expect(errors.join('\n')).not.toContain('Could not measure tileset "grassland"');
+  });
+
+  it('throws on a present-but-invalid --cols (non-positive-integer)', () => {
+    expect(() =>
+      runBind({ command: 'bind', flags: { dir: assets, cols: 'abc', rows: '10' } })
+    ).toThrow(/--cols must be a positive integer/);
+    expect(() =>
+      runBind({ command: 'bind', flags: { dir: assets, cols: '0', rows: '10' } })
+    ).toThrow(GameboardCliError);
+  });
+
+  it('throws when --cols is passed as a bare boolean flag (no value)', () => {
+    // parseArgs yields `true` for `--cols` with no value; a grid dimension needs a number.
+    expect(() =>
+      runBind({ command: 'bind', flags: { dir: assets, cols: true, rows: '10' } })
+    ).toThrow(/--cols requires a value/);
+  });
+
+  it('throws when only one of --cols/--rows is supplied (a grid needs both)', () => {
+    expect(() => runBind({ command: 'bind', flags: { dir: assets, cols: '5' } })).toThrow(
+      /--cols and --rows must be supplied together/
+    );
+    expect(() => runBind({ command: 'bind', flags: { dir: assets, rows: '10' } })).toThrow(
+      /must be supplied together/
+    );
+  });
+
+  it('reports (console.error) and falls back when a tileset PNG cannot be measured', () => {
+    // The empty grassland.png can't be measured (readPngDimensions throws), so the
+    // resolveTilesetGrid catch branch logs the error and returns no grid → the
+    // tileset is still emitted with the placeholder and reported as needing a grid.
+    runBind({ command: 'bind', flags: { dir: assets, cols: '5', rows: '10' } });
+
+    const stderr = errors.join('\n');
+    expect(stderr).toContain('Could not measure tileset "grassland"');
+    expect(stderr).toContain('Tilesets need a grid');
+  });
 });
+
+/** Build the minimal PNG head (signature + IHDR chunk) encoding width×height. */
+function pngHead(width: number, height: number): Uint8Array {
+  const bytes = new Uint8Array(24);
+  bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0); // signature
+  bytes.set([0x49, 0x48, 0x44, 0x52], 12); // "IHDR"
+  bytes[16] = (width >>> 24) & 0xff;
+  bytes[17] = (width >>> 16) & 0xff;
+  bytes[18] = (width >>> 8) & 0xff;
+  bytes[19] = width & 0xff;
+  bytes[20] = (height >>> 24) & 0xff;
+  bytes[21] = (height >>> 16) & 0xff;
+  bytes[22] = (height >>> 8) & 0xff;
+  bytes[23] = height & 0xff;
+  return bytes;
+}

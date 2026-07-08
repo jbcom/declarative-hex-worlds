@@ -11,7 +11,7 @@
  *
  * @module
  */
-import type { AssetRole, AssetSourceSpec } from './spec';
+import type { AssetRole, AssetSourceSpec, GameplayCategory } from './spec';
 
 /** A discovered asset file, path relative to the source root (forward slashes). */
 export interface ScannedFile {
@@ -85,8 +85,12 @@ export function assetIdFromPath(path: string): string {
   return stem.replace(/[^a-zA-Z0-9_-]+/g, '_');
 }
 
-/** Known biome keywords the tile-biome heuristic looks for in a filename. */
-const BIOME_KEYWORDS = [
+/**
+ * Known biome keywords the tile-biome heuristic looks for in a filename. Exported so the
+ * interactive `init` wizard can offer them as the biome-override choices (single source —
+ * the heuristic and the picker share one list).
+ */
+export const BIOME_KEYWORDS = [
   'grass',
   'water',
   'coast',
@@ -111,6 +115,78 @@ const BIOME_KEYWORDS = [
 export function guessTileBiome(path: string): string {
   const lower = path.toLowerCase();
   return BIOME_KEYWORDS.find((biome) => lower.includes(biome)) ?? 'unknown';
+}
+
+/**
+ * Filename keyword → suggested gameplay category, most-specific first. Downloadable
+ * packs use recognizable names (KayKit Adventurers = knight/rogue/mage → `pc`;
+ * Skeletons = skeleton/zombie → `enemy`), so a filename heuristic gives useful
+ * DEFAULTS the developer can override. Order matters: `skeleton_mage` is an enemy,
+ * not a pc, so enemy keywords are checked before the generic character ones.
+ */
+const CATEGORY_KEYWORDS: ReadonlyArray<readonly [string, GameplayCategory]> = [
+  ['skeleton', 'enemy'],
+  ['zombie', 'enemy'],
+  ['enemy', 'enemy'],
+  ['monster', 'enemy'],
+  ['goblin', 'enemy'],
+  ['orc', 'enemy'],
+  ['knight', 'pc'],
+  ['rogue', 'pc'],
+  ['mage', 'pc'],
+  ['barbarian', 'pc'],
+  ['warrior', 'pc'],
+  ['adventurer', 'pc'],
+  ['hero', 'pc'],
+  ['villager', 'npc'],
+  ['merchant', 'npc'],
+  ['npc', 'npc'],
+  ['unit', 'unit'],
+  ['soldier', 'unit'],
+  ['tower', 'structure'],
+  ['house', 'structure'],
+  ['castle', 'structure'],
+  ['building', 'structure'],
+  ['wall', 'structure'],
+  ['tree', 'prop'],
+  ['rock', 'prop'],
+  ['bush', 'prop'],
+  ['barrel', 'prop'],
+  ['crate', 'prop'],
+];
+
+/**
+ * Guess a model/sprite asset's SUGGESTED gameplay category from its filename, or
+ * `undefined` when no keyword matches (an uncategorized model). A default the dev
+ * accepts or overrides — never authoritative.
+ *
+ * Substring (not token) match is deliberate: asset packs favour compound names where the
+ * keyword is fused into a word — `watchtower` (→ structure via `tower`), `treehouse`,
+ * `crossbowman`. Requiring a whole-token match would miss those. List order breaks ties
+ * when a name carries two keywords (`skeleton_warrior` → enemy, checked before pc). The
+ * result is only ever a SUGGESTION the developer confirms or overrides, so an occasional
+ * loose hit costs nothing — it's one click to correct in the wizard/web flow.
+ */
+export function guessGameplayCategory(path: string): GameplayCategory | undefined {
+  const lower = path.toLowerCase();
+  return CATEGORY_KEYWORDS.find(([keyword]) => lower.includes(keyword))?.[1];
+}
+
+/**
+ * Return a copy of an asset with any `category` field removed. Used by the `init` and `web`
+ * authoring flows when the developer clears a suggested gameplay category (choosing "none").
+ */
+export function stripAssetCategory(
+  asset: AssetSourceSpec['assets'][number]
+): AssetSourceSpec['assets'][number] {
+  if ('category' in asset) {
+    const { category: _drop, ...rest } = asset as { category?: GameplayCategory } & Record<
+      string,
+      unknown
+    >;
+    return rest as AssetSourceSpec['assets'][number];
+  }
+  return asset;
 }
 
 /**
@@ -172,11 +248,22 @@ export function buildAssetSourceSpec(
   options: {
     name: string;
     assetRoot: string;
+    /** Fallback grid for tilesets when no per-tileset grid is resolved. */
     tilesetGrid?: { cols: number; rows: number; cellWidth: number; cellHeight: number };
+    /**
+     * Per-tileset grid resolver (the CLI supplies this — it reads the PNG bytes and
+     * derives the grid via `readPngDimensions` + `inferTilesetGrid`, keeping this
+     * function pure of fs/image-decode). Return `undefined` to fall back to
+     * `tilesetGrid`. When BOTH are absent a tileset keeps the placeholder grid and
+     * is reported in `scan.tilesetsNeedingGrid` so the author can fix it.
+     */
+    resolveTilesetGrid?: (
+      asset: ScannedAsset
+    ) => { cols: number; rows: number; cellWidth: number; cellHeight: number } | undefined;
   }
 ): { spec: AssetSourceSpec; scan: ScanResult } {
   const scan = scanAssetFiles(files);
-  const grid = options.tilesetGrid ?? { cols: 1, rows: 1, cellWidth: 1, cellHeight: 1 };
+  const fallbackGrid = options.tilesetGrid ?? { cols: 1, rows: 1, cellWidth: 1, cellHeight: 1 };
   const assets = scan.assets.map((asset) => {
     if (asset.role === 'tileset') {
       return {
@@ -184,7 +271,7 @@ export function buildAssetSourceSpec(
         role: 'tileset' as const,
         format: 'png' as const,
         path: asset.path,
-        grid,
+        grid: options.resolveTilesetGrid?.(asset) ?? fallbackGrid,
       };
     }
     if (asset.role === 'tile') {
@@ -196,7 +283,15 @@ export function buildAssetSourceSpec(
         biome: guessTileBiome(asset.path),
       };
     }
-    return { id: asset.id, role: asset.role, format: asset.format, path: asset.path };
+    // model + sprite: carry a SUGGESTED gameplay category when the filename hints one.
+    const category = guessGameplayCategory(asset.path);
+    return {
+      id: asset.id,
+      role: asset.role,
+      format: asset.format,
+      path: asset.path,
+      ...(category ? { category } : {}),
+    };
   });
   const spec = {
     specVersion: 1 as const,

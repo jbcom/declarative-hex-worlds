@@ -45,6 +45,8 @@ const commandModuleIds = [
   'piece',
   'pieces-from-assets',
   'bind',
+  'init',
+  'web',
   'pieces',
   'place-piece',
   'extract',

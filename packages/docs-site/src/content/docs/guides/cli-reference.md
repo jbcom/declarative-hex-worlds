@@ -62,6 +62,9 @@ Commands:
   compatibility    Analyze one external GLB/GLTF for hex-tile compatibility and placement suggestions
   piece    Emit a custom piece declaration from an external GLB/GLTF compatibility scan
   pieces-from-assets    Scan GLB/GLTF files and emit custom piece declarations plus compatibility summaries
+  bind    Scan an assets directory and emit a Zod-validated AssetSourceSpec JSON (the agent path — no prompts)
+  init    Interactively bind an assets directory to an AssetSourceSpec (the human path — a TTY wizard)
+  web    Bind an assets directory via a local web form (the visual path — a loopback config UI)
   extract    Copy GLTF assets and write a manifest to an output folder (alias: ingest)
   bootstrap    Materialize KayKit GLTF assets under a consumer asset root (PRD RB)
 
@@ -80,6 +83,7 @@ Options:
   --allowUnknownAssetIds <comma,separated,assetIds>
   --allowUnknownAssets
   --asset <path>
+  --asset-root <path>
   --assetBaseUrl <url-or-path>
   --assetEdition free|extra|all
   --assetId <assetId>
@@ -95,12 +99,14 @@ Options:
   --categories <comma,separated,values>
   --category tiles|buildings|decoration|units
   --checksPassed
+  --cols <n> --rows <n>
   --commit <sha>
   --config <path>
   --count <number>
   --coverage
   --creator <name>
   --defaultTerrain <terrain>
+  --dir <path>
   --edition free|extra
   --editionScope free|extra|mixed|reference
   --emitRules
@@ -151,6 +157,7 @@ Options:
   --minimumEdition free|extra|all
   --mode per-piece|pool
   --modelForward +z|-z|+x|-x
+  --name <name>
   --out <path>
   --outInterop <path>
   --outJson <path>
@@ -161,6 +168,7 @@ Options:
   --outScenario <path>
   --outScenarioInspection <path>
   --overrides <path>
+  --pack <id>
   --page <comma,separated,numbers>
   --pieceId <id>
   --pieceIdPrefix <prefix>
@@ -169,6 +177,7 @@ Options:
   --pieceSourceRoot <url-or-path>
   --pieceSourceRoots <json-path-or-inline-json>
   --plan <path>
+  --port <n>
   --publicApi <comma,separated,api-names>
   --publicApi <comma,separated,names>
   --radius <number>

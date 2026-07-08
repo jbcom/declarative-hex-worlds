@@ -1,0 +1,152 @@
+# declarative-hex-worlds
+
+> Declarative, deterministic hex worlds for TypeScript games. A renderer-free core
+> (worldgen + a koota ECS runtime that emits trait "signals") plus optional bindings
+> (React + Three.js) that subscribe to those signals and draw. Assets are described by a
+> Zod-validated `AssetSourceSpec` — tilesets (sprite-sheet atlases), GLTF models, and
+> sprites — bound to the board with zero pack-specific code in the engine.
+
+This file is the agent-facing guide: how to go from "I have assets" to "a rendered,
+seamless hex board", using the exact public API. Everything below is real, current API
+(the reference game `little-legends` renders its board this way).
+
+## Mental model
+
+1. **Assets → an `AssetSourceSpec`** (JSON). Roles: `tile` (png/glb hex), `tileset` (a png
+   atlas + grid), `sprite` (png), `model` (glb/gltf). You author this three ways — hand,
+   the `bind` CLI (agents), or the `init` CLI wizard (humans). All produce the SAME spec.
+2. **A `GameboardPlan`** — where tiles/placements live on the hex grid. Build one with
+   `createGameboardBuilder({ seed, shape }).build()`, or project your own world into one
+   with `projectWorldToGameboardPlan(world, { geometry })`.
+3. **Render** — the React bindings (`declarative-hex-worlds/react-elements`) take the plan
+   + a source built from the spec and draw each placement. A tileset renders each atlas
+   cell as an alpha-cutout quad, oversized to overlap into seamless continuous terrain.
+
+The engine is AGNOSTIC: no KayKit (or any pack) values are hardcoded. Downloadable packs
+(KayKit hex tiles / adventurers / skeletons) are offered as SUGGESTED DEFAULTS in the same
+flow as scanning your own assets — never a special-cased path.
+
+## Authoring the AssetSourceSpec
+
+### Agent path (non-interactive) — `bind`
+
+```bash
+# Scan an assets dir → emit a Zod-validated AssetSourceSpec JSON to stdout (or --out).
+# Convention: subdirs tiles/ tilesets/ sprites/ models/ set each file's role.
+pnpm exec declarative-hex-worlds bind --dir public/assets --name my-pack --out my-pack.assets.json
+
+# Tilesets need an atlas grid. Give the cols×rows a sheet tiles into; each tileset PNG is
+# MEASURED (its pixel dimensions read from the IHDR chunk, no image decode) and the exact
+# cell size derived. Supply BOTH --cols and --rows (or neither).
+pnpm exec declarative-hex-worlds bind --dir public/assets --cols 5 --rows 10 --out my-pack.assets.json
+```
+
+`bind` is scriptable and silent — it prints the JSON and reports (to stderr) any files it
+couldn't classify, tilesets still needing a grid, and tiles whose biome it couldn't guess.
+Biome + gameplay-category guesses are heuristic DEFAULTS in the emitted spec.
+
+### Human path (interactive) — `init`
+
+```bash
+# A blocking TTY wizard: walks you through confirming/overriding each tile biome,
+# model/sprite gameplay category, and tileset grid, then writes the spec.
+pnpm exec declarative-hex-worlds init --dir public/assets --name my-pack
+```
+
+`init` requires a TTY. In a non-interactive context (a pipe, CI, an agent) it refuses and
+tells you to use `bind` — same flags, same spec, no prompts.
+
+### Hand-authored
+
+An `AssetSourceSpec` is plain JSON validated by `parseAssetSourceSpec` /
+`safeParseAssetSourceSpec` (from `declarative-hex-worlds/asset-source`). Minimal shape:
+
+```json
+{
+  "specVersion": 1,
+  "name": "my-pack",
+  "assetRoot": "/assets",
+  "assets": [
+    { "id": "grass", "role": "tile", "format": "png", "path": "tiles/grass.png", "biome": "grass" },
+    { "id": "sheet", "role": "tileset", "format": "png", "path": "tilesets/sheet.png",
+      "grid": { "cols": 5, "rows": 10, "cellWidth": 96, "cellHeight": 83 } },
+    { "id": "knight", "role": "model", "format": "glb", "path": "models/knight.glb", "category": "pc" }
+  ]
+}
+```
+
+## Rendering a tileset board (the seamless-terrain flow)
+
+This is the flow `little-legends` uses for a Civilization-style continuous board. Import
+the React bindings from the `/react-elements` subpath (react + three are optional peers).
+
+```tsx
+import { createGameboardBuilder } from 'declarative-hex-worlds';
+import { parseTilesetManifest, tilesetHexGeometry } from 'declarative-hex-worlds/asset-source';
+import { GameboardObjects, HexWorld, Tile, Tileset } from 'declarative-hex-worlds/react-elements';
+import manifestJson from './terrainTilesetManifest.json';
+
+const manifest = parseTilesetManifest(manifestJson);
+// The board is a FORESHORTENED tileset: rows pack tighter than a regular hex so full-cell
+// quads interlock. Derive the geometry ONCE from the manifest and thread it everywhere
+// (tiles, and any unit/city/camera math) so nothing floats off the compressed board.
+const geometry = tilesetHexGeometry(manifest);
+
+function Board({ plan, textureLoader }) {
+  return (
+    <HexWorld plan={plan} textureLoader={textureLoader} geometry={geometry}>
+      <Tileset manifest={manifest} />
+      {tiles.map((t) => (
+        <Tile key={`${t.q},${t.r}`} at={`${t.q},${t.r}`} assetId={t.biome} biome={t.biome} />
+      ))}
+      <GameboardObjects />
+    </HexWorld>
+  );
+}
+```
+
+Key points a renderer must respect:
+
+- **One geometry, threaded.** `tilesetHexGeometry(manifest)` is the single source of the
+  board's hex spacing. Pass it to `<HexWorld geometry>` AND use it in any sim↔world
+  coordinate conversion (`axialToWorld(axial, y, geometry)` / `worldToAxial`). Two
+  different geometries = units floating off the tiles.
+- **Overlap is deliberate.** Each atlas cell is drawn as a quad slightly larger than the
+  hex footprint (a built-in overlap factor) so neighbours interlock with no seams/gaps —
+  this is how continuous terrain reads. Do NOT add a solid-mesh underlay behind it.
+- **Alpha-cutout, not blend.** Tileset cells use a cutout material (`alphaTest`) so the
+  transparent hex corners read as hard edges, not blended halos.
+- **Biomes come from `<Tile biome>`**, not from the plan. The plan is the bare grid; the
+  `<Tile>` children paint each cell's biome, resolved against the tileset manifest.
+
+## Public subpaths (import map)
+
+- `declarative-hex-worlds` — core: `createGameboardBuilder`, `createGameboardRuntime`,
+  `projectWorldToGameboardPlan`, `axialToWorld`/`worldToAxial`, `combineSources`.
+- `declarative-hex-worlds/asset-source` — the spec + sources: `parseAssetSourceSpec`,
+  `createSourceFromSpec`, `createTilesetSource`, `tilesetHexGeometry`,
+  `parseTilesetManifest`, `readPngDimensions`/`inferTilesetGrid`, `scanAssetFiles`,
+  `buildAssetSourceSpec`, `BIOME_KEYWORDS`, `GAMEPLAY_CATEGORIES`.
+- `declarative-hex-worlds/react` — runtime provider + hooks (`GameboardRuntimeProvider`,
+  `useGameboardRuntime`).
+- `declarative-hex-worlds/react-elements` — the R3F board: `HexWorld`, `Tile`, `Tileset`,
+  `GameboardObjects`, camera helpers.
+- `declarative-hex-worlds/three` — lower-level Three.js binding primitives.
+
+## Determinism
+
+Worldgen + the runtime are deterministic given a `seed`. Never use `Math.random()` in sim
+code — the seed drives everything so a plan replays identically. The `bind`/`init` scan is
+pure of randomness too.
+
+## CLI reference
+
+`pnpm exec declarative-hex-worlds --help` lists every command;
+`declarative-hex-worlds <command> --help` gives per-flag reference. The asset-binding
+commands are `bind` (agent), `init` (human), and `bootstrap` (clone the suggested CC0
+KayKit packs into `public/assets/`).
+
+## Full docs
+
+https://jonbogaty.com/declarative-hex-worlds/ — guides, feature matrix, and the generated
+API reference.
