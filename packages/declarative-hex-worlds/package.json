@@ -1,6 +1,6 @@
 {
   "name": "declarative-hex-worlds",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Declarative React Three Fiber binding for 2.5D hex worlds — proxies koota (ECS) + honeycomb (hex math) + three/R3F behind first-class <HexWorld>/<Tile>/<Model> elements and a source-agnostic GLTF/tileset asset layer. Includes a runtime-free ./core tier (koota-free, three-free).",
   "type": "module",
   "main": "./dist/index.js",

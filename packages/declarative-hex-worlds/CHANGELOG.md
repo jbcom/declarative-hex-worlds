@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.2.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.1.2...declarative-hex-worlds@1.2.0) (2026-07-08)
+
+
+### Features
+
+* **cli:** dual-audience asset binding — agent `bind` + human `init` wizard, atlas measurement, gameplay categories ([#230](https://github.com/jbcom/declarative-hex-worlds/issues/230)) ([328a811](https://github.com/jbcom/declarative-hex-worlds/commit/328a811a396b0fa266ec561e55dfcf4ab3694921))
+* **render:** per-placement tint + opacity (fog-of-war / season / team shading) ([#232](https://github.com/jbcom/declarative-hex-worlds/issues/232)) ([d66e3f4](https://github.com/jbcom/declarative-hex-worlds/commit/d66e3f4a6623443f976ff96d62a591dd52583f86))
+
 ## [1.1.2](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.1.1...declarative-hex-worlds@1.1.2) (2026-07-08)
 
 
