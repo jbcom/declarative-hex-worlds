@@ -50,9 +50,34 @@ export function GameboardObjects({ animate = true }: GameboardObjectsProps = {})
     context.geometry === undefined ? undefined : { geometry: context.geometry }
   );
   const records = useRef<Map<string, LoadedGameboardPlacementObject>>(new Map());
+  const inFlight = useRef(false);
 
   useFrame((_, delta) => {
-    void syncHexWorldPlacements(plan, context, scene, records.current, animate ? delta : undefined);
+    // syncHexWorldPlacements is ASYNC: a placement's record is only stored in
+    // `records` AFTER its awaited texture/GLTF load resolves. Without an in-flight
+    // guard, every frame between a pass kicking off and its loads resolving sees an
+    // empty `records`, treats every placement as new, and re-adds a FULL board of
+    // meshes — leaking ~one board per frame (e.g. 21k+ meshes for a 2.3k-tile board)
+    // until the promises settle, exhausting draw calls and losing the GL context.
+    // Serialize passes: never start a new reconcile while one is still pending, so a
+    // pass completes and populates `records` before the next begins and dedupes.
+    if (inFlight.current) {
+      return;
+    }
+    const pass = syncHexWorldPlacements(
+      plan,
+      context,
+      scene,
+      records.current,
+      animate ? delta : undefined
+    );
+    if (pass === undefined) {
+      return;
+    }
+    inFlight.current = true;
+    void pass.finally(() => {
+      inFlight.current = false;
+    });
   });
 
   return null;

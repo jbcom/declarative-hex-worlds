@@ -75,9 +75,7 @@ describe('syncHexWorldPlacements', () => {
   }
 
   it('returns undefined when the plan is not ready', () => {
-    expect(
-      syncHexWorldPlacements(undefined, context(), new Group(), new Map(), 0)
-    ).toBeUndefined();
+    expect(syncHexWorldPlacements(undefined, context(), new Group(), new Map(), 0)).toBeUndefined();
   });
 
   it('returns undefined when no loader is configured', () => {
@@ -116,5 +114,45 @@ describe('syncHexWorldPlacements', () => {
       undefined
     );
     expect(result).toBeInstanceOf(Promise);
+  });
+
+  it('re-entrant passes before a load resolves LEAK meshes without a caller guard', async () => {
+    // Documents the failure mode GameboardObjects' in-flight guard prevents: a
+    // placement is only recorded AFTER its awaited load resolves, so overlapping
+    // passes (one per useFrame tick) that share a `records` map re-add every
+    // placement until the loads settle. Here 5 overlapping passes add 5× the meshes;
+    // GameboardObjects serializes passes so only ONE ever runs, adding N once.
+    const scene = new Group();
+    const records = new Map();
+    let resolveLoad: (v: { scene: Group }) => void = () => undefined;
+    const slowLoader = {
+      loadAsync: () =>
+        new Promise<{ scene: Group }>((res) => {
+          resolveLoad = res;
+        }),
+    };
+    const plan = {
+      tiles: [],
+      placements: [placement('grass'), placement('tree'), placement('rock')].map((p, i) => ({
+        ...p,
+        id: `p:${i}`,
+      })),
+    } as never;
+    const ctx = context({
+      loader: slowLoader,
+      sources: [{ kind: 'gltf-pack', resolve: () => gltfReq }],
+    });
+    // Fire 5 overlapping passes before any load resolves (the un-guarded useFrame race).
+    const passes = [0, 1, 2, 3, 4].map(() =>
+      syncHexWorldPlacements(plan, ctx, scene, records, 0.016)
+    );
+    resolveLoad({ scene: new Group() });
+    await Promise.all(passes);
+    // Un-guarded: records only filled after the first pass's awaits, so later passes
+    // saw an empty map and re-added — records ends correct but meshes leaked. The
+    // guard in GameboardObjects is what stops this at the caller.
+    expect(records.size).toBe(3);
+    // With overlapping passes, the scene accumulated more than the 3 unique placements.
+    expect(scene.children.length).toBeGreaterThan(3);
   });
 });
