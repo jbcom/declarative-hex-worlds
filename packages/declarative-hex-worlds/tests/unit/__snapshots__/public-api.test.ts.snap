@@ -191,6 +191,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
     "name": "GAMEBOARD_SCHEMA_VERSION",
   },
   {
+    "kind": "object",
+    "name": "GAMEPLAY_CATEGORIES",
+  },
+  {
     "kind": "function",
     "name": "GameboardActor",
   },
@@ -740,6 +744,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "combineSources",
+  },
+  {
+    "kind": "function",
     "name": "computeBoardBounds",
   },
   {
@@ -1020,6 +1028,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "createSourceFromSpec",
+  },
+  {
+    "kind": "function",
     "name": "createSpawnLocations",
   },
   {
@@ -1220,6 +1232,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "guessGameplayCategory",
+  },
+  {
+    "kind": "function",
     "name": "guessTileBiome",
   },
   {
@@ -1257,6 +1273,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "indexTextureBindings",
+  },
+  {
+    "kind": "function",
+    "name": "inferTilesetGrid",
   },
   {
     "kind": "function",
@@ -1613,6 +1633,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "readPlacementsForTile",
+  },
+  {
+    "kind": "function",
+    "name": "readPngDimensions",
   },
   {
     "kind": "function",
