@@ -156,7 +156,8 @@ a `<Tile>`'s own `biome` key wins over a metadata `biome` on a clash.
 - `declarative-hex-worlds/react` — runtime provider + hooks (`GameboardRuntimeProvider`,
   `useGameboardRuntime`).
 - `declarative-hex-worlds/react-elements` — the R3F board: `HexWorld`, `Tile`, `Tileset`,
-  `GameboardObjects`, camera helpers.
+  `Sprite`, `Model`, `GameboardObjects`, camera helpers. Every placement element takes a
+  `metadata` prop that drives per-placement shading (`tintR/G/B`/`opacity`).
 - `declarative-hex-worlds/three` — lower-level Three.js binding primitives.
 
 ## Determinism
