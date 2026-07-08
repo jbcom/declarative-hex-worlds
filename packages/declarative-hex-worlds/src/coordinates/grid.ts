@@ -4,28 +4,21 @@
  *
  * @module
  */
-import { Grid, Orientation, defineHex, rectangle, spiral } from 'honeycomb-grid';
+import { defineHex, Grid, Orientation, rectangle, spiral } from 'honeycomb-grid';
+import type { GameboardShape, HexCoordinates, WorldPosition } from '../types';
 import {
   findHexPath,
+  type HexPathOptions,
+  type HexPathResult,
   hexDistance,
   hexKey,
   neighbors,
   selectSpawnCoordinates,
-  type HexPathOptions,
-  type HexPathResult,
 } from './coordinates';
-import type { GameboardShape, HexCoordinates, WorldPosition } from '../types';
+import defaultHexGeometry from './hex-geometry.default.json';
 
-/** Canonical KayKit hex tile width in world units. */
-export const KAYKIT_HEX_WIDTH = 2;
-/** Canonical KayKit hex tile depth in world units. */
-export const KAYKIT_HEX_DEPTH = 2.3094;
-/** Canonical KayKit hex side radius in world units. */
-export const KAYKIT_HEX_SIDE = KAYKIT_HEX_DEPTH / 2;
-/** Canonical row spacing for adjacent KayKit hex rows. */
-export const KAYKIT_HEX_ROW_SPACING = 1.5 * KAYKIT_HEX_SIDE;
-/** Default vertical step between stacked KayKit elevation levels. */
-export const KAYKIT_ELEVATION_STEP = 1;
+/** Hex vertex orientation: `'pointy'` (vertex up) or `'flat'` (edge up). */
+export type HexOrientation = 'pointy' | 'flat';
 
 /** World-space dimensions for a hex footprint. */
 export interface HexGeometry {
@@ -36,6 +29,39 @@ export interface HexGeometry {
   /** Vertical world-unit step for one elevation level. */
   elevationStep: number;
 }
+
+/**
+ * The DEFAULT hex-grid world geometry, loaded from `hex-geometry.default.json` —
+ * DATA, not an engine constant. The agnostic core hardcodes NO pack's numbers; a
+ * board/pack overrides these via `createGameboardCoordinateSystem({ geometry })` or
+ * a tileset source's `hex`. The shipped defaults match the KayKit Medieval Hexagon
+ * reference pack, but that's just the default data, not a baked-in assumption.
+ */
+export const DEFAULT_HEX_GEOMETRY: HexGeometry = {
+  width: defaultHexGeometry.width,
+  depth: defaultHexGeometry.depth,
+  elevationStep: defaultHexGeometry.elevationStep,
+} as const;
+
+/** Default hex orientation (from the geometry defaults data). */
+export const DEFAULT_HEX_ORIENTATION: HexOrientation =
+  defaultHexGeometry.orientation === 'flat' ? 'flat' : 'pointy';
+
+/**
+ * Back-compat aliases for the default geometry, now SOURCED FROM the JSON defaults
+ * (not hardcoded). Prefer `DEFAULT_HEX_GEOMETRY` in new code; these remain so
+ * existing consumers keep working.
+ * @deprecated Use `DEFAULT_HEX_GEOMETRY` (data-driven) instead of the KayKit-named constants.
+ */
+export const KAYKIT_HEX_WIDTH = DEFAULT_HEX_GEOMETRY.width;
+/** @deprecated Use `DEFAULT_HEX_GEOMETRY.depth`. */
+export const KAYKIT_HEX_DEPTH = DEFAULT_HEX_GEOMETRY.depth;
+/** @deprecated Use `DEFAULT_HEX_GEOMETRY.depth / 2`. */
+export const KAYKIT_HEX_SIDE = DEFAULT_HEX_GEOMETRY.depth / 2;
+/** @deprecated Row spacing derives from geometry; use `rowSpacingForGeometry(DEFAULT_HEX_GEOMETRY)`. */
+export const KAYKIT_HEX_ROW_SPACING = 1.5 * (DEFAULT_HEX_GEOMETRY.depth / 2);
+/** @deprecated Use `DEFAULT_HEX_GEOMETRY.elevationStep`. */
+export const KAYKIT_ELEVATION_STEP = DEFAULT_HEX_GEOMETRY.elevationStep;
 
 /** Options for creating a reusable coordinate conversion system. */
 export interface GameboardCoordinateSystemOptions {
@@ -92,25 +118,28 @@ export interface GameboardCoordinateSystem {
   /** Computes axial hex distance between two coordinates. */
   distance: (left: HexCoordinates, right: HexCoordinates) => number;
   /** Finds a path between two coordinates using the shared pathfinding helper. */
-  findPath: (start: HexCoordinates, goal: HexCoordinates, options?: HexPathOptions) => HexPathResult;
+  findPath: (
+    start: HexCoordinates,
+    goal: HexCoordinates,
+    options?: HexPathOptions
+  ) => HexPathResult;
   /** Selects deterministic spawn locations and projects them into world space. */
   spawnLocations: (options: SpawnLocationOptions) => SpawnLocation[];
 }
 
-/** Canonical KayKit hex geometry used by all default placement helpers. */
-export const KAYKIT_HEX_GEOMETRY: HexGeometry = {
-  width: KAYKIT_HEX_WIDTH,
-  depth: KAYKIT_HEX_DEPTH,
-  elevationStep: KAYKIT_ELEVATION_STEP,
-} as const;
+/**
+ * @deprecated Alias of `DEFAULT_HEX_GEOMETRY` (data-driven). Use that instead of
+ * the KayKit-named export — the engine holds no pack-specific geometry.
+ */
+export const KAYKIT_HEX_GEOMETRY: HexGeometry = DEFAULT_HEX_GEOMETRY;
 
-/** Honeycomb hex class configured for KayKit's pointy axial footprint. */
+/** Honeycomb hex class configured for the default axial footprint. */
 export const KayKitHex = defineHex({
   dimensions: {
-    xRadius: KAYKIT_HEX_WIDTH / 2,
-    yRadius: KAYKIT_HEX_DEPTH / 2,
+    xRadius: DEFAULT_HEX_GEOMETRY.width / 2,
+    yRadius: DEFAULT_HEX_GEOMETRY.depth / 2,
   },
-  orientation: Orientation.POINTY,
+  orientation: DEFAULT_HEX_ORIENTATION === 'flat' ? Orientation.FLAT : Orientation.POINTY,
 });
 
 /** Rectangle grid dimensions in hex cells. */
@@ -134,7 +163,9 @@ export type GameboardGridOptions = GameboardShape;
 export type KayKitGameboardGrid = Grid<InstanceType<typeof KayKitHex>>;
 
 /** Creates a rectangular Honeycomb grid using KayKit hex dimensions. */
-export function createRectangleGameboardGrid(options: RectangleGridOptions): Grid<InstanceType<typeof KayKitHex>> {
+export function createRectangleGameboardGrid(
+  options: RectangleGridOptions
+): Grid<InstanceType<typeof KayKitHex>> {
   return new Grid(KayKitHex, rectangle({ width: options.width, height: options.height }));
 }
 
@@ -154,7 +185,7 @@ export function createGameboardGrid(shape: GameboardGridOptions): KayKitGameboar
 export function axialToWorld(
   coordinates: HexCoordinates,
   elevation = 0,
-  geometry: HexGeometry = KAYKIT_HEX_GEOMETRY
+  geometry: HexGeometry = DEFAULT_HEX_GEOMETRY
 ): WorldPosition {
   const rowSpacing = rowSpacingForGeometry(geometry);
   return {
@@ -167,7 +198,7 @@ export function axialToWorld(
 /** Converts world X/Z coordinates to the nearest axial hex coordinate. */
 export function worldToAxial(
   position: Pick<WorldPosition, 'x' | 'z'>,
-  geometry: HexGeometry = KAYKIT_HEX_GEOMETRY
+  geometry: HexGeometry = DEFAULT_HEX_GEOMETRY
 ): HexCoordinates {
   const r = position.z / rowSpacingForGeometry(geometry);
   const q = position.x / geometry.width - r / 2;
@@ -179,7 +210,7 @@ export function createGameboardCoordinateSystem(
   options: GameboardCoordinateSystemOptions = {}
 ): GameboardCoordinateSystem {
   const geometry = {
-    ...KAYKIT_HEX_GEOMETRY,
+    ...DEFAULT_HEX_GEOMETRY,
     ...options.geometry,
   };
 
@@ -206,7 +237,7 @@ export function createSpawnLocations(
     count: 1,
   }
 ): SpawnLocation[] {
-  const geometry = options.geometry ?? KAYKIT_HEX_GEOMETRY;
+  const geometry = options.geometry ?? DEFAULT_HEX_GEOMETRY;
   return selectSpawnCoordinates(options).map((coordinates, index) => ({
     id: `${options.idPrefix ?? 'spawn'}:${index}`,
     key: hexKey(coordinates),
