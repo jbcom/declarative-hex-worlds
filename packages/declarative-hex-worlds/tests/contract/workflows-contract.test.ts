@@ -123,10 +123,11 @@ describe('workflow contract', () => {
       // install through the library package (a bare `pnpm exec playwright` from
       // root fails ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL, killing the publish).
       ['pnpm --filter declarative-hex-worlds exec playwright install --with-deps chromium'],
-      // Workspace: bootstrap runs inside the library package via --filter, out
-      // dir rooted at the package.
+      // Workspace: `--filter <pkg> exec` runs from the PACKAGE dir, so `--out
+      // models` lands at packages/declarative-hex-worlds/models (a package-root
+      // `--out packages/…/models` would double the path and 404 the coverage GLTFs).
       [
-        'pnpm --filter declarative-hex-worlds exec tsx src/cli/cli.ts bootstrap --source github --out packages/declarative-hex-worlds/models',
+        'pnpm --filter declarative-hex-worlds exec tsx src/cli/cli.ts bootstrap --source github --out models',
       ],
       // Publish step explicitly hands the packed tarball to npm publish
       // so the SLSA L3 attestation in the previous step covers the exact

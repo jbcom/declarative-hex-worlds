@@ -52,7 +52,13 @@ jobs:
         run: pnpm --filter declarative-hex-worlds exec playwright install --with-deps chromium
 
       - name: Bootstrap FREE models for browser coverage
-        run: pnpm --filter declarative-hex-worlds exec tsx src/cli/cli.ts bootstrap --source github --out packages/declarative-hex-worlds/models
+        # `pnpm --filter <pkg> exec` runs from the PACKAGE dir, so `--out` is
+        # relative to it — `--out models` lands at packages/declarative-hex-worlds/
+        # models (where vitest.browser.free.config's HEX_WORLDS_ASSET_ROOT looks).
+        # The old `--out packages/declarative-hex-worlds/models` DOUBLED the path
+        # (…/packages/declarative-hex-worlds/packages/declarative-hex-worlds/models),
+        # so the browser-coverage GLTF fetches 404'd and Verify failed before publish.
+        run: pnpm --filter declarative-hex-worlds exec tsx src/cli/cli.ts bootstrap --source github --out models
 
       - name: Production audit (high+)
         # Final blocking security gate before any bytes ship. Per-PR uses
