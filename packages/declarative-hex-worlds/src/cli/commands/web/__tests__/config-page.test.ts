@@ -45,13 +45,50 @@ describe('web config-page (RFC0-CLI visual authoring)', () => {
     expect(html).not.toContain('<link');
   });
 
-  it('renderConfigPage escapes the source name (no HTML injection)', () => {
+  it('renderConfigPage escapes the source name in the <title>/<code> text (no HTML injection)', () => {
     const injected = specWith([]);
     const html = renderConfigPage(
       buildWebConfigPayload({ ...injected, name: '<script>x</script>' })
     );
     expect(html).not.toContain('<script>x</script>');
     expect(html).toContain('&lt;script&gt;');
+  });
+
+  it('the embedded JSON payload cannot break out of its <script> tag AND parses back', () => {
+    // A spec name containing </script> must NOT close the application/json block, and the
+    // JSON-safe escaping must still JSON.parse to the original value.
+    const hostile = specWith([]);
+    const html = renderConfigPage(
+      buildWebConfigPayload({ ...hostile, name: 'evil</script><img src=x onerror=alert(1)>' })
+    );
+    // Pull the payload out of its script tag and confirm no raw </script> leaked into it.
+    const match = html.match(/<script type="application\/json" id="payload">([\s\S]*?)<\/script>/);
+    expect(match).not.toBeNull();
+    const raw = (match as RegExpMatchArray)[1] as string;
+    expect(raw).not.toContain('</script>');
+    expect(raw).toContain('\\u003c'); // the < was rewritten to <
+    // The browser parses the tag's textContent — which JSON.parse must accept back verbatim.
+    expect(JSON.parse(raw).spec.name).toBe('evil</script><img src=x onerror=alert(1)>');
+  });
+
+  it('renders an asset id via textContent, never as raw HTML (no innerHTML XSS)', () => {
+    // An asset id from a hostile filename must not reach the page as live HTML. The page
+    // builds the cell with createElement+textContent, so the raw id is never in the markup.
+    const evil = specWith([
+      {
+        id: '<img src=x onerror=alert(1)>',
+        role: 'model',
+        format: 'glb',
+        path: 'models/x.glb',
+      },
+    ]);
+    const html = renderConfigPage(buildWebConfigPayload(evil));
+    // The inline controller uses code.textContent = asset.id (assigned at runtime from the
+    // parsed payload) — the id must not appear as a literal HTML tag in the served markup,
+    // and there must be no innerHTML sink.
+    expect(html).not.toContain('<img src=x onerror=alert(1)>');
+    expect(html).not.toContain('.innerHTML');
+    expect(html).toContain('textContent = asset.id');
   });
 
   it('applyWebChoices overrides a tile biome by id', () => {

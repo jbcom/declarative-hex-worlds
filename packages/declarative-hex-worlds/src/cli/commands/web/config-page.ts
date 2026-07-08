@@ -106,13 +106,38 @@ function escapeHtml(value: string): string {
 }
 
 /**
+ * Escape a JSON string for embedding inside a `<script type="application/json">` block.
+ * Unlike {@link escapeHtml} (which turns `"`→`&quot;` and would make the text un-parseable
+ * by `JSON.parse`), this escapes only the three sequences that can break OUT of the script
+ * element — `<` (a `</script>` / `<!--` opener), `>`, and `&` — using `\uXXXX` forms that
+ * are valid JSON and decode back to the same characters. The payload stays valid JSON while
+ * a spec name or asset id containing `</script>` can no longer terminate the tag.
+ */
+function escapeForScriptJson(json: string): string {
+  // The input is already valid JSON (from JSON.stringify), so backslashes are ALREADY
+  // escaped — do NOT re-escape them. Rewrite only the chars that can break out of the
+  // script element into \\uXXXX (still valid JSON; JSON.parse decodes them back): < > &
+  // and the U+2028/U+2029 line/paragraph separators (legal in a JSON string but a syntax
+  // error inside an inline <script>).
+  return json
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+/**
  * Render the self-contained config page. The payload is embedded as a JSON script tag (so
  * there is no fetch round-trip and the page works even if served as a static file); the
  * inline script builds a row per asset with the right control, and POSTs the edited choices
  * to `/api/spec` on Save. No external stylesheet, font, script, or image — CSP-safe.
  */
 export function renderConfigPage(payload: WebConfigPayload): string {
-  const data = escapeHtml(JSON.stringify(payload));
+  // The payload embeds as JSON the page JSON.parses back — use the JSON-safe script
+  // escaper (NOT escapeHtml, whose &quot; would make it unparseable). escapeHtml stays for
+  // the <title>/<code> TEXT contexts below.
+  const data = escapeForScriptJson(JSON.stringify(payload));
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -168,7 +193,9 @@ function option(value, label, selected) {
 
 for (const asset of payload.spec.assets) {
   const tr = document.createElement('tr');
-  const name = document.createElement('td'); name.innerHTML = '<code>' + asset.id + '</code>';
+  const name = document.createElement('td');
+  const code = document.createElement('code'); code.textContent = asset.id;
+  name.append(code);
   const role = document.createElement('td'); role.textContent = asset.role;
   const binding = document.createElement('td');
 
