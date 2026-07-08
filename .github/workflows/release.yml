@@ -44,7 +44,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        # `playwright` is a devDependency of the workspace PACKAGES (the library +
+        # examples), not the workspace root — a bare `pnpm exec playwright` from
+        # root fails with ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL ("playwright" not
+        # found). Run it through the package that owns it (same as ci.yml), which
+        # is also the package whose browser-free coverage the verify step enforces.
+        run: pnpm --filter declarative-hex-worlds exec playwright install --with-deps chromium
 
       - name: Bootstrap FREE models for browser coverage
         run: pnpm --filter declarative-hex-worlds exec tsx src/cli/cli.ts bootstrap --source github --out packages/declarative-hex-worlds/models
