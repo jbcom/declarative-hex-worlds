@@ -71,6 +71,10 @@ jobs:
         env:
           ASTRO_BASE: /declarative-hex-worlds/
           ASTRO_SITE: https://jonbogaty.com/declarative-hex-worlds
+          # docs-site:build transitively runs the library's tsup build, whose DTS
+          # worker OOMs on the default heap of the runner (ERR_WORKER_OUT_OF_MEMORY)
+          # — the same failure release.yml already guards. Give Node headroom.
+          NODE_OPTIONS: --max-old-space-size=6144
         run: pnpm docs-site:build
 
       - name: Upload Pages artifact
