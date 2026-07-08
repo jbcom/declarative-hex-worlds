@@ -119,7 +119,10 @@ describe('workflow contract', () => {
       ['pnpm audit --prod --audit-level=high'],
       // Merged coverage-enforce re-run at release for drift detection
       ['pnpm coverage:all:enforce'],
-      ['pnpm exec playwright install --with-deps chromium'],
+      // Playwright is a devDep of the PACKAGES, not the workspace root — run its
+      // install through the library package (a bare `pnpm exec playwright` from
+      // root fails ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL, killing the publish).
+      ['pnpm --filter declarative-hex-worlds exec playwright install --with-deps chromium'],
       // Workspace: bootstrap runs inside the library package via --filter, out
       // dir rooted at the package.
       [
