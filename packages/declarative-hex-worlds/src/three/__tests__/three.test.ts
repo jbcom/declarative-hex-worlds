@@ -3,6 +3,7 @@ import {
   Bone,
   BufferGeometry,
   Group,
+  Material,
   Mesh,
   MeshBasicMaterial,
   Skeleton,
@@ -19,6 +20,7 @@ import {
 import type { GameboardPlacementSpec } from '../../gameboard/index';
 import { freeManifest } from '../../manifest/free';
 import {
+  applyPlacementShading,
   createGameboardPlacementAssetUrlResolver,
   findGameboardPlacementObjectUserData,
   findLoadedGameboardPlacementObjectForObject,
@@ -975,6 +977,101 @@ describe('loadGameboardPlacementObject — AssetSource dispatch (RFC0-8)', () =>
     expect(material.color.b).toBeCloseTo(0.4);
     expect(material.transparent).toBe(true);
     expect(material.opacity).toBeCloseTo(0.5);
+  });
+
+  describe('applyPlacementShading (GLTF per-placement tint/opacity)', () => {
+    function meshTree(): { root: Group; mesh: Mesh } {
+      const mesh = new Mesh(new BufferGeometry(), new MeshBasicMaterial());
+      const root = new Group();
+      root.add(mesh);
+      return { root, mesh };
+    }
+
+    it('tints every material colour and makes it translucent when opacity < 1', () => {
+      const { root, mesh } = meshTree();
+      applyPlacementShading(root, { r: 0.2, g: 0.4, b: 0.6 }, 0.5);
+      const material = mesh.material as MeshBasicMaterial;
+      expect(material.color.r).toBeCloseTo(0.2);
+      expect(material.color.g).toBeCloseTo(0.4);
+      expect(material.color.b).toBeCloseTo(0.6);
+      expect(material.transparent).toBe(true);
+      expect(material.opacity).toBeCloseTo(0.5);
+    });
+
+    it('is a no-op when neither tint nor a sub-1 opacity is given', () => {
+      const { root, mesh } = meshTree();
+      const before = mesh.material;
+      applyPlacementShading(root, undefined, undefined);
+      applyPlacementShading(root, undefined, 1);
+      // No shading → the material instance is untouched (not even cloned).
+      expect(mesh.material).toBe(before);
+    });
+
+    it('shades each material of a multi-material mesh and preserves the array shape', () => {
+      const materials = [new MeshBasicMaterial(), new MeshBasicMaterial()];
+      const mesh = new Mesh(new BufferGeometry(), materials);
+      const root = new Group();
+      root.add(mesh);
+      applyPlacementShading(root, { r: 0.1, g: 0.1, b: 0.1 }, undefined);
+      expect(Array.isArray(mesh.material)).toBe(true);
+      for (const m of mesh.material as MeshBasicMaterial[]) {
+        expect(m.color.r).toBeCloseTo(0.1);
+      }
+    });
+
+    it('ignores non-mesh children (e.g. a bare Group)', () => {
+      const root = new Group();
+      root.add(new Group());
+      // No throw, nothing to shade.
+      expect(() => applyPlacementShading(root, { r: 0, g: 0, b: 0 }, undefined)).not.toThrow();
+    });
+
+    it('skips the tint on a material with no color, still applying opacity', () => {
+      // The base Material has no `.color` — the tint branch must guard on it (no throw),
+      // while opacity still applies.
+      const mesh = new Mesh(new BufferGeometry(), new Material());
+      const root = new Group();
+      root.add(mesh);
+      applyPlacementShading(root, { r: 0.5, g: 0.5, b: 0.5 }, 0.3);
+      const material = mesh.material as Material;
+      expect(material.transparent).toBe(true);
+      expect(material.opacity).toBeCloseTo(0.3);
+      expect('color' in material).toBe(false);
+    });
+  });
+
+  it('applies tint + opacity from a gltf render request onto the loaded model materials', async () => {
+    const shadedGltfSource: AssetSource = {
+      kind: 'gltf-pack',
+      resolve(): AssetRenderRequest {
+        return {
+          type: 'gltf',
+          dimension: '3d',
+          url: '/models/knight.glb',
+          tint: { r: 0.3, g: 0.3, b: 0.3 },
+          opacity: 0.6,
+        };
+      },
+    };
+    const loader = {
+      async loadAsync() {
+        const scene = new Group();
+        scene.add(new Mesh(new BufferGeometry(), new MeshBasicMaterial()));
+        return { scene, animations: [] };
+      },
+    };
+    const loaded = await loadGameboardPlacementObject(placement({ assetId: 'knight' }), {
+      loader,
+      source: shadedGltfSource,
+    });
+    let mesh: Mesh | undefined;
+    loaded.object.traverse((c) => {
+      if (c instanceof Mesh) mesh = c;
+    });
+    const material = mesh?.material as MeshBasicMaterial;
+    expect(material.color.r).toBeCloseTo(0.3);
+    expect(material.transparent).toBe(true);
+    expect(material.opacity).toBeCloseTo(0.6);
   });
 
   it('takes the resolveEdge path for a non-zero edgeMask placement', async () => {

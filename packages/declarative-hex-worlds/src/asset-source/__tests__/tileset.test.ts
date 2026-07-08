@@ -88,6 +88,16 @@ describe('readTintOpacity', () => {
     );
   });
 
+  it('omits the tint when a channel is out of the [0, 1] range', () => {
+    expect(readTintOpacity({ tintR: 1.5, tintG: 0.5, tintB: 0.5 })).toEqual({});
+    expect(readTintOpacity({ tintR: 0.5, tintG: -0.1, tintB: 0.5 })).toEqual({});
+  });
+
+  it('returns an empty result for null/undefined metadata (defensive)', () => {
+    expect(readTintOpacity(null as unknown as Record<string, never>)).toEqual({});
+    expect(readTintOpacity(undefined as unknown as Record<string, never>)).toEqual({});
+  });
+
   it('reads opacity when it is a finite number in [0, 1]', () => {
     expect(readTintOpacity({ opacity: 0.4 })).toEqual({ opacity: 0.4 });
     expect(readTintOpacity({ opacity: 0 })).toEqual({ opacity: 0 });

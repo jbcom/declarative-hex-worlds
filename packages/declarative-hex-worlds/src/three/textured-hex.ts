@@ -219,10 +219,14 @@ export function buildTexturedHexMesh(options: TexturedHexMeshOptions): Mesh {
   }
   if (opacity !== undefined && opacity < 1) {
     // A translucent shroud: move to the transparent queue (accepting its back-to-front
-    // sort) but KEEP alphaTest so the hex corners still hard-discard and don't show
-    // the clear colour as diamonds.
+    // sort) but KEEP a cutout so the hex corners still hard-discard and don't show the
+    // clear colour as diamonds. The fragment's FINAL alpha is texel_alpha × opacity, so a
+    // fixed alphaTest of 0.5 would discard the ENTIRE hex body once opacity < 0.5 (the
+    // whole tile vanishes). Scale the threshold by opacity so only the (already
+    // near-zero) corner texels fall below it, while the opaque hex body survives.
     material.transparent = true;
     material.opacity = opacity;
+    material.alphaTest = 0.5 * opacity;
   }
   return new Mesh(geometry, material);
 }

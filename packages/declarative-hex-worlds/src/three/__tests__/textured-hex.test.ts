@@ -211,8 +211,10 @@ describe('buildTexturedHexMesh', () => {
       .material as MeshBasicMaterial;
     expect(material.transparent).toBe(true);
     expect(material.opacity).toBeCloseTo(0.4);
-    // The shroud still cuts out the transparent hex corners.
-    expect(material.alphaTest).toBeGreaterThan(0);
+    // alphaTest is SCALED by opacity (0.5 × 0.4 = 0.2) so the translucent hex BODY
+    // survives — a fixed 0.5 would discard the whole tile once final alpha (texel × 0.4)
+    // drops below it — while the near-zero corner texels still hard-discard.
+    expect(material.alphaTest).toBeCloseTo(0.2);
   });
 
   it('keeps the opaque-queue path when opacity is exactly 1', () => {

@@ -146,15 +146,17 @@ export function readTintOpacity(metadata: GameboardPlacementSpec['metadata']): {
   opacity?: number;
 } {
   const result: { tint?: AssetTint; opacity?: number } = {};
+  // Defensive: the type says metadata is always present, but a hand-built/mis-migrated
+  // placement could pass null — return the empty result rather than throw on destructure.
+  if (!metadata) {
+    return result;
+  }
   const { tintR, tintG, tintB, opacity } = metadata;
-  if (
-    typeof tintR === 'number' &&
-    Number.isFinite(tintR) &&
-    typeof tintG === 'number' &&
-    Number.isFinite(tintG) &&
-    typeof tintB === 'number' &&
-    Number.isFinite(tintB)
-  ) {
+  // A channel is valid only when it's a finite number in the documented `[0, 1]` range —
+  // an out-of-range value is a caller bug, not something to silently pass to setRGB.
+  const channel = (v: unknown): v is number =>
+    typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1;
+  if (channel(tintR) && channel(tintG) && channel(tintB)) {
     result.tint = { r: tintR, g: tintG, b: tintB };
   }
   if (typeof opacity === 'number' && Number.isFinite(opacity) && opacity >= 0 && opacity <= 1) {

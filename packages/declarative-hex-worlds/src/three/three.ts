@@ -8,7 +8,9 @@ import {
   type AnimationAction,
   type AnimationClip,
   AnimationMixer,
+  type Material,
   MathUtils,
+  Mesh,
   type Object3D,
   Vector3,
 } from 'three';
@@ -364,6 +366,10 @@ export async function loadGameboardPlacementObject(
   // RFC0-8 dispatch: an AssetSource may resolve this placement to a tileset-cell
   // render request (a textured-hex mesh) or a gltf request (a model URL).
   let requestModelUrl: string | undefined;
+  // A gltf request can also carry per-placement shading (fog/season/team) — applied to
+  // the cloned model's materials below so 3D units/props shade like 2D tiles do.
+  let requestShadingTint: { r: number; g: number; b: number } | undefined;
+  let requestShadingOpacity: number | undefined;
   if (options.source) {
     // A transition tile (coast/river/road) carries a non-zero edgeMask in its
     // metadata; resolveEdge selects the POSITIONAL transition cell/model for that
@@ -383,6 +389,8 @@ export async function loadGameboardPlacementObject(
     // from resolveEdge); honour it instead of re-deriving from the placement below.
     if (request?.type === 'gltf') {
       requestModelUrl = request.url;
+      requestShadingTint = request.tint;
+      requestShadingOpacity = request.opacity;
     }
     // No resolution → fall through to the placement's own asset URL.
   }
@@ -412,6 +420,10 @@ export async function loadGameboardPlacementObject(
   // against the wrong (shared) skeleton once more than one placement loads the
   // same cached model.
   const object = applyTransform(cloneWithSkeleton(model.scene), transform);
+  // Per-placement shading on the 3D model, mirroring the tileset-cell path: tint
+  // multiplies each material's colour, opacity < 1 makes it translucent. Opt-in — an
+  // unshaded placement leaves the cloned materials untouched.
+  applyPlacementShading(object, requestShadingTint, requestShadingOpacity);
   tagGameboardPlacementObject(object, placement);
   const animationUrl = resolveGameboardPlacementAnimationUrl(placement, options);
   const animation = animationUrl
@@ -644,6 +656,51 @@ export function applyTransform(object: Object3D, transform: AssetTransform): Obj
   object.rotation.set(0, transform.rotationY, 0);
   object.scale.setScalar(transform.scale);
   return object;
+}
+
+/**
+ * Apply optional per-placement shading (tint / opacity) to every material in a loaded GLTF
+ * model, mirroring the tileset-cell path so 3D units/props can be fog-shrouded / team-tinted
+ * the same way tiles are. Both are opt-in: when neither is set the materials are untouched
+ * (the model renders byte-identically). A tint multiplies each material's `color`; an
+ * `opacity < 1` makes it translucent. The cloned model owns its materials (SkeletonUtils
+ * clone), so mutating them here does not leak into the shared cached scene's materials —
+ * except that three's GLTF loader may SHARE a material instance across meshes/clones, so we
+ * clone each material before mutating to keep the shading strictly per-placement.
+ */
+export function applyPlacementShading(
+  object: Object3D,
+  tint: { r: number; g: number; b: number } | undefined,
+  opacity: number | undefined
+): void {
+  if (!tint && (opacity === undefined || opacity >= 1)) {
+    return;
+  }
+  object.traverse((child) => {
+    if (!(child instanceof Mesh)) {
+      return;
+    }
+    const materials: Material[] = Array.isArray(child.material) ? child.material : [child.material];
+    child.material = materials.map((material) => {
+      const cloned = material.clone();
+      const colored = cloned as Material & {
+        color?: { setRGB(r: number, g: number, b: number): void };
+      };
+      if (tint && colored.color) {
+        colored.color.setRGB(tint.r, tint.g, tint.b);
+      }
+      if (opacity !== undefined && opacity < 1) {
+        cloned.transparent = true;
+        cloned.opacity = opacity;
+      }
+      return cloned;
+    });
+    // `.map` above always produced an array; collapse it back to a single material when the
+    // mesh started with one, so the single-vs-array shape the renderer expects is preserved.
+    if (child.material.length === 1) {
+      child.material = child.material[0] as Material;
+    }
+  });
 }
 
 /**
