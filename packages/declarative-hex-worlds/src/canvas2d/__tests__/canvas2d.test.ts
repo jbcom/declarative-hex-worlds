@@ -52,8 +52,41 @@ const gltfSource: AssetSource = {
   },
 };
 
+/**
+ * A source distinguishing the FILL cell (via resolve) from a positional TRANSITION
+ * cell (via resolveEdge). Lets a test assert the binding takes the edge path when a
+ * placement carries a non-zero edgeMask.
+ */
+const FILL_CELL = { x: 0, y: 0, width: 64, height: 64 };
+const EDGE_CELL = { x: 128, y: 64, width: 64, height: 64 };
+const transitionSource: AssetSource = {
+  kind: 'tileset',
+  resolve(p) {
+    return {
+      type: 'tileset-cell',
+      dimension: '2d',
+      sheetUrl: '/sheet.png',
+      cell: FILL_CELL,
+      hex: { width: 1, height: 1 },
+      transform: { position: p.position, rotationY: 0, scale: p.scale },
+    };
+  },
+  resolveEdge(_assetId, _edgeMask) {
+    return {
+      type: 'tileset-cell',
+      dimension: '2d',
+      sheetUrl: '/sheet.png',
+      cell: EDGE_CELL,
+      hex: { width: 1, height: 1 },
+    };
+  },
+};
+
 /** A fake 2D context recording drawImage calls. */
-function fakeContext(width = 400, height = 300): {
+function fakeContext(
+  width = 400,
+  height = 300
+): {
   ctx: CanvasRenderingContext2D;
   calls: unknown[][];
 } {
@@ -67,9 +100,7 @@ function fakeContext(width = 400, height = 300): {
   return { ctx, calls };
 }
 
-const sheets = new Map<string, CanvasImageSource>([
-  ['/sheet.png', {} as CanvasImageSource],
-]);
+const sheets = new Map<string, CanvasImageSource>([['/sheet.png', {} as CanvasImageSource]]);
 
 describe('canvas-2D renderer binding (substrate-agnostic proof)', () => {
   it('draws each 2D placement as a sprite blit from the tileset sheet', () => {
@@ -89,11 +120,11 @@ describe('canvas-2D renderer binding (substrate-agnostic proof)', () => {
 
   it('maps world x/z to canvas pixels around the viewport origin', () => {
     const { ctx } = fakeContext(400, 300);
-    const [drawn] = syncCanvas2dPlacements(
-      ctx,
-      [placement('p:c', 'grass', { x: 2, y: 0, z: 0 })],
-      { source: tilesetSource, sheets, viewport: { pixelsPerUnit: 32 } }
-    ).drawn;
+    const [drawn] = syncCanvas2dPlacements(ctx, [placement('p:c', 'grass', { x: 2, y: 0, z: 0 })], {
+      source: tilesetSource,
+      sheets,
+      viewport: { pixelsPerUnit: 32 },
+    }).drawn;
     // origin defaults to canvas center (200,150); x=2 → 200 + 2*32 - destW/2.
     const destW = 1 * 32; // hex.width * ppu * scale
     expect(drawn?.dest.x).toBeCloseTo(200 + 2 * 32 - destW / 2);
@@ -155,11 +186,11 @@ describe('canvas-2D renderer binding (substrate-agnostic proof)', () => {
         };
       },
     };
-    const [drawn] = syncCanvas2dPlacements(
-      ctx,
-      [placement('p:d', 'grass', { x: 3, y: 0, z: 1 })],
-      { source: noTransformSource, sheets, viewport: { pixelsPerUnit: 32 } }
-    ).drawn;
+    const [drawn] = syncCanvas2dPlacements(ctx, [placement('p:d', 'grass', { x: 3, y: 0, z: 1 })], {
+      source: noTransformSource,
+      sheets,
+      viewport: { pixelsPerUnit: 32 },
+    }).drawn;
     const destW = 1 * 32; // scale falls back to placement.scale (1)
     expect(drawn?.dest.x).toBeCloseTo(200 + 3 * 32 - destW / 2);
     expect(drawn?.dest.y).toBeCloseTo(150 + 1 * 32 - destW / 2);
@@ -167,11 +198,10 @@ describe('canvas-2D renderer binding (substrate-agnostic proof)', () => {
 
   it('skips a 2D placement whose sheet image is not loaded', () => {
     const { ctx } = fakeContext();
-    const result = syncCanvas2dPlacements(
-      ctx,
-      [placement('p:a', 'grass', { x: 0, y: 0, z: 0 })],
-      { source: tilesetSource, sheets: new Map() }
-    );
+    const result = syncCanvas2dPlacements(ctx, [placement('p:a', 'grass', { x: 0, y: 0, z: 0 })], {
+      source: tilesetSource,
+      sheets: new Map(),
+    });
     expect(result.skipped).toEqual(['p:a']);
   });
 
@@ -185,5 +215,33 @@ describe('canvas-2D renderer binding (substrate-agnostic proof)', () => {
       context,
     });
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: 'p:a' }), context);
+  });
+
+  it('renders a transition tile via resolveEdge, not the plain fill cell', () => {
+    const { ctx, calls } = fakeContext();
+    // A placement carrying a non-zero edgeMask must draw the EDGE cell.
+    const coast = placement('p:coast', 'coast', { x: 0, y: 0, z: 0 });
+    coast.metadata = { edgeMask: 5 };
+    const result = syncCanvas2dPlacements(ctx, [coast], { source: transitionSource, sheets });
+    expect(result.drawn).toHaveLength(1);
+    // drawImage source rect (args 1..4) must be the EDGE cell, not FILL.
+    expect(calls[0]?.slice(1, 5)).toEqual([
+      EDGE_CELL.x,
+      EDGE_CELL.y,
+      EDGE_CELL.width,
+      EDGE_CELL.height,
+    ]);
+  });
+
+  it('renders a non-transition tile (edgeMask 0 / absent) via the plain fill cell', () => {
+    const { ctx, calls } = fakeContext();
+    const grass = placement('p:grass', 'grass', { x: 0, y: 0, z: 0 }); // metadata: {} → no edgeMask
+    syncCanvas2dPlacements(ctx, [grass], { source: transitionSource, sheets });
+    expect(calls[0]?.slice(1, 5)).toEqual([
+      FILL_CELL.x,
+      FILL_CELL.y,
+      FILL_CELL.width,
+      FILL_CELL.height,
+    ]);
   });
 });

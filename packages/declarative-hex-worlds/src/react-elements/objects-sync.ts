@@ -13,10 +13,7 @@
 import type { Object3D } from 'three';
 import type { AssetRenderRequest, AssetSource, ResolveContext } from '../asset-source';
 import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
-import {
-  type LoadedGameboardPlacementObject,
-  syncGameboardPlacementObjects,
-} from '../three';
+import { type LoadedGameboardPlacementObject, syncGameboardPlacementObjects } from '../three';
 import type { HexWorldContextValue } from './context';
 
 /**
@@ -33,7 +30,10 @@ export function combineSources(sources: readonly AssetSource[]): AssetSource | u
   }
   return {
     kind: 'composite',
-    resolve(placement: GameboardPlacementSpec, ctx?: ResolveContext): AssetRenderRequest | undefined {
+    resolve(
+      placement: GameboardPlacementSpec,
+      ctx?: ResolveContext
+    ): AssetRenderRequest | undefined {
       for (const source of sources) {
         const request = source.resolve(placement, ctx);
         if (request) {
@@ -42,7 +42,11 @@ export function combineSources(sources: readonly AssetSource[]): AssetSource | u
       }
       return undefined;
     },
-    resolveEdge(assetId: string, edgeMask: number, ctx?: ResolveContext): AssetRenderRequest | undefined {
+    resolveEdge(
+      assetId: string,
+      edgeMask: number,
+      ctx?: ResolveContext
+    ): AssetRenderRequest | undefined {
       for (const source of sources) {
         const request = source.resolveEdge?.(assetId, edgeMask, ctx);
         if (request) {
@@ -66,12 +70,15 @@ export function syncHexWorldPlacements(
   records: Map<string, LoadedGameboardPlacementObject>,
   deltaSeconds: number | undefined
 ): Promise<unknown> | undefined {
-  if (!plan || !context.loader) {
+  // Nothing to render until the plan is ready AND at least one loader exists. A
+  // tileset-only board needs only a `textureLoader` (no GLTF `loader`); a
+  // GLTF-only board needs only a `loader`. Bail only when BOTH are absent.
+  if (!plan || (!context.loader && !context.textureLoader)) {
     return undefined;
   }
   const source = combineSources(context.sources);
   return syncGameboardPlacementObjects(plan.placements, {
-    loader: context.loader,
+    ...(context.loader === undefined ? {} : { loader: context.loader }),
     ...(source === undefined ? {} : { source }),
     ...(context.textureLoader === undefined ? {} : { textureLoader: context.textureLoader }),
     ...(context.baseUrl === undefined ? {} : { baseUrl: context.baseUrl }),

@@ -100,7 +100,16 @@ export function syncCanvas2dPlacements(
   });
 
   for (const placement of ordered) {
-    const request = options.source.resolve(placement, options.context);
+    // A transition tile (coast/river/road) carries a non-zero edgeMask; resolveEdge
+    // selects the positional transition cell for that mask. Try it first so
+    // transitions don't silently render as plain fill tiles (RFC0-8 edge path,
+    // matched to the three binding's dispatch).
+    const edgeMask = placement.metadata.edgeMask;
+    const request =
+      typeof edgeMask === 'number' && edgeMask !== 0
+        ? (options.source.resolveEdge?.(placement.assetId, edgeMask, options.context) ??
+          options.source.resolve(placement, options.context))
+        : options.source.resolve(placement, options.context);
     if (!request || request.type !== 'tileset-cell') {
       skipped.push(placement.id);
       continue;

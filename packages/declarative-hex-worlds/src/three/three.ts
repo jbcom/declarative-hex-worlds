@@ -5,21 +5,16 @@
  * @module
  */
 import {
-  AnimationMixer,
-  MathUtils,
   type AnimationAction,
   type AnimationClip,
+  AnimationMixer,
+  MathUtils,
   type Object3D,
   Vector3,
 } from 'three';
 import { clone as cloneWithSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import type { AssetRenderRequest, AssetSource, AssetTransform } from '../asset-source';
 import type { GameboardInteractionTargetInput } from '../actors';
-import { buildTexturedHexMesh, type SheetTexture } from './textured-hex';
-import { GameboardRuntimeError } from '../errors';
-import type { GameboardPlacementSpec } from '../gameboard';
-import type { GameboardPlacementPositionOffset } from '../koota';
-import type { HexCoordinates, MedievalHexagonAsset } from '../types';
+import type { AssetRenderRequest, AssetSource, AssetTransform } from '../asset-source';
 import {
   type GameboardPlacementAnimationUrlOptions,
   type GameboardPlacementAssetUrlOptions,
@@ -28,6 +23,11 @@ import {
   transformForHex,
   transformForPlacement,
 } from '../asset-source/placement-resolution';
+import { GameboardRuntimeError } from '../errors';
+import type { GameboardPlacementSpec } from '../gameboard';
+import type { GameboardPlacementPositionOffset } from '../koota';
+import type { HexCoordinates, MedievalHexagonAsset } from '../types';
+import { buildTexturedHexMesh, type SheetTexture } from './textured-hex';
 
 // AssetTransform moved to `src/asset-source` (RFC0-RENDER) so the render-request
 // contract is backend-agnostic; re-exported here so `./three` keeps exporting it.
@@ -37,10 +37,10 @@ export type { AssetTransform } from '../asset-source';
 // (renderer-free) so the core never imports three. Re-exported here so the
 // `declarative-hex-worlds/three` binding subpath keeps surfacing them for consumers.
 export {
+  createGameboardPlacementAssetUrlResolver,
   type GameboardPlacementAnimationUrlOptions,
   type GameboardPlacementAssetUrlOptions,
   type GameboardPlacementAssetUrlResolver,
-  createGameboardPlacementAssetUrlResolver,
   resolveAssetUrl,
   resolveGameboardPlacementAnimationUrl,
   resolveGameboardPlacementAssetUrl,
@@ -48,7 +48,6 @@ export {
   transformForPlacement,
   transformForVariant,
 } from '../asset-source/placement-resolution';
-
 
 /**
  * Minimal GLTF loader result shape used by the renderer helpers.
@@ -152,7 +151,11 @@ function loadUrlCached<T>(
   return pending;
 }
 
-function loadGltfCached(loader: GameboardGltfLoader, url: string, cacheLoads: boolean): Promise<GameboardGltfLike> {
+function loadGltfCached(
+  loader: GameboardGltfLoader,
+  url: string,
+  cacheLoads: boolean
+): Promise<GameboardGltfLike> {
   return loadUrlCached(gltfLoadCachesByLoader, loader, url, cacheLoads, (u) => loader.loadAsync(u));
 }
 
@@ -181,7 +184,9 @@ function loadSheetTextureCached(
   url: string,
   cacheLoads: boolean
 ): Promise<SheetTexture> {
-  return loadUrlCached(sheetLoadCachesByLoader, loader, url, cacheLoads, (u) => loader.loadAsync(u));
+  return loadUrlCached(sheetLoadCachesByLoader, loader, url, cacheLoads, (u) =>
+    loader.loadAsync(u)
+  );
 }
 
 /**
@@ -190,8 +195,13 @@ function loadSheetTextureCached(
 export interface LoadGameboardPlacementObjectOptions
   extends GameboardPlacementAssetUrlOptions,
     GameboardPlacementAnimationUrlOptions {
-  /** GLTF-compatible async loader. */
-  loader: GameboardGltfLoader;
+  /**
+   * GLTF-compatible async loader. OPTIONAL: only required when a placement
+   * actually resolves to a `gltf` request. A tileset-ONLY board (every placement
+   * resolves to a `tileset-cell`) needs no GLTF loader — supply only `textureLoader`.
+   * A `gltf` request with no `loader` throws a clear error at load time.
+   */
+  loader?: GameboardGltfLoader;
   /**
    * Optional asset source (RFC0-7). When provided, a placement resolving to a
    * `tileset-cell` request is rendered as a textured-hex mesh instead of a GLTF;
@@ -266,8 +276,7 @@ export interface GameboardObjectUserData {
 /**
  * Options for reconciling a Three.js scene with a placement list.
  */
-export interface GameboardPlacementObjectSyncOptions
-  extends LoadGameboardPlacementObjectOptions {
+export interface GameboardPlacementObjectSyncOptions extends LoadGameboardPlacementObjectOptions {
   /** Parent object to receive loaded placement objects. */
   parent?: Object3D;
   /** Mutable cache keyed by placement id. */
@@ -327,7 +336,12 @@ async function loadTilesetCellObject(
   const cacheLoads = options.cacheLoads ?? true;
   const sheet = await loadSheetTextureCached(options.textureLoader, request.sheetUrl, cacheLoads);
   const transform = transformForPlacement(placement);
-  const mesh = buildTexturedHexMesh({ sheet, cell: request.cell, hex: request.hex });
+  const mesh = buildTexturedHexMesh({
+    sheet,
+    cell: request.cell,
+    hex: request.hex,
+    ...(request.shape === undefined ? {} : { shape: request.shape }),
+  });
   applyTransform(mesh, transform);
   tagGameboardPlacementObject(mesh, placement);
   return {
@@ -345,22 +359,48 @@ export async function loadGameboardPlacementObject(
   options: LoadGameboardPlacementObjectOptions
 ): Promise<LoadedGameboardPlacementObject> {
   // RFC0-8 dispatch: an AssetSource may resolve this placement to a tileset-cell
-  // render request, which renders as a textured-hex mesh instead of a GLTF.
+  // render request (a textured-hex mesh) or a gltf request (a model URL).
+  let requestModelUrl: string | undefined;
   if (options.source) {
-    const request = options.source.resolve(placement, { baseUrl: options.baseUrl });
+    // A transition tile (coast/river/road) carries a non-zero edgeMask in its
+    // metadata; resolveEdge selects the POSITIONAL transition cell/model for that
+    // mask. Try it first — without this, every transition renders as a plain fill
+    // tile and the whole edge-mask machinery is dead (RFC0-8 edge path).
+    const edgeMask = placement.metadata.edgeMask;
+    const request =
+      typeof edgeMask === 'number' && edgeMask !== 0
+        ? (options.source.resolveEdge?.(placement.assetId, edgeMask, {
+            baseUrl: options.baseUrl,
+          }) ?? options.source.resolve(placement, { baseUrl: options.baseUrl }))
+        : options.source.resolve(placement, { baseUrl: options.baseUrl });
     if (request?.type === 'tileset-cell') {
       return loadTilesetCellObject(placement, request, options);
     }
-    // A 'gltf' request (or no resolution) falls through to the GLTF path below.
+    // A 'gltf' request carries the resolved model URL (e.g. a rotated coast model
+    // from resolveEdge); honour it instead of re-deriving from the placement below.
+    if (request?.type === 'gltf') {
+      requestModelUrl = request.url;
+    }
+    // No resolution → fall through to the placement's own asset URL.
   }
 
-  const modelUrl = resolveGameboardPlacementAssetUrl(placement, options);
+  const modelUrl = requestModelUrl ?? resolveGameboardPlacementAssetUrl(placement, options);
   if (!modelUrl) {
-    throw new GameboardRuntimeError(`No model URL resolved for placement ${placement.id} (${placement.assetId})`);
+    throw new GameboardRuntimeError(
+      `No model URL resolved for placement ${placement.id} (${placement.assetId})`
+    );
   }
+  // `loader` is optional (a tileset-only board supplies only a textureLoader); a
+  // placement that reaches the GLTF path without one is a real misconfiguration.
+  if (!options.loader) {
+    throw new GameboardRuntimeError(
+      `Placement ${placement.id} (${placement.assetId}) needs a GLTF model but no loader was provided`
+    );
+  }
+  const loader = options.loader;
 
   const cacheLoads = options.cacheLoads ?? true;
-  const model = await loadGltfCached(options.loader, modelUrl, cacheLoads);
+  const model = await loadGltfCached(loader, modelUrl, cacheLoads);
   const transform = transformForPlacement(placement);
   // SkeletonUtils.clone (not Object3D.clone) rebinds SkinnedMesh skeletons to
   // the cloned bone hierarchy. Plain `.clone(true)` deep-clones bones but
@@ -371,9 +411,14 @@ export async function loadGameboardPlacementObject(
   const object = applyTransform(cloneWithSkeleton(model.scene), transform);
   tagGameboardPlacementObject(object, placement);
   const animationUrl = resolveGameboardPlacementAnimationUrl(placement, options);
-  const animation = animationUrl ? await loadGltfCached(options.loader, animationUrl, cacheLoads) : undefined;
+  const animation = animationUrl
+    ? await loadGltfCached(loader, animationUrl, cacheLoads)
+    : undefined;
   const clips = [...(animation?.animations ?? []), ...(model.animations ?? [])];
-  const clip = selectAnimationClip(clips, options.clipName ?? placementAnimationClipName(placement));
+  const clip = selectAnimationClip(
+    clips,
+    options.clipName ?? placementAnimationClipName(placement)
+  );
   const mixer = clip ? new AnimationMixer(object) : undefined;
   const animationAction = clip && mixer ? mixer.clipAction(clip) : undefined;
   if (animationAction && options.playAnimation !== false) {
@@ -524,14 +569,20 @@ export function tagGameboardPlacementObject(
 /**
  * Reads gameboard user data directly attached to an object.
  */
-export function readGameboardPlacementObjectUserData(object: Object3D): GameboardObjectUserData | undefined {
-  return isGameboardObjectUserData(object.userData.gameboardPlacement) ? object.userData.gameboardPlacement : undefined;
+export function readGameboardPlacementObjectUserData(
+  object: Object3D
+): GameboardObjectUserData | undefined {
+  return isGameboardObjectUserData(object.userData.gameboardPlacement)
+    ? object.userData.gameboardPlacement
+    : undefined;
 }
 
 /**
  * Walks up the parent chain to find gameboard user data for a picked object.
  */
-export function findGameboardPlacementObjectUserData(object: Object3D): GameboardObjectUserData | undefined {
+export function findGameboardPlacementObjectUserData(
+  object: Object3D
+): GameboardObjectUserData | undefined {
   let current: Object3D | null = object;
   while (current) {
     const data = readGameboardPlacementObjectUserData(current);
@@ -558,7 +609,9 @@ export function findLoadedGameboardPlacementObjectForObject(
  * Converts picked Three.js object metadata into an actor/placement/tile target
  * for command and interaction helpers.
  */
-export function gameboardInteractionTargetForObject(object: Object3D): GameboardInteractionTargetInput | undefined {
+export function gameboardInteractionTargetForObject(
+  object: Object3D
+): GameboardInteractionTargetInput | undefined {
   const data = findGameboardPlacementObjectUserData(object);
   if (!data) {
     return undefined;
@@ -580,7 +633,6 @@ export function updateGameboardPlacementAnimation(
   loaded.mixer?.update(deltaSeconds);
 }
 
-
 /**
  * Applies a gameboard transform to a Three.js object.
  */
@@ -597,7 +649,12 @@ export function applyTransform(object: Object3D, transform: AssetTransform): Obj
 export function placeObjectOnHex(
   object: Object3D,
   coordinates: HexCoordinates,
-  options: { elevation?: number; positionOffset?: GameboardPlacementPositionOffset; rotationY?: number; scale?: number } = {}
+  options: {
+    elevation?: number;
+    positionOffset?: GameboardPlacementPositionOffset;
+    rotationY?: number;
+    scale?: number;
+  } = {}
 ): Object3D {
   return applyTransform(object, transformForHex(coordinates, options));
 }
@@ -606,7 +663,12 @@ export function placeObjectOnHex(
  * Returns a camera-friendly offset for framing one manifest asset preview.
  */
 export function frameObjectPosition(asset: MedievalHexagonAsset, margin = 1.7): Vector3 {
-  const maxDimension = Math.max(asset.bounds.size[0], asset.bounds.size[1], asset.bounds.size[2], 1);
+  const maxDimension = Math.max(
+    asset.bounds.size[0],
+    asset.bounds.size[1],
+    asset.bounds.size[2],
+    1
+  );
   const distance = MathUtils.clamp(maxDimension * margin, 2.5, 8);
   return new Vector3(distance, distance * 0.75, distance);
 }
