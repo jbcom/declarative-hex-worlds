@@ -76,6 +76,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "object",
+    "name": "DEFAULT_HEX_GEOMETRY",
+  },
+  {
+    "kind": "string",
+    "name": "DEFAULT_HEX_ORIENTATION",
+  },
+  {
+    "kind": "object",
     "name": "DEFAULT_PLACEMENT_CLASSIFIERS",
   },
   {
@@ -1881,6 +1889,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "textureFileName",
+  },
+  {
+    "kind": "function",
+    "name": "tilesetHexGeometry",
   },
   {
     "kind": "object",

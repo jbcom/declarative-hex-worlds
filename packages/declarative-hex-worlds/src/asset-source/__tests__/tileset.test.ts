@@ -83,8 +83,21 @@ describe('tileset AssetSource', () => {
       expect(request.dimension).toBe('2d'); // tileset cells are 2D-first (RFC0-RENDER)
       expect(request.sheetUrl).toBe('tiles/grassland.png');
       expect(request.cell.width).toBe(96);
-      expect(request.hex).toEqual({ width: 1, height: 83 / 96 });
+      // Defaults to the board hex width (2) with height derived from the CELL
+      // ASPECT (2 · 83/96 ≈ 1.729) so the vertically-foreshortened painterly hex
+      // renders at its baked proportions and tessellates seamlessly — NOT the old
+      // unit hex (gaps), NOT the regular-hex depth 2.3094 (squishes the art).
+      expect(request.hex.width).toBeCloseTo(2);
+      expect(request.hex.height).toBeCloseTo((2 * 83) / 96);
+      // Defaults to the 'quad' shape (full cell drawn) for seamless painterly terrain.
+      expect(request.shape).toBe('quad');
     }
+  });
+
+  it('emits shape:"hex" when the source is created with shape:"hex"', () => {
+    const source = createTilesetSource({ manifest, shape: 'hex' });
+    const request = source.resolve(placement({ assetId: 'grass', tileKey: '2,3' }));
+    expect(request?.type === 'tileset-cell' && request.shape).toBe('hex');
   });
 
   it('picks the same fill cell for the same tileKey (deterministic hash)', () => {
@@ -104,9 +117,7 @@ describe('tileset AssetSource', () => {
 
   it('prefers a metadata biome hint over the assetId', () => {
     const source = createTilesetSource({ manifest });
-    const request = source.resolve(
-      placement({ assetId: 'ignored', metadata: { biome: 'field' } })
-    );
+    const request = source.resolve(placement({ assetId: 'ignored', metadata: { biome: 'field' } }));
     expect(request?.type).toBe('tileset-cell');
     if (request?.type === 'tileset-cell') {
       expect(request.sheetUrl).toBe('tiles/plains.png');

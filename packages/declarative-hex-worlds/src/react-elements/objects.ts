@@ -19,8 +19,8 @@
  */
 import { useFrame, useThree } from '@react-three/fiber';
 import { useRef } from 'react';
-import type { LoadedGameboardPlacementObject } from '../three';
 import { useProjectedGameboardPlan } from '../react';
+import type { LoadedGameboardPlacementObject } from '../three';
 import { useHexWorldContext } from './context';
 import { syncHexWorldPlacements } from './objects-sync';
 
@@ -44,7 +44,11 @@ export interface GameboardObjectsProps {
 export function GameboardObjects({ animate = true }: GameboardObjectsProps = {}): null {
   const context = useHexWorldContext();
   const scene = useThree((state) => state.scene);
-  const plan = useProjectedGameboardPlan();
+  // Project with the world's geometry override (a foreshortened tileset board packs
+  // its rows tighter so full-cell quads interlock — see HexWorldProps.geometry).
+  const plan = useProjectedGameboardPlan(
+    context.geometry === undefined ? undefined : { geometry: context.geometry }
+  );
   const records = useRef<Map<string, LoadedGameboardPlacementObject>>(new Map());
 
   useFrame((_, delta) => {

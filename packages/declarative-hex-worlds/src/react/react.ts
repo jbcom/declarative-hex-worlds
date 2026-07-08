@@ -75,6 +75,7 @@ import {
   hexKey,
   type InspectGameboardLayoutSitesOptions,
   inspectGameboardLayoutSites,
+  type ProjectWorldOptions,
   projectWorldToGameboardPlan,
 } from '../coordinates';
 import type { GameboardPlacementSpec, GameboardPlan } from '../gameboard';
@@ -1058,18 +1059,23 @@ export function useGameboardPatrolState(
 /**
  * Project the live Koota world back into a serializable `GameboardPlan`.
  */
-export function useProjectedGameboardPlan(): GameboardPlan | undefined {
+export function useProjectedGameboardPlan(
+  options?: ProjectWorldOptions
+): GameboardPlan | undefined {
   const world = useWorld();
   const state = useGameboardState();
   const tiles = useDecomposedTileEntities();
   const placements = useGameboardPlacementEntities();
   const revision = useGameboardDerivedRevision(PROJECTED_PLAN_REVISION_DOMAINS);
+  const geometry = options?.geometry;
   return useMemo(() => {
     void revision;
     void tiles.length;
     void placements.length;
-    return state ? projectWorldToGameboardPlan(world) : undefined;
-  }, [world, state, tiles, placements, revision]);
+    return state
+      ? projectWorldToGameboardPlan(world, geometry === undefined ? undefined : { geometry })
+      : undefined;
+  }, [world, state, tiles, placements, revision, geometry]);
 }
 
 /**

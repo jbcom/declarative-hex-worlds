@@ -4,9 +4,9 @@
  *
  * @module
  */
+
+import type { World } from 'koota';
 import { GameboardRuntimeError } from '../errors';
-import { isKnownExtraAssetId } from '../scenario';
-import { axialToWorld } from './grid';
 import type {
   GameboardPlacementKind,
   GameboardPlacementLayer,
@@ -17,17 +17,39 @@ import type {
 import {
   DecomposedGameboardTileQuery,
   GameboardState,
-  readGameboardPlacements,
   type PlacementStateValue,
+  readGameboardPlacements,
 } from '../koota';
+import { isKnownExtraAssetId } from '../scenario';
+import {
+  selectCoastVariant,
+  selectRiverCrossingVariant,
+  selectRiverVariant,
+  selectRoadVariant,
+} from '../selectors';
 import { normalizeHexRotationSteps, oppositeEdge } from './coordinates';
-import { selectCoastVariant, selectRiverCrossingVariant, selectRiverVariant, selectRoadVariant } from '../selectors';
-import type { World } from 'koota';
+import { axialToWorld, DEFAULT_HEX_GEOMETRY, type HexGeometry } from './grid';
 
 type ProjectedSurfaceKind = Extract<GameboardPlacementKind, 'coast' | 'river' | 'road'>;
 
+/** Options for projecting a world into a plan. */
+export interface ProjectWorldOptions {
+  /**
+   * Hex world geometry used to place tiles (their `position`). Defaults to
+   * `DEFAULT_HEX_GEOMETRY`. Override for a board whose row spacing differs from a
+   * regular hex — e.g. a TILESET board whose cells bake a vertically-foreshortened
+   * (isometric) hex: its rows must be packed at `height/2`, i.e. `depth =
+   * (4/3)·(width·cellHeight/cellWidth)/2`, so full-cell quads interlock seamlessly
+   * instead of spreading ~3× too far apart in Z.
+   */
+  geometry?: HexGeometry;
+}
+
 /** Projects a Koota gameboard world into a serializable gameboard plan with render placements. */
-export function projectWorldToGameboardPlan(world: World): GameboardPlan {
+export function projectWorldToGameboardPlan(
+  world: World,
+  options?: ProjectWorldOptions
+): GameboardPlan {
   const board = world.get(GameboardState);
   if (!board) {
     throw new GameboardRuntimeError('World does not contain GameboardState');
@@ -43,6 +65,7 @@ export function projectWorldToGameboardPlan(world: World): GameboardPlan {
     textureSet: board.textureSet,
     tiles,
     placements: customPlacements,
+    ...(options?.geometry === undefined ? {} : { geometry: options.geometry }),
   });
 }
 
@@ -71,7 +94,10 @@ export function readDecomposedTileSpecs(world: World): GameboardTileSpec[] {
         tags: [...tagList],
       });
     });
-  return tiles.sort((left, right) => left.coordinates.r - right.coordinates.r || left.coordinates.q - right.coordinates.q);
+  return tiles.sort(
+    (left, right) =>
+      left.coordinates.r - right.coordinates.r || left.coordinates.q - right.coordinates.q
+  );
 }
 
 /** Reads a lightweight validation plan from a Koota world without rebuilding render overlays. */
@@ -97,9 +123,15 @@ function createProjectedPlanFromTiles(options: {
   textureSet: GameboardPlan['textureSet'];
   tiles: readonly GameboardTileSpec[];
   placements: readonly GameboardPlacementSpec[];
+  geometry?: HexGeometry;
 }): GameboardPlan {
-  const terrainPlacements = options.tiles.flatMap((tile, index) => terrainPlacementsForTile(tile, index));
-  const connectivityPlacements = options.tiles.flatMap((tile, index) => connectivityPlacementsForTile(tile, index));
+  const geometry = options.geometry ?? DEFAULT_HEX_GEOMETRY;
+  const terrainPlacements = options.tiles.flatMap((tile, index) =>
+    terrainPlacementsForTile(tile, index, geometry)
+  );
+  const connectivityPlacements = options.tiles.flatMap((tile, index) =>
+    connectivityPlacementsForTile(tile, index, geometry)
+  );
   const placements = [...terrainPlacements, ...connectivityPlacements, ...options.placements].sort(
     (left, right) => left.order - right.order || left.id.localeCompare(right.id)
   );
@@ -115,7 +147,11 @@ function createProjectedPlanFromTiles(options: {
   };
 }
 
-function terrainPlacementsForTile(tile: GameboardTileSpec, tileIndex: number): GameboardPlacementSpec[] {
+function terrainPlacementsForTile(
+  tile: GameboardTileSpec,
+  tileIndex: number,
+  geometry: HexGeometry
+): GameboardPlacementSpec[] {
   const placements: GameboardPlacementSpec[] = [];
   for (let level = 0; level < tile.elevation; level += 1) {
     placements.push(
@@ -125,6 +161,7 @@ function terrainPlacementsForTile(tile: GameboardTileSpec, tileIndex: number): G
         order: tileIndex * 10 + level,
         elevation: level,
         stackIndex: level,
+        geometry,
       })
     );
   }
@@ -135,6 +172,7 @@ function terrainPlacementsForTile(tile: GameboardTileSpec, tileIndex: number): G
       order: tileIndex * 10 + tile.elevation,
       elevation: tile.elevation,
       stackIndex: tile.elevation,
+      geometry,
     })
   );
   return placements;
@@ -142,7 +180,8 @@ function terrainPlacementsForTile(tile: GameboardTileSpec, tileIndex: number): G
 
 function connectivityPlacementsForTile(
   tile: GameboardTileSpec,
-  tileIndex: number
+  tileIndex: number,
+  geometry: HexGeometry
 ): GameboardPlacementSpec[] {
   const placements: GameboardPlacementSpec[] = [];
   const baseOrder = 100_000 + tileIndex * 10;
@@ -158,6 +197,7 @@ function connectivityPlacementsForTile(
         order: baseOrder,
         rotationSteps: selection.rotationSteps,
         metadata: { edgeMask: tile.coastEdges },
+        geometry,
       })
     );
   }
@@ -178,6 +218,7 @@ function connectivityPlacementsForTile(
         order: baseOrder + 1,
         rotationSteps: selection.rotationSteps,
         metadata: { edgeMask: tile.riverEdges },
+        geometry,
       })
     );
   }
@@ -197,6 +238,7 @@ function connectivityPlacementsForTile(
         order: baseOrder + 2,
         rotationSteps: selection.rotationSteps,
         metadata: { edgeMask: tile.roadEdges, slope: tile.roadSlope ?? null },
+        geometry,
       })
     );
   }
@@ -233,13 +275,14 @@ function basePlacement(
     order: number;
     elevation: number;
     stackIndex?: number;
+    geometry: HexGeometry;
   }
 ): GameboardPlacementSpec {
   return {
     id: options.id,
     tileKey: tile.key,
     coordinates: tile.coordinates,
-    position: axialToWorld(tile.coordinates, options.elevation),
+    position: axialToWorld(tile.coordinates, options.elevation, options.geometry),
     assetId: options.assetId,
     kind: 'terrain',
     layer: 'terrain',
@@ -266,6 +309,7 @@ function overlayPlacement(
     order: number;
     rotationSteps: number;
     metadata: Readonly<Record<string, string | number | boolean | null>>;
+    geometry: HexGeometry;
   }
 ): GameboardPlacementSpec {
   const rotationSteps = normalizeHexRotationSteps(options.rotationSteps);
@@ -274,7 +318,7 @@ function overlayPlacement(
     id: options.id,
     tileKey: tile.key,
     coordinates: tile.coordinates,
-    position: axialToWorld(tile.coordinates, tile.elevation + elevationOffset),
+    position: axialToWorld(tile.coordinates, tile.elevation + elevationOffset, options.geometry),
     assetId: options.assetId,
     kind: options.kind,
     layer: options.layer,

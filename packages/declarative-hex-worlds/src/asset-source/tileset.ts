@@ -13,19 +13,75 @@
  * @module
  */
 
+import { DEFAULT_HEX_GEOMETRY } from '../coordinates';
 import type { GameboardPlacementSpec } from '../gameboard';
 import type { AssetRenderRequest, AssetSource, CellRect, HexDims, ResolveContext } from './source';
 import type { TilesetGrid, TilesetManifest, TilesetSheet } from './tileset-manifest';
+
+/**
+ * Board hex WIDTH (flat-to-flat, world X) — the default quad's X-extent. The Z-extent
+ * is derived per-sheet from the CELL ASPECT, not the regular-hex depth: painterly
+ * atlases bake a vertically-foreshortened (isometric) hex into each cell — e.g. the
+ * JackleEarth cells are pointy hexes squashed to a 96:83 aspect (wider than a regular
+ * hex's 96:110). Sizing the quad's Z from the regular-hex depth (2.3094, taller than
+ * wide) squishes that art into diamonds; sizing Z = width · cellHeight/cellWidth
+ * matches the baked aspect so the quad shows the hex at its true proportions and
+ * neighbours interlock. Data-driven width (DEFAULT_HEX_GEOMETRY, from JSON).
+ */
+const DEFAULT_TILESET_WIDTH = DEFAULT_HEX_GEOMETRY.width;
+
+/**
+ * Derive the board PLACEMENT geometry a tileset needs for seamless quad
+ * tessellation, from the manifest's cell aspect. Pass the result to
+ * `<HexWorld geometry>` (or `projectWorldToGameboardPlan({ geometry })`).
+ *
+ * Why row spacing must change: a full-cell quad's Z-extent is
+ * `height = width · cellHeight/cellWidth` (the baked cell aspect). For pointy-top
+ * quads to interlock, adjacent ROWS must be `height/2` apart. `rowSpacingForGeometry`
+ * computes `1.5·(depth/2)`, so we invert: `depth = (height/2)/0.75 = (2/3)·height`.
+ * The default regular-hex depth (≈2.3094) spreads rows ~3× too far in Z, leaving the
+ * blue gaps between tiles. Width + elevationStep stay at the board defaults.
+ *
+ * Uses the first sheet's grid for the aspect (all sheets in a coherent pack share a
+ * cell size); pass a specific `grid` to override.
+ */
+export function tilesetHexGeometry(
+  manifest: TilesetManifest,
+  grid?: TilesetGrid
+): { width: number; depth: number; elevationStep: number } {
+  const sheetGrid = grid ?? Object.values(manifest.sheets)[0]?.grid;
+  const width = DEFAULT_TILESET_WIDTH;
+  if (!sheetGrid) {
+    return {
+      width,
+      depth: DEFAULT_HEX_GEOMETRY.depth,
+      elevationStep: DEFAULT_HEX_GEOMETRY.elevationStep,
+    };
+  }
+  const quadHeight = (width * sheetGrid.cellHeight) / sheetGrid.cellWidth;
+  return {
+    width,
+    depth: (2 / 3) * quadHeight,
+    elevationStep: DEFAULT_HEX_GEOMETRY.elevationStep,
+  };
+}
 
 /** Options for a tileset source. */
 export interface TilesetSourceOptions {
   /** The validated tileset manifest to resolve against. */
   manifest: TilesetManifest;
   /**
-   * The rendered hex's world-space footprint. Defaults to a unit hex scaled to
-   * the sheet cell's aspect ratio (width 1, height = cellHeight/cellWidth).
+   * The rendered cell's world-space footprint. Defaults to the board's default hex
+   * footprint (`DEFAULT_TILESET_HEX`), which tessellates seamlessly with the default
+   * `'quad'` render shape. Override for a non-standard board geometry.
    */
   hex?: HexDims;
+  /**
+   * How each cell is drawn (see `AssetRenderRequest['shape']`). Defaults to `'quad'`
+   * — the seamless path for painterly hex atlases whose cells have transparent
+   * corners. Use `'hex'` only for sheets whose cells are opaque edge-to-edge.
+   */
+  shape?: 'quad' | 'hex';
 }
 
 /** The row-major pixel rect of a 0-based cell index within a grid. */
@@ -80,9 +136,19 @@ function fillCells(sheet: TilesetSheet): number[] {
  */
 export function createTilesetSource(options: TilesetSourceOptions): AssetSource {
   const { manifest } = options;
+  const shape = options.shape ?? 'quad';
 
+  // The cell's world footprint. Defaults to the board hex WIDTH (flat-to-flat, world
+  // X) with the HEIGHT derived from the CELL ASPECT (width · cellHeight/cellWidth) —
+  // so a vertically-foreshortened painterly hex renders at its true baked proportions
+  // instead of being squished by the regular-hex depth. A full-cell quad at this size
+  // tessellates seamlessly on axialToWorld spacing; the old unit-hex fallback was HALF
+  // the width and left blue gaps between every tile. Override via `options.hex`.
   const hexDimsForSheet = (grid: TilesetGrid): HexDims =>
-    options.hex ?? { width: 1, height: grid.cellHeight / grid.cellWidth };
+    options.hex ?? {
+      width: DEFAULT_TILESET_WIDTH,
+      height: (DEFAULT_TILESET_WIDTH * grid.cellHeight) / grid.cellWidth,
+    };
 
   const sheetUrl = (sheet: TilesetSheet, ctx?: ResolveContext): string => {
     if (ctx?.baseUrl === undefined) {
@@ -98,6 +164,7 @@ export function createTilesetSource(options: TilesetSourceOptions): AssetSource 
   ): AssetRenderRequest => ({
     type: 'tileset-cell',
     dimension: '2d',
+    shape,
     sheetUrl: sheetUrl(sheet, ctx),
     cell: cellRect(sheet.grid, cellIndex),
     hex: hexDimsForSheet(sheet.grid),

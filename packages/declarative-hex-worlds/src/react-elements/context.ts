@@ -12,6 +12,7 @@
  */
 import { createContext, useContext } from 'react';
 import type { AssetSource } from '../asset-source';
+import type { HexGeometry } from '../coordinates';
 import type { GameboardGltfLoader, GameboardSheetTextureLoader } from '../three';
 
 /**
@@ -29,6 +30,13 @@ export interface HexWorldContextValue {
   textureLoader?: GameboardSheetTextureLoader;
   /** Base URL for resolving a source's relative asset paths. */
   baseUrl?: string | URL;
+  /**
+   * Hex world geometry override for tile PLACEMENT (row spacing). Defaults to
+   * `DEFAULT_HEX_GEOMETRY`. Set for a tileset board whose cells bake a
+   * vertically-foreshortened hex, so its rows pack tightly enough for full-cell
+   * quads to interlock seamlessly (see `ProjectWorldOptions.geometry`).
+   */
+  geometry?: HexGeometry;
 }
 
 export const HexWorldContext = createContext<HexWorldContextValue | undefined>(undefined);

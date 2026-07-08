@@ -11,11 +11,12 @@
  *
  * @module
  */
-import { type ReactNode, createElement, useCallback, useMemo, useState } from 'react';
+import { createElement, type ReactNode, useCallback, useMemo, useState } from 'react';
 import type { AssetSource } from '../asset-source';
+import type { HexGeometry } from '../coordinates';
 import type { GameboardPlan } from '../gameboard';
-import type { GameboardRuntime } from '../runtime';
 import { GameboardPlanProvider, GameboardRuntimeProvider, useGameboardRuntime } from '../react';
+import type { GameboardRuntime } from '../runtime';
 import type { GameboardGltfLoader, GameboardSheetTextureLoader } from '../three';
 import { HexWorldContext, type HexWorldContextValue, useHexWorldContext } from './context';
 
@@ -33,6 +34,13 @@ export interface HexWorldProps {
   textureLoader?: GameboardSheetTextureLoader;
   /** Base URL for resolving relative asset paths. */
   baseUrl?: string | URL;
+  /**
+   * Hex world geometry override for tile PLACEMENT (row spacing). Set for a
+   * tileset board whose cells bake a vertically-foreshortened hex so its rows pack
+   * tightly enough for full-cell quads to interlock seamlessly. Use
+   * `tilesetHexGeometry(manifest)` to derive it from a tileset manifest.
+   */
+  geometry?: HexGeometry;
   /** Board content + bridge (`<Tile>`, `<Model>`, `<GameboardObjects>`, …). */
   children?: ReactNode;
 }
@@ -42,6 +50,7 @@ function HexWorldProvider({
   loader,
   textureLoader,
   baseUrl,
+  geometry,
   children,
 }: Omit<HexWorldProps, 'plan' | 'runtime'>): ReturnType<typeof createElement> {
   // Sources declared via the `source` prop plus any registered at runtime by
@@ -64,8 +73,9 @@ function HexWorldProvider({
       loader,
       textureLoader,
       baseUrl,
+      geometry,
     }),
-    [propSources, registered, registerSource, loader, textureLoader, baseUrl]
+    [propSources, registered, registerSource, loader, textureLoader, baseUrl, geometry]
   );
 
   return createElement(HexWorldContext.Provider, { value }, children);
@@ -82,6 +92,7 @@ export function HexWorld({
   loader,
   textureLoader,
   baseUrl,
+  geometry,
   children,
 }: HexWorldProps): ReturnType<typeof createElement> {
   if ((plan === undefined) === (runtime === undefined)) {
@@ -89,7 +100,7 @@ export function HexWorld({
   }
   const inner = createElement(
     HexWorldProvider,
-    { source, loader, textureLoader, baseUrl },
+    { source, loader, textureLoader, baseUrl, geometry },
     children
   );
   return runtime !== undefined

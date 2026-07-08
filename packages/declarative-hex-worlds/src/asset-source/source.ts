@@ -81,6 +81,21 @@ export type AssetRenderRequest =
       sheetUrl: string;
       cell: CellRect;
       hex: HexDims;
+      /**
+       * How the sheet cell is drawn onto the board plane:
+       *   - `'quad'` (default): the FULL cell rect is drawn as a rectangle spanning
+       *     `hex.width × hex.height`. Painterly hex atlases (e.g. JackleEarth) paint
+       *     each cell as a flattened hex with TRANSPARENT corners — a full quad lets
+       *     neighbouring cells' opaque bodies fill each other's transparent corners,
+       *     so the board tessellates SEAMLESSLY into continuous terrain. This is what
+       *     the canvas-2D binding already does (`drawImage` blits the whole cell), so
+       *     `'quad'` makes the 3D binding match.
+       *   - `'hex'`: the cell is clipped to a hexagon silhouette (UV-mapped to the
+       *     cell). Use only for sheets whose cells are opaque edge-to-edge and must
+       *     NOT bleed past the hex outline. Leaves gaps for transparent-corner art.
+       * Omitted ⇒ `'quad'`.
+       */
+      shape?: 'quad' | 'hex';
       transform?: AssetTransform;
     };
 
