@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.1.1](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.1.0...declarative-hex-worlds@1.1.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **ci:** publish job — run playwright install through its package (1.1.0 never published) ([#223](https://github.com/jbcom/declarative-hex-worlds/issues/223)) ([a3a4f1e](https://github.com/jbcom/declarative-hex-worlds/commit/a3a4f1ee872708b30bbe11e8f9cb4a63beb639d0))
+* **ci:** release bootstrap --out models (was doubled path, 404'd coverage GLTFs) ([#225](https://github.com/jbcom/declarative-hex-worlds/issues/225)) ([be6064c](https://github.com/jbcom/declarative-hex-worlds/commit/be6064cb26597bb75aa32928002549aab32c2f5f))
+
 ## [1.1.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.0.2...declarative-hex-worlds@1.1.0) (2026-07-08)
 
 
