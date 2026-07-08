@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GameboardPlacementSpec } from '../../gameboard';
-import { cellRect, createTilesetSource, tilesetHexGeometry } from '../tileset';
+import { cellRect, createTilesetSource, readTintOpacity, tilesetHexGeometry } from '../tileset';
 import type { TilesetManifest } from '../tileset-manifest';
 
 const manifest: TilesetManifest = {
@@ -64,6 +64,62 @@ describe('cellRect', () => {
     expect(cellRect(grid, 4)).toEqual({ x: 384, y: 0, width: 96, height: 83 });
     expect(cellRect(grid, 5)).toEqual({ x: 0, y: 83, width: 96, height: 83 });
     expect(cellRect(grid, 12)).toEqual({ x: 192, y: 166, width: 96, height: 83 });
+  });
+});
+
+describe('readTintOpacity', () => {
+  it('reads a full tint when all three channels are finite numbers', () => {
+    expect(readTintOpacity({ tintR: 0.5, tintG: 0.6, tintB: 0.7 })).toEqual({
+      tint: { r: 0.5, g: 0.6, b: 0.7 },
+    });
+  });
+
+  it('omits the tint when any channel is missing', () => {
+    expect(readTintOpacity({ tintR: 0.5, tintG: 0.6 })).toEqual({});
+    expect(readTintOpacity({ tintG: 0.6, tintB: 0.7 })).toEqual({});
+    expect(readTintOpacity({ tintR: 0.5, tintB: 0.7 })).toEqual({});
+  });
+
+  it('omits the tint when a channel is a non-number or non-finite', () => {
+    expect(readTintOpacity({ tintR: 0.5, tintG: 'x', tintB: 0.7 })).toEqual({});
+    expect(readTintOpacity({ tintR: 0.5, tintG: 0.6, tintB: Number.NaN })).toEqual({});
+    expect(readTintOpacity({ tintR: Number.POSITIVE_INFINITY, tintG: 0.6, tintB: 0.7 })).toEqual(
+      {}
+    );
+  });
+
+  it('omits the tint when a channel is out of the [0, 1] range', () => {
+    expect(readTintOpacity({ tintR: 1.5, tintG: 0.5, tintB: 0.5 })).toEqual({});
+    expect(readTintOpacity({ tintR: 0.5, tintG: -0.1, tintB: 0.5 })).toEqual({});
+  });
+
+  it('returns an empty result for null/undefined metadata (defensive)', () => {
+    expect(readTintOpacity(null as unknown as Record<string, never>)).toEqual({});
+    expect(readTintOpacity(undefined as unknown as Record<string, never>)).toEqual({});
+  });
+
+  it('reads opacity when it is a finite number in [0, 1]', () => {
+    expect(readTintOpacity({ opacity: 0.4 })).toEqual({ opacity: 0.4 });
+    expect(readTintOpacity({ opacity: 0 })).toEqual({ opacity: 0 });
+    expect(readTintOpacity({ opacity: 1 })).toEqual({ opacity: 1 });
+  });
+
+  it('omits opacity when out of range, non-finite, or not a number', () => {
+    expect(readTintOpacity({ opacity: -0.1 })).toEqual({});
+    expect(readTintOpacity({ opacity: 1.5 })).toEqual({});
+    expect(readTintOpacity({ opacity: Number.NaN })).toEqual({});
+    expect(readTintOpacity({ opacity: '0.5' })).toEqual({});
+  });
+
+  it('reads tint and opacity together', () => {
+    expect(readTintOpacity({ tintR: 1, tintG: 1, tintB: 1, opacity: 0.25 })).toEqual({
+      tint: { r: 1, g: 1, b: 1 },
+      opacity: 0.25,
+    });
+  });
+
+  it('returns an empty object for empty metadata', () => {
+    expect(readTintOpacity({})).toEqual({});
   });
 });
 
@@ -204,6 +260,38 @@ describe('tileset AssetSource', () => {
     const request = source.resolve(placement({ assetId: 'grass' }));
     if (request?.type === 'tileset-cell') {
       expect(request.hex).toEqual({ width: 2, height: 2 });
+    }
+  });
+
+  it('threads placement tint + opacity metadata onto the resolved request', () => {
+    const source = createTilesetSource({ manifest });
+    const request = source.resolve(
+      placement({
+        assetId: 'grass',
+        metadata: { tintR: 0.5, tintG: 0.5, tintB: 0.5, opacity: 0.3 },
+      })
+    );
+    if (request?.type === 'tileset-cell') {
+      expect(request.tint).toEqual({ r: 0.5, g: 0.5, b: 0.5 });
+      expect(request.opacity).toBe(0.3);
+    }
+  });
+
+  it('omits tint + opacity when the placement has no shading metadata', () => {
+    const source = createTilesetSource({ manifest });
+    const request = source.resolve(placement({ assetId: 'grass' }));
+    if (request?.type === 'tileset-cell') {
+      expect(request.tint).toBeUndefined();
+      expect(request.opacity).toBeUndefined();
+    }
+  });
+
+  it('does not apply tint/opacity on the resolveEdge (no-placement) path', () => {
+    const source = createTilesetSource({ manifest });
+    const request = source.resolveEdge?.('water', 3);
+    if (request?.type === 'tileset-cell') {
+      expect(request.tint).toBeUndefined();
+      expect(request.opacity).toBeUndefined();
     }
   });
 });

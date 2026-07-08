@@ -184,4 +184,49 @@ describe('buildTexturedHexMesh', () => {
     expect(pos.getX(1)).toBeCloseTo(hex.width / 2);
     expect(pos.getZ(1)).toBeCloseTo(0);
   });
+
+  it('applies a multiplicative tint to the material color', () => {
+    const mesh = buildTexturedHexMesh({
+      sheet: sheet(),
+      cell,
+      hex,
+      tint: { r: 0.5, g: 0.6, b: 0.7 },
+    });
+    const material = mesh.material as MeshBasicMaterial;
+    expect(material.color.r).toBeCloseTo(0.5);
+    expect(material.color.g).toBeCloseTo(0.6);
+    expect(material.color.b).toBeCloseTo(0.7);
+  });
+
+  it('leaves the material color white (identity) when no tint is given', () => {
+    const material = buildTexturedHexMesh({ sheet: sheet(), cell, hex })
+      .material as MeshBasicMaterial;
+    expect(material.color.r).toBe(1);
+    expect(material.color.g).toBe(1);
+    expect(material.color.b).toBe(1);
+  });
+
+  it('switches to the transparent queue (keeping alphaTest) when opacity < 1', () => {
+    const material = buildTexturedHexMesh({ sheet: sheet(), cell, hex, opacity: 0.4 })
+      .material as MeshBasicMaterial;
+    expect(material.transparent).toBe(true);
+    expect(material.opacity).toBeCloseTo(0.4);
+    // alphaTest is SCALED by opacity (0.5 × 0.4 = 0.2) so the translucent hex BODY
+    // survives — a fixed 0.5 would discard the whole tile once final alpha (texel × 0.4)
+    // drops below it — while the near-zero corner texels still hard-discard.
+    expect(material.alphaTest).toBeCloseTo(0.2);
+  });
+
+  it('keeps the opaque-queue path when opacity is exactly 1', () => {
+    const material = buildTexturedHexMesh({ sheet: sheet(), cell, hex, opacity: 1 })
+      .material as MeshBasicMaterial;
+    expect(material.transparent).toBe(false);
+    expect(material.opacity).toBe(1);
+  });
+
+  it('keeps the opaque-queue path when opacity is undefined (default)', () => {
+    const material = buildTexturedHexMesh({ sheet: sheet(), cell, hex })
+      .material as MeshBasicMaterial;
+    expect(material.transparent).toBe(false);
+  });
 });
