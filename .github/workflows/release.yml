@@ -44,7 +44,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        # `playwright` is a devDependency of the workspace PACKAGES (the library +
+        # examples), not the workspace root — a bare `pnpm exec playwright` from
+        # root fails with ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL ("playwright" not
+        # found). Run it through the package that owns it (same as ci.yml), which
+        # is also the package whose browser-free coverage the verify step enforces.
+        run: pnpm --filter declarative-hex-worlds exec playwright install --with-deps chromium
 
       - name: Bootstrap FREE models for browser coverage
         run: pnpm --filter declarative-hex-worlds exec tsx src/cli/cli.ts bootstrap --source github --out packages/declarative-hex-worlds/models
@@ -114,7 +119,7 @@ jobs:
             sbom.cdx.json
 
       - name: Publish to npm with OIDC trusted publishing
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         # The first `declarative-hex-worlds@1.0.0` publish was issued
         # locally with an automation token (see PR body) so OIDC trusted
         # publishing could be configured on npmjs.com against this
@@ -130,7 +135,7 @@ jobs:
         run: npm publish ${{ steps.pack.outputs.tarball }} --access public --provenance
 
       - name: Verify published package signatures
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         # Install the just-published version into a temp directory and verify
         # that the package's signatures are valid via npm audit signatures.
         # Failure here is a signal that provenance attestation was not attached
