@@ -10,7 +10,12 @@ import {
   SkinnedMesh,
   Texture,
 } from 'three';
-import { createTilesetSource, type TilesetManifest } from '../../asset-source';
+import {
+  type AssetRenderRequest,
+  type AssetSource,
+  createTilesetSource,
+  type TilesetManifest,
+} from '../../asset-source';
 import type { GameboardPlacementSpec } from '../../gameboard/index';
 import { freeManifest } from '../../manifest/free';
 import {
@@ -824,5 +829,118 @@ describe('loadGameboardPlacementObject — AssetSource dispatch (RFC0-8)', () =>
     });
     // One sheet URL, loaded exactly once despite two placements.
     expect(textureLoader.loaded).toEqual(['tiles/grassland.png']);
+  });
+
+  it('honors an explicit shape on a tileset-cell render request (clipped hex)', async () => {
+    // A source that resolves to a tileset-cell carrying shape:'hex' → the clipped
+    // hexagon geometry (7 vertices) instead of the default full-cell quad (4).
+    const hexShapeSource: AssetSource = {
+      kind: 'tileset',
+      resolve(): AssetRenderRequest {
+        return {
+          type: 'tileset-cell',
+          dimension: '2d',
+          sheetUrl: 'tiles/grassland.png',
+          cell: { x: 0, y: 0, width: 96, height: 83 },
+          hex: { width: 2, height: 2 },
+          shape: 'hex',
+        };
+      },
+    };
+    const loaded = await loadGameboardPlacementObject(placement({ assetId: 'grass' }), {
+      source: hexShapeSource,
+      textureLoader: fakeSheetLoader(),
+    });
+    expect((loaded.object as Mesh).geometry.getAttribute('position').count).toBe(7);
+  });
+
+  it('takes the resolveEdge path for a non-zero edgeMask placement', async () => {
+    // A transition placement (non-zero edgeMask) whose resolveEdge yields the
+    // transition tileset-cell — the dispatch must call resolveEdge, not resolve.
+    const edgeSource: AssetSource = {
+      kind: 'tileset',
+      resolve(): AssetRenderRequest {
+        return {
+          type: 'tileset-cell',
+          dimension: '2d',
+          sheetUrl: 'tiles/fill.png',
+          cell: { x: 0, y: 0, width: 96, height: 83 },
+          hex: { width: 2, height: 2 },
+        };
+      },
+      resolveEdge(): AssetRenderRequest {
+        return {
+          type: 'tileset-cell',
+          dimension: '2d',
+          sheetUrl: 'tiles/grassland.png',
+          cell: { x: 96, y: 83, width: 96, height: 83 },
+          hex: { width: 2, height: 2 },
+        };
+      },
+    };
+    const textureLoader = fakeSheetLoader();
+    const loaded = await loadGameboardPlacementObject(
+      placement({ assetId: 'coast', metadata: { edgeMask: 5 } }),
+      { source: edgeSource, textureLoader }
+    );
+    // resolveEdge's sheet (grassland), not resolve's (fill), was loaded.
+    expect(textureLoader.loaded).toEqual(['tiles/grassland.png']);
+    expect(loaded.modelUrl).toBe('tiles/grassland.png');
+  });
+
+  it('falls back to resolve when resolveEdge returns undefined for the mask', async () => {
+    // Non-zero edgeMask but resolveEdge has no cell → `resolveEdge(...) ?? resolve(...)`
+    // fallback selects the fill cell.
+    const partialEdgeSource: AssetSource = {
+      kind: 'tileset',
+      resolve(): AssetRenderRequest {
+        return {
+          type: 'tileset-cell',
+          dimension: '2d',
+          sheetUrl: 'tiles/grassland.png',
+          cell: { x: 0, y: 0, width: 96, height: 83 },
+          hex: { width: 2, height: 2 },
+        };
+      },
+      resolveEdge() {
+        return undefined;
+      },
+    };
+    const textureLoader = fakeSheetLoader();
+    const loaded = await loadGameboardPlacementObject(
+      placement({ assetId: 'coast', metadata: { edgeMask: 5 } }),
+      { source: partialEdgeSource, textureLoader }
+    );
+    expect(loaded.modelUrl).toBe('tiles/grassland.png');
+    expect(textureLoader.loaded).toEqual(['tiles/grassland.png']);
+  });
+
+  it('honors a gltf render request URL from the source (e.g. a resolveEdge model)', async () => {
+    // A source may resolve a placement to a `gltf` request carrying an explicit
+    // model URL (a rotated coast model from resolveEdge). The dispatch must load
+    // that URL instead of re-deriving one from the placement's assetId.
+    const gltfUrlSource: AssetSource = {
+      kind: 'gltf-pack',
+      resolve(): AssetRenderRequest {
+        return { type: 'gltf', dimension: '3d', url: '/models/rotated-coast.glb' };
+      },
+    };
+    const loaded = await loadGameboardPlacementObject(placement({ assetId: 'coast' }), {
+      loader: gltfLoader,
+      source: gltfUrlSource,
+    });
+    expect(loaded.object).toBeInstanceOf(Group);
+    expect(loaded.modelUrl).toBe('/models/rotated-coast.glb');
+  });
+
+  it('throws when a placement reaches the GLTF path with no loader', async () => {
+    // A placement that resolves to a real model URL but is given no GLTF loader is
+    // a misconfiguration — the guard throws rather than dereferencing undefined.
+    await expect(
+      loadGameboardPlacementObject(
+        placement({ assetId: 'unknown', metadata: { sourceUrl: '/models/thing.glb' } }),
+        {}
+      )
+    ).rejects.toThrow(/needs a GLTF model but no loader was provided/);
   });
 });

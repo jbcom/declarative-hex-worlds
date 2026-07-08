@@ -244,4 +244,36 @@ describe('canvas-2D renderer binding (substrate-agnostic proof)', () => {
       FILL_CELL.height,
     ]);
   });
+
+  it('falls back to the fill cell when resolveEdge returns undefined for the mask', () => {
+    const { ctx, calls } = fakeContext();
+    // A source whose resolveEdge has no cell for this mask: the binding's
+    // `resolveEdge(...) ?? resolve(...)` fallback must still draw the FILL cell.
+    const partialEdgeSource: AssetSource = {
+      kind: 'tileset',
+      resolve(p) {
+        return {
+          type: 'tileset-cell',
+          dimension: '2d',
+          sheetUrl: '/sheet.png',
+          cell: FILL_CELL,
+          hex: { width: 1, height: 1 },
+          transform: { position: p.position, rotationY: 0, scale: p.scale },
+        };
+      },
+      resolveEdge() {
+        return undefined;
+      },
+    };
+    const coast = placement('p:coast', 'coast', { x: 0, y: 0, z: 0 });
+    coast.metadata = { edgeMask: 5 };
+    const result = syncCanvas2dPlacements(ctx, [coast], { source: partialEdgeSource, sheets });
+    expect(result.drawn).toHaveLength(1);
+    expect(calls[0]?.slice(1, 5)).toEqual([
+      FILL_CELL.x,
+      FILL_CELL.y,
+      FILL_CELL.width,
+      FILL_CELL.height,
+    ]);
+  });
 });

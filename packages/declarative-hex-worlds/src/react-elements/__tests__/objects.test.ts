@@ -116,6 +116,23 @@ describe('syncHexWorldPlacements', () => {
     expect(result).toBeInstanceOf(Promise);
   });
 
+  it('runs a tileset-only sync (textureLoader present, no GLTF loader)', () => {
+    // A tileset-only board supplies only a textureLoader. The sync must still run
+    // (not bail) and must omit the `loader` key it has no value for.
+    const result = syncHexWorldPlacements(
+      { placements: [], tiles: [] } as never,
+      context({
+        loader: undefined,
+        textureLoader: { loadAsync: vi.fn() },
+        sources: [{ kind: 'tileset', resolve: () => undefined }],
+      }),
+      new Group(),
+      new Map(),
+      0.016
+    );
+    expect(result).toBeInstanceOf(Promise);
+  });
+
   it('re-entrant passes before a load resolves LEAK meshes without a caller guard', async () => {
     // Documents the failure mode GameboardObjects' in-flight guard prevents: a
     // placement is only recorded AFTER its awaited load resolves, so overlapping

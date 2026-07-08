@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GameboardPlacementSpec } from '../../gameboard';
-import { cellRect, createTilesetSource } from '../tileset';
+import { cellRect, createTilesetSource, tilesetHexGeometry } from '../tileset';
 import type { TilesetManifest } from '../tileset-manifest';
 
 const manifest: TilesetManifest = {
@@ -205,5 +205,28 @@ describe('tileset AssetSource', () => {
     if (request?.type === 'tileset-cell') {
       expect(request.hex).toEqual({ width: 2, height: 2 });
     }
+  });
+});
+
+describe('tilesetHexGeometry', () => {
+  it('derives foreshortened row spacing from the first sheet cell aspect', () => {
+    const geom = tilesetHexGeometry(manifest);
+    // width stays the board default; depth = (2/3) · (width · cellH/cellW) so that
+    // rowSpacing = 1.5·(depth/2) = height/2, the interlock spacing.
+    expect(geom.width).toBeCloseTo(2);
+    expect(geom.depth).toBeCloseTo((2 / 3) * ((2 * 83) / 96));
+    expect(geom.elevationStep).toBe(1);
+  });
+
+  it('honours an explicit grid override', () => {
+    const geom = tilesetHexGeometry(manifest, { cols: 1, rows: 1, cellWidth: 64, cellHeight: 64 });
+    // square cell → depth = (2/3)·(width·1) = (2/3)·2
+    expect(geom.depth).toBeCloseTo((2 / 3) * 2);
+  });
+
+  it('falls back to the regular-hex depth when the manifest has no sheets', () => {
+    const empty: TilesetManifest = { schemaVersion: '1', kind: 'tileset', sheets: {}, biomes: {} };
+    const geom = tilesetHexGeometry(empty);
+    expect(geom.depth).toBeCloseTo(2.3094);
   });
 });
