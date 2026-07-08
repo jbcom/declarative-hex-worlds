@@ -948,6 +948,35 @@ describe('loadGameboardPlacementObject — AssetSource dispatch (RFC0-8)', () =>
     expect((loaded.object as Mesh).geometry.getAttribute('position').count).toBe(7);
   });
 
+  it('applies a tileset-cell render request tint + opacity onto the mesh material', async () => {
+    // A source resolving a tileset-cell with tint + opacity<1 → the mesh material is
+    // colour-multiplied and moved to the transparent queue (fog/season/team shading).
+    const shadedSource: AssetSource = {
+      kind: 'tileset',
+      resolve(): AssetRenderRequest {
+        return {
+          type: 'tileset-cell',
+          dimension: '2d',
+          sheetUrl: 'tiles/grassland.png',
+          cell: { x: 0, y: 0, width: 96, height: 83 },
+          hex: { width: 2, height: 2 },
+          tint: { r: 0.25, g: 0.3, b: 0.4 },
+          opacity: 0.5,
+        };
+      },
+    };
+    const loaded = await loadGameboardPlacementObject(placement({ assetId: 'grass' }), {
+      source: shadedSource,
+      textureLoader: fakeSheetLoader(),
+    });
+    const material = (loaded.object as Mesh).material as MeshBasicMaterial;
+    expect(material.color.r).toBeCloseTo(0.25);
+    expect(material.color.g).toBeCloseTo(0.3);
+    expect(material.color.b).toBeCloseTo(0.4);
+    expect(material.transparent).toBe(true);
+    expect(material.opacity).toBeCloseTo(0.5);
+  });
+
   it('takes the resolveEdge path for a non-zero edgeMask placement', async () => {
     // A transition placement (non-zero edgeMask) whose resolveEdge yields the
     // transition tileset-cell — the dispatch must call resolveEdge, not resolve.
