@@ -35,6 +35,7 @@ export {
   type ScanResult,
   scanAssetFiles,
 } from './scan';
+export { combineSources } from './source';
 export type {
   AssetDimension,
   AssetRenderRequest,
@@ -44,6 +45,7 @@ export type {
   HexDims,
   ResolveContext,
 } from './source';
+export { createSourceFromSpec, type CreateSourceFromSpecOptions } from './spec-source';
 export {
   ASSET_FORMATS,
   ASSET_ROLES,
