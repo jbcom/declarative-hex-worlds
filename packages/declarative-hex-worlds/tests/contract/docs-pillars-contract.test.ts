@@ -6,9 +6,10 @@
  *
  *   - `status`: draft | implemented | verified
  *   - `last_verified`: YYYY-MM-DD
- *   - `source_images`: list of extracted KayKit guide PNGs under
- *     `docs/assets/kaykit-guide/`
- *   - `source_pack`: a known local KayKit references/ input pack
+ *   - `source_images`: list of SimpleRPG showcase PNGs under
+ *     `docs/showcases/` or `docs/assets/showcases/` (the vendor guide is retired)
+ *   - `source_pack`: an edition token (`free` | `extra` | `simple-rpg`), never a
+ *     gitignored `references/` path
  *   - `implementation_links`: list of repo-relative source/docs/scripts paths
  *   - `test_links`: list of repo-relative tests/scripts paths
  *
@@ -47,10 +48,10 @@ const REQUIRED_KEYS = [
 
 type PillarStatus = 'draft' | 'implemented' | 'verified';
 const ALLOWED_STATUSES = new Set<PillarStatus>(['draft', 'implemented', 'verified']);
-const ALLOWED_SOURCE_PACKS = new Set([
-  'references/KayKit_Medieval_Hexagon_Pack_1.0_FREE',
-  'references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA',
-]);
+// RFC0-6: pillars source their evidence from SimpleRPG SHOWCASE renders, not the
+// retired vendor guide. `source_pack` is now an EDITION token (which pack edition
+// the pillar's board content comes from), never a gitignored `references/` path.
+const ALLOWED_SOURCE_PACKS = new Set(['free', 'extra', 'simple-rpg']);
 
 interface PillarFrontmatter {
   status?: string;
@@ -168,13 +169,11 @@ describe('docs/pillars contract', () => {
         expect(ALLOWED_SOURCE_PACKS.has(data.source_pack)).toBe(true);
       });
 
-      it('source_images all match KayKit guide PNG pattern', () => {
+      it('source_images all match the showcase PNG pattern (RFC0-6: no retired guide pages)', () => {
         for (const path of data.source_images ?? []) {
           expect(
-            /^docs\/assets\/kaykit-guide\/(?:montage|pages\/page-(?:0[1-9]|1[0-9]))\.png$/.test(
-              path
-            ),
-            `${path} doesn't match KayKit guide PNG pattern`
+            /^docs\/(?:assets\/)?showcases\/[a-z0-9-]+\.png$/.test(path),
+            `${path} is not a docs/(assets/)?showcases/*.png showcase (the KayKit guide is retired)`
           ).toBe(true);
         }
       });

@@ -2,16 +2,10 @@
 status: implemented
 last_verified: 2026-06-25
 source_images:
-  - docs/assets/kaykit-guide/pages/page-02.png
-  - docs/assets/kaykit-guide/pages/page-05.png
-  - docs/assets/kaykit-guide/pages/page-06.png
-  - docs/assets/kaykit-guide/pages/page-10.png
-  - docs/assets/kaykit-guide/pages/page-14.png
-  - docs/assets/kaykit-guide/pages/page-15.png
-  - docs/assets/kaykit-guide/pages/page-16.png
-  - docs/assets/kaykit-guide/pages/page-17.png
-  - docs/assets/kaykit-guide/pages/page-18.png
-source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
+  - docs/assets/showcases/free-guide-scenarios-by-extracted-page.png
+  - docs/assets/showcases/free-blueprint-builder-showcase.png
+  - docs/assets/showcases/extra-harbor-gameboard.png
+source_pack: free
 implementation_links:
   - docs/release-readiness.json
   - docs/guides/guide-scenario-coverage.md

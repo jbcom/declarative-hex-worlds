@@ -2,14 +2,10 @@
 status: implemented
 last_verified: 2026-05-24
 source_images:
-  - docs/assets/kaykit-guide/pages/page-03.png
-  - docs/assets/kaykit-guide/pages/page-04.png
-  - docs/assets/kaykit-guide/pages/page-07.png
-  - docs/assets/kaykit-guide/pages/page-08.png
-  - docs/assets/kaykit-guide/pages/page-09.png
-  - docs/assets/kaykit-guide/pages/page-10.png
-  - docs/assets/kaykit-guide/pages/page-13.png
-source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
+  - docs/assets/showcases/free-guide-roads-all-labels-rotations.png
+  - docs/assets/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png
+  - docs/assets/showcases/free-guide-coasts-all-labels-rotations-water-waterless.png
+source_pack: free
 implementation_links:
   - docs/guides/release-readiness.md
   - src/selectors/selectors.ts

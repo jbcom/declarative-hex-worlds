@@ -2,16 +2,10 @@
 status: implemented
 last_verified: 2026-06-25
 source_images:
-  - docs/assets/kaykit-guide/pages/page-05.png
-  - docs/assets/kaykit-guide/pages/page-06.png
-  - docs/assets/kaykit-guide/pages/page-07.png
-  - docs/assets/kaykit-guide/pages/page-08.png
-  - docs/assets/kaykit-guide/pages/page-09.png
-  - docs/assets/kaykit-guide/pages/page-11.png
-  - docs/assets/kaykit-guide/pages/page-15.png
-  - docs/assets/kaykit-guide/pages/page-16.png
-  - docs/assets/kaykit-guide/pages/page-18.png
-source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
+  - docs/assets/showcases/simple-rpg-seeded-completed.png
+  - docs/assets/showcases/simple-rpg-fixed-completed.png
+  - docs/assets/showcases/simple-rpg-local-third-party-assets.png
+source_pack: simple-rpg
 implementation_links:
   - docs/release-readiness.json
   - docs/guides/release-readiness.md
