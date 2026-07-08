@@ -56,11 +56,18 @@ function collectFiles(root: string, current: string = root): string[] {
   return files;
 }
 
-/** Read a positive-integer CLI flag, throwing on a present-but-invalid value. */
+/**
+ * Read a positive-integer CLI flag, throwing on a present-but-invalid value. A bare
+ * `--cols` (boolean `true` from parseArgs, no value) is rejected rather than coerced
+ * to `1` — `--cols`/`--rows` are grid dimensions and a value is always required.
+ */
 function readPositiveIntFlag(parsed: ParsedArgs, flag: string): number | undefined {
   const value = parsed.flags[flag];
   if (value === undefined) {
     return undefined;
+  }
+  if (typeof value === 'boolean') {
+    throw new GameboardCliError(`--${flag} requires a value (a positive integer)`);
   }
   const n = Number(value);
   if (!Number.isInteger(n) || n <= 0) {
@@ -86,6 +93,13 @@ export function runBind(parsed: ParsedArgs): void {
   // are reported for the author to fill in.
   const cols = readPositiveIntFlag(parsed, 'cols');
   const rows = readPositiveIntFlag(parsed, 'rows');
+  // A grid needs BOTH dimensions. Supplying only one is a mistake that would
+  // otherwise be silently ignored (tilesets kept the placeholder grid) — fail loudly.
+  if ((cols === undefined) !== (rows === undefined)) {
+    throw new GameboardCliError(
+      '--cols and --rows must be supplied together (a tileset grid needs both)'
+    );
+  }
   const resolveTilesetGrid =
     cols !== undefined && rows !== undefined
       ? (asset: ScannedAsset) => {

@@ -142,6 +142,22 @@ describe('bind CLI command (RFC0-CLI)', () => {
     ).toThrow(GameboardCliError);
   });
 
+  it('throws when --cols is passed as a bare boolean flag (no value)', () => {
+    // parseArgs yields `true` for `--cols` with no value; a grid dimension needs a number.
+    expect(() =>
+      runBind({ command: 'bind', flags: { dir: assets, cols: true, rows: '10' } })
+    ).toThrow(/--cols requires a value/);
+  });
+
+  it('throws when only one of --cols/--rows is supplied (a grid needs both)', () => {
+    expect(() => runBind({ command: 'bind', flags: { dir: assets, cols: '5' } })).toThrow(
+      /--cols and --rows must be supplied together/
+    );
+    expect(() => runBind({ command: 'bind', flags: { dir: assets, rows: '10' } })).toThrow(
+      /must be supplied together/
+    );
+  });
+
   it('reports (console.error) and falls back when a tileset PNG cannot be measured', () => {
     // The empty grassland.png can't be measured (readPngDimensions throws), so the
     // resolveTilesetGrid catch branch logs the error and returns no grid → the

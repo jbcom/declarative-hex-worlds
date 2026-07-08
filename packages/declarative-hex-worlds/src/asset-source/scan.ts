@@ -155,6 +155,13 @@ const CATEGORY_KEYWORDS: ReadonlyArray<readonly [string, GameplayCategory]> = [
  * Guess a model/sprite asset's SUGGESTED gameplay category from its filename, or
  * `undefined` when no keyword matches (an uncategorized model). A default the dev
  * accepts or overrides — never authoritative.
+ *
+ * Substring (not token) match is deliberate: asset packs favour compound names where the
+ * keyword is fused into a word — `watchtower` (→ structure via `tower`), `treehouse`,
+ * `crossbowman`. Requiring a whole-token match would miss those. List order breaks ties
+ * when a name carries two keywords (`skeleton_warrior` → enemy, checked before pc). The
+ * result is only ever a SUGGESTION the developer confirms or overrides, so an occasional
+ * loose hit costs nothing — it's one click to correct in the wizard/web flow.
  */
 export function guessGameplayCategory(path: string): GameplayCategory | undefined {
   const lower = path.toLowerCase();
