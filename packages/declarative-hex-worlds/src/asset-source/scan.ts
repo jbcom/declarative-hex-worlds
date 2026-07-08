@@ -85,8 +85,12 @@ export function assetIdFromPath(path: string): string {
   return stem.replace(/[^a-zA-Z0-9_-]+/g, '_');
 }
 
-/** Known biome keywords the tile-biome heuristic looks for in a filename. */
-const BIOME_KEYWORDS = [
+/**
+ * Known biome keywords the tile-biome heuristic looks for in a filename. Exported so the
+ * interactive `init` wizard can offer them as the biome-override choices (single source —
+ * the heuristic and the picker share one list).
+ */
+export const BIOME_KEYWORDS = [
   'grass',
   'water',
   'coast',

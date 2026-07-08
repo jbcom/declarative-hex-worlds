@@ -33,6 +33,7 @@ export {
 } from './png-dimensions';
 export {
   assetIdFromPath,
+  BIOME_KEYWORDS,
   buildAssetSourceSpec,
   guessGameplayCategory,
   guessTileBiome,
