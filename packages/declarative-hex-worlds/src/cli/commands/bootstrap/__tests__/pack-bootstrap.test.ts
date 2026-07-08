@@ -7,11 +7,14 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import yazl from 'yazl';
 import { GameboardIoError } from '../../../../errors';
 import { runBootstrap } from '../index';
+import { classifyPlacement } from '../../../../classifiers';
+import type { GameboardPlacementSpec } from '../../../../gameboard';
 import {
   assertPackPresent,
   bootstrapPack,
   isPackMaterialized,
   layoutForPack,
+  registeredPackClassifiers,
   resolveDefaultPackKit,
 } from '../pack-bootstrap';
 import { PACK_REGISTRY } from '../registry';
@@ -183,5 +186,30 @@ describe('default source resolution (RFC0-10c)', () => {
 
   it('assertPackPresent rejects an unknown pack id', () => {
     expect(() => assertPackPresent('nope', tmp())).toThrow(/Unknown pack "nope"/);
+  });
+});
+
+describe('registeredPackClassifiers (RFC0-TAGb)', () => {
+  function unit(sourcePack: string): GameboardPlacementSpec {
+    return { id: 'p', kind: 'unit', metadata: { sourcePack } } as unknown as GameboardPlacementSpec;
+  }
+
+  it('builds a classifier per registered pack from its category', () => {
+    const classifiers = registeredPackClassifiers();
+    expect(classifiers).toHaveLength(Object.keys(PACK_REGISTRY).length);
+  });
+
+  it('auto-classifies a placement sourced from the adventurers pack as playable', () => {
+    expect(classifyPlacement(unit('adventurers'), registeredPackClassifiers())).toContain('playable');
+  });
+
+  it('auto-classifies a placement sourced from the skeletons pack as enemy + random-encounter', () => {
+    const tags = classifyPlacement(unit('skeletons'), registeredPackClassifiers());
+    expect(tags).toContain('enemy');
+    expect(tags).toContain('random-encounter');
+  });
+
+  it('leaves a terrain-pack (medieval-hexagon) placement with no gameplay classifier', () => {
+    expect(classifyPlacement(unit('medieval-hexagon'), registeredPackClassifiers())).toEqual([]);
   });
 });

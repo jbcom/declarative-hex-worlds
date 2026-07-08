@@ -515,6 +515,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
     "name": "RoadPlacementQuery",
   },
   {
+    "kind": "string",
+    "name": "SOURCE_PACK_METADATA_KEY",
+  },
+  {
     "kind": "object",
     "name": "StackedTerrainQuery",
   },
@@ -1493,6 +1497,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "overlayTransform",
+  },
+  {
+    "kind": "function",
+    "name": "packClassifier",
+  },
+  {
+    "kind": "function",
+    "name": "packDefaultClassifiers",
   },
   {
     "kind": "function",

@@ -43,8 +43,9 @@ export type PlacementClassifier = (placement: GameboardPlacementSpec) => readonl
 
 /**
  * The default classifiers — a renderer/pack-agnostic baseline derived from the
- * placement's structural KIND. Recognized-pack classifiers (Adventures → playable,
- * Skeletons → enemy) layer ON TOP of these once those packs land (RFC0-10).
+ * placement's structural KIND. Recognized-pack classifiers (Adventurers → playable,
+ * Skeletons → enemy/random-encounter) layer ON TOP of these via {@link packClassifier}
+ * (RFC0-TAGb); a consumer composes `[...DEFAULT_PLACEMENT_CLASSIFIERS, ...packClassifiers()]`.
  */
 export const DEFAULT_PLACEMENT_CLASSIFIERS: readonly PlacementClassifier[] = [
   (placement) => {
@@ -61,6 +62,76 @@ export const DEFAULT_PLACEMENT_CLASSIFIERS: readonly PlacementClassifier[] = [
     }
   },
 ];
+
+/**
+ * A recognized pack's GAMEPLAY category, as published by the pack registry
+ * (`terrain` | `playable` | `enemy`). Passed in as a plain value so this core
+ * module never imports the CLI-domain registry — a consumer threads
+ * `packDescriptor(id).category` through {@link packClassifier}.
+ */
+export type PackClassifierCategory = 'terrain' | 'playable' | 'enemy';
+
+/**
+ * The default classifier tags a recognized pack's CATEGORY contributes (RFC0-TAGb).
+ * `playable` characters are playable units; `enemy` characters are both enemies and
+ * eligible random encounters; `terrain` packs contribute no gameplay classifier
+ * (their pieces are classified by structural kind alone). This is the pack→classifier
+ * mapping the RFC0-TAG doc reserved ("Adventures → playable, Skeletons → enemy").
+ */
+export function packDefaultClassifiers(
+  category: PackClassifierCategory
+): readonly KnownClassifierTag[] {
+  switch (category) {
+    case 'playable':
+      return ['playable'];
+    case 'enemy':
+      return ['enemy', 'random-encounter'];
+    default:
+      return [];
+  }
+}
+
+/**
+ * The metadata key under which a placement records the id of the pack it was
+ * sourced from. {@link packClassifier} reads this (or an `assetId` prefix) to
+ * decide whether a placement belongs to a recognized pack.
+ */
+export const SOURCE_PACK_METADATA_KEY = 'sourcePack';
+
+/**
+ * Build a {@link PlacementClassifier} for a recognized pack (RFC0-TAGb). A placement
+ * belongs to the pack when EITHER its `sourcePack` metadata equals `packId` OR its
+ * `assetId` is namespaced under `<packId>:` (the `adventurer:knight` convention).
+ * Matching placements receive the pack category's default classifiers
+ * ({@link packDefaultClassifiers}); everything else gets none, so pack classifiers
+ * compose cleanly on top of the kind-based {@link DEFAULT_PLACEMENT_CLASSIFIERS}.
+ *
+ * @param packId - The registered pack id (e.g. `adventurers`, `skeletons`).
+ * @param category - The pack's registry category (thread `packDescriptor(id).category`).
+ * @param assetIdPrefix - Optional `assetId` namespace to also match (defaults to `packId`).
+ */
+export function packClassifier(
+  packId: string,
+  category: PackClassifierCategory,
+  assetIdPrefix: string = packId
+): PlacementClassifier {
+  const tags = packDefaultClassifiers(category);
+  const prefix = `${assetIdPrefix}:`;
+  return (placement) => {
+    if (tags.length === 0) {
+      return [];
+    }
+    const sourcePack = placement.metadata?.[SOURCE_PACK_METADATA_KEY];
+    if (sourcePack === packId) {
+      return tags;
+    }
+    const assetId = (placement as { assetId?: unknown }).assetId;
+    if (typeof assetId === 'string' && assetId.startsWith(prefix)) {
+      return tags;
+    }
+    return [];
+  };
+}
 
 /** Union of the classifier tags every classifier assigns to a placement (order-stable, deduped). */
 export function classifyPlacement(
