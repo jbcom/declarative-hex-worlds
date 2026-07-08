@@ -109,6 +109,7 @@ describe('package.json metadata', () => {
       'LICENSE',
       'README.md',
       'NOTICE.md',
+      'llms.txt',
     ];
     expect((packageJson.files ?? []).sort()).toEqual([...expected].sort());
   });
