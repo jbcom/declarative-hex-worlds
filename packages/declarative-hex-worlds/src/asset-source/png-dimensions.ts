@@ -44,18 +44,11 @@ export function readPngDimensions(bytes: Uint8Array): PngDimensions {
   ) {
     throw new Error('not a PNG: first chunk is not IHDR');
   }
-  // Big-endian u32 width @16, height @20.
-  const width =
-    ((bytes[16] ?? 0) << 24) |
-    ((bytes[17] ?? 0) << 16) |
-    ((bytes[18] ?? 0) << 8) |
-    (bytes[19] ?? 0);
-  const height =
-    ((bytes[20] ?? 0) << 24) |
-    ((bytes[21] ?? 0) << 16) |
-    ((bytes[22] ?? 0) << 8) |
-    (bytes[23] ?? 0);
-  return { width: width >>> 0, height: height >>> 0 };
+  // Big-endian u32 width @16, height @20. A DataView reads them directly — no
+  // per-byte `?? 0` fallbacks (whose branches are unreachable given the length
+  // check above, and would leave the coverage gate short).
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  return { width: view.getUint32(16, false), height: view.getUint32(20, false) };
 }
 
 /**

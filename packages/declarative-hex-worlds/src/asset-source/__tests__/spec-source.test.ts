@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { GameboardPlacementSpec } from '../../gameboard';
-import { createSourceFromSpec } from '../spec-source';
 import { parseAssetSourceSpec } from '../spec';
+import { createSourceFromSpec } from '../spec-source';
 
-function placement(assetId: string, extra: Partial<GameboardPlacementSpec> = {}): GameboardPlacementSpec {
+function placement(
+  assetId: string,
+  extra: Partial<GameboardPlacementSpec> = {}
+): GameboardPlacementSpec {
   return {
     id: `p:${assetId}`,
     tileKey: '0,0',
@@ -96,5 +99,77 @@ describe('createSourceFromSpec', () => {
       assets: [{ id: 'unit', role: 'sprite', format: 'png', path: 'sprites/unit.png' }],
     });
     expect(createSourceFromSpec(spec)).toBeUndefined();
+  });
+
+  it('routes a glb/gltf-format tile asset through the gltf arm', () => {
+    // A `tile` asset that is a mesh (format !== 'png') is resolved by gltf-pack,
+    // exercising the tile sub-branch of isGltfAsset.
+    const spec = parseAssetSourceSpec({
+      specVersion: 1,
+      name: 'mesh-tiles',
+      assetRoot: 'assets',
+      assets: [
+        {
+          id: 'hex_grass',
+          role: 'tile',
+          format: 'glb',
+          path: 'tiles/hex_grass.glb',
+          biome: 'grass',
+        },
+      ],
+    });
+    const source = createSourceFromSpec(spec);
+    const tile = source?.resolve(placement('hex_grass'));
+    expect(tile?.type).toBe('gltf');
+    if (tile?.type === 'gltf') {
+      expect(tile.url).toContain('tiles/hex_grass.glb');
+    }
+  });
+
+  it('registers no biome for a fill tileset sheet with no biome key', () => {
+    // A fill sheet (no transition) whose `biome` is undefined takes neither the
+    // transition nor the fill-with-biome branch — it becomes a bare sheet.
+    const spec = parseAssetSourceSpec({
+      specVersion: 1,
+      name: 'unlabeled',
+      assetRoot: 'assets',
+      assets: [
+        {
+          id: 'sheet',
+          role: 'tileset',
+          format: 'png',
+          path: 'tilesets/sheet.png',
+          grid: { cols: 2, rows: 2, cellWidth: 32, cellHeight: 32 },
+        },
+      ],
+    });
+    const source = createSourceFromSpec(spec);
+    // The sheet exists (the tileset arm was built) but no biome maps to it.
+    expect(source).toBeDefined();
+    expect(source?.resolve(placement('x', { metadata: { biome: 'grass' } }))).toBeUndefined();
+  });
+
+  it('honors the tilesetShape option when composing the tileset source', () => {
+    const spec = parseAssetSourceSpec({
+      specVersion: 1,
+      name: 'hex-shaped',
+      assetRoot: 'assets',
+      assets: [
+        {
+          id: 'grassland',
+          role: 'tileset',
+          format: 'png',
+          path: 'tilesets/grassland.png',
+          biome: 'grass',
+          grid: { cols: 2, rows: 2, cellWidth: 32, cellHeight: 32 },
+        },
+      ],
+    });
+    const source = createSourceFromSpec(spec, { tilesetShape: 'hex' });
+    const grass = source?.resolve(placement('x', { metadata: { biome: 'grass' } }));
+    expect(grass?.type).toBe('tileset-cell');
+    if (grass?.type === 'tileset-cell') {
+      expect(grass.shape).toBe('hex');
+    }
   });
 });

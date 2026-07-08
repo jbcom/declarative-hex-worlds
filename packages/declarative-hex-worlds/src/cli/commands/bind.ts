@@ -94,6 +94,7 @@ export function runBind(parsed: ParsedArgs): void {
             return inferTilesetGrid(readPngDimensions(bytes), cols, rows);
           } catch (error) {
             console.error(
+              /* v8 ignore next -- readFileSync/readPngDimensions/inferTilesetGrid all throw Error; the String() arm is defensive. */
               `Could not measure tileset "${asset.id}" (${asset.path}): ${error instanceof Error ? error.message : String(error)}`
             );
             return undefined;
