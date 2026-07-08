@@ -125,10 +125,15 @@ describe('declarative elements (RFC0-8b)', () => {
     root = undefined;
 
     let withElements = -1;
+    let tintedMetadata: Record<string, unknown> | undefined;
     function Probe(): null {
       const { runtime } = useHexWorld();
       React.useEffect(() => {
-        withElements = runtime.plan().placements.length;
+        const placements = runtime.plan().placements;
+        withElements = placements.length;
+        // The tinted <Tile> carries the merged metadata (tint keys + its biome).
+        const tinted = placements.find((p) => p.metadata && 'tintR' in p.metadata);
+        tintedMetadata = tinted?.metadata as Record<string, unknown> | undefined;
       });
       return null;
     }
@@ -136,44 +141,23 @@ describe('declarative elements (RFC0-8b)', () => {
       React.createElement(
         HexWorld,
         { plan: plan(), loader: gltfLoader },
-        React.createElement(Tile, { at: { q: 0, r: 0 }, assetId: 'grass', biome: 'grass' }),
+        // A <Tile> with a metadata prop (fog tint/opacity) AND a biome — the element's own
+        // biome must win over the metadata's biome so the tileset source still resolves.
+        React.createElement(Tile, {
+          at: { q: 0, r: 0 },
+          assetId: 'grass',
+          biome: 'grass',
+          metadata: { tintR: 0.5, tintG: 0.5, tintB: 0.5, opacity: 0.4, biome: 'meadow' },
+        }),
         React.createElement(Model, { at: { q: 1, r: 0 }, assetId: 'castle' }),
         React.createElement(Probe, null)
       )
     );
     // Two elements → two more placements than the board baseline.
     expect(withElements).toBe(baseline + 2);
-  });
-
-  it("merges a <Tile>'s metadata prop with its biome (biome wins on a key clash)", async () => {
-    // A game drives per-tile render hints (fog tint/opacity) via the metadata prop; the
-    // tile\'s own biome must survive the merge so the tileset source still resolves it.
-    let captured: Record<string, unknown> | undefined;
-    function Probe(): null {
-      const { runtime } = useHexWorld();
-      React.useEffect(() => {
-        const spawned = runtime.plan().placements.find((p) => p.metadata && 'tintR' in p.metadata);
-        captured = spawned?.metadata as Record<string, unknown> | undefined;
-      });
-      return null;
-    }
-    await render(
-      React.createElement(
-        HexWorld,
-        { plan: plan(), loader: gltfLoader },
-        React.createElement(Tile, {
-          at: { q: 0, r: 0 },
-          assetId: 'grass',
-          biome: 'grass',
-          // biome:'meadow' here must NOT override the real biome prop; tint keys pass through.
-          metadata: { tintR: 0.5, tintG: 0.5, tintB: 0.5, opacity: 0.4, biome: 'meadow' },
-        }),
-        React.createElement(Probe, null)
-      )
-    );
-    expect(captured).toMatchObject({ tintR: 0.5, tintG: 0.5, tintB: 0.5, opacity: 0.4 });
-    // The element's own biome ('grass') wins over the metadata's biome ('meadow').
-    expect(captured?.biome).toBe('grass');
+    // The metadata prop merged into the placement; the element's biome ('grass') won.
+    expect(tintedMetadata).toMatchObject({ tintR: 0.5, tintG: 0.5, tintB: 0.5, opacity: 0.4 });
+    expect(tintedMetadata?.biome).toBe('grass');
   });
 
   it('<Tileset> registers a source into the world; useHexWorld exposes it', async () => {
