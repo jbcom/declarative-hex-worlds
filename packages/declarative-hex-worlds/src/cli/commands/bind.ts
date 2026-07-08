@@ -12,13 +12,22 @@
  *   --dir <path>       (required) the assets root to scan.
  *   --name <name>      source name (default: the dir's basename).
  *   --asset-root <p>   assetRoot recorded in the spec (default: the scanned --dir).
+ *   --cols <n> --rows <n>  tileset atlas cell layout; each tileset PNG is measured
+ *                      (readPngDimensions) and its cell size derived, replacing the
+ *                      placeholder grid. Omit to leave tilesets needing a grid.
  *   --out <path>       write the JSON here (default: print to stdout).
  *
  * @module
  */
-import { readdirSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, relative, resolve } from 'node:path';
-import { buildAssetSourceSpec, safeParseAssetSourceSpec } from '../../asset-source';
+import {
+  buildAssetSourceSpec,
+  inferTilesetGrid,
+  readPngDimensions,
+  type ScannedAsset,
+  safeParseAssetSourceSpec,
+} from '../../asset-source';
 import { GameboardCliError } from '../../errors';
 import type { PackEdition } from '../../types';
 import { type ParsedArgs, safeResolveOutput } from '../_shared';
@@ -47,6 +56,19 @@ function collectFiles(root: string, current: string = root): string[] {
   return files;
 }
 
+/** Read a positive-integer CLI flag, throwing on a present-but-invalid value. */
+function readPositiveIntFlag(parsed: ParsedArgs, flag: string): number | undefined {
+  const value = parsed.flags[flag];
+  if (value === undefined) {
+    return undefined;
+  }
+  const n = Number(value);
+  if (!Number.isInteger(n) || n <= 0) {
+    throw new GameboardCliError(`--${flag} must be a positive integer (got "${String(value)}")`);
+  }
+  return n;
+}
+
 export function runBind(parsed: ParsedArgs): void {
   const dirFlag = parsed.flags.dir;
   if (typeof dirFlag !== 'string' || dirFlag.length === 0) {
@@ -57,8 +79,34 @@ export function runBind(parsed: ParsedArgs): void {
   const assetRoot =
     typeof parsed.flags['asset-root'] === 'string' ? String(parsed.flags['asset-root']) : dir;
 
+  // Optional atlas grid: the author supplies the cols×rows a sheet tiles into, and
+  // we MEASURE each tileset PNG's pixel dimensions (readPngDimensions — no image
+  // decode, just the IHDR chunk) to derive the exact cell size. Replaces the
+  // placeholder {1,1,1,1} grid. Absent the flags, tilesets keep the placeholder and
+  // are reported for the author to fill in.
+  const cols = readPositiveIntFlag(parsed, 'cols');
+  const rows = readPositiveIntFlag(parsed, 'rows');
+  const resolveTilesetGrid =
+    cols !== undefined && rows !== undefined
+      ? (asset: ScannedAsset) => {
+          try {
+            const bytes = readFileSync(join(dir, asset.path));
+            return inferTilesetGrid(readPngDimensions(bytes), cols, rows);
+          } catch (error) {
+            console.error(
+              `Could not measure tileset "${asset.id}" (${asset.path}): ${error instanceof Error ? error.message : String(error)}`
+            );
+            return undefined;
+          }
+        }
+      : undefined;
+
   const files = collectFiles(dir).map((path) => ({ path }));
-  const { spec, scan } = buildAssetSourceSpec(files, { name, assetRoot });
+  const { spec, scan } = buildAssetSourceSpec(files, {
+    name,
+    assetRoot,
+    ...(resolveTilesetGrid ? { resolveTilesetGrid } : {}),
+  });
 
   const validation = safeParseAssetSourceSpec(spec);
   const json = `${JSON.stringify(spec, null, 2)}\n`;

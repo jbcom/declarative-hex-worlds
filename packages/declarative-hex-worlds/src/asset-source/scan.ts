@@ -172,11 +172,22 @@ export function buildAssetSourceSpec(
   options: {
     name: string;
     assetRoot: string;
+    /** Fallback grid for tilesets when no per-tileset grid is resolved. */
     tilesetGrid?: { cols: number; rows: number; cellWidth: number; cellHeight: number };
+    /**
+     * Per-tileset grid resolver (the CLI supplies this — it reads the PNG bytes and
+     * derives the grid via `readPngDimensions` + `inferTilesetGrid`, keeping this
+     * function pure of fs/image-decode). Return `undefined` to fall back to
+     * `tilesetGrid`. When BOTH are absent a tileset keeps the placeholder grid and
+     * is reported in `scan.tilesetsNeedingGrid` so the author can fix it.
+     */
+    resolveTilesetGrid?: (
+      asset: ScannedAsset
+    ) => { cols: number; rows: number; cellWidth: number; cellHeight: number } | undefined;
   }
 ): { spec: AssetSourceSpec; scan: ScanResult } {
   const scan = scanAssetFiles(files);
-  const grid = options.tilesetGrid ?? { cols: 1, rows: 1, cellWidth: 1, cellHeight: 1 };
+  const fallbackGrid = options.tilesetGrid ?? { cols: 1, rows: 1, cellWidth: 1, cellHeight: 1 };
   const assets = scan.assets.map((asset) => {
     if (asset.role === 'tileset') {
       return {
@@ -184,7 +195,7 @@ export function buildAssetSourceSpec(
         role: 'tileset' as const,
         format: 'png' as const,
         path: asset.path,
-        grid,
+        grid: options.resolveTilesetGrid?.(asset) ?? fallbackGrid,
       };
     }
     if (asset.role === 'tile') {

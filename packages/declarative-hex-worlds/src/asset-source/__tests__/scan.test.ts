@@ -134,5 +134,40 @@ describe('asset-directory scan → AssetSourceSpec (RFC0-CLI)', () => {
         cellHeight: 83,
       });
     });
+
+    it('uses a per-tileset resolved grid over the fallback', () => {
+      const { spec } = buildAssetSourceSpec([{ path: 'tilesets/grassland.png' }], {
+        name: 'p',
+        assetRoot: 'assets',
+        tilesetGrid: { cols: 1, rows: 1, cellWidth: 1, cellHeight: 1 }, // fallback
+        // The CLI supplies this (reading + measuring the PNG); here a stub.
+        resolveTilesetGrid: (asset) =>
+          asset.id === 'grassland'
+            ? { cols: 5, rows: 10, cellWidth: 96, cellHeight: 83 }
+            : undefined,
+      });
+      const tileset = spec.assets.find((a) => a.role === 'tileset');
+      expect(tileset && 'grid' in tileset && tileset.grid).toEqual({
+        cols: 5,
+        rows: 10,
+        cellWidth: 96,
+        cellHeight: 83,
+      });
+    });
+
+    it('falls back to the placeholder grid when the resolver returns undefined', () => {
+      const { spec } = buildAssetSourceSpec([{ path: 'tilesets/grassland.png' }], {
+        name: 'p',
+        assetRoot: 'assets',
+        resolveTilesetGrid: () => undefined,
+      });
+      const tileset = spec.assets.find((a) => a.role === 'tileset');
+      expect(tileset && 'grid' in tileset && tileset.grid).toEqual({
+        cols: 1,
+        rows: 1,
+        cellWidth: 1,
+        cellHeight: 1,
+      });
+    });
   });
 });
