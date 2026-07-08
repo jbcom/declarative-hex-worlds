@@ -2,27 +2,11 @@
 status: implemented
 last_verified: 2026-06-25
 source_images:
-  - docs/assets/kaykit-guide/montage.png
-  - docs/assets/kaykit-guide/pages/page-01.png
-  - docs/assets/kaykit-guide/pages/page-02.png
-  - docs/assets/kaykit-guide/pages/page-03.png
-  - docs/assets/kaykit-guide/pages/page-04.png
-  - docs/assets/kaykit-guide/pages/page-05.png
-  - docs/assets/kaykit-guide/pages/page-06.png
-  - docs/assets/kaykit-guide/pages/page-07.png
-  - docs/assets/kaykit-guide/pages/page-08.png
-  - docs/assets/kaykit-guide/pages/page-09.png
-  - docs/assets/kaykit-guide/pages/page-10.png
-  - docs/assets/kaykit-guide/pages/page-11.png
-  - docs/assets/kaykit-guide/pages/page-12.png
-  - docs/assets/kaykit-guide/pages/page-13.png
-  - docs/assets/kaykit-guide/pages/page-14.png
-  - docs/assets/kaykit-guide/pages/page-15.png
-  - docs/assets/kaykit-guide/pages/page-16.png
-  - docs/assets/kaykit-guide/pages/page-17.png
-  - docs/assets/kaykit-guide/pages/page-18.png
-  - docs/assets/kaykit-guide/pages/page-19.png
-source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
+  - docs/assets/showcases/simple-rpg-fixed-completed.png
+  - docs/assets/showcases/simple-rpg-seeded-completed.png
+  - docs/assets/showcases/free-blueprint-builder-showcase.png
+  - docs/assets/showcases/extra-blueprint-biome-transition-showcase.png
+source_pack: simple-rpg
 implementation_links:
   - docs/release-readiness.json
   - docs/guides/release-readiness.md

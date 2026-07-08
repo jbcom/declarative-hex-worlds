@@ -28,6 +28,26 @@ import { assertCanvasHasRenderableContent, renderGameboardPlan } from '../render
 declare const __KENNEY_CASTLE_ROOT__: string;
 declare const __KAYKIT_ADVENTURERS_ROOT__: string;
 
+// These roots are large licensed local packs on the NAS asset library — never
+// downloaded by the default bootstrap, never tracked. When they aren't reachable
+// (e.g. CI without the NAS mounted, or the local-assets config not in use), skip
+// the whole suite rather than fail or overwrite the baseline with a blank frame.
+// Probe the actual files the test loads via a HEAD fetch through Vite's `/@fs/`.
+async function localAssetsReachable(): Promise<boolean> {
+  const probes = [
+    `${localAssetRootUrl(__KENNEY_CASTLE_ROOT__)}/tower-hexagon-base.glb`,
+    `${localAssetRootUrl(__KAYKIT_ADVENTURERS_ROOT__)}/Knight.glb`,
+  ];
+  try {
+    const responses = await Promise.all(probes.map((url) => fetch(url, { method: 'HEAD' })));
+    return responses.every((response) => response.ok);
+  } catch {
+    return false;
+  }
+}
+
+const LOCAL_ASSETS_AVAILABLE = await localAssetsReachable();
+
 interface LoadedExternalAssetMetadata {
   bounds: AssetBounds;
   hasRig: boolean;
@@ -38,19 +58,22 @@ interface LoadedExternalAssetMetadata {
 const loader = new GLTFLoader();
 
 describe('local third-party asset E2E compatibility', () => {
-  it('flags Kenney non-hex pieces as prop placements and places Adventurers rigged units from references', async () => {
+  it.skipIf(!LOCAL_ASSETS_AVAILABLE)('flags Kenney non-hex pieces as prop placements and places Adventurers rigged units from local NAS packs', async () => {
     await page.viewport(1500, 950);
 
     const sourceRoots = {
       'Kenney Castle Kit': localAssetRootUrl(__KENNEY_CASTLE_ROOT__),
       'KayKit Adventurers 2.0 FREE': localAssetRootUrl(__KAYKIT_ADVENTURERS_ROOT__),
     };
+    // Both packs are FLAT `.glb` directories on the NAS 3DLowPoly library (Castle
+    // Kit; Adventurers 2.0 FREE) — the old `Characters/gltf/` + `Animations/gltf/
+    // Rig_Medium/` sub-paths were the retired references/ layout.
     const urls = {
       roundTower: `${sourceRoots['Kenney Castle Kit']}/tower-hexagon-base.glb`,
       squareTower: `${sourceRoots['Kenney Castle Kit']}/tower-square-base.glb`,
       tree: `${sourceRoots['Kenney Castle Kit']}/tree-large.glb`,
-      knight: `${sourceRoots['KayKit Adventurers 2.0 FREE']}/Characters/gltf/Knight.glb`,
-      movement: `${sourceRoots['KayKit Adventurers 2.0 FREE']}/Animations/gltf/Rig_Medium/Rig_Medium_MovementBasic.glb`,
+      knight: `${sourceRoots['KayKit Adventurers 2.0 FREE']}/Knight.glb`,
+      movement: `${sourceRoots['KayKit Adventurers 2.0 FREE']}/Rig_Medium_MovementBasic.glb`,
     };
 
     const [roundTower, squareTower, tree, knight, movement] = await Promise.all([
@@ -188,7 +211,7 @@ describe('local third-party asset E2E compatibility', () => {
             metadata: {
               placementCriteria: 'rigged adventurer facing board-forward near settlement',
               actorKind: 'ally',
-              sourceRelativePath: 'Characters/gltf/Knight.glb',
+              sourceRelativePath: 'Knight.glb',
             },
           },
         },

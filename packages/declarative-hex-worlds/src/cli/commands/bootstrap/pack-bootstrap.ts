@@ -13,6 +13,7 @@
  */
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { type PlacementClassifier, packClassifier } from '../../../classifiers';
 import { GameboardIoError } from '../../../errors';
 import { type BootstrapResult, bootstrapKayKitAssets } from './core';
 import { PACK_IDS, type PackDescriptor, type PackId, packDescriptor } from './registry';
@@ -139,4 +140,23 @@ export function assertPackPresent(id: string, rawAssetsRoot: string): string {
     );
   }
   return dir;
+}
+
+/**
+ * The recognized-pack {@link PlacementClassifier}s (RFC0-TAGb): one per registered
+ * pack, mapping each pack's registry category to its default gameplay classifiers
+ * (Adventurers → playable, Skeletons → enemy/random-encounter; terrain packs
+ * contribute none). Compose these ON TOP of `DEFAULT_PLACEMENT_CLASSIFIERS` so a
+ * placement sourced from a recognized pack is auto-classified:
+ *
+ * ```ts
+ * const classifiers = [...DEFAULT_PLACEMENT_CLASSIFIERS, ...registeredPackClassifiers()];
+ * classifyPlacement(placement, classifiers);
+ * ```
+ */
+export function registeredPackClassifiers(): readonly PlacementClassifier[] {
+  return PACK_IDS.map((id) => {
+    const descriptor = packDescriptor(id);
+    return packClassifier(descriptor.id, descriptor.category);
+  });
 }

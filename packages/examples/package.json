@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "lint": "pnpm exec biome lint src tests",
-    "test:browser": "vitest run --config vitest.browser.config.ts"
+    "test:browser": "vitest run --config vitest.browser.config.ts",
+    "test:browser:local-assets": "HEX_WORLDS_ENABLE_LOCAL_ASSETS=1 vitest run --config vitest.browser.local-assets.config.ts"
   },
   "dependencies": {
     "declarative-hex-worlds": "workspace:*"

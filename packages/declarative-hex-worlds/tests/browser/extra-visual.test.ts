@@ -18,7 +18,27 @@ declare const __EXTRA_SOURCE_ROOT__: string;
 
 const extraTreatments = listKayKitAssetPublicTreatments();
 
-describe('EXTRA local visual coverage', () => {
+// EXTRA is a LICENSED itch.io pack resolved from the NAS asset library — never
+// downloaded, never tracked. When its tree isn't reachable (CI without the NAS),
+// skip the whole suite rather than fail or overwrite baselines with blank frames.
+async function extraAssetsReachable(): Promise<boolean> {
+  try {
+    // Encode spaces — licensed pack roots on macOS/NAS commonly contain them
+    // (e.g. ".../Castle Kit/"), and a raw space breaks the `/@fs/` fetch URL.
+    const fsUrl = (root: string, rel: string) => `/@fs/${root}/${rel}`.replaceAll(' ', '%20');
+    const [source, texture] = await Promise.all([
+      fetch(fsUrl(__EXTRA_SOURCE_ROOT__, 'tiles/base/hex_grass.gltf'), { method: 'HEAD' }),
+      fetch(fsUrl(__EXTRA_TEXTURE_ROOT__, 'hexagons_medieval.png'), { method: 'HEAD' }),
+    ]);
+    return source.ok && texture.ok;
+  } catch {
+    return false;
+  }
+}
+
+const EXTRA_AVAILABLE = await extraAssetsReachable();
+
+describe.skipIf(!EXTRA_AVAILABLE)('EXTRA local visual coverage', () => {
   it('captures every local EXTRA tile asset including FREE-compatible copies', async () => {
     await page.viewport(1700, 1050);
     const requests = requestsForCategory('tiles');

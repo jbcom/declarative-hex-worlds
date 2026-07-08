@@ -12,10 +12,16 @@ The included files under `assets/free/` are from KayKit: Medieval Hexagon Pack
 ## Baked cross-maker example assets (RFC0-PACKS)
 
 The `@declarative-hex-worlds/examples` package (not published to npm) bakes a few
-tracked pieces from **Kenney Hexagon Kit 2.0** by Kenney under CC0-1.0, to prove
-cross-maker extension — a different asset maker than KayKit composing through the
-same library seams (size normalization + overlay). Credited by courtesy; CC0
-requires no attribution.
+tracked pieces from Kenney under CC0-1.0. Credited by courtesy; CC0 requires no
+attribution.
+
+- **Kenney Hexagon Kit 2.0** (3D GLB tiles + buildings) — proves cross-maker
+  extension: a different asset maker than KayKit composing through the same
+  library seams (size normalization + overlay).
+- **Kenney Hexagon Pack** (2D sprite tiles: grass/water/sand/dirt/stone) — the
+  2D binding's asset story. A 2D canvas cannot consume the library's 3D GLB
+  defaults, so the canvas-2D example bakes 2D sprites from this separate CC0
+  source (see RFC0-ASSETS-BINDING-SPLIT).
 
 - Kenney: https://www.kenney.nl
 - CC0-1.0: https://creativecommons.org/publicdomain/zero/1.0/

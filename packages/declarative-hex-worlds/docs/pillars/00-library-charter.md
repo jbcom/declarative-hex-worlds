@@ -2,10 +2,10 @@
 status: implemented
 last_verified: 2026-06-25
 source_images:
-  - docs/assets/kaykit-guide/montage.png
-  - docs/assets/kaykit-guide/pages/page-01.png
-  - docs/assets/kaykit-guide/pages/page-19.png
-source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_FREE
+  - docs/assets/showcases/simple-rpg-fixed-completed.png
+  - docs/assets/showcases/simple-rpg-seeded-completed.png
+  - docs/assets/showcases/free-blueprint-builder-showcase.png
+source_pack: simple-rpg
 implementation_links:
   - docs/release-readiness.json
   - docs/guides/release-readiness.md

@@ -2,15 +2,10 @@
 status: implemented
 last_verified: 2026-05-24
 source_images:
-  - docs/assets/kaykit-guide/pages/page-11.png
-  - docs/assets/kaykit-guide/pages/page-12.png
-  - docs/assets/kaykit-guide/pages/page-13.png
-  - docs/assets/kaykit-guide/pages/page-14.png
-  - docs/assets/kaykit-guide/pages/page-15.png
-  - docs/assets/kaykit-guide/pages/page-16.png
-  - docs/assets/kaykit-guide/pages/page-17.png
-  - docs/assets/kaykit-guide/pages/page-18.png
-source_pack: references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA
+  - docs/assets/showcases/extra-blueprint-biome-transition-showcase.png
+  - docs/assets/showcases/extra-harbor-gameboard.png
+  - docs/assets/showcases/simple-rpg-local-third-party-assets.png
+source_pack: extra
 implementation_links:
   - docs/release-readiness.json
   - docs/guides/release-readiness.md

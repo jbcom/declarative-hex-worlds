@@ -513,23 +513,36 @@ function mirrorPackTree(
   targetRoot: string,
   includeSourceFormats: boolean
 ): BootstrapFileEntry[] {
-  const gltfSource = join(packRoot, layout.relativeGltfRoot);
   const gltfTarget = join(targetRoot, KAYKIT_BOOTSTRAP_GLTF_RELATIVE);
   mkdirSync(gltfTarget, { recursive: true });
   const entries: BootstrapFileEntry[] = [];
-  for (const filePath of walkFiles(gltfSource)) {
-    if (!shouldInclude(filePath, includeSourceFormats)) {
-      continue;
+  // Source dir(s) to mirror. A character pack (`mirrorAllGltfDirs`) has two
+  // renderable trees (`Assets/gltf` weapons + `Characters/gltf` bodies), so we
+  // SCAN the pack root for every dir holding a renderable `.gltf`/`.glb` and
+  // mirror each preserving its pack-relative path — deriving the shape from the
+  // real tree. Medieval packs mirror their single declared `relativeGltfRoot`.
+  const sourceRoots = layout.mirrorAllGltfDirs
+    ? findRenderableGltfDirs(packRoot, includeSourceFormats)
+    : [join(packRoot, layout.relativeGltfRoot)];
+  for (const gltfSource of sourceRoots) {
+    for (const filePath of walkFiles(gltfSource)) {
+      if (!shouldInclude(filePath, includeSourceFormats)) {
+        continue;
+      }
+      // Preserve the path relative to the PACK ROOT for multi-root scans (so
+      // `Characters/gltf/Knight.glb` and `Assets/gltf/sword.gltf` stay distinct);
+      // for a single declared root, relativize against that root as before.
+      const base = layout.mirrorAllGltfDirs ? packRoot : gltfSource;
+      const relPath = toPosix(relative(base, filePath));
+      const targetPath = join(gltfTarget, relPath);
+      mkdirSync(dirname(targetPath), { recursive: true });
+      const bytes = copyAndHash(filePath, targetPath);
+      entries.push({
+        path: toPosix(join(KAYKIT_BOOTSTRAP_GLTF_RELATIVE, relPath)),
+        sha256: bytes.sha256,
+        bytes: bytes.size,
+      });
     }
-    const relPath = toPosix(relative(gltfSource, filePath));
-    const targetPath = join(gltfTarget, relPath);
-    mkdirSync(dirname(targetPath), { recursive: true });
-    const bytes = copyAndHash(filePath, targetPath);
-    entries.push({
-      path: toPosix(join(KAYKIT_BOOTSTRAP_GLTF_RELATIVE, relPath)),
-      sha256: bytes.sha256,
-      bytes: bytes.size,
-    });
   }
   // Separate texture pass only for layouts that publish a distinct Textures/
   // dir (medieval hexagon). Character packs list no textureFiles — their textures
@@ -566,6 +579,67 @@ function shouldInclude(filePath: string, includeSourceFormats: boolean): boolean
     return true;
   }
   return false;
+}
+
+/**
+ * Directory names that hold source-format exports or preview art, never a
+ * renderable gltf tree — excluded from the {@link findRenderableGltfDirs} scan so
+ * a character pack's `Assets/fbx`, `Assets/obj`, `Assets/fbx(unity)`, and
+ * `Samples/` never masquerade as a renderable root.
+ */
+const NON_RENDERABLE_DIR_NAMES = new Set(['fbx', 'fbx(unity)', 'obj', 'mtl', 'samples']);
+
+/**
+ * Scan a pack root and return every directory that DIRECTLY contains a
+ * renderable `.gltf`/`.glb`, sorted for determinism. This derives a character
+ * pack's mirror set from the real tree (capturing BOTH `Assets/gltf/` and
+ * `Characters/gltf/`) instead of a single guessed root. Source-format /
+ * preview directories ({@link NON_RENDERABLE_DIR_NAMES}) are skipped; their gltf
+ * siblings are still found because the scan descends into every OTHER directory.
+ *
+ * Returns only the TOP-MOST renderable directory of each subtree: once a dir is
+ * recorded, the scan does NOT descend further, because the caller mirrors each
+ * returned root with a RECURSIVE walk that already captures every nested
+ * renderable file. Returning both a parent and its descendant would mirror the
+ * nested files twice (inflating the sidecar / fileCount) — the layout is derived
+ * from the real tree, which may nest renderable dirs (e.g. LOD sub-folders).
+ */
+function findRenderableGltfDirs(packRoot: string, includeSourceFormats: boolean): string[] {
+  const found = new Set<string>();
+  const visit = (dir: string): void => {
+    let dirents: import('node:fs').Dirent[];
+    try {
+      dirents = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      /* v8 ignore next 2 -- extraction-created directories are readable; guards a filesystem race. */
+      return;
+    }
+    const hasRenderable = dirents.some((entry) => {
+      if (!entry.isFile()) {
+        return false;
+      }
+      const ext = lowercaseExtension(entry.name);
+      return ext === '.gltf' || ext === '.glb';
+    });
+    if (hasRenderable) {
+      // This dir is a renderable root; the caller's recursive walk covers every
+      // nested renderable, so stop descending — never record a descendant too.
+      found.add(dir);
+      return;
+    }
+    for (const entry of dirents) {
+      if (!entry.isDirectory() || entry.isSymbolicLink()) {
+        continue;
+      }
+      // Skip source-format / preview subtrees unless the caller opted in.
+      if (!includeSourceFormats && NON_RENDERABLE_DIR_NAMES.has(entry.name.toLowerCase())) {
+        continue;
+      }
+      visit(join(dir, entry.name));
+    }
+  };
+  visit(packRoot);
+  return [...found].sort();
 }
 
 function walkFiles(root: string): string[] {

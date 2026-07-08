@@ -13,12 +13,16 @@ export {
   CLASSIFIER_TAG_PREFIX,
   type ClassifierTag,
   type KnownClassifierTag,
+  type PackClassifierCategory,
   type PlacementClassifier,
   DEFAULT_PLACEMENT_CLASSIFIERS,
+  SOURCE_PACK_METADATA_KEY,
   classifierMetadata,
   classifierMetadataKey,
   classifierTagsOf,
   classifyPlacement,
+  packClassifier,
+  packDefaultClassifiers,
   placementHasClassifier,
 } from './classifiers';
 export {
