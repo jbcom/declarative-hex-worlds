@@ -60,13 +60,17 @@ function usePlacementElement(input: SpawnPlacementInput): void {
     input;
   // A stable JSON key so the effect re-spawns when the metadata VALUE (not just its object
   // identity) changes — a caller passing a fresh `{tintR:…}` object each render would
-  // otherwise thrash or, with a raw-object dep, never update.
+  // otherwise thrash or, with a raw-object dep, never update. The effect reads metadata
+  // back FROM this key (its single source), so the dependency list stays honest: only the
+  // string, never the unstable object, drives re-spawn.
   const metadataKey = metadata === undefined ? undefined : JSON.stringify(metadata);
   useEffect(() => {
     // The element's own derived keys (a Tile's biome) win over caller metadata of the same
     // name, so a game can't accidentally clobber the biome the tile needs to resolve.
     const merged = {
-      ...(metadata ?? {}),
+      ...(metadataKey === undefined
+        ? {}
+        : (JSON.parse(metadataKey) as Record<string, string | number | boolean | null>)),
       ...(biome === undefined ? {} : { biome }),
     };
     const entity = runtime.spawnPlacement({
@@ -95,7 +99,6 @@ function usePlacementElement(input: SpawnPlacementInput): void {
     scale,
     elevationOffset,
     biome,
-    metadata,
     metadataKey,
   ]);
 }
