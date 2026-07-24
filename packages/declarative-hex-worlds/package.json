@@ -315,7 +315,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.3",
-    "@cyclonedx/cyclonedx-npm": "5.0.0",
+    "@cyclonedx/cyclonedx-npm": "6.0.0",
     "@react-three/fiber": "catalog:",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^26.1.1",
@@ -340,7 +340,7 @@
     "tsup": "^8.5.1",
     "tsx": "^4.23.0",
     "typedoc": "^0.28.20",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vite": "^8.1.4",
     "vitest": "^4.1.10",
     "yazl": "^3.3.1"
