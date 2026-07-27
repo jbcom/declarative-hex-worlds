@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.2.3](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.2.2...declarative-hex-worlds@1.2.3) (2026-07-27)
+
+
+### Bug Fixes
+
+* **ci:** derive a bare version from the release tag before npm install ([#248](https://github.com/jbcom/declarative-hex-worlds/issues/248)) ([3237fe9](https://github.com/jbcom/declarative-hex-worlds/commit/3237fe92b31043ee064cb3ececc9ca71ca6fd23a))
+
 ## [1.2.2](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.2.1...declarative-hex-worlds@1.2.2) (2026-07-27)
 
 
