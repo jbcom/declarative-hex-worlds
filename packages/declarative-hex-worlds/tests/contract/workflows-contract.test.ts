@@ -50,6 +50,38 @@ function readJson<T>(path: string): T {
   return JSON.parse(source) as T;
 }
 
+/**
+ * Extract the block of a workflow YAML nested under `header` at `indent`, up to
+ * the next line at the same or shallower indentation.
+ *
+ * Structural assertions need this rather than a substring search: a bare
+ * `toContain('contents: write')` cannot tell a job-level key from the
+ * workflow-level key of the same name, so it keeps passing when the job-level
+ * one is deleted. (`yaml` is only a pnpm override here, not a direct dependency,
+ * and Node 22 ships no YAML parser — not worth a new dependency for one test.)
+ */
+function yamlBlock(source: string, header: string, indent: number): string {
+  const lines = source.split('\n');
+  const start = lines.findIndex((line) => line === `${' '.repeat(indent)}${header}`);
+  if (start === -1) {
+    return '';
+  }
+  const body: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (line.trim() !== '' && line.search(/\S/) <= indent) {
+      break;
+    }
+    // Drop comment lines. A prose comment explaining WHY a key is set contains
+    // that key verbatim, which would satisfy an assertion about the key even
+    // after the real directive is deleted.
+    if (line.trim().startsWith('#')) {
+      continue;
+    }
+    body.push(line);
+  }
+  return body.join('\n');
+}
+
 describe('workflow contract', () => {
   describe('every workflow file exists', () => {
     for (const [name, path] of Object.entries(files)) {
@@ -139,6 +171,31 @@ describe('workflow contract', () => {
       ['cyclonedx-npm'],
     ])('includes %s', (snippet) => {
       expect(read(files.release)).toContain(snippet);
+    });
+
+    it('grants the publish job contents: write for the release-asset upload', () => {
+      // Regression pin. The workflow default is `contents: read`, which made the
+      // "Attach SBOM + tarball to release" step fail with "Resource not accessible
+      // by integration" — AFTER npm publish had already succeeded, so 1.2.1 shipped
+      // to the registry while its SBOM and tarball never reached the GitHub release.
+      // softprops/action-gh-release UPDATES an existing release and needs write.
+      //
+      // Scoped to the job's own block: a bare substring check cannot tell the
+      // job-level permissions from the workflow-level ones, so it keeps passing
+      // even when the job grant is deleted.
+      const source = read(files.release);
+      const publishJob = yamlBlock(source, 'publish:', 2);
+      const jobPermissions = yamlBlock(publishJob, 'permissions:', 4);
+
+      expect(jobPermissions).toContain('contents: write');
+      // OIDC trusted publishing + SLSA attestation still need theirs at job level:
+      // declaring any job-level `permissions` REPLACES the workflow default
+      // wholesale rather than merging, so omitting these would silently drop them.
+      expect(jobPermissions).toContain('id-token: write');
+      expect(jobPermissions).toContain('attestations: write');
+      // The workflow-level default stays read-only — the elevation is scoped to the
+      // one job that needs it, not granted to every job in the file.
+      expect(yamlBlock(source, 'permissions:', 0)).toContain('contents: read');
     });
   });
 
