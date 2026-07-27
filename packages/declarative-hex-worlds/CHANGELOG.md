@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.2.1](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.2.0...declarative-hex-worlds@1.2.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* **security:** close 4 Dependabot advisories + an absolute-path hole in the zip-slip guard ([#244](https://github.com/jbcom/declarative-hex-worlds/issues/244)) ([1660ff3](https://github.com/jbcom/declarative-hex-worlds/commit/1660ff383a36fe117023705927c1c6489c697f9e))
+
 ## [1.2.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.1.2...declarative-hex-worlds@1.2.0) (2026-07-08)
 
 
