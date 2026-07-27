@@ -536,6 +536,22 @@ describe('bootstrap security — zip-slip (CWE-22)', () => {
     });
   }
 
+  it.each([
+    ['..foo/x'],
+    ['.../x'],
+    ['...'],
+    ['....//x'],
+    ['a/../b'],
+    ['x/..'],
+    ['normal/file.gltf'],
+  ])('accepts the legitimate contained entry %j', (entry) => {
+    // Names that merely BEGIN with two dots are legal filenames and stay inside
+    // the root. A `relativeTarget.startsWith('..')` prefix test rejects all of
+    // these; the guard splits on the first path segment instead, so a pack that
+    // legitimately ships such a file still extracts.
+    expect(escapesRoot(tmp(), entry)).toBe(false);
+  });
+
   it('layer 2 must test the RAW entry name — a post-join() check alone is insufficient', () => {
     // Regression pin for a real hole found in the guard: join() treats a leading
     // separator as root-relative, so an absolute entry normalizes back INSIDE the

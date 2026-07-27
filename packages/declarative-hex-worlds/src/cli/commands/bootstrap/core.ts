@@ -893,7 +893,11 @@ const KAYKIT_MAX_ZIP_ENTRY_BYTES = 64 * 1024 * 1024;
  *    Windows drive prefix (`C:\...`) is matched explicitly because `isAbsolute()`
  *    is platform-dependent and returns false for it on POSIX.
  * 2. RELATIVE traversal (`../`, or `a/../../b`) is caught after `join()`, by
- *    checking whether the path relative to the root climbs back out.
+ *    checking whether the path relative to the root climbs back out. The climb
+ *    is detected on the first path SEGMENT rather than with a `startsWith('..')`
+ *    prefix test: the latter also matches legitimate names that merely begin with
+ *    two dots (`..foo/x`, `.../x`, `...`), rejecting valid entries. Fail-safe, but
+ *    wrong — an asset pack may legally contain such a file.
  *
  * yauzl's own `validateFileName` already refuses both shapes before an `entry`
  * event fires, so in practice this is defense in depth. It is exported so its
@@ -905,7 +909,11 @@ export function zipEntryEscapesRoot(targetRoot: string, entryPath: string): bool
     return true;
   }
   const relativeTarget = relative(targetRoot, join(targetRoot, entryPath));
-  return relativeTarget.startsWith('..') || isAbsolute(relativeTarget);
+  if (isAbsolute(relativeTarget)) {
+    return true;
+  }
+  // `relative()` emits platform separators, so split on both.
+  return relativeTarget.split(/[\\/]/)[0] === '..';
 }
 
 async function extractZipTo(zipPath: string, targetRoot: string): Promise<void> {
