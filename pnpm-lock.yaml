@@ -80,8 +80,8 @@ importers:
         specifier: ^2.5.3
         version: 2.5.3
       '@cyclonedx/cyclonedx-npm':
-        specifier: 5.0.0
-        version: 5.0.0
+        specifier: 6.0.0
+        version: 6.0.0
       '@react-three/fiber':
         specifier: 'catalog:'
         version: 9.6.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(three@0.185.1)
@@ -678,8 +678,8 @@ packages:
       xmlbuilder2:
         optional: true
 
-  '@cyclonedx/cyclonedx-npm@5.0.0':
-    resolution: {integrity: sha512-pEz/pqYJHQ0ZvY5xFJa+GQ5AjNL7JOEJCXCHymvKo2N1VnzKE1ROpkumduJt8a0DukQjQfBGRXouGQ9xqJtJaQ==}
+  '@cyclonedx/cyclonedx-npm@6.0.0':
+    resolution: {integrity: sha512-kpWjjV0j5y0mMHUB5dSx1hxweH8K2blSqkgdQ6eHgU7aClB4CcXGhbHtGY6WVHSo3A01Rt7WOLas/wQ1E+tBDg==}
     engines: {node: '>=20.18.0', npm: '>=9'}
     hasBin: true
 
@@ -4829,7 +4829,7 @@ snapshots:
       spdx-expression-parse: 4.0.0
       xmlbuilder2: 4.0.3
 
-  '@cyclonedx/cyclonedx-npm@5.0.0':
+  '@cyclonedx/cyclonedx-npm@6.0.0':
     dependencies:
       '@cyclonedx/cyclonedx-library': 10.1.0(ajv-formats-draft2019@1.6.1(ajv@8.20.0))(ajv-formats@3.0.1(ajv@8.20.0))(ajv@8.20.0)(libxmljs2@0.37.0)(packageurl-js@2.0.1)(spdx-expression-parse@4.0.0)(xmlbuilder2@4.0.3)
       commander: 14.0.3
@@ -6705,7 +6705,7 @@ snapshots:
 
   hosted-git-info@9.0.3:
     dependencies:
-      lru-cache: 11.5.1
+      lru-cache: 11.5.2
 
   html-encoding-sniffer@6.0.0:
     dependencies:
