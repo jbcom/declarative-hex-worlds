@@ -62,7 +62,7 @@ function readJson<T>(path: string): T {
  */
 function yamlBlock(source: string, header: string, indent: number): string {
   const lines = source.split('\n');
-  const start = lines.findIndex((line) => line === `${' '.repeat(indent)}${header}`);
+  const start = lines.indexOf(`${' '.repeat(indent)}${header}`);
   if (start === -1) {
     return '';
   }
@@ -171,6 +171,27 @@ describe('workflow contract', () => {
       ['cyclonedx-npm'],
     ])('includes %s', (snippet) => {
       expect(read(files.release)).toContain(snippet);
+    });
+
+    it('derives a bare version from the release tag before npm install', () => {
+      // Regression pin. release-please tags as `<package>@<version>`, so
+      // github.ref_name is `declarative-hex-worlds@1.2.2` — a FULL tag, not a
+      // version. Interpolating it directly produced
+      // `declarative-hex-worlds@declarative-hex-worlds@1.2.2`, which npm rejects
+      // with EINVALIDTAGNAME, failing the release job after publish had succeeded.
+      const source = read(files.release);
+      // Split so the literal is not a `${...}` template-looking string (biome's
+      // noTemplateCurlyInString); this is shell parameter expansion, not JS.
+      expect(source).toContain('VERSION="$' + '{RELEASE_TAG##*@}"');
+      // ...and the install must use the derived version, never the raw tag.
+      expect(source).toContain('npm install "declarative-hex-worlds@$VERSION"');
+      expect(source).not.toContain('npm install "declarative-hex-worlds@$RELEASE_TAG"');
+      // The parse must be gated on the EVENT, not on whether the ref happens to
+      // contain an `@`: on workflow_dispatch, ref_name is the selected branch, and
+      // one legitimately named `release@next` would otherwise have its suffix
+      // treated as a version — auditing a nonexistent or unrelated package.
+      expect(source).toContain("IS_RELEASE: $" + "{{ github.event_name == 'release' }}");
+      expect(source).toContain('if [ "$IS_RELEASE" = "true" ]; then');
     });
 
     it('grants the publish job contents: write for the release-asset upload', () => {

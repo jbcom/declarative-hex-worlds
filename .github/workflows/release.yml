@@ -172,11 +172,29 @@ jobs:
         # by the registry — the package is still published but this notifies us.
         env:
           RELEASE_TAG: ${{ github.ref_name }}
+          IS_RELEASE: ${{ github.event_name == 'release' }}
         run: |
+          # release-please tags as `<package>@<version>` (declarative-hex-worlds@1.2.2),
+          # so on a release run github.ref_name is the FULL tag, not a bare version.
+          # Interpolating it straight into `declarative-hex-worlds@$RELEASE_TAG`
+          # produced `declarative-hex-worlds@declarative-hex-worlds@1.2.2`, which npm
+          # rejects with EINVALIDTAGNAME.
+          #
+          # Gate the tag parsing on the EVENT, not on the shape of the ref: a
+          # workflow_dispatch run sets ref_name to the selected branch/tag, and a
+          # branch legitimately named `release@next` would otherwise have its suffix
+          # parsed as a version — auditing a nonexistent or, worse, an unrelated
+          # published version. Dispatch runs always read the checked-out package.
+          if [ "$IS_RELEASE" = "true" ]; then
+            VERSION="${RELEASE_TAG##*@}"
+          else
+            VERSION=$(node -p "require('$GITHUB_WORKSPACE/packages/declarative-hex-worlds/package.json').version")
+          fi
+          echo "verifying signatures for declarative-hex-worlds@$VERSION"
           TMPDIR=$(mktemp -d)
           cd "$TMPDIR"
           npm init -y
-          npm install "declarative-hex-worlds@$RELEASE_TAG"
+          npm install "declarative-hex-worlds@$VERSION"
           npm audit signatures
           cd -
           rm -rf "$TMPDIR"
