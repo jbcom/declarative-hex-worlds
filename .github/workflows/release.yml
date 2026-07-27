@@ -173,10 +173,22 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
+          # release-please tags as `<package>@<version>` (declarative-hex-worlds@1.2.2),
+          # so github.ref_name is the FULL tag, not a bare version. Interpolating it
+          # straight into `declarative-hex-worlds@$RELEASE_TAG` produced
+          # `declarative-hex-worlds@declarative-hex-worlds@1.2.2`, which npm rejects
+          # with EINVALIDTAGNAME. Strip everything up to the last `@` to get the
+          # version. On workflow_dispatch there is no release tag, so fall back to
+          # the version in package.json.
+          VERSION="${RELEASE_TAG##*@}"
+          if [ "$VERSION" = "$RELEASE_TAG" ]; then
+            VERSION=$(node -p "require('$GITHUB_WORKSPACE/packages/declarative-hex-worlds/package.json').version")
+          fi
+          echo "verifying signatures for declarative-hex-worlds@$VERSION"
           TMPDIR=$(mktemp -d)
           cd "$TMPDIR"
           npm init -y
-          npm install "declarative-hex-worlds@$RELEASE_TAG"
+          npm install "declarative-hex-worlds@$VERSION"
           npm audit signatures
           cd -
           rm -rf "$TMPDIR"
