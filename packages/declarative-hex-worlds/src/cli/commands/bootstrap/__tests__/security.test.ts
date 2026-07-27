@@ -18,11 +18,13 @@
 import { EventEmitter } from 'node:events';
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join, relative } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { crc32, deflateRawSync } from 'node:zlib';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { validateFileName } from 'yauzl';
 import yazl from 'yazl';
+import { zipEntryEscapesRoot } from '../core';
 import { bootstrapKayKitAssets } from '../index';
 import { PACK_REGISTRY } from '../registry';
 import { KAYKIT_BOOTSTRAP_SIDECAR } from '../target';
@@ -475,22 +477,79 @@ describe('bootstrap security — redirect allowlist (CWE-601)', () => {
 // ---------------------------------------------------------------------------
 
 describe('bootstrap security — zip-slip (CWE-22)', () => {
-  it('rejects a zip entry whose path escapes the target root', async () => {
-    // yazl validates entry names so we build the zip from raw bytes.
-    // The entry filename starts with `../../../` to traverse out of any target root.
-    const zipBuf = buildRawZip('../../../escape/malicious.txt', Buffer.from('evil'));
-    const zipPath = join(tmp(), 'zipslip.zip');
-    writeFileSync(zipPath, zipBuf);
+  // Escape attempts are stopped by TWO independent layers, and this suite pins both
+  // so neither can regress silently:
+  //
+  //   1. yauzl's own `validateFileName`, which refuses traversal/absolute entry names
+  //      before an 'entry' callback ever fires. This is what actually rejects a
+  //      malicious archive today.
+  //   2. extractZipTo's join()+relative()+isAbsolute() check, kept as defense in
+  //      depth for the case where layer 1 changes or is bypassed (e.g. a yauzl
+  //      upgrade relaxing validation, or `decodeStrings:false`).
+  //
+  // Asserting only end-to-end rejection would NOT prove layer 2 works — that
+  // assertion still passes with the guard deleted, because layer 1 covers for it.
+  // So layer 2's predicate is asserted directly, on the same inputs.
+  const escapeEntries: ReadonlyArray<{ label: string; entry: string }> = [
+    // Classic relative traversal out of any target root.
+    { label: 'relative traversal', entry: '../../../escape/malicious.txt' },
+    // POSIX absolute path — join() discards the root, so only isAbsolute() catches it.
+    { label: 'POSIX absolute path', entry: '/etc/passwd' },
+    // Traversal buried mid-path rather than at the start.
+    { label: 'embedded traversal', entry: 'assets/../../../../escape/malicious.txt' },
+    // Windows drive-absolute name. isAbsolute() is platform-dependent and returns
+    // false for this on POSIX, so the extractor matches a drive prefix explicitly.
+    { label: 'Windows drive-absolute path', entry: 'C:\\Windows\\System32\\evil.dll' },
+  ];
 
-    const localOut = tmp();
-    await expect(
-      bootstrapKayKitAssets({
-        source: { kind: 'zip', path: zipPath },
-        out: localOut,
-        outRoot: '/',
-        edition: 'free',
-      })
-    ).rejects.toThrow(/escapes target root|failed to extract/i);
+  // NOTE: the real extractor predicate is imported, never re-implemented here.
+  // A copied predicate would pass even if the source guard were deleted.
+  const escapesRoot = zipEntryEscapesRoot;
+
+  for (const { label, entry } of escapeEntries) {
+    it(`rejects a zip entry that escapes the target root (${label})`, async () => {
+      const zipBuf = buildRawZip(entry, Buffer.from('evil'));
+      const zipPath = join(tmp(), 'zipslip.zip');
+      writeFileSync(zipPath, zipBuf);
+
+      const localOut = tmp();
+      await expect(
+        bootstrapKayKitAssets({
+          source: { kind: 'zip', path: zipPath },
+          out: localOut,
+          outRoot: '/',
+          edition: 'free',
+        })
+      ).rejects.toThrow(/escapes target root|failed to extract/i);
+    });
+
+    it(`layer 1 — yauzl itself refuses the entry name (${label})`, () => {
+      // Non-null return === rejected. Guards against a future yauzl bump quietly
+      // accepting names the extractor then has to catch on its own.
+      expect(validateFileName(entry)).not.toBeNull();
+    });
+
+    it(`layer 2 — the extractor's own containment check rejects it (${label})`, () => {
+      // Fails if that guard is weakened, which the end-to-end assertion above
+      // cannot detect (layer 1 would still reject the archive either way).
+      expect(escapesRoot(tmp(), entry)).toBe(true);
+    });
+  }
+
+  it('layer 2 must test the RAW entry name — a post-join() check alone is insufficient', () => {
+    // Regression pin for a real hole found in the guard: join() treats a leading
+    // separator as root-relative, so an absolute entry normalizes back INSIDE the
+    // target and the post-join isAbsolute() check can never fire for it.
+    const targetRoot = '/tmp/target-root';
+    const joined = join(targetRoot, '/etc/passwd');
+    expect(joined).toBe('/tmp/target-root/etc/passwd');
+
+    const postJoinOnly = (() => {
+      const rel = relative(targetRoot, joined);
+      return rel.startsWith('..') || isAbsolute(rel);
+    })();
+    expect(postJoinOnly).toBe(false); // the old predicate silently allowed it
+    expect(escapesRoot(targetRoot, '/etc/passwd')).toBe(true); // the raw-name check catches it
   });
 });
 

@@ -880,6 +880,34 @@ async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.Reada
  */
 const KAYKIT_MAX_ZIP_ENTRY_BYTES = 64 * 1024 * 1024;
 
+/**
+ * True when a zip entry name would write outside `targetRoot` (zip-slip, CWE-22).
+ *
+ * @remarks
+ * Two distinct escape shapes need two distinct checks, and the order matters:
+ *
+ * 1. An ABSOLUTE entry name must be judged on the RAW name, BEFORE `join()`.
+ *    `join('/root', '/etc/passwd')` is `'/root/etc/passwd'` — `join()` treats a
+ *    leading separator as root-relative and normalizes the entry back INSIDE the
+ *    target, so a post-`join()` `isAbsolute()` test can never fire for it. A
+ *    Windows drive prefix (`C:\...`) is matched explicitly because `isAbsolute()`
+ *    is platform-dependent and returns false for it on POSIX.
+ * 2. RELATIVE traversal (`../`, or `a/../../b`) is caught after `join()`, by
+ *    checking whether the path relative to the root climbs back out.
+ *
+ * yauzl's own `validateFileName` already refuses both shapes before an `entry`
+ * event fires, so in practice this is defense in depth. It is exported so its
+ * contract can be tested directly: an end-to-end assertion cannot distinguish
+ * this guard working from yauzl covering for it.
+ */
+export function zipEntryEscapesRoot(targetRoot: string, entryPath: string): boolean {
+  if (isAbsolute(entryPath) || /^[a-zA-Z]:[\\/]/.test(entryPath)) {
+    return true;
+  }
+  const relativeTarget = relative(targetRoot, join(targetRoot, entryPath));
+  return relativeTarget.startsWith('..') || isAbsolute(relativeTarget);
+}
+
 async function extractZipTo(zipPath: string, targetRoot: string): Promise<void> {
   await new Promise<void>((resolveExtract, rejectExtract) => {
     yauzl.open(zipPath, { lazyEntries: true }, (openErr, zipFile) => {
@@ -892,14 +920,13 @@ async function extractZipTo(zipPath: string, targetRoot: string): Promise<void> 
       zipFile.on('end', resolveExtract);
       zipFile.on('entry', (entry) => {
         const entryPath = entry.fileName;
-        // Reject zip-slip attempts.
-        const targetPath = join(targetRoot, entryPath);
-        const relativeTarget = relative(targetRoot, targetPath);
-        /* v8 ignore next 4 -- yauzl rejects traversal names before entry callbacks; retained as defense in depth. */
-        if (relativeTarget.startsWith('..') || isAbsolute(relativeTarget)) {
+        // Reject zip-slip attempts (CWE-22). See zipEntryEscapesRoot.
+        /* v8 ignore next 4 -- unreachable while yauzl validates entry names; retained as defense in depth. */
+        if (zipEntryEscapesRoot(targetRoot, entryPath)) {
           rejectExtract(new GameboardIoError(`zip entry escapes target root: ${entryPath}`));
           return;
         }
+        const targetPath = join(targetRoot, entryPath);
         if (/\/$/.test(entryPath)) {
           mkdirSync(targetPath, { recursive: true });
           zipFile.readEntry();
