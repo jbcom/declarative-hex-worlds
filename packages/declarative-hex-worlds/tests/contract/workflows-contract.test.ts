@@ -186,6 +186,12 @@ describe('workflow contract', () => {
       // ...and the install must use the derived version, never the raw tag.
       expect(source).toContain('npm install "declarative-hex-worlds@$VERSION"');
       expect(source).not.toContain('npm install "declarative-hex-worlds@$RELEASE_TAG"');
+      // The parse must be gated on the EVENT, not on whether the ref happens to
+      // contain an `@`: on workflow_dispatch, ref_name is the selected branch, and
+      // one legitimately named `release@next` would otherwise have its suffix
+      // treated as a version — auditing a nonexistent or unrelated package.
+      expect(source).toContain("IS_RELEASE: $" + "{{ github.event_name == 'release' }}");
+      expect(source).toContain('if [ "$IS_RELEASE" = "true" ]; then');
     });
 
     it('grants the publish job contents: write for the release-asset upload', () => {
