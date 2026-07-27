@@ -908,6 +908,22 @@ export function zipEntryEscapesRoot(targetRoot: string, entryPath: string): bool
   if (isAbsolute(entryPath) || /^[a-zA-Z]:[\\/]/.test(entryPath)) {
     return true;
   }
+  // Reject ANY `..` segment in the raw name, on BOTH separators.
+  //
+  // Backslash matters because it is a legal filename character on POSIX but a
+  // SEPARATOR on Windows: `join()`/`relative()` here would treat `a\..\..\etc` as
+  // one opaque segment and miss the traversal, while the same archive extracted on
+  // Windows would escape. The zip spec (APPNOTE 4.4.17) mandates forward slashes in
+  // entry names, so a backslash is malformed regardless — judge the raw name rather
+  // than defer to platform semantics.
+  //
+  // This also rejects `..` segments that would resolve back INSIDE the root
+  // (`a/../b`). That is deliberate: it matches yauzl's own rule exactly (it rejects
+  // any `..` segment, contained or not), so the two layers stay consistent instead
+  // of subtly disagreeing — and a portable archive has no reason to encode one.
+  if (entryPath.split(/[\\/]/).includes('..')) {
+    return true;
+  }
   const relativeTarget = relative(targetRoot, join(targetRoot, entryPath));
   if (isAbsolute(relativeTarget)) {
     return true;

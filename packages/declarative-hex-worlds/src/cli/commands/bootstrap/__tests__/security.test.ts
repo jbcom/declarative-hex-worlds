@@ -537,12 +537,24 @@ describe('bootstrap security — zip-slip (CWE-22)', () => {
   }
 
   it.each([
+    // Backslash is a legal POSIX filename char but a Windows SEPARATOR, so
+    // join()/relative() on POSIX see one opaque segment and miss the traversal —
+    // while the same archive extracted on Windows would escape. Judged on the raw
+    // name so the verdict does not depend on the extracting platform.
+    ['backslash traversal', 'assets\\..\\..\\etc\\passwd'],
+    // A `..` segment is rejected even when it would resolve back inside the root.
+    // Matches yauzl's own rule exactly, keeping the two layers consistent.
+    ['contained but explicit traversal', 'a/../b'],
+    ['trailing traversal', 'x/..'],
+  ])('rejects %s (%j)', (_label, entry) => {
+    expect(escapesRoot(tmp(), entry)).toBe(true);
+  });
+
+  it.each([
     ['..foo/x'],
     ['.../x'],
     ['...'],
     ['....//x'],
-    ['a/../b'],
-    ['x/..'],
     ['normal/file.gltf'],
   ])('accepts the legitimate contained entry %j', (entry) => {
     // Names that merely BEGIN with two dots are legal filenames and stay inside
