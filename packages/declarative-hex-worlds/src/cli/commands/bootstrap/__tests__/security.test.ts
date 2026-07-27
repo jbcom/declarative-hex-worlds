@@ -483,9 +483,9 @@ describe('bootstrap security — zip-slip (CWE-22)', () => {
   //   1. yauzl's own `validateFileName`, which refuses traversal/absolute entry names
   //      before an 'entry' callback ever fires. This is what actually rejects a
   //      malicious archive today.
-  //   2. extractZipTo's join()+relative()+isAbsolute() check, kept as defense in
-  //      depth for the case where layer 1 changes or is bypassed (e.g. a yauzl
-  //      upgrade relaxing validation, or `decodeStrings:false`).
+  //   2. extractZipTo's own `zipEntryEscapesRoot`, kept as defense in depth for the
+  //      case where layer 1 changes or is bypassed (e.g. a yauzl upgrade relaxing
+  //      validation, or `decodeStrings:false`).
   //
   // Asserting only end-to-end rejection would NOT prove layer 2 works — that
   // assertion still passes with the guard deleted, because layer 1 covers for it.
@@ -493,7 +493,8 @@ describe('bootstrap security — zip-slip (CWE-22)', () => {
   const escapeEntries: ReadonlyArray<{ label: string; entry: string }> = [
     // Classic relative traversal out of any target root.
     { label: 'relative traversal', entry: '../../../escape/malicious.txt' },
-    // POSIX absolute path — join() discards the root, so only isAbsolute() catches it.
+    // POSIX absolute path — join() would fold this back INSIDE the root, so it is
+    // only catchable on the raw name.
     { label: 'POSIX absolute path', entry: '/etc/passwd' },
     // Traversal buried mid-path rather than at the start.
     { label: 'embedded traversal', entry: 'assets/../../../../escape/malicious.txt' },
@@ -532,7 +533,7 @@ describe('bootstrap security — zip-slip (CWE-22)', () => {
     it(`layer 2 — the extractor's own containment check rejects it (${label})`, () => {
       // Fails if that guard is weakened, which the end-to-end assertion above
       // cannot detect (layer 1 would still reject the archive either way).
-      expect(escapesRoot(tmp(), entry)).toBe(true);
+      expect(escapesRoot(entry)).toBe(true);
     });
   }
 
@@ -547,7 +548,7 @@ describe('bootstrap security — zip-slip (CWE-22)', () => {
     ['contained but explicit traversal', 'a/../b'],
     ['trailing traversal', 'x/..'],
   ])('rejects %s (%j)', (_label, entry) => {
-    expect(escapesRoot(tmp(), entry)).toBe(true);
+    expect(escapesRoot(entry)).toBe(true);
   });
 
   it.each([
@@ -561,7 +562,7 @@ describe('bootstrap security — zip-slip (CWE-22)', () => {
     // the root. A `relativeTarget.startsWith('..')` prefix test rejects all of
     // these; the guard splits on the first path segment instead, so a pack that
     // legitimately ships such a file still extracts.
-    expect(escapesRoot(tmp(), entry)).toBe(false);
+    expect(escapesRoot(entry)).toBe(false);
   });
 
   it('layer 2 must test the RAW entry name — a post-join() check alone is insufficient', () => {
@@ -577,7 +578,7 @@ describe('bootstrap security — zip-slip (CWE-22)', () => {
       return rel.startsWith('..') || isAbsolute(rel);
     })();
     expect(postJoinOnly).toBe(false); // the old predicate silently allowed it
-    expect(escapesRoot(targetRoot, '/etc/passwd')).toBe(true); // the raw-name check catches it
+    expect(escapesRoot('/etc/passwd')).toBe(true); // the raw-name check catches it
   });
 });
 

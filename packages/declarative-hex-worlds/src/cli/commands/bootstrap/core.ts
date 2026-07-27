@@ -881,55 +881,44 @@ async function openHttpsStream(url: string, redirects = 0): Promise<NodeJS.Reada
 const KAYKIT_MAX_ZIP_ENTRY_BYTES = 64 * 1024 * 1024;
 
 /**
- * True when a zip entry name would write outside `targetRoot` (zip-slip, CWE-22).
+ * True when a zip entry name is unsafe to extract — it would escape the
+ * destination directory, or is malformed in a way that makes containment
+ * platform-dependent (zip-slip, CWE-22).
  *
  * @remarks
- * Two distinct escape shapes need two distinct checks, and the order matters:
+ * Judged entirely on the RAW entry name, never on a `join()`-ed path. That is the
+ * whole point: `join()` normalizes both escape shapes back INSIDE the target, so a
+ * post-`join()` test silently passes them.
  *
- * 1. An ABSOLUTE entry name must be judged on the RAW name, BEFORE `join()`.
- *    `join('/root', '/etc/passwd')` is `'/root/etc/passwd'` — `join()` treats a
- *    leading separator as root-relative and normalizes the entry back INSIDE the
- *    target, so a post-`join()` `isAbsolute()` test can never fire for it. A
- *    Windows drive prefix (`C:\...`) is matched explicitly because `isAbsolute()`
- *    is platform-dependent and returns false for it on POSIX.
- * 2. RELATIVE traversal (`../`, or `a/../../b`) is caught after `join()`, by
- *    checking whether the path relative to the root climbs back out. The climb
- *    is detected on the first path SEGMENT rather than with a `startsWith('..')`
- *    prefix test: the latter also matches legitimate names that merely begin with
- *    two dots (`..foo/x`, `.../x`, `...`), rejecting valid entries. Fail-safe, but
- *    wrong — an asset pack may legally contain such a file.
+ * - `join('/root', '/etc/passwd')` is `'/root/etc/passwd'` — a leading separator is
+ *   treated as root-relative, so `isAbsolute()` on the joined path can never fire.
+ *   A Windows drive prefix (`C:\...`) is matched explicitly, since `isAbsolute()`
+ *   is platform-dependent and returns false for it on POSIX.
+ * - A backslash is a legal filename character on POSIX but a SEPARATOR on Windows,
+ *   so `join()`/`relative()` on POSIX see `a\..\..\etc` as one opaque segment and
+ *   find no traversal — while the same archive extracted on Windows escapes.
+ *   Splitting the raw name on BOTH separators makes the verdict independent of
+ *   where extraction runs. The zip spec (APPNOTE 4.4.17) mandates forward slashes,
+ *   so a backslash is malformed regardless.
  *
- * yauzl's own `validateFileName` already refuses both shapes before an `entry`
- * event fires, so in practice this is defense in depth. It is exported so its
- * contract can be tested directly: an end-to-end assertion cannot distinguish
+ * Traversal is detected per SEGMENT, not with a `startsWith('..')` prefix test —
+ * the latter also rejects legitimate names that merely begin with two dots
+ * (`..foo/x`, `.../x`, `...`), which an asset pack may legally contain.
+ *
+ * A `..` segment is rejected even when it would resolve back inside the root
+ * (`a/../b`). Deliberate: it matches yauzl's rule exactly, so the two layers agree
+ * on what a valid entry name is rather than subtly diverging.
+ *
+ * yauzl's own `validateFileName` already refuses every one of these before an
+ * `entry` event fires, so in practice this is defense in depth. It is exported so
+ * its contract can be tested directly — an end-to-end assertion cannot distinguish
  * this guard working from yauzl covering for it.
  */
-export function zipEntryEscapesRoot(targetRoot: string, entryPath: string): boolean {
+export function zipEntryEscapesRoot(entryPath: string): boolean {
   if (isAbsolute(entryPath) || /^[a-zA-Z]:[\\/]/.test(entryPath)) {
     return true;
   }
-  // Reject ANY `..` segment in the raw name, on BOTH separators.
-  //
-  // Backslash matters because it is a legal filename character on POSIX but a
-  // SEPARATOR on Windows: `join()`/`relative()` here would treat `a\..\..\etc` as
-  // one opaque segment and miss the traversal, while the same archive extracted on
-  // Windows would escape. The zip spec (APPNOTE 4.4.17) mandates forward slashes in
-  // entry names, so a backslash is malformed regardless — judge the raw name rather
-  // than defer to platform semantics.
-  //
-  // This also rejects `..` segments that would resolve back INSIDE the root
-  // (`a/../b`). That is deliberate: it matches yauzl's own rule exactly (it rejects
-  // any `..` segment, contained or not), so the two layers stay consistent instead
-  // of subtly disagreeing — and a portable archive has no reason to encode one.
-  if (entryPath.split(/[\\/]/).includes('..')) {
-    return true;
-  }
-  const relativeTarget = relative(targetRoot, join(targetRoot, entryPath));
-  if (isAbsolute(relativeTarget)) {
-    return true;
-  }
-  // `relative()` emits platform separators, so split on both.
-  return relativeTarget.split(/[\\/]/)[0] === '..';
+  return entryPath.split(/[\\/]/).includes('..');
 }
 
 async function extractZipTo(zipPath: string, targetRoot: string): Promise<void> {
@@ -946,7 +935,7 @@ async function extractZipTo(zipPath: string, targetRoot: string): Promise<void> 
         const entryPath = entry.fileName;
         // Reject zip-slip attempts (CWE-22). See zipEntryEscapesRoot.
         /* v8 ignore next 4 -- unreachable while yauzl validates entry names; retained as defense in depth. */
-        if (zipEntryEscapesRoot(targetRoot, entryPath)) {
+        if (zipEntryEscapesRoot(entryPath)) {
           rejectExtract(new GameboardIoError(`zip entry escapes target root: ${entryPath}`));
           return;
         }
