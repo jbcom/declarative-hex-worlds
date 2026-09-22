@@ -1,0 +1,36 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Declarative Hex Worlds",
+  "description": "A Koota-first, declarative 2.5D hex-gameboard runtime with recipes, scenarios, simulation, rendering, and KayKit asset support.",
+  "branch": "main",
+  "folders": [
+    "docs",
+    "packages/declarative-hex-worlds/docs",
+    "packages/declarative-hex-worlds/src",
+    "examples"
+  ],
+  "excludeFolders": [
+    ".git",
+    "node_modules",
+    "dist",
+    "coverage",
+    "references",
+    "models",
+    "tests",
+    "docs/dist"
+  ],
+  "excludeFiles": [
+    "CHANGELOG.md"
+  ],
+  "rules": [
+    "Treat docs/ as the canonical user and agent documentation site; it is built with Sourcey.",
+    "Use the public runtime, recipe, scenario, simulation, and blueprint APIs instead of mutating Koota relation stores directly.",
+    "Keep FREE asset manifests publishable and fetch raw KayKit assets through bootstrap; never publish local references or EXTRA binaries.",
+    "Preserve footprint occupancy through the public placement and actor helpers, and validate serializable plans before runtime-specific checks."
+  ],
+  "previousVersions": [
+    {
+      "tag": "declarative-hex-worlds@1.2.3"
+    }
+  ]
+}

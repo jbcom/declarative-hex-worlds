@@ -14,9 +14,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 env:
   NODE_VERSION: '22'
 
@@ -43,6 +40,33 @@ env:
 #     pointing at a local models/ dir.
 
 jobs:
+  policy:
+    name: CI policy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      run_ci: ${{ steps.classify.outputs.run_ci }}
+    steps:
+      - id: classify
+        name: Classify trusted maintenance pull requests
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          run_ci=true
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "$PR_HEAD_REPOSITORY" = "$REPOSITORY" ]; then
+            if [[ "$PR_HEAD_REF" == release-please--* ]]; then
+              run_ci=false
+            elif [ "$PR_AUTHOR" = "dependabot[bot]" ] && [[ "$PR_HEAD_REF" == *-non-major-* ]]; then
+              run_ci=false
+            fi
+          fi
+          echo "run_ci=$run_ci" >> "$GITHUB_OUTPUT"
+
   # Every job installs with `pnpm install --frozen-lockfile` against pnpm's
   # native content-addressed store cache (setup-node cache:'pnpm'). The
   # frozen lockfile guarantees identical resolved bytes across jobs, and the
@@ -52,6 +76,8 @@ jobs:
   # "leverage each action's own caching" approach; no custom pack/restore.
   check:
     name: ${{ matrix.task }}
+    needs: [policy]
+    if: needs.policy.outputs.run_ci == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -87,7 +113,8 @@ jobs:
     # Sourcey is the sole production renderer. This safe pull_request job builds
     # from the checked-out change but never deploys or receives credentials.
     name: Sourcey Docs Build
-    needs: [check]
+    needs: [policy, check]
+    if: always() && needs.policy.outputs.run_ci == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -123,7 +150,8 @@ jobs:
     # actually composes into a working game (per RFC 0001 §D-test-topology). A green
     # library but red examples means the public surface or a binding regressed.
     name: Examples (consumer e2e)
-    needs: [check]
+    needs: [policy, check]
+    if: always() && needs.policy.outputs.run_ci == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -171,6 +199,8 @@ jobs:
 
   coverage:
     name: Coverage
+    needs: [policy]
+    if: needs.policy.outputs.run_ci == 'true'
     runs-on: ubuntu-latest
     # Library scripts (test:coverage, coverage:merge:enforce), src/cli, and the
     # coverage/ output are all package-level — run this job's steps from the
@@ -241,7 +271,8 @@ jobs:
 
   dependency-review:
     name: Dependency Review
-    if: github.event_name == 'pull_request'
+    needs: [policy]
+    if: needs.policy.outputs.run_ci == 'true' && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -259,7 +290,8 @@ jobs:
 
   semgrep:
     name: Semgrep SAST
-    needs: check
+    needs: [policy, check]
+    if: always() && needs.policy.outputs.run_ci == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
