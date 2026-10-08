@@ -4,7 +4,7 @@ Phase 3a. Test automation assessment of the vitest suite, CI gates, and the
 security/performance test surface. Cross-references Phase 1/2 code-quality and
 security findings (H-1, H-2, H-3, P-1, P-8).
 
-Repo: `/Users/jbogaty/src/jbcom/declarative-hex-worlds`
+Repo: `.`
 Framework: TypeScript ESM · vitest (5 configs) · v8 coverage · Semgrep SAST in CI.
 
 ---

@@ -52,11 +52,11 @@ Coverage from all three feeds into one merged report via `pnpm coverage:all`. Th
 
 The published tarball ships only `assets/free/manifest.json` — the GLTF tree itself is fetched at install time by the CLI `bootstrap` subcommand (PRD §Phase RB). Locally, `pnpm assets:free` materializes the FREE pack into `assets/free/` for testing; those files stay gitignored.
 
-## Working with the agentic state
+## Contributor guidance
 
-`.agent-state/directive.md` is the authoritative work queue. PRD lives at `docs/PRD/1.0.md`. Both are tracked in git; the directive's checkboxes flip in the same commit as the work they describe.
-
-If you're using Claude Code, Codex, or similar harness on this repo, the directive is what the agent reads at session start. Update it when scope shifts; don't let it rot.
+Read `AGENTS.md` for repository conventions and the package-level
+`packages/declarative-hex-worlds/docs/PRD/1.0.md` for design requirements.
+Agent runtime state and tool configuration are local-only and ignored by git.
 
 ## Commit + PR style
 

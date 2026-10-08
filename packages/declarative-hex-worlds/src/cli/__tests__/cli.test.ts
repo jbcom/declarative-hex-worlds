@@ -3019,7 +3019,7 @@ describe('CLI', () => {
     expect(helpOutput).toContain('--verify');
   });
 
-  it('documents every bootstrap flag in `bootstrap --help` (little_legends_agent_findings.md)', () => {
+  it('documents every bootstrap flag in `bootstrap --help` (consumer-integration-findings.md)', () => {
     const helpOutput = runCli(['bootstrap', '--help']);
     expect(helpOutput).toContain('declarative-hex-worlds bootstrap [options]');
     expect(helpOutput).toContain('Materialize KayKit GLTF assets under a consumer asset root');

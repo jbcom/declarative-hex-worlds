@@ -1,5 +1,5 @@
 {
-  "target": "full codebase at /Users/jbogaty/src/jbcom/declarative-hex-worlds — src/, scripts/, tests/, .github/workflows/, docs-site/",
+  "target": "full codebase at repository root — src/, scripts/, tests/, .github/workflows/, docs-site/",
   "status": "complete",
   "flags": {
     "security_focus": true,

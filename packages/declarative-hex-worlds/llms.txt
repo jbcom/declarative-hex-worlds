@@ -8,7 +8,7 @@
 
 This file is the agent-facing guide: how to go from "I have assets" to "a rendered,
 seamless hex board", using the exact public API. Everything below is real, current API
-(the reference game `little-legends` renders its board this way).
+(the reference game `example-game` renders its board this way).
 
 ## Mental model
 
@@ -77,7 +77,7 @@ An `AssetSourceSpec` is plain JSON validated by `parseAssetSourceSpec` /
 
 ## Rendering a tileset board (the seamless-terrain flow)
 
-This is the flow `little-legends` uses for a Civilization-style continuous board. Import
+This is the flow `example-game` uses for a Civilization-style continuous board. Import
 the React bindings from the `/react-elements` subpath (react + three are optional peers).
 
 ```tsx

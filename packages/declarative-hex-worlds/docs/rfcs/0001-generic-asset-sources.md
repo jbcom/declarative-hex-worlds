@@ -1,7 +1,7 @@
 ---
 title: "RFC 0001 — Generic asset sources (GLTF packs + tilesets), KayKit-as-downloadable-default, SimpleRPG as a first-class consumer package, showcase-based visual verification"
 status: draft
-author: little-legends integration + dhw
+author: example-game integration + dhw
 created: 2026-07-06
 supersedes_partially:
   - docs/pillars/02-asset-taxonomy.md (KayKit-only taxonomy)
@@ -71,7 +71,7 @@ detached `package.json` + lockfile; it joins the workspace, dropping its separat
 Why this matters for this RFC specifically:
 
 - **SimpleRPG becomes the canonical proof consumer** — the in-repo equivalent of what
-  little-legends is externally. It dogfoods the generic asset-source interface: it can
+  example-game is externally. It dogfoods the generic asset-source interface: it can
   render KayKit FREE (`gltf-pack`) AND a tileset, proving both paths from inside the repo.
 - **Showcase captures come from SimpleRPG** rendering FREE through the library (G5). The
   docs demonstrate *our library working*, not a vendor PDF — because the docs-site
@@ -129,10 +129,10 @@ keeps the engine general and unpresumptuous:
 
 This philosophy shapes the rest of the RFC: RFC0-8 (`./tileset`) is not merely a loader —
 it delivers the `<Tileset>`/`<Tile>`/`<Sprite>`/`<Model>` elements + their hooks. Each
-capability gap little-legends surfaces is evaluated against this boon/burden line before
+capability gap example-game surfaces is evaluated against this boon/burden line before
 it becomes a dhw feature (if it's a "burden," it stays in the consumer).
 
-## Guiding method: dhw is the game engine; little-legends finds the gaps
+## Guiding method: dhw is the game engine; example-game finds the gaps
 
 The deeper purpose of this RFC is to make **declarative-hex-worlds a 3D game engine** —
 at least in the sense of owning **composition** (worldgen → board, registering
@@ -144,16 +144,16 @@ Two consumers, distinct roles:
 - **SimpleRPG** (in-repo) — the exhaustive *exerciser*: proves each capability in
   isolation across run states (see the capability matrix below), and produces the
   visual-verification showcases.
-- **little-legends** (external) — the demanding *real game* and the **gap-finder**. Today
-  little-legends hand-rolls its own composition + interaction (worldgen, tile/sprite
+- **example-game** (external) — the demanding *real game* and the **gap-finder**. Today
+  example-game hand-rolls its own composition + interaction (worldgen, tile/sprite
   placement, selection, movement, fog, camera) on top of raw R3F. The method of this RFC
   is: **try to re-home each of those onto dhw's world**, and wherever dhw *can't* back it,
   that gap becomes a dhw capability item we build here. So gap-finding runs THROUGHOUT the
-  branch (not only at the final adoption step): every little-legends composition/
+  branch (not only at the final adoption step): every example-game composition/
   interaction concern that shouldn't need to be written from scratch is a candidate
   capability. The camera-command surface (RFC0-CAM) is the first such gap found this way;
-  more will surface as little-legends' needs meet dhw's current surface. The end state:
-  little-legends registers its sprites + hex tilesets as asset sources and defines only
+  more will surface as example-game' needs meet dhw's current surface. The end state:
+  example-game registers its sprites + hex tilesets as asset sources and defines only
   its 4X rules/sim, while dhw owns the board, the koota world, interaction, and 2.5D
   viewport rendering.
 
@@ -267,7 +267,7 @@ render" engine, but its **asset layer is KayKit-shaped end to end**:
   is anchored to **KayKit's own Usage Guide PDF** (19 pages under
   `docs/assets/kaykit-guide/`), rasterized and treated as required release artifacts.
 
-Two consequences, both surfaced by the first real external consumer (little-legends, a
+Two consequences, both surfaced by the first real external consumer (example-game, a
 Civ-Rev-2-styled 4X that wants painterly **tileset** hexes, not KayKit prisms):
 
 1. **A consumer with their own art cannot use the library's declarative/koota/render
@@ -466,7 +466,7 @@ interface TilesetManifest {
 }
 ```
 
-little-legends' 10 sheets (480×830, 5×10 grid of 96×83 pointy-top hexes) are the
+example-game' 10 sheets (480×830, 5×10 grid of 96×83 pointy-top hexes) are the
 first real tileset. Biome→sheet mapping is the consumer's (grassland, forest, desert,
 badlands, mountains, snow, wetland, plains, shrubland, coast).
 
@@ -478,7 +478,7 @@ GLTFs. The generalization: the mask→variant table becomes a **source responsib
 (`AssetSource.resolveEdge`). A GLTF pack returns a coast model URL; a tileset returns a
 positional cell. **Fix carried over from a prior finding:** `setCoastEdges` should
 validate (or degrade to longest-contiguous-run) at author time, not fail at resolve time
-(the `010101` non-contiguous mask bug little-legends reported and worked around with
+(the `010101` non-contiguous mask bug example-game reported and worked around with
 `longestContiguousEdgeRun`).
 
 ### KayKit-as-downloadable-default (G4)
@@ -519,7 +519,7 @@ This is the docs/coverage change and the one that must **raise** coverage, never
 The tileset mesh path needs a hex's 6 corner points. dhw already depends on
 `honeycomb-grid`; the coordinate module wraps it. Expose corners (and non-regular
 pointy `xRadius`/`yRadius`, so 96×83 cells map exactly) through the coordinate module so
-the render path never re-derives corner trig (little-legends' current `terrainMesh.ts`
+the render path never re-derives corner trig (example-game' current `terrainMesh.ts`
 hand-rolls it — that hand-rolling goes away). The sim stays axial-native; consumers bridge
 to offset via the existing conversion.
 
@@ -588,11 +588,11 @@ to offset via the existing conversion.
    corners; a browser test rendering a small tileset board; SimpleRPG gains a tileset
    render mode to dogfood it.
 10. **Transition resolution generalized** (+ the `setCoastEdges` validation fix, with the
-    `010101` regression test little-legends offered).
+    `010101` regression test example-game offered).
 11. **KayKit-as-downloadable-default** wiring + docs.
 
 **Phase 3 — External consumer proof:**
-12. **little-legends** renders its 10 tilesets through the new `./tileset` source,
+12. **example-game** renders its 10 tilesets through the new `./tileset` source,
     screenshotted against the Civ Rev 2 references; findings appended.
 
 Each step is a reviewable increment. Phases may be separate PRs (Phase 0 workspace move is
