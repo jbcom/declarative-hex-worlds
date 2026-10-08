@@ -4,7 +4,7 @@
 
 Full codebase of `declarative-hex-worlds` — a TypeScript ESM library providing a hex-grid gameboard engine with ECS (koota), movement/patrol/quest systems, simulation scripting, a citty-based CLI, and an Astro Starlight docs site.
 
-Repo root: `/Users/jbogaty/src/jbcom/declarative-hex-worlds`
+Repo root: `.`
 
 ## Files
 

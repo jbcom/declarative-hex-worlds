@@ -184,13 +184,13 @@ tests/browser/**/__screenshots__/*
 # macOS
 .DS_Store
 
-# agent-state caches (re-derivable; directive.md + decisions.ndjson are tracked)
-.agent-state/digest.md
-.agent-state/cursor.md
-.agent-state/.indexed-sha
-.agent-state/.last-stop-sha
-.agent-state/.last-compaction
-.agent-state/batch.json
+# Local agent runtime state (at any depth)
+.agent-state/
+.claude/
+.agents/
+.augment/
+.mcp.json
+opencode.json
 
 # brainstorming companion
 .superpowers
@@ -201,10 +201,6 @@ tests/browser/**/__screenshots__/*
 docs-site/node_modules
 docs-site/dist
 docs-site/.astro
-
-# Claude Code runtime state (not for git)
-.claude/scheduled_tasks.lock
-.claude/state/task-batch/
 
 # Local AI-development reference material (findings loops, vendor guide PDFs
 # extracted for local reference) — never tracked. Curated output goes elsewhere.

@@ -8,7 +8,7 @@
  * resolve a placement's biome/edge to a positional cell on a sheet, which the
  * three bridge renders as a textured-hex mesh.
  *
- * The first real tileset is little-legends' 10 sheets (480×830, a 5×10 grid of
+ * The first real tileset is example-game' 10 sheets (480×830, a 5×10 grid of
  * 96×83 pointy-top hexes). Biome→sheet mapping is the consumer's concern.
  *
  * See `docs/plans/declarative-render-surface.design.md` §"Tileset manifest".

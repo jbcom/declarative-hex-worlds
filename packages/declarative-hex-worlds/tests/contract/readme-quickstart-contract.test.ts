@@ -1,7 +1,7 @@
 /**
  * README Quickstart compile contract.
  *
- * The first real consumer (little-legends, 2026-07-06) copy-pasted the README
+ * The first real consumer (example-game, 2026-07-06) copy-pasted the README
  * Quickstart and it did not compile: the example called
  * `createGameboardRuntimeFromScenario` with a made-up options shape and passed
  * `runtime=` to a provider whose only prop is `world`. This contract

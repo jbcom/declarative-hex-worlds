@@ -28,7 +28,7 @@ the verbs; the consumer owns the game.
 - **Burden — dhw must NOT do** (consumer territory; owning these would presume): game
   rules, the simulation/economy/AI, art direction, what a unit or building *means*.
 
-Every capability little-legends surfaces as a gap is weighed against this line before it
+Every capability example-game surfaces as a gap is weighed against this line before it
 becomes a dhw feature. If it's a "burden," it stays in the consumer.
 
 ## Asset sources (RFC0-7 / G1)
@@ -88,7 +88,7 @@ interface TilesetManifest {
 }
 ```
 
-The first real tileset is little-legends' 10 sheets (480×830, a 5×10 grid of 96×83
+The first real tileset is example-game' 10 sheets (480×830, a 5×10 grid of 96×83
 pointy-top hexes with transparent corners). Biome→sheet mapping is the consumer's concern
 (grassland, forest, desert, badlands, mountains, snow, wetland, plains, shrubland, coast).
 
@@ -105,7 +105,7 @@ positional cell.
 
 **Carried-over fix.** `setCoastEdges` must validate (or degrade to the longest contiguous
 run) at author time, not fail at resolve time — the `010101` non-contiguous-mask bug
-little-legends reported and worked around with `longestContiguousEdgeRun`.
+example-game reported and worked around with `longestContiguousEdgeRun`.
 
 ## Declarative elements (RFC0-8)
 

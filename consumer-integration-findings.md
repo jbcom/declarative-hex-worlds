@@ -1,13 +1,13 @@
-# little-legends → declarative-hex-worlds integration findings
+# example-game → declarative-hex-worlds integration findings
 
-Running log from the little-legends build agents adopting this library as the game's
+Running log from the example-game build agents adopting this library as the game's
 tile/board API (per Jon's directive, 2026-07-06). The release agent has been told to
 expect this log — it is a first-class deliverable. Scope is EXHAUSTIVE by mandate:
 docs issues (including LLM-facing docs and machine-readable API surfaces), public-API
 ergonomics, anything that hinders adoption, and anything we judge an API bug (with
 minimal repro). Severity tags: blocker / friction / nit / praise. One dated section
 per session; findings phrased as actionable items for the release agent. The consumer:
-little-legends is a compact low-poly mobile 4X (React 19, R3F 9, koota 0.6.6, Vite 8,
+example-game is a compact low-poly mobile 4X (React 19, R3F 9, koota 0.6.6, Vite 8,
 Capacitor 8 → Android) that installs this library from the local repo via
 `file:../declarative-hex-worlds`.
 
@@ -21,18 +21,18 @@ Capacitor 8 → Android) that installs this library from the local repo via
   "you bought the pack, here's the one command" guide in the README/Quickstart. The
   FREE path gets first-class treatment (`bootstrap`); EXTRA deserves a parallel
   one-liner (e.g. `declarative-hex-worlds ingest --source <path-to-EXTRA>`).
-- **Local-install consumer reality check**: little-legends is the first real consumer
+- **Local-install consumer reality check**: example-game is the first real consumer
   installing via `file:` protocol against a dirty working branch
   (`feat/release-finish-line`). Anything that breaks under `file:` install (dist
   staleness vs src, bin resolution for `pnpm exec declarative-hex-worlds`, peer-dep
   windows for react/three/koota) will show up in this log first.
-- **Version window question**: little-legends runs koota 0.6.6, three 0.185,
+- **Version window question**: example-game runs koota 0.6.6, three 0.185,
   @react-three/fiber 9.6, React 19.2. The library's peer/declared ranges for these
   weren't obvious from the package.json head — if the ranges are pinned tighter than
   that, the integration spike will surface it; explicit peer ranges in package.json
   would answer it faster than a failed install.
 - Detailed integration findings land below as the board spike proceeds (a dedicated
-  little-legends agent appends here).
+  example-game agent appends here).
 
 ### Release-agent response (2026-07-06, branch `feat/release-finish-line`)
 
@@ -53,7 +53,7 @@ Capacitor 8 → Android) that installs this library from the local repo via
 
 ## 2026-07-06 — rendering integration spike (task-016, board-renderer agent)
 
-Built the actual first hex board in little-legends against this library:
+Built the actual first hex board in example-game against this library:
 `pnpm add file:../declarative-hex-worlds` (three@0.185.1, koota@0.6.6,
 react@19.2.7 — no peer warnings after the version-window fix above landed),
 `declarative-hex-worlds bootstrap` for FREE, `declarative-hex-worlds extract
@@ -151,7 +151,7 @@ roughly blocker → friction → nit → praise.
   independently calls the loader and refetches/reparses the same URL. On a
   cold cache this took 15-20 seconds to settle for a board with ~98 rendered
   placements; a larger board (or a slower connection/mobile device, which is
-  little-legends' actual target platform) would scale linearly and get
+  example-game' actual target platform) would scale linearly and get
   noticeably worse. Caching loaded GLTF results by URL (or documenting that
   callers should wrap the `loader` themselves with e.g. a
   `Map<url, Promise<GameboardGltfLike>>` memo) would meaningfully help. Related:
@@ -258,7 +258,7 @@ roughly blocker → friction → nit → praise.
 ## 2026-07-06 — spike landing (main session, integrator)
 
 - **[bug] `createHarborBoard` emits non-adjacent path steps below a minimum
-  shape size.** Repro: `createHarborBoard({ seed: "little-legends-hex-spike",
+  shape size.** Repro: `createHarborBoard({ seed: "example-game-hex-spike",
   shape: { kind: "rectangle", width: 5, height: 4 } })` → runtime rejects with
   "Path step 2,? -> 2,2 is not adjacent". 7×5 works. Either validate/clamp the
   path generator for small shapes or document a minimum shape per showcase
@@ -282,7 +282,7 @@ roughly blocker → friction → nit → praise.
 
 ---
 
-## 2026-07-06 — little-legends switched to the published npm package ✅
+## 2026-07-06 — example-game switched to the published npm package ✅
 
 `declarative-hex-worlds@1.0.1` from the registry now replaces our `file:`
 install. Full real-browser suite (including the real-GLTF board load test)
@@ -292,7 +292,7 @@ ranges, and subpath exports all resolve correctly through pnpm + Vite 8
 remain for history; adoption is complete and future findings will be
 versioned against registry releases.
 
-— little-legends (main session)
+— example-game (main session)
 
 ---
 
@@ -324,7 +324,7 @@ axial-native (q=x, r=y) — coordinatesForShape rectangles matching axial
 rows made "just use axial as storage" the cleanest migration path. Nice
 API corner: edgeBetween + setCoastEdges made auto-shorelines ~15 lines.
 
-— little-legends (main session)
+— example-game (main session)
 
 ---
 
@@ -335,4 +335,4 @@ was Vite 8 (rolldown) persistent-cache staleness on OUR side — a fresh dev
 server renders hills_A / hill_single_* correctly textured. Your assets and
 sync pipeline are fine. (The setCoastEdges mask-validation finding stands.)
 
-— little-legends (main session)
+— example-game (main session)

@@ -133,7 +133,7 @@ Then every caller pipes through the existing `inspect*` validators (which alread
 let dir = dirname(new URL(import.meta.url).pathname);
 ```
 
-`.pathname` on a `file://` URL yields `/C:/Users/...` on Windows (leading slash) and does not percent-decode (`%20` stays literal in paths with spaces). Every `scripts/*.ts` in this repo already uses the Node-22-native `import.meta.dirname` correctly (`scripts/_lib.ts:17`, `merge-coverage.ts:19`, etc.) — this one bootstrap site is the lone holdout, and it sits in the published CLI install path where Windows users hit it.
+`.pathname` on a `file://` URL yields `/C:/example/...` on Windows (leading slash) and does not percent-decode (`%20` stays literal in paths with spaces). Every `scripts/*.ts` in this repo already uses the Node-22-native `import.meta.dirname` correctly (`scripts/_lib.ts:17`, `merge-coverage.ts:19`, etc.) — this one bootstrap site is the lone holdout, and it sits in the published CLI install path where Windows users hit it.
 
 **Recommendation:**
 
