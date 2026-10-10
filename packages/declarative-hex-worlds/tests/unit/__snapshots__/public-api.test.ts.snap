@@ -688,6 +688,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "biomeFieldSpacing",
+  },
+  {
+    "kind": "function",
+    "name": "boundsOfPoints",
+  },
+  {
+    "kind": "function",
     "name": "buildAssetSourceSpec",
   },
   {
@@ -724,6 +732,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "classifyBiomes",
+  },
+  {
+    "kind": "function",
     "name": "classifyGameboardPlacement",
   },
   {
@@ -749,6 +761,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "combineSources",
+  },
+  {
+    "kind": "function",
+    "name": "composeHeightField",
   },
   {
     "kind": "function",
@@ -976,6 +992,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "createHeightField",
+  },
+  {
+    "kind": "function",
+    "name": "createHeightFieldWithSpacing",
+  },
+  {
+    "kind": "function",
     "name": "createHexTileRegistry",
   },
   {
@@ -1001,6 +1025,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "createMedievalShowcaseBlueprintRecipe",
+  },
+  {
+    "kind": "function",
+    "name": "createNoise2D",
   },
   {
     "kind": "function",
@@ -1092,6 +1120,18 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "distanceToPolyline",
+  },
+  {
+    "kind": "function",
+    "name": "distanceToSegment",
+  },
+  {
+    "kind": "function",
+    "name": "dominantBiome",
+  },
+  {
+    "kind": "function",
     "name": "edgeBetween",
   },
   {
@@ -1117,6 +1157,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "factionBuildingAssetId",
+  },
+  {
+    "kind": "function",
+    "name": "fillHeightField",
   },
   {
     "kind": "function",
@@ -1157,6 +1201,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "flagAssetId",
+  },
+  {
+    "kind": "function",
+    "name": "fractalNoise",
   },
   {
     "kind": "function",
@@ -1252,6 +1300,18 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "heightFieldRange",
+  },
+  {
+    "kind": "function",
+    "name": "heightFieldSamplePosition",
+  },
+  {
+    "kind": "function",
+    "name": "heightFieldSpacing",
+  },
+  {
+    "kind": "function",
     "name": "hexDistance",
   },
   {
@@ -1269,6 +1329,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "hexRing",
+  },
+  {
+    "kind": "function",
+    "name": "hexesCoveringBounds",
   },
   {
     "kind": "function",
@@ -1532,6 +1596,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "packBiomeWeightsRgba",
+  },
+  {
+    "kind": "function",
     "name": "packClassifier",
   },
   {
@@ -1576,7 +1644,15 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "polygonContains",
+  },
+  {
+    "kind": "function",
     "name": "previewGameboardInteractionCommand",
+  },
+  {
+    "kind": "function",
+    "name": "projectTerrainToHexes",
   },
   {
     "kind": "function",
@@ -1680,6 +1756,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "resampleHeightField",
+  },
+  {
+    "kind": "function",
     "name": "resetGameboardMovementBudget",
   },
   {
@@ -1736,6 +1816,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "ridgedNoise",
+  },
+  {
+    "kind": "function",
     "name": "rotateMask",
   },
   {
@@ -1780,7 +1864,31 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "sampleBiomeWeights",
+  },
+  {
+    "kind": "function",
+    "name": "sampleGradient",
+  },
+  {
+    "kind": "function",
+    "name": "sampleHeight",
+  },
+  {
+    "kind": "function",
+    "name": "sampleNormal",
+  },
+  {
+    "kind": "function",
+    "name": "sampleSlope",
+  },
+  {
+    "kind": "function",
     "name": "scanAssetFiles",
+  },
+  {
+    "kind": "function",
+    "name": "scatterPoints",
   },
   {
     "kind": "function",
@@ -1872,6 +1980,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "signedDistanceToPolygon",
+  },
+  {
+    "kind": "function",
+    "name": "smoothstep",
+  },
+  {
+    "kind": "function",
     "name": "snapshotGameboardSystemEvent",
   },
   {
@@ -1921,6 +2037,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "summarizeKayKitGuideCoverage",
+  },
+  {
+    "kind": "function",
+    "name": "terrainProfileWeight",
   },
   {
     "kind": "function",
