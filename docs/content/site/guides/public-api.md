@@ -77,6 +77,7 @@ rather than the whole module shape).
 | `./coordinates` | Hex coordinate algebra (umbrella over grid/projection/layout). |
 | `./validation` | Plan-level validators. |
 | `./rules` | Rule definitions + evaluation. |
+| `./terrain` | Continuous terrain under a hex board: height fields, declarative composition, biome painting, Poisson-disc scatter, per-hex summaries. Koota-, three- and DOM-free; also re-exported from `./core`. |
 
 TSDoc tag: `@public` (no distinct tag — tier 2 is documented here in the
 table, not on every symbol).

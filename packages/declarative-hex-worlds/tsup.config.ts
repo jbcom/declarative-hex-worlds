@@ -25,6 +25,7 @@ export default defineConfig([
     normalize: 'src/normalize/index.ts',
     overlay: 'src/overlay/index.ts',
     'texture-binding': 'src/texture-binding/index.ts',
+    terrain: 'src/terrain/index.ts',
     classifiers: 'src/classifiers/index.ts',
     canvas2d: 'src/canvas2d/index.ts',
     core: 'src/core/index.ts',

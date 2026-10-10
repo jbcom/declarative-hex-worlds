@@ -15,6 +15,7 @@
  *   - the pure layout surface (site inspection, fill analysis, placement generation)
  *   - validateGameboardPlan + the rule-type contracts
  *   - the tileset/asset manifest schemas
+ *   - continuous terrain (height fields, composition, biomes, scatter, hex summaries)
  *
  * What's NOT here (needs the runtime/render tiers — import from the main package):
  *   - the koota world, actors/movement/patrol/quests/commands/systems/runtime
@@ -67,3 +68,7 @@ export * from '../rules/rule-types';
 // Asset/tileset manifest schemas
 // biome-ignore lint/style/noRestrictedImports: ./core must bypass the ../manifest barrel (re-exports the generated free manifest) — koota-free tier.
 export * from '../manifest/schema';
+
+// Continuous terrain: height fields, composition, biomes, scatter, hex summaries.
+// The ./terrain barrel is pure (it imports ../coordinates/grid directly).
+export * from '../terrain';

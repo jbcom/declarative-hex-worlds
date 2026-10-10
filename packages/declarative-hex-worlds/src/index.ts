@@ -40,6 +40,7 @@ export * from './scenario';
 export * from './selectors';
 export * from './simulation';
 export * from './systems';
+export * from './terrain';
 export * from './texture-binding';
 // NOTE: renderer bindings (./three) and React bindings (./react, ./react-elements)
 // are intentionally NOT re-exported here. The main entrypoint is renderer-free so

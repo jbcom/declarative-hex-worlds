@@ -6,6 +6,7 @@ import { packageAliases } from './vitest.alias.shared';
 import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
+const remoteHeadless = process.env.HEAVY_RENDER_HEADLESS === '1';
 const configuredAssetRoot = process.env.HEX_WORLDS_ASSET_ROOT ?? 'models';
 const browserAssetRoot = /^[a-z][a-z\d+.-]*:|^\//i.test(configuredAssetRoot)
   ? configuredAssetRoot
@@ -51,7 +52,15 @@ export default defineConfig({
     fileParallelism: false,
     browser: {
       enabled: true,
-      provider: playwright(),
+      // Remote render hosts (HEAVY_RENDER_HEADLESS=1, set only by the render
+      // endpoint) have no GUI session: headed Chrome crashes there, so run
+      // headless on SwiftShader WebGL. Everywhere else stays headed.
+      provider: playwright(
+        remoteHeadless
+          ? { launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] } }
+          : {}
+      ),
+      ...(remoteHeadless ? { headless: true } : {}),
       instances: [
         {
           browser: 'chromium',
@@ -70,6 +79,7 @@ export default defineConfig({
       'tests/browser/branch-coverage.test.ts',
       'tests/browser/tileset-render.test.ts',
       'tests/browser/react-elements.test.ts',
+      'tests/browser/terrain-visual.test.ts',
     ],
     testTimeout: 120_000,
     coverage: harnessCoverage('browser-free'),

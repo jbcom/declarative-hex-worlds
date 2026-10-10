@@ -23,6 +23,7 @@ nav:
   - Features:
       - Overview: features/index.md
       - Bridges and connectors: features/bridges-and-connectors.md
+      - Continuous terrain: features/continuous-terrain.md
       - Cross-kit composition: features/cross-kit-composition.md
       - Determinism and replay: features/determinism-replay.md
       - Harbors: features/harbors.md
