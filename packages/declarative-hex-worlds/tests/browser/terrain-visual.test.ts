@@ -505,7 +505,12 @@ function shadedRgb(field: HeightField, x: number, z: number, low: number, high: 
 }
 
 describe('terrain in-painting visual review', () => {
-  const healed = inpaintHeightField(quarry.dug, quarry.erase, { feather: 20 });
+  // Grain restored to match the hillside around the quarry (the history's own
+  // micro-relief is 140 m wavelength fractal noise).
+  const healed = inpaintHeightField(quarry.dug, quarry.erase, {
+    feather: 20,
+    detail: { seed: 'quarry-grain', wavelength: 140 },
+  });
 
   it('restores the hillside under a terraced quarry', async () => {
     let worst = 0;
@@ -526,6 +531,32 @@ describe('terrain in-painting visual review', () => {
     // (it spans the rim as a chord), but it stays well inside a quarter of
     // the 14 m the quarry removed.
     expect(worst).toBeLessThan(4);
+
+    // The restored grain matches the hillside's: RMS of the four-point stencil
+    // h - mean(h at +-4 samples), inside the region against the ring around it.
+    const grain = (field: HeightField, pick: (distance: number) => boolean): number => {
+      const { width: w } = field;
+      let energy = 0;
+      let count = 0;
+      for (let row = 4; row < field.height - 4; row += 1) {
+        for (let column = 4; column < w - 4; column += 1) {
+          const x = bounds.minX + column * 10;
+          const z = bounds.minZ + row * 10;
+          if (!pick(signedDistanceToPolygon(quarry.erase, { x, z }))) continue;
+          const i = row * w + column;
+          const h = field.heights;
+          const r =
+            (h[i] as number) -
+            ((h[i - 4] as number) + (h[i + 4] as number) + (h[i - 4 * w] as number) + (h[i + 4 * w] as number)) / 4;
+          energy += r * r;
+          count += 1;
+        }
+      }
+      return Math.sqrt(energy / count);
+    };
+    const ringGrain = grain(quarry.history, (d) => d > 60 && d <= 300);
+    expect(grain(healed, (d) => d <= -60)).toBeGreaterThan(ringGrain * 0.75);
+    expect(grain(healed, (d) => d <= -60)).toBeLessThan(ringGrain * 1.25);
 
     const width = 640;
     const canvas = makeCanvas(width * 2, width);
