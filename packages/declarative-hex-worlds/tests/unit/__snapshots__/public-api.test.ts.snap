@@ -1280,6 +1280,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "generateParcels",
+  },
+  {
+    "kind": "function",
     "name": "getGameboardAssetRootOverride",
   },
   {
@@ -1621,6 +1625,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "packDefaultClassifiers",
+  },
+  {
+    "kind": "function",
+    "name": "parcelBoundaries",
   },
   {
     "kind": "function",

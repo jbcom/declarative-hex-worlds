@@ -11,6 +11,7 @@
  * - `./biomes` — feathered, domain-warped biome painting and RGBA packing for renderers
  * - `./scatter` — Poisson-disc scatter with density thinning and stable variants
  * - `./hexes` — per-hex summaries (height, slope, biome shares) for gameplay
+ * - `./parcels` — field parcels and their fence/lane boundary network
  * - `./geometry2d`, `./noise` — the planar geometry and seeded noise underneath
  *
  * @module
@@ -21,4 +22,5 @@ export * from './field';
 export * from './geometry2d';
 export * from './hexes';
 export * from './noise';
+export * from './parcels';
 export * from './scatter';

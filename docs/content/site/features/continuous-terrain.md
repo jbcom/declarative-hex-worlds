@@ -99,6 +99,20 @@ picking species, size or rotation; thinning never reshuffles the variants of
 the points that survive. `maxPoints` keeps an even subsample (the lowest
 variants) rather than the first points generated.
 
+## Fields and boundaries
+
+Settled country is a patchwork of fields, not noise. `generateParcels`
+divides a rectangle or convex polygon into parcels near a mean area, cutting
+across or along each piece's minimum-area oriented box — whichever brings the
+halves nearer a preferred `aspect` — so fields come out as surveyed-looking
+blocks and strips at varied orientations. Each parcel has a stable `variant`
+for picking its crop or land use; paint parcels as biome `area` conditions.
+
+`parcelBoundaries` turns the parcels into a deduplicated edge network
+(vertices merged within a tolerance, T-junctions split), each edge listing
+the one or two parcels it separates. Lay fences, walls and hedges along its
+edges, and route lanes through it so roads follow field boundaries.
+
 ## Hexes
 
 `hexesCoveringBounds` lists the hexes whose centres fall inside bounds (grown

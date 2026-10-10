@@ -23,7 +23,9 @@ import {
   type BiomeField,
   classifyBiomes,
   composeHeightField,
+  generateParcels,
   type HeightField,
+  parcelBoundaries,
   heightFieldRange,
   hexesCoveringBounds,
   projectTerrainToHexes,
@@ -334,6 +336,59 @@ describe('terrain visual review', () => {
     }
     expect(hexes.length).toBeGreaterThan(200);
     await capture(canvas, 'terrain-hexes');
+  });
+
+  it('renders field parcels with their fence network', async () => {
+    const canvas = makeCanvas();
+    const parcels = generateParcels({
+      area: bounds,
+      seed: 'farms',
+      meanArea: 90_000,
+      sizeVariation: 0.6,
+      skew: 0.3,
+    });
+    const crops: readonly (readonly [number, number, number])[] = [
+      [205, 175, 98], // wheat
+      [176, 160, 74], // oats
+      [126, 150, 70], // corn
+      [118, 142, 74], // pasture
+      [104, 128, 66], // meadow
+      [52, 84, 46], // woodlot
+    ];
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('2d context unavailable');
+    for (const parcel of parcels) {
+      const [r, g, b] = crops[Math.floor(parcel.variant * crops.length)] as readonly [
+        number,
+        number,
+        number,
+      ];
+      ctx.beginPath();
+      parcel.polygon.forEach((corner, i) => {
+        const { px, py } = toPixel(corner.x, corner.z);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.closePath();
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      ctx.fill();
+    }
+    const net = parcelBoundaries(parcels, 0.01);
+    ctx.strokeStyle = 'rgba(70, 52, 34, 0.9)';
+    ctx.lineWidth = 1.2;
+    for (const [a, b] of net.edges) {
+      const p = net.vertices[a];
+      const q = net.vertices[b];
+      if (!p || !q) continue;
+      const from = toPixel(p.x, p.z);
+      const to = toPixel(q.x, q.z);
+      ctx.beginPath();
+      ctx.moveTo(from.px, from.py);
+      ctx.lineTo(to.px, to.py);
+      ctx.stroke();
+    }
+    expect(parcels.length).toBeGreaterThan(60);
+    await capture(canvas, 'terrain-parcels');
   });
 
   it('renders the composed surface lit in perspective', async () => {
