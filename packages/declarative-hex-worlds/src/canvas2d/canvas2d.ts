@@ -110,7 +110,7 @@ export function syncCanvas2dPlacements(
         ? (options.source.resolveEdge?.(placement.assetId, edgeMask, options.context) ??
           options.source.resolve(placement, options.context))
         : options.source.resolve(placement, options.context);
-    if (!request || request.type !== 'tileset-cell') {
+    if (request?.type !== 'tileset-cell') {
       skipped.push(placement.id);
       continue;
     }

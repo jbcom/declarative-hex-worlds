@@ -258,7 +258,7 @@ export function createTilesetSource(options: TilesetSourceOptions): AssetSource 
         return undefined;
       }
       const sheet = manifest.sheets[biome.sheet];
-      if (!sheet || sheet.role !== 'transition' || !sheet.edgeCells) {
+      if (sheet?.role !== 'transition' || !sheet.edgeCells) {
         return undefined;
       }
       const cellIndex = sheet.edgeCells[String(edgeMask)];
