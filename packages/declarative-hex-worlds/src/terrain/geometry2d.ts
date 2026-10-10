@@ -123,7 +123,8 @@ export function createPolylineIndex(
     return { distanceWithin: () => Number.POSITIVE_INFINITY };
   }
   const cell = cutoff;
-  const buckets = new Map<string, number[]>();
+  // Row → column → segment indices. Numeric keys keep queries allocation-free.
+  const buckets = new Map<number, Map<number, number[]>>();
   segments.forEach(([a, b], index) => {
     const dx = b.x - a.x;
     const dz = b.z - a.z;
@@ -148,17 +149,21 @@ export function createPolylineIndex(
       }
       const c0 = Math.floor((xMin - cutoff) / cell);
       const c1 = Math.floor((xMax + cutoff) / cell);
+      let rowBuckets = buckets.get(r);
+      if (!rowBuckets) {
+        rowBuckets = new Map();
+        buckets.set(r, rowBuckets);
+      }
       for (let c = c0; c <= c1; c += 1) {
-        const key = `${c},${r}`;
-        const bucket = buckets.get(key);
+        const bucket = rowBuckets.get(c);
         if (bucket) bucket.push(index);
-        else buckets.set(key, [index]);
+        else rowBuckets.set(c, [index]);
       }
     }
   });
   return {
     distanceWithin(point) {
-      const bucket = buckets.get(`${Math.floor(point.x / cell)},${Math.floor(point.z / cell)}`);
+      const bucket = buckets.get(Math.floor(point.z / cell))?.get(Math.floor(point.x / cell));
       if (!bucket) return Number.POSITIVE_INFINITY;
       let best = Number.POSITIVE_INFINITY;
       for (const index of bucket) {

@@ -25,6 +25,22 @@ describe('createNoise2D', () => {
     expect(new Set(values.map((v) => v.toFixed(3))).size).toBeGreaterThan(100);
   });
 
+  it('never exceeds the unit bound that biome warp culling relies on', () => {
+    // The unnormalised sum peaks at 0.9979 (worst-case gradients at every
+    // corner of a simplex cell), so culling may treat |noise| as at most 1.
+    let peak = 0;
+    for (const seed of ['a', 'b', 'c', 1863, 'gettysburg']) {
+      const noise = createNoise2D(seed);
+      for (let z = 0; z < 24; z += 0.0371) {
+        for (let x = 0; x < 24; x += 0.0373) {
+          peak = Math.max(peak, Math.abs(noise(x, z)));
+        }
+      }
+    }
+    expect(peak).toBeGreaterThan(0.9);
+    expect(peak).toBeLessThanOrEqual(0.9979);
+  });
+
   it('pins a known value so cross-platform drift is caught', () => {
     expect(createNoise2D('pin')(1.25, -3.5)).toMatchInlineSnapshot(`-0.6137710230799567`);
   });
