@@ -20,6 +20,13 @@ function compose(layers: readonly TerrainLayer[], base?: number) {
   });
 }
 
+/** A planar ramp: harmonic ground for the inpaint layer to restore. */
+function tilted() {
+  const ramp = createHeightFieldWithSpacing(bounds, 10);
+  fillHeightField(ramp, (x, z) => 40 + 0.15 * x - 0.05 * z);
+  return ramp;
+}
+
 describe('terrainProfileWeight', () => {
   it('falls from 1 at the crest to 0 at the foot for every profile', () => {
     for (const profile of ['smooth', 'sharp', 'plateau'] as const) {
@@ -111,6 +118,40 @@ describe('composeHeightField', () => {
     expect(sampleHeight(anchored, 0, 0)).toBeCloseTo((40 + anchor) / 2, 4);
   });
 
+  it('erases earthworks in layer order with an inpaint layer', () => {
+    const pad = [
+      { x: -30, z: -30 },
+      { x: 30, z: -30 },
+      { x: 30, z: 30 },
+      { x: -30, z: 30 },
+    ];
+    const slope = { kind: 'field', field: tilted() } as const;
+    const pit = { kind: 'hill', center: { x: 0, z: 0 }, radius: 25, height: -12 } as const;
+    const damaged = compose([slope, pit]);
+    expect(sampleHeight(damaged, 0, 0)).toBeCloseTo(sampleHeight(tilted(), 0, 0) - 12, 4);
+    const healed = compose([slope, pit, { kind: 'inpaint', polygon: pad }]);
+    expect(sampleHeight(healed, 0, 0)).toBeCloseTo(sampleHeight(tilted(), 0, 0), 2);
+    expect(sampleHeight(healed, 80, 40)).toBe(sampleHeight(damaged, 80, 40));
+    // Order matters: a pit dug after the inpaint layer survives.
+    const dug = compose([slope, { kind: 'inpaint', polygon: pad }, pit]);
+    expect(sampleHeight(dug, 0, 0)).toBeCloseTo(sampleHeight(tilted(), 0, 0) - 12, 2);
+    // Detail restores grain over the fill; the ground outside stays as it was.
+    const grained = compose([
+      slope,
+      pit,
+      { kind: 'inpaint', polygon: pad, detail: { seed: 'g', amplitude: 3, wavelength: 20 } },
+    ]);
+    expect(Array.from(grained.heights)).not.toEqual(Array.from(healed.heights));
+    expect(sampleHeight(grained, 80, 40)).toBe(sampleHeight(damaged, 80, 40));
+    // A feather widens the region it replaces.
+    const ring = [{ kind: 'hill', center: { x: 40, z: 0 }, radius: 8, height: 9 } as const];
+    const bumpy = compose([slope, ...ring]);
+    const narrow = compose([slope, ...ring, { kind: 'inpaint', polygon: pad }]);
+    const wide = compose([slope, ...ring, { kind: 'inpaint', polygon: pad, feather: 20 }]);
+    expect(sampleHeight(narrow, 40, 0)).toBe(sampleHeight(bumpy, 40, 0));
+    expect(sampleHeight(wide, 40, 0)).toBeCloseTo(sampleHeight(tilted(), 40, 0), 2);
+  });
+
   it('scales about a pivot, the minimum by default', () => {
     const hill = { kind: 'hill', center: { x: 0, z: 0 }, radius: 50, height: 10 } as const;
     expect(sampleHeight(compose([hill, { kind: 'scale', factor: 2 }], 100), 0, 0)).toBe(120);
@@ -150,6 +191,7 @@ describe('composeHeightField', () => {
       { kind: 'hill', center: { x: 0, z: 0 }, radius: -1, height: 1 },
       { kind: 'channel', line, halfWidth: 0, depth: 1 },
       { kind: 'flatten', polygon: line, feather: 1 },
+      { kind: 'inpaint', polygon: line },
     ];
     for (const layer of bad) {
       expect(() => compose([layer])).toThrow(GameboardValidationError);
@@ -167,6 +209,14 @@ describe('composeHeightField', () => {
         GameboardValidationError
       );
     }
+    for (const feather of [-5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => compose([{ kind: 'inpaint', polygon: square, feather }])).toThrow(
+        /inpaint feather/
+      );
+    }
+    expect(() =>
+      compose([{ kind: 'inpaint', polygon: square, detail: { seed: 's', wavelength: -1 } }])
+    ).toThrow(/inpaint detail wavelength/);
     const misspelt = JSON.parse('{"kind":"hills","center":{"x":0,"z":0},"radius":5,"height":1}');
     expect(() => compose([misspelt as TerrainLayer])).toThrow(/unknown terrain layer kind "hills"/);
   });
