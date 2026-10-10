@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.3.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.2.3...declarative-hex-worlds@1.3.0) (2026-10-10)
+
+
+### Features
+
+* **terrain:** add continuous terrain under hex boards ([1572a75](https://github.com/jbcom/declarative-hex-worlds/commit/1572a75b1c25577b878aba16de017189568c395d))
+* **terrain:** continuous terrain, biomes, scatter, parcels and hex summaries ([3782f90](https://github.com/jbcom/declarative-hex-worlds/commit/3782f9050f35f93d1427b8e5678d2cda0c5a9d06))
+* **terrain:** generate field parcels and their boundary network ([5666ac9](https://github.com/jbcom/declarative-hex-worlds/commit/5666ac92017cac158943a543331878030fe53ce7))
+
+
+### Bug Fixes
+
+* **security:** satisfy native SonarCloud gate ([685c688](https://github.com/jbcom/declarative-hex-worlds/commit/685c6884ce7af6154817a93bc323ea8cafd87275))
+* **security:** use native SonarCloud analysis ([a4a5c35](https://github.com/jbcom/declarative-hex-worlds/commit/a4a5c3504a3240579f713032dcc33201bc699ba8))
+* **terrain:** address review — validation, far-field gradients, linear polyline index ([6c94a77](https://github.com/jbcom/declarative-hex-worlds/commit/6c94a772475d122b41a8eb8920a6e1ec67e4b468))
+* **terrain:** correct edge slopes, scale large fields and sample hex rims ([04a40ce](https://github.com/jbcom/declarative-hex-worlds/commit/04a40ce9ba76d486084889b75dc1d6e7f670da81))
+
 ## [1.2.3](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.2.2...declarative-hex-worlds@1.2.3) (2026-07-27)
 
 
