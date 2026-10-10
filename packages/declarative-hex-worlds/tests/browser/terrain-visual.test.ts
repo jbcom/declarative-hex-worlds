@@ -31,6 +31,7 @@ import {
   hexesCoveringBounds,
   parcelBoundaries,
   projectTerrainToHexes,
+  routeNetwork,
   sampleBiomeWeights,
   sampleHeight,
   sampleNormal,
@@ -457,6 +458,52 @@ describe('terrain visual review', () => {
     }
     expect(Math.max(...drainage.channels.map((c) => c.order))).toBeGreaterThanOrEqual(3);
     await capture(canvas, 'terrain-drainage');
+  });
+
+  it('renders a road network between farms and a village', async () => {
+    const canvas = makeCanvas();
+    const drainage = traceDrainage(terrain, { minContributingArea: DRAINAGE_AREA });
+    const streams = drainage.channels.filter((c) => c.order >= 2);
+    const village = { x: -125, z: -1250 };
+    const farms = [
+      { x: -1300, z: -900 },
+      { x: -700, z: -300 },
+      { x: 900, z: -1200 },
+      { x: 1200, z: -200 },
+      { x: 700, z: 700 },
+      { x: -1200, z: 900 },
+      { x: -200, z: 1100 },
+      { x: 1300, z: 1300 },
+    ];
+    const ponds = { ...terrain, heights: drainage.filled };
+    const network = routeNetwork(terrain, [village, ...farms], {
+      slopePenalty: 400,
+      water: streams.map((c) => c.points),
+      crossingCost: 400,
+      // Skirt ponds rather than wade through them.
+      groundCost: (x, z) => (sampleHeight(ponds, x, z) - sampleHeight(terrain, x, z) > 0.3 ? 8 : 0),
+    });
+    paintRelief(canvas, terrain, drainage);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('2d context unavailable');
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const stream of streams)
+      strokeLine(ctx, stream.points, 'rgb(46, 92, 150)', 0.4 + 0.8 * stream.order);
+    for (const road of network.roads) strokeLine(ctx, road, 'rgb(60, 42, 26)', 4.2);
+    for (const road of network.roads) strokeLine(ctx, road, 'rgb(214, 190, 140)', 2.4);
+    for (const farm of farms) {
+      const { px, py } = toPixel(farm.x, farm.z);
+      ctx.fillStyle = 'rgb(150, 52, 40)';
+      ctx.fillRect(px - 4, py - 4, 8, 8);
+    }
+    const { px, py } = toPixel(village.x, village.z);
+    ctx.fillStyle = 'rgb(120, 30, 30)';
+    ctx.beginPath();
+    ctx.arc(px, py, 9, 0, Math.PI * 2);
+    ctx.fill();
+    expect(network.links).toHaveLength(farms.length);
+    await capture(canvas, 'terrain-roads');
   });
 
   it('renders the composed surface lit in perspective', async () => {

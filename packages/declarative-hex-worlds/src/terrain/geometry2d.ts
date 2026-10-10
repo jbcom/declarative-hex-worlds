@@ -1,7 +1,7 @@
 /**
  * `src/terrain/geometry2d.ts` — planar geometry on the board's ground plane
- * (world X/Z) used by terrain composition, biome painting, scatter and
- * drainage, including polyline simplification and smoothing.
+ * (world X/Z) used by terrain composition, biome painting, scatter, drainage
+ * and routing, including polyline simplification and smoothing.
  *
  * Only `+ - * /` and `Math.sqrt` are used, all of which IEEE 754 defines
  * exactly, so results are byte-identical across engines and platforms.

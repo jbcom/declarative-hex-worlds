@@ -455,6 +455,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
     "name": "MAX_GRID_SAMPLES",
   },
   {
+    "kind": "number",
+    "name": "MAX_NETWORK_SITES",
+  },
+  {
+    "kind": "number",
+    "name": "MAX_ROUTE_SAMPLES",
+  },
+  {
     "kind": "function",
     "name": "MovementAgent",
   },
@@ -1861,6 +1869,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "rotateMask",
+  },
+  {
+    "kind": "function",
+    "name": "routeAcrossTerrain",
+  },
+  {
+    "kind": "function",
+    "name": "routeNetwork",
   },
   {
     "kind": "function",

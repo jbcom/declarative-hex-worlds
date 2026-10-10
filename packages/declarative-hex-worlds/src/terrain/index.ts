@@ -13,6 +13,7 @@
  * - `./hexes` — per-hex summaries (height, slope, biome shares) for gameplay
  * - `./parcels` — field parcels and their fence/lane boundary network
  * - `./drainage` — stream networks by depression filling and flow accumulation, and carved beds
+ * - `./routing` — least-cost roads across the relief and spanning road networks between sites
  * - `./geometry2d`, `./noise` — the planar geometry (including polyline
  *   simplification and smoothing) and seeded noise underneath
  *
@@ -26,4 +27,5 @@ export * from './geometry2d';
 export * from './hexes';
 export * from './noise';
 export * from './parcels';
+export * from './routing';
 export * from './scatter';
