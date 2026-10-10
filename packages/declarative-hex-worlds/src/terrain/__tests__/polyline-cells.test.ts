@@ -96,6 +96,36 @@ describe('createPolylineCells', () => {
     expect(max).toBeGreaterThan(0);
   });
 
+  it('skips empty lines and finds nothing outside the bounds', () => {
+    const sparse = createPolylineCells(
+      [
+        [],
+        [
+          { x: 0, z: 0 },
+          { x: 100, z: 0 },
+        ],
+      ],
+      {
+        bounds,
+        cellSize: 64,
+        reach,
+      }
+    );
+    expect(sparse.segmentLine).toEqual(Uint32Array.from([1]));
+    expect(nearestPolylineInCells(sparse, { x: 50, z: 5 })).toEqual({ distance: 5, line: 1 });
+    for (const outside of [
+      { x: bounds.minX - 1, z: 0 },
+      { x: bounds.maxX + 1, z: 0 },
+      { x: 0, z: bounds.minZ - 1 },
+      { x: 0, z: bounds.maxZ + 1 },
+    ]) {
+      expect(nearestPolylineInCells(sparse, outside)).toEqual({
+        distance: Number.POSITIVE_INFINITY,
+        line: -1,
+      });
+    }
+  });
+
   it('treats a one-point line as a point', () => {
     const dot = createPolylineCells([[{ x: 10, z: 10 }]], { bounds, cellSize: 64, reach });
     expect(nearestPolylineInCells(dot, { x: 13, z: 14 }).distance).toBeCloseTo(5, 9);
