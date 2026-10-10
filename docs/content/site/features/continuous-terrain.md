@@ -87,7 +87,10 @@ fill never invents a hollow or a bump of its own.
 import { inpaintHeightField } from 'declarative-hex-worlds/terrain';
 
 // A quarry that did not exist in 1863: outline it, rim and spoil included.
-const historical = inpaintHeightField(measured, quarryOutline, { feather: 20 });
+const historical = inpaintHeightField(measured, quarryOutline, {
+  feather: 20,
+  detail: { seed: 'quarry', wavelength: 12 },
+});
 ```
 
 It returns a new field and never touches the one you pass; samples farther
@@ -101,11 +104,42 @@ composeHeightField({
   seed: 'gettysburg',
   base: lidar,
   layers: [
-    { kind: 'inpaint', polygon: quarryOutline, feather: 20 },
-    { kind: 'noise', amplitude: 0.4, wavelength: 8 }, // fine grain back over the fill
+    {
+      kind: 'inpaint',
+      polygon: quarryOutline,
+      feather: 20,
+      detail: { seed: 'quarry', wavelength: 12 },
+    },
   ],
 });
 ```
+
+### Restoring the grain
+
+A harmonic fill is smooth, and measured ground never is: left alone, the
+erased patch shows from the air as a featureless blotch. Pass `detail` and
+seeded fractal noise is laid over the fill so it reads like the ground around
+it:
+
+- `amplitude: 'match'` (the default) measures the grain of the known ground in
+  a band just outside the region (two wavelengths wide) and scales the noise to
+  that RMS. A number is instead the noise's nominal amplitude in world units,
+  as for a `noise` layer, and needs no surrounding ground to measure.
+- `wavelength` is the size of the features to restore, in world units
+  (default: eight sample spacings). Set it to the scale of the grain you can
+  see in the data, such as the hummocks of a pasture or the chatter of a
+  ploughed field.
+- `seed` makes the grain reproducible: the same seed always gives the same
+  field, byte for byte.
+
+The relief fades in from nothing at the region's edge to full strength one
+wavelength inside, so the fill still meets the ground around it exactly and
+nothing outside the region changes. Grain is measured with a four-point
+stencil (`h` minus the mean of the samples a quarter wavelength away along X
+and Z), which is zero on any plane, so a steep hillside or the truncated view
+next to the excavation never counts as relief. If no known sample is left to
+measure (a region covering nearly the whole field), `'match'` throws; give an
+explicit `amplitude` instead.
 
 Things to know:
 
@@ -118,10 +152,7 @@ Things to know:
   like a stretched membrane. Under a wide excavation on strongly curved
   ground (a crest, a hollow) the fill is the chord, not the lost bulge.
   Outline narrowly there, or compose the missing landform back with a `hill`
-  or `ridge` layer after the fill.
-- **It is smoother than the ground around it.** Fine relief inside the region
-  is gone. Add a small `noise` layer afterwards, as above, if the patch must
-  not read as smooth from the air.
+  or `ridge` layer after the fill. `detail` restores grain, not landforms.
 - **Field edges.** An erased region that reaches the edge of the field relaxes
   toward its in-grid neighbours only, leaving zero slope across the edge. A
   region that covers the whole field throws; one that holds no sample returns
