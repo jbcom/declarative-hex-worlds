@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   boundsOfPoints,
+  createPolylineIndex,
   distanceToPolyline,
   distanceToSegment,
   polygonContains,
@@ -63,6 +64,48 @@ describe('polygonContains and signedDistanceToPolygon', () => {
     ];
     expect(signedDistanceToPolygon(segment, { x: 5, z: 0 })).toBe(0);
     expect(signedDistanceToPolygon(segment, { x: 5, z: 2 })).toBe(2);
+  });
+});
+
+describe('createPolylineIndex', () => {
+  const line = [
+    { x: 0, z: 0 },
+    { x: 100, z: 0 },
+    { x: 100, z: 100 },
+  ];
+
+  it('matches the brute-force distance within the cutoff and is infinite beyond it', () => {
+    const index = createPolylineIndex(line, 20);
+    for (const point of [
+      { x: 50, z: 5 },
+      { x: 104, z: 50 },
+      { x: -3, z: -4 },
+      { x: 99, z: 1 },
+    ]) {
+      expect(index.distanceWithin(point)).toBe(distanceToPolyline(point, line));
+    }
+    expect(index.distanceWithin({ x: 50, z: 30 })).toBe(Number.POSITIVE_INFINITY);
+    expect(index.distanceWithin({ x: 5000, z: 5000 })).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  it('includes the closing edge only when asked', () => {
+    const closingPoint = { x: 50, z: 52 };
+    expect(createPolylineIndex(line, 10).distanceWithin(closingPoint)).toBe(
+      Number.POSITIVE_INFINITY
+    );
+    expect(
+      createPolylineIndex(line, 10, { closed: true }).distanceWithin(closingPoint)
+    ).toBeLessThan(10);
+  });
+
+  it('handles single points, empty lines and a zero cutoff', () => {
+    expect(createPolylineIndex([{ x: 0, z: 0 }], 10).distanceWithin({ x: 3, z: 4 })).toBe(5);
+    expect(createPolylineIndex([], 10).distanceWithin({ x: 0, z: 0 })).toBe(
+      Number.POSITIVE_INFINITY
+    );
+    expect(createPolylineIndex(line, 0).distanceWithin({ x: 0, z: 0 })).toBe(
+      Number.POSITIVE_INFINITY
+    );
   });
 });
 

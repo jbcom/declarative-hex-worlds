@@ -12,12 +12,20 @@
  * @module
  */
 import { GameboardValidationError } from '../errors';
-import { type HeightField, heightFieldSpacing, sampleHeight, sampleSlope } from './field';
 import {
-  distanceToPolyline,
+  type GroundGrid,
+  gridSpacing,
+  type HeightField,
+  sampleHeight,
+  sampleSlope,
+  validateGroundGrid,
+} from './field';
+import {
+  createPolylineIndex,
   type GroundBounds,
   type GroundPolygon,
   type GroundPolyline,
+  type PolylineIndex,
   signedDistanceToPolygon,
   smoothstep,
 } from './geometry2d';
@@ -77,7 +85,7 @@ export interface BiomeWarp {
 export interface BiomePaint {
   readonly biome: string;
   readonly where: readonly BiomeCondition[];
-  /** 0–1 multiplier on the paint's coverage (default 1). */
+  /** Multiplier on the paint's coverage, clamped to 0–1 (default 1). */
   readonly strength?: number;
   readonly warp?: BiomeWarp;
 }
@@ -100,10 +108,7 @@ export interface ClassifyBiomesOptions {
 }
 
 /** Per-sample biome weights on a regular grid (same layout as a height field). */
-export interface BiomeField {
-  readonly bounds: GroundBounds;
-  readonly width: number;
-  readonly height: number;
+export interface BiomeField extends GroundGrid {
   readonly biomes: readonly string[];
   /** `width * height * biomes.length` weights, sample-major, each sample summing to 1. */
   readonly weights: Float32Array;
@@ -121,61 +126,137 @@ function band(value: number, condition: BandBiomeCondition): number {
   return coverage;
 }
 
-/** Resolves noise objects once per paint so classification stays linear. */
-interface PreparedPaint {
-  readonly channel: number;
-  readonly paint: BiomePaint;
-  readonly strength: number;
-  readonly warp: PreparedWarp | null;
-  readonly noises: readonly (Noise2D | null)[];
-}
+/** A condition with its noise and spatial index resolved once per paint. */
+type PreparedCondition =
+  | { readonly kind: 'height' | 'slope'; readonly condition: BandBiomeCondition }
+  | { readonly kind: 'area'; readonly condition: AreaBiomeCondition }
+  | {
+      readonly kind: 'line';
+      readonly condition: LineBiomeCondition;
+      readonly index: PolylineIndex;
+    }
+  | {
+      readonly kind: 'noise';
+      readonly condition: NoiseBiomeCondition;
+      readonly noise: Noise2D;
+    };
 
 interface PreparedWarp {
   readonly amplitude: number;
-  readonly wavelength: number;
+  readonly options: { readonly wavelength: number; readonly octaves: 3 };
   readonly x: Noise2D;
   readonly z: Noise2D;
 }
 
-function coverageOf(prepared: PreparedPaint, terrain: HeightField, x: number, z: number): number {
-  const { paint, warp } = prepared;
-  let wx = x;
-  let wz = z;
-  if (warp) {
-    const options = { wavelength: warp.wavelength, octaves: 3 };
-    wx += warp.amplitude * fractalNoise(warp.x, x, z, options);
-    wz += warp.amplitude * fractalNoise(warp.z, x, z, options);
+interface PreparedPaint {
+  readonly channel: number;
+  readonly strength: number;
+  readonly warp: PreparedWarp | null;
+  readonly conditions: readonly PreparedCondition[];
+}
+
+function requireNonNegative(value: number | undefined, what: string): void {
+  if (value !== undefined && !(value >= 0)) {
+    throw new GameboardValidationError(`${what} must not be negative; got ${value}`);
   }
-  let coverage = prepared.strength;
-  for (let i = 0; i < paint.where.length && coverage > 0; i += 1) {
-    const condition = paint.where[i] as BiomeCondition;
-    switch (condition.kind) {
+}
+
+function requirePositive(value: number, what: string): void {
+  if (!(value > 0) || !Number.isFinite(value)) {
+    throw new GameboardValidationError(`${what} must be positive; got ${value}`);
+  }
+}
+
+function prepareCondition(
+  condition: BiomeCondition,
+  seed: string,
+  paintIndex: number,
+  conditionIndex: number
+): PreparedCondition {
+  const where = `paint ${paintIndex} condition ${conditionIndex}`;
+  requireNonNegative(condition.feather, `${where} feather`);
+  switch (condition.kind) {
+    case 'height':
+    case 'slope':
+      return { kind: condition.kind, condition };
+    case 'area':
+      return { kind: 'area', condition };
+    case 'line': {
+      requirePositive(condition.halfWidth, `${where} halfWidth`);
+      const cutoff = condition.halfWidth + (condition.feather ?? 0) / 2;
+      return { kind: 'line', condition, index: createPolylineIndex(condition.line, cutoff) };
+    }
+    case 'noise':
+      requirePositive(condition.wavelength, `${where} wavelength`);
+      return {
+        kind: 'noise',
+        condition,
+        noise: createNoise2D(
+          `${seed}:paint:${paintIndex}:${String(condition.seed ?? conditionIndex)}`
+        ),
+      };
+  }
+}
+
+/** Warped position, computed only once a spatial condition needs it. */
+interface WarpedPoint {
+  ready: boolean;
+  x: number;
+  z: number;
+}
+
+function warpedPoint(paint: PreparedPaint, x: number, z: number, point: WarpedPoint): WarpedPoint {
+  if (point.ready) return point;
+  point.ready = true;
+  const { warp } = paint;
+  if (warp) {
+    point.x = x + warp.amplitude * fractalNoise(warp.x, x, z, warp.options);
+    point.z = z + warp.amplitude * fractalNoise(warp.z, x, z, warp.options);
+  } else {
+    point.x = x;
+    point.z = z;
+  }
+  return point;
+}
+
+function coverageOf(paint: PreparedPaint, terrain: HeightField, x: number, z: number): number {
+  let coverage = paint.strength;
+  const point: WarpedPoint = { ready: false, x, z };
+  for (let i = 0; i < paint.conditions.length && coverage > 0; i += 1) {
+    const prepared = paint.conditions[i] as PreparedCondition;
+    switch (prepared.kind) {
       case 'height':
-        coverage *= band(sampleHeight(terrain, x, z), condition);
+        coverage *= band(sampleHeight(terrain, x, z), prepared.condition);
         break;
       case 'slope':
-        coverage *= band(sampleSlope(terrain, x, z), condition);
+        coverage *= band(sampleSlope(terrain, x, z), prepared.condition);
         break;
       case 'area': {
-        const half = (condition.feather ?? 0) / 2;
-        const d = signedDistanceToPolygon(condition.polygon, { x: wx, z: wz });
+        const half = (prepared.condition.feather ?? 0) / 2;
+        const p = warpedPoint(paint, x, z, point);
+        const d = signedDistanceToPolygon(prepared.condition.polygon, p);
         coverage *= 1 - smoothstep(-half, half, d);
         break;
       }
       case 'line': {
-        const half = (condition.feather ?? 0) / 2;
-        const d = distanceToPolyline({ x: wx, z: wz }, condition.line);
-        coverage *= 1 - smoothstep(condition.halfWidth - half, condition.halfWidth + half, d);
+        const half = (prepared.condition.feather ?? 0) / 2;
+        const d = prepared.index.distanceWithin(warpedPoint(paint, x, z, point));
+        const edge = prepared.condition.halfWidth;
+        coverage *= 1 - smoothstep(edge - half, edge + half, d);
         break;
       }
       case 'noise': {
-        const noise = prepared.noises[i] as Noise2D;
-        const value = fractalNoise(noise, wx, wz, {
-          wavelength: condition.wavelength,
-          octaves: condition.octaves ?? 3,
+        const p = warpedPoint(paint, x, z, point);
+        const value = fractalNoise(prepared.noise, p.x, p.z, {
+          wavelength: prepared.condition.wavelength,
+          octaves: prepared.condition.octaves ?? 3,
         });
-        const half = (condition.feather ?? 0) / 2;
-        coverage *= smoothstep(condition.threshold - half, condition.threshold + half, value);
+        const half = (prepared.condition.feather ?? 0) / 2;
+        coverage *= smoothstep(
+          prepared.condition.threshold - half,
+          prepared.condition.threshold + half,
+          value
+        );
         break;
       }
     }
@@ -200,22 +281,21 @@ export function classifyBiomes(options: ClassifyBiomesOptions): BiomeField {
     if (channel === undefined) {
       throw new GameboardValidationError(`paint biome "${paint.biome}" is not in the biome list`);
     }
+    if (paint.warp) requirePositive(paint.warp.wavelength, `paint ${index} warp wavelength`);
+    const strength = paint.strength ?? 1;
     return {
       channel,
-      paint,
-      strength: paint.strength ?? 1,
+      strength: strength < 0 ? 0 : strength > 1 ? 1 : strength,
       warp: paint.warp
         ? {
             amplitude: paint.warp.amplitude,
-            wavelength: paint.warp.wavelength,
+            options: { wavelength: paint.warp.wavelength, octaves: 3 },
             x: createNoise2D(`${seed}:paint:${index}:warp-x`),
             z: createNoise2D(`${seed}:paint:${index}:warp-z`),
           }
         : null,
-      noises: paint.where.map((condition, conditionIndex) =>
-        condition.kind === 'noise'
-          ? createNoise2D(`${seed}:paint:${index}:${String(condition.seed ?? conditionIndex)}`)
-          : null
+      conditions: paint.where.map((condition, conditionIndex) =>
+        prepareCondition(condition, seed, index, conditionIndex)
       ),
     };
   });
@@ -223,11 +303,7 @@ export function classifyBiomes(options: ClassifyBiomesOptions): BiomeField {
   const bounds = options.bounds ?? terrain.bounds;
   const width = options.width ?? terrain.width;
   const height = options.height ?? terrain.height;
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 2 || height < 2) {
-    throw new GameboardValidationError(
-      `biome field needs integer width and height of at least 2; got ${width}×${height}`
-    );
-  }
+  validateGroundGrid({ bounds, width, height }, 'biome field');
   const channels = biomes.length;
   const weights = new Float32Array(width * height * channels);
   const scratch = new Float64Array(channels);
@@ -252,8 +328,16 @@ export function classifyBiomes(options: ClassifyBiomesOptions): BiomeField {
   return { bounds, width, height, biomes, weights };
 }
 
-/** Bilinear biome weights at a world position, clamped to the field's edges. */
-export function sampleBiomeWeights(field: BiomeField, x: number, z: number): Float32Array {
+/**
+ * Bilinear biome weights at a world position, clamped to the field's edges.
+ * Writes into `out` (length ≥ biome count) when given, avoiding allocation.
+ */
+export function sampleBiomeWeights(
+  field: BiomeField,
+  x: number,
+  z: number,
+  out: Float32Array = new Float32Array(field.biomes.length)
+): Float32Array {
   const { bounds, width, height, biomes, weights } = field;
   const channels = biomes.length;
   let fx = ((x - bounds.minX) / (bounds.maxX - bounds.minX)) * (width - 1);
@@ -272,7 +356,6 @@ export function sampleBiomeWeights(field: BiomeField, x: number, z: number): Flo
   const i10 = i00 + channels;
   const i01 = i00 + width * channels;
   const i11 = i01 + channels;
-  const out = new Float32Array(channels);
   for (let k = 0; k < channels; k += 1) {
     out[k] =
       ((weights[i00 + k] as number) * (1 - tx) + (weights[i10 + k] as number) * tx) * (1 - tz) +
@@ -293,7 +376,9 @@ export function dominantBiome(field: BiomeField, x: number, z: number): string {
 
 /**
  * Packs biome weights into RGBA8 layers for a texture array: layer `n` holds
- * biomes `4n … 4n+3`. Weights are scaled to 0–255; missing channels are 0.
+ * biomes `4n … 4n+3`. Weights are rounded to 0–255 independently, so a
+ * texel's channels sum to 255 ± 2: shaders should renormalise by the sum.
+ * Missing channels in the last layer are 0.
  */
 export function packBiomeWeightsRgba(field: BiomeField): Uint8Array[] {
   const channels = field.biomes.length;
@@ -315,10 +400,5 @@ export function packBiomeWeightsRgba(field: BiomeField): Uint8Array[] {
 
 /** World-unit spacing of a biome field's samples. */
 export function biomeFieldSpacing(field: BiomeField): { readonly x: number; readonly z: number } {
-  return heightFieldSpacing({
-    bounds: field.bounds,
-    width: field.width,
-    height: field.height,
-    heights: new Float32Array(0),
-  });
+  return gridSpacing(field);
 }

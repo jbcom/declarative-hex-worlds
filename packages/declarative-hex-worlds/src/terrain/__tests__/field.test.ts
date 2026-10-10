@@ -4,14 +4,18 @@ import {
   createHeightField,
   createHeightFieldWithSpacing,
   fillHeightField,
+  gridSpacing,
   heightFieldRange,
   heightFieldSamplePosition,
   heightFieldSpacing,
+  heightFieldTextureTransform,
+  MAX_GRID_SAMPLES,
   resampleHeightField,
   sampleGradient,
   sampleHeight,
   sampleNormal,
   sampleSlope,
+  validateGroundGrid,
 } from '../field';
 
 const bounds = { minX: 0, minZ: 0, maxX: 10, maxZ: 20 };
@@ -107,5 +111,45 @@ describe('sampling', () => {
     const fine = resampleHeightField(plane(), bounds, 11, 21);
     expect(sampleHeight(fine, 3, 7)).toBeCloseTo(0.5 * 3 + 0.25 * 7, 5);
     expect([fine.width, fine.height]).toEqual([11, 21]);
+  });
+});
+
+describe('review hardening', () => {
+  it('uses one-sided differences at the edges', () => {
+    const field = plane();
+    expect(sampleSlope(field, 0, 0)).toBeCloseTo(Math.sqrt(0.3125));
+    expect(sampleGradient(field, 10, 20).dx).toBeCloseTo(0.5);
+    const out = { dx: 0, dz: 0 };
+    expect(sampleGradient(field, 5, 5, out)).toBe(out);
+    const normal = { x: 0, y: 0, z: 0 };
+    expect(sampleNormal(field, 5, 5, normal)).toBe(normal);
+  });
+
+  it('accepts spacings that do not divide exactly in floating point', () => {
+    const field = createHeightFieldWithSpacing({ minX: 0, minZ: 0, maxX: 0.3, maxZ: 0.3 }, 0.1);
+    expect([field.width, field.height]).toEqual([4, 4]);
+    expect(() => createHeightFieldWithSpacing(bounds, Number.POSITIVE_INFINITY)).toThrow(
+      GameboardValidationError
+    );
+  });
+
+  it('rejects non-finite bounds and oversized grids', () => {
+    expect(() =>
+      createHeightField({ bounds: { ...bounds, maxX: Number.NaN }, width: 2, height: 2 })
+    ).toThrow(GameboardValidationError);
+    expect(() => createHeightField({ bounds, width: MAX_GRID_SAMPLES, height: 2 })).toThrow(
+      GameboardValidationError
+    );
+    expect(() => validateGroundGrid({ bounds, width: 3, height: 3 }, 'grid')).not.toThrow();
+  });
+
+  it('maps samples onto texel centres', () => {
+    const field = createHeightField({ bounds, width: 3, height: 5 });
+    const t = heightFieldTextureTransform(field);
+    expect(0 * t.scaleX + t.offsetX).toBeCloseTo(0.5 / 3);
+    expect(10 * t.scaleX + t.offsetX).toBeCloseTo(2.5 / 3);
+    expect(0 * t.scaleZ + t.offsetZ).toBeCloseTo(0.5 / 5);
+    expect(20 * t.scaleZ + t.offsetZ).toBeCloseTo(4.5 / 5);
+    expect(gridSpacing(field)).toEqual({ x: 5, z: 5 });
   });
 });

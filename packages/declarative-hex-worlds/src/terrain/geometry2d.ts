@@ -84,9 +84,72 @@ export function polygonContains(polygon: GroundPolygon, point: GroundPoint): boo
 export function signedDistanceToPolygon(polygon: GroundPolygon, point: GroundPoint): number {
   const first = polygon[0];
   if (first === undefined) return Number.POSITIVE_INFINITY;
-  const closed = [...polygon, first];
-  const distance = distanceToPolyline(point, closed);
+  const last = polygon[polygon.length - 1] as GroundPoint;
+  const distance = Math.min(
+    distanceToPolyline(point, polygon),
+    distanceToSegment(point, last, first)
+  );
   return polygon.length >= 3 && polygonContains(polygon, point) ? -distance : distance;
+}
+
+/**
+ * Distance queries against a polyline that only matter within `cutoff`
+ * (a ridge's half-width, a road's corridor). Segments are bucketed in a
+ * uniform grid so each query tests only nearby segments — essential when a
+ * long polyline is queried at every sample of a large field.
+ */
+export interface PolylineIndex {
+  /** Exact distance when it is below the cutoff, otherwise `Infinity`. */
+  distanceWithin(point: GroundPoint): number;
+}
+
+/** Builds a {@link PolylineIndex}. Pass `closed: true` to include the closing edge. */
+export function createPolylineIndex(
+  line: GroundPolyline,
+  cutoff: number,
+  options: { readonly closed?: boolean } = {}
+): PolylineIndex {
+  const segments: (readonly [GroundPoint, GroundPoint])[] = [];
+  for (let i = 1; i < line.length; i += 1) {
+    segments.push([line[i - 1] as GroundPoint, line[i] as GroundPoint]);
+  }
+  const first = line[0];
+  if (line.length === 1 && first !== undefined) segments.push([first, first]);
+  if (options.closed && line.length > 2 && first !== undefined) {
+    segments.push([line[line.length - 1] as GroundPoint, first]);
+  }
+  if (segments.length === 0 || !(cutoff > 0)) {
+    return { distanceWithin: () => Number.POSITIVE_INFINITY };
+  }
+  const cell = cutoff;
+  const buckets = new Map<string, number[]>();
+  segments.forEach(([a, b], index) => {
+    const c0 = Math.floor((Math.min(a.x, b.x) - cutoff) / cell);
+    const c1 = Math.floor((Math.max(a.x, b.x) + cutoff) / cell);
+    const r0 = Math.floor((Math.min(a.z, b.z) - cutoff) / cell);
+    const r1 = Math.floor((Math.max(a.z, b.z) + cutoff) / cell);
+    for (let r = r0; r <= r1; r += 1) {
+      for (let c = c0; c <= c1; c += 1) {
+        const key = `${c},${r}`;
+        const bucket = buckets.get(key);
+        if (bucket) bucket.push(index);
+        else buckets.set(key, [index]);
+      }
+    }
+  });
+  return {
+    distanceWithin(point) {
+      const bucket = buckets.get(`${Math.floor(point.x / cell)},${Math.floor(point.z / cell)}`);
+      if (!bucket) return Number.POSITIVE_INFINITY;
+      let best = Number.POSITIVE_INFINITY;
+      for (const index of bucket) {
+        const [a, b] = segments[index] as readonly [GroundPoint, GroundPoint];
+        const d = distanceToSegment(point, a, b);
+        if (d < best) best = d;
+      }
+      return best < cutoff ? best : Number.POSITIVE_INFINITY;
+    },
+  };
 }
 
 /** The smallest bounds containing every point. Throws on an empty list. */

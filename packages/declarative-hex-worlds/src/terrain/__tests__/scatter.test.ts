@@ -49,8 +49,23 @@ describe('scatterPoints', () => {
     expect(west).toEqual(all.filter((p) => p.x < 50));
   });
 
-  it('honours the point cap and attempt count', () => {
-    expect(scatterPoints({ bounds, minSpacing: 5, seed: 1, maxPoints: 10 })).toHaveLength(10);
+  it('caps points with an even subsample, not a clump', () => {
+    const capped = scatterPoints({ bounds, minSpacing: 5, seed: 1, maxPoints: 40 });
+    expect(capped).toHaveLength(40);
+    // Spread across all four quadrants of the bounds.
+    const quadrants = new Set(capped.map((p) => `${p.x < 50 ? 'w' : 'e'}${p.z < 30 ? 'n' : 's'}`));
+    expect(quadrants.size).toBe(4);
+    const all = scatterPoints({ bounds, minSpacing: 5, seed: 1 });
+    expect(capped.every((p) => all.some((q) => q.x === p.x && q.z === p.z))).toBe(true);
+  });
+
+  it('treats a NaN density as zero', () => {
+    expect(scatterPoints({ bounds, minSpacing: 5, seed: 1, density: () => Number.NaN })).toEqual(
+      []
+    );
+  });
+
+  it('honours the attempt count', () => {
     const sparse = scatterPoints({ bounds, minSpacing: 5, seed: 1, attempts: 1 });
     expect(sparse.length).toBeLessThan(scatterPoints({ bounds, minSpacing: 5, seed: 1 }).length);
   });
@@ -64,6 +79,16 @@ describe('scatterPoints', () => {
     );
     expect(() =>
       scatterPoints({ bounds: { ...bounds, maxZ: -1 }, minSpacing: 1, seed: 1 })
+    ).toThrow(GameboardValidationError);
+    expect(() =>
+      scatterPoints({
+        bounds: { ...bounds, maxX: Number.POSITIVE_INFINITY },
+        minSpacing: 1,
+        seed: 1,
+      })
+    ).toThrow(GameboardValidationError);
+    expect(() =>
+      scatterPoints({ bounds: { ...bounds, maxX: 1e7, maxZ: 1e7 }, minSpacing: 0.5, seed: 1 })
     ).toThrow(GameboardValidationError);
   });
 });

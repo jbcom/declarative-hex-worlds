@@ -17,7 +17,7 @@ import {
   sampleHeight,
 } from './field';
 import {
-  distanceToPolyline,
+  createPolylineIndex,
   type GroundBounds,
   type GroundPoint,
   type GroundPolygon,
@@ -39,7 +39,10 @@ export type TerrainProfile =
 /** Fractal relief added everywhere. */
 export interface NoiseTerrainLayer {
   readonly kind: 'noise';
-  /** Peak deviation in world units. */
+  /**
+   * Nominal deviation in world units: the bound of the normalised noise.
+   * Typical relief stays within about 60 % of it.
+   */
   readonly amplitude: number;
   readonly wavelength: number;
   readonly octaves?: number;
@@ -160,8 +163,9 @@ function applyLayer(field: HeightField, layer: TerrainLayer, index: number, seed
     case 'ridge': {
       requirePositive(layer.halfWidth, 'ridge layer halfWidth');
       const profile = layer.profile ?? 'smooth';
+      const index = createPolylineIndex(layer.line, layer.halfWidth);
       fillHeightField(field, (x, z, h) => {
-        const t = distanceToPolyline({ x, z }, layer.line) / layer.halfWidth;
+        const t = index.distanceWithin({ x, z }) / layer.halfWidth;
         return h + layer.height * terrainProfileWeight(profile, t);
       });
       return;
@@ -179,8 +183,9 @@ function applyLayer(field: HeightField, layer: TerrainLayer, index: number, seed
     }
     case 'channel': {
       requirePositive(layer.halfWidth, 'channel layer halfWidth');
+      const index = createPolylineIndex(layer.line, layer.halfWidth);
       fillHeightField(field, (x, z, h) => {
-        const t = distanceToPolyline({ x, z }, layer.line) / layer.halfWidth;
+        const t = index.distanceWithin({ x, z }) / layer.halfWidth;
         return h - layer.depth * terrainProfileWeight('smooth', t);
       });
       return;

@@ -12,6 +12,7 @@
  */
 import seedrandom from 'seedrandom';
 import { GameboardValidationError } from '../errors';
+import { MAX_GRID_SAMPLES } from './field';
 import type { GroundBounds, GroundPoint } from './geometry2d';
 
 /** Options for {@link scatterPoints}. */
@@ -24,7 +25,11 @@ export interface ScatterPointsOptions {
   readonly density?: (x: number, z: number) => number;
   /** Candidates tried around each active point before it retires (default 24). */
   readonly attempts?: number;
-  /** Stop after this many points (default unlimited). */
+  /**
+   * Keep at most this many points (default unlimited). The survivors are an
+   * even subsample of the whole scatter (the lowest variants), never a clump
+   * around the first seed point.
+   */
   readonly maxPoints?: number;
 }
 
@@ -42,8 +47,8 @@ export function scatterPoints(options: ScatterPointsOptions): ScatterPoint[] {
   }
   const spanX = bounds.maxX - bounds.minX;
   const spanZ = bounds.maxZ - bounds.minZ;
-  if (!(spanX > 0) || !(spanZ > 0)) {
-    throw new GameboardValidationError('scatter bounds must have positive extent');
+  if (!(spanX > 0) || !(spanZ > 0) || !Number.isFinite(spanX) || !Number.isFinite(spanZ)) {
+    throw new GameboardValidationError('scatter bounds must be finite with positive extent');
   }
   const rng = seedrandom(`declarative-hex-worlds:scatter:${String(options.seed)}`);
   const attempts = options.attempts ?? 24;
@@ -51,6 +56,11 @@ export function scatterPoints(options: ScatterPointsOptions): ScatterPoint[] {
   const cell = minSpacing / Math.SQRT2;
   const columns = Math.ceil(spanX / cell);
   const rows = Math.ceil(spanZ / cell);
+  if (columns * rows > MAX_GRID_SAMPLES) {
+    throw new GameboardValidationError(
+      `scatter of ${spanX}×${spanZ} at spacing ${minSpacing} needs too many cells`
+    );
+  }
   const grid = new Int32Array(columns * rows).fill(-1);
   const candidates: GroundPoint[] = [];
   const active: number[] = [];
@@ -118,9 +128,15 @@ export function scatterPoints(options: ScatterPointsOptions): ScatterPoint[] {
   for (const point of candidates) {
     const keep = thinning();
     const variant = thinning();
-    if (result.length >= maxPoints) break;
-    if (density !== undefined && keep >= density(point.x, point.z)) continue;
+    // `!(keep < d)` also rejects a NaN density instead of keeping every point.
+    if (density !== undefined && !(keep < density(point.x, point.z))) continue;
     result.push({ x: point.x, z: point.z, variant });
   }
-  return result;
+  if (result.length <= maxPoints) return result;
+  // Variants are uniform and independent of position, so the lowest ones are
+  // an even subsample; generation order is restored for stability.
+  const order = result.map((_, index) => index);
+  order.sort((a, b) => (result[a] as ScatterPoint).variant - (result[b] as ScatterPoint).variant);
+  const kept = order.slice(0, maxPoints).sort((a, b) => a - b);
+  return kept.map((index) => result[index] as ScatterPoint);
 }

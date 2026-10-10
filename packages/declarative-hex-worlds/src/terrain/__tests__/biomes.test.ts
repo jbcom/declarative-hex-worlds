@@ -141,6 +141,51 @@ describe('classifyBiomes', () => {
     expect(() => classify([], { width: 1 })).toThrow(GameboardValidationError);
     expect(() => classify([], { height: 2.5 })).toThrow(GameboardValidationError);
   });
+
+  it('rejects zero wavelengths, zero corridor widths and negative feathers', () => {
+    const bad: BiomePaint[] = [
+      { biome: 'wheat', where: [{ kind: 'noise', wavelength: 0, threshold: 0 }] },
+      { biome: 'wheat', where: [], warp: { amplitude: 5, wavelength: 0 } },
+      { biome: 'road', where: [{ kind: 'line', line: [{ x: 0, z: 0 }], halfWidth: 0 }] },
+      { biome: 'rock', where: [{ kind: 'slope', min: 0.2, feather: -1 }] },
+    ];
+    for (const paint of bad) {
+      expect(() => classify([paint])).toThrow(GameboardValidationError);
+    }
+  });
+
+  it('warps once per sample when a paint combines spatial conditions', () => {
+    const woodlot = [
+      { x: 20, z: 20 },
+      { x: 180, z: 20 },
+      { x: 180, z: 180 },
+      { x: 20, z: 180 },
+    ];
+    const ragged = classify([
+      {
+        biome: 'woods',
+        where: [
+          { kind: 'area', polygon: woodlot, feather: 10 },
+          { kind: 'noise', wavelength: 40, threshold: -0.2, feather: 0.2 },
+        ],
+        warp: { amplitude: 10, wavelength: 80 },
+      },
+    ]);
+    const inside = Array.from({ length: 15 }, (_, i) =>
+      weightOf(ragged, 'woods', 30 + i * 10, 100)
+    );
+    expect(Math.max(...inside)).toBeGreaterThan(0.9);
+    expect(Math.min(...inside)).toBeLessThan(0.5);
+    expect(weightOf(ragged, 'woods', 5, 5)).toBe(0);
+  });
+
+  it('clamps strength to 0–1 so weights never go negative', () => {
+    const strong = classify([{ biome: 'woods', where: [], strength: 3 }]);
+    expect(weightOf(strong, 'woods', 10, 10)).toBe(1);
+    expect(Math.min(...Array.from(strong.weights))).toBeGreaterThanOrEqual(0);
+    const none = classify([{ biome: 'woods', where: [], strength: -2 }]);
+    expect(weightOf(none, 'woods', 10, 10)).toBe(0);
+  });
 });
 
 describe('sampling and packing', () => {
@@ -156,6 +201,12 @@ describe('sampling and packing', () => {
     expect(Array.from(sampleBiomeWeights(field, Number.NaN, 10))).toEqual(
       Array.from(sampleBiomeWeights(field, 0, 10))
     );
+  });
+
+  it('writes into a caller buffer without allocating', () => {
+    const out = new Float32Array(ids.length);
+    expect(sampleBiomeWeights(field, 50, 50, out)).toBe(out);
+    expect(out.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 5);
   });
 
   it('prefers the earlier biome on a tie', () => {

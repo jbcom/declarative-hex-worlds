@@ -24,13 +24,22 @@ import {
 
 ## Height fields
 
-A `HeightField` is a regular grid of heights over ground bounds (world X/Z).
-Sampling is bilinear and clamped, so a renderer that draws the same grid with
-bilinear interpolation — a displaced mesh, a height texture — agrees with
-gameplay queries exactly.
+A `HeightField` is a regular grid of heights over ground bounds (world X/Z),
+with the first and last samples on the bounds' edges. Sampling is bilinear and
+clamped.
 
-`sampleHeight`, `sampleGradient`, `sampleSlope` and `sampleNormal` query it;
-`resampleHeightField` moves it onto another grid; `fillHeightField` rewrites it.
+`sampleHeight`, `sampleGradient`, `sampleSlope` and `sampleNormal` query it
+(the last two accept an `out` object to avoid allocation in hot loops; edges
+use one-sided differences); `resampleHeightField` moves it onto another grid;
+`fillHeightField` rewrites it.
+
+**Matching a renderer.** Upload the heights as a texture and sample it through
+`heightFieldTextureTransform(field)`, which maps sample positions onto texel
+centres; bilinear filtering then reproduces `sampleHeight` to texture
+precision. A displaced triangle mesh does not reproduce it exactly — each
+cell's two triangles differ from the bilinear patch by up to a quarter of the
+cell's corner difference — so seat objects on bases or skirts, or draw the
+mesh at least as densely as the field.
 
 ## Composing terrain
 
@@ -74,7 +83,12 @@ apply in order; each blends its biome in wherever all of its conditions hold:
 A paint's optional `warp` bends its spatial conditions with noise so drafted
 polygons read as natural woodlot and field edges. Renderers blend ground
 materials by the weights — `packBiomeWeightsRgba` packs four biomes per RGBA8
-texture layer — so no grid ever shows.
+texture layer (channels are rounded independently, so renormalise by their
+sum in the shader) — so no grid ever shows.
+
+Long roads and streams are cheap: corridor conditions and ridge and channel
+layers query a bucketed `createPolylineIndex`, so a field of a million
+samples tests only the segments near each sample.
 
 ## Scatter
 
@@ -82,15 +96,18 @@ texture layer — so no grid ever shows.
 `minSpacing` from every other, thinned by a density function (for example the
 woods weight squared). Each point carries a stable `variant` in [0, 1) for
 picking species, size or rotation; thinning never reshuffles the variants of
-the points that survive.
+the points that survive. `maxPoints` keeps an even subsample (the lowest
+variants) rather than the first points generated.
 
 ## Hexes
 
-`hexesCoveringBounds` lists the hexes whose centres fall inside bounds, and
-`projectTerrainToHexes` summarises the ground under each — mean, minimum and
-maximum height, mean slope, biome shares and the dominant biome — from a fixed
-13-point pattern across the hexagon. Feed those into movement costs, cover and
-line of sight.
+`hexesCoveringBounds` lists the hexes whose centres fall inside bounds (grown
+or shrunk by an optional margin), and `projectTerrainToHexes` summarises the
+ground under each — mean height, the lowest and highest sampled height, mean
+slope, biome shares and the dominant biome — from a fixed 19-point pattern
+that reaches 95 % of the way to the hexagon's corners and edges, scaled by the
+geometry's width and depth. Feed those into movement costs, cover and line of
+sight.
 
 ## Determinism
 

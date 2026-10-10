@@ -37,9 +37,44 @@ describe('hexesCoveringBounds', () => {
     }
     expect(hexes.length).toBeGreaterThan(0);
   });
+
+  it('grows or shrinks the covered area by a margin', () => {
+    const box = { minX: -300, minZ: -300, maxX: 300, maxZ: 300 };
+    const plain = hexesCoveringBounds(box, geometry);
+    expect(hexesCoveringBounds(box, geometry, 100).length).toBeGreaterThan(plain.length);
+    expect(hexesCoveringBounds(box, geometry, -100).length).toBeLessThan(plain.length);
+  });
 });
 
 describe('projectTerrainToHexes', () => {
+  it('samples out to the rim, catching a crest along a hex edge', () => {
+    const edge = axialToWorld({ q: 0, r: 0 }, 0, geometry).x + geometry.width / 2;
+    const ridged = composeHeightField({
+      bounds,
+      // Fine enough to represent a 40 m-wide crest.
+      spacing: 5,
+      seed: 'rim',
+      layers: [
+        {
+          kind: 'ridge',
+          line: [
+            { x: edge, z: -500 },
+            { x: edge, z: 500 },
+          ],
+          halfWidth: 20,
+          height: 10,
+        },
+      ],
+    });
+    const [hex] = projectTerrainToHexes({
+      terrain: ridged,
+      coordinates: [{ q: 0, r: 0 }],
+      geometry,
+    });
+    // The old pattern stopped at two-thirds of the radius and saw none of it.
+    expect(hex?.maxHeight).toBeGreaterThan(8);
+  });
+
   it('summarises height and slope under each hex', () => {
     const [peak, flank] = projectTerrainToHexes({
       terrain,

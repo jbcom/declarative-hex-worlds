@@ -447,6 +447,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
     "name": "KayKitHex",
   },
   {
+    "kind": "number",
+    "name": "MAX_GRID_SAMPLES",
+  },
+  {
     "kind": "function",
     "name": "MovementAgent",
   },
@@ -1032,6 +1036,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "createPolylineIndex",
+  },
+  {
+    "kind": "function",
     "name": "createRectangleGameboardGrid",
   },
   {
@@ -1284,6 +1292,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "gridSpacing",
+  },
+  {
+    "kind": "function",
     "name": "guessGameplayCategory",
   },
   {
@@ -1309,6 +1321,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "heightFieldSpacing",
+  },
+  {
+    "kind": "function",
+    "name": "heightFieldTextureTransform",
   },
   {
     "kind": "function",
@@ -2105,6 +2121,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "validateGameboardScenarioSimulationScript",
+  },
+  {
+    "kind": "function",
+    "name": "validateGroundGrid",
   },
   {
     "kind": "function",
