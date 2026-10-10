@@ -1388,6 +1388,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "inpaintHeightField",
+  },
+  {
+    "kind": "function",
     "name": "inspectGameboardActorCollision",
   },
   {
