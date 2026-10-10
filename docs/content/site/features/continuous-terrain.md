@@ -1,6 +1,6 @@
 ---
 title: Continuous terrain
-description: Seamless procedural or measured terrain under a hex board — height fields, biome painting, scatter and per-hex summaries.
+description: Seamless procedural or measured terrain under a hex board — height fields, biome painting, scatter, drainage and per-hex summaries.
 sidebar:
   order: 12
 ---
@@ -19,6 +19,7 @@ import {
   projectTerrainToHexes,
   sampleHeight,
   scatterPoints,
+  traceDrainage,
 } from 'declarative-hex-worlds/terrain';
 ```
 
@@ -113,6 +114,54 @@ for picking its crop or land use; paint parcels as biome `area` conditions.
 the one or two parcels it separates. Lay fences, walls and hedges along its
 edges, and route lanes through it so roads follow field boundaries.
 
+## Drainage
+
+`traceDrainage` finds the streams a height field implies — where water would
+gather and run — as a branching network of polylines.
+
+```ts
+const drainage = traceDrainage(terrain, { minContributingArea: 80_000 });
+for (const channel of drainage.channels) {
+  drawStream(channel.points, { width: 0.6 + 0.9 * channel.order });
+}
+```
+
+Depressions are filled first (priority-flood), so every sample drains to the
+field's edge. Flow then runs from each sample to one neighbour: on slopes by
+**D8-LTD**, which alternates between the two neighbours bracketing the true
+downhill direction, so streams follow the slope instead of snapping to the
+45° lines of plain D8; across flats — filled ponds, levelled ground — along
+the flat's middle to its outlet. Each sample contributes one cell of area to
+everything downstream, and samples whose `accumulation` (in world units²)
+reaches `minContributingArea` are stream.
+
+Each `DrainageChannel` runs from its source down to where it joins a larger
+stream (or leaves the field), carrying its **Strahler `order`** and the
+contributing area at every point (`areas`, non-decreasing downstream). A
+stream keeps flowing through confluences with smaller tributaries, so main
+stems come out whole; a tributary's mouth lies exactly on the stem it joins.
+Polylines are simplified (`simplifyTolerance`, default one sample spacing)
+to remove grid stair-steps, split into pieces of at most two spacings and
+smoothed (`smoothing` Chaikin passes, default 2), so bends round off locally
+rather than cutting across valley sides.
+
+`drainage.filled` is the depression-filled surface. Where it stands above the
+terrain the ground holds water: paint `filled − heights` above a small depth
+as ponds, so a stream crossing a filled hollow reads as one.
+
+**Carved beds.** `carveDrainage(field, channels, { depthFor, halfWidthFor })`
+returns a copy of the field with a bed cut along every channel, its depth and
+half-width chosen per point from contributing area and order; overlapping
+beds take the deepest cut. Or feed channels to composition as layers:
+`channels.map((c) => ({ kind: 'channel', line: c.points, depth, halfWidth }))`.
+
+Drainage accepts fields up to 4096 × 4096 samples (`MAX_DRAINAGE_SAMPLES`).
+
+The polyline helpers underneath — `simplifyPolyline` (Douglas–Peucker, with
+`simplifyPolylineIndices` to carry attributes), `subdividePolyline`,
+`smoothPolyline` / `smoothPolylineValues` (Chaikin), `closestPointOnPolyline`
+and `polylineLength` — are exported for shaping your own lines.
+
 ## Hexes
 
 `hexesCoveringBounds` lists the hexes whose centres fall inside bounds (grown
@@ -127,4 +176,5 @@ sight.
 
 Only arithmetic, comparisons and `Math.sqrt` touch the data, and every
 random choice threads through `seedrandom`, so the same definition and seed
-produce byte-identical fields on every engine and platform.
+produce byte-identical fields on every engine and platform. Drainage uses
+no randomness at all: its flood breaks every tie by push order.

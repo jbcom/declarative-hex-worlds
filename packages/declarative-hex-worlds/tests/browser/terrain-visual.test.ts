@@ -16,23 +16,26 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
-import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
+import { page } from 'vitest/browser';
 import { axialToWorld, type HexGeometry } from '../../src/coordinates/grid';
 import {
   type BiomeField,
+  carveDrainage,
   classifyBiomes,
   composeHeightField,
+  type Drainage,
   generateParcels,
   type HeightField,
-  parcelBoundaries,
   heightFieldRange,
   hexesCoveringBounds,
+  parcelBoundaries,
   projectTerrainToHexes,
   sampleBiomeWeights,
   sampleHeight,
   sampleNormal,
   scatterPoints,
+  traceDrainage,
 } from '../../src/terrain/index';
 
 const SIZE = 640;
@@ -220,7 +223,10 @@ function biomeRgb(field: BiomeField, x: number, z: number): [number, number, num
   return rgb;
 }
 
-function paint(canvas: HTMLCanvasElement, pixel: (x: number, z: number) => [number, number, number]): void {
+function paint(
+  canvas: HTMLCanvasElement,
+  pixel: (x: number, z: number) => [number, number, number]
+): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('2d context unavailable');
   const image = ctx.createImageData(SIZE, SIZE);
@@ -236,6 +242,47 @@ function paint(canvas: HTMLCanvasElement, pixel: (x: number, z: number) => [numb
     }
   }
   ctx.putImageData(image, 0, 0);
+}
+
+/** Contributing area at which the review terrain's streams begin (200 samples). */
+const DRAINAGE_AREA = 80_000;
+
+/**
+ * Muted hypsometric tint with hillshade and 5-unit contours, as a map base.
+ * With a drainage result, ponds — where depression filling raised the
+ * surface more than 0.3 units — are tinted as standing water.
+ */
+function paintRelief(canvas: HTMLCanvasElement, field: HeightField, drainage?: Drainage): void {
+  const { min, max } = heightFieldRange(field);
+  const filled = drainage ? { ...terrain, heights: drainage.filled } : null;
+  paint(canvas, (x, z) => {
+    const h = sampleHeight(field, x, z);
+    const t = (h - min) / (max - min);
+    const s = 0.45 + 0.6 * shade(field, x, z);
+    const contour = Math.abs(((h - min) % 5) - 2.5) > 2.3 ? 0.85 : 1;
+    const k = s * contour;
+    if (filled && sampleHeight(filled, x, z) - sampleHeight(terrain, x, z) > 0.3) {
+      return [104 * s, 140 * s, 168 * s];
+    }
+    return [(150 + 70 * t) * k, (160 + 50 * t) * k, (120 + 50 * t) * k];
+  });
+}
+
+function strokeLine(
+  ctx: CanvasRenderingContext2D,
+  line: readonly { readonly x: number; readonly z: number }[],
+  colour: string,
+  width: number
+): void {
+  ctx.strokeStyle = colour;
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  line.forEach((point, i) => {
+    const { px, py } = toPixel(point.x, point.z);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.stroke();
 }
 
 async function capture(canvas: HTMLCanvasElement, name: string): Promise<void> {
@@ -389,6 +436,27 @@ describe('terrain visual review', () => {
     }
     expect(parcels.length).toBeGreaterThan(60);
     await capture(canvas, 'terrain-parcels');
+  });
+
+  it('renders traced drainage over carved relief, wider by Strahler order', async () => {
+    const canvas = makeCanvas();
+    const drainage = traceDrainage(terrain, { minContributingArea: DRAINAGE_AREA });
+    const carved = carveDrainage(terrain, drainage.channels, {
+      depthFor: (area) => Math.min(4, 0.6 + Math.sqrt(area) / 400),
+      halfWidthFor: (_area, order) => 16 + 10 * order,
+    });
+    paintRelief(canvas, carved, drainage);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('2d context unavailable');
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // Smallest first so main stems draw over the tributaries joining them.
+    const ordered = [...drainage.channels].sort((a, b) => a.order - b.order);
+    for (const channel of ordered) {
+      strokeLine(ctx, channel.points, 'rgb(46, 92, 150)', 0.6 + 0.9 * channel.order);
+    }
+    expect(Math.max(...drainage.channels.map((c) => c.order))).toBeGreaterThanOrEqual(3);
+    await capture(canvas, 'terrain-drainage');
   });
 
   it('renders the composed surface lit in perspective', async () => {

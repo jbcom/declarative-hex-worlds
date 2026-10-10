@@ -448,6 +448,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "number",
+    "name": "MAX_DRAINAGE_SAMPLES",
+  },
+  {
+    "kind": "number",
     "name": "MAX_GRID_SAMPLES",
   },
   {
@@ -720,6 +724,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "carveDrainage",
+  },
+  {
+    "kind": "function",
     "name": "cellRect",
   },
   {
@@ -757,6 +765,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "clearGameboardWorld",
+  },
+  {
+    "kind": "function",
+    "name": "closestPointOnPolyline",
   },
   {
     "kind": "function",
@@ -1672,6 +1684,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "polylineLength",
+  },
+  {
+    "kind": "function",
     "name": "previewGameboardInteractionCommand",
   },
   {
@@ -2008,6 +2024,22 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "simplifyPolyline",
+  },
+  {
+    "kind": "function",
+    "name": "simplifyPolylineIndices",
+  },
+  {
+    "kind": "function",
+    "name": "smoothPolyline",
+  },
+  {
+    "kind": "function",
+    "name": "smoothPolylineValues",
+  },
+  {
+    "kind": "function",
     "name": "smoothstep",
   },
   {
@@ -2048,6 +2080,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "subdividePolyline",
+  },
+  {
+    "kind": "function",
     "name": "summarizeGameboardCoverage",
   },
   {
@@ -2077,6 +2113,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "object",
     "name": "tilesetManifestSchema",
+  },
+  {
+    "kind": "function",
+    "name": "traceDrainage",
   },
   {
     "kind": "function",
