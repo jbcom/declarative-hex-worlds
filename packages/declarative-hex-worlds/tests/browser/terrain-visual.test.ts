@@ -637,12 +637,26 @@ describe('terrain in-painting visual review', () => {
     const camera = new PerspectiveCamera(34, width / 2 / heightPx, 10, 20000);
     camera.position.set(-250, 650, 1000);
     camera.lookAt(170, 80, -170);
-    for (const [panel, field] of [quarry.dug, healed].entries()) {
-      renderer.setViewport((width / 2) * panel, 0, width / 2, heightPx);
-      renderer.setScissor((width / 2) * panel, 0, width / 2, heightPx);
-      renderer.render(makeScene(field), camera);
+    const scenes: Scene[] = [];
+    try {
+      for (const [panel, field] of [quarry.dug, healed].entries()) {
+        const scene = makeScene(field);
+        scenes.push(scene);
+        renderer.setViewport((width / 2) * panel, 0, width / 2, heightPx);
+        renderer.setScissor((width / 2) * panel, 0, width / 2, heightPx);
+        renderer.render(scene, camera);
+      }
+      await capture(canvas, 'terrain-inpaint-perspective');
+    } finally {
+      for (const scene of scenes) {
+        scene.traverse((object) => {
+          if (object instanceof Mesh) {
+            object.geometry.dispose();
+            (object.material as MeshStandardMaterial).dispose();
+          }
+        });
+      }
+      renderer.dispose();
     }
-    await capture(canvas, 'terrain-inpaint-perspective');
-    renderer.dispose();
   });
 });
