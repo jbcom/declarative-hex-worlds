@@ -13,16 +13,21 @@
  * - `./scatter` — Poisson-disc scatter with density thinning and stable variants
  * - `./hexes` — per-hex summaries (height, slope, biome shares) for gameplay
  * - `./parcels` — field parcels and their fence/lane boundary network
- * - `./geometry2d`, `./noise` — the planar geometry and seeded noise underneath
+ * - `./drainage` — stream networks by depression filling and flow accumulation, and carved beds
+ * - `./routing` — least-cost roads across the relief and spanning road networks between sites
+ * - `./geometry2d`, `./noise` — the planar geometry (including polyline
+ *   simplification and smoothing) and seeded noise underneath
  *
  * @module
  */
 export * from './biomes';
 export * from './compose';
+export * from './drainage';
 export * from './field';
 export * from './geometry2d';
 export * from './hexes';
 export * from './inpaint';
 export * from './noise';
 export * from './parcels';
+export * from './routing';
 export * from './scatter';

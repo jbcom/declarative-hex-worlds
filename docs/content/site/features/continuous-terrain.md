@@ -1,6 +1,6 @@
 ---
 title: Continuous terrain
-description: Seamless procedural or measured terrain under a hex board — height fields, biome painting, scatter and per-hex summaries.
+description: Seamless procedural or measured terrain under a hex board — height fields, biome painting, scatter, drainage, roads and per-hex summaries.
 sidebar:
   order: 12
 ---
@@ -17,8 +17,10 @@ import {
   composeHeightField,
   hexesCoveringBounds,
   projectTerrainToHexes,
+  routeNetwork,
   sampleHeight,
   scatterPoints,
+  traceDrainage,
 } from 'declarative-hex-worlds/terrain';
 ```
 
@@ -205,6 +207,100 @@ for picking its crop or land use; paint parcels as biome `area` conditions.
 the one or two parcels it separates. Lay fences, walls and hedges along its
 edges, and route lanes through it so roads follow field boundaries.
 
+## Drainage
+
+`traceDrainage` finds the streams a height field implies — where water would
+gather and run — as a branching network of polylines.
+
+```ts
+const drainage = traceDrainage(terrain, { minContributingArea: 80_000 });
+for (const channel of drainage.channels) {
+  drawStream(channel.points, { width: 0.6 + 0.9 * channel.order });
+}
+```
+
+Depressions are filled first (priority-flood), so every sample drains to the
+field's edge. Flow then runs from each sample to one neighbour: on slopes by
+**D8-LTD**, which alternates between the two neighbours bracketing the true
+downhill direction, so streams follow the slope instead of snapping to the
+45° lines of plain D8; across flats — filled ponds, levelled ground — along
+the flat's middle to its outlet. Each sample contributes one cell of area to
+everything downstream, and samples whose `accumulation` (in world units²)
+reaches `minContributingArea` are stream.
+
+Each `DrainageChannel` runs from its source down to where it joins a larger
+stream (or leaves the field), carrying its **Strahler `order`** and the
+contributing area at every point (`areas`, non-decreasing downstream). A
+stream keeps flowing through confluences with smaller tributaries, so main
+stems come out whole; a tributary's mouth lies exactly on the stem it joins.
+Polylines are simplified (`simplifyTolerance`, default one sample spacing)
+to remove grid stair-steps, split into pieces of at most two spacings and
+smoothed (`smoothing` Chaikin passes, default 2), so bends round off locally
+rather than cutting across valley sides.
+
+`drainage.filled` is the depression-filled surface. Where it stands above the
+terrain the ground holds water: paint `filled − heights` above a small depth
+as ponds, so a stream crossing a filled hollow reads as one.
+
+**Carved beds.** `carveDrainage(field, channels, { depthFor, halfWidthFor })`
+returns a copy of the field with a bed cut along every channel, its depth and
+half-width chosen per point from contributing area and order; overlapping
+beds take the deepest cut. Or feed channels to composition as layers:
+`channels.map((c) => ({ kind: 'channel', line: c.points, depth, halfWidth }))`.
+
+## Roads
+
+`routeAcrossTerrain(field, from, to, options)` finds a least-cost road over
+the field's sample grid and returns it as a smoothed polyline that starts and
+ends exactly on the requested points, with its total `cost` and `length` —
+or `null` when impassable ground separates them.
+
+A step of length `d` and grade `g` (rise over run) costs
+`d × ((1 + slopePenalty × g²) × prefer + extra)`, integrated along the step:
+
+| Option | Effect |
+| --- | --- |
+| `slopePenalty` | Weight of grade² (default 100: a 10 % grade doubles the cost). Higher values make roads follow contours. |
+| `maxGrade` | Steps steeper than this are impassable. |
+| `avoid` | Polygons adding `extraCost` per unit, or `impassable`. |
+| `groundCost(x, z)` | Any per-position added cost (marsh, ponds, woods); `Infinity` blocks. |
+| `prefer` | Lines (field boundaries, old lanes) that lower the cost by up to `discount` within a `corridor`. |
+| `water`, `crossingCost` | Streams to cross; each crossing costs `crossingCost`. Pass drainage channels here. |
+| `neighbours` | 8, 16 (default) or 32 grid neighbours; 16 adds knight moves, so headings change in ~27° steps rather than 45°. |
+| `simplifyTolerance`, `smoothing` | Shaping of the returned polyline (defaults: half a spacing, 3 Chaikin passes). |
+| `maxExpansions` | Caps the search; exceeding it throws. |
+
+The search is A* with a consistent heuristic (straight-line distance times
+the cheapest per-unit cost), so the path is optimal for the cost model, and
+ties break by sample index, so it is deterministic.
+
+`routeNetwork(field, sites, options)` joins sites — farms, a village, a mill —
+into a tree: the minimum spanning tree (Kruskal) of their pairwise route
+costs. Links are built cheapest first, and ground under each built road costs
+`reuseDiscount` (default 0.6) less for the next, so later roads merge onto
+earlier ones. The result lists the tree's `links` and the `roads` as
+segments between junctions and sites, with shared ground drawn once.
+
+```ts
+const network = routeNetwork(terrain, [village, ...farms], {
+  slopePenalty: 400,
+  water: drainage.channels.filter((c) => c.order >= 2).map((c) => c.points),
+  crossingCost: 400,
+});
+```
+
+The field's edge is a hard boundary for the search, so a road may run along
+it when that is the cheapest way round a ridge or stream. Route over a field
+a margin larger than the area you show.
+
+Fields up to 2048 × 2048 samples can be routed (`MAX_ROUTE_SAMPLES`), and up
+to 256 sites joined; drainage accepts up to 4096 × 4096 (`MAX_DRAINAGE_SAMPLES`).
+
+The polyline helpers underneath — `simplifyPolyline` (Douglas–Peucker, with
+`simplifyPolylineIndices` to carry attributes), `subdividePolyline`,
+`smoothPolyline` / `smoothPolylineValues` (Chaikin), `closestPointOnPolyline`
+and `polylineLength` — are exported for shaping your own lines.
+
 ## Hexes
 
 `hexesCoveringBounds` lists the hexes whose centres fall inside bounds (grown
@@ -221,4 +317,6 @@ Only arithmetic, comparisons and `Math.sqrt` touch the data (the in-painting
 solver's relaxation factor uses a short Taylor series for the cosine, not
 `Math.cos` or `Math.sin`),
 and every random choice threads through `seedrandom`, so the same definition
-and seed produce byte-identical fields on every engine and platform.
+and seed produce byte-identical fields on every engine and platform. Drainage
+and routing use no randomness at all: their searches break every tie by
+sample index or push order.
