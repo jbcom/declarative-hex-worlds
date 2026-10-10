@@ -16,23 +16,32 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
-import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
+import { page } from 'vitest/browser';
 import { axialToWorld, type HexGeometry } from '../../src/coordinates/grid';
 import {
   type BiomeField,
+  carveDrainage,
   classifyBiomes,
   composeHeightField,
+  type Drainage,
+  fillHeightField,
   generateParcels,
   type HeightField,
-  parcelBoundaries,
   heightFieldRange,
   hexesCoveringBounds,
+  inpaintHeightField,
+  parcelBoundaries,
   projectTerrainToHexes,
+  routeNetwork,
   sampleBiomeWeights,
   sampleHeight,
   sampleNormal,
+  sampleSlope,
   scatterPoints,
+  signedDistanceToPolygon,
+  smoothstep,
+  traceDrainage,
 } from '../../src/terrain/index';
 
 const SIZE = 640;
@@ -220,7 +229,10 @@ function biomeRgb(field: BiomeField, x: number, z: number): [number, number, num
   return rgb;
 }
 
-function paint(canvas: HTMLCanvasElement, pixel: (x: number, z: number) => [number, number, number]): void {
+function paint(
+  canvas: HTMLCanvasElement,
+  pixel: (x: number, z: number) => [number, number, number]
+): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('2d context unavailable');
   const image = ctx.createImageData(SIZE, SIZE);
@@ -236,6 +248,47 @@ function paint(canvas: HTMLCanvasElement, pixel: (x: number, z: number) => [numb
     }
   }
   ctx.putImageData(image, 0, 0);
+}
+
+/** Contributing area at which the review terrain's streams begin (200 samples). */
+const DRAINAGE_AREA = 80_000;
+
+/**
+ * Muted hypsometric tint with hillshade and 5-unit contours, as a map base.
+ * With a drainage result, ponds — where depression filling raised the
+ * surface more than 0.3 units — are tinted as standing water.
+ */
+function paintRelief(canvas: HTMLCanvasElement, field: HeightField, drainage?: Drainage): void {
+  const { min, max } = heightFieldRange(field);
+  const filled = drainage ? { ...terrain, heights: drainage.filled } : null;
+  paint(canvas, (x, z) => {
+    const h = sampleHeight(field, x, z);
+    const t = (h - min) / (max - min);
+    const s = 0.45 + 0.6 * shade(field, x, z);
+    const contour = Math.abs(((h - min) % 5) - 2.5) > 2.3 ? 0.85 : 1;
+    const k = s * contour;
+    if (filled && sampleHeight(filled, x, z) - sampleHeight(terrain, x, z) > 0.3) {
+      return [104 * s, 140 * s, 168 * s];
+    }
+    return [(150 + 70 * t) * k, (160 + 50 * t) * k, (120 + 50 * t) * k];
+  });
+}
+
+function strokeLine(
+  ctx: CanvasRenderingContext2D,
+  line: readonly { readonly x: number; readonly z: number }[],
+  colour: string,
+  width: number
+): void {
+  ctx.strokeStyle = colour;
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  line.forEach((point, i) => {
+    const { px, py } = toPixel(point.x, point.z);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.stroke();
 }
 
 async function capture(canvas: HTMLCanvasElement, name: string): Promise<void> {
@@ -391,6 +444,73 @@ describe('terrain visual review', () => {
     await capture(canvas, 'terrain-parcels');
   });
 
+  it('renders traced drainage over carved relief, wider by Strahler order', async () => {
+    const canvas = makeCanvas();
+    const drainage = traceDrainage(terrain, { minContributingArea: DRAINAGE_AREA });
+    const carved = carveDrainage(terrain, drainage.channels, {
+      depthFor: (area) => Math.min(4, 0.6 + Math.sqrt(area) / 400),
+      halfWidthFor: (_area, order) => 16 + 10 * order,
+    });
+    paintRelief(canvas, carved, drainage);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('2d context unavailable');
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // Smallest first so main stems draw over the tributaries joining them.
+    const ordered = [...drainage.channels].sort((a, b) => a.order - b.order);
+    for (const channel of ordered) {
+      strokeLine(ctx, channel.points, 'rgb(46, 92, 150)', 0.6 + 0.9 * channel.order);
+    }
+    expect(Math.max(...drainage.channels.map((c) => c.order))).toBeGreaterThanOrEqual(3);
+    await capture(canvas, 'terrain-drainage');
+  });
+
+  it('renders a road network between farms and a village', async () => {
+    const canvas = makeCanvas();
+    const drainage = traceDrainage(terrain, { minContributingArea: DRAINAGE_AREA });
+    const streams = drainage.channels.filter((c) => c.order >= 2);
+    const village = { x: -125, z: -1250 };
+    const farms = [
+      { x: -1300, z: -900 },
+      { x: -700, z: -300 },
+      { x: 900, z: -1200 },
+      { x: 1200, z: -200 },
+      { x: 700, z: 700 },
+      { x: -1200, z: 900 },
+      { x: -200, z: 1100 },
+      { x: 1300, z: 1300 },
+    ];
+    const ponds = { ...terrain, heights: drainage.filled };
+    const network = routeNetwork(terrain, [village, ...farms], {
+      slopePenalty: 400,
+      water: streams.map((c) => c.points),
+      crossingCost: 400,
+      // Skirt ponds rather than wade through them.
+      groundCost: (x, z) => (sampleHeight(ponds, x, z) - sampleHeight(terrain, x, z) > 0.3 ? 8 : 0),
+    });
+    paintRelief(canvas, terrain, drainage);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('2d context unavailable');
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const stream of streams)
+      strokeLine(ctx, stream.points, 'rgb(46, 92, 150)', 0.4 + 0.8 * stream.order);
+    for (const road of network.roads) strokeLine(ctx, road, 'rgb(60, 42, 26)', 4.2);
+    for (const road of network.roads) strokeLine(ctx, road, 'rgb(214, 190, 140)', 2.4);
+    for (const farm of farms) {
+      const { px, py } = toPixel(farm.x, farm.z);
+      ctx.fillStyle = 'rgb(150, 52, 40)';
+      ctx.fillRect(px - 4, py - 4, 8, 8);
+    }
+    const { px, py } = toPixel(village.x, village.z);
+    ctx.fillStyle = 'rgb(120, 30, 30)';
+    ctx.beginPath();
+    ctx.arc(px, py, 9, 0, Math.PI * 2);
+    ctx.fill();
+    expect(network.links).toHaveLength(farms.length);
+    await capture(canvas, 'terrain-roads');
+  });
+
   it('renders the composed surface lit in perspective', async () => {
     const canvas = makeCanvas(960, 540);
     const renderer = new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
@@ -427,5 +547,231 @@ describe('terrain visual review', () => {
     renderer.render(scene, camera);
     await capture(canvas, 'terrain-perspective');
     renderer.dispose();
+  });
+});
+
+/**
+ * A quarry cut into a hillside, as lidar records it: a jagged outline, vertical
+ * benches stepping down to a 14 m deep floor, and a spoil heap on the downhill
+ * side. `history` is the ground before it was dug.
+ */
+function makeQuarry() {
+  const history = composeHeightField({
+    bounds,
+    spacing: 10,
+    seed: 'quarry',
+    base: 150,
+    layers: [
+      { kind: 'noise', amplitude: 3, wavelength: 1500, octaves: 3 },
+      {
+        kind: 'ridge',
+        line: [
+          { x: -800, z: -1500 },
+          { x: 100, z: -850 },
+          { x: 700, z: -200 },
+        ],
+        halfWidth: 1500,
+        height: 40,
+      },
+      { kind: 'noise', amplitude: 1.2, wavelength: 140, octaves: 3, seed: 'ground' },
+    ],
+  });
+  const centre = { x: 150, z: -150 };
+  const pit = Array.from({ length: 24 }, (_unused, i) => {
+    const angle = (i / 24) * Math.PI * 2;
+    const r = 230 + 45 * Math.cos(3 * angle + 1) + 25 * Math.cos(7 * angle) * (i % 2 === 0 ? 1 : 0.4);
+    return { x: centre.x + r * Math.cos(angle), z: centre.z + r * Math.sin(angle) };
+  });
+  const rim = pit[3] as { x: number; z: number };
+  const heap = { x: centre.x + (rim.x - centre.x) * 1.1, z: centre.z + (rim.z - centre.z) * 1.1 };
+  const dug = composeHeightField({ bounds, spacing: 10, seed: 'quarry', base: history, layers: [] });
+  fillHeightField(dug, (x, z, h) => {
+    const inside = -signedDistanceToPolygon(pit, { x, z });
+    let result = h;
+    if (inside > 0) {
+      // Benches 3.5 m high and 40 m wide: sheer faces, flat floors.
+      const bench = Math.min(4, Math.floor(inside / 40) + 1);
+      result = h - 3.5 * bench;
+    }
+    // Spoil heap tipped just outside the rim at the downhill (south-east) corner.
+    const dx = x - heap.x;
+    const dz = z - heap.z;
+    const t = Math.sqrt(dx * dx + dz * dz) / 60;
+    return result + 9 * (1 - smoothstep(0, 1, t));
+  });
+  // Outline of everything disturbed: the pit grown 1.45x reaches the spoil heap.
+  const erase = pit.map((p) => ({
+    x: centre.x + (p.x - centre.x) * 1.45,
+    z: centre.z + (p.z - centre.z) * 1.45,
+  }));
+  return { history, dug, erase, centre };
+}
+
+const quarry = makeQuarry();
+const WINDOW = { minX: -500, minZ: -800, maxX: 800, maxZ: 500 };
+
+function shadedRgb(field: HeightField, x: number, z: number, low: number, high: number) {
+  const h = sampleHeight(field, x, z);
+  const t = (h - low) / (high - low);
+  const s = 0.3 + 0.8 * shade(field, x, z);
+  const contour = Math.abs(((h - low) % 2) - 1) > 0.9 ? 0.72 : 1;
+  const k = s * contour;
+  return [(96 + 120 * t) * k, (128 + 70 * t) * k, (80 + 60 * t) * k] as [number, number, number];
+}
+
+describe('terrain in-painting visual review', () => {
+  // Grain restored to match the hillside around the quarry (the history's own
+  // micro-relief is 140 m wavelength fractal noise).
+  const healed = inpaintHeightField(quarry.dug, quarry.erase, {
+    feather: 20,
+    detail: { seed: 'quarry-grain', wavelength: 140 },
+  });
+
+  it('restores the hillside under a terraced quarry', async () => {
+    let worst = 0;
+    let deepest = 0;
+    for (let row = 0; row < quarry.dug.height; row += 1) {
+      for (let column = 0; column < quarry.dug.width; column += 1) {
+        const x = bounds.minX + column * 10;
+        const z = bounds.minZ + row * 10;
+        if (signedDistanceToPolygon(quarry.erase, { x, z }) > 20) continue;
+        const i = row * quarry.dug.width + column;
+        const truth = quarry.history.heights[i] as number;
+        worst = Math.max(worst, Math.abs((healed.heights[i] as number) - truth));
+        deepest = Math.max(deepest, truth - (quarry.dug.heights[i] as number));
+      }
+    }
+    expect(deepest).toBeGreaterThan(13);
+    // A harmonic fill cannot recover curvature hidden under a 600 m wide pit
+    // (it spans the rim as a chord), but it stays well inside a quarter of
+    // the 14 m the quarry removed.
+    expect(worst).toBeLessThan(4);
+
+    // The restored grain matches the hillside's: RMS of the four-point stencil
+    // h - mean(h at +-4 samples), inside the region against the ring around it.
+    const grain = (field: HeightField, pick: (distance: number) => boolean): number => {
+      const { width: w } = field;
+      let energy = 0;
+      let count = 0;
+      for (let row = 4; row < field.height - 4; row += 1) {
+        for (let column = 4; column < w - 4; column += 1) {
+          const x = bounds.minX + column * 10;
+          const z = bounds.minZ + row * 10;
+          if (!pick(signedDistanceToPolygon(quarry.erase, { x, z }))) continue;
+          const i = row * w + column;
+          const h = field.heights;
+          const r =
+            (h[i] as number) -
+            ((h[i - 4] as number) + (h[i + 4] as number) + (h[i - 4 * w] as number) + (h[i + 4 * w] as number)) / 4;
+          energy += r * r;
+          count += 1;
+        }
+      }
+      return Math.sqrt(energy / count);
+    };
+    const ringGrain = grain(quarry.history, (d) => d > 60 && d <= 300);
+    expect(grain(healed, (d) => d <= -60)).toBeGreaterThan(ringGrain * 0.75);
+    expect(grain(healed, (d) => d <= -60)).toBeLessThan(ringGrain * 1.25);
+
+    const width = 640;
+    const canvas = makeCanvas(width * 2, width);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('2d context unavailable');
+    const { min: low } = heightFieldRange(quarry.history);
+    const high = low + 80;
+    for (const [panel, field] of [quarry.dug, healed].entries()) {
+      const image = ctx.createImageData(width, width);
+      for (let py = 0; py < width; py += 1) {
+        for (let px = 0; px < width; px += 1) {
+          const x = WINDOW.minX + (px / (width - 1)) * (WINDOW.maxX - WINDOW.minX);
+          const z = WINDOW.minZ + (py / (width - 1)) * (WINDOW.maxZ - WINDOW.minZ);
+          const [r, g, b] = shadedRgb(field, x, z, low, high);
+          const i = (py * width + px) * 4;
+          image.data[i] = r;
+          image.data[i + 1] = g;
+          image.data[i + 2] = b;
+          image.data[i + 3] = 255;
+        }
+      }
+      ctx.putImageData(image, panel * width, 0);
+    }
+    // The erase outline, on the "before" panel only.
+    ctx.strokeStyle = 'rgba(200, 40, 30, 0.9)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    quarry.erase.forEach((p, i) => {
+      const px = ((p.x - WINDOW.minX) / (WINDOW.maxX - WINDOW.minX)) * (width - 1);
+      const py = ((p.z - WINDOW.minZ) / (WINDOW.maxZ - WINDOW.minZ)) * (width - 1);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.closePath();
+    ctx.stroke();
+    await capture(canvas, 'terrain-inpaint-hillshade');
+  });
+
+  it('renders the quarry and the restored ground lit in perspective', async () => {
+    const width = 1280;
+    const heightPx = 540;
+    const canvas = makeCanvas(width, heightPx);
+    const renderer = new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+    renderer.setSize(width, heightPx, false);
+    renderer.setScissorTest(true);
+    const { min } = heightFieldRange(quarry.history);
+    const exaggeration = 3;
+    const makeScene = (field: HeightField): Scene => {
+      const scene = new Scene();
+      scene.background = new Color(0xb9c9d6);
+      const plane = new PlaneGeometry(
+        WINDOW.maxX - WINDOW.minX,
+        WINDOW.maxZ - WINDOW.minZ,
+        260,
+        260
+      );
+      plane.rotateX(-Math.PI / 2);
+      plane.translate((WINDOW.minX + WINDOW.maxX) / 2, 0, (WINDOW.minZ + WINDOW.maxZ) / 2);
+      const positions = plane.getAttribute('position');
+      const colours = new Float32Array(positions.count * 3);
+      for (let i = 0; i < positions.count; i += 1) {
+        const x = positions.getX(i);
+        const z = positions.getZ(i);
+        const h = sampleHeight(field, x, z);
+        positions.setY(i, (h - min) * exaggeration);
+        // Steep ground reads as bare rock, as the biome painter would classify it.
+        const rock = Math.min(1, Math.max(0, (sampleSlope(field, x, z) - 0.12) / 0.3));
+        colours.set([0.46 + 0.2 * rock, 0.56 - 0.04 * rock, 0.31 + 0.2 * rock], i * 3);
+      }
+      plane.setAttribute('color', new BufferAttribute(colours, 3));
+      plane.computeVertexNormals();
+      scene.add(new Mesh(plane, new MeshStandardMaterial({ vertexColors: true, roughness: 0.95 })));
+      const sun = new DirectionalLight(0xfff1d6, 2.8);
+      sun.position.set(-900, 700, -500);
+      scene.add(sun, new HemisphereLight(0xcfe0f0, 0x4a3e2c, 0.9));
+      return scene;
+    };
+    const camera = new PerspectiveCamera(34, width / 2 / heightPx, 10, 20000);
+    camera.position.set(-250, 650, 1000);
+    camera.lookAt(170, 80, -170);
+    const scenes: Scene[] = [];
+    try {
+      for (const [panel, field] of [quarry.dug, healed].entries()) {
+        const scene = makeScene(field);
+        scenes.push(scene);
+        renderer.setViewport((width / 2) * panel, 0, width / 2, heightPx);
+        renderer.setScissor((width / 2) * panel, 0, width / 2, heightPx);
+        renderer.render(scene, camera);
+      }
+      await capture(canvas, 'terrain-inpaint-perspective');
+    } finally {
+      for (const scene of scenes) {
+        scene.traverse((object) => {
+          if (object instanceof Mesh) {
+            object.geometry.dispose();
+            (object.material as MeshStandardMaterial).dispose();
+          }
+        });
+      }
+      renderer.dispose();
+    }
   });
 });

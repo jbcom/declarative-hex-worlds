@@ -1,6 +1,7 @@
 /**
  * `src/terrain/geometry2d.ts` — planar geometry on the board's ground plane
- * (world X/Z) used by terrain composition, biome painting and scatter.
+ * (world X/Z) used by terrain composition, biome painting, scatter, drainage
+ * and routing, including polyline simplification and smoothing.
  *
  * Only `+ - * /` and `Math.sqrt` are used, all of which IEEE 754 defines
  * exactly, so results are byte-identical across engines and platforms.
@@ -190,6 +191,166 @@ export function boundsOfPoints(points: readonly GroundPoint[]): GroundBounds {
     if (point.z > maxZ) maxZ = point.z;
   }
   return { minX, minZ, maxX, maxZ };
+}
+
+/** Total length of a polyline (0 for fewer than two points). */
+export function polylineLength(line: GroundPolyline): number {
+  let length = 0;
+  for (let i = 1; i < line.length; i += 1) {
+    const a = line[i - 1] as GroundPoint;
+    const b = line[i] as GroundPoint;
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    length += Math.sqrt(dx * dx + dz * dz);
+  }
+  return length;
+}
+
+/**
+ * The point of `line` nearest to `point` (the first such point when several
+ * are equally near). Throws on an empty line.
+ */
+export function closestPointOnPolyline(point: GroundPoint, line: GroundPolyline): GroundPoint {
+  const first = line[0];
+  if (first === undefined) throw new RangeError('closestPointOnPolyline needs at least one point');
+  const squaredDistance = (q: GroundPoint): number =>
+    (point.x - q.x) * (point.x - q.x) + (point.z - q.z) * (point.z - q.z);
+  let best: GroundPoint = first;
+  let bestSq = squaredDistance(first);
+  for (let i = 1; i < line.length; i += 1) {
+    const a = line[i - 1] as GroundPoint;
+    const b = line[i] as GroundPoint;
+    const abx = b.x - a.x;
+    const abz = b.z - a.z;
+    const lengthSq = abx * abx + abz * abz;
+    let t = lengthSq > 0 ? ((point.x - a.x) * abx + (point.z - a.z) * abz) / lengthSq : 0;
+    if (t < 0) t = 0;
+    else if (t > 1) t = 1;
+    const candidate = t === 1 ? b : { x: a.x + abx * t, z: a.z + abz * t };
+    const dSq = squaredDistance(candidate);
+    if (dSq < bestSq) {
+      bestSq = dSq;
+      best = candidate;
+    }
+  }
+  return { x: best.x, z: best.z };
+}
+
+/**
+ * Douglas–Peucker simplification: the ascending indices of the vertices
+ * kept so that no dropped vertex lies farther than `tolerance` from the
+ * simplified line. Both endpoints are always kept. Returning indices lets
+ * callers carry per-vertex attributes (flow, width) through the simplification.
+ */
+export function simplifyPolylineIndices(line: GroundPolyline, tolerance: number): number[] {
+  const count = line.length;
+  if (count <= 2) return Array.from({ length: count }, (_, i) => i);
+  const keep = new Uint8Array(count);
+  keep[0] = 1;
+  keep[count - 1] = 1;
+  const stack: number[] = [0, count - 1];
+  while (stack.length > 0) {
+    const last = stack.pop() as number;
+    const first = stack.pop() as number;
+    const a = line[first] as GroundPoint;
+    const b = line[last] as GroundPoint;
+    let farthest = -1;
+    let farthestDistance = tolerance;
+    for (let i = first + 1; i < last; i += 1) {
+      const d = distanceToSegment(line[i] as GroundPoint, a, b);
+      if (d > farthestDistance) {
+        farthest = i;
+        farthestDistance = d;
+      }
+    }
+    if (farthest >= 0) {
+      keep[farthest] = 1;
+      stack.push(first, farthest, farthest, last);
+    }
+  }
+  const kept: number[] = [];
+  keep.forEach((flag, i) => {
+    if (flag === 1) kept.push(i);
+  });
+  return kept;
+}
+
+/** Douglas–Peucker simplification of a polyline; see {@link simplifyPolylineIndices}. */
+export function simplifyPolyline(line: GroundPolyline, tolerance: number): GroundPoint[] {
+  return simplifyPolylineIndices(line, tolerance).map((i) => line[i] as GroundPoint);
+}
+
+/**
+ * Splits every segment longer than `maxSegment` into equal pieces no longer
+ * than it, interpolating optional per-vertex `values` alongside. Smoothing a
+ * subdivided line keeps the curve within about a fifth of `maxSegment` of
+ * the original, where smoothing long segments would cut deep across corners.
+ */
+export function subdividePolyline(
+  line: GroundPolyline,
+  maxSegment: number,
+  values: readonly number[] = []
+): { points: GroundPoint[]; values: number[] } {
+  const first = line[0];
+  if (first === undefined) return { points: [], values: [] };
+  const points: GroundPoint[] = [first];
+  const out: number[] = values.length > 0 ? [values[0] as number] : [];
+  for (let i = 1; i < line.length; i += 1) {
+    const a = line[i - 1] as GroundPoint;
+    const b = line[i] as GroundPoint;
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const length = Math.sqrt(dx * dx + dz * dz);
+    const pieces = length > maxSegment ? Math.ceil(length / maxSegment) : 1;
+    const va = values[i - 1] as number;
+    const vb = values[i] as number;
+    for (let k = 1; k < pieces; k += 1) {
+      const t = k / pieces;
+      points.push({ x: a.x + dx * t, z: a.z + dz * t });
+      if (out.length > 0) out.push(va + (vb - va) * t);
+    }
+    points.push(b);
+    if (out.length > 0) out.push(vb);
+  }
+  return { points, values: out };
+}
+
+/**
+ * Chaikin corner cutting applied to a sequence of numbers: each pass
+ * replaces every interior corner with points a quarter and three quarters
+ * along its segments, keeping both ends fixed. Applied to per-vertex values
+ * it matches {@link smoothPolyline} on the same vertices.
+ */
+export function smoothPolylineValues(values: readonly number[], iterations: number): number[] {
+  let current = values.slice();
+  for (let pass = 0; pass < iterations && current.length > 2; pass += 1) {
+    const next: number[] = [current[0] as number];
+    for (let i = 1; i < current.length; i += 1) {
+      const a = current[i - 1] as number;
+      const b = current[i] as number;
+      next.push(a * 0.75 + b * 0.25, a * 0.25 + b * 0.75);
+    }
+    next.push(current[current.length - 1] as number);
+    current = next;
+  }
+  return current;
+}
+
+/**
+ * Chaikin smoothing: `iterations` passes of corner cutting with both
+ * endpoints fixed. The curve stays inside the original polyline's convex
+ * hull and each pass doubles the vertex count, so two or three passes suffice.
+ */
+export function smoothPolyline(line: GroundPolyline, iterations: number): GroundPoint[] {
+  const xs = smoothPolylineValues(
+    line.map((p) => p.x),
+    iterations
+  );
+  const zs = smoothPolylineValues(
+    line.map((p) => p.z),
+    iterations
+  );
+  return xs.map((x, i) => ({ x, z: zs[i] as number }));
 }
 
 /** Hermite smoothstep: 0 at `edge0`, 1 at `edge1`, clamped. Reversed edges invert it. */

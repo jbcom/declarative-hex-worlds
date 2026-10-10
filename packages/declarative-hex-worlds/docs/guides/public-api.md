@@ -39,6 +39,7 @@ migration guide.
 | `./blueprint` | `GameboardBlueprintOptions` and procedural board generation. |
 | `./gameboard` | Board lifecycle, occupancy, navigation. |
 | `./recipe` | Recipe DSL. |
+| `./terrain` | Continuous terrain: height fields, `composeHeightField` layers (including `inpaint`), `inpaintHeightField` for erasing excavations from measured elevation, biomes, scatter, per-hex summaries. |
 | `./coverage` | Release-readiness coverage ledger surface for build/review tooling, not runtime ECS adapter glue. |
 | `./compatibility` | Manifest/version compatibility helpers. |
 | `./errors` | `GameboardError` + typed subclasses (Epic D2). |
