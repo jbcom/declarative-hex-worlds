@@ -41,6 +41,20 @@ export interface ScatterPoint extends GroundPoint {
 
 /** Blue-noise points inside `bounds`. See the module documentation. */
 export function scatterPoints(options: ScatterPointsOptions): ScatterPoint[] {
+  const shape = validateScatter(options);
+  const candidates = poissonDisc(options, shape);
+  return thinAndCap(candidates, options);
+}
+
+interface ScatterShape {
+  readonly spanX: number;
+  readonly spanZ: number;
+  readonly cell: number;
+  readonly columns: number;
+  readonly rows: number;
+}
+
+function validateScatter(options: ScatterPointsOptions): ScatterShape {
   const { bounds, minSpacing } = options;
   if (!(minSpacing > 0)) {
     throw new GameboardValidationError(`scatter minSpacing must be positive; got ${minSpacing}`);
@@ -50,9 +64,6 @@ export function scatterPoints(options: ScatterPointsOptions): ScatterPoint[] {
   if (!(spanX > 0) || !(spanZ > 0) || !Number.isFinite(spanX) || !Number.isFinite(spanZ)) {
     throw new GameboardValidationError('scatter bounds must be finite with positive extent');
   }
-  const rng = seedrandom(`declarative-hex-worlds:scatter:${String(options.seed)}`);
-  const attempts = options.attempts ?? 24;
-  const maxPoints = options.maxPoints ?? Number.POSITIVE_INFINITY;
   const cell = minSpacing / Math.SQRT2;
   const columns = Math.ceil(spanX / cell);
   const rows = Math.ceil(spanZ / cell);
@@ -61,6 +72,15 @@ export function scatterPoints(options: ScatterPointsOptions): ScatterPoint[] {
       `scatter of ${spanX}×${spanZ} at spacing ${minSpacing} needs too many cells`
     );
   }
+  return { spanX, spanZ, cell, columns, rows };
+}
+
+/** Bridson sampling over a background grid of cell `minSpacing / √2` (≤ one point per cell). */
+function poissonDisc(options: ScatterPointsOptions, shape: ScatterShape): GroundPoint[] {
+  const { bounds, minSpacing } = options;
+  const { spanX, spanZ, cell, columns, rows } = shape;
+  const rng = seedrandom(`declarative-hex-worlds:scatter:${String(options.seed)}`);
+  const attempts = options.attempts ?? 24;
   const grid = new Int32Array(columns * rows).fill(-1);
   const candidates: GroundPoint[] = [];
   const active: number[] = [];
@@ -119,9 +139,18 @@ export function scatterPoints(options: ScatterPointsOptions): ScatterPoint[] {
       active.pop();
     }
   }
+  return candidates;
+}
 
-  // Thin by density and attach variants in generation order, so a density
-  // change never reshuffles the variants of the points that remain.
+/**
+ * Thins by density and attaches variants in generation order, so a density
+ * change never reshuffles the variants of the points that remain; then caps.
+ */
+function thinAndCap(
+  candidates: readonly GroundPoint[],
+  options: ScatterPointsOptions
+): ScatterPoint[] {
+  const maxPoints = options.maxPoints ?? Number.POSITIVE_INFINITY;
   const density = options.density;
   const thinning = seedrandom(`declarative-hex-worlds:scatter-thin:${String(options.seed)}`);
   const result: ScatterPoint[] = [];

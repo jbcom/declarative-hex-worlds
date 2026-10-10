@@ -155,4 +155,19 @@ describe('composeHeightField', () => {
       expect(() => compose([layer])).toThrow(GameboardValidationError);
     }
   });
+
+  it('rejects bad flatten feathers and unknown layer kinds from untyped input', () => {
+    const square = [
+      { x: -10, z: -10 },
+      { x: 10, z: -10 },
+      { x: 10, z: 10 },
+    ];
+    for (const feather of [-5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => compose([{ kind: 'flatten', polygon: square, feather }])).toThrow(
+        GameboardValidationError
+      );
+    }
+    const misspelt = JSON.parse('{"kind":"hills","center":{"x":0,"z":0},"radius":5,"height":1}');
+    expect(() => compose([misspelt as TerrainLayer])).toThrow(/unknown terrain layer kind "hills"/);
+  });
 });

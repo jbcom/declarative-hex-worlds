@@ -88,6 +88,25 @@ describe('createPolylineIndex', () => {
     expect(index.distanceWithin({ x: 5000, z: 5000 })).toBe(Number.POSITIVE_INFINITY);
   });
 
+  it('indexes a long thin diagonal cheaply and exactly', () => {
+    const diagonal = [
+      { x: 0, z: 0 },
+      { x: 2000, z: 2000 },
+    ];
+    const started = performance.now();
+    const index = createPolylineIndex(diagonal, 1);
+    expect(performance.now() - started).toBeLessThan(2000);
+    for (const point of [
+      { x: 1000.5, z: 1000 },
+      { x: 3, z: 3.5 },
+      { x: 1999, z: 1999.9 },
+      { x: 500, z: 503 },
+    ]) {
+      const brute = distanceToPolyline(point, diagonal);
+      expect(index.distanceWithin(point)).toBe(brute < 1 ? brute : Number.POSITIVE_INFINITY);
+    }
+  });
+
   it('includes the closing edge only when asked', () => {
     const closingPoint = { x: 50, z: 52 };
     expect(createPolylineIndex(line, 10).distanceWithin(closingPoint)).toBe(

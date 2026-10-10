@@ -187,8 +187,10 @@ export function sampleHeight(field: HeightField, x: number, z: number): number {
   return (h00 * (1 - tx) + h10 * tx) * (1 - tz) + (h01 * (1 - tx) + h11 * tx) * tz;
 }
 
+/** Clamps to [min, max]; NaN maps to `min`, matching sampleHeight's edge handling. */
 function clamp(value: number, min: number, max: number): number {
-  return value < min ? min : value > max ? max : value;
+  if (!(value > min)) return min;
+  return value > max ? max : value;
 }
 
 /**
@@ -204,12 +206,16 @@ export function sampleGradient(
 ): HeightGradient {
   const { bounds } = field;
   const spacing = gridSpacing(field);
-  const x0 = clamp(x - spacing.x, bounds.minX, bounds.maxX);
-  const x1 = clamp(x + spacing.x, bounds.minX, bounds.maxX);
-  const z0 = clamp(z - spacing.z, bounds.minZ, bounds.maxZ);
-  const z1 = clamp(z + spacing.z, bounds.minZ, bounds.maxZ);
-  out.dx = (sampleHeight(field, x1, z) - sampleHeight(field, x0, z)) / (x1 - x0);
-  out.dz = (sampleHeight(field, x, z1) - sampleHeight(field, x, z0)) / (z1 - z0);
+  // Clamp the query first (as sampleHeight does) so a point far outside the
+  // field still differences across at least one spacing instead of 0 / 0.
+  const cx = clamp(x, bounds.minX, bounds.maxX);
+  const cz = clamp(z, bounds.minZ, bounds.maxZ);
+  const x0 = clamp(cx - spacing.x, bounds.minX, bounds.maxX);
+  const x1 = clamp(cx + spacing.x, bounds.minX, bounds.maxX);
+  const z0 = clamp(cz - spacing.z, bounds.minZ, bounds.maxZ);
+  const z1 = clamp(cz + spacing.z, bounds.minZ, bounds.maxZ);
+  out.dx = (sampleHeight(field, x1, cz) - sampleHeight(field, x0, cz)) / (x1 - x0);
+  out.dz = (sampleHeight(field, cx, z1) - sampleHeight(field, cx, z0)) / (z1 - z0);
   return out;
 }
 

@@ -281,7 +281,14 @@ export function classifyBiomes(options: ClassifyBiomesOptions): BiomeField {
     if (channel === undefined) {
       throw new GameboardValidationError(`paint biome "${paint.biome}" is not in the biome list`);
     }
-    if (paint.warp) requirePositive(paint.warp.wavelength, `paint ${index} warp wavelength`);
+    if (paint.warp) {
+      requirePositive(paint.warp.wavelength, `paint ${index} warp wavelength`);
+      if (!Number.isFinite(paint.warp.amplitude)) {
+        throw new GameboardValidationError(
+          `paint ${index} warp amplitude must be finite; got ${paint.warp.amplitude}`
+        );
+      }
+    }
     const strength = paint.strength ?? 1;
     return {
       channel,

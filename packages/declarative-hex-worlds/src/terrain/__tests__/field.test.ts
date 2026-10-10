@@ -115,6 +115,22 @@ describe('sampling', () => {
 });
 
 describe('review hardening', () => {
+  it('never returns NaN slopes for points far outside the field', () => {
+    const field = plane();
+    for (const [x, z] of [
+      [500, 10],
+      [-500, 10],
+      [5, 900],
+      [5, -900],
+      [Number.NaN, Number.NaN],
+    ] as const) {
+      const g = sampleGradient(field, x, z);
+      expect(Number.isFinite(g.dx)).toBe(true);
+      expect(Number.isFinite(g.dz)).toBe(true);
+    }
+    expect(sampleGradient(field, 500, 10).dx).toBeCloseTo(0.5);
+  });
+
   it('uses one-sided differences at the edges', () => {
     const field = plane();
     expect(sampleSlope(field, 0, 0)).toBeCloseTo(Math.sqrt(0.3125));

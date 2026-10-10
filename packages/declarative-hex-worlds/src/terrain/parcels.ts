@@ -204,6 +204,11 @@ export function generateParcels(options: GenerateParcelsOptions): Parcel[] {
   const variation = Math.min(Math.max(options.sizeVariation ?? 0.5, 0), 1);
   const skew = Math.min(Math.max(options.skew ?? 0.25, 0), 1);
   const minWidth = options.minWidth ?? Math.sqrt(meanArea) / 5;
+  if (!(minWidth >= 0) || !Number.isFinite(minWidth)) {
+    throw new GameboardValidationError(
+      `parcel minWidth must be a non-negative number; got ${minWidth}`
+    );
+  }
   const aspect = options.aspect ?? 1.8;
   if (!(aspect >= 1) || !Number.isFinite(aspect)) {
     throw new GameboardValidationError(`parcel aspect must be at least 1; got ${aspect}`);

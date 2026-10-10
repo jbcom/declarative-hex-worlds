@@ -194,6 +194,13 @@ function applyLayer(field: HeightField, layer: TerrainLayer, index: number, seed
       if (layer.polygon.length < 3) {
         throw new GameboardValidationError('flatten layer polygon needs at least three points');
       }
+      // A negative feather reverses the blend (flattening everything outside
+      // the area); NaN poisons every height.
+      if (!(layer.feather >= 0) || !Number.isFinite(layer.feather)) {
+        throw new GameboardValidationError(
+          `flatten layer feather must be a non-negative number; got ${layer.feather}`
+        );
+      }
       const anchor = layer.polygon[0] as GroundPoint;
       const target = layer.height ?? sampleHeight(field, anchor.x, anchor.z);
       const strength = layer.strength ?? 1;
@@ -214,6 +221,11 @@ function applyLayer(field: HeightField, layer: TerrainLayer, index: number, seed
       const weight = layer.weight ?? 1;
       fillHeightField(field, (x, z, h) => h + weight * sampleHeight(layer.field, x, z));
       return;
+    }
+    default: {
+      // Layers often arrive from JSON; a misspelt kind must not vanish silently.
+      const kind = (layer as { readonly kind?: unknown }).kind;
+      throw new GameboardValidationError(`unknown terrain layer kind "${String(kind)}"`);
     }
   }
 }

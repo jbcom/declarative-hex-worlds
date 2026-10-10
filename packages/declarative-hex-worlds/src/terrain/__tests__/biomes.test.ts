@@ -146,6 +146,7 @@ describe('classifyBiomes', () => {
     const bad: BiomePaint[] = [
       { biome: 'wheat', where: [{ kind: 'noise', wavelength: 0, threshold: 0 }] },
       { biome: 'wheat', where: [], warp: { amplitude: 5, wavelength: 0 } },
+      { biome: 'wheat', where: [], warp: { amplitude: Number.NaN, wavelength: 50 } },
       { biome: 'road', where: [{ kind: 'line', line: [{ x: 0, z: 0 }], halfWidth: 0 }] },
       { biome: 'rock', where: [{ kind: 'slope', min: 0.2, feather: -1 }] },
     ];

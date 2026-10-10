@@ -122,6 +122,11 @@ describe('generateParcels', () => {
     expect(() => generateParcels({ area: bounds, seed: 1, meanArea: 100, aspect: 0.5 })).toThrow(
       GameboardValidationError
     );
+    for (const minWidth of [-1, Number.NaN]) {
+      expect(() => generateParcels({ area: bounds, seed: 1, meanArea: 100, minWidth })).toThrow(
+        GameboardValidationError
+      );
+    }
   });
 });
 
