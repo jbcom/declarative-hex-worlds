@@ -1085,7 +1085,6 @@ export function useProjectedGameboardPlan(
     return state
       ? projectWorldToGameboardPlan(world, geom === undefined ? undefined : { geometry: geom })
       : undefined;
-    // biome-ignore lint/correctness/useExhaustiveDependencies: geometry is decomposed into its primitive fields above to avoid re-projecting on an inline-object reference change.
   }, [world, state, tiles, placements, revision, geomWidth, geomDepth, geomElevationStep]);
 }
 

@@ -283,19 +283,19 @@ describe('attribution files', () => {
   }
 
   it('FREE manifest creator attribution matches KAYKIT_ATTRIBUTION', () => {
-    expect(freeManifest.sourcePack?.['creator']).toBe(KAYKIT_ATTRIBUTION.creator);
+    expect(freeManifest.sourcePack?.creator).toBe(KAYKIT_ATTRIBUTION.creator);
   });
   it('FREE manifest license matches KAYKIT_ATTRIBUTION', () => {
-    expect(freeManifest.sourcePack?.['license']).toBe(KAYKIT_ATTRIBUTION.license);
+    expect(freeManifest.sourcePack?.license).toBe(KAYKIT_ATTRIBUTION.license);
   });
   it('FREE manifest licenseUrl matches KAYKIT_ATTRIBUTION', () => {
-    expect(freeManifest.sourcePack?.['licenseUrl']).toBe(KAYKIT_ATTRIBUTION.licenseUrl);
+    expect(freeManifest.sourcePack?.licenseUrl).toBe(KAYKIT_ATTRIBUTION.licenseUrl);
   });
   it('FREE manifest sourcePack name is correct', () => {
-    expect(freeManifest.sourcePack?.['name']).toBe('KayKit: Medieval Hexagon Pack');
+    expect(freeManifest.sourcePack?.name).toBe('KayKit: Medieval Hexagon Pack');
   });
   it('FREE manifest sourcePack version is 1.0', () => {
-    expect(freeManifest.sourcePack?.['version']).toBe('1.0');
+    expect(freeManifest.sourcePack?.version).toBe('1.0');
   });
 });
 
