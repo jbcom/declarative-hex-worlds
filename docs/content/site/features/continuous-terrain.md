@@ -218,6 +218,7 @@ sight.
 ## Determinism
 
 Only arithmetic, comparisons and `Math.sqrt` touch the data (the in-painting
-solver's relaxation factor comes from a short Taylor series, not `Math.sin`),
+solver's relaxation factor uses a short Taylor series for the cosine, not
+`Math.cos` or `Math.sin`),
 and every random choice threads through `seedrandom`, so the same definition
 and seed produce byte-identical fields on every engine and platform.
