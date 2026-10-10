@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GameboardValidationError } from '../../errors';
+import { composeHeightField } from '../compose';
 import {
   createHeightField,
   createHeightFieldWithSpacing,
@@ -271,5 +272,183 @@ describe('inpaintHeightField', () => {
     for (const maxIterations of [0, -3, 1.5, Number.NaN]) {
       expect(() => inpaintHeightField(source, square, { maxIterations })).toThrow(/maxIterations/);
     }
+  });
+
+  describe('detail', () => {
+    const grainBounds = { minX: -400, minZ: -400, maxX: 400, maxZ: 400 };
+    const spacing = 5;
+    const outline = [
+      { x: -120, z: -100 },
+      { x: 140, z: -130 },
+      { x: 160, z: 110 },
+      { x: -100, z: 130 },
+    ];
+
+    /** Rolling ground with fine grain, and the same ground with a 12 m pit dug in the outline. */
+    function grainyGround() {
+      const ground = composeHeightField({
+        bounds: grainBounds,
+        spacing,
+        seed: 'ground',
+        base: 100,
+        layers: [
+          { kind: 'noise', amplitude: 6, wavelength: 500, octaves: 2 },
+          { kind: 'noise', amplitude: 1.5, wavelength: 40, octaves: 3, seed: 'grain' },
+        ],
+      });
+      const dug = createHeightFieldWithSpacing(grainBounds, spacing);
+      dug.heights.set(ground.heights);
+      fillHeightField(dug, (x, z, h) =>
+        signedDistanceToPolygon(outline, { x, z }) <= 0 ? h - 12 : h
+      );
+      return { ground, dug };
+    }
+
+    /** RMS of height minus its local box mean, over the samples `pick` accepts. */
+    function grainRms(field: HeightField, pick: (distance: number) => boolean, radius = 4): number {
+      let energy = 0;
+      let count = 0;
+      for (let row = radius; row < field.height - radius; row += 1) {
+        for (let column = radius; column < field.width - radius; column += 1) {
+          const x = field.bounds.minX + column * spacing;
+          const z = field.bounds.minZ + row * spacing;
+          if (!pick(signedDistanceToPolygon(outline, { x, z }))) continue;
+          let sum = 0;
+          let n = 0;
+          for (let dz = -radius; dz <= radius; dz += 1) {
+            for (let dx = -radius; dx <= radius; dx += 1) {
+              sum += field.heights[(row + dz) * field.width + column + dx] as number;
+              n += 1;
+            }
+          }
+          const residual = (field.heights[row * field.width + column] as number) - sum / n;
+          energy += residual * residual;
+          count += 1;
+        }
+      }
+      return Math.sqrt(energy / count);
+    }
+    const deepInside = (d: number) => d <= -60;
+    const surroundingRing = (d: number) => d > 60 && d <= 160;
+
+    it('matches the grain of the surrounding ground inside the region', () => {
+      const { ground, dug } = grainyGround();
+      const ring = grainRms(ground, surroundingRing);
+      expect(ring).toBeGreaterThan(0.3);
+      const smooth = inpaintHeightField(dug, outline);
+      expect(grainRms(smooth, deepInside)).toBeLessThan(0.02);
+      for (const wavelength of [undefined, 40, 60]) {
+        const grainy = inpaintHeightField(dug, outline, {
+          detail: { seed: 'grain', ...(wavelength === undefined ? {} : { wavelength }) },
+        });
+        const restored = grainRms(grainy, deepInside);
+        expect(restored).toBeGreaterThan(ring * 0.75);
+        expect(restored).toBeLessThan(ring * 1.25);
+      }
+    });
+
+    it('leaves samples outside the region byte-identical and fades in from nothing', () => {
+      const { dug } = grainyGround();
+      const feather = 8;
+      const plain = inpaintHeightField(dug, outline, { feather });
+      const grainy = inpaintHeightField(dug, outline, {
+        feather,
+        detail: { seed: 'edge', wavelength: 40 },
+      });
+      let nearEdge = 0;
+      let interior = 0;
+      for (let i = 0; i < dug.heights.length; i += 1) {
+        const x = dug.bounds.minX + (i % dug.width) * spacing;
+        const z = dug.bounds.minZ + Math.floor(i / dug.width) * spacing;
+        const d = signedDistanceToPolygon(outline, { x, z });
+        const change = Math.abs((grainy.heights[i] as number) - (plain.heights[i] as number));
+        if (d > feather) {
+          expect(Object.is(grainy.heights[i], dug.heights[i])).toBe(true);
+        } else if (feather - d <= spacing) {
+          nearEdge = Math.max(nearEdge, change);
+        } else if (feather - d >= 40) {
+          interior = Math.max(interior, change);
+        }
+      }
+      expect(interior).toBeGreaterThan(0.5);
+      expect(nearEdge).toBeLessThan(interior * 0.2);
+    });
+
+    it('is deterministic for a seed and varies with it', () => {
+      const { dug } = grainyGround();
+      const run = (seed: string | number) =>
+        inpaintHeightField(dug, outline, { detail: { seed, wavelength: 40 } });
+      const a = run('one');
+      const b = run('one');
+      expect(Buffer.from(a.heights.buffer).equals(Buffer.from(b.heights.buffer))).toBe(true);
+      expect(Array.from(run('two').heights)).not.toEqual(Array.from(a.heights));
+      expect(Array.from(run(7).heights)).not.toEqual(Array.from(a.heights));
+    });
+
+    it('takes an explicit amplitude, and zero adds nothing', () => {
+      const { dug } = grainyGround();
+      const plain = inpaintHeightField(dug, outline);
+      const none = inpaintHeightField(dug, outline, {
+        detail: { seed: 's', amplitude: 0, wavelength: 40 },
+      });
+      expect(Array.from(none.heights)).toEqual(Array.from(plain.heights));
+      const strong = inpaintHeightField(dug, outline, {
+        detail: { seed: 's', amplitude: 4, wavelength: 40 },
+      });
+      const weak = inpaintHeightField(dug, outline, {
+        detail: { seed: 's', amplitude: 1, wavelength: 40 },
+      });
+      expect(grainRms(strong, deepInside)).toBeGreaterThan(grainRms(weak, deepInside) * 3);
+      // An explicit amplitude needs no surrounding ground to measure.
+      const nearlyAll = rectangle(-97, -97, 97, 97);
+      const flat = createHeightFieldWithSpacing(bounds, 5);
+      expect(() =>
+        inpaintHeightField(flat, nearlyAll, { detail: { seed: 's', amplitude: 1 } })
+      ).not.toThrow();
+    });
+
+    it('measures on grids with unequal spacing in either direction', () => {
+      for (const [maxX, maxZ] of [
+        [400, 100],
+        [100, 400],
+      ] as const) {
+        const field = createHeightField({
+          bounds: { minX: 0, minZ: 0, maxX, maxZ },
+          width: 41,
+          height: 41,
+        });
+        const noise = (x: number, z: number) => 100 + 3 * Math.sqrt(x * x + z * z) * 0.01;
+        fillHeightField(field, (x, z) => noise(x, z) + ((x * 7 + z * 13) % 3));
+        const polygon = rectangle(maxX * 0.35, maxZ * 0.35, maxX * 0.65, maxZ * 0.65);
+        const healed = inpaintHeightField(field, polygon, { detail: { seed: 'aniso' } });
+        expect(healed.heights.every(Number.isFinite)).toBe(true);
+        expect(Array.from(healed.heights)).not.toEqual(
+          Array.from(inpaintHeightField(field, polygon).heights)
+        );
+      }
+    });
+
+    it('asks for an explicit amplitude when no ground is left to measure', () => {
+      const flat = createHeightFieldWithSpacing(bounds, 5);
+      expect(() =>
+        inpaintHeightField(flat, rectangle(-97, -97, 97, 97), { detail: { seed: 's' } })
+      ).toThrow(/explicit amplitude/);
+    });
+
+    it('rejects bad detail options', () => {
+      const source = planeField();
+      const square = rectangle(-10, -10, 10, 10);
+      const bad = (detail: unknown) =>
+        inpaintHeightField(source, square, { detail: detail as never });
+      for (const seed of [undefined, null, {}, Number.NaN, Number.POSITIVE_INFINITY]) {
+        expect(() => bad({ seed })).toThrow(/seed/);
+      }
+      for (const amplitude of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+        expect(() => bad({ seed: 's', amplitude })).toThrow(/amplitude/);
+      }
+      for (const wavelength of [0, -5, Number.NaN, Number.POSITIVE_INFINITY]) {
+        expect(() => bad({ seed: 's', wavelength })).toThrow(/wavelength/);
+      }
+    });
   });
 });

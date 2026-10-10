@@ -21,7 +21,18 @@ import {
   type GroundPoint,
   type GroundPolygon,
   signedDistanceToPolygon,
+  smoothstep,
 } from './geometry2d';
+import {
+  createDetailNoise,
+  type InpaintDetail,
+  resolveDetail,
+  ringStencilEnergy,
+  unitNoiseResidualRms,
+  validateDetail,
+} from './inpaint-detail';
+
+export type { InpaintDetail } from './inpaint-detail';
 
 /** Options for {@link inpaintHeightField}. */
 export interface InpaintHeightFieldOptions {
@@ -38,6 +49,14 @@ export interface InpaintHeightFieldOptions {
   readonly tolerance?: number;
   /** Most relaxation sweeps to run (default 10000). */
   readonly maxIterations?: number;
+  /**
+   * Restores fine relief over the fill. A harmonic surface is smoother than
+   * measured ground, which shows from the air; with `detail`, seeded fractal
+   * noise matching the grain of the known ground just outside the region is
+   * laid over the fill, fading in from nothing at the region's edge so the
+   * boundary stays continuous.
+   */
+  readonly detail?: InpaintDetail;
 }
 
 const DEFAULT_TOLERANCE = 1e-3;
@@ -64,7 +83,8 @@ function validateOptions(
   polygon: GroundPolygon,
   feather: number,
   tolerance: number,
-  maxIterations: number
+  maxIterations: number,
+  detail: InpaintDetail | undefined
 ): void {
   if (polygon.length < 3) {
     throw new GameboardValidationError('inpaint polygon needs at least three points');
@@ -85,6 +105,7 @@ function validateOptions(
       `inpaint maxIterations must be a positive integer; got ${maxIterations}`
     );
   }
+  if (detail !== undefined) validateDetail(detail);
 }
 
 /**
@@ -102,8 +123,9 @@ function validateOptions(
  *
  * @throws {@link GameboardValidationError} for a polygon of fewer than three
  * points, a negative or non-finite `feather`, a non-positive `tolerance`, a
- * `maxIterations` below one, or a region that leaves no known sample to
- * interpolate from (it covers the whole field).
+ * `maxIterations` below one, an invalid `detail`, or a region that leaves no
+ * known sample to interpolate from (it covers the whole field) or, with
+ * `detail: { amplitude: 'match' }`, none to measure the grain of.
  */
 export function inpaintHeightField(
   field: HeightField,
@@ -113,26 +135,42 @@ export function inpaintHeightField(
   const feather = options.feather ?? 0;
   const tolerance = options.tolerance ?? DEFAULT_TOLERANCE;
   const maxIterations = options.maxIterations ?? DEFAULT_MAX_ITERATIONS;
-  validateOptions(polygon, feather, tolerance, maxIterations);
+  validateOptions(polygon, feather, tolerance, maxIterations, options.detail);
 
   const { bounds, width, height } = field;
   const result: HeightField = { bounds, width, height, heights: field.heights.slice() };
   const spacing = gridSpacing(field);
 
+  const detail = options.detail === undefined ? undefined : resolveDetail(options.detail, spacing);
+  const measure = detail !== undefined && detail.amplitude === 'match';
+
   // Only samples within `feather` of the polygon's bounding box can be
   // unknown; the window pads that by two samples so every unknown's
-  // neighbours lie inside it whatever the rounding.
+  // neighbours lie inside it whatever the rounding. Measuring the grain of the
+  // surrounding ground also needs a band of known samples and their stencils.
+  const padColumns = 2 + (measure ? Math.ceil(detail.ringWidth / spacing.x) + detail.stencilX : 0);
+  const padRows = 2 + (measure ? Math.ceil(detail.ringWidth / spacing.z) + detail.stencilZ : 0);
   const box = boundsOfPoints(polygon as readonly GroundPoint[]);
-  const c0 = Math.max(0, Math.floor((box.minX - feather - bounds.minX) / spacing.x) - 2);
-  const c1 = Math.min(width - 1, Math.ceil((box.maxX + feather - bounds.minX) / spacing.x) + 2);
-  const r0 = Math.max(0, Math.floor((box.minZ - feather - bounds.minZ) / spacing.z) - 2);
-  const r1 = Math.min(height - 1, Math.ceil((box.maxZ + feather - bounds.minZ) / spacing.z) + 2);
+  const c0 = Math.max(0, Math.floor((box.minX - feather - bounds.minX) / spacing.x) - padColumns);
+  const c1 = Math.min(
+    width - 1,
+    Math.ceil((box.maxX + feather - bounds.minX) / spacing.x) + padColumns
+  );
+  const r0 = Math.max(0, Math.floor((box.minZ - feather - bounds.minZ) / spacing.z) - padRows);
+  const r1 = Math.min(
+    height - 1,
+    Math.ceil((box.maxZ + feather - bounds.minZ) / spacing.z) + padRows
+  );
   const columns = c1 - c0 + 1;
   const rows = r1 - r0 + 1;
   if (columns < 1 || rows < 1) return result;
 
+  // 1 marks an unknown sample, 2 a known sample in the grain-measuring band.
   const unknown = new Uint8Array(columns * rows);
   const values = new Float64Array(columns * rows);
+  // How far inside the region each unknown lies, to fade the relief in.
+  const depth = new Float64Array(detail === undefined ? 0 : columns * rows);
+  const ringLimit = measure ? feather + detail.ringWidth : -1;
   let unknownCount = 0;
   let minColumn = columns;
   let maxColumn = -1;
@@ -144,13 +182,17 @@ export function inpaintHeightField(
       const i = row * columns + column;
       values[i] = field.heights[(r0 + row) * width + c0 + column] as number;
       const x = bounds.minX + (c0 + column) * spacing.x;
-      if (signedDistanceToPolygon(polygon, { x, z }) <= feather) {
+      const distance = signedDistanceToPolygon(polygon, { x, z });
+      if (distance <= feather) {
         unknown[i] = 1;
+        if (detail !== undefined) depth[i] = feather - distance;
         unknownCount += 1;
         if (column < minColumn) minColumn = column;
         if (column > maxColumn) maxColumn = column;
         if (row < minRow) minRow = row;
         if (row > maxRow) maxRow = row;
+      } else if (distance <= ringLimit) {
+        unknown[i] = 2;
       }
     }
   }
@@ -162,20 +204,20 @@ export function inpaintHeightField(
   for (let row = minRow; row <= maxRow; row += 1) {
     for (let column = minColumn; column <= maxColumn; column += 1) {
       const i = row * columns + column;
-      if (unknown[i] === 0) continue;
-      if (column > 0 && unknown[i - 1] === 0) {
+      if (unknown[i] !== 1) continue;
+      if (column > 0 && unknown[i - 1] !== 1) {
         linkSum += values[i - 1] as number;
         links += 1;
       }
-      if (column < columns - 1 && unknown[i + 1] === 0) {
+      if (column < columns - 1 && unknown[i + 1] !== 1) {
         linkSum += values[i + 1] as number;
         links += 1;
       }
-      if (row > 0 && unknown[i - columns] === 0) {
+      if (row > 0 && unknown[i - columns] !== 1) {
         linkSum += values[i - columns] as number;
         links += 1;
       }
-      if (row < rows - 1 && unknown[i + columns] === 0) {
+      if (row < rows - 1 && unknown[i + columns] !== 1) {
         linkSum += values[i + columns] as number;
         links += 1;
       }
@@ -204,7 +246,7 @@ export function inpaintHeightField(
     for (let row = minRow; row <= maxRow; row += 1) {
       for (let column = minColumn; column <= maxColumn; column += 1) {
         const i = row * columns + column;
-        if (unknown[i] === 0) continue;
+        if (unknown[i] !== 1) continue;
         let sum = 0;
         let weight = 0;
         if (column > 0) {
@@ -233,10 +275,37 @@ export function inpaintHeightField(
     if (largest < threshold) break;
   }
 
+  // Lay seeded relief over the fill, strength matched to the surrounding ground.
+  let relief: ((x: number, z: number, inside: number) => number) | undefined;
+  if (detail !== undefined) {
+    const noise = createDetailNoise(detail);
+    let strength: number;
+    if (detail.amplitude === 'match') {
+      const ring = ringStencilEnergy(values, unknown, columns, rows, detail);
+      if (ring.count === 0) {
+        throw new GameboardValidationError(
+          'inpaint detail found no known ground around the region to measure; pass an explicit amplitude'
+        );
+      }
+      strength = Math.sqrt(ring.energy / ring.count) / unitNoiseResidualRms(noise, spacing, detail);
+    } else {
+      strength = detail.amplitude;
+    }
+    const fadeLength = detail.wavelength;
+    relief = (x, z, inside) => strength * smoothstep(0, 1, inside / fadeLength) * noise(x, z);
+  }
+
   for (let row = minRow; row <= maxRow; row += 1) {
     for (let column = minColumn; column <= maxColumn; column += 1) {
       const i = row * columns + column;
-      if (unknown[i] === 1) result.heights[(r0 + row) * width + c0 + column] = values[i] as number;
+      if (unknown[i] !== 1) continue;
+      let value = values[i] as number;
+      if (relief !== undefined) {
+        const x = bounds.minX + (c0 + column) * spacing.x;
+        const z = bounds.minZ + (r0 + row) * spacing.z;
+        value += relief(x, z, depth[i] as number);
+      }
+      result.heights[(r0 + row) * width + c0 + column] = value;
     }
   }
   return result;

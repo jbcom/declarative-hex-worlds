@@ -25,7 +25,7 @@ import {
   signedDistanceToPolygon,
   smoothstep,
 } from './geometry2d';
-import { inpaintHeightField } from './inpaint';
+import { type InpaintDetail, inpaintHeightField } from './inpaint';
 import { createNoise2D, fractalNoise, ridgedNoise } from './noise';
 
 /** Cross-section of a ridge or hill: how height falls off with distance. */
@@ -105,6 +105,8 @@ export interface InpaintTerrainLayer {
   readonly polygon: GroundPolygon;
   /** Extra width replaced beyond the polygon's edge (default 0). */
   readonly feather?: number;
+  /** Restores fine relief over the fill, matched to the surrounding ground. */
+  readonly detail?: InpaintDetail;
 }
 
 /** Scales heights about a pivot: vertical exaggeration for readability. */
@@ -228,11 +230,10 @@ function applyLayer(field: HeightField, layer: TerrainLayer, index: number, seed
       return;
     }
     case 'inpaint': {
-      const filled = inpaintHeightField(
-        field,
-        layer.polygon,
-        layer.feather === undefined ? {} : { feather: layer.feather }
-      );
+      const filled = inpaintHeightField(field, layer.polygon, {
+        ...(layer.feather === undefined ? {} : { feather: layer.feather }),
+        ...(layer.detail === undefined ? {} : { detail: layer.detail }),
+      });
       field.heights.set(filled.heights);
       return;
     }

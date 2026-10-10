@@ -135,6 +135,14 @@ describe('composeHeightField', () => {
     // Order matters: a pit dug after the inpaint layer survives.
     const dug = compose([slope, { kind: 'inpaint', polygon: pad }, pit]);
     expect(sampleHeight(dug, 0, 0)).toBeCloseTo(sampleHeight(tilted(), 0, 0) - 12, 2);
+    // Detail restores grain over the fill; the ground outside stays as it was.
+    const grained = compose([
+      slope,
+      pit,
+      { kind: 'inpaint', polygon: pad, detail: { seed: 'g', amplitude: 3, wavelength: 20 } },
+    ]);
+    expect(Array.from(grained.heights)).not.toEqual(Array.from(healed.heights));
+    expect(sampleHeight(grained, 80, 40)).toBe(sampleHeight(damaged, 80, 40));
     // A feather widens the region it replaces.
     const ring = [{ kind: 'hill', center: { x: 40, z: 0 }, radius: 8, height: 9 } as const];
     const bumpy = compose([slope, ...ring]);
@@ -206,6 +214,9 @@ describe('composeHeightField', () => {
         /inpaint feather/
       );
     }
+    expect(() =>
+      compose([{ kind: 'inpaint', polygon: square, detail: { seed: 's', wavelength: -1 } }])
+    ).toThrow(/inpaint detail wavelength/);
     const misspelt = JSON.parse('{"kind":"hills","center":{"x":0,"z":0},"radius":5,"height":1}');
     expect(() => compose([misspelt as TerrainLayer])).toThrow(/unknown terrain layer kind "hills"/);
   });
