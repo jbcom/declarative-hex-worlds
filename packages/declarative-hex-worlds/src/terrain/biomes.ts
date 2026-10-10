@@ -13,6 +13,13 @@
  */
 import { GameboardValidationError } from '../errors';
 import {
+  type ColumnSpans,
+  capsuleSpans,
+  intersectSpans,
+  type SpanGrid,
+  WARP_NOISE_BOUND,
+} from './biome-support';
+import {
   type GroundGrid,
   gridSpacing,
   type HeightField,
@@ -23,13 +30,14 @@ import {
 import {
   createPolylineIndex,
   type GroundBounds,
+  type GroundPoint,
   type GroundPolygon,
   type GroundPolyline,
   type PolylineIndex,
   signedDistanceToPolygon,
   smoothstep,
 } from './geometry2d';
-import { createNoise2D, fractalNoise, type Noise2D } from './noise';
+import { createNoise2D, type FractalNoiseOptions, fractalNoise, type Noise2D } from './noise';
 
 /** A band condition on height or slope; a missing bound is open. */
 export interface BandBiomeCondition {
@@ -134,11 +142,14 @@ type PreparedCondition =
       readonly kind: 'line';
       readonly condition: LineBiomeCondition;
       readonly index: PolylineIndex;
+      /** Distance beyond which the line's coverage is exactly 0. */
+      readonly cutoff: number;
     }
   | {
       readonly kind: 'noise';
       readonly condition: NoiseBiomeCondition;
       readonly noise: Noise2D;
+      readonly options: FractalNoiseOptions;
     };
 
 interface PreparedWarp {
@@ -184,7 +195,12 @@ function prepareCondition(
     case 'line': {
       requirePositive(condition.halfWidth, `${where} halfWidth`);
       const cutoff = condition.halfWidth + (condition.feather ?? 0) / 2;
-      return { kind: 'line', condition, index: createPolylineIndex(condition.line, cutoff) };
+      return {
+        kind: 'line',
+        condition,
+        index: createPolylineIndex(condition.line, cutoff),
+        cutoff,
+      };
     }
     case 'noise':
       requirePositive(condition.wavelength, `${where} wavelength`);
@@ -194,6 +210,7 @@ function prepareCondition(
         noise: createNoise2D(
           `${seed}:paint:${paintIndex}:${String(condition.seed ?? conditionIndex)}`
         ),
+        options: { wavelength: condition.wavelength, octaves: condition.octaves ?? 3 },
       };
   }
 }
@@ -219,9 +236,24 @@ function warpedPoint(paint: PreparedPaint, x: number, z: number, point: WarpedPo
   return point;
 }
 
-function coverageOf(paint: PreparedPaint, terrain: HeightField, x: number, z: number): number {
+/** The terrain slope at the current sample, shared by every paint that reads it. */
+interface SampleSlope {
+  ready: boolean;
+  value: number;
+}
+
+function coverageOf(
+  paint: PreparedPaint,
+  terrain: HeightField,
+  x: number,
+  z: number,
+  point: WarpedPoint,
+  slope: SampleSlope
+): number {
   let coverage = paint.strength;
-  const point: WarpedPoint = { ready: false, x, z };
+  point.ready = false;
+  point.x = x;
+  point.z = z;
   for (let i = 0; i < paint.conditions.length && coverage > 0; i += 1) {
     const prepared = paint.conditions[i] as PreparedCondition;
     switch (prepared.kind) {
@@ -229,7 +261,11 @@ function coverageOf(paint: PreparedPaint, terrain: HeightField, x: number, z: nu
         coverage *= band(sampleHeight(terrain, x, z), prepared.condition);
         break;
       case 'slope':
-        coverage *= band(sampleSlope(terrain, x, z), prepared.condition);
+        if (!slope.ready) {
+          slope.value = sampleSlope(terrain, x, z);
+          slope.ready = true;
+        }
+        coverage *= band(slope.value, prepared.condition);
         break;
       case 'area': {
         const half = (prepared.condition.feather ?? 0) / 2;
@@ -247,10 +283,7 @@ function coverageOf(paint: PreparedPaint, terrain: HeightField, x: number, z: nu
       }
       case 'noise': {
         const p = warpedPoint(paint, x, z, point);
-        const value = fractalNoise(prepared.noise, p.x, p.z, {
-          wavelength: prepared.condition.wavelength,
-          octaves: prepared.condition.octaves ?? 3,
-        });
+        const value = fractalNoise(prepared.noise, p.x, p.z, prepared.options);
         const half = (prepared.condition.feather ?? 0) / 2;
         coverage *= smoothstep(
           prepared.condition.threshold - half,
@@ -262,6 +295,74 @@ function coverageOf(paint: PreparedPaint, terrain: HeightField, x: number, z: nu
     }
   }
   return coverage;
+}
+
+function allFinite(values: ArrayLike<number>): boolean {
+  for (let i = 0; i < values.length; i += 1) {
+    if (!Number.isFinite(values[i])) return false;
+  }
+  return true;
+}
+
+function isFinitePoint(point: GroundPoint): boolean {
+  return Number.isFinite(point.x) && Number.isFinite(point.z);
+}
+
+/**
+ * True when the condition's numbers cannot make its factor NaN. A NaN factor
+ * stops a paint's evaluation and poisons the sample, which culling would hide
+ * by reporting 0 instead; such a paint is evaluated at every sample.
+ */
+function isWellFormed(condition: BiomeCondition): boolean {
+  if (!Number.isFinite(condition.feather ?? 0)) return false;
+  switch (condition.kind) {
+    case 'height':
+    case 'slope':
+      return !(Number.isNaN(condition.min ?? 0) || Number.isNaN(condition.max ?? 0));
+    case 'area':
+      return condition.polygon.every(isFinitePoint);
+    case 'line':
+      return Number.isFinite(condition.halfWidth) && condition.line.every(isFinitePoint);
+    case 'noise':
+      return Number.isFinite(condition.threshold);
+  }
+}
+
+/**
+ * The columns, per row, a paint can have nonzero coverage at, or `null` when
+ * it must be evaluated everywhere. A paint applies only where every condition
+ * holds, so its reach is the intersection of its bounded conditions' reaches:
+ * an area reaches `feather / 2` past its boundary, a line `halfWidth +
+ * feather / 2` past its polyline (the cutoff beyond which its factor is
+ * exactly 0), and bands and noise are unbounded. A warp moves the sampled point
+ * by up to `amplitude` on each axis, so it widens every reach by that much.
+ */
+function paintSpans(
+  source: BiomePaint,
+  paint: PreparedPaint,
+  grid: SpanGrid,
+  terrainIsFinite: () => boolean
+): ColumnSpans | null {
+  if (Number.isNaN(paint.strength) || !source.where.every(isWellFormed)) return null;
+  const readsTerrain = source.where.some(
+    (condition) => condition.kind === 'height' || condition.kind === 'slope'
+  );
+  if (readsTerrain && !terrainIsFinite()) return null;
+  const warpReach = paint.warp ? Math.abs(paint.warp.amplitude) * WARP_NOISE_BOUND : 0;
+  let spans: ColumnSpans | null = null;
+  for (const prepared of paint.conditions) {
+    let reach: ColumnSpans | null = null;
+    if (prepared.kind === 'area') {
+      const half = (prepared.condition.feather ?? 0) / 2;
+      reach = capsuleSpans(prepared.condition.polygon, true, half + warpReach, grid);
+    } else if (prepared.kind === 'line') {
+      reach = capsuleSpans(prepared.condition.line, false, prepared.cutoff + warpReach, grid);
+    }
+    if (reach === null) continue;
+    if (spans === null) spans = reach;
+    else intersectSpans(spans, reach);
+  }
+  return spans;
 }
 
 /** Paints biomes over a terrain. See the module documentation. */
@@ -313,18 +414,58 @@ export function classifyBiomes(options: ClassifyBiomesOptions): BiomeField {
   validateGroundGrid({ bounds, width, height }, 'biome field');
   const channels = biomes.length;
   const weights = new Float32Array(width * height * channels);
-  const scratch = new Float64Array(channels);
   const stepX = (bounds.maxX - bounds.minX) / (width - 1);
   const stepZ = (bounds.maxZ - bounds.minZ) / (height - 1);
 
+  // Every sample starts in the base biome; only samples some paint can reach
+  // are visited below.
+  const baseWeights = new Float64Array(channels);
+  baseWeights[baseChannel] = 1;
+  for (let sample = 0; sample < width * height; sample += 1) {
+    weights[sample * channels + baseChannel] = 1;
+  }
+
+  const grid: SpanGrid = { minX: bounds.minX, minZ: bounds.minZ, stepX, stepZ, width, height };
+  let terrainIsFinite: boolean | undefined;
+  const spans = prepared.map((paint, index) =>
+    paintSpans(options.paints[index] as BiomePaint, paint, grid, () => {
+      terrainIsFinite ??= allFinite(terrain.heights);
+      return terrainIsFinite;
+    })
+  );
+
+  const scratch = new Float64Array(channels);
+  const point: WarpedPoint = { ready: false, x: 0, z: 0 };
+  const slope: SampleSlope = { ready: false, value: 0 };
+  // The paints reaching the current row, in paint order, with their column ranges.
+  const reaching: PreparedPaint[] = [];
+  const reachFirst = new Int32Array(prepared.length);
+  const reachLast = new Int32Array(prepared.length);
   for (let row = 0; row < height; row += 1) {
     const z = bounds.minZ + row * stepZ;
-    for (let column = 0; column < width; column += 1) {
+    let count = 0;
+    let firstColumn = width;
+    let lastColumn = -1;
+    for (let index = 0; index < prepared.length; index += 1) {
+      const paintSpan = spans[index];
+      const first = paintSpan ? (paintSpan.first[row] as number) : 0;
+      const last = paintSpan ? (paintSpan.last[row] as number) : width - 1;
+      if (first > last) continue;
+      reaching[count] = prepared[index] as PreparedPaint;
+      reachFirst[count] = first;
+      reachLast[count] = last;
+      count += 1;
+      if (first < firstColumn) firstColumn = first;
+      if (last > lastColumn) lastColumn = last;
+    }
+    for (let column = firstColumn; column <= lastColumn; column += 1) {
       const x = bounds.minX + column * stepX;
-      scratch.fill(0);
-      scratch[baseChannel] = 1;
-      for (const paint of prepared) {
-        const c = coverageOf(paint, terrain, x, z);
+      scratch.set(baseWeights);
+      slope.ready = false;
+      for (let i = 0; i < count; i += 1) {
+        if (column < (reachFirst[i] as number) || column > (reachLast[i] as number)) continue;
+        const paint = reaching[i] as PreparedPaint;
+        const c = coverageOf(paint, terrain, x, z, point, slope);
         if (c <= 0) continue;
         for (let k = 0; k < channels; k += 1) scratch[k] = (scratch[k] as number) * (1 - c);
         scratch[paint.channel] = (scratch[paint.channel] as number) + c;

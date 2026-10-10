@@ -90,6 +90,15 @@ Long roads and streams are cheap: corridor conditions and ridge and channel
 layers query a bucketed `createPolylineIndex`, so a field of a million
 samples tests only the segments near each sample.
 
+Many bounded paints are cheap too. An `area` or `line` paint can only cover
+samples near its shape (the polygon or polyline grown by its feather, and by
+its warp amplitude), so `classifyBiomes` works out per row which columns a
+paint can reach and never evaluates it elsewhere. A 640 × 790 board with two
+slope bands and twenty warped roads paints in well under a second instead of
+tens of seconds, and the result is byte-identical to evaluating every paint at
+every sample. Bands and noise are unbounded, so a paint made only of those
+still covers the whole grid.
+
 ## Scatter
 
 `scatterPoints` is seeded Poisson-disc sampling: every point at least
