@@ -64,7 +64,6 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
       segmentCosts: [],
     };
     const plan = createGameboardPatrolSimulationSteps({
-      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
       // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-1', actorId: 'guard-1' }],
@@ -82,7 +81,6 @@ describe('createGameboardPatrolSimulationSteps validation (PRD E0a)', () => {
       segmentCosts: [],
     };
     const plan = createGameboardPatrolSimulationSteps({
-      // biome-ignore lint/suspicious/noExplicitAny: minimal fixture shape
       // biome-ignore lint/suspicious/noExplicitAny: minimal fixture cast for E0a coverage
       routes: [route as any],
       assignments: [{ routeId: 'route-empty', actorId: 'guard-1' }],

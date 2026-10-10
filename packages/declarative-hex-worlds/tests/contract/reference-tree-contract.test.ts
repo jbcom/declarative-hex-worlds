@@ -441,11 +441,11 @@ describe('KayKit EXTRA source tree', () => {
     );
 
     expect(
-      manifest.assetsById['projectile_catapult']?.sourcePath,
+      manifest.assetsById.projectile_catapult?.sourcePath,
       'EXTRA must preserve FREE-compatible building projectile_catapult id'
     ).toBe('buildings/neutral/projectile_catapult.gltf');
     expect(
-      manifest.assetsById['units_neutral_projectile_catapult']?.sourcePath,
+      manifest.assetsById.units_neutral_projectile_catapult?.sourcePath,
       'EXTRA units/neutral/projectile_catapult.gltf must get units_neutral_projectile_catapult id'
     ).toBe('units/neutral/projectile_catapult.gltf');
 
