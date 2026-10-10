@@ -3,7 +3,7 @@
  *
  * A terrain is a base (flat, or a measured elevation model) plus an ordered
  * list of layers: fractal relief, ridgelines, hills, stream channels, flattened
- * areas and vertical scaling. The same definition and seed always produce the
+ * areas, erased earthworks and vertical scaling. The same definition and seed always produce the
  * same field.
  *
  * @module
@@ -25,6 +25,7 @@ import {
   signedDistanceToPolygon,
   smoothstep,
 } from './geometry2d';
+import { inpaintHeightField } from './inpaint';
 import { createNoise2D, fractalNoise, ridgedNoise } from './noise';
 
 /** Cross-section of a ridge or hill: how height falls off with distance. */
@@ -93,6 +94,19 @@ export interface FlattenTerrainLayer {
   readonly strength?: number;
 }
 
+/**
+ * Erases an excavation or embankment: replaces the ground inside the polygon
+ * (and a feather band beyond it) with the smooth harmonic surface that meets
+ * the surrounding ground. See {@link inpaintHeightField}.
+ */
+export interface InpaintTerrainLayer {
+  readonly kind: 'inpaint';
+  /** Outline of the disturbance, rim and spoil heaps included. */
+  readonly polygon: GroundPolygon;
+  /** Extra width replaced beyond the polygon's edge (default 0). */
+  readonly feather?: number;
+}
+
 /** Scales heights about a pivot: vertical exaggeration for readability. */
 export interface ScaleTerrainLayer {
   readonly kind: 'scale';
@@ -115,6 +129,7 @@ export type TerrainLayer =
   | HillTerrainLayer
   | ChannelTerrainLayer
   | FlattenTerrainLayer
+  | InpaintTerrainLayer
   | ScaleTerrainLayer
   | FieldTerrainLayer;
 
@@ -210,6 +225,15 @@ function applyLayer(field: HeightField, layer: TerrainLayer, index: number, seed
         const w = strength * (1 - smoothstep(-half, half, d));
         return h + (target - h) * w;
       });
+      return;
+    }
+    case 'inpaint': {
+      const filled = inpaintHeightField(
+        field,
+        layer.polygon,
+        layer.feather === undefined ? {} : { feather: layer.feather }
+      );
+      field.heights.set(filled.heights);
       return;
     }
     case 'scale': {
