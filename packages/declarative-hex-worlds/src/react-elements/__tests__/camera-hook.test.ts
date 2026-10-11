@@ -3,7 +3,7 @@ import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { OrthographicCamera, PerspectiveCamera, Vector3 } from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { computeBoardBounds, DEFAULT_CAMERA_STATE, type CameraState } from '../../camera';
+import { type CameraState, computeBoardBounds, DEFAULT_CAMERA_STATE } from '../../camera';
 import { createGameboardPlan, type GameboardPlan } from '../../gameboard';
 import { useCamera } from '../camera';
 
@@ -54,6 +54,24 @@ function assertVisible(camera: PerspectiveCamera | OrthographicCamera) {
     }
 }
 describe('useCamera viewport binding', () => {
+  it.each(['perspective', 'orthographic'] as const)(
+    'reframes when the same %s camera changes near distance',
+    async (projection) => {
+      const camera = start(projection);
+      fixture.size = { width: 1200, height: 800 };
+      const state = { ...DEFAULT_CAMERA_STATE, projection };
+      await act(async () => root?.render(createElement(Probe, { state })));
+      camera.near = 20;
+      await act(async () => root?.render(createElement(Probe, { state })));
+      const bounds = computeBoardBounds(fixture.plan?.tiles ?? []);
+      for (const x of [bounds.min.x, bounds.max.x])
+        for (const y of [bounds.min.y, bounds.max.y])
+          for (const z of [bounds.min.z, bounds.max.z]) {
+            const point = new Vector3(x, y, z).applyMatrix4(camera.matrixWorldInverse);
+            expect(-point.z).toBeGreaterThan(camera.near);
+          }
+    }
+  );
   it.each(['perspective', 'orthographic'] as const)(
     'frames portrait and resize with one measured aspect, %s',
     async (projection) => {

@@ -43,6 +43,8 @@ then retain the world-Y default.
 The R3F `useCamera` hook drives the active camera's projection kind, near distance
 and measured viewport aspect, overriding manually supplied values, and waits for a positive
 viewport before framing. Configure the active camera type on the canvas.
+For orthographic cameras with a negative near plane, the hook uses zero as
+the front-of-eye clearance; the renderer retains its negative clipping plane.
 
 Aspect defaults to one. The angle presets remain available without a custom
 direction. Aspect must be finite and positive, padding finite and nonnegative,
