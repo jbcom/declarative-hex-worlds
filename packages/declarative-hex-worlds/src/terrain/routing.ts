@@ -68,6 +68,11 @@ export const MAX_ROUTE_SAMPLES = 4_194_304;
 
 /** Most sites {@link routeNetwork} joins in one call. */
 export const MAX_NETWORK_SITES = 256;
+/**
+ * Largest crossing memo, in (sample, move) entries: 16 MB of Int16. A
+ * 1024 × 1024 field with 16 moves fits; larger fields count each time.
+ */
+const MAX_CROSSING_MEMO = 16_777_216;
 
 /** Ground a route should avoid. */
 export interface RouteAvoidArea {
@@ -160,6 +165,8 @@ interface Move {
   readonly blend: Float64Array;
   /** Offsets of every sample in the step's bounding box (blocked if any is). */
   readonly box: Int32Array;
+  /** This move's position in the surface's move list. */
+  readonly index: number;
 }
 
 /** Counts crossings of a step with indexed water polylines. */
@@ -180,6 +187,13 @@ interface CostSurface {
   readonly extra: Float32Array;
   readonly blocked: Uint8Array;
   readonly water: WaterIndex | null;
+  /**
+   * Water crossings per (sample, move), filled as searches ask (-1 unknown).
+   * Every search of a network runs over the same surface, so each step's
+   * crossings are counted once. Null when water is absent or the table would
+   * exceed MAX_CROSSING_MEMO entries; crossings are then counted each time.
+   */
+  readonly crossingMemo: Int16Array | null;
   readonly crossingCost: number;
   readonly moves: readonly Move[];
   /** Lowest per-unit cost anywhere: the heuristic's scale. */
@@ -237,17 +251,28 @@ function buildMoves(reach: number, width: number, spacingX: number, spacingZ: nu
         next,
         blend,
         box: Int32Array.from(box),
+        index: moves.length,
       });
     }
   }
   return moves;
 }
 
-/** Splits water polylines into short pieces bucketed on a coarse grid. */
-function createWaterIndex(lines: readonly GroundPolyline[], cell: number): WaterIndex {
+/**
+ * Splits water polylines into short pieces bucketed on a coarse grid. The
+ * buckets are flat arrays over the pieces' extent clipped to `bounds`
+ * (compressed rows: a start per cell into one list), so a query indexes
+ * integers and allocates nothing; a search asks once per move it expands.
+ * Queries join points inside `bounds`, so water beyond it is never crossed
+ * and must not size the grid.
+ */
+function createWaterIndex(
+  lines: readonly GroundPolyline[],
+  cell: number,
+  bounds: HeightField['bounds']
+): WaterIndex {
   const pieces: number[] = [];
   const closing: number[] = [];
-  const buckets = new Map<string, number[]>();
   for (const line of lines) {
     for (let i = 1; i < line.length; i += 1) {
       const a = line[i - 1] as GroundPoint;
@@ -256,35 +281,76 @@ function createWaterIndex(lines: readonly GroundPolyline[], cell: number): Water
       const dz = b.z - a.z;
       const count = Math.max(1, Math.ceil(Math.sqrt(dx * dx + dz * dz) / cell));
       for (let k = 0; k < count; k += 1) {
-        const x0 = a.x + (dx * k) / count;
-        const z0 = a.z + (dz * k) / count;
-        const x1 = a.x + (dx * (k + 1)) / count;
-        const z1 = a.z + (dz * (k + 1)) / count;
-        const index = pieces.length / 4;
-        pieces.push(x0, z0, x1, z1);
+        pieces.push(
+          a.x + (dx * k) / count,
+          a.z + (dz * k) / count,
+          a.x + (dx * (k + 1)) / count,
+          a.z + (dz * (k + 1)) / count
+        );
         // A polyline's final piece includes its end point: a road passing
         // through a stream's mouth on the field's edge still crosses it.
         closing.push(i === line.length - 1 && k === count - 1 ? 1 : 0);
-        for (
-          let r = Math.floor(Math.min(z0, z1) / cell);
-          r <= Math.floor(Math.max(z0, z1) / cell);
-          r += 1
-        ) {
-          for (
-            let c = Math.floor(Math.min(x0, x1) / cell);
-            c <= Math.floor(Math.max(x0, x1) / cell);
-            c += 1
-          ) {
-            const key = `${c},${r}`;
-            const bucket = buckets.get(key);
-            if (bucket) bucket.push(index);
-            else buckets.set(key, [index]);
-          }
-        }
       }
     }
   }
-  const stamps = new Int32Array(pieces.length / 4);
+  const pieceCount = pieces.length / 4;
+  // Only single-point lines: nothing to cross.
+  if (pieceCount === 0) return { crossings: () => 0 };
+  let minColumn = Number.POSITIVE_INFINITY;
+  let minRow = Number.POSITIVE_INFINITY;
+  let maxColumn = Number.NEGATIVE_INFINITY;
+  let maxRow = Number.NEGATIVE_INFINITY;
+  for (let p = 0; p < pieceCount; p += 1) {
+    const x0 = pieces[4 * p] as number;
+    const z0 = pieces[4 * p + 1] as number;
+    const x1 = pieces[4 * p + 2] as number;
+    const z1 = pieces[4 * p + 3] as number;
+    minColumn = Math.min(minColumn, Math.floor(Math.min(x0, x1) / cell));
+    maxColumn = Math.max(maxColumn, Math.floor(Math.max(x0, x1) / cell));
+    minRow = Math.min(minRow, Math.floor(Math.min(z0, z1) / cell));
+    maxRow = Math.max(maxRow, Math.floor(Math.max(z0, z1) / cell));
+  }
+  minColumn = Math.max(minColumn, Math.floor(bounds.minX / cell));
+  maxColumn = Math.min(maxColumn, Math.floor(bounds.maxX / cell));
+  minRow = Math.max(minRow, Math.floor(bounds.minZ / cell));
+  maxRow = Math.min(maxRow, Math.floor(bounds.maxZ / cell));
+  // All the water lies off the field.
+  if (minColumn > maxColumn || minRow > maxRow) return { crossings: () => 0 };
+  const columns = maxColumn - minColumn + 1;
+  const rows = maxRow - minRow + 1;
+  /** Calls `visit(cellIndex)` for every in-range grid cell piece `p`'s bounding box touches. */
+  const eachCell = (p: number, visit: (cellIndex: number) => void) => {
+    const x0 = pieces[4 * p] as number;
+    const z0 = pieces[4 * p + 1] as number;
+    const x1 = pieces[4 * p + 2] as number;
+    const z1 = pieces[4 * p + 3] as number;
+    const r1 = Math.min(maxRow, Math.floor(Math.max(z0, z1) / cell));
+    const c1 = Math.min(maxColumn, Math.floor(Math.max(x0, x1) / cell));
+    for (let r = Math.max(minRow, Math.floor(Math.min(z0, z1) / cell)); r <= r1; r += 1) {
+      for (let c = Math.max(minColumn, Math.floor(Math.min(x0, x1) / cell)); c <= c1; c += 1) {
+        visit((r - minRow) * columns + (c - minColumn));
+      }
+    }
+  };
+  // Count, prefix-sum, fill: the pieces of cell k are list[start[k] .. start[k + 1]).
+  const start = new Int32Array(columns * rows + 1);
+  for (let p = 0; p < pieceCount; p += 1) {
+    eachCell(p, (k) => {
+      start[k + 1] = (start[k + 1] as number) + 1;
+    });
+  }
+  for (let k = 0; k < columns * rows; k += 1) {
+    start[k + 1] = (start[k + 1] as number) + (start[k] as number);
+  }
+  const list = new Int32Array(start[columns * rows] as number);
+  const fill = Int32Array.from(start.subarray(0, columns * rows));
+  for (let p = 0; p < pieceCount; p += 1) {
+    eachCell(p, (k) => {
+      list[fill[k] as number] = p;
+      fill[k] = (fill[k] as number) + 1;
+    });
+  }
+  const stamps = new Int32Array(pieceCount);
   let query = 0;
   return {
     crossings(a, b) {
@@ -292,17 +358,15 @@ function createWaterIndex(lines: readonly GroundPolyline[], cell: number): Water
       let count = 0;
       const rx = b.x - a.x;
       const rz = b.z - a.z;
-      for (
-        let r = Math.floor(Math.min(a.z, b.z) / cell);
-        r <= Math.floor(Math.max(a.z, b.z) / cell);
-        r += 1
-      ) {
-        for (
-          let c = Math.floor(Math.min(a.x, b.x) / cell);
-          c <= Math.floor(Math.max(a.x, b.x) / cell);
-          c += 1
-        ) {
-          for (const index of buckets.get(`${c},${r}`) ?? []) {
+      const r0 = Math.max(minRow, Math.floor(Math.min(a.z, b.z) / cell));
+      const r1 = Math.min(maxRow, Math.floor(Math.max(a.z, b.z) / cell));
+      const c0 = Math.max(minColumn, Math.floor(Math.min(a.x, b.x) / cell));
+      const c1 = Math.min(maxColumn, Math.floor(Math.max(a.x, b.x) / cell));
+      for (let r = r0; r <= r1; r += 1) {
+        for (let c = c0; c <= c1; c += 1) {
+          const k = (r - minRow) * columns + (c - minColumn);
+          for (let e = start[k] as number; e < (start[k + 1] as number); e += 1) {
+            const index = list[e] as number;
             if (stamps[index] === query) continue;
             stamps[index] = query;
             const qx = pieces[4 * index] as number;
@@ -427,6 +491,8 @@ function buildCostSurface(
   let minFactor = 1;
   for (const factor of prefer) if (factor < minFactor) minFactor = factor;
   const water = options.water ?? [];
+  const moves = buildMoves(reach, width, spacing.x, spacing.z);
+  const memoSize = count * moves.length;
   return {
     field,
     spacingX: spacing.x,
@@ -437,9 +503,13 @@ function buildCostSurface(
     extra,
     blocked,
     water:
-      water.length > 0 ? createWaterIndex(water, 4 * reach * Math.max(spacing.x, spacing.z)) : null,
+      water.length > 0
+        ? createWaterIndex(water, 4 * reach * Math.max(spacing.x, spacing.z), field.bounds)
+        : null,
+    crossingMemo:
+      water.length > 0 && memoSize <= MAX_CROSSING_MEMO ? new Int16Array(memoSize).fill(-1) : null,
     crossingCost,
-    moves: buildMoves(reach, width, spacing.x, spacing.z),
+    moves,
     minFactor,
     maxExpansions,
     simplifyTolerance,
@@ -486,9 +556,18 @@ function moveCost(surface: CostSurface, prefer: Float32Array, from: number, move
     e0 = e1;
   }
   if (surface.water !== null) {
-    const a = samplePoint(surface, from);
-    const b = samplePoint(surface, from + move.row * surface.field.width + move.column);
-    cost += surface.crossingCost * surface.water.crossings(a, b);
+    const memo = surface.crossingMemo;
+    const slot = from * surface.moves.length + move.index;
+    let crossed = memo === null ? -1 : (memo[slot] as number);
+    if (crossed < 0) {
+      const a = samplePoint(surface, from);
+      const b = samplePoint(surface, from + move.row * surface.field.width + move.column);
+      crossed = surface.water.crossings(a, b);
+      // A count beyond Int16 is not stored (it would be clamped and charge
+      // the wrong cost); such a move recounts each time instead.
+      if (memo !== null && crossed <= 32_767) memo[slot] = crossed;
+    }
+    cost += surface.crossingCost * crossed;
   }
   return cost;
 }
