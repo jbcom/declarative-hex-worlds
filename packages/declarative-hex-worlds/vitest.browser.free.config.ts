@@ -86,6 +86,7 @@ export default defineConfig({
       'tests/browser/react-elements.test.ts',
       'tests/browser/terrain-visual.test.ts',
       'tests/browser/biome-regions-visual.test.ts',
+      'tests/browser/hex-biome-field-visual.test.ts',
       'tests/browser/sculpt-visual.test.ts',
     ],
     testTimeout: 120_000,

@@ -165,7 +165,7 @@
         "uniqueAssets": 1,
         "freeAssets": 0,
         "extraAssets": 1,
-        "publicApis": 8,
+        "publicApis": 9,
         "visualArtifacts": 3,
         "docs": 2
       },
@@ -1018,7 +1018,7 @@
       "uniqueAssets": 1,
       "freeAssets": 0,
       "extraAssets": 1,
-      "publicApis": 8,
+      "publicApis": 9,
       "visualArtifacts": 3,
       "docs": 2,
       "title": "Biomes",
@@ -5575,6 +5575,37 @@
       "visualArtifacts": [
         "tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
         "tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png"
+      ]
+    },
+    {
+      "publicApi": "projectHexBiomesToField",
+      "scenarioIds": [
+        "page-11-biomes"
+      ],
+      "pages": [
+        11
+      ],
+      "editions": [
+        "extra"
+      ],
+      "assetIds": [],
+      "treatmentRoles": [],
+      "assetCounts": {
+        "unique": 0,
+        "free": 0,
+        "extra": 0,
+        "occurrences": 0,
+        "freeOccurrences": 0,
+        "extraOccurrences": 0
+      },
+      "docs": [
+        "docs/guides/rendering-assets-and-external-packs.md",
+        "docs/pillars/03-editions-and-ingest.md"
+      ],
+      "visualArtifacts": [
+        "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+        "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+        "tests/browser/__screenshots__/extra-seasonal-textures.png"
       ]
     },
     {
@@ -35129,6 +35160,14 @@
       "required": true
     },
     {
+      "path": "tests/browser/__screenshots__/hex-biome-field.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
       "path": "tests/browser/__screenshots__/sculpt-camp.png",
       "status": "available",
       "source": "screenshot",
@@ -35232,18 +35271,18 @@
     }
   ],
   "simpleRpgEvidence": {
-    "guidePublicApiCount": 76,
-    "exercisedPublicApiCount": 76,
+    "guidePublicApiCount": 77,
+    "exercisedPublicApiCount": 77,
     "missingPublicApis": [],
     "stalePublicApis": [],
-    "executablePublicApiCount": 42,
+    "executablePublicApiCount": 43,
     "publicTreatmentCount": 404,
     "guideScenarioCount": 19,
     "evidenceModeCounts": {
       "fixed-gameplay": 30,
       "seeded-generation": 12,
       "packaged-scenario": 1,
-      "executable-smoke": 42,
+      "executable-smoke": 43,
       "blueprint-recipe": 5,
       "manifest-package": 6,
       "compatibility-adapter": 2,
@@ -36863,6 +36902,26 @@
         "visualArtifacts": [
           "tests/browser/__screenshots__/extra-local-all-buildings-factions-neutral-harbors.png",
           "tests/browser/__screenshots__/extra-local-all-units-full-accent-neutral-siege.png"
+        ]
+      },
+      {
+        "publicApi": "projectHexBiomesToField",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke"
+        ],
+        "evidence": "The packaged guide smoke projects generated wheat and corn tiles into normalized continuous material weights.",
+        "pages": [
+          11
+        ],
+        "scenarioIds": [
+          "page-11-biomes"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "tests/browser/__screenshots__/extra-seasonal-textures.png"
         ]
       },
       {

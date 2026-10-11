@@ -8,18 +8,18 @@ import {
   runSimpleRpgGuideApiSmoke,
   summarizeSimpleRpgGuidePublicApiExercises,
 } from '../../coverage-evidence';
+import { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS } from '../../interop';
 import {
-  GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
-  GAMEBOARD_RELEASE_GATE_COMMANDS,
   createDefaultGameboardCoveragePackageChecks,
   createDefaultGameboardCoverageReferences,
-  renderGameboardCoverageMarkdown,
-  summarizeGameboardCoverage,
+  GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS,
+  GAMEBOARD_RELEASE_GATE_COMMANDS,
   type GameboardCoveragePathStatusInput,
   type GameboardCoverageSimpleRpgEvidence,
   type GameboardCoverageSimpleRpgEvidenceMode,
+  renderGameboardCoverageMarkdown,
+  summarizeGameboardCoverage,
 } from '../../interop/coverage';
-import { GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS } from '../../interop';
 
 describe('release-readiness coverage', () => {
   it('summarizes every guide page, public API, visual artifact, and manifest boundary', () => {
@@ -60,7 +60,7 @@ describe('release-readiness coverage', () => {
         page.sourceImage.path
       );
     }
-    expect(report.publicApi).toHaveLength(76);
+    expect(report.publicApi).toHaveLength(77);
     expect(report.roles).toHaveLength(12);
     expect(report.assets).toHaveLength(404);
     expect(report.manifest).toMatchObject({
@@ -95,11 +95,11 @@ describe('release-readiness coverage', () => {
       expect((check.summary ?? '').length).toBeGreaterThan(0);
     }
     expect(report.simpleRpgEvidence).toMatchObject({
-      guidePublicApiCount: 76,
-      exercisedPublicApiCount: 76,
+      guidePublicApiCount: 77,
+      exercisedPublicApiCount: 77,
       missingPublicApis: [],
       stalePublicApis: [],
-      executablePublicApiCount: 42,
+      executablePublicApiCount: 43,
       publicTreatmentCount: 404,
       guideScenarioCount: 19,
       inactiveEvidenceModes: [],
@@ -119,14 +119,14 @@ describe('release-readiness coverage', () => {
       'fixed-gameplay': 30,
       'seeded-generation': 12,
       'packaged-scenario': 1,
-      'executable-smoke': 42,
+      'executable-smoke': 43,
       'blueprint-recipe': 5,
       'manifest-package': 6,
       'compatibility-adapter': 2,
       'package-boundary': 3,
       'visual-coverage': 26,
     });
-    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(76);
+    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(77);
     expect(report.simpleRpgEvidence?.publicApiExercises?.[0]).toMatchObject({
       publicApi: 'analyzeHexTileRegistry',
       mode: 'executable-smoke',
@@ -236,7 +236,9 @@ describe('release-readiness coverage', () => {
     expect(renderGameboardCoverageMarkdownFromRoot(report)).toBe(markdown);
     expect(markdown).toContain('# Release Readiness Coverage');
     expect(markdown).toContain('- Guide pages: 19/19');
-    expect(markdown).toContain('- SimpleRPG API evidence: 76/76 represented, 42 directly executed, 9 active mode(s)');
+    expect(markdown).toContain(
+      '- SimpleRPG API evidence: 77/77 represented, 43 directly executed, 9 active mode(s)'
+    );
     expect(markdown).toContain('## SimpleRPG Public API Evidence');
     expect(markdown).toContain('| visual-coverage | 26 |');
     expect(markdown).toContain('### SimpleRPG Exercise Matrix');
@@ -290,9 +292,7 @@ function createSimpleRpgEvidence(): GameboardCoverageSimpleRpgEvidence {
     publicTreatmentCount: executableSmoke.publicTreatmentCount,
     guideScenarioCount: executableSmoke.guideScenarioCount,
     evidenceModeCounts,
-    activeEvidenceModes: evidenceModeEntries
-      .filter(([, count]) => count > 0)
-      .map(([mode]) => mode),
+    activeEvidenceModes: evidenceModeEntries.filter(([, count]) => count > 0).map(([mode]) => mode),
     inactiveEvidenceModes: evidenceModeEntries
       .filter(([, count]) => count <= 0)
       .map(([mode]) => mode),

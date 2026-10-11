@@ -18,12 +18,12 @@ not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
 - Guide pages: 19/19
 - Guide scenarios: 19
 - Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences
-- Public API surfaces: 76
+- Public API surfaces: 77
 - Public roles: 12
-- Visual artifacts: 55 available, 0 missing, 0 skipped
+- Visual artifacts: 56 available, 0 missing, 0 skipped
 - Local references: 0 available, 4 missing, 0 skipped
 - Release checks: 0 passed, 0 failed, 8 not run, 0 skipped
-- SimpleRPG API evidence: 76/76 represented, 42 directly executed, 9 active mode(s)
+- SimpleRPG API evidence: 77/77 represented, 43 directly executed, 9 active mode(s)
 
 ## Manifest Coverage
 
@@ -36,8 +36,8 @@ not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
 
 ## SimpleRPG Public API Evidence
 
-- Guide-facing public APIs represented: 76/76
-- Direct executable helper APIs: 42
+- Guide-facing public APIs represented: 77/77
+- Direct executable helper APIs: 43
 - KayKit public treatment records asserted: 404
 - Decomposed guide pages asserted: 19
 - Missing public APIs: 0
@@ -48,7 +48,7 @@ not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
 | fixed-gameplay | 30 |
 | seeded-generation | 12 |
 | packaged-scenario | 1 |
-| executable-smoke | 42 |
+| executable-smoke | 43 |
 | blueprint-recipe | 5 |
 | manifest-package | 6 |
 | compatibility-adapter | 2 |
@@ -121,6 +121,7 @@ not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
 | `NOTICE.md` | package-boundary, manifest-package | 19 | 0 | Release/package audits keep KayKit attribution with the SimpleRPG packaged smoke. |
 | `package.json files` | package-boundary, manifest-package | 19 | 0 | Package audit verifies exports, files, examples, and SimpleRPG package imports. |
 | `planGameboardInteractionCommand` | fixed-gameplay | 17 | 0 | Fixed SimpleRPG tests plan prop interaction and enemy attack commands. |
+| `projectHexBiomesToField` | executable-smoke | 11 | 0 | The packaged guide smoke projects generated wheat and corn tiles into normalized continuous material weights. |
 | `recommendExternalAssetFacing` | executable-smoke, compatibility-adapter | 16 | 0 | Packaged SimpleRPG usage recommends external asset facing in executable smoke. |
 | `selectCoastVariant` | executable-smoke | 7, 15 | 10 | Packaged SimpleRPG usage selects a coast variant in executable smoke. |
 | `selectCoastVariantByLabel` | executable-smoke | 7, 15 | 10 | Packaged SimpleRPG usage selects a labeled coast variant in executable smoke. |
@@ -233,6 +234,7 @@ not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
 | available | screenshot | `tests/browser/__screenshots__/free-guide-source-pages.png` | - |
 | available | guide | `tests/browser/__screenshots__/free-seeded-gameboard.png` | 9 |
 | available | guide | `tests/browser/__screenshots__/free-seeded-hex-gameboard.png` | 10 |
+| available | screenshot | `tests/browser/__screenshots__/hex-biome-field.png` | - |
 | available | screenshot | `tests/browser/__screenshots__/sculpt-camp.png` | - |
 
 ## Guide Pages
@@ -249,7 +251,7 @@ not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
 | 8 | `page-08-taller-hex-tiles` | free | 3 | 6 | 2 | 3 | available `docs/assets/kaykit-guide/pages/page-08.png` |
 | 9 | `page-09-world-design-example` | free | 61 | 21 | 2 | 4 | available `docs/assets/kaykit-guide/pages/page-09.png` |
 | 10 | `page-10-floating-islands` | free | 45 | 12 | 2 | 2 | available `docs/assets/kaykit-guide/pages/page-10.png` |
-| 11 | `page-11-biomes` | extra | 1 | 8 | 2 | 3 | available `docs/assets/kaykit-guide/pages/page-11.png` |
+| 11 | `page-11-biomes` | extra | 1 | 9 | 2 | 3 | available `docs/assets/kaykit-guide/pages/page-11.png` |
 | 12 | `page-12-alternate-textures` | extra | 1 | 7 | 2 | 2 | available `docs/assets/kaykit-guide/pages/page-12.png` |
 | 13 | `page-13-transition-tiles` | extra | 1 | 8 | 2 | 3 | available `docs/assets/kaykit-guide/pages/page-13.png` |
 | 14 | `page-14-units` | extra | 137 | 5 | 2 | 1 | available `docs/assets/kaykit-guide/pages/page-14.png` |

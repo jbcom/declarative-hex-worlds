@@ -38,6 +38,7 @@ import {
   listRiverGuidePermutations,
   listRoadGuidePermutations,
   neutralUnitAssetId,
+  projectHexBiomesToField,
   recommendExternalAssetFacing,
   selectCoastVariant,
   selectCoastVariantByLabel,
@@ -166,6 +167,22 @@ export function runSimpleRpgExecutableGuideApiSmoke(
       biomes: [{ biome: 'corn', target: 1, sources: { count: 1 } }],
     },
   ]);
+  const biomeField = projectHexBiomesToField({
+    tiles: biomeLayers.tiles,
+    biomes: ['pasture', 'wheat', 'corn'],
+    base: 'pasture',
+    geometry: { width: 100, depth: 100, elevationStep: 1 },
+    grid: { bounds: { minX: 0, maxX: 100, minZ: -10, maxZ: 10 }, width: 5, height: 3 },
+    feather: 10,
+  });
+  let biomeFieldMaxWeightError = 0;
+  for (let offset = 0; offset < biomeField.weights.length; offset += biomeField.biomes.length) {
+    let sum = 0;
+    for (let channel = 0; channel < biomeField.biomes.length; channel++) {
+      sum += biomeField.weights[offset + channel] ?? 0;
+    }
+    biomeFieldMaxWeightError = Math.max(biomeFieldMaxWeightError, Math.abs(1 - sum));
+  }
   const grassTileDeclaration = {
     id: 'simple-rpg-executable-grass',
     assetId: 'hex_grass',
@@ -265,6 +282,8 @@ export function runSimpleRpgExecutableGuideApiSmoke(
     recipePlanPlacementCount: recipePlan.placements.length,
     biomeRegionTileCount: biomeRegions.report.biomes.wheat?.actual ?? 0,
     biomeStagePreservedTileCount: biomeLayers.tiles.filter((tile) => tile.biome === 'wheat').length,
+    biomeFieldSampleCount: biomeField.weights.length / biomeField.biomes.length,
+    biomeFieldMaxWeightError,
     recipeValidationErrorCount: countSimpleRpgErrorViolations(validateGameboardRecipe(recipe)),
     recipeGenerationErrorCount: countSimpleRpgErrorViolations(
       validateGameboardRecipeGeneration(recipe)
