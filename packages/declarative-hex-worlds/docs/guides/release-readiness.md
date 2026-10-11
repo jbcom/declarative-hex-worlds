@@ -16,9 +16,9 @@ pnpm coverage:ledger
 - Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences
 - Public API surfaces: 74
 - Public roles: 12
-- Visual artifacts: 52 available, 0 missing, 0 skipped
+- Visual artifacts: 53 available, 0 missing, 0 skipped
 - Local references: 0 available, 4 missing, 0 skipped
-- Release checks: 8 passed, 0 failed, 0 not run, 0 skipped
+- Release checks: 0 passed, 0 failed, 8 not run, 0 skipped
 - SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)
 
 ## Manifest Coverage
@@ -138,6 +138,14 @@ pnpm coverage:ledger
 | warning | `reference.missing` | references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA | KayKit Medieval Hexagon EXTRA is unavailable, so local-only visual coverage cannot run. |
 | warning | `reference.missing` | references/kenney_castle-kit | Kenney Castle Kit is unavailable, so local-only visual coverage cannot run. |
 | warning | `reference.missing` | references/KayKit_Adventurers_2.0_FREE | KayKit Adventurers FREE is unavailable, so local-only visual coverage cannot run. |
+| warning | `check.not_run` | pnpm lint | pnpm lint has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm typecheck | pnpm typecheck has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm build | pnpm build has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm test | pnpm test has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm test:coverage:enforce | pnpm test:coverage:enforce has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm test:browser:free | pnpm test:browser:free has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm docs:build | pnpm docs:build has not been recorded in this coverage report. |
+| warning | `check.not_run` | npm pack --dry-run | npm pack --dry-run has not been recorded in this coverage report. |
 
 ## Local References
 
@@ -152,14 +160,14 @@ pnpm coverage:ledger
 
 | Status | Command | Summary |
 | --- | --- | --- |
-| passed | `pnpm lint` | Biome lint over src/, tests/, scripts/, and the Sourcey docs workspace. |
-| passed | `pnpm typecheck` | Strict TypeScript validation for runtime, tests, scripts, and examples. |
-| passed | `pnpm build` | tsup multi-entry ESM build — chunks + DTS + CLI shebang + asset copies. |
-| passed | `pnpm test` | Full vitest suite — unit + integration + contract specs (the migrated former scripts/audit-*.ts checks). |
-| passed | `pnpm test:coverage:enforce` | vitest with v8 coverage gated against the ratchet thresholds in vitest.coverage.shared.ts. |
-| passed | `pnpm test:browser:free` | vitest-browser FREE-pack visual snapshot suite against bootstrap-fetched KayKit GLTFs under Chromium. |
-| passed | `pnpm docs:build` | Sourcey docs build — generates compact TypeDoc module reference pages and validates every hand-written guide. |
-| passed | `npm pack --dry-run` | Release-time tarball dry run — emits the publish whitelist + asset inclusion bounds for the published package contract. |
+| not-run | `pnpm lint` | Biome lint over src/, tests/, scripts/, and the Sourcey docs workspace. |
+| not-run | `pnpm typecheck` | Strict TypeScript validation for runtime, tests, scripts, and examples. |
+| not-run | `pnpm build` | tsup multi-entry ESM build — chunks + DTS + CLI shebang + asset copies. |
+| not-run | `pnpm test` | Full vitest suite — unit + integration + contract specs (the migrated former scripts/audit-*.ts checks). |
+| not-run | `pnpm test:coverage:enforce` | vitest with v8 coverage gated against the ratchet thresholds in vitest.coverage.shared.ts. |
+| not-run | `pnpm test:browser:free` | vitest-browser FREE-pack visual snapshot suite against bootstrap-fetched KayKit GLTFs under Chromium. |
+| not-run | `pnpm docs:build` | Sourcey docs build — generates compact TypeDoc module reference pages and validates every hand-written guide. |
+| not-run | `npm pack --dry-run` | Release-time tarball dry run — emits the publish whitelist + asset inclusion bounds for the published package contract. |
 
 ## Visual Artifacts
 
@@ -217,6 +225,7 @@ pnpm coverage:ledger
 | available | screenshot | `tests/browser/__screenshots__/free-guide-source-pages.png` | - |
 | available | guide | `tests/browser/__screenshots__/free-seeded-gameboard.png` | 9 |
 | available | guide | `tests/browser/__screenshots__/free-seeded-hex-gameboard.png` | 10 |
+| available | screenshot | `tests/browser/__screenshots__/sculpt-camp.png` | - |
 
 ## Guide Pages
 

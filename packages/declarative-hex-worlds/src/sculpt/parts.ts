@@ -132,6 +132,20 @@ export function part<const Tone extends string>(
   position.set(at[0], at[1], at[2]);
   scale.set(size[0], size[1], size[2]);
   g.applyMatrix4(matrix.compose(position, quaternion, scale));
+  // A reflection changes handedness. Once baked into the geometry, the mesh's
+  // world matrix no longer tells the renderer to reverse its front-face test.
+  if (matrix.determinant() < 0) {
+    for (const name of KEPT_ATTRIBUTES) {
+      const attribute = g.getAttribute(name);
+      for (let i = 0; i + 2 < attribute.count; i += 3) {
+        const x = attribute.getX(i + 1);
+        const y = attribute.getY(i + 1);
+        const z = attribute.getZ(i + 1);
+        attribute.setXYZ(i + 1, attribute.getX(i + 2), attribute.getY(i + 2), attribute.getZ(i + 2));
+        attribute.setXYZ(i + 2, x, y, z);
+      }
+    }
+  }
   return { geometry: g, tone: o.tone, finish, shade };
 }
 

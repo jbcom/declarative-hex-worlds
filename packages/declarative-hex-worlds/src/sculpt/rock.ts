@@ -29,7 +29,7 @@ function vertexHash(x: number, y: number, z: number, seed: number): number {
  * from 0 (a smooth flattened ellipsoid) to 1; default 0.28. Normals are flat, recomputed after the
  * roughening.
  *
- * Throws {@link GameboardValidationError} for a radius that is not positive and finite, a
+ * Throws `GameboardValidationError` for a radius that is not positive and finite, a
  * non-integer seed, or a roughness outside 0 to 1.
  */
 export function rock<const Tone extends string>(

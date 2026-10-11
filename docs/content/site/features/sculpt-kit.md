@@ -29,6 +29,18 @@ import {
 It needs `three` (an optional peer, `>=0.184`), like `/three`; the root entrypoint
 never re-exports it. The kit has no koota, React or DOM dependency.
 
+![Procedural crate, lantern, turned pottery, seeded rock, cloth and guy rope](../assets/sculpt-camp.png)
+
+The isolated browser fixture builds this scene from the public sculpting
+helpers, verifies varied rendered pixels, and limits it to eight draw calls
+including the floor. Run `test:browser:sculpt` for the fixture and
+`test:screenshots:sculpt` to validate its capture. Run the browser fixture from
+the workspace root:
+
+```sh
+pnpm exec vitest run --config packages/declarative-hex-worlds/vitest.browser.free.config.ts tests/browser/sculpt-visual.test.ts
+```
+
 ## Frame and units
 
 Metres. A piece stands on `y = 0`, its **front toward `+z`**, its length along

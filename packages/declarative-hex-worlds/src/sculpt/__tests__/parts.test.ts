@@ -22,6 +22,23 @@ function vertices(geometry: BufferGeometry): Array<[number, number, number]> {
 }
 
 describe('part', () => {
+  it('keeps triangle winding aligned with normals when a part is mirrored', () => {
+    for (const scale of [[-1, 1, 1], [-1, -1, 1], [-1, -1, -1]] as const) {
+      const geometry = box(1, 2, 3, { tone: 'wood', scale }).geometry;
+      const positions = geometry.getAttribute('position');
+      const normals = geometry.getAttribute('normal');
+      for (let i = 0; i < positions.count; i += 3) {
+        const a = new Vector3().fromBufferAttribute(positions, i);
+        const b = new Vector3().fromBufferAttribute(positions, i + 1);
+        const c = new Vector3().fromBufferAttribute(positions, i + 2);
+        const face = b.sub(a).cross(c.sub(a)).normalize();
+        const normal = new Vector3().fromBufferAttribute(normals, i);
+        expect(face.dot(normal)).toBeGreaterThan(0.99);
+      }
+      geometry.dispose();
+    }
+  });
+
   it('rejects malformed transform triples before changing or disposing a source geometry', () => {
     for (const key of ['at', 'rot', 'scale']) {
       for (const value of [[], [0, 0], [0, 0, 0, 0], null]) {
