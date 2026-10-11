@@ -241,6 +241,31 @@ describe('routeAcrossTerrain', () => {
     ];
     const dry = routeAcrossTerrain(level, from, to);
     const wet = routeAcrossTerrain(level, from, to, { water: [stream], crossingCost: 50 });
+    // A field too large to memoise crossings (1101² samples × 16 moves) counts
+    // them on every step instead, with the same charge.
+    const wide = createHeightField({
+      bounds: { minX: 0, minZ: 0, maxX: 1100, maxZ: 1100 },
+      width: 1101,
+      height: 1101,
+    });
+    const across = [
+      { x: 550.5, z: 400 },
+      { x: 550.5, z: 700 },
+    ];
+    const wideDry = routeAcrossTerrain(wide, { x: 500, z: 540 }, { x: 600, z: 540 });
+    const wideWet = routeAcrossTerrain(
+      wide,
+      { x: 500, z: 540 },
+      { x: 600, z: 540 },
+      { water: [across], crossingCost: 50 }
+    );
+    expect(wideWet?.cost).toBeCloseTo((wideDry?.cost as number) + 50, 6);
+    // A water "line" of one point has no extent to cross.
+    const spring = routeAcrossTerrain(level, from, to, {
+      water: [[{ x: 100, z: 100 }]],
+      crossingCost: 50,
+    });
+    expect(spring?.cost).toBeCloseTo(dry?.cost as number, 6);
     // The straight road crosses exactly at the stream's vertex on a sample,
     // between two grid steps: charged once, not once per step.
     expect(wet?.cost).toBeCloseTo((dry?.cost as number) + 50, 6);
@@ -428,6 +453,25 @@ describe('routeNetwork', () => {
       [1, 3],
     ]);
     expect(routeNetwork(level, square)).toEqual(a);
+  });
+
+  it('crosses a stream once to join farms on both banks, counting each step once', () => {
+    // Sites on both sides of a stream down the middle: its searches share one
+    // surface and so one crossing memo.
+    const stream = [
+      { x: 100.5, z: 0 },
+      { x: 100.5, z: 200 },
+    ];
+    const sites = [
+      { x: 40, z: 40 },
+      { x: 40, z: 160 },
+      { x: 160, z: 40 },
+      { x: 160, z: 160 },
+    ];
+    const wet = routeNetwork(level, sites, { water: [stream], crossingCost: 500 });
+    const total = wet.roads.reduce((sum, road) => sum + crossings(road, stream), 0);
+    expect(total).toBe(1);
+    expect(routeNetwork(level, sites, { water: [stream], crossingCost: 500 })).toEqual(wet);
   });
 
   it('handles empty, single, coincident and unreachable sites', () => {
