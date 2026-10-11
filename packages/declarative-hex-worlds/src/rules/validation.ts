@@ -5,15 +5,15 @@
  * @module
  */
 import { hexKey, neighbor, oppositeEdge } from '../coordinates';
-import type { GameboardPlan, GameboardPlacementSpec, GameboardTileSpec } from '../gameboard';
-import { getManifestAsset, type ManifestAssetCatalog } from '../manifest';
+import type { GameboardPlacementSpec, GameboardPlan, GameboardTileSpec } from '../gameboard';
 import {
+  describeGameboardTileFieldsProblem,
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
   gameboardPlacementOccupancyGroup,
-  describeGameboardTileFieldsProblem,
   isGameboardTileBiome,
 } from '../gameboard';
+import { getManifestAsset, type ManifestAssetCatalog } from '../manifest';
 import type { HexTileDeclaration, HexTileRegistry } from '../scenario';
 import { rotateMask } from '../selectors';
 import type { HexCoordinates } from '../types';
@@ -121,7 +121,8 @@ export function canStackInPlan(
     return false;
   }
   const registryRule = config.registry?.byAssetId[tile.baseAssetId]?.stack;
-  const maxElevation = registryRule?.maxElevation ?? config.maxElevation ?? DEFAULT_PLAN_RULES.maxElevation;
+  const maxElevation =
+    registryRule?.maxElevation ?? config.maxElevation ?? DEFAULT_PLAN_RULES.maxElevation;
   return Boolean((registryRule?.canStack ?? true) && height <= maxElevation);
 }
 
@@ -190,7 +191,10 @@ function validateStack(
       message: `Tile ${tile.key} uses ${declaration.id}, which is not stackable`,
     });
   }
-  if (declaration.stack.maxElevation !== undefined && tile.elevation > declaration.stack.maxElevation) {
+  if (
+    declaration.stack.maxElevation !== undefined &&
+    tile.elevation > declaration.stack.maxElevation
+  ) {
     violations.push({
       code: 'declaration.stack_max_elevation',
       severity: 'error',
@@ -218,8 +222,22 @@ function validateBuiltInConnectivity(
   tile: GameboardTileSpec,
   rules: NormalizedPlanRules
 ): void {
-  validateBuiltInEdgeMask(violations, tiles, tile, 'road', tile.roadEdges, rules.requireReciprocalRoads);
-  validateBuiltInEdgeMask(violations, tiles, tile, 'river', tile.riverEdges, rules.requireReciprocalRivers);
+  validateBuiltInEdgeMask(
+    violations,
+    tiles,
+    tile,
+    'road',
+    tile.roadEdges,
+    rules.requireReciprocalRoads
+  );
+  validateBuiltInEdgeMask(
+    violations,
+    tiles,
+    tile,
+    'river',
+    tile.riverEdges,
+    rules.requireReciprocalRivers
+  );
 
   if (!rules.requireCoastsTouchWater) {
     return;
@@ -227,7 +245,9 @@ function validateBuiltInConnectivity(
   forEachEdge(tile.coastEdges, (edge) => {
     const adjacent = tiles.get(hexKey(neighbor(tile.coordinates, edge)));
     const adjacentIsWaterLike =
-      adjacent?.terrain === 'water' || adjacent?.terrain === 'river' || (adjacent?.riverEdges ?? 0) !== 0;
+      adjacent?.terrain === 'water' ||
+      adjacent?.terrain === 'river' ||
+      (adjacent?.riverEdges ?? 0) !== 0;
     if (adjacent && !adjacentIsWaterLike) {
       violations.push({
         code: 'coast.adjacent_land',
@@ -336,7 +356,9 @@ function validatePlacement(
     return;
   }
   const facing = Number(placement.metadata.facing);
-  const adjacent = Number.isFinite(facing) ? tiles.get(hexKey(neighbor(tile.coordinates, facing))) : undefined;
+  const adjacent = Number.isFinite(facing)
+    ? tiles.get(hexKey(neighbor(tile.coordinates, facing)))
+    : undefined;
   if (adjacent?.terrain !== 'water') {
     violations.push({
       code: 'harbor.missing_water',
@@ -465,7 +487,10 @@ function validateAssetReference(
   }
   const asset = getManifestAsset(catalog, options.assetId);
   if (!asset) {
-    if (options.rules.allowUnknownAssets || options.rules.allowUnknownAssetIds?.includes(options.assetId)) {
+    if (
+      options.rules.allowUnknownAssets ||
+      options.rules.allowUnknownAssetIds?.includes(options.assetId)
+    ) {
       return;
     }
     violations.push({
@@ -642,7 +667,9 @@ function validateChannelSource(
   const rules = declaration.adjacency.filter((rule) => rule.channel === channel);
   forEachEdge(source.mask, (edge) => {
     const adjacent = tiles.get(hexKey(neighbor(tile.coordinates, edge)));
-    const matchingRules = rules.filter((rule) => (rotatedRuleMask(rule, source) & (1 << edge)) !== 0);
+    const matchingRules = rules.filter(
+      (rule) => (rotatedRuleMask(rule, source) & (1 << edge)) !== 0
+    );
     const allowOffBoard = matchingRules.some((rule) => rule.allowOffBoard);
     if (!adjacent) {
       if (!allowOffBoard) {
@@ -658,7 +685,10 @@ function validateChannelSource(
     }
 
     for (const rule of matchingRules) {
-      if (rule.requiresNeighborTerrain && !rule.requiresNeighborTerrain.includes(adjacent.terrain)) {
+      if (
+        rule.requiresNeighborTerrain &&
+        !rule.requiresNeighborTerrain.includes(adjacent.terrain)
+      ) {
         violations.push({
           code: 'declaration.adjacency_required_terrain',
           severity: 'error',
@@ -678,7 +708,8 @@ function validateChannelSource(
       }
     }
 
-    const reciprocal = declaration.edges.find((item) => item.channel === channel)?.reciprocal ?? true;
+    const reciprocal =
+      declaration.edges.find((item) => item.channel === channel)?.reciprocal ?? true;
     const explicitReciprocal = matchingRules.some((rule) => rule.reciprocal === true);
     const skipsReciprocal = matchingRules.some((rule) => rule.reciprocal === false);
     if (skipsReciprocal || (!reciprocal && !explicitReciprocal)) {
@@ -699,7 +730,9 @@ function validateChannelSource(
 }
 
 function rotatedRuleMask(rule: { mask: number }, source: ChannelMaskSource): number {
-  return source.rotationSteps === undefined ? rule.mask : rotateMask(rule.mask, source.rotationSteps);
+  return source.rotationSteps === undefined
+    ? rule.mask
+    : rotateMask(rule.mask, source.rotationSteps);
 }
 
 function declarationForPlacement(
@@ -708,7 +741,7 @@ function declarationForPlacement(
 ): HexTileDeclaration | undefined {
   const declarationId = placement.metadata.declarationId;
   return typeof declarationId === 'string'
-    ? registry.byId[declarationId] ?? registry.byAssetId[placement.assetId]
+    ? (registry.byId[declarationId] ?? registry.byAssetId[placement.assetId])
     : registry.byAssetId[placement.assetId];
 }
 

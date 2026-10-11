@@ -4,17 +4,26 @@
  *
  * @module
  */
+
+import type { World } from 'koota';
 import seedrandom from 'seedrandom';
-import { GameboardValidationError } from '../errors';
-import { coloredUnitAssetId, factionBuildingAssetId } from '../scenario';
 import {
+  analyzeGameboardLayoutFill,
   containsHex,
   coordinatesForShape,
+  createGameboardLayoutArchetypeRegistry,
+  createGameboardLayoutFillPlacements,
   edgeBetween,
+  type GameboardLayoutArchetypeRegistry,
+  type GameboardLayoutFillAnalysis,
+  type GameboardLayoutFillRule,
   hexDistance,
   hexKey,
   neighbor,
+  projectWorldToGameboardPlan,
+  spawnGameboardLayoutFill,
 } from '../coordinates';
+import { GameboardValidationError } from '../errors';
 import {
   createGameboardBuilder,
   type GameboardPlan,
@@ -23,32 +32,21 @@ import {
   type HarborKind,
   type SettlementBuilding,
 } from '../gameboard';
+import type { SpawnGameboardPlacementOptions } from '../koota';
 import { createGameboardWorld } from '../koota';
-import {
-  analyzeGameboardLayoutFill,
-  createGameboardLayoutArchetypeRegistry,
-  createGameboardLayoutFillPlacements,
-  spawnGameboardLayoutFill,
-  type GameboardLayoutArchetypeRegistry,
-  type GameboardLayoutFillAnalysis,
-  type GameboardLayoutFillRule,
-} from '../coordinates';
 import {
   createGameboardLayoutFillRuleFromPieces,
   createGameboardLayoutFillRulesFromRegistry,
-  selectGameboardPieces,
-  type GameboardPieceLayoutRuleOptions,
   type GameboardPieceDeclaration,
+  type GameboardPieceLayoutRuleOptions,
   type GameboardPieceRegistry,
   type GameboardPieceRegistrySelection,
+  selectGameboardPieces,
 } from '../pieces';
-import type { SpawnGameboardPlacementOptions } from '../koota';
-import { projectWorldToGameboardPlan } from '../coordinates';
+import { coloredUnitAssetId, factionBuildingAssetId } from '../scenario';
 import type { Faction, HexCoordinates, HexEdgeIndex } from '../types';
-import type { World } from 'koota';
 
 export { projectWorldToGameboardPlan, readDecomposedTileSpecs } from '../coordinates';
-export type { GameboardRuleConfig, GameboardRuleViolation, RuleSeverity } from './rule-types';
 export {
   canPlaceHarborAt,
   canStackAt,
@@ -58,16 +56,31 @@ export {
   setTileTerrain,
   validateGameboardRules,
 } from '../systems';
+export type { GameboardRuleConfig, GameboardRuleViolation, RuleSeverity } from './rule-types';
 
 /** Built-in seeded fill presets for common board decoration and encounter roles. */
-export type SeededGameboardDensityPresetId = 'trees' | 'rocks' | 'props' | 'harbors' | 'landmarks' | 'units';
+export type SeededGameboardDensityPresetId =
+  | 'trees'
+  | 'rocks'
+  | 'props'
+  | 'harbors'
+  | 'landmarks'
+  | 'units';
 
 /** User-facing density value where numbers mean fill percentage and false disables a preset. */
-export type SeededGameboardDensityValue = number | SeededGameboardDensityRuleOptions | false | null | undefined;
+export type SeededGameboardDensityValue =
+  | number
+  | SeededGameboardDensityRuleOptions
+  | false
+  | null
+  | undefined;
 
 /** Overrides for one built-in seeded density preset. */
 export interface SeededGameboardDensityRuleOptions
-  extends Omit<GameboardLayoutFillRule, 'archetype' | 'assetId' | 'assets' | 'count' | 'fill' | 'id'> {
+  extends Omit<
+    GameboardLayoutFillRule,
+    'archetype' | 'assetId' | 'assets' | 'count' | 'fill' | 'id'
+  > {
   /** Explicit fill rule id. */
   id?: string;
   /** Single asset id to spawn for the preset. */
@@ -108,7 +121,8 @@ export interface SeededGameboardDensityContext {
 export type SeededGameboardPieceFillMode = 'per-piece' | 'pool';
 
 /** Options for generating layout fill rules from a registered piece selection. */
-export interface SeededGameboardPieceFillOptions extends Omit<GameboardPieceLayoutRuleOptions, 'assetId'> {
+export interface SeededGameboardPieceFillOptions
+  extends Omit<GameboardPieceLayoutRuleOptions, 'assetId'> {
   /** Registry selection used to choose pieces for the fill. */
   selection?: GameboardPieceRegistrySelection;
   /** Whether to create one rule per piece or a single pooled rule. */
@@ -239,7 +253,10 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
     }))
     .filter((candidate) => candidate.waterEdges.length > 0);
   /* v8 ignore start -- current rectangle/hex coast bands sort by distinct q values before r tie-breaks. */
-  coastTiles.sort((left, right) => left.coordinates.q - right.coordinates.q || left.coordinates.r - right.coordinates.r);
+  coastTiles.sort(
+    (left, right) =>
+      left.coordinates.q - right.coordinates.q || left.coordinates.r - right.coordinates.r
+  );
   /* v8 ignore stop */
   for (const coast of coastTiles) {
     builder.setCoastEdges(coast.coordinates, coast.waterEdges);
@@ -253,7 +270,9 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
         .filter((coordinates) => !waterKeys.has(hexKey(coordinates)))
         .map((coordinates) => ({ coordinates, waterEdges: [1 as const] }));
   /* v8 ignore stop */
-  const harborCandidate = harborCandidates[Math.floor(harborCandidates.length * between(0.35, 0.7, rng))] ?? harborCandidates[0];
+  const harborCandidate =
+    harborCandidates[Math.floor(harborCandidates.length * between(0.35, 0.7, rng))] ??
+    harborCandidates[0];
   const fallbackTile = shapeCoordinates[0];
   if (fallbackTile === undefined) {
     throw new GameboardValidationError('canonical scenario requires non-empty shapeCoordinates');
@@ -285,7 +304,11 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
   const widthHint = shape.kind === 'rectangle' ? shape.width : shape.radius * 2 + 1;
   const topBand = minR + Math.max(1, Math.floor((maxR - minR) * 0.45));
   const mountainCount = options.mountainStacks ?? Math.max(2, Math.floor(widthHint / 4));
-  for (const coordinates of takeRandom(landCandidates().filter((item) => item.r <= topBand), mountainCount, rng)) {
+  for (const coordinates of takeRandom(
+    landCandidates().filter((item) => item.r <= topBand),
+    mountainCount,
+    rng
+  )) {
     reserved.add(hexKey(coordinates));
     builder.addMountainStack({
       at: coordinates,
@@ -336,15 +359,23 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
   });
 
   for (const settlement of settlementTiles) {
-    const path = axialLine(settlement, harbor).filter((coordinates) => containsHex(shape, coordinates));
+    const path = axialLine(settlement, harbor).filter((coordinates) =>
+      containsHex(shape, coordinates)
+    );
     /* v8 ignore next 3 -- settlement candidates exclude the reserved harbor tile, so authored paths have at least two coordinates. */
     if (path.length > 1) {
       builder.addRoadPath(path);
     }
   }
 
-  const riverStart = takeRandom(landCandidates().filter((coordinates) => coordinates.r <= topBand), 1, rng)[0];
-  const riverEnd = [...landCandidates()].sort((left, right) => hexDistance(left, harbor) - hexDistance(right, harbor))[0];
+  const riverStart = takeRandom(
+    landCandidates().filter((coordinates) => coordinates.r <= topBand),
+    1,
+    rng
+  )[0];
+  const riverEnd = [...landCandidates()].sort(
+    (left, right) => hexDistance(left, harbor) - hexDistance(right, harbor)
+  )[0];
   if (riverStart && riverEnd) {
     const riverPath = meanderPath(riverStart, riverEnd, shape, rng);
     if (riverPath.length > 1) {
@@ -355,7 +386,14 @@ export function createSeededGameboardPlan(options: SeededGameboardOptions = {}):
   builder.scatterDecorations({
     count: options.scatterProps ?? Math.max(6, Math.floor(shapeCoordinates.length / 10)),
     terrain: ['grass', 'hill', 'forest'],
-    assets: ['rock_single_A', 'rock_single_B', 'crate_A_small', 'crate_B_small', 'tree_single_A', 'tree_single_B'],
+    assets: [
+      'rock_single_A',
+      'rock_single_B',
+      'crate_A_small',
+      'crate_B_small',
+      'tree_single_A',
+      'tree_single_B',
+    ],
   });
 
   /* v8 ignore start -- option-level archetype behavior is covered through withLayoutArchetypes placement assertions. */
@@ -399,7 +437,10 @@ export function createSeededGameboardDensityFillRules(
     densityRule('harbors', density.harbors, {
       id: 'density:harbors',
       archetype: 'harbor',
-      assets: [factionBuildingAssetId('docks', faction), factionBuildingAssetId('shipyard', faction)],
+      assets: [
+        factionBuildingAssetId('docks', faction),
+        factionBuildingAssetId('shipyard', faction),
+      ],
       requiresExtra: true,
       criteria: {
         terrain: 'coast',
@@ -414,7 +455,10 @@ export function createSeededGameboardDensityFillRules(
     densityRule('landmarks', density.landmarks, {
       id: 'density:landmarks',
       archetype: 'landmark',
-      assets: [factionBuildingAssetId('tower_A', faction), factionBuildingAssetId('tower_B', faction)],
+      assets: [
+        factionBuildingAssetId('tower_A', faction),
+        factionBuildingAssetId('tower_B', faction),
+      ],
       criteria: {
         terrain: ['grass', 'road', 'coast', 'hill'],
         edgePadding: 1,
@@ -451,7 +495,15 @@ export function createSeededGameboardDensityFillRules(
     densityRule('props', density.props, {
       id: 'density:props',
       archetype: 'scatter',
-      assets: ['barrel', 'crate_A_small', 'crate_B_small', 'pallet', 'resource_lumber', 'resource_stone', 'sack'],
+      assets: [
+        'barrel',
+        'crate_A_small',
+        'crate_B_small',
+        'pallet',
+        'resource_lumber',
+        'resource_stone',
+        'sack',
+      ],
       criteria: {
         terrain: ['grass', 'road', 'coast'],
         prefer: [{ kind: 'near-placement-kind', placementKind: 'structure', radius: 4, weight: 1 }],
@@ -469,16 +521,12 @@ export function createSeededGameboardPieceFillRules(
     return [];
   }
   if (!registry) {
-    throw new GameboardValidationError('createSeededGameboardPieceFillRules requires a piece registry when piece fills are provided');
+    throw new GameboardValidationError(
+      'createSeededGameboardPieceFillRules requires a piece registry when piece fills are provided'
+    );
   }
   return fills.flatMap((fill, index) => {
-    const {
-      mode = 'per-piece',
-      selection,
-      ruleIdPrefix = 'piece',
-      id,
-      ...ruleOptions
-    } = fill;
+    const { mode = 'per-piece', selection, ruleIdPrefix = 'piece', id, ...ruleOptions } = fill;
     if (mode === 'pool') {
       const pieces = selectGameboardPieces(registry, selection);
       if (pieces.length === 0) {
@@ -565,7 +613,8 @@ function densityRule(
   if (value === undefined || value === null || value === false) {
     return undefined;
   }
-  const override: SeededGameboardDensityRuleOptions = typeof value === 'number' ? { fill: value } : value;
+  const override: SeededGameboardDensityRuleOptions =
+    typeof value === 'number' ? { fill: value } : value;
   const rule: GameboardLayoutFillRule = {
     ...base,
     ...override,
@@ -599,12 +648,11 @@ function withLayoutArchetypes(
   };
 }
 
-function assertPiecePoolCompatible(
-  pieces: readonly GameboardPieceDeclaration[],
-  id: string
-): void {
+function assertPiecePoolCompatible(pieces: readonly GameboardPieceDeclaration[], id: string): void {
   if (!isPiecePoolCompatible(pieces)) {
-    throw new GameboardValidationError(`Piece fill pool ${id} can only pool pieces with the same archetype, kind, and layer`);
+    throw new GameboardValidationError(
+      `Piece fill pool ${id} can only pool pieces with the same archetype, kind, and layer`
+    );
   }
 }
 
@@ -627,13 +675,7 @@ function createInspectableSeededGameboardPieceFillRules(
     if (!inspection || inspection.errors.length > 0) {
       return [];
     }
-    const {
-      mode = 'per-piece',
-      selection,
-      ruleIdPrefix = 'piece',
-      id,
-      ...ruleOptions
-    } = fill;
+    const { mode = 'per-piece', selection, ruleIdPrefix = 'piece', id, ...ruleOptions } = fill;
     if (mode === 'pool') {
       const pieces = selectGameboardPieces(registry, selection);
       if (pieces.length === 0) {
@@ -660,7 +702,10 @@ function piecePoolSignature(piece: GameboardPieceDeclaration): string {
   return `${archetype}:${piece.kind ?? ''}:${piece.layer ?? ''}`;
 }
 
-function waterEdgesFor(coordinates: HexCoordinates, waterKeys: ReadonlySet<string>): HexEdgeIndex[] {
+function waterEdgesFor(
+  coordinates: HexCoordinates,
+  waterKeys: ReadonlySet<string>
+): HexEdgeIndex[] {
   return EDGE_INDEXES.filter((edge) => waterKeys.has(hexKey(neighbor(coordinates, edge))));
 }
 
@@ -718,7 +763,10 @@ function meanderPath(
   let current = start;
   const seen = new Set([hexKey(start)]);
   let guard = 0;
-  while ((current.q !== end.q || current.r !== end.r) && guard < coordinatesForShape(shape).length) {
+  while (
+    (current.q !== end.q || current.r !== end.r) &&
+    guard < coordinatesForShape(shape).length
+  ) {
     const candidates = [0, 1, 2, 3, 4, 5]
       .map((edge) => neighbor(current, edge))
       .filter((candidate) => containsHex(shape, candidate) && !seen.has(hexKey(candidate)))
@@ -727,7 +775,10 @@ function meanderPath(
     if (candidates.length === 0) {
       break;
     }
-    const choice = candidates[Math.min(candidates.length - 1, Math.floor(rng() * Math.min(2, candidates.length)))];
+    const choice =
+      candidates[
+        Math.min(candidates.length - 1, Math.floor(rng() * Math.min(2, candidates.length)))
+      ];
     /* v8 ignore next 3 -- candidates.length is checked before choosing an indexed candidate. */
     if (choice === undefined) {
       break;

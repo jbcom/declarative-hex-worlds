@@ -15,13 +15,14 @@ import { projectWorldToGameboardPlan, spawnGameboardLayoutFill } from '../coordi
 import type { GameboardPlan } from '../gameboard';
 import { createGameboardWorld } from '../koota';
 import { applyGameboardBiomeRegionStages } from '../rules/biome-regions';
-import { setTileBiome } from '../systems';
+import { setTileBiome, setTileFields } from '../systems';
 import { createGameboardRecipeGenerationFillRules, type GameboardRecipeGeneration } from './recipe';
 
 /**
  * Run seeded recipe generation over a built plan and return the projected result.
- * Applies ordered biome regions, builds a Koota world, spawns layout fills and
- * projects back. With neither region stages nor fill rules, returns the plan
+ * Applies ordered biome regions (writing each stage's `regionField` ids into the
+ * live tile fields beside the biomes), builds a Koota world, spawns layout fills
+ * and projects back. With neither region stages nor fill rules, returns the plan
  * unchanged without creating a world.
  */
 export function applyGameboardRecipeGeneration(
@@ -37,8 +38,14 @@ export function applyGameboardRecipeGeneration(
   try {
     if (regions.length > 0) {
       const generated = applyGameboardBiomeRegionStages(projectWorldToGameboardPlan(world), regions);
+      const regionFields = new Set(regions.flatMap((stage) => stage.regionField ?? []));
       for (const tile of generated.tiles) {
-        if (tile.pinned !== true) setTileBiome(world, tile.key, tile.biome);
+        if (tile.pinned === true) continue;
+        setTileBiome(world, tile.key, tile.biome);
+        for (const name of regionFields) {
+          const id = tile.fields?.[name];
+          if (id !== undefined) setTileFields(world, tile.key, { [name]: id });
+        }
       }
     }
     spawnGameboardLayoutFill(world, {
