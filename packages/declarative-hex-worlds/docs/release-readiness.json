@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-05-24T00:00:00.000Z",
+  "generatedAt": "2026-10-11T00:00:00.000Z",
   "status": "warning",
   "guide": {
     "scenarioCount": 19,
@@ -34748,6 +34748,14 @@
       "pages": [
         19
       ],
+      "required": true
+    },
+    {
+      "path": "tests/browser/__screenshots__/biome-regions-country.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
       "required": true
     },
     {

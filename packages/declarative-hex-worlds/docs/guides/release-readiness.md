@@ -16,7 +16,7 @@ pnpm coverage:ledger
 - Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences
 - Public API surfaces: 74
 - Public roles: 12
-- Visual artifacts: 52 available, 0 missing, 0 skipped
+- Visual artifacts: 53 available, 0 missing, 0 skipped
 - Local references: 0 available, 4 missing, 0 skipped
 - Release checks: 8 passed, 0 failed, 0 not run, 0 skipped
 - SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)
@@ -193,6 +193,7 @@ pnpm coverage:ledger
 | available | showcase | `docs/showcases/free-guide-roads-all-labels-rotations.png` | - |
 | available | showcase | `docs/showcases/free-guide-scenarios-by-extracted-page.png` | - |
 | available | guide | `NOTICE.md` | 19 |
+| available | screenshot | `tests/browser/__screenshots__/biome-regions-country.png` | - |
 | available | guide | `tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png` | 9, 11, 13 |
 | available | screenshot | `tests/browser/__screenshots__/extra-guide-assets-by-public-role.png` | - |
 | available | screenshot | `tests/browser/__screenshots__/extra-guide-scenarios-pages-02-15.png` | - |
