@@ -271,6 +271,10 @@ describe('routeAcrossTerrain', () => {
       crossingCost: 50,
     });
     expect(farWet).toEqual(wet);
+    // Only far-off water: nothing on the field to cross, so the dry route.
+    expect(
+      routeAcrossTerrain(level, from, to, { water: [distant], crossingCost: 50 })
+    ).toEqual(dry);
     // A water "line" of one point has no extent to cross.
     const spring = routeAcrossTerrain(level, from, to, {
       water: [[{ x: 100, z: 100 }]],
