@@ -278,6 +278,7 @@ node dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
   `createGameboardPlanFromRecipe`,
   `generateGameboardBiomeRegions`,
   `inspectGameboardBlueprint`,
+  `projectHexBiomesToField`,
   `textureFileName`,
   `validateGameboardRecipe`
 - Visual artifacts: `tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png`,
