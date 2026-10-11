@@ -162,19 +162,23 @@ describe('viewport camera framing', () => {
     expect(moved.position.z).toBeCloseTo(original.position.z + 11, 10);
   });
 
-  it('frames a point with a finite positive view volume', () => {
-    const point = { x: 2, y: 3, z: 4 };
-    const frame = computeCameraFraming(
-      { min: point, max: point, center: point, size: { x: 0, y: 0, z: 0 } },
-      {
-        ...DEFAULT_CAMERA_STATE,
-        aspect: 0.4,
-      }
-    );
-    expect(frame.distance).toBeGreaterThan(0);
-    expect(Number.isFinite(frame.distance)).toBe(true);
-    expect(frame.orthoHalfHeight).toBeGreaterThan(0);
-  });
+  it.each(['perspective', 'orthographic'] as const)(
+    'frames a point with a finite positive view volume, %s',
+    (projection) => {
+      const point = { x: 2, y: 3, z: 4 };
+      const frame = computeCameraFraming(
+        { min: point, max: point, center: point, size: { x: 0, y: 0, z: 0 } },
+        {
+          ...DEFAULT_CAMERA_STATE,
+          projection,
+          aspect: 0.4,
+        }
+      );
+      expect(frame.distance).toBeGreaterThan(0);
+      expect(Number.isFinite(frame.distance)).toBe(true);
+      expect(frame.orthoHalfHeight).toBeGreaterThan(0);
+    }
+  );
 
   it('normalizes very large finite directions without overflow', () => {
     const frame = computeCameraFraming(bounds, {
