@@ -14,6 +14,7 @@
  * - `./hexes` — per-hex summaries (height, slope, biome shares) for gameplay
  * - `./parcels` — field parcels and their fence/lane boundary network
  * - `./drainage` — stream networks by depression filling and flow accumulation, and carved beds
+ * - `./erosion` — stream-power erosion that wears a composed relief into country that drains
  * - `./routing` — least-cost roads across the relief and spanning road networks between sites
  * - `./polyline-cells` — polylines bucketed into flat per-cell segment lists, for
  *   renderers that draw roads and other narrow lines by exact distance per fragment
@@ -25,6 +26,7 @@
 export * from './biomes';
 export * from './compose';
 export * from './drainage';
+export * from './erosion';
 export * from './field';
 export * from './geometry2d';
 export * from './hexes';
