@@ -218,6 +218,9 @@ function fakeExec(
       '"defaultRpgHandlers": 3',
     ].join('\n');
   }
+  if (file === process.execPath && args.includes('--eval')) {
+    return 'packed entry attestation passed';
+  }
   if (file === '/tmp/consumer/app/node_modules/.bin/declarative-hex-worlds') {
     return fakeDoctor(args);
   }
@@ -231,7 +234,7 @@ function fakeDoctor(args: string[]): string {
       'guide pages: 19/19',
       'public APIs: 77',
       'manifest: 221 asset(s), 221/221 FREE guide asset(s)',
-      'visual artifacts: 10 available, 0 missing,',
+      'visual artifacts: 8 available, 0 missing,',
       'local references: 0 available, 0 missing,',
       'SimpleRPG API evidence: 77/77 represented, 43 directly executed, 9 active mode(s)',
       'gaps: 0',

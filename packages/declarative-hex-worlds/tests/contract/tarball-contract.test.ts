@@ -64,10 +64,10 @@ const PRIVATE_SUBPATHS = new Set(['.', 'cli', 'config', 'internal', 'manifest'])
  * between package.json subpath exports and their source files.
  */
 function parseTsupEntries(): Map<string, string> {
-  const tsupConfig = readFileSync(join(repoRoot, 'tsup.config.ts'), 'utf8');
+  const tsupConfig = ['tsup.config.ts', 'tsup.core.config.ts']
+    .map((config) => readFileSync(join(repoRoot, config), 'utf8')).join('\n');
   const map = new Map<string, string>();
-  // tsup.config.ts is an ARRAY of configs (main build + the isolated ./core
-  // build), each with its own `entry: { … }` block — match them all.
+  // The runtime and isolated core builds each have an entry block.
   for (const block of tsupConfig.matchAll(/entry:\s*\{([^}]+)\}/gs)) {
     for (const line of (block[1] ?? '').split('\n')) {
       const m = line.match(/['"]?([\w/.-]+)['"]?\s*:\s*['"]([^'"]+)['"]/);
@@ -83,10 +83,10 @@ describe('package.json metadata', () => {
   it('name is declarative-hex-worlds', () =>
     expect(packageJson.name).toBe('declarative-hex-worlds'));
   it('type is module (ESM-only)', () => expect(packageJson.type).toBe('module'));
-  it('preserves recipe runtime registration in source and bundled chunks', () => {
+  it('preserves only the isolated recipe runtime registration artifact', () => {
     expect(packageJson.sideEffects).toEqual([
       './src/scenario/recipe-generation-wiring.ts',
-      './dist/chunk-*.js',
+      './dist/recipe-generation-wiring.js',
     ]);
   });
   it('license is MIT', () => expect(packageJson.license).toBe('MIT'));

@@ -13,7 +13,8 @@
  * recipe compiler keeps its pure default — which throws a clear "requires the
  * runtime tier" error if a recipe declares generation fill rules.
  * The package sideEffects list preserves this module during the library build
- * and its emitted shared chunk during consumer tree shaking.
+ * and its isolated emitted entry during consumer tree shaking. The build keeps
+ * imports of that entry external so its effect cannot enter core's shared chunks.
  *
  * @module
  */

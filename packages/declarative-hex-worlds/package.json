@@ -8,7 +8,7 @@
   "types": "./dist/index.d.ts",
   "sideEffects": [
     "./src/scenario/recipe-generation-wiring.ts",
-    "./dist/chunk-*.js"
+    "./dist/recipe-generation-wiring.js"
   ],
   "engines": {
     "node": ">=22",
@@ -253,7 +253,7 @@
     "assets:guide": "tsx scripts/extract-kaykit-guide.ts",
     "assets:free": "tsx scripts/generate-package-assets.ts --edition free --source references/KayKit_Medieval_Hexagon_Pack_1.0_FREE",
     "showcases:promote": "tsx scripts/promote-showcases.ts",
-    "build": "tsup --config tsup.config.ts",
+    "build": "tsup --config tsup.config.ts && tsup --config tsup.core.config.ts",
     "clean": "rimraf dist coverage",
     "lint": "biome lint docs scripts src tests examples *.json *.md *.ts",
     "typecheck": "tsc --noEmit",

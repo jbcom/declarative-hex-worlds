@@ -21,6 +21,7 @@ import { copyFileSync, existsSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
 import { assert, COVERAGE_CLI_MAX_BUFFER_BYTES, type SmokeContext } from './_shared.js';
+import { corePurityProbeArgs, runtimeGenerationProbeArgs } from './core.js';
 
 interface PackResult {
   filename: string;
@@ -1281,6 +1282,20 @@ export function runPackInstallSmoke(
   });
 
   const installedPackageRoot = join(appRoot, 'node_modules/declarative-hex-worlds');
+  // A separate process denies runtime peers even though the full smoke fixture
+  // installs them. This verifies the shipped core rather than its source graph.
+  execFileSyncImpl(process.execPath, corePurityProbeArgs(), {
+    cwd: appRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  for (const entry of ['declarative-hex-worlds', 'declarative-hex-worlds/scenario']) {
+    execFileSyncImpl(process.execPath, runtimeGenerationProbeArgs(entry), {
+      cwd: appRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  }
   const installedCliPath = join(installedPackageRoot, 'dist/cli.js');
   assert(
     existsSyncImpl(join(installedPackageRoot, 'dist/examples/blueprint-board-usage.js')),
@@ -1509,7 +1524,7 @@ export function runPackInstallSmoke(
       binCoverageDoctorOutput.includes('guide pages: 19/19') &&
       binCoverageDoctorOutput.includes('public APIs: 77') &&
       binCoverageDoctorOutput.includes('manifest: 221 asset(s), 221/221 FREE guide asset(s)') &&
-      binCoverageDoctorOutput.includes('visual artifacts: 10 available, 0 missing,') &&
+      binCoverageDoctorOutput.includes('visual artifacts: 8 available, 0 missing,') &&
       binCoverageDoctorOutput.includes('local references: 0 available, 0 missing,') &&
       binCoverageDoctorOutput.includes(
         'SimpleRPG API evidence: 77/77 represented, 43 directly executed, 9 active mode(s)'
