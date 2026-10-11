@@ -16,6 +16,7 @@
     "typecheck": "pnpm --filter declarative-hex-worlds typecheck",
     "lint": "pnpm --filter declarative-hex-worlds lint",
     "test": "pnpm --filter declarative-hex-worlds test",
+    "test:browser": "vitest run --config packages/declarative-hex-worlds/vitest.browser.free.config.ts",
     "test:examples": "pnpm --filter @declarative-hex-worlds/examples test",
     "typecheck:examples": "pnpm --filter @declarative-hex-worlds/examples typecheck",
     "lint:examples": "pnpm --filter @declarative-hex-worlds/examples lint",

@@ -19,6 +19,20 @@ Three vitest harnesses + one perf harness. Coverage from all of them feeds into 
 | **SimpleRPG e2e (local)** | `vitest.simple-rpg-e2e.config.ts` | `tests/e2e/simple-rpg-local-extra.test.ts` | local with `HEX_WORLDS_LOCAL_REFERENCES=1` |
 | **Perf bench** | n/a — direct vitest bench | `tests/perf/*.bench.ts` | local-only, non-blocking |
 
+Run the browser-free harness from the workspace root with `pnpm test:browser`.
+It invokes the same library browser configuration through the root's pinned
+pnpm and Vitest, keeping workspace dependencies available. A focused run can
+append a selector, for example:
+
+```bash
+pnpm test:browser -t "camera"
+```
+
+This direct command is also suitable for a render-pool wrapper. Remote macOS
+runs select headless Metal and mute audio in the browser configuration. The
+library's full screenshot and merged-coverage commands remain the acceptance
+gates described below.
+
 ## Coverage gates
 
 `vitest.coverage.shared.ts` exports `COVERAGE_THRESHOLDS` at the current floor. PRD A8 ratchets these toward 100/100/100/100 via Epic E0-E10; each commit that closes a coverage gap raises the floor in the same commit.
