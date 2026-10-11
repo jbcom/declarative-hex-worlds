@@ -12,6 +12,8 @@
  * `./core` never imports this module (nor `./recipe-generation`), so the `./core`
  * recipe compiler keeps its pure default — which throws a clear "requires the
  * runtime tier" error if a recipe declares generation fill rules.
+ * The package sideEffects list preserves this module during the library build
+ * and its emitted shared chunk during consumer tree shaking.
  *
  * @module
  */

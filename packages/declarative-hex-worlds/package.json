@@ -6,7 +6,10 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "sideEffects": false,
+  "sideEffects": [
+    "./src/scenario/recipe-generation-wiring.ts",
+    "./dist/chunk-*.js"
+  ],
   "engines": {
     "node": ">=22",
     "pnpm": ">=9"

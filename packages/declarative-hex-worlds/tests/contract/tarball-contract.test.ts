@@ -42,7 +42,7 @@ interface PackageJson {
   peerDependencies?: Record<string, unknown>;
   peerDependenciesMeta?: Record<string, unknown>;
   publishConfig?: { access?: string };
-  sideEffects?: boolean;
+  sideEffects?: boolean | string[];
   type?: string;
   types?: string;
 }
@@ -83,7 +83,12 @@ describe('package.json metadata', () => {
   it('name is declarative-hex-worlds', () =>
     expect(packageJson.name).toBe('declarative-hex-worlds'));
   it('type is module (ESM-only)', () => expect(packageJson.type).toBe('module'));
-  it('sideEffects is false', () => expect(packageJson.sideEffects).toBe(false));
+  it('preserves recipe runtime registration in source and bundled chunks', () => {
+    expect(packageJson.sideEffects).toEqual([
+      './src/scenario/recipe-generation-wiring.ts',
+      './dist/chunk-*.js',
+    ]);
+  });
   it('license is MIT', () => expect(packageJson.license).toBe('MIT'));
   it('publishConfig.access is public', () =>
     expect(packageJson.publishConfig?.access).toBe('public'));
