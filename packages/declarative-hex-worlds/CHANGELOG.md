@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.9.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.8.1...declarative-hex-worlds@1.9.0) (2026-10-11)
+
+
+### Features
+
+* **camera:** fit viewport bounds along authored eye direction ([909846e](https://github.com/jbcom/declarative-hex-worlds/commit/909846e4eb2b8413acc9c021b5e4d29c46311c42))
+* **camera:** frame viewport bounds along authored eye direction ([23eee54](https://github.com/jbcom/declarative-hex-worlds/commit/23eee544fa645b06af9f5d499764d4e135960a4d))
+
+
+### Bug Fixes
+
+* **camera:** honor near-plane clearance when framing bounds ([8e13423](https://github.com/jbcom/declarative-hex-worlds/commit/8e13423b7733788505170702b5599824a477ed40))
+* **camera:** match live viewport and validate framing inputs ([9e3d8f4](https://github.com/jbcom/declarative-hex-worlds/commit/9e3d8f45018ebbfedc0a00670b169c585a813445))
+* **camera:** refresh framing when clipping distance changes ([a381dab](https://github.com/jbcom/declarative-hex-worlds/commit/a381dabc3a8115a95649200a83268d32b6a888f5))
+* **camera:** return view basis and decouple orthographic distance ([6d4bd15](https://github.com/jbcom/declarative-hex-worlds/commit/6d4bd15d1103036745f51222d61b9d89b5161b66))
+
 ## [1.8.1](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.8.0...declarative-hex-worlds@1.8.1) (2026-10-11)
 
 
