@@ -52,7 +52,9 @@ export type { GameboardRuleConfig, GameboardRuleViolation, RuleSeverity } from '
 export {
   canPlaceHarborAt,
   canStackAt,
+  setTileBiome,
   setTileElevation,
+  setTileFields,
   setTileTerrain,
   validateGameboardRules,
 } from '../systems';

@@ -33,6 +33,7 @@ nav:
       - Prop injection: features/prop-injection.md
       - Procedural props: features/sculpt-kit.md
       - Quests: features/quests.md
+      - Tile biomes and fields: features/tile-biomes-and-fields.md
       - Tile injection: features/tile-injection.md
   - About:
       - Overview: about/index.md

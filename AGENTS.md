@@ -90,7 +90,18 @@ contract for CI and npm consumers.
   actor-on-tile, and quest target relations.
 - Use decomposed traits for rule logic:
   `TileCoordinates`, `TileTerrain`, `TileElevation`, `TileConnectivity`,
-  `TileRenderState`, and `TileTagList`.
+  `TileRenderState`, and `TileTagList`. Game-owned ground vocabulary lives in
+  the optional `TileBiome` trait (an open non-empty string, mirrored by
+  `GameboardTileSpec.biome`, builder/recipe `setBiome` and `setTileBiome`); it
+  is independent of `terrain`, so never encode a biome as a custom `terrain`
+  string, a tag, or a texture set, and never rebuild a tile without carrying it.
+  Per-tile numbers a game computes (slope, wetness, soil depth) live in the
+  optional `TileFields` trait (`GameboardTileSpec.fields`, builder/recipe
+  `setFields`, `setTileFields`); `applyTerrainHexesToPlan` writes
+  `projectTerrainToHexes` output onto those fields (and optionally the biome).
+  Both survive spawn, read-back and projection, so route new tile values
+  through `tileStateValue`, `decomposedTileTraits`, `readDecomposedTileSpecs`
+  and the interop snapshot together.
 - Use `AdjacentTo` relations for neighbor-aware systems and validation.
 - Use `spawnGameboardPlacement`, `moveGameboardPlacement`,
   `updateGameboardPlacement`, `removeGameboardPlacement`, or `gameboardActions`
@@ -258,7 +269,9 @@ contract for CI and npm consumers.
   `layoutDensity` on seeded generation for common tree, rock, prop, harbor,
   landmark, and unit fill presets. Criteria can hard-filter terrain, elevation
   bands, terrain adjacency, adjacent placement kind/layer, occupancy, distance,
-  and footprints. Use `createGameboardLayoutArchetypeRegistry` when a local pack
+  and footprints, and on the tile's open `biome` (`biome`, `excludeBiome`,
+  `requiredAdjacentBiome`, `forbiddenAdjacentBiome`) and numeric `fields`
+  bands (`fields: [{ field: 'wetness', min: 0.6 }]`). Use `createGameboardLayoutArchetypeRegistry` when a local pack
   needs reusable custom placement behavior, and pass the registry through layout
   fills, piece fills, seeded generation, or recipe `generation.layoutArchetypes`
   instead of restating the same criteria on every placement. Prefer these APIs

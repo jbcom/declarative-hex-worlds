@@ -8,6 +8,7 @@ import {
   createActions,
   createQuery,
   createWorld,
+  type ConfigurableTrait,
   type Entity,
   type TraitRecord,
   type World,
@@ -56,9 +57,11 @@ export {
   PlacementOnTile,
   PlacementState,
   RequiresExtraAsset,
+  TileBiome,
   TileConnectivity,
   TileCoordinates,
   TileElevation,
+  TileFields,
   TileRenderState,
   TileTagList,
   TileTerrain,
@@ -84,9 +87,11 @@ import {
   PlacementOnTile,
   PlacementState,
   RequiresExtraAsset,
+  TileBiome,
   TileConnectivity,
   TileCoordinates,
   TileElevation,
+  TileFields,
   TileRenderState,
   TileTagList,
   TileTerrain,
@@ -162,6 +167,10 @@ export type TileConnectivityValue = TraitRecord<typeof TileConnectivity>;
 export type TileRenderStateValue = TraitRecord<typeof TileRenderState>;
 /** Decomposed tag trait value returned by `TileTagList`. */
 export type TileTagListValue = TraitRecord<typeof TileTagList>;
+/** Decomposed biome trait value returned by `TileBiome`. */
+export type TileBiomeValue = TraitRecord<typeof TileBiome>;
+/** Decomposed numeric-channel trait value returned by `TileFields`. */
+export type TileFieldsValue = TraitRecord<typeof TileFields>;
 /** Placement trait value returned by `PlacementState`. */
 export type PlacementStateValue = TraitRecord<typeof PlacementState>;
 
@@ -1136,10 +1145,19 @@ function tileStateValue(tile: GameboardTileSpec): HexTileStateValue {
     roadSlope: tile.roadSlope,
     riverCrossing: tile.riverCrossing,
     tags: [...tile.tags],
+    biome: tile.biome,
+    fields: tile.fields === undefined ? undefined : { ...tile.fields },
   };
 }
 
-function decomposedTileTraits(tile: GameboardTileSpec) {
+function decomposedTileTraits(tile: GameboardTileSpec): ConfigurableTrait[] {
+  const optional: ConfigurableTrait[] = [];
+  if (tile.biome !== undefined) {
+    optional.push(TileBiome({ biome: tile.biome }));
+  }
+  if (tile.fields !== undefined) {
+    optional.push(TileFields({ ...tile.fields }));
+  }
   return [
     TileCoordinates({ key: tile.key, q: tile.coordinates.q, r: tile.coordinates.r }),
     TileTerrain({ terrain: tile.terrain }),
@@ -1160,7 +1178,8 @@ function decomposedTileTraits(tile: GameboardTileSpec) {
     }),
     TileRenderState({ textureSet: tile.textureSet }),
     TileTagList([...tile.tags]),
-  ] as const;
+    ...optional,
+  ];
 }
 
 function placementStateValue(placement: GameboardPlacementSpec): PlacementStateValue {
@@ -1178,6 +1197,7 @@ function copyTileState(tile: HexTileStateValue): HexTileStateValue {
     ...tile,
     coordinates: { ...tile.coordinates },
     tags: [...tile.tags],
+    fields: tile.fields === undefined ? undefined : { ...tile.fields },
   };
 }
 
