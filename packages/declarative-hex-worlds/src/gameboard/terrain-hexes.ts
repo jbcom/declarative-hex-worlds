@@ -73,6 +73,7 @@ export function applyTerrainHexesToPlan(
   }
 
   const tiles = plan.tiles.map((tile) => {
+    if (tile.pinned) return tile;
     const hex = hexesByKey.get(tile.key);
     return hex === undefined ? tile : withTerrainHexFacts(tile, hex, sources, mapping.biome);
   });

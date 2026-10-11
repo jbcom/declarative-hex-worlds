@@ -5,7 +5,7 @@
  * @module
  */
 import seedrandom from 'seedrandom';
-import { GameboardRuntimeError } from '../errors';
+import { GameboardRuntimeError, GameboardValidationError } from '../errors';
 import {
   coloredUnitAssetId,
   factionBuildingAssetId,
@@ -190,6 +190,21 @@ export class GameboardBuilder {
     const tile = this.requireTile(coordinates);
     assertGameboardTileBiome(biome, tile.key);
     tile.biome = biome;
+    return this;
+  }
+
+  /**
+   * Protect an authored tile from automatic terrain projection and layout
+   * fills. Explicit builder edits remain allowed. Pass false to remove the
+   * pin; ordinary unpinned tiles do not carry an extra serialized property.
+   */
+  pinTile(coordinates: HexCoordinates, pinned = true): this {
+    const tile = this.requireTile(coordinates);
+    if (typeof pinned !== 'boolean') {
+      throw new GameboardValidationError(`Tile ${tile.key} pinned must be a boolean`);
+    }
+    if (pinned) tile.pinned = true;
+    else delete tile.pinned;
     return this;
   }
 
@@ -757,6 +772,7 @@ export class GameboardBuilder {
     );
     const occupied = new Set(this.customPlacements.map((placement) => placement.tileKey));
     const candidates = [...this.tiles.values()].filter((tile) => {
+      if (tile.pinned) return false;
       if (!terrains.has(tile.terrain)) {
         return false;
       }

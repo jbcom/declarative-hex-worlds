@@ -1044,7 +1044,16 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
       logs.length = 0;
       await expect(
         runBlueprint(
-          { command: 'blueprint', flags: { shape: 'rectangle', waterFill: '1', json: true } },
+          {
+            command: 'blueprint',
+            // A missing asset catalog entry is a stable validation failure;
+            // water fill alone need not produce an invalid generated board.
+            flags: {
+              shape: 'rectangle',
+              manifest: writeJson('blueprint.empty-manifest.json', emptyManifest()),
+              json: true,
+            },
+          },
           '/missing-source',
           'free'
         )
@@ -1059,12 +1068,32 @@ describe('remaining CLI branch gaps (PRD E0a/E0h)', () => {
         runBlueprint(
           {
             command: 'blueprint',
-            flags: { shape: 'rectangle', defaultTerrain: 'lava', failOnWarning: true, json: true },
+            flags: {
+              blueprint: writeJson('blueprint.warning-options.json', {
+                seed: 'cli-blueprint-warning',
+                shape: { kind: 'rectangle', width: 4, height: 4 },
+                waterFill: 0,
+                mountainRanges: [],
+                towns: [],
+                harbors: [],
+                rivers: [],
+                propClusterDressing: false,
+                transitionPolicy: { biomeTransitions: false, elevationRamps: false },
+              }),
+              // Missing declarations produce warnings without inventing an
+              // invalid terrain or depending on a seeded road configuration.
+              registry: writeJson('blueprint.empty-registry.json', []),
+              failOnWarning: true,
+              json: true,
+            },
           },
           '/missing-source',
           'free'
         )
       ).rejects.toThrow('process.exit 1');
+      expect(
+        (JSON.parse(logs.at(-1) ?? '{}') as { validation: { errorCount: number } }).validation.errorCount
+      ).toBe(0);
       expect(
         (JSON.parse(logs.at(-1) ?? '{}') as { validation: { warningCount: number } }).validation
           .warningCount

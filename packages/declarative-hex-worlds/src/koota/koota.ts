@@ -58,6 +58,7 @@ export {
   PlacementState,
   RequiresExtraAsset,
   TileBiome,
+  TilePinned,
   TileConnectivity,
   TileCoordinates,
   TileElevation,
@@ -88,6 +89,7 @@ import {
   PlacementState,
   RequiresExtraAsset,
   TileBiome,
+  TilePinned,
   TileConnectivity,
   TileCoordinates,
   TileElevation,
@@ -1146,12 +1148,14 @@ function tileStateValue(tile: GameboardTileSpec): HexTileStateValue {
     riverCrossing: tile.riverCrossing,
     tags: [...tile.tags],
     biome: tile.biome,
+    pinned: tile.pinned,
     fields: tile.fields === undefined ? undefined : { ...tile.fields },
   };
 }
 
 function decomposedTileTraits(tile: GameboardTileSpec): ConfigurableTrait[] {
   const optional: ConfigurableTrait[] = [];
+  if (tile.pinned) optional.push(TilePinned);
   if (tile.biome !== undefined) {
     optional.push(TileBiome({ biome: tile.biome }));
   }
