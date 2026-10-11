@@ -113,6 +113,8 @@ the state as a deterministic placement list.
   footprints. Explicit builder edits remain allowed. Builder `pinTile(at)`
   and recipe `{ action: 'pinTile', at }` set the pin; passing `false` removes
   it. It survives plan, world, projection and neutral interop serialization.
+  Change live pins with `setTilePinned(world, at, pinned?)` to synchronize the
+  marker and aggregate state before runtime layout generation.
 
 The legacy `HexTileState` remains as a convenient aggregate view, but new rule
 logic should query the decomposed traits.

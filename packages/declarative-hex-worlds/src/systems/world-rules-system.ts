@@ -5,14 +5,14 @@
  * @module
  */
 import { hexKey, neighbor } from '../coordinates';
-import { GameboardRuntimeError } from '../errors';
+import { GameboardRuntimeError, GameboardValidationError } from '../errors';
 import {
   assertGameboardTileBiome,
   type GameboardTerrain,
   type GameboardTileSpec,
   mergeGameboardTileFields,
 } from '../gameboard';
-import { HexTileState, TileBiome, TileElevation, TileFields, TileTerrain } from '../traits';
+import { HexTileState, TileBiome, TileElevation, TileFields, TilePinned, TileTerrain } from '../traits';
 import { findTileEntity } from '../koota';
 import { readDecomposedTileSpecs, readValidationGameboardPlanFromWorld } from '../coordinates';
 import type { GameboardRuleConfig, GameboardRuleViolation } from '../rules';
@@ -115,6 +115,30 @@ export function setTileFields(
     entity.add(TileFields({ ...next }));
   }
   entity.set(HexTileState, { fields: { ...next } });
+}
+
+/**
+ * Changes a live tile's generation pin, keeping the marker and aggregate view
+ * synchronized for layout fills and serialization. Defaults to pinning; pass
+ * false to unpin. Invalid values do not modify either representation.
+ */
+export function setTilePinned(
+  world: World,
+  coordinates: HexCoordinates | string,
+  pinned = true
+): void {
+  const key = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
+  const entity = findTileEntity(world, coordinates);
+  if (!entity) throw new GameboardRuntimeError(`No tile exists at ${key}`);
+  if (typeof pinned !== 'boolean') {
+    throw new GameboardValidationError(`Tile ${key} pinned must be a boolean`);
+  }
+  if (pinned) {
+    if (!entity.has(TilePinned)) entity.add(TilePinned);
+  } else {
+    entity.remove(TilePinned);
+  }
+  entity.set(HexTileState, { pinned: pinned ? true : undefined });
 }
 
 /** Mutates the elevation state for one tile entity in a Koota world. */

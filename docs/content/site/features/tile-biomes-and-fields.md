@@ -72,6 +72,9 @@ Call `builder.pinTile(at)` after authoring a historic feature, or add
 `pinned: true`; Koota carries the `TilePinned` marker. Both survive projection
 and engine-neutral interop snapshots. `pinTile(at, false)` (or a recipe step
 with `pinned: false`) removes the pin.
+Use `setTilePinned(world, at, pinned?)` for live editor changes so the
+`TilePinned` marker and aggregate `HexTileState` stay synchronized before
+runtime placement fills. Direct marker mutation does not update the aggregate.
 
 Automatic terrain projection preserves the entire pinned tile. Decoration
 scatter skips it, and layout fills reject both pinned anchors and footprints

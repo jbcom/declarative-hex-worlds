@@ -4,9 +4,16 @@ import { GameboardValidationError } from '../../errors';
 import { validateGameboardPlan } from '../../rules/validation';
 import { createGameboardInteropSnapshot } from '../../interop/interop';
 import { applyTerrainHexesToPlan } from '../terrain-hexes';
-import { createGameboardWorld } from '../../koota/index';
+import {
+  createGameboardWorld,
+  findTileEntity,
+  readGameboardTiles,
+  TilePinned,
+} from '../../koota/index';
+import { setTilePinned } from '../../systems/world-rules-system';
 import { projectWorldToGameboardPlan } from '../../coordinates/projection';
 import { inspectGameboardLayoutSites } from '../../coordinates/layout';
+import { spawnGameboardLayoutPlacements } from '../../coordinates/layout-runtime';
 import { createGameboardPlanFromRecipe, createGameboardRecipe } from '../../scenario/recipe';
 import { applyGameboardRecipeGeneration } from '../../scenario/recipe-generation';
 
@@ -22,6 +29,40 @@ function pinnedPlan() {
 }
 
 describe('authored tile pins', () => {
+  it('synchronizes runtime pin changes with aggregate reads, marker queries and live layout fills', () => {
+    const world = createGameboardWorld(createGameboardBuilder(options).build());
+    try {
+      setTilePinned(world, at);
+      setTilePinned(world, '1,1', true);
+      expect(world.query(TilePinned)).toHaveLength(1);
+      expect(findTileEntity(world, at)?.has(TilePinned)).toBe(true);
+      expect(readGameboardTiles(world).find((tile) => tile.key === '1,1')?.pinned).toBe(true);
+      const fill = {
+        count: 9,
+        assetId: 'flag_green',
+        kind: 'prop' as const,
+        layer: 'feature' as const,
+        criteria: { allowOccupied: true },
+      };
+      expect(
+        spawnGameboardLayoutPlacements(world, { ...fill, idPrefix: 'pinned-fill' })
+      ).toHaveLength(8);
+      setTilePinned(world, '1,1', false);
+      expect(findTileEntity(world, at)?.has(TilePinned)).toBe(false);
+      expect(readGameboardTiles(world).find((tile) => tile.key === '1,1')?.pinned).toBeUndefined();
+      expect(
+        spawnGameboardLayoutPlacements(world, { ...fill, idPrefix: 'unpinned-fill' })
+      ).toHaveLength(9);
+      expect(() => setTilePinned(world, at, 'yes' as unknown as boolean)).toThrow(
+        GameboardValidationError
+      );
+      expect(findTileEntity(world, at)?.has(TilePinned)).toBe(false);
+      expect(() => setTilePinned(world, '99,99')).toThrow(/No tile exists/);
+    } finally {
+      world.destroy();
+    }
+  });
+
   it('keeps seeded recipe layout fills off a pin through their Koota generation round trip', () => {
     const recipe = createGameboardRecipe(options, [{ action: 'pinTile', at }], {
       layoutFills: [
