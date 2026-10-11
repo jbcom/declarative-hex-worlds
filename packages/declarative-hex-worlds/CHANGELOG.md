@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.4.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.3.0...declarative-hex-worlds@1.4.0) (2026-10-11)
+
+
+### Features
+
+* **terrain:** bucket polylines into flat per-cell segment lists for renderers ([f27e714](https://github.com/jbcom/declarative-hex-worlds/commit/f27e71401dd24893448801dbd7ba010ff0cc612d))
+* **terrain:** bucket polylines into flat per-cell segment lists for renderers ([e09e806](https://github.com/jbcom/declarative-hex-worlds/commit/e09e8060d94f9a3a0f14e748afe09fa1e32b2f4c))
+* **terrain:** harmonic in-painting for height fields ([c6283b3](https://github.com/jbcom/declarative-hex-worlds/commit/c6283b3d343902e49512cab55fee1c47877dc459))
+* **terrain:** harmonic in-painting to erase modern earthworks from height fields ([61eb306](https://github.com/jbcom/declarative-hex-worlds/commit/61eb3069782c2d0f7ac4f1666815cc119356bcf0))
+* **terrain:** restore fine relief over in-painted ground ([e661c19](https://github.com/jbcom/declarative-hex-worlds/commit/e661c199ac3cc1519df8f5922f6a37f71cdeecba))
+* **terrain:** route roads across terrain and join sites into networks ([e293a24](https://github.com/jbcom/declarative-hex-worlds/commit/e293a24c201474e0309bc98d28947d92a13caa53))
+* **terrain:** trace drainage and route roads across terrain ([1306182](https://github.com/jbcom/declarative-hex-worlds/commit/130618259ebc62aa0378655c0363f153f6899549))
+* **terrain:** trace drainage networks and carve their beds ([477f58e](https://github.com/jbcom/declarative-hex-worlds/commit/477f58eccb11023640931caab92fe033b9ae0de7))
+
+
+### Bug Fixes
+
+* **terrain:** reject a non-positive cell size in the segment cover walk ([cdf1403](https://github.com/jbcom/declarative-hex-worlds/commit/cdf1403fc0a568551b415e68ec42ed03bed3fe83))
+
+
+### Performance
+
+* **terrain:** cull biome paints to the samples they can reach ([d4baf5d](https://github.com/jbcom/declarative-hex-worlds/commit/d4baf5d5dce5b6300796b0c1a5f5b7be7316be70))
+* **terrain:** cull biome paints to the samples they can reach ([6885564](https://github.com/jbcom/declarative-hex-worlds/commit/68855647bf97ce19dbb5ef775b53ba1d0d8dedc0))
+* **terrain:** key polyline index buckets by number, not string ([7ef1282](https://github.com/jbcom/declarative-hex-worlds/commit/7ef1282448897edb3766a2e82b2401de33fa61d4))
+
 ## [1.3.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.2.3...declarative-hex-worlds@1.3.0) (2026-10-10)
 
 
