@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createGameboardBuilder } from '../../gameboard/index';
 import { createManifestBundle } from '../../manifest/schema';
+import { canStackInPlan, validateGameboardPlan } from '../../rules/validation';
 import { applyTileDeclaration, createHexTileRegistry } from '../../scenario/registry';
 import type { MedievalHexagonAsset, MedievalHexagonManifest, PackEdition } from '../../types/index';
-import { canStackInPlan, validateGameboardPlan } from '../../rules/validation';
 
 describe('engine-neutral plan validation', () => {
   it('validates declaration stack rules without creating a Koota world', () => {
@@ -48,14 +48,20 @@ describe('engine-neutral plan validation', () => {
       seed: 'one-way',
       shape: { kind: 'rectangle', width: 2, height: 1 },
     });
-    applyTileDeclaration(oneWayBuilder, registry, { at: { q: 0, r: 0 }, declaration: 'custom_hex_path' });
+    applyTileDeclaration(oneWayBuilder, registry, {
+      at: { q: 0, r: 0 },
+      declaration: 'custom_hex_path',
+    });
     const oneWay = oneWayBuilder.build();
 
     const connectedBuilder = createGameboardBuilder({
       seed: 'connected',
       shape: { kind: 'rectangle', width: 2, height: 1 },
     });
-    applyTileDeclaration(connectedBuilder, registry, { at: { q: 0, r: 0 }, declaration: 'custom_hex_path' });
+    applyTileDeclaration(connectedBuilder, registry, {
+      at: { q: 0, r: 0 },
+      declaration: 'custom_hex_path',
+    });
     applyTileDeclaration(connectedBuilder, registry, {
       at: { q: 1, r: 0 },
       declaration: 'custom_hex_path',
@@ -63,9 +69,9 @@ describe('engine-neutral plan validation', () => {
     });
     const connected = connectedBuilder.build();
 
-    expect(validateGameboardPlan(oneWay, { registry }).map((violation) => violation.code)).toContain(
-      'declaration.missing_reciprocal_edge'
-    );
+    expect(
+      validateGameboardPlan(oneWay, { registry }).map((violation) => violation.code)
+    ).toContain('declaration.missing_reciprocal_edge');
     expect(
       validateGameboardPlan(connected, { registry }).some(
         (violation) => violation.code === 'declaration.missing_reciprocal_edge'
@@ -94,7 +100,10 @@ describe('engine-neutral plan validation', () => {
       seed: 'terrain-requirement',
       shape: { kind: 'rectangle', width: 2, height: 1 },
     });
-    applyTileDeclaration(builder, registry, { at: { q: 0, r: 0 }, declaration: 'custom_lava_dock' });
+    applyTileDeclaration(builder, registry, {
+      at: { q: 0, r: 0 },
+      declaration: 'custom_lava_dock',
+    });
     const plan = builder.build();
 
     expect(validateGameboardPlan(plan, { registry }).map((violation) => violation.code)).toContain(
@@ -157,9 +166,9 @@ describe('engine-neutral plan validation', () => {
       .setTerrain({ q: 1, r: 0 }, 'water')
       .build();
 
-    expect(validateGameboardPlan(plan, { registry }).map((violation) => violation.code)).not.toContain(
-      'declaration.missing_reciprocal_edge'
-    );
+    expect(
+      validateGameboardPlan(plan, { registry }).map((violation) => violation.code)
+    ).not.toContain('declaration.missing_reciprocal_edge');
   });
 
   it('validates plan asset references against an optional manifest catalog', () => {
@@ -179,7 +188,9 @@ describe('engine-neutral plan validation', () => {
     };
 
     expect(
-      validateGameboardPlan(unknownPlacement, { assetCatalog: freeCatalogFixture() }).map((violation) => violation.code)
+      validateGameboardPlan(unknownPlacement, { assetCatalog: freeCatalogFixture() }).map(
+        (violation) => violation.code
+      )
     ).toContain('asset.unknown');
     expect(
       validateGameboardPlan(unnecessaryExtraFlag, { assetCatalog: freeCatalogFixture() }).map(
@@ -204,7 +215,9 @@ describe('engine-neutral plan validation', () => {
       })),
     };
     const catalog = createManifestBundle([
-      manifestFixture('extra', [assetFixture({ id: 'unit_blue_full', edition: 'extra', category: 'units' })]),
+      manifestFixture('extra', [
+        assetFixture({ id: 'unit_blue_full', edition: 'extra', category: 'units' }),
+      ]),
     ]);
 
     expect(
@@ -256,11 +269,13 @@ describe('engine-neutral plan validation', () => {
       ],
     };
 
-    expect(validateGameboardPlan(base, { allowUnknownAssets: true }).map((violation) => violation.code)).toContain(
-      'placement.blocking_footprint_overlap'
-    );
     expect(
-      validateGameboardPlan(missingFootprint, { allowUnknownAssets: true }).map((violation) => violation.code)
+      validateGameboardPlan(base, { allowUnknownAssets: true }).map((violation) => violation.code)
+    ).toContain('placement.blocking_footprint_overlap');
+    expect(
+      validateGameboardPlan(missingFootprint, { allowUnknownAssets: true }).map(
+        (violation) => violation.code
+      )
     ).toContain('placement.footprint_missing_tile');
   });
 
@@ -388,14 +403,21 @@ describe('engine-neutral plan validation', () => {
     })
       .setTileAsset({ at: { q: 0, r: 0 }, assetId: 'hex_road_A', terrain: 'road', roadEdges: [0] })
       .build();
-    expect(validateGameboardPlan(offBoardRoad).map((violation) => violation.code)).toContain('road.edge_off_board');
+    expect(validateGameboardPlan(offBoardRoad).map((violation) => violation.code)).toContain(
+      'road.edge_off_board'
+    );
 
     const waterStructure = createGameboardBuilder({
       seed: 'water-structure',
       shape: { kind: 'rectangle', width: 1, height: 1 },
       defaultTerrain: 'water',
     })
-      .addPlacement({ at: { q: 0, r: 0 }, assetId: 'building_bridge_A', kind: 'structure', layer: 'structure' })
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'building_bridge_A',
+        kind: 'structure',
+        layer: 'structure',
+      })
       .build();
     expect(validateGameboardPlan(waterStructure).map((violation) => violation.code)).toContain(
       'placement.structure_on_water'
@@ -445,9 +467,9 @@ describe('engine-neutral plan validation', () => {
             : placement.metadata,
       })),
     };
-    expect(validateGameboardPlan(malformedHarborFacing).map((violation) => violation.code)).toContain(
-      'harbor.missing_water'
-    );
+    expect(
+      validateGameboardPlan(malformedHarborFacing).map((violation) => violation.code)
+    ).toContain('harbor.missing_water');
   });
 
   it('reports EXTRA tile assets and declaration adjacency boundary rules (E0h)', () => {
@@ -458,12 +480,15 @@ describe('engine-neutral plan validation', () => {
       .setTileAsset({ at: { q: 0, r: 0 }, assetId: 'hex_extra_local', terrain: 'grass' })
       .build();
     const extraCatalog = createManifestBundle([
-      manifestFixture('extra', [assetFixture({ id: 'hex_extra_local', edition: 'extra', category: 'tiles' })]),
+      manifestFixture('extra', [
+        assetFixture({ id: 'hex_extra_local', edition: 'extra', category: 'tiles' }),
+      ]),
     ]);
     expect(
-      validateGameboardPlan(extraTile, { assetCatalog: extraCatalog, allowUnknownAssets: true }).map(
-        (violation) => violation.code
-      )
+      validateGameboardPlan(extraTile, {
+        assetCatalog: extraCatalog,
+        allowUnknownAssets: true,
+      }).map((violation) => violation.code)
     ).toContain('asset.tile_requires_extra');
 
     const anonymousPlacementBase = createGameboardBuilder({
@@ -472,7 +497,9 @@ describe('engine-neutral plan validation', () => {
     })
       .addFlag({ q: 0, r: 0 }, 'blue')
       .build();
-    const anonymousPlacement = anonymousPlacementBase.placements.find((placement) => placement.assetId === 'flag_blue');
+    const anonymousPlacement = anonymousPlacementBase.placements.find(
+      (placement) => placement.assetId === 'flag_blue'
+    );
     if (!anonymousPlacement) {
       throw new Error('Expected anonymous asset placement fixture');
     }
@@ -482,12 +509,19 @@ describe('engine-neutral plan validation', () => {
         assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles' }),
         assetFixture({ id: 'hex_grass_bottom', edition: 'free', category: 'tiles' }),
       ]),
-      manifestFixture('extra', [assetFixture({ id: 'unit_blue_full', edition: 'extra', category: 'units' })]),
+      manifestFixture('extra', [
+        assetFixture({ id: 'unit_blue_full', edition: 'extra', category: 'units' }),
+      ]),
     ]);
     const anonymousExtra = {
       ...anonymousPlacementBase,
       placements: [
-        { ...anonymousPlacement, id: undefined as never, assetId: 'unit_blue_full', requiresExtra: false },
+        {
+          ...anonymousPlacement,
+          id: undefined as never,
+          assetId: 'unit_blue_full',
+          requiresExtra: false,
+        },
       ],
     };
     const anonymousFree = {
@@ -495,14 +529,16 @@ describe('engine-neutral plan validation', () => {
       placements: [{ ...anonymousPlacement, id: undefined as never, requiresExtra: true }],
     };
     expect(
-      validateGameboardPlan(anonymousExtra, { assetCatalog: assetFlagCatalog, allowUnknownAssets: true }).find(
-        (violation) => violation.code === 'asset.extra_flag_missing'
-      )?.message
+      validateGameboardPlan(anonymousExtra, {
+        assetCatalog: assetFlagCatalog,
+        allowUnknownAssets: true,
+      }).find((violation) => violation.code === 'asset.extra_flag_missing')?.message
     ).toContain('<unknown>');
     expect(
-      validateGameboardPlan(anonymousFree, { assetCatalog: assetFlagCatalog, allowUnknownAssets: true }).find(
-        (violation) => violation.code === 'asset.extra_flag_unnecessary'
-      )?.message
+      validateGameboardPlan(anonymousFree, {
+        assetCatalog: assetFlagCatalog,
+        allowUnknownAssets: true,
+      }).find((violation) => violation.code === 'asset.extra_flag_unnecessary')?.message
     ).toContain('<unknown>');
 
     const boundaryRegistry = createHexTileRegistry([
@@ -539,11 +575,16 @@ describe('engine-neutral plan validation', () => {
         layer: 'structure',
         metadata: { declarationId: 'missing-custom-edge' },
       })
-      .addPlacement({ at: { q: 0, r: 0 }, assetId: 'custom_gate', kind: 'structure', layer: 'structure' })
+      .addPlacement({
+        at: { q: 0, r: 0 },
+        assetId: 'custom_gate',
+        kind: 'structure',
+        layer: 'structure',
+      })
       .build();
-    expect(validateGameboardPlan(boundaryPlan, { registry: boundaryRegistry }).map((v) => v.code)).toContain(
-      'declaration.edge_off_board'
-    );
+    expect(
+      validateGameboardPlan(boundaryPlan, { registry: boundaryRegistry }).map((v) => v.code)
+    ).toContain('declaration.edge_off_board');
 
     const baseDeclarationPlan = createGameboardBuilder({
       seed: 'base-declaration-edge',
@@ -570,9 +611,11 @@ describe('engine-neutral plan validation', () => {
         },
       ],
     };
-    expect(validateGameboardPlan(missingRegisteredTilePlan, { registry: boundaryRegistry }).map((v) => v.code)).toContain(
-      'placement.missing_tile'
-    );
+    expect(
+      validateGameboardPlan(missingRegisteredTilePlan, { registry: boundaryRegistry }).map(
+        (v) => v.code
+      )
+    ).toContain('placement.missing_tile');
 
     const metadataMaskRegistry = createHexTileRegistry([
       {
@@ -593,9 +636,9 @@ describe('engine-neutral plan validation', () => {
         metadata: { edgeMask: 1, declarationId: 'custom_metadata_road' },
       })
       .build();
-    expect(validateGameboardPlan(metadataMaskPlan, { registry: metadataMaskRegistry }).map((v) => v.code)).toContain(
-      'declaration.missing_reciprocal_edge'
-    );
+    expect(
+      validateGameboardPlan(metadataMaskPlan, { registry: metadataMaskRegistry }).map((v) => v.code)
+    ).toContain('declaration.missing_reciprocal_edge');
 
     const terrainRegistry = createHexTileRegistry([
       {
@@ -603,7 +646,9 @@ describe('engine-neutral plan validation', () => {
         assetId: 'custom_water_forbidden',
         role: 'surface',
         edges: { trail: [0] },
-        adjacency: [{ channel: 'trail', mask: 1, reciprocal: false, forbidsNeighborTerrain: ['water'] }],
+        adjacency: [
+          { channel: 'trail', mask: 1, reciprocal: false, forbidsNeighborTerrain: ['water'] },
+        ],
       },
     ]);
     const terrainPlan = createGameboardBuilder({
@@ -618,17 +663,27 @@ describe('engine-neutral plan validation', () => {
       })
       .setTerrain({ q: 1, r: 0 }, 'water')
       .build();
-    expect(validateGameboardPlan(terrainPlan, { registry: terrainRegistry }).map((v) => v.code)).toContain(
-      'declaration.adjacency_forbidden_terrain'
-    );
+    expect(
+      validateGameboardPlan(terrainPlan, { registry: terrainRegistry }).map((v) => v.code)
+    ).toContain('declaration.adjacency_forbidden_terrain');
   });
 });
 
 function freeCatalogFixture(): MedievalHexagonManifest {
   return manifestFixture('free', [
     assetFixture({ id: 'hex_grass', edition: 'free', category: 'tiles', subcategory: 'base' }),
-    assetFixture({ id: 'hex_grass_bottom', edition: 'free', category: 'tiles', subcategory: 'base' }),
-    assetFixture({ id: 'flag_blue', edition: 'free', category: 'decoration', subcategory: 'props' }),
+    assetFixture({
+      id: 'hex_grass_bottom',
+      edition: 'free',
+      category: 'tiles',
+      subcategory: 'base',
+    }),
+    assetFixture({
+      id: 'flag_blue',
+      edition: 'free',
+      category: 'decoration',
+      subcategory: 'props',
+    }),
   ]);
 }
 

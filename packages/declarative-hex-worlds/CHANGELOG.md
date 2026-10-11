@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.8.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.7.0...declarative-hex-worlds@1.8.0) (2026-10-11)
+
+
+### Features
+
+* **world:** grow capped field regions and record their ids ([b9efcf9](https://github.com/jbcom/declarative-hex-worlds/commit/b9efcf977796f6256f4562616e34b89f9818f684))
+* **world:** grow capped field regions and record their ids ([41bd501](https://github.com/jbcom/declarative-hex-worlds/commit/41bd501c940f22c3b7c44e8a0443b04c6b83a468))
+
+
+### Bug Fixes
+
+* **world:** honour empty sources, keep capped fields whole, plant from kept sets ([279e08d](https://github.com/jbcom/declarative-hex-worlds/commit/279e08d4b08768790f2d0eab6328a41920007f7f))
+
 ## [1.7.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.6.0...declarative-hex-worlds@1.7.0) (2026-10-11)
 
 

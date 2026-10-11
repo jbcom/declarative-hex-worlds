@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { factionBuildingAssetId, isKnownExtraAssetId, textureFileName } from '../../scenario/catalog';
 import { containsHex, coordinatesForShape } from '../../coordinates';
 import { createGameboardBuilder } from '../../gameboard';
-import { AdjacentTo, HexTileState, createGameboardWorld, findTileEntity } from '../../koota';
+import { AdjacentTo, createGameboardWorld, findTileEntity, HexTileState } from '../../koota';
 import { createGameboardPieceRegistry } from '../../pieces';
 import {
   canPlaceHarborAt,
@@ -19,6 +18,11 @@ import {
   validateGameboardRules,
 } from '../../rules';
 import { validateGameboardPlan } from '../../rules/validation';
+import {
+  factionBuildingAssetId,
+  isKnownExtraAssetId,
+  textureFileName,
+} from '../../scenario/catalog';
 
 describe('Koota rules and seeded generation', () => {
   it('exposes catalog ids for guide families instead of string guessing', () => {
@@ -31,7 +35,10 @@ describe('Koota rules and seeded generation', () => {
 
   it('links adjacent tile entities with edge metadata', () => {
     const world = createGameboardWorld(
-      createGameboardBuilder({ seed: 'adjacency', shape: { kind: 'rectangle', width: 2, height: 2 } }).build()
+      createGameboardBuilder({
+        seed: 'adjacency',
+        shape: { kind: 'rectangle', width: 2, height: 2 },
+      }).build()
     );
     const tile = findTileEntity(world, { q: 0, r: 0 });
     const neighbor = findTileEntity(world, { q: 1, r: 0 });
@@ -43,7 +50,10 @@ describe('Koota rules and seeded generation', () => {
 
   it('keeps decomposed tile traits in sync for direct Koota rule edits', () => {
     const world = createGameboardWorld(
-      createGameboardBuilder({ seed: 'mutate', shape: { kind: 'rectangle', width: 2, height: 2 } }).build()
+      createGameboardBuilder({
+        seed: 'mutate',
+        shape: { kind: 'rectangle', width: 2, height: 2 },
+      }).build()
     );
 
     setTileTerrain(world, { q: 0, r: 0 }, 'water');
@@ -63,17 +73,30 @@ describe('Koota rules and seeded generation', () => {
     );
 
     expect(canPlaceHarborAt(world, { q: 1, r: 1 }, 1)).toBe(true);
-    expect(validateGameboardRules(world).filter((violation) => violation.severity === 'error')).toEqual([]);
+    expect(
+      validateGameboardRules(world).filter((violation) => violation.severity === 'error')
+    ).toEqual([]);
 
     setTileElevation(world, { q: 1, r: 2 }, 2);
-    const errors = validateGameboardRules(world).filter((violation) => violation.severity === 'error');
+    const errors = validateGameboardRules(world).filter(
+      (violation) => violation.severity === 'error'
+    );
     expect(errors.map((violation) => violation.code)).toContain('stack.water_elevation');
   });
 
   it('creates deterministic seeded gameboards and can project Koota state back to a plan', () => {
-    const first = createSeededGameboardPlan({ seed: 'world-seed', shape: { kind: 'rectangle', width: 8, height: 6 } });
-    const second = createSeededGameboardPlan({ seed: 'world-seed', shape: { kind: 'rectangle', width: 8, height: 6 } });
-    const world = createSeededGameboardWorld({ seed: 'world-seed', shape: { kind: 'rectangle', width: 8, height: 6 } });
+    const first = createSeededGameboardPlan({
+      seed: 'world-seed',
+      shape: { kind: 'rectangle', width: 8, height: 6 },
+    });
+    const second = createSeededGameboardPlan({
+      seed: 'world-seed',
+      shape: { kind: 'rectangle', width: 8, height: 6 },
+    });
+    const world = createSeededGameboardWorld({
+      seed: 'world-seed',
+      shape: { kind: 'rectangle', width: 8, height: 6 },
+    });
     const projected = projectWorldToGameboardPlan(world);
 
     expect(first.tiles).toEqual(second.tiles);
@@ -81,7 +104,9 @@ describe('Koota rules and seeded generation', () => {
       second.placements.map((placement) => placement.assetId)
     );
     expect(projected.tiles).toEqual(first.tiles);
-    expect(validateGameboardRules(world).some((violation) => violation.severity === 'error')).toBe(false);
+    expect(validateGameboardRules(world).some((violation) => violation.severity === 'error')).toBe(
+      false
+    );
   });
 
   it('creates deterministic seeded hexagon gameboards', () => {
@@ -103,10 +128,22 @@ describe('Koota rules and seeded generation', () => {
       },
     });
     expect(first.tiles).toEqual(second.tiles);
-    expect(first.placements.map((placement) => [placement.assetId, placement.tileKey, placement.rotationSteps])).toEqual(
-      second.placements.map((placement) => [placement.assetId, placement.tileKey, placement.rotationSteps])
+    expect(
+      first.placements.map((placement) => [
+        placement.assetId,
+        placement.tileKey,
+        placement.rotationSteps,
+      ])
+    ).toEqual(
+      second.placements.map((placement) => [
+        placement.assetId,
+        placement.tileKey,
+        placement.rotationSteps,
+      ])
     );
-    expect(validateGameboardPlan(first).filter((violation) => violation.severity === 'error')).toEqual([]);
+    expect(
+      validateGameboardPlan(first).filter((violation) => violation.severity === 'error')
+    ).toEqual([]);
   });
 
   it('applies layout percentage fills during seeded generation', () => {
@@ -140,15 +177,27 @@ describe('Koota rules and seeded generation', () => {
         },
       ],
     });
-    const fillPlacements = first.placements.filter((placement) => placement.id.startsWith('layout:seeded-groves'));
+    const fillPlacements = first.placements.filter((placement) =>
+      placement.id.startsWith('layout:seeded-groves')
+    );
 
     expect(fillPlacements.length).toBeGreaterThanOrEqual(2);
     expect(fillPlacements.length).toBeLessThanOrEqual(4);
-    expect(fillPlacements.every((placement) => placement.metadata.layoutArchetype === 'tree')).toBe(true);
-    expect(fillPlacements.every((placement) => placement.metadata.layoutSeed === 'filled-world:layout-fill:seeded-groves')).toBe(
+    expect(fillPlacements.every((placement) => placement.metadata.layoutArchetype === 'tree')).toBe(
       true
     );
-    expect(fillPlacements.map((placement) => [placement.assetId, placement.tileKey, placement.metadata.layoutSlot])).toEqual(
+    expect(
+      fillPlacements.every(
+        (placement) => placement.metadata.layoutSeed === 'filled-world:layout-fill:seeded-groves'
+      )
+    ).toBe(true);
+    expect(
+      fillPlacements.map((placement) => [
+        placement.assetId,
+        placement.tileKey,
+        placement.metadata.layoutSlot,
+      ])
+    ).toEqual(
       second.placements
         .filter((placement) => placement.id.startsWith('layout:seeded-groves'))
         .map((placement) => [placement.assetId, placement.tileKey, placement.metadata.layoutSlot])
@@ -218,11 +267,13 @@ describe('Koota rules and seeded generation', () => {
     });
     expect(tinyPlan.tiles).toHaveLength(1);
     expect(tinyPlan.warnings).toEqual(
-      expect.arrayContaining([expect.stringContaining('adjacent water tile 0,1 is outside the board')])
+      expect.arrayContaining([
+        expect.stringContaining('adjacent water tile 0,1 is outside the board'),
+      ])
     );
-    expect(() => createSeededGameboardPlan({ shape: { kind: 'rectangle', width: 0, height: 0 } })).toThrow(
-      /non-empty shapeCoordinates/
-    );
+    expect(() =>
+      createSeededGameboardPlan({ shape: { kind: 'rectangle', width: 0, height: 0 } })
+    ).toThrow(/non-empty shapeCoordinates/);
 
     expect(createSeededGameboardDensityFillRules(undefined)).toEqual([]);
     const rules = createSeededGameboardDensityFillRules({
@@ -234,7 +285,11 @@ describe('Koota rules and seeded generation', () => {
       rocks: { assets: ['rock_single_A'], count: 1 },
     });
 
-    expect(rules.map((rule) => rule.id)).toEqual(['density:units', 'density:trees', 'density:rocks']);
+    expect(rules.map((rule) => rule.id)).toEqual([
+      'density:units',
+      'density:trees',
+      'density:rocks',
+    ]);
     expect(rules[0]).toMatchObject({
       assets: ['unit_blue_full'],
       metadata: { densityPreset: 'units' },
@@ -258,9 +313,15 @@ describe('Koota rules and seeded generation', () => {
         landmarks: { count: 1 },
       },
     });
-    const harbors = plan.placements.filter((placement) => placement.metadata.densityPreset === 'harbors');
-    const trees = plan.placements.filter((placement) => placement.metadata.densityPreset === 'trees');
-    const landmarks = plan.placements.filter((placement) => placement.metadata.densityPreset === 'landmarks');
+    const harbors = plan.placements.filter(
+      (placement) => placement.metadata.densityPreset === 'harbors'
+    );
+    const trees = plan.placements.filter(
+      (placement) => placement.metadata.densityPreset === 'trees'
+    );
+    const landmarks = plan.placements.filter(
+      (placement) => placement.metadata.densityPreset === 'landmarks'
+    );
 
     expect(harbors).toHaveLength(1);
     expect(harbors[0]).toMatchObject({
@@ -270,7 +331,9 @@ describe('Koota rules and seeded generation', () => {
     });
     expect(typeof harbors[0]?.metadata.facing).toBe('number');
     expect(['building_docks_green', 'building_shipyard_green']).toContain(harbors[0]?.assetId);
-    expect(validateGameboardPlan(plan).filter((violation) => violation.severity === 'error')).toEqual([]);
+    expect(
+      validateGameboardPlan(plan).filter((violation) => violation.severity === 'error')
+    ).toEqual([]);
     expect(trees.length).toBeGreaterThanOrEqual(2);
     expect(trees.length).toBeLessThanOrEqual(3);
     expect(trees.every((placement) => placement.metadata.layoutArchetype === 'tree')).toBe(true);
@@ -351,12 +414,14 @@ describe('Koota rules and seeded generation', () => {
       },
     });
 
-    expect(createSeededGameboardPieceFillRules(registry, [{ mode: 'pool', selection: { ids: ['missing'] } }])).toEqual(
-      []
-    );
-    expect(() => createSeededGameboardPieceFillRules(undefined, [{ mode: 'pool', count: 1 }])).toThrow(
-      /requires a piece registry/
-    );
+    expect(
+      createSeededGameboardPieceFillRules(registry, [
+        { mode: 'pool', selection: { ids: ['missing'] } },
+      ])
+    ).toEqual([]);
+    expect(() =>
+      createSeededGameboardPieceFillRules(undefined, [{ mode: 'pool', count: 1 }])
+    ).toThrow(/requires a piece registry/);
   });
 
   it('covers seeded piece-fill edge selections and object archetype pool signatures (E0h)', () => {
@@ -407,7 +472,10 @@ describe('Koota rules and seeded generation', () => {
     ).toThrow(/bad-pool/);
 
     const inspection = inspectSeededGameboardPieceFills(
-      createGameboardBuilder({ seed: 'empty-selection-inspection', shape: { kind: 'rectangle', width: 1, height: 1 } }).build(),
+      createGameboardBuilder({
+        seed: 'empty-selection-inspection',
+        shape: { kind: 'rectangle', width: 1, height: 1 },
+      }).build(),
       registry,
       [{}],
       {}
@@ -425,7 +493,10 @@ describe('Koota rules and seeded generation', () => {
     });
 
     const emptyInspection = inspectSeededGameboardPieceFills(
-      createGameboardBuilder({ seed: 'missing-selection-inspection', shape: { kind: 'rectangle', width: 1, height: 1 } }).build(),
+      createGameboardBuilder({
+        seed: 'missing-selection-inspection',
+        shape: { kind: 'rectangle', width: 1, height: 1 },
+      }).build(),
       registry,
       [{ mode: 'pool', selection: { ids: ['missing-piece'] } }],
       {}
@@ -506,7 +577,9 @@ describe('Koota rules and seeded generation', () => {
           id: 'mixed-pool',
           mode: 'pool',
           selectedCount: 3,
-          errors: ['Piece fill mixed-pool cannot pool pieces with different archetype, kind, or layer'],
+          errors: [
+            'Piece fill mixed-pool cannot pool pieces with different archetype, kind, or layer',
+          ],
         },
       ],
       errors: ['Piece fill mixed-pool cannot pool pieces with different archetype, kind, or layer'],
@@ -517,9 +590,11 @@ describe('Koota rules and seeded generation', () => {
       assets: ['kenney:tree-large', 'kenney:tree-small'],
     });
     expect(inspection.placements).toHaveLength(2);
-    expect(inspection.placements.every((placement) => ['kenney:tree-large', 'kenney:tree-small'].includes(placement.assetId))).toBe(
-      true
-    );
+    expect(
+      inspection.placements.every((placement) =>
+        ['kenney:tree-large', 'kenney:tree-small'].includes(placement.assetId)
+      )
+    ).toBe(true);
   });
 
   it('applies custom piece registries during seeded generation', () => {
@@ -548,7 +623,9 @@ describe('Koota rules and seeded generation', () => {
         },
       ],
     });
-    const tower = plan.placements.find((placement) => placement.metadata.pieceId === 'kenney-round-tower');
+    const tower = plan.placements.find(
+      (placement) => placement.metadata.pieceId === 'kenney-round-tower'
+    );
 
     expect(tower).toMatchObject({
       assetId: 'kenney:tower-hexagon-base',
@@ -582,7 +659,10 @@ describe('Koota rules and seeded generation', () => {
 
   it('world-rules error + false branches: missing tile throws; non-water adjacency rejects harbor (PRD E0f)', () => {
     const world = createGameboardWorld(
-      createGameboardBuilder({ seed: 'world-rules-branches', shape: { kind: 'rectangle', width: 2, height: 2 } }).build()
+      createGameboardBuilder({
+        seed: 'world-rules-branches',
+        shape: { kind: 'rectangle', width: 2, height: 2 },
+      }).build()
     );
 
     expect(canStackAt(world, { q: 0, r: 0 }, 1)).toBe(true);
