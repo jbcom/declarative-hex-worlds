@@ -56,6 +56,8 @@ export interface CameraState {
   readonly aspect?: number;
   /** Direction from target towards eye, normalized internally; overrides angle. */
   readonly eyeDirection?: WorldPosition;
+  /** Near clipping distance (default 0.1); nonnegative, positive for perspective. */
+  readonly near?: number;
 }
 
 /** The default game camera: isometric, orthographic, framing the whole board. */
@@ -181,6 +183,10 @@ export function computeCameraFraming(
   const padding = state.padding ?? DEFAULT_PADDING;
   const fov = state.fov ?? DEFAULT_FOV;
   const aspect = state.aspect ?? 1;
+  const near = state.near ?? 0.1;
+  if (!Number.isFinite(near) || near < 0 || (state.projection === 'perspective' && near === 0)) {
+    throw new RangeError('Camera near must be finite and nonnegative, positive for perspective');
+  }
   if (!Number.isFinite(aspect) || aspect <= 0) {
     throw new RangeError('Camera aspect must be finite and positive');
   }
@@ -232,13 +238,11 @@ export function computeCameraFraming(
     }
   }
   const orthoHalfHeight = factor * (Math.max(projectedHeight, projectedWidth / aspect) || 0.5);
+  const clearance = Math.max(1e-6, near * 1.001);
   distance =
     state.projection === 'orthographic'
-      ? Math.max(1, nearestDepth + 1)
-      : Math.max(
-          distance || orthoHalfHeight / tanVertical,
-          nearestDepth + Math.max(1e-6, orthoHalfHeight * 1e-6)
-        );
+      ? Math.max(1, nearestDepth + Math.max(1, clearance))
+      : Math.max(distance || orthoHalfHeight / tanVertical, nearestDepth + clearance);
   const position: WorldPosition = {
     x: bounds.center.x + dir.x * distance,
     y: bounds.center.y + dir.y * distance,

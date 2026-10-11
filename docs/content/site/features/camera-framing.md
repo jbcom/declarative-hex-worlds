@@ -19,6 +19,7 @@ const frame = computeCameraFraming(bounds, {
   eyeDirection: { x: 0, y: 0.49, z: 0.85 },
   fov: 50 * Math.PI / 180,
   padding: 0.1,
+  near: 0.02,
 });
 ```
 
@@ -31,14 +32,16 @@ With `frame-board`, padding enlarges the projected extents by `1 + padding`.
 Apply `position` and the returned world-space `up`, look at `target`, then update the renderer's projection and
 world matrices. Recompute when the viewport or physical bounds change. FOV is
 vertical and in radians here; renderer bindings may require degrees. Bindings
-remain responsible for near/far clipping planes.
+remain responsible for setting clipping planes. Supply the renderer's near
+distance so even an axial or thin bound stays beyond that plane; the default
+is 0.1. Near is finite and nonnegative, and must be positive for perspective.
 Orthographic distance places the bounds in front of the eye independently of
 viewport aspect; the orthographic volume handles the fit. The returned `up`
 also fixes the screen basis at pole views instead of relying on a renderer's
 look-at fallback. Older manually constructed framings may omit `up`; bindings
 then retain the world-Y default.
-The R3F `useCamera` hook drives the active camera's projection kind and measured
-viewport aspect, overriding manually supplied values, and waits for a positive
+The R3F `useCamera` hook drives the active camera's projection kind, near distance
+and measured viewport aspect, overriding manually supplied values, and waits for a positive
 viewport before framing. Configure the active camera type on the canvas.
 
 Aspect defaults to one. The angle presets remain available without a custom

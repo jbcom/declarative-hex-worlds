@@ -14,6 +14,54 @@ const corners = (box: BoardBounds) =>
   );
 
 describe('viewport camera framing', () => {
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])('rejects invalid near %s', (near) => {
+    expect(() => computeCameraFraming(bounds, { ...DEFAULT_CAMERA_STATE, near })).toThrow(
+      RangeError
+    );
+  });
+  it('accepts zero orthographic near and rejects zero perspective near', () => {
+    expect(() => computeCameraFraming(bounds, { ...DEFAULT_CAMERA_STATE, near: 0 })).not.toThrow();
+    expect(() =>
+      computeCameraFraming(bounds, {
+        ...DEFAULT_CAMERA_STATE,
+        projection: 'perspective',
+        near: 0,
+      })
+    ).toThrow(RangeError);
+  });
+  it('honors a larger orthographic near clearance', () => {
+    const frame = computeCameraFraming(bounds, { ...DEFAULT_CAMERA_STATE, near: 3 });
+    const h = frame.orthoHalfHeight;
+    const camera = new OrthographicCamera(-h, h, h, -h, 3, 100);
+    camera.position.set(frame.position.x, frame.position.y, frame.position.z);
+    if (frame.up) camera.up.set(frame.up.x, frame.up.y, frame.up.z);
+    camera.lookAt(frame.target.x, frame.target.y, frame.target.z);
+    camera.updateMatrixWorld();
+    for (const point of corners(bounds)) expect(point.project(camera).z).toBeGreaterThan(-1);
+  });
+  it('keeps an axial perspective endpoint beyond the renderer near plane', () => {
+    const box = {
+      min: { x: -500, y: 0, z: 0 },
+      max: { x: 500, y: 0, z: 0 },
+      center: { x: 0, y: 0, z: 0 },
+      size: { x: 1000, y: 0, z: 0 },
+    };
+    const frame = computeCameraFraming(box, {
+      ...DEFAULT_CAMERA_STATE,
+      projection: 'perspective',
+      eyeDirection: { x: 1, y: 0, z: 0 },
+    });
+    const camera = new PerspectiveCamera((frame.fov * 180) / Math.PI, 1);
+    camera.position.set(frame.position.x, frame.position.y, frame.position.z);
+    if (frame.up) camera.up.set(frame.up.x, frame.up.y, frame.up.z);
+    camera.lookAt(frame.target.x, frame.target.y, frame.target.z);
+    camera.updateMatrixWorld();
+    for (const point of corners(box)) {
+      const p = point.project(camera);
+      expect(p.z).toBeGreaterThan(-1);
+      expect(p.z).toBeLessThan(1);
+    }
+  });
   it('returns the pole basis so a renderer can reproduce its roll', () => {
     const box = {
       min: { x: -1, y: 0, z: -7 },
