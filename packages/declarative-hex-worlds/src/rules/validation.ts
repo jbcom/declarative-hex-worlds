@@ -127,6 +127,14 @@ export function canStackInPlan(
 
 /** Checks the open game-owned values a tile carries, for plans loaded from untrusted JSON. */
 function validateTileValues(violations: GameboardRuleViolation[], tile: GameboardTileSpec): void {
+  if (tile.pinned !== undefined && typeof tile.pinned !== 'boolean') {
+    violations.push({
+      code: 'tile.invalid_pin',
+      severity: 'error',
+      tileKey: tile.key,
+      message: `Tile ${tile.key} pinned must be a boolean`,
+    });
+  }
   if (tile.biome !== undefined && !isGameboardTileBiome(tile.biome)) {
     violations.push({
       code: 'tile.invalid_biome',

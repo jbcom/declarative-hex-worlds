@@ -81,6 +81,8 @@ export const HexTileState = trait({
   tags: () => [] as string[],
   /** Game-owned open biome id, when the tile has one. */
   biome: undefined as string | undefined,
+  /** Whether automatic generation must preserve this authored tile. */
+  pinned: undefined as boolean | undefined,
   /** Named finite numeric channels, when the tile has any. */
   fields: (): Readonly<Record<string, number>> | undefined => undefined,
 });
@@ -157,6 +159,9 @@ export const TileBiome = trait({
  * fields. Layout criteria read it through `fields` bands.
  */
 export const TileFields = trait(() => ({}) as Record<string, number>);
+
+/** Marker for authored tiles protected from automatic generation. */
+export const TilePinned = trait();
 
 /**
  * Runtime placement trait for terrain overlays, structures, units, props, and

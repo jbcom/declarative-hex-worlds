@@ -20,6 +20,7 @@ import {
   type PlacementStateValue,
   readGameboardPlacements,
   TileBiome,
+  TilePinned,
   TileFields,
 } from '../koota';
 import { isKnownExtraAssetId } from '../scenario';
@@ -97,6 +98,7 @@ export function readDecomposedTileSpecs(world: World): GameboardTileSpec[] {
         coastWaterless: connectivity.coastWaterless,
         tags: [...tagList],
         ...(biome === undefined ? {} : { biome: biome.biome }),
+        ...(entity.has(TilePinned) ? { pinned: true } : {}),
         ...(fields === undefined ? {} : { fields: { ...fields } }),
       });
     });

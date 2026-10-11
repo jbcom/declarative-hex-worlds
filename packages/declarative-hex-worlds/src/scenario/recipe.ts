@@ -92,6 +92,7 @@ export type GameboardRecipeStep =
   | SetTextureSetRecipeStep
   | SetBiomeRecipeStep
   | SetFieldsRecipeStep
+  | PinTileRecipeStep
   | SetCoastEdgesRecipeStep
   | AddRoadPathRecipeStep
   | AddRiverPathRecipeStep
@@ -186,6 +187,16 @@ export interface SetFieldsRecipeStep {
   fields: Readonly<Record<string, number>>;
   /** Replace the tile's whole field store instead of merging into it. */
   replace?: boolean;
+}
+
+/** Serializable protection of authored tile state from automatic generation. */
+export interface PinTileRecipeStep {
+  /** Discriminator for tile pinning. */
+  action: 'pinTile';
+  /** Tile to protect or explicitly unpin. */
+  at: HexCoordinates;
+  /** Defaults to true; false removes the pin. */
+  pinned?: boolean;
 }
 
 /** Recipe step that records coastal water edge connectivity for one hex. */
@@ -644,6 +655,8 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
       return builder.setBiome(step.at, step.biome);
     case 'setFields':
       return builder.setFields(step.at, step.fields, { replace: step.replace });
+    case 'pinTile':
+      return builder.pinTile(step.at, step.pinned);
     case 'setCoastEdges':
       return builder.setCoastEdges(step.at, step.waterEdges, { waterless: step.waterless });
     case 'addRoadPath':
