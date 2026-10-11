@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.10.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.9.0...declarative-hex-worlds@1.10.0) (2026-10-11)
+
+
+### Features
+
+* **navigation:** add authored terrain line of sight ([e0ef44b](https://github.com/jbcom/declarative-hex-worlds/commit/e0ef44bf6ca236d62b926e67d8208af7180e7e2a))
+* **navigation:** trace authored terrain line of sight ([0c1fb83](https://github.com/jbcom/declarative-hex-worlds/commit/0c1fb83cd04c290c7862cbc5cf31596988e90b89))
+
 ## [1.9.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.8.1...declarative-hex-worlds@1.9.0) (2026-10-11)
 
 
