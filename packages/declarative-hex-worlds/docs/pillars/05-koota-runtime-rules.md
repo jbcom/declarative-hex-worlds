@@ -125,6 +125,8 @@ the ordered stages; each stage uses a namespaced seed. The region algorithm is
 also available without Koota through `generateGameboardBiomeRegions` in
 `./core`. Runtime recipe generation mounts its result in the Koota world, so
 later fills select the generated `TileBiome` values and retained `TileFields`.
+A rule's `maxRegion` grows capped patchwork fields instead of blobs, and a
+stage's `regionField` records each claimed tile's region id in `TileFields`.
 
 ## Engine-neutral contracts
 
