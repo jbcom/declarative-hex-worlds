@@ -29,7 +29,7 @@ import {
 It needs `three` (an optional peer, `>=0.184`), like `/three`; the root entrypoint
 never re-exports it. The kit has no koota, React or DOM dependency.
 
-![Procedural crate, lantern, turned pottery, seeded rock, cloth and guy rope](../../../../packages/declarative-hex-worlds/docs/showcases/sculpt-camp.png)
+![Procedural crate, lantern, turned pottery, seeded rock, cloth and guy rope](../assets/sculpt-camp.png)
 
 The isolated browser fixture builds this scene from the public sculpting
 helpers, verifies varied rendered pixels, and limits it to eight draw calls

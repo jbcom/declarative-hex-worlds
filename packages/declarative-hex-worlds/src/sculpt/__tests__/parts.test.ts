@@ -22,6 +22,17 @@ function vertices(geometry: BufferGeometry): Array<[number, number, number]> {
 }
 
 describe('part', () => {
+  it('rejects incompatible custom normal buffers before consuming the geometry', () => {
+    for (const normals of [new Float32BufferAttribute([0, 0, 1], 3), new Float32BufferAttribute(new Float32Array(36 * 2), 2)]) {
+      const source = new BoxGeometry(1, 1, 1).toNonIndexed();
+      source.setAttribute('normal', normals);
+      const disposed = vi.fn();
+      source.addEventListener('dispose', disposed);
+      expect(() => part(source, { tone: 'wood' })).toThrow(GameboardValidationError);
+      expect(disposed).not.toHaveBeenCalled();
+      source.dispose();
+    }
+  });
   it('keeps triangle winding aligned with normals when a part is mirrored', () => {
     for (const scale of [
       [-1, 1, 1],

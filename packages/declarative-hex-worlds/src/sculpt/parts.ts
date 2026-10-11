@@ -115,6 +115,11 @@ export function part<const Tone extends string>(
   if (!geometry.getAttribute('position')) {
     throw new GameboardValidationError('sculpt: a part geometry needs a position attribute');
   }
+  const sourcePosition = geometry.getAttribute('position');
+  const sourceNormal = geometry.getAttribute('normal');
+  if (sourceNormal && (sourceNormal.itemSize !== 3 || sourceNormal.count !== sourcePosition.count)) {
+    throw new GameboardValidationError('sculpt: normal must have three components and match position count');
+  }
 
   const g = geometry.index ? geometry.toNonIndexed() : geometry;
   if (g !== geometry) {
