@@ -1,6 +1,6 @@
-import { OrthographicCamera, PerspectiveCamera } from 'three';
+import { OrthographicCamera, PerspectiveCamera, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import type { CameraFraming } from '../../camera';
+import { type CameraFraming, computeCameraFraming, DEFAULT_CAMERA_STATE } from '../../camera';
 import { applyCameraFraming } from '../camera-apply';
 
 const framing: CameraFraming = {
@@ -13,6 +13,23 @@ const framing: CameraFraming = {
 };
 
 describe('applyCameraFraming (three binding — RFC0-CAM)', () => {
+  it('applies the supplied pole basis without a look-at fallback tilt', () => {
+    const pose = computeCameraFraming(
+      {
+        min: { x: -1, y: 0, z: -7 },
+        max: { x: 1, y: 0, z: 7 },
+        center: { x: 0, y: 0, z: 0 },
+        size: { x: 2, y: 0, z: 14 },
+      },
+      { ...DEFAULT_CAMERA_STATE, angle: 'top-down', projection: 'perspective', aspect: 0.4 }
+    );
+    const camera = new PerspectiveCamera();
+    applyCameraFraming(camera, pose, 0.4);
+    camera.updateMatrixWorld();
+    expect(camera.getWorldDirection(new Vector3()).distanceTo(new Vector3(0, -1, 0))).toBeLessThan(
+      1e-10
+    );
+  });
   it('positions an orthographic camera and sizes its box from half-height + aspect', () => {
     const camera = new OrthographicCamera();
     applyCameraFraming(camera, framing, 2); // 2:1 aspect

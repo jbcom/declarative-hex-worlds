@@ -18,7 +18,7 @@ import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import { type CameraState, DEFAULT_CAMERA_STATE, frameBoard } from '../camera';
 import { useProjectedGameboardPlan } from '../react';
-import { type DrivableCamera, applyCameraFraming } from './camera-apply';
+import { applyCameraFraming, type DrivableCamera } from './camera-apply';
 
 /**
  * Drive the active R3F camera to frame the live board per `state`. Recomputes + reapplies
@@ -29,14 +29,21 @@ export function useCamera(state: CameraState = DEFAULT_CAMERA_STATE): void {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const plan = useProjectedGameboardPlan();
+  const cameraNear = camera.near;
 
   useEffect(() => {
-    if (!plan) {
+    if (!plan || size.width <= 0 || size.height <= 0) {
       return;
     }
-    const framing = frameBoard(plan.tiles, state);
-    const aspect = size.height === 0 ? 1 : size.width / size.height;
+    const aspect = size.width / size.height;
+    const projection =
+      'isOrthographicCamera' in camera && camera.isOrthographicCamera
+        ? 'orthographic'
+        : 'perspective';
+    // Orthographic cameras can include space behind the eye with a negative near.
+    const near = Math.max(0, cameraNear);
+    const framing = frameBoard(plan.tiles, { ...state, aspect, projection, near });
     applyCameraFraming(camera as DrivableCamera, framing, aspect);
-  }, [camera, plan, size.width, size.height, state]);
+  }, [camera, cameraNear, plan, size.width, size.height, state]);
 }
 /* v8 ignore stop */
