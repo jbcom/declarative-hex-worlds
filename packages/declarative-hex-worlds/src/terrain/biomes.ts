@@ -3,8 +3,9 @@
  *
  * A biome field holds, for every sample, a weight per biome that sums to 1.
  * It starts entirely in a base biome; each paint then blends its biome in
- * wherever all of its conditions hold (height bands, slope bands, authored
- * areas and corridors, noise patches), with feathered edges. An optional
+ * wherever all of its conditions hold (height bands, slope bands, bands of a
+ * caller's own scalar field such as wetness or soil depth, authored areas and
+ * corridors, noise patches), with feathered edges. An optional
  * domain warp bends the spatial conditions so authored boundaries read as
  * natural, not drafted. Renderers blend ground materials by these weights, so
  * no tile or hex boundary is ever visible.
@@ -75,9 +76,26 @@ export interface NoiseBiomeCondition {
   readonly seed?: string | number;
 }
 
+/**
+ * A band on any scalar the caller has computed over a ground grid: soil
+ * wetness from drainage, soil depth, distance to water, a fire's char. The
+ * field is read bilinearly and clamped at its edges, exactly as heights are,
+ * so it need not share the terrain's grid. A missing bound is open.
+ */
+export interface FieldBiomeCondition {
+  readonly kind: 'field';
+  /** The scalar per sample, in `heights` (any grid, row-major). */
+  readonly field: HeightField;
+  readonly min?: number;
+  readonly max?: number;
+  /** Blend width beyond each bound (default 0, a hard edge). */
+  readonly feather?: number;
+}
+
 /** Any biome condition. A paint applies where all of its conditions hold. */
 export type BiomeCondition =
   | BandBiomeCondition
+  | FieldBiomeCondition
   | AreaBiomeCondition
   | LineBiomeCondition
   | NoiseBiomeCondition;
@@ -122,7 +140,7 @@ export interface BiomeField extends GroundGrid {
   readonly weights: Float32Array;
 }
 
-function band(value: number, condition: BandBiomeCondition): number {
+function band(value: number, condition: BandBiomeCondition | FieldBiomeCondition): number {
   const feather = condition.feather ?? 0;
   let coverage = 1;
   if (condition.min !== undefined) {
@@ -137,6 +155,7 @@ function band(value: number, condition: BandBiomeCondition): number {
 /** A condition with its noise and spatial index resolved once per paint. */
 type PreparedCondition =
   | { readonly kind: 'height' | 'slope'; readonly condition: BandBiomeCondition }
+  | { readonly kind: 'field'; readonly condition: FieldBiomeCondition }
   | { readonly kind: 'area'; readonly condition: AreaBiomeCondition }
   | {
       readonly kind: 'line';
@@ -190,6 +209,16 @@ function prepareCondition(
     case 'height':
     case 'slope':
       return { kind: condition.kind, condition };
+    case 'field': {
+      const { field } = condition;
+      validateGroundGrid(field, `${where} field`);
+      if (field.heights.length !== field.width * field.height) {
+        throw new GameboardValidationError(
+          `${where} field holds ${field.heights.length} values for a ${field.width}×${field.height} grid`
+        );
+      }
+      return { kind: 'field', condition };
+    }
     case 'area':
       return { kind: 'area', condition };
     case 'line': {
@@ -267,6 +296,9 @@ function coverageOf(
         }
         coverage *= band(slope.value, prepared.condition);
         break;
+      case 'field':
+        coverage *= band(sampleHeight(prepared.condition.field, x, z), prepared.condition);
+        break;
       case 'area': {
         const half = (prepared.condition.feather ?? 0) / 2;
         const p = warpedPoint(paint, x, z, point);
@@ -318,6 +350,7 @@ function isWellFormed(condition: BiomeCondition): boolean {
   switch (condition.kind) {
     case 'height':
     case 'slope':
+    case 'field':
       return !(Number.isNaN(condition.min ?? 0) || Number.isNaN(condition.max ?? 0));
     case 'area':
       return condition.polygon.every(isFinitePoint);
@@ -341,13 +374,19 @@ function paintSpans(
   source: BiomePaint,
   paint: PreparedPaint,
   grid: SpanGrid,
-  terrainIsFinite: () => boolean
+  fieldIsFinite: (field: HeightField) => boolean,
+  terrain: HeightField
 ): ColumnSpans | null {
   if (Number.isNaN(paint.strength) || !source.where.every(isWellFormed)) return null;
-  const readsTerrain = source.where.some(
-    (condition) => condition.kind === 'height' || condition.kind === 'slope'
-  );
-  if (readsTerrain && !terrainIsFinite()) return null;
+  for (const condition of source.where) {
+    const read =
+      condition.kind === 'height' || condition.kind === 'slope'
+        ? terrain
+        : condition.kind === 'field'
+          ? condition.field
+          : null;
+    if (read && !fieldIsFinite(read)) return null;
+  }
   const warpReach = paint.warp ? Math.abs(paint.warp.amplitude) * WARP_NOISE_BOUND : 0;
   let spans: ColumnSpans | null = null;
   for (const prepared of paint.conditions) {
@@ -426,12 +465,18 @@ export function classifyBiomes(options: ClassifyBiomesOptions): BiomeField {
   }
 
   const grid: SpanGrid = { minX: bounds.minX, minZ: bounds.minZ, stepX, stepZ, width, height };
-  let terrainIsFinite: boolean | undefined;
+  // Each field read is scanned at most once, however many paints read it.
+  const finiteFields = new Map<HeightField, boolean>();
+  const fieldIsFinite = (field: HeightField): boolean => {
+    let finite = finiteFields.get(field);
+    if (finite === undefined) {
+      finite = allFinite(field.heights);
+      finiteFields.set(field, finite);
+    }
+    return finite;
+  };
   const spans = prepared.map((paint, index) =>
-    paintSpans(options.paints[index] as BiomePaint, paint, grid, () => {
-      terrainIsFinite ??= allFinite(terrain.heights);
-      return terrainIsFinite;
-    })
+    paintSpans(options.paints[index] as BiomePaint, paint, grid, fieldIsFinite, terrain)
   );
 
   const scratch = new Float64Array(channels);
