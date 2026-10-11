@@ -23,17 +23,26 @@ export function rankSeedCandidates(
   candidates: readonly GameboardTileSpec[],
   rule: GameboardBiomeRegionRule,
   seed: string,
-  purpose: string
+  purpose: string,
+  /** Memo of each tile's keyed draw, for callers that rank the same tiles often. */
+  draws?: Map<string, number>
 ): GameboardTileSpec[] {
+  // The minimum is over this subset: suitability weights may be negative.
   const minimum = candidates.reduce((lowest, tile) => Math.min(lowest, suitability(tile, rule)), 0);
+  const draw = (key: string) => {
+    let value = draws?.get(key);
+    if (value === undefined) {
+      value = -Math.log(
+        Math.max(Number.MIN_VALUE, seedrandom(`${seed}:${rule.biome}:${purpose}:${key}`)())
+      );
+      draws?.set(key, value);
+    }
+    return value;
+  };
   return candidates
     .map((tile) => ({
       tile,
-      score:
-        -Math.log(
-          Math.max(Number.MIN_VALUE, seedrandom(`${seed}:${rule.biome}:${purpose}:${tile.key}`)())
-        ) /
-        (1 + suitability(tile, rule) - minimum),
+      score: draw(tile.key) / (1 + suitability(tile, rule) - minimum),
     }))
     .sort((a, b) => a.score - b.score)
     .map(({ tile }) => tile);

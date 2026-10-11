@@ -3,6 +3,7 @@
  * stage's numbering starts and how an id is merged into a tile's fields.
  * @module
  */
+import { GameboardValidationError } from '../errors';
 import type { GameboardTileSpec } from '../gameboard/plan';
 import { mergeGameboardTileFields } from '../gameboard/tile-values';
 import { field } from './biome-regions-tiles';
@@ -15,7 +16,14 @@ import { field } from './biome-regions-tiles';
 export function regionIdOffset(tiles: readonly GameboardTileSpec[], name: string): number {
   let highest = 0;
   for (const tile of tiles) highest = Math.max(highest, field(tile, name) ?? 0);
-  return Math.ceil(highest);
+  const offset = Math.ceil(highest);
+  // A stage makes at most one region per tile; every id must stay an exact integer.
+  if (offset + tiles.length > Number.MAX_SAFE_INTEGER) {
+    throw new GameboardValidationError(
+      `Region ids in "${name}" would pass the safe integer range; existing ids start too high`
+    );
+  }
+  return offset;
 }
 
 /** The tile with `id` merged into its fields; every other field is kept, name-sorted. */

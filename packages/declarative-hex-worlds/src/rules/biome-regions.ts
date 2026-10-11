@@ -53,6 +53,12 @@ interface Growth {
   dry: boolean;
   scores: Map<string, number>;
   eligible: Set<string>;
+  /** Eligible tiles still free, in key order (claims only ever remove them). */
+  free: Set<string>;
+  /** Free eligible tiles touching land this stage claimed: where a new field starts. */
+  beside: Set<string>;
+  /** Each tile's keyed draw for planting fields, computed once. */
+  draws: Map<string, number>;
 }
 
 function pinAssignments(tiles: Map<string, GameboardTileSpec>): Map<string, string | undefined> {
@@ -132,8 +138,6 @@ class RegionGrowth {
   readonly growths: Growth[];
   /** Regions to re-offer to when a tile is claimed, by the source tile they list. */
   private readonly sourceRegions = new Map<string, Region[]>();
-  /** Every tile that touches a tile this stage claimed, whether or not still free. */
-  private readonly contact = new Set<string>();
   /** Ids of this stage's regions start after this value (see `regionIdOffset`). */
   private readonly idOffset: number;
 
@@ -166,6 +170,9 @@ class RegionGrowth {
   private createGrowth(rule: GameboardBiomeRegionRule): Growth {
     const values = [...this.tiles.values()];
     const capped = rule.maxRegion !== undefined;
+    const eligibleKeys = new Set(
+      values.filter((tile) => eligible(tile, rule)).map((tile) => tile.key)
+    );
     const growth: Growth = {
       rule,
       target: Math.floor((this.tiles.size - this.reserved.size) * rule.target),
@@ -175,7 +182,10 @@ class RegionGrowth {
       capped,
       turn: 0,
       dry: false,
-      eligible: new Set(values.filter((tile) => eligible(tile, rule)).map((tile) => tile.key)),
+      eligible: eligibleKeys,
+      free: new Set([...eligibleKeys].filter((key) => !this.assignments.has(key))),
+      beside: new Set(),
+      draws: new Map(),
       scores: new Map(
         values.map((tile) => [
           tile.key,
@@ -211,13 +221,17 @@ class RegionGrowth {
     }, 0);
   }
 
-  private offer(growth: Growth, region: Region, key: string): void {
-    if (this.assignments.has(key) || !growth.eligible.has(key)) return;
-    const score = (this.adjacency.get(key) as string[]).reduce(
+  /** A free tile's growth score for a biome: suitability, edge noise and neighbouring affinity. */
+  private scoreOf(growth: Growth, key: string): number {
+    return (this.adjacency.get(key) as string[]).reduce(
       (sum, next) => sum + this.affinity(growth.rule.biome, this.assignments.get(next)),
       growth.scores.get(key) as number
     );
-    region.frontier.offer({ key, score });
+  }
+
+  private offer(growth: Growth, region: Region, key: string): void {
+    if (this.assignments.has(key) || !growth.eligible.has(key)) return;
+    region.frontier.offer({ key, score: this.scoreOf(growth, key) });
     growth.dry = false;
   }
 
@@ -229,9 +243,13 @@ class RegionGrowth {
     this.assignments.set(candidate.key, growth.rule.biome);
     growth.claimed += 1;
     region.tiles.push(candidate.key);
+    for (const other of this.growths) {
+      other.free.delete(candidate.key);
+      other.beside.delete(candidate.key);
+    }
     const shared = this.sourceRegions.get(candidate.key) ?? [];
     for (const next of this.adjacency.get(candidate.key) as string[]) {
-      this.contact.add(next);
+      for (const other of this.growths) if (other.free.has(next)) other.beside.add(next);
       if (!this.full(region)) this.offer(growth, region, next);
       for (const other of this.growths) {
         for (const otherRegion of other.regions) {
@@ -277,7 +295,25 @@ class RegionGrowth {
       return;
     }
     if (!this.assignments.has(tile.key)) return;
-    for (const next of this.adjacency.get(tile.key) as string[]) this.offer(growth, region, next);
+    if (!growth.capped) {
+      for (const next of this.adjacency.get(tile.key) as string[]) this.offer(growth, region, next);
+      return;
+    }
+    // A capped field whose source is taken starts on its best free neighbour
+    // and grows from there: offering every neighbour at once could join tiles
+    // on opposite sides of the taken source into one field.
+    let best: { key: string; score: number } | undefined;
+    for (const next of this.adjacency.get(tile.key) as string[]) {
+      if (this.assignments.has(next) || !growth.eligible.has(next)) continue;
+      const score = this.scoreOf(growth, next);
+      if (
+        !best ||
+        score > best.score ||
+        (score === best.score && next.localeCompare(best.key, 'en') < 0)
+      )
+        best = { key: next, score };
+    }
+    if (best) this.claim(growth, region, best);
   }
 
   private next(region: Region): BiomeCandidate | undefined {
@@ -300,7 +336,9 @@ class RegionGrowth {
       this.claim(growth, region, candidate);
       return true;
     }
-    return growth.capped && this.plant(growth);
+    // Replacement fields only for a biome that started at least one: a rule
+    // asking for no sources grows nothing, as it does uncapped.
+    return growth.capped && growth.regions.length > 0 && this.plant(growth);
   }
 
   /**
@@ -309,15 +347,19 @@ class RegionGrowth {
    * touches. Free eligible tiles only ever shrink, so finding none ends the biome.
    */
   private plant(growth: Growth): boolean {
-    const free = [...this.tiles.values()].filter(
-      (tile) => !this.assignments.has(tile.key) && growth.eligible.has(tile.key)
-    );
-    const beside = free.filter((tile) => this.contact.has(tile.key));
+    // Only the free eligible tiles are ranked, never the whole board: the
+    // sets are kept by claim(). `free` stays in key order; `beside` is sorted,
+    // since the ranking breaks ties by input order.
+    const keys =
+      growth.beside.size > 0
+        ? [...growth.beside].sort((a, b) => a.localeCompare(b, 'en'))
+        : [...growth.free];
     const [seed] = rankSeedCandidates(
-      beside.length > 0 ? beside : free,
+      keys.map((key) => this.tiles.get(key) as GameboardTileSpec),
       growth.rule,
       this.spec.seed,
-      'field'
+      'field',
+      growth.draws
     );
     if (!seed) {
       growth.dry = true;

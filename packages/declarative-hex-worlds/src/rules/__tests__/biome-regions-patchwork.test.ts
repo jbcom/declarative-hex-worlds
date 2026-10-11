@@ -603,6 +603,52 @@ describe('region options validation', () => {
   );
 });
 
+describe('capped regions under review cases', () => {
+  it('plants no field for a capped rule that asks for no sources', () => {
+    for (const sources of [{ count: 0 }, { tiles: [] }] as const) {
+      const { report } = generateGameboardBiomeRegions(board(), {
+        ...spec,
+        biomes: [{ biome: 'wheat', target: 0.3, sources, maxRegion: 4 }],
+      });
+      expect(report.biomes.wheat?.actual).toBe(0);
+      expect(report.biomes.wheat?.fields).toBe(0);
+    }
+  });
+
+  it('keeps every field contiguous when its source tile is already taken', () => {
+    // The source is pinned to another biome in open land; a field seeded from
+    // it must grow from one neighbour, not take neighbours on opposite sides.
+    for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
+      const plan = board({ pins: [{ at: { q: 9, r: 6 }, biome: 'orchard' }] });
+      const { plan: result } = generateGameboardBiomeRegions(plan, {
+        ...spec,
+        seed: `occupied:${seed}`,
+        edgeNoise: 1,
+        biomes: [
+          { biome: 'wheat', target: 0.02, sources: { tiles: [{ q: 9, r: 6 }] }, maxRegion: 4 },
+        ],
+      });
+      for (const keys of groupsByField(result).values()) {
+        expect(connected(result, keys)).toBe(true);
+      }
+    }
+  });
+
+  it('refuses region ids it could not keep unique', () => {
+    const plan = board({ pins: [{ at: { q: 0, r: 0 }, fields: { field: 2 ** 53 } }] });
+    expect(() => generateGameboardBiomeRegions(plan, spec)).toThrow(GameboardValidationError);
+  });
+
+  it('plants the same patchwork however many fields it plants', () => {
+    // One-tile fields plant a field per claim: the planting path at its busiest.
+    const single = { ...spec, biomes: [{ ...wheat, target: 0.3, maxRegion: 1 }] };
+    const first = generateGameboardBiomeRegions(board({ width: 30, height: 24 }), single);
+    const again = generateGameboardBiomeRegions(board({ width: 30, height: 24 }), single);
+    expect(again).toEqual(first);
+    expect(first.report.biomes.wheat?.fields).toBe(first.report.biomes.wheat?.actual);
+  });
+});
+
 describe('backward compatibility', () => {
   it('reproduces the exact pre-capping output of the shared biome country', () => {
     const digests = ['gettysburg', 'antietam', 'seed-3'].map((seed) =>
