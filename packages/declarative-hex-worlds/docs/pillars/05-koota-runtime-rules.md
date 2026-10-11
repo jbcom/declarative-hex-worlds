@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-06-25
+last_verified: 2026-10-11
 source_images:
   - docs/assets/showcases/simple-rpg-seeded-completed.png
   - docs/assets/showcases/simple-rpg-fixed-completed.png

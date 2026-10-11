@@ -2238,6 +2238,7 @@ function copyActorTileState(tile: HexTileStateValue): HexTileStateValue {
     ...tile,
     coordinates: { ...tile.coordinates },
     tags: [...tile.tags],
+    fields: tile.fields ? { ...tile.fields } : undefined,
   };
 }
 

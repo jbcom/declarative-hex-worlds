@@ -907,17 +907,12 @@ function cloneRecipeStep<T extends GameboardRecipeStep>(step: T): T {
     } as T;
   }
   if (step.action === 'setTileAsset') {
-    const cloned = { ...step, at: { ...step.at } } as T & {
-      tags?: string[];
-      fields?: Record<string, number>;
-    };
-    if (step.tags) {
-      cloned.tags = [...step.tags];
-    }
-    if (step.fields) {
-      cloned.fields = { ...step.fields };
-    }
-    return cloned as T;
+    return {
+      ...step,
+      at: { ...step.at },
+      ...(step.tags ? { tags: [...step.tags] } : {}),
+      ...(step.fields ? { fields: { ...step.fields } } : {}),
+    } as T;
   }
   if (step.action === 'setFields') {
     return { ...step, at: { ...step.at }, fields: { ...step.fields } } as T;

@@ -3,10 +3,10 @@ import { createGameboardBuilder, type GameboardPlan } from '../../gameboard/inde
 import { createGameboardWorld, readGameboardPlacements } from '../../koota/index';
 import {
   createGameboardLayoutArchetypeRegistry,
+  type GameboardLayoutCriteria,
   inspectGameboardLayoutSites,
   resolveGameboardLayoutCriteria,
   selectGameboardLayoutSites,
-  type GameboardLayoutCriteria,
 } from '../layout';
 import { spawnGameboardLayoutPlacements } from '../layout-runtime';
 
@@ -121,6 +121,19 @@ describe('field band criteria', () => {
 
   it('a band with no bounds only requires the field to be present', () => {
     expect(accepted({ fields: [{ field: 'slope' }] })).toEqual(['0,0', '1,0', '2,0']);
+  });
+
+  it('does not treat inherited object properties as numeric channels', () => {
+    expect(accepted({ fields: [{ field: 'toString' }] })).toEqual([]);
+    expect(accepted({ fields: [{ field: 'valueOf' }] })).toEqual([]);
+    const plan = createGameboardBuilder({ shape: { kind: 'rectangle', width: 1, height: 1 } })
+      .setFields({ q: 0, r: 0 }, { toString: 0.5 })
+      .build();
+    expect(
+      inspectGameboardLayoutSites(plan, {
+        criteria: { allowOccupied: true, fields: [{ field: 'toString', min: 0.5 }] },
+      }).candidates.map((candidate) => candidate.tile.key)
+    ).toEqual(['0,0']);
   });
 
   it('works together with biome criteria', () => {

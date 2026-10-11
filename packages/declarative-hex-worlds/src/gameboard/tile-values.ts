@@ -102,7 +102,10 @@ export function normalizeGameboardTileFields(
 ): Readonly<Record<string, number>> {
   assertGameboardTileFields(fields, tileKey);
   const normalized: Record<string, number> = {};
-  for (const name of Object.keys(fields).sort()) {
+  for (const name of Object.keys(fields).sort((left, right) => {
+    if (left < right) return -1;
+    return Number(left > right);
+  })) {
     normalized[name] = fields[name] as number;
   }
   return normalized;

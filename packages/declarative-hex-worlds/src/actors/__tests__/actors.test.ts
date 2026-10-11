@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BlockingActorQuery,
-  EnemyActorQuery,
-  GameboardActor,
-  HostileActorQuery,
   areGameboardActorsHostile,
-  InteractiveActorQuery,
-  PlayerActorQuery,
+  BlockingActorQuery,
   classifyGameboardPlacement,
   createGameboardActorNavigationProfile,
+  EnemyActorQuery,
+  GameboardActor,
   gameboardActorActions,
   gameboardActorBlocksMovement,
+  HostileActorQuery,
+  InteractiveActorQuery,
   inspectGameboardActorCollision,
   inspectGameboardActorTargets,
   inspectGameboardInteractionTarget,
   inspectGameboardNeighborhood,
   inspectGameboardTile,
   moveGameboardActor,
+  PlayerActorQuery,
   planGameboardInteractionCommand,
   readGameboardActors,
   readGameboardActorsForTile,
@@ -27,14 +27,30 @@ import {
 import { axialToWorld } from '../../coordinates/index';
 import { createGameboardBuilder } from '../../gameboard/index';
 import {
-  PlacementState,
   createGameboardWorld,
   findPlacementEntity,
+  PlacementState,
   readPlacementsForTile,
 } from '../../koota/index';
 import { requestGameboardMovement } from '../../movement/index';
 
 describe('gameboard actor semantics', () => {
+  it('returns tile field snapshots that cannot mutate the live tile', () => {
+    const world = createGameboardWorld(
+      createGameboardBuilder({ shape: { kind: 'rectangle', width: 1, height: 1 } })
+        .setFields({ q: 0, r: 0 }, { wetness: 0.5 })
+        .build()
+    );
+    try {
+      const inspection = inspectGameboardTile(world, '0,0');
+      expect(inspection.tile?.fields).toEqual({ wetness: 0.5 });
+      (inspection.tile?.fields as Record<string, number>).wetness = 1;
+      expect(inspectGameboardTile(world, '0,0').tile?.fields).toEqual({ wetness: 0.5 });
+    } finally {
+      world.destroy();
+    }
+  });
+
   it('registers actors on placements and classifies players, props, NPCs, and enemies', () => {
     const world = createGameboardWorld(
       createGameboardBuilder({

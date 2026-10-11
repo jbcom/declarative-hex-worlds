@@ -1526,7 +1526,10 @@ function matchesFieldBands(
   bands: readonly GameboardTileFieldCondition[] | undefined
 ): boolean {
   return (bands ?? []).every((band) => {
-    const value = tile.fields?.[band.field];
+    if (!tile.fields || !Object.hasOwn(tile.fields, band.field)) {
+      return false;
+    }
+    const value = tile.fields[band.field];
     return (
       value !== undefined &&
       (band.min === undefined || value >= band.min) &&
