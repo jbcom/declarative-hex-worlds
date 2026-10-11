@@ -171,6 +171,10 @@ Things to know:
 apply in order; each blends its biome in wherever all of its conditions hold:
 
 - `height` and `slope` bands, with feathered bounds
+- `field` bands of any scalar you computed on a ground grid (soil wetness
+  from `traceDrainage`, soil depth, distance to water), read bilinearly and
+  clamped at the field's edges like heights, so it need not share the
+  terrain's grid
 - `area` polygons and `line` corridors, with feathered edges
 - `noise` patches above a threshold
 
@@ -190,8 +194,10 @@ its warp amplitude), so `classifyBiomes` works out per row which columns a
 paint can reach and never evaluates it elsewhere. A 640 × 790 board with two
 slope bands and twenty warped roads paints in well under a second instead of
 tens of seconds, and the result is byte-identical to evaluating every paint at
-every sample. Bands and noise are unbounded, so a paint made only of those
-still covers the whole grid.
+every sample. Bands (of height, slope or a field) and noise are unbounded, so
+a paint made only of those still covers the whole grid. A paint reading a
+terrain or field that holds a non-finite value is evaluated everywhere, so
+the NaN shows instead of being culled away.
 
 ## Scatter
 

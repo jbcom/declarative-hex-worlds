@@ -97,6 +97,9 @@ function bruteForceClassify(options: ClassifyBiomesOptions): BiomeField {
             case 'slope':
               coverage *= band(sampleSlope(terrain, x, z), condition);
               break;
+            case 'field':
+              coverage *= band(sampleHeight(condition.field, x, z), condition);
+              break;
             case 'area':
               coverage *=
                 1 - smoothstep(-half, half, signedDistanceToPolygon(condition.polygon, warped));

@@ -121,6 +121,49 @@ describe('classifyBiomes', () => {
     expect(weightOf(none, 'woods', 10, 10)).toBe(0);
   });
 
+  it('paints bands of a caller field on its own grid, clamped at its edges', () => {
+    // Wetness rising northward on a coarser grid that covers only z ≤ 100.
+    const wetness = composeHeightField({
+      bounds: { minX: 0, minZ: 0, maxX: 200, maxZ: 100 },
+      spacing: 25,
+      seed: 'wetness',
+      layers: [
+        {
+          kind: 'ridge',
+          line: [
+            { x: 0, z: 100 },
+            { x: 200, z: 100 },
+          ],
+          halfWidth: 100,
+          height: 1,
+          profile: 'sharp',
+        },
+      ],
+    });
+    const field = classify([
+      { biome: 'wheat', where: [{ kind: 'field', field: wetness, min: 0.6, feather: 0.1 }] },
+    ]);
+    expect(dominantBiome(field, 100, 10)).toBe('pasture');
+    expect(dominantBiome(field, 100, 95)).toBe('wheat');
+    // North of the field's grid the read clamps to its last row.
+    expect(weightOf(field, 'wheat', 100, 190)).toBeCloseTo(weightOf(field, 'wheat', 100, 100), 5);
+  });
+
+  it('rejects a field whose values do not fill its grid', () => {
+    const short = {
+      bounds: { minX: 0, minZ: 0, maxX: 10, maxZ: 10 },
+      width: 3,
+      height: 3,
+      heights: new Float32Array(8),
+    };
+    expect(() =>
+      classify([{ biome: 'wheat', where: [{ kind: 'field', field: short, min: 0 }] }])
+    ).toThrow(GameboardValidationError);
+    expect(() =>
+      classify([{ biome: 'wheat', where: [{ kind: 'field', field: { ...short, width: 1 } }] }])
+    ).toThrow(GameboardValidationError);
+  });
+
   it('can classify onto its own grid', () => {
     const field = classify([], {
       bounds: { minX: 0, minZ: 0, maxX: 100, maxZ: 100 },

@@ -47,6 +47,19 @@ const terrain = composeHeightField({
   ],
 });
 
+/**
+ * A scalar on a coarser grid than the terrain, offset from it and reaching
+ * past it, so field reads interpolate and clamp: a stand-in for wetness.
+ */
+const wetness = composeHeightField({
+  // 50 × 40 cells of 11, covering the terrain's -100…338 × -50…285.8 with margin.
+  bounds: { minX: -140, minZ: -75, maxX: -140 + 50 * 11, maxZ: -75 + 40 * 11 },
+  spacing: 11,
+  seed: 'culling:wetness',
+  base: 0.5,
+  layers: [{ kind: 'noise', amplitude: 0.5, wavelength: 120, octaves: 3 }],
+});
+
 export interface CullingCase {
   readonly name: string;
   readonly options: ClassifyBiomesOptions;
@@ -428,7 +441,8 @@ export function cullingCases(): CullingCase[] {
         {
           biome: 'woods',
           where: [
-            { kind: 'height', min: 5 },
+            // Feathered: a hard-edged band reads NaN as 1 and would hide the poison.
+            { kind: 'height', min: 5, feather: 2 },
             { kind: 'area', polygon: box(0, 0, 80, 80) },
           ],
         },
@@ -440,6 +454,54 @@ export function cullingCases(): CullingCase[] {
         },
       }
     ),
+    scenario('scalar fields on their own grids, bounded and not', [
+      { biome: 'wheat', where: [{ kind: 'field', field: wetness, min: 0.4, feather: 0.2 }] },
+      {
+        biome: 'woods',
+        where: [
+          { kind: 'field', field: wetness, max: 0.3 },
+          { kind: 'area', polygon: box(-60, -20, 120, 90), feather: 18 },
+        ],
+        warp,
+      },
+      {
+        biome: 'road',
+        where: [
+          { kind: 'field', field: wetness, min: 0.7 },
+          {
+            kind: 'line',
+            line: [
+              { x: bounds.minX, z: 0 },
+              { x: bounds.maxX, z: 60 },
+            ],
+            halfWidth: 8,
+            feather: 4,
+          },
+        ],
+      },
+    ]),
+    scenario('a paint whose field reads are not finite', [
+      {
+        biome: 'woods',
+        where: [
+          {
+            kind: 'field',
+            field: {
+              ...wetness,
+              // Row 10, column 40 (x 300, z 35): read by the terrain grid but
+              // outside the area, where culling would skip it and hide the NaN.
+              heights: Float32Array.from(wetness.heights, (v, i) =>
+                i === 10 * wetness.width + 40 ? Number.NaN : v
+              ),
+            },
+            // A feathered band passes NaN through; a hard edge reads it as 1.
+            min: 0.2,
+            feather: 0.1,
+          },
+          { kind: 'area', polygon: box(0, 0, 80, 80) },
+        ],
+      },
+    ]),
     scenario('coordinates too large to bound', [
       {
         biome: 'woods',
@@ -482,6 +544,13 @@ export function cullingCases(): CullingCase[] {
             ],
             halfWidth: 3,
           },
+        ],
+      },
+      {
+        biome: 'rock',
+        where: [
+          { kind: 'field', field: wetness, max: Number.NaN },
+          { kind: 'area', polygon: box(0, 0, 50, 50) },
         ],
       },
       {
