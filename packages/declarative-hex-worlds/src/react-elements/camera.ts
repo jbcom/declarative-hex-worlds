@@ -35,7 +35,11 @@ export function useCamera(state: CameraState = DEFAULT_CAMERA_STATE): void {
       return;
     }
     const aspect = size.width / size.height;
-    const framing = frameBoard(plan.tiles, { ...state, aspect });
+    const projection =
+      'isOrthographicCamera' in camera && camera.isOrthographicCamera
+        ? 'orthographic'
+        : 'perspective';
+    const framing = frameBoard(plan.tiles, { ...state, aspect, projection });
     applyCameraFraming(camera as DrivableCamera, framing, aspect);
   }, [camera, plan, size.width, size.height, state]);
 }

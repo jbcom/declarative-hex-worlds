@@ -14,6 +14,56 @@ const corners = (box: BoardBounds) =>
   );
 
 describe('viewport camera framing', () => {
+  it('returns the pole basis so a renderer can reproduce its roll', () => {
+    const box = {
+      min: { x: -1, y: 0, z: -7 },
+      max: { x: 1, y: 0, z: 7 },
+      center: { x: 0, y: 0, z: 0 },
+      size: { x: 2, y: 0, z: 14 },
+    };
+    const frame = computeCameraFraming(box, {
+      ...DEFAULT_CAMERA_STATE,
+      angle: 'top-down',
+      aspect: 0.4,
+    });
+    const h = frame.orthoHalfHeight;
+    const camera = new OrthographicCamera(-h * 0.4, h * 0.4, h, -h);
+    camera.up.set(1, 0, 0);
+    if (frame.up) camera.up.set(frame.up.x, frame.up.y, frame.up.z);
+    camera.position.set(frame.position.x, frame.position.y, frame.position.z);
+    camera.lookAt(frame.target.x, frame.target.y, frame.target.z);
+    camera.updateMatrixWorld();
+    for (const point of corners(box)) {
+      const p = point.project(camera);
+      expect(Math.abs(p.x)).toBeLessThanOrEqual(1 / 1.15 + 1e-8);
+      expect(Math.abs(p.y)).toBeLessThanOrEqual(1 / 1.15 + 1e-8);
+    }
+  });
+  it('keeps a wide orthographic board in front of the eye within default clipping planes', () => {
+    const box = {
+      min: { x: -500, y: 0, z: -500 },
+      max: { x: 500, y: 0, z: 500 },
+      center: { x: 0, y: 0, z: 0 },
+      size: { x: 1000, y: 0, z: 1000 },
+    };
+    const frame = computeCameraFraming(box, {
+      ...DEFAULT_CAMERA_STATE,
+      angle: 'top-down',
+      aspect: 0.4,
+    });
+    const h = frame.orthoHalfHeight;
+    const camera = new OrthographicCamera(-h * 0.4, h * 0.4, h, -h);
+    camera.position.set(frame.position.x, frame.position.y, frame.position.z);
+    camera.lookAt(frame.target.x, frame.target.y, frame.target.z);
+    camera.updateMatrixWorld();
+    for (const point of corners(box)) {
+      const p = point.project(camera);
+      expect(p.z).toBeGreaterThan(-1);
+      expect(p.z).toBeLessThan(1);
+    }
+    const square = computeCameraFraming(box, { ...DEFAULT_CAMERA_STATE, angle: 'top-down' });
+    expect(frame.distance).toEqual(square.distance);
+  });
   it('rejects null arguments from untyped callers consistently', () => {
     expect(() => Reflect.apply(computeCameraFraming, undefined, [null])).toThrow(RangeError);
     expect(() => Reflect.apply(computeCameraFraming, undefined, [bounds, null])).toThrow(

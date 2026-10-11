@@ -71,6 +71,8 @@ export interface CameraFraming {
   readonly position: WorldPosition;
   /** Look-at target (board center). */
   readonly target: WorldPosition;
+  /** Screen-up basis in world space. Computed framings supply this, including at poles. */
+  readonly up?: WorldPosition;
   readonly projection: CameraProjection;
   /**
    * Half-height of the orthographic view volume (world units). The binding derives
@@ -202,6 +204,9 @@ export function computeCameraFraming(
   };
   const factor = state.fit === 'frame-board' ? 1 + padding : 1;
   const tanVertical = Math.tan(fov / 2);
+  if (!Number.isFinite(tanVertical) || tanVertical <= 0) {
+    throw new RangeError('Camera fov cannot produce a finite projection');
+  }
   let projectedWidth = 0;
   let projectedHeight = 0;
   let distance = 0;
@@ -227,10 +232,13 @@ export function computeCameraFraming(
     }
   }
   const orthoHalfHeight = factor * (Math.max(projectedHeight, projectedWidth / aspect) || 0.5);
-  distance = Math.max(
-    distance || orthoHalfHeight / tanVertical,
-    nearestDepth + Math.max(1e-6, orthoHalfHeight * 1e-6)
-  );
+  distance =
+    state.projection === 'orthographic'
+      ? Math.max(1, nearestDepth + 1)
+      : Math.max(
+          distance || orthoHalfHeight / tanVertical,
+          nearestDepth + Math.max(1e-6, orthoHalfHeight * 1e-6)
+        );
   const position: WorldPosition = {
     x: bounds.center.x + dir.x * distance,
     y: bounds.center.y + dir.y * distance,
@@ -242,6 +250,7 @@ export function computeCameraFraming(
   return {
     position,
     target: bounds.center,
+    up,
     projection: state.projection,
     orthoHalfHeight,
     fov,

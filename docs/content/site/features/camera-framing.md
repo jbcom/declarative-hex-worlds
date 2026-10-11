@@ -28,12 +28,18 @@ width and height. Orthographic fits return `orthoHalfHeight`; a binding uses
 With `frame-board`, padding enlarges the projected extents by `1 + padding`.
 `fill-viewport` uses no padding, so the governing projected extent meets an edge.
 
-Apply `position`, look at `target`, then update the renderer's projection and
+Apply `position` and the returned world-space `up`, look at `target`, then update the renderer's projection and
 world matrices. Recompute when the viewport or physical bounds change. FOV is
 vertical and in radians here; renderer bindings may require degrees. Bindings
 remain responsible for near/far clipping planes.
-The R3F `useCamera` hook supplies its measured viewport aspect, overriding a
-manually supplied aspect, and waits for a positive viewport before framing.
+Orthographic distance places the bounds in front of the eye independently of
+viewport aspect; the orthographic volume handles the fit. The returned `up`
+also fixes the screen basis at pole views instead of relying on a renderer's
+look-at fallback. Older manually constructed framings may omit `up`; bindings
+then retain the world-Y default.
+The R3F `useCamera` hook drives the active camera's projection kind and measured
+viewport aspect, overriding manually supplied values, and waits for a positive
+viewport before framing. Configure the active camera type on the canvas.
 
 Aspect defaults to one. The angle presets remain available without a custom
 direction. Aspect must be finite and positive, padding finite and nonnegative,

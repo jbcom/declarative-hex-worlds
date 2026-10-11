@@ -29,7 +29,8 @@ export function applyCameraFraming(
   aspect: number
 ): void {
   camera.position.set(framing.position.x, framing.position.y, framing.position.z);
-  camera.up.set(0, 1, 0);
+  const up = framing.up ?? { x: 0, y: 1, z: 0 };
+  camera.up.set(up.x, up.y, up.z);
   camera.lookAt(framing.target.x, framing.target.y, framing.target.z);
   if ('isOrthographicCamera' in camera && camera.isOrthographicCamera) {
     const ortho = camera as OrthographicCamera;
