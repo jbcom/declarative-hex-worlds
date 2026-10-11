@@ -2,7 +2,7 @@ import { Triangle, Vector3 } from 'three';
 import type { BufferGeometry } from 'three';
 import { describe, expect, it } from 'vitest';
 import { GameboardValidationError } from '../../errors';
-import { rope, sheet } from '../sheet';
+import { rope, sheet, type SculptPoint } from '../sheet';
 
 type Point = readonly [number, number, number];
 
@@ -33,6 +33,19 @@ function ground(rows: number, cols: number): Point[][] {
 }
 
 describe('sheet', () => {
+  it('rejects malformed point containers with the sculpt validation error', () => {
+    for (const value of [null, undefined, 7, 'point', true]) {
+      expect(() =>
+        sheet([
+          [
+            [0, 0, 0],
+            [1, 0, 0],
+          ],
+          [[0, 1, 0], value as unknown as SculptPoint],
+        ])
+      ).toThrow(GameboardValidationError);
+    }
+  });
   it('keeps every grid point as a vertex, rows in order', () => {
     const rows = ground(3, 4);
     const geometry = sheet(rows);

@@ -111,7 +111,13 @@ export function buildPiece<P extends SculptPalette>(
   const contactFloor = requireUnit('contactFloor', options.contactFloor ?? DEFAULT_CONTACT_FLOOR);
   const finishes: Record<string, FinishSpec> = { ...DEFAULT_FINISHES, ...options.finishes };
   for (const [name, spec] of Object.entries(finishes)) {
+    if (typeof spec !== 'object' || spec === null || Array.isArray(spec)) {
+      throw new GameboardValidationError(`sculpt: finish "${name}" must define gain and shadowed`);
+    }
     requireNonNegative(`finish "${name}" gain`, spec.gain);
+    if (typeof spec.shadowed !== 'boolean') {
+      throw new GameboardValidationError(`sculpt: finish "${name}" shadowed must be a boolean`);
+    }
   }
 
   const tones = new Map<string, Color>();

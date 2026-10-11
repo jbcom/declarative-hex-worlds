@@ -21,6 +21,11 @@ export type SculptPoint =
   | { readonly x: number; readonly y: number; readonly z: number };
 
 function readPoint(name: string, point: SculptPoint): SculptVec3 {
+  if (typeof point !== 'object' || point === null) {
+    throw new GameboardValidationError(
+      `sculpt: ${name} must be a point with three finite coordinates`
+    );
+  }
   return requireVec3(name, 'x' in point ? [point.x, point.y, point.z] : point);
 }
 

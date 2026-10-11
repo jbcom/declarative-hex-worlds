@@ -36,6 +36,7 @@ import {
   type SculptVec3,
   requireFinite,
   requireNonNegative,
+  requirePositive,
   requireSegments,
   requireVec3,
 } from './validate';
@@ -141,7 +142,12 @@ export function part<const Tone extends string>(
         const x = attribute.getX(i + 1);
         const y = attribute.getY(i + 1);
         const z = attribute.getZ(i + 1);
-        attribute.setXYZ(i + 1, attribute.getX(i + 2), attribute.getY(i + 2), attribute.getZ(i + 2));
+        attribute.setXYZ(
+          i + 1,
+          attribute.getX(i + 2),
+          attribute.getY(i + 2),
+          attribute.getZ(i + 2)
+        );
         attribute.setXYZ(i + 2, x, y, z);
       }
     }
@@ -175,7 +181,7 @@ export function cyl<const Tone extends string>(
 ): Part<Tone> {
   requireNonNegative('top radius', rTop);
   requireNonNegative('bottom radius', rBottom);
-  requireNonNegative('height', h);
+  requirePositive('height', h);
   requireSegments('segments', seg);
   return part(new CylinderGeometry(rTop, rBottom, h, seg), o);
 }
@@ -188,7 +194,7 @@ export function cone<const Tone extends string>(
   seg = 8
 ): Part<Tone> {
   requireNonNegative('radius', r);
-  requireNonNegative('height', h);
+  requirePositive('height', h);
   requireSegments('segments', seg);
   return part(new ConeGeometry(r, h, seg), o);
 }

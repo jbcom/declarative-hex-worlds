@@ -1,7 +1,7 @@
 import { BoxGeometry, BufferGeometry, Color, Float32BufferAttribute } from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { GameboardValidationError } from '../../errors';
-import { DEFAULT_FINISHES, buildPiece } from '../build';
+import { DEFAULT_FINISHES, buildPiece, type FinishSpec } from '../build';
 import { ball, box, part, plane } from '../parts';
 import { sheet } from '../sheet';
 
@@ -30,6 +30,24 @@ function colorAt(
 }
 
 describe('buildPiece', () => {
+  it('rejects malformed finish definitions with the sculpt validation error', () => {
+    for (const value of [
+      null,
+      undefined,
+      7,
+      'finish',
+      true,
+      [],
+      {},
+      { gain: 1, shadowed: 'yes' },
+    ]) {
+      expect(() =>
+        buildPiece([], palette, {
+          finishes: { foil: value as unknown as FinishSpec },
+        })
+      ).toThrow(GameboardValidationError);
+    }
+  });
   it('merges the parts of one finish into one geometry, vertex counts summed', () => {
     const a = box(1, 1, 1, { tone: 'wood' });
     const b = ball(0.5, { at: [2, 0, 0], tone: 'wood' });

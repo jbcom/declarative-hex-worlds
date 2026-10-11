@@ -23,7 +23,11 @@ function vertices(geometry: BufferGeometry): Array<[number, number, number]> {
 
 describe('part', () => {
   it('keeps triangle winding aligned with normals when a part is mirrored', () => {
-    for (const scale of [[-1, 1, 1], [-1, -1, 1], [-1, -1, -1]] as const) {
+    for (const scale of [
+      [-1, 1, 1],
+      [-1, -1, 1],
+      [-1, -1, -1],
+    ] as const) {
       const geometry = box(1, 2, 3, { tone: 'wood', scale }).geometry;
       const positions = geometry.getAttribute('position');
       const normals = geometry.getAttribute('normal');
@@ -46,7 +50,9 @@ describe('part', () => {
         const before = Array.from(source.getAttribute('position').array);
         const disposed = vi.fn();
         source.addEventListener('dispose', disposed);
-        expect(() => part(source, { tone: 'wood', [key]: value })).toThrow(GameboardValidationError);
+        expect(() => part(source, { tone: 'wood', [key]: value })).toThrow(
+          GameboardValidationError
+        );
         expect(Array.from(source.getAttribute('position').array)).toEqual(before);
         expect(source.getAttribute('uv')).toBeDefined();
         expect(disposed).not.toHaveBeenCalled();
@@ -314,6 +320,10 @@ describe('lathe', () => {
 });
 
 describe('primitive input validation', () => {
+  it('rejects zero-height cylinders and cones before they can create invalid normals', () => {
+    expect(() => cyl(1, 1, 0, { tone: 'wood' })).toThrow(GameboardValidationError);
+    expect(() => cone(1, 0, { tone: 'wood' })).toThrow(GameboardValidationError);
+  });
   const bad = [Number.NaN, Number.POSITIVE_INFINITY, -1];
 
   it('rejects a size that is negative or not finite', () => {
