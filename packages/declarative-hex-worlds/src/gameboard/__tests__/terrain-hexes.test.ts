@@ -7,7 +7,10 @@ import { createGameboardBuilder, type GameboardPlan } from '../index';
 import { applyTerrainHexesToPlan } from '../terrain-hexes';
 
 function plan(): GameboardPlan {
-  return createGameboardBuilder({ seed: 'terrain-hexes', shape: { kind: 'rectangle', width: 4, height: 4 } })
+  return createGameboardBuilder({
+    seed: 'terrain-hexes',
+    shape: { kind: 'rectangle', width: 4, height: 4 },
+  })
     .setBiome({ q: 0, r: 0 }, 'kept')
     .setFields({ q: 0, r: 0 }, { existing: 1, meanSlope: -1 })
     .build();
@@ -54,11 +57,15 @@ describe('applyTerrainHexesToPlan', () => {
     expect(JSON.stringify(source)).toBe(before);
     expect(next).not.toBe(source);
     expect(next.placements).toBe(source.placements);
-    expect(next.tiles.find((tile) => tile.key === '2,2')).toBe(source.tiles.find((tile) => tile.key === '2,2'));
+    expect(next.tiles.find((tile) => tile.key === '2,2')).toBe(
+      source.tiles.find((tile) => tile.key === '2,2')
+    );
   });
 
   it('merges over existing fields and keeps existing biome unless a biome mapping says otherwise', () => {
-    const next = applyTerrainHexesToPlan(plan(), [hex(0, 0)], { fields: { meanSlope: 'meanSlope', added: 'meanHeight' } });
+    const next = applyTerrainHexesToPlan(plan(), [hex(0, 0)], {
+      fields: { meanSlope: 'meanSlope', added: 'meanHeight' },
+    });
     expect(next.tiles.find((tile) => tile.key === '0,0')).toMatchObject({
       biome: 'kept',
       fields: { added: 10, existing: 1, meanSlope: 0.1 },
@@ -67,18 +74,14 @@ describe('applyTerrainHexesToPlan', () => {
 
   it('supports biome shares and custom derivations, and skips undefined results', () => {
     const shares = { wheat: 0.25, corn: 0.75 };
-    const next = applyTerrainHexesToPlan(
-      plan(),
-      [hex(1, 0, { biomeShares: shares }), hex(2, 0)],
-      {
-        fields: {
-          wheat: { biomeShare: 'wheat' },
-          marsh: { biomeShare: 'marsh' },
-          relief: (h) => h.maxHeight - h.minHeight,
-          shareOnlyWithBiomes: (h) => (h.biomeShares ? 1 : undefined),
-        },
-      }
-    );
+    const next = applyTerrainHexesToPlan(plan(), [hex(1, 0, { biomeShares: shares }), hex(2, 0)], {
+      fields: {
+        wheat: { biomeShare: 'wheat' },
+        marsh: { biomeShare: 'marsh' },
+        relief: (h) => h.maxHeight - h.minHeight,
+        shareOnlyWithBiomes: (h) => (h.biomeShares ? 1 : undefined),
+      },
+    });
     expect(next.tiles.find((tile) => tile.key === '1,0')?.fields).toEqual({
       marsh: 0,
       relief: 6,
@@ -90,7 +93,11 @@ describe('applyTerrainHexesToPlan', () => {
   });
 
   it('writes the dominant biome only when asked', () => {
-    const hexes = [hex(1, 0, { dominantBiome: 'wheat' }), hex(2, 0), hex(0, 0, { dominantBiome: 'corn' })];
+    const hexes = [
+      hex(1, 0, { dominantBiome: 'wheat' }),
+      hex(2, 0),
+      hex(0, 0, { dominantBiome: 'corn' }),
+    ];
     const without = applyTerrainHexesToPlan(plan(), hexes, { fields: { slope: 'meanSlope' } });
     expect(without.tiles.find((tile) => tile.key === '1,0')?.biome).toBeUndefined();
 
@@ -109,9 +116,13 @@ describe('applyTerrainHexesToPlan', () => {
   });
 
   it('ignores hexes outside the board and last write wins for duplicate hexes', () => {
-    const next = applyTerrainHexesToPlan(plan(), [hex(40, 40), hex(1, 0), hex(1, 0, { meanSlope: 0.9 })], {
-      fields: { slope: 'meanSlope' },
-    });
+    const next = applyTerrainHexesToPlan(
+      plan(),
+      [hex(40, 40), hex(1, 0), hex(1, 0, { meanSlope: 0.9 })],
+      {
+        fields: { slope: 'meanSlope' },
+      }
+    );
     expect(next.tiles.find((tile) => tile.key === '1,0')?.fields).toEqual({ slope: 0.9 });
     expect(next.tiles.filter((tile) => tile.fields !== undefined)).toHaveLength(2);
   });
@@ -120,9 +131,9 @@ describe('applyTerrainHexesToPlan', () => {
     expect(() =>
       applyTerrainHexesToPlan(plan(), [hex(1, 0)], { fields: { bad: () => Number.NaN } })
     ).toThrow(GameboardValidationError);
-    expect(() => applyTerrainHexesToPlan(plan(), [hex(1, 0)], { fields: { '': 'meanSlope' } })).toThrow(
-      GameboardValidationError
-    );
+    expect(() =>
+      applyTerrainHexesToPlan(plan(), [hex(1, 0)], { fields: { '': 'meanSlope' } })
+    ).toThrow(GameboardValidationError);
     expect(() => applyTerrainHexesToPlan(plan(), [hex(1, 0)], { biome: () => '  ' })).toThrow(
       GameboardValidationError
     );
@@ -134,7 +145,10 @@ describe('applyTerrainHexesToPlan', () => {
   });
 
   it('bridges the real terrain tier: compose -> classify -> project -> write', () => {
-    const source = createGameboardBuilder({ seed: 'bridge', shape: { kind: 'rectangle', width: 3, height: 3 } }).build();
+    const source = createGameboardBuilder({
+      seed: 'bridge',
+      shape: { kind: 'rectangle', width: 3, height: 3 },
+    }).build();
     const bounds = { minX: -4, minZ: -4, maxX: 8, maxZ: 8 };
     const terrain = composeHeightField({
       bounds,

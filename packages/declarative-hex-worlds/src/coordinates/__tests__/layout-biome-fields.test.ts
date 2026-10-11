@@ -18,7 +18,10 @@ import { spawnGameboardLayoutPlacements } from '../layout-runtime';
  *   3,0 (no biome, no fields)
  */
 function strip(): GameboardPlan {
-  return createGameboardBuilder({ seed: 'layout-biome', shape: { kind: 'rectangle', width: 4, height: 1 } })
+  return createGameboardBuilder({
+    seed: 'layout-biome',
+    shape: { kind: 'rectangle', width: 4, height: 1 },
+  })
     .setBiome({ q: 0, r: 0 }, 'wheat')
     .setFields({ q: 0, r: 0 }, { slope: 0.05, wetness: 0.9 })
     .setBiome({ q: 1, r: 0 }, 'wheat')
@@ -35,7 +38,9 @@ function accepted(criteria: GameboardLayoutCriteria): string[] {
 }
 
 function rejectionCodes(criteria: GameboardLayoutCriteria): Record<string, string[]> {
-  const inspection = inspectGameboardLayoutSites(strip(), { criteria: { allowOccupied: true, ...criteria } });
+  const inspection = inspectGameboardLayoutSites(strip(), {
+    criteria: { allowOccupied: true, ...criteria },
+  });
   const byTile: Record<string, string[]> = {};
   for (const rejected of inspection.rejected) {
     byTile[rejected.key] = rejected.rejections.map((rejection) => rejection.code);
@@ -58,7 +63,12 @@ describe('biome criteria', () => {
 
   it('requiredAdjacentBiome needs a neighbour in the listed biomes', () => {
     expect(accepted({ requiredAdjacentBiome: 'orchard' })).toEqual(['1,0', '3,0']);
-    expect(accepted({ requiredAdjacentBiome: ['orchard', 'wheat'] })).toEqual(['0,0', '1,0', '2,0', '3,0']);
+    expect(accepted({ requiredAdjacentBiome: ['orchard', 'wheat'] })).toEqual([
+      '0,0',
+      '1,0',
+      '2,0',
+      '3,0',
+    ]);
     expect(rejectionCodes({ requiredAdjacentBiome: 'orchard' })).toEqual({
       '0,0': ['missing-adjacent-biome'],
       '2,0': ['missing-adjacent-biome'],
@@ -76,7 +86,9 @@ describe('biome criteria', () => {
 
   it('combines with terrain criteria', () => {
     expect(accepted({ biome: 'wheat', terrain: 'water' })).toEqual([]);
-    expect(accepted({ biome: 'wheat', terrain: 'grass', forbiddenAdjacentBiome: 'orchard' })).toEqual(['0,0']);
+    expect(
+      accepted({ biome: 'wheat', terrain: 'grass', forbiddenAdjacentBiome: 'orchard' })
+    ).toEqual(['0,0']);
   });
 });
 
@@ -84,7 +96,10 @@ describe('field band criteria', () => {
   it('min and max are inclusive and either may be open', () => {
     expect(accepted({ fields: [{ field: 'slope', max: 0.05 }] })).toEqual(['0,0', '2,0']);
     expect(accepted({ fields: [{ field: 'slope', min: 0.3 }] })).toEqual(['1,0']);
-    expect(accepted({ fields: [{ field: 'wetness', min: 0.5, max: 0.9 }] })).toEqual(['0,0', '2,0']);
+    expect(accepted({ fields: [{ field: 'wetness', min: 0.5, max: 0.9 }] })).toEqual([
+      '0,0',
+      '2,0',
+    ]);
     expect(accepted({ fields: [{ field: 'wetness', min: 0.51, max: 0.89 }] })).toEqual([]);
   });
 
@@ -135,7 +150,11 @@ describe('criteria flow through the layout APIs', () => {
     ]);
     const base = resolveGameboardLayoutCriteria('wet-meadow-marker', undefined, registry);
     expect(base).toMatchObject({ biome: 'wheat', fields: [{ field: 'wetness', min: 0.8 }] });
-    const sites = selectGameboardLayoutSites(strip(), { count: 4, seed: 'archetype', criteria: base });
+    const sites = selectGameboardLayoutSites(strip(), {
+      count: 4,
+      seed: 'archetype',
+      criteria: base,
+    });
     expect(sites.map((site) => site.tile.key)).toEqual(['0,0']);
 
     const overridden = resolveGameboardLayoutCriteria(
@@ -145,9 +164,11 @@ describe('criteria flow through the layout APIs', () => {
     );
     expect(overridden).toMatchObject({ biome: 'wheat', fields: [{ field: 'slope', max: 0.1 }] });
     expect(
-      selectGameboardLayoutSites(strip(), { count: 4, seed: 'archetype', criteria: overridden }).map(
-        (site) => site.tile.key
-      )
+      selectGameboardLayoutSites(strip(), {
+        count: 4,
+        seed: 'archetype',
+        criteria: overridden,
+      }).map((site) => site.tile.key)
     ).toEqual(['0,0']);
   });
 
@@ -163,7 +184,9 @@ describe('criteria flow through the layout APIs', () => {
       requiresExtra: true,
       criteria: { biome: 'wheat', fields: [{ field: 'slope', max: 0.1 }], allowOccupied: true },
     });
-    const markers = readGameboardPlacements(world).filter((placement) => placement.id.startsWith('marker'));
+    const markers = readGameboardPlacements(world).filter((placement) =>
+      placement.id.startsWith('marker')
+    );
     expect(markers.map((placement) => placement.tileKey)).toEqual(['0,0']);
     world.destroy();
   });

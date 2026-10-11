@@ -62,8 +62,14 @@ describe('tile biome in the Koota runtime', () => {
       plan.tiles.map((tile) => [tile.key, tile.biome])
     );
     // Terrain features did not disturb biome.
-    expect(projected.tiles.find((tile) => tile.key === '2,2')).toMatchObject({ terrain: 'river', biome: 'marsh' });
-    expect(projected.tiles.find((tile) => tile.key === '3,1')).toMatchObject({ terrain: 'hill', biome: 'upland' });
+    expect(projected.tiles.find((tile) => tile.key === '2,2')).toMatchObject({
+      terrain: 'river',
+      biome: 'marsh',
+    });
+    expect(projected.tiles.find((tile) => tile.key === '3,1')).toMatchObject({
+      terrain: 'hill',
+      biome: 'upland',
+    });
 
     // A second generation of the same trip is stable.
     const again = createGameboardWorld(projected);
@@ -80,7 +86,9 @@ describe('tile biome in the Koota runtime', () => {
         { action: 'setBiome', at: { q: 2, r: 2 }, biome: 'marsh' },
       ],
       {
-        layoutFills: [{ id: 'flags', assetId: 'flag_green', archetype: 'prop', count: 3, idPrefix: 'flags' }],
+        layoutFills: [
+          { id: 'flags', assetId: 'flag_green', archetype: 'prop', count: 3, idPrefix: 'flags' },
+        ],
       }
     );
     const plan = createGameboardPlanFromRecipe(recipe);
@@ -90,7 +98,9 @@ describe('tile biome in the Koota runtime', () => {
 
     const authored = createGameboardPlanFromRecipe({ ...recipe, generation: undefined });
     const generated = applyGameboardRecipeGeneration(authored, recipe.generation);
-    expect(generated.tiles.map((tile) => tile.biome)).toEqual(authored.tiles.map((tile) => tile.biome));
+    expect(generated.tiles.map((tile) => tile.biome)).toEqual(
+      authored.tiles.map((tile) => tile.biome)
+    );
   });
 
   it('does not alias plan tiles in world state', () => {
@@ -129,7 +139,9 @@ describe('setTileBiome', () => {
     const entity = findTileEntity(world, '1,1');
     expect(entity?.has(TileBiome)).toBe(false);
     expect(entity?.get(HexTileState)?.biome).toBeUndefined();
-    expect(projectWorldToGameboardPlan(world).tiles.find((tile) => tile.key === '1,1')).not.toHaveProperty('biome');
+    expect(
+      projectWorldToGameboardPlan(world).tiles.find((tile) => tile.key === '1,1')
+    ).not.toHaveProperty('biome');
     setTileBiome(world, '0,0', undefined);
     expect(findTileEntity(world, '0,0')?.has(TileBiome)).toBe(false);
     world.destroy();

@@ -9,7 +9,11 @@
 import { GameboardValidationError } from '../errors';
 
 /** Field names that would reach the prototype chain through a dynamic key. */
-const FORBIDDEN_FIELD_NAMES: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype']);
+const FORBIDDEN_FIELD_NAMES: ReadonlySet<string> = new Set([
+  '__proto__',
+  'constructor',
+  'prototype',
+]);
 
 function tileLabel(tileKey: string | undefined): string {
   return tileKey === undefined ? 'Tile' : `Tile ${tileKey}`;
@@ -25,7 +29,10 @@ export function isGameboardTileBiome(biome: unknown): biome is string {
  * library never enumerates or restricts the vocabulary: any non-blank string
  * is a biome. Pass `tileKey` to name the offending tile in the message.
  */
-export function assertGameboardTileBiome(biome: unknown, tileKey?: string): asserts biome is string {
+export function assertGameboardTileBiome(
+  biome: unknown,
+  tileKey?: string
+): asserts biome is string {
   if (!isGameboardTileBiome(biome)) {
     throw new GameboardValidationError(`${tileLabel(tileKey)} biome must be a non-empty string`);
   }
@@ -79,7 +86,10 @@ export function mergeGameboardTileFields(
   tileKey?: string
 ): Readonly<Record<string, number>> {
   assertGameboardTileFields(incoming, tileKey);
-  return normalizeGameboardTileFields(options.replace ? incoming : { ...existing, ...incoming }, tileKey);
+  return normalizeGameboardTileFields(
+    options.replace ? incoming : { ...existing, ...incoming },
+    tileKey
+  );
 }
 
 /**

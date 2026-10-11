@@ -25,7 +25,11 @@ function tileAt(plan: GameboardPlan, key: string): GameboardTileSpec {
 
 describe('numeric tile fields on the builder', () => {
   it('leaves fields absent on tiles that were never given any', () => {
-    expect(builder().build().tiles.every((tile) => !('fields' in tile))).toBe(true);
+    expect(
+      builder()
+        .build()
+        .tiles.every((tile) => !('fields' in tile))
+    ).toBe(true);
   });
 
   it('stores named finite numbers, including zero and negatives, with sorted keys', () => {
@@ -116,7 +120,11 @@ describe('numeric tile fields on the builder', () => {
     expect(tileAt(plan, '1,1').fields).toEqual({ soil: 2 });
     expect(tileAt(plan, '2,1').fields).toEqual({ slope: 0.3 });
     expect(() =>
-      builder().setTileAsset({ at: { q: 1, r: 1 }, assetId: 'hex_grass', fields: { a: Number.NaN } })
+      builder().setTileAsset({
+        at: { q: 1, r: 1 },
+        assetId: 'hex_grass',
+        fields: { a: Number.NaN },
+      })
     ).toThrow(GameboardValidationError);
   });
 
@@ -147,7 +155,12 @@ describe('tile field validators', () => {
 describe('plan validation of tile fields', () => {
   it('reports tile.invalid_field for non-finite values and malformed stores from untrusted JSON', () => {
     const plan = builder().build();
-    const [first, second, third, ...rest] = plan.tiles as [GameboardTileSpec, GameboardTileSpec, GameboardTileSpec, ...GameboardTileSpec[]];
+    const [first, second, third, ...rest] = plan.tiles as [
+      GameboardTileSpec,
+      GameboardTileSpec,
+      GameboardTileSpec,
+      ...GameboardTileSpec[],
+    ];
     const tampered: GameboardPlan = {
       ...plan,
       tiles: [
@@ -157,7 +170,9 @@ describe('plan validation of tile fields', () => {
         ...rest,
       ],
     };
-    const violations = validateGameboardPlan(tampered).filter((v) => v.code === 'tile.invalid_field');
+    const violations = validateGameboardPlan(tampered).filter(
+      (v) => v.code === 'tile.invalid_field'
+    );
     expect(violations.map((v) => v.tileKey)).toEqual([first.key, second.key]);
     expect(violations.every((v) => v.severity === 'error')).toBe(true);
   });

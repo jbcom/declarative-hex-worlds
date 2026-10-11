@@ -41,7 +41,10 @@ describe('open tile biome on the builder', () => {
   });
 
   it('replaces an earlier biome on the same tile', () => {
-    const plan = builder().setBiome({ q: 1, r: 1 }, 'wheat').setBiome({ q: 1, r: 1 }, 'fallow').build();
+    const plan = builder()
+      .setBiome({ q: 1, r: 1 }, 'wheat')
+      .setBiome({ q: 1, r: 1 }, 'fallow')
+      .build();
     expect(tileAt(plan, '1,1').biome).toBe('fallow');
   });
 
@@ -113,9 +116,9 @@ describe('open tile biome on the builder', () => {
   });
 
   it('rejects an invalid biome through setTileAsset', () => {
-    expect(() => builder().setTileAsset({ at: { q: 1, r: 1 }, assetId: 'hex_grass', biome: '' })).toThrow(
-      GameboardValidationError
-    );
+    expect(() =>
+      builder().setTileAsset({ at: { q: 1, r: 1 }, assetId: 'hex_grass', biome: '' })
+    ).toThrow(GameboardValidationError);
   });
 
   it('does not share mutable state between the builder and the built plan', () => {
@@ -142,7 +145,9 @@ describe('plan validation of tile biomes', () => {
       ...plan,
       tiles: [{ ...first, biome: ' ' }, ...plan.tiles.slice(1)],
     };
-    const violations = validateGameboardPlan(tampered).filter((v) => v.code === 'tile.invalid_biome');
+    const violations = validateGameboardPlan(tampered).filter(
+      (v) => v.code === 'tile.invalid_biome'
+    );
     expect(violations).toHaveLength(1);
     expect(violations[0]?.severity).toBe('error');
   });

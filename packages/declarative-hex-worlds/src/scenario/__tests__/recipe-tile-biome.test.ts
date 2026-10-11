@@ -9,7 +9,10 @@ import {
   type GameboardRecipeStep,
 } from '../recipe';
 
-const OPTIONS = { seed: 'recipe-biome', shape: { kind: 'rectangle', width: 4, height: 4 } } as const;
+const OPTIONS = {
+  seed: 'recipe-biome',
+  shape: { kind: 'rectangle', width: 4, height: 4 },
+} as const;
 
 describe('setBiome recipe step', () => {
   it('assigns an open biome and keeps it through later road and river steps', () => {
@@ -45,27 +48,40 @@ describe('setBiome recipe step', () => {
     const recipe = createGameboardRecipe(OPTIONS, [step]);
     (step.at as { q: number }).q = 3;
     expect(recipe.steps[0]).toMatchObject({ at: { q: 0, r: 0 }, biome: 'orchard' });
-    const built = applyRecipeStep(createGameboardBuilder(OPTIONS), recipe.steps[0] as GameboardRecipeStep).build();
+    const built = applyRecipeStep(
+      createGameboardBuilder(OPTIONS),
+      recipe.steps[0] as GameboardRecipeStep
+    ).build();
     expect(built.tiles.find((tile) => tile.key === '0,0')?.biome).toBe('orchard');
   });
 
   it('round-trips through JSON', () => {
-    const recipe = createGameboardRecipe(OPTIONS, [{ action: 'setBiome', at: { q: 1, r: 2 }, biome: 'marsh' }]);
+    const recipe = createGameboardRecipe(OPTIONS, [
+      { action: 'setBiome', at: { q: 1, r: 2 }, biome: 'marsh' },
+    ]);
     const revived = JSON.parse(JSON.stringify(recipe)) as typeof recipe;
-    expect(createGameboardPlanFromRecipe(revived).tiles.find((tile) => tile.key === '1,2')?.biome).toBe('marsh');
+    expect(
+      createGameboardPlanFromRecipe(revived).tiles.find((tile) => tile.key === '1,2')?.biome
+    ).toBe('marsh');
   });
 
   it('rejects an empty biome with a validation error, and inspect reports it as a compile failure', () => {
-    const recipe = createGameboardRecipe(OPTIONS, [{ action: 'setBiome', at: { q: 1, r: 1 }, biome: '' }]);
+    const recipe = createGameboardRecipe(OPTIONS, [
+      { action: 'setBiome', at: { q: 1, r: 1 }, biome: '' },
+    ]);
     expect(() => createGameboardPlanFromRecipe(recipe)).toThrow(GameboardValidationError);
     const inspected = inspectGameboardRecipe(recipe);
-    expect(inspected.violations.map((violation) => violation.code)).toContain('recipe.compile_failed');
+    expect(inspected.violations.map((violation) => violation.code)).toContain(
+      'recipe.compile_failed'
+    );
   });
 
   it('is carried by setTileAsset steps', () => {
     const recipe = createGameboardRecipe(OPTIONS, [
       { action: 'setTileAsset', at: { q: 1, r: 1 }, assetId: 'hex_grass', biome: 'meadow' },
     ]);
-    expect(createGameboardPlanFromRecipe(recipe).tiles.find((tile) => tile.key === '1,1')?.biome).toBe('meadow');
+    expect(
+      createGameboardPlanFromRecipe(recipe).tiles.find((tile) => tile.key === '1,1')?.biome
+    ).toBe('meadow');
   });
 });

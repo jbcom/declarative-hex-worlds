@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createGameboardRecipe } from '../recipe';
 
-const OPTIONS = { seed: 'recipe-criteria', shape: { kind: 'rectangle', width: 4, height: 4 } } as const;
+const OPTIONS = {
+  seed: 'recipe-criteria',
+  shape: { kind: 'rectangle', width: 4, height: 4 },
+} as const;
 
 describe('biome and field-band layout criteria in recipes', () => {
   it('clones them so saved recipes cannot be mutated through their inputs', () => {

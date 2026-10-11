@@ -46,7 +46,10 @@ describe('numeric tile fields in the Koota runtime', () => {
       expect(spec?.fields).toEqual(tile.fields);
       expect(spec?.biome).toBe(tile.biome);
     }
-    expect(readGameboardTiles(world).find((tile) => tile.key === '3,1')?.fields).toEqual({ slope: 0.5, soil: 0 });
+    expect(readGameboardTiles(world).find((tile) => tile.key === '3,1')?.fields).toEqual({
+      slope: 0.5,
+      soil: 0,
+    });
 
     const projected = projectWorldToGameboardPlan(world);
     expect(projected.tiles.map((tile) => [tile.key, tile.biome, tile.fields])).toEqual(
@@ -62,7 +65,10 @@ describe('numeric tile fields in the Koota runtime', () => {
   it('reads fields back as copies, so callers cannot mutate world state through a projection', () => {
     const world = createGameboardWorld(fieldPlan());
     const projected = projectWorldToGameboardPlan(world);
-    const fields = projected.tiles.find((tile) => tile.key === '1,1')?.fields as Record<string, number>;
+    const fields = projected.tiles.find((tile) => tile.key === '1,1')?.fields as Record<
+      string,
+      number
+    >;
     fields.slope = 123;
     expect(findTileEntity(world, '1,1')?.get(TileFields)?.slope).toBe(0.04);
     world.destroy();
@@ -72,7 +78,10 @@ describe('numeric tile fields in the Koota runtime', () => {
     const plan = fieldPlan();
     const world = createGameboardWorld(plan);
     setTileFields(world, '1,1', { slope: 9 });
-    expect(plan.tiles.find((tile) => tile.key === '1,1')?.fields).toEqual({ slope: 0.04, wetness: 0.7 });
+    expect(plan.tiles.find((tile) => tile.key === '1,1')?.fields).toEqual({
+      slope: 0.04,
+      wetness: 0.7,
+    });
     world.destroy();
   });
 
@@ -83,7 +92,11 @@ describe('numeric tile fields in the Koota runtime', () => {
         { action: 'setBiome', at: { q: 1, r: 1 }, biome: 'wheat' },
         { action: 'setFields', at: { q: 1, r: 1 }, fields: { wetness: 0.6 } },
       ],
-      { layoutFills: [{ id: 'flags', assetId: 'flag_green', archetype: 'prop', count: 3, idPrefix: 'flags' }] }
+      {
+        layoutFills: [
+          { id: 'flags', assetId: 'flag_green', archetype: 'prop', count: 3, idPrefix: 'flags' },
+        ],
+      }
     );
     const authored = createGameboardPlanFromRecipe({ ...recipe, generation: undefined });
     const generated = applyGameboardRecipeGeneration(authored, recipe.generation);
@@ -99,8 +112,16 @@ describe('setTileFields', () => {
   it('merges by default, replaces on request, and survives projection', () => {
     const world = createGameboardWorld(fieldPlan());
     setTileFields(world, '1,1', { wetness: 0.1, soil: 4 });
-    expect(findTileEntity(world, '1,1')?.get(TileFields)).toEqual({ slope: 0.04, soil: 4, wetness: 0.1 });
-    expect(findTileEntity(world, '1,1')?.get(HexTileState)?.fields).toEqual({ slope: 0.04, soil: 4, wetness: 0.1 });
+    expect(findTileEntity(world, '1,1')?.get(TileFields)).toEqual({
+      slope: 0.04,
+      soil: 4,
+      wetness: 0.1,
+    });
+    expect(findTileEntity(world, '1,1')?.get(HexTileState)?.fields).toEqual({
+      slope: 0.04,
+      soil: 4,
+      wetness: 0.1,
+    });
 
     setTileFields(world, { q: 1, r: 1 }, { soil: 1 }, { replace: true });
     expect(findTileEntity(world, '1,1')?.get(TileFields)).toEqual({ soil: 1 });
@@ -115,7 +136,9 @@ describe('setTileFields', () => {
 
   it('rejects invalid values and unknown tiles with library errors, leaving state untouched', () => {
     const world = createGameboardWorld(fieldPlan());
-    expect(() => setTileFields(world, '1,1', { slope: Number.NaN })).toThrow(GameboardValidationError);
+    expect(() => setTileFields(world, '1,1', { slope: Number.NaN })).toThrow(
+      GameboardValidationError
+    );
     expect(() => setTileFields(world, '99,99', { slope: 1 })).toThrow(GameboardRuntimeError);
     expect(findTileEntity(world, '1,1')?.get(TileFields)).toEqual({ slope: 0.04, wetness: 0.7 });
     world.destroy();
@@ -125,12 +148,14 @@ describe('setTileFields', () => {
 describe('tile fields in engine-neutral interop', () => {
   it('exports TileFields as a tile component only when the tile has fields', () => {
     const snapshot = createGameboardInteropSnapshot(fieldPlan());
-    expect(snapshot.entities.find((entity) => entity.id === 'tile:1,1')?.components.TileFields).toEqual({
+    expect(
+      snapshot.entities.find((entity) => entity.id === 'tile:1,1')?.components.TileFields
+    ).toEqual({
       slope: 0.04,
       wetness: 0.7,
     });
-    expect(snapshot.entities.find((entity) => entity.id === 'tile:0,0')?.components).not.toHaveProperty(
-      'TileFields'
-    );
+    expect(
+      snapshot.entities.find((entity) => entity.id === 'tile:0,0')?.components
+    ).not.toHaveProperty('TileFields');
   });
 });
