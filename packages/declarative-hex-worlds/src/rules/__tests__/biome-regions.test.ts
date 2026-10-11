@@ -3,7 +3,7 @@ import { hexDistance, hexKey } from '../../coordinates/coordinates';
 import { createGameboardBuilder } from '../../gameboard';
 import { type GameboardBiomeRegionsSpec, generateGameboardBiomeRegions } from '../biome-regions';
 
-function board() {
+function board(pins: readonly { at: { q: number; r: number }; biome: string }[] = []) {
   const builder = createGameboardBuilder({
     seed: 'buried-seed',
     shape: { kind: 'rectangle', width: 12, height: 8 },
@@ -11,6 +11,7 @@ function board() {
   for (const tile of builder.build().tiles) {
     builder.setFields(tile.coordinates, { wetness: tile.coordinates.q < 3 ? 1 : 0, slope: 0.05 });
   }
+  for (const pin of pins) builder.setBiome(pin.at, pin.biome).pinTile(pin.at);
   return builder.build();
 }
 
@@ -25,15 +26,17 @@ describe('seeded hex biome regions', () => {
   it('uses pairwise affinity when choosing between reachable frontier tiles', () => {
     const plan = createGameboardBuilder({
       shape: { kind: 'rectangle', width: 3, height: 2 },
-    }).build();
+    })
+      .setBiome({ q: 0, r: 0 }, 'woods')
+      .pinTile({ q: 0, r: 0 })
+      .setBiome({ q: 1, r: 0 }, 'farmyard')
+      .pinTile({ q: 1, r: 0 })
+      .setBiome({ q: 2, r: 0 }, 'marsh')
+      .pinTile({ q: 2, r: 0 })
+      .build();
     const base: GameboardBiomeRegionsSpec = {
       seed: 'affinity',
       fill: 'pasture',
-      pins: [
-        { at: { q: 0, r: 0 }, biome: 'woods' },
-        { at: { q: 1, r: 0 }, biome: 'farmyard' },
-        { at: { q: 2, r: 0 }, biome: 'marsh' },
-      ],
       biomes: [{ biome: 'wheat', target: 0.34, sources: { tiles: [{ q: 1, r: 0 }] } }],
     };
     const left = generateGameboardBiomeRegions(plan, {
@@ -95,7 +98,7 @@ describe('seeded hex biome regions', () => {
   it('protects pinned campaign tiles across seed changes and counts shares over free tiles', () => {
     const pins = [{ at: { q: 5, r: 3 }, biome: 'orchard' }];
     for (const seed of ['campaign-one', 'campaign-two']) {
-      const result = generateGameboardBiomeRegions(board(), { ...spec, seed, pins });
+      const result = generateGameboardBiomeRegions(board(pins), { ...spec, seed });
       expect(result.plan.tiles.find((tile) => tile.key === '5,3')?.biome).toBe('orchard');
       expect(result.report.pinned).toBe(1);
       expect(result.report.biomes.wheat?.target).toBe(Math.floor(95 * 0.3));
@@ -113,9 +116,8 @@ describe('seeded hex biome regions', () => {
   });
 
   it('dissolves undersized free regions while leaving pinned regions untouched', () => {
-    const result = generateGameboardBiomeRegions(board(), {
+    const result = generateGameboardBiomeRegions(board([{ at: { q: 0, r: 0 }, biome: 'wheat' }]), {
       ...spec,
-      pins: [{ at: { q: 0, r: 0 }, biome: 'wheat' }],
       biomes: [
         { biome: 'wheat', target: 0.02, sources: { tiles: [{ q: 10, r: 6 }] }, minRegion: 3 },
       ],
@@ -133,7 +135,7 @@ describe('seeded hex biome regions', () => {
     );
   });
 
-  it('rejects invalid targets, absent source tiles and conflicting pins', () => {
+  it('rejects invalid targets and absent source tiles', () => {
     expect(() =>
       generateGameboardBiomeRegions(board(), {
         ...spec,
@@ -143,16 +145,7 @@ describe('seeded hex biome regions', () => {
     expect(() =>
       generateGameboardBiomeRegions(board(), {
         ...spec,
-        pins: [{ at: { q: 99, r: 99 }, biome: 'orchard' }],
-      })
-    ).toThrow();
-    expect(() =>
-      generateGameboardBiomeRegions(board(), {
-        ...spec,
-        pins: [
-          { at: { q: 0, r: 0 }, biome: 'orchard' },
-          { at: { q: 0, r: 0 }, biome: 'rock' },
-        ],
+        biomes: [{ biome: 'wheat', target: 0.3, sources: { tiles: [{ q: 99, r: 99 }] } }],
       })
     ).toThrow();
   });

@@ -32,11 +32,11 @@ function country(seed: string) {
       rock: Math.max(0, (x - 21) / 8),
     });
   }
+  builder.setBiome({ q: 5, r: 4 }, 'orchard').pinTile({ q: 5, r: 4 });
   return generateGameboardBiomeRegions(builder.build(), {
     seed: `${seed}:biomes`,
     fill: 'pasture',
     edgeNoise: 0.12,
-    pins: [{ at: { q: 5, r: 4 }, biome: 'orchard' }],
     biomes: [
       {
         biome: 'wetMeadow',

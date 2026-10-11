@@ -135,11 +135,16 @@ describe('biome region authoring validation', () => {
     expect(absent.report.biomes.woods?.actual).toBe(8);
   });
 
-  it('deduplicates identical campaign pins', () => {
-    const pin = { at: { q: 0, r: 0 }, biome: 'orchard' };
-    expect(generateGameboardBiomeRegions(plan, { ...base, pins: [pin, pin] }).report.pinned).toBe(
-      1
-    );
+  it('keeps authored pins without biomes and all their fields exactly intact', () => {
+    const source = createGameboardBuilder({ shape: { kind: 'rectangle', width: 5, height: 4 } })
+      .setFields({ q: 0, r: 0 }, { historical: 1 })
+      .pinTile({ q: 0, r: 0 })
+      .build();
+    const result = generateGameboardBiomeRegions(source, base);
+    const before = source.tiles.find((tile) => tile.key === '0,0');
+    expect(result.plan.tiles.find((tile) => tile.key === '0,0')).toBe(before);
+    expect(before).not.toHaveProperty('biome');
+    expect(result.report.pinned).toBe(1);
   });
 
   it('treats a negative suitability penalty like the equivalent falling preference', () => {

@@ -918,7 +918,6 @@ function recipeGenerationIsEmpty(generation: GameboardRecipeGeneration): boolean
 function cloneBiomeRegions(spec: GameboardBiomeRegionsSpec): GameboardBiomeRegionsSpec {
   return {
     ...spec,
-    pins: spec.pins?.map((pin) => ({ ...pin, at: { ...pin.at } })),
     affinity: spec.affinity?.map((pair) => ({ ...pair })),
     biomes: spec.biomes.map((rule) => ({
       ...rule,

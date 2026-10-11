@@ -91,44 +91,45 @@ describe('recipe biome generation', () => {
     ).toEqual(['3,3']);
   });
 
-  it('pins declared in later merged stages protect the earlier stage too', () => {
+  it('authored pins protect every generation stage in a merged recipe', () => {
     const early = createGameboardRecipe(OPTIONS, [], { biomeRegions: [stage] });
-    const later = createGameboardRecipe(OPTIONS, [], {
-      biomeRegions: [
-        {
-          ...stage,
-          seed: 'campaign:later',
-          pins: [{ at: { q: 3, r: 3 }, biome: 'orchard' }],
-        },
+    const later = createGameboardRecipe(
+      OPTIONS,
+      [
+        { action: 'setBiome', at: { q: 3, r: 3 }, biome: 'orchard' },
+        { action: 'pinTile', at: { q: 3, r: 3 } },
       ],
-    });
+      {
+        biomeRegions: [
+          {
+            ...stage,
+            seed: 'campaign:later',
+          },
+        ],
+      }
+    );
     const merged = mergeGameboardRecipes(early, [later]);
     const plan = createGameboardPlanFromRecipe(merged, {}, applyGameboardRecipeGeneration);
     expect(plan.tiles.find((tile) => tile.key === '3,3')?.biome).toBe('orchard');
   });
 
   it('snapshots nested region data and preserves it through recipe serialization', () => {
-    const pins = [{ at: { q: 0, r: 0 }, biome: 'orchard' }];
     const sources = [{ q: 3, r: 3 }];
     const requires = [{ field: 'slope', max: 0.1 }];
     const recipe = createGameboardRecipe(OPTIONS, [], {
       biomeRegions: [
         {
           ...stage,
-          pins,
           biomes: [{ biome: 'wheat', target: 0.4, sources: { tiles: sources }, requires }],
         },
       ],
     });
-    const pin = pins[0];
-    if (pin) pin.at.q = 99;
     const source = sources[0];
     if (source) source.q = 99;
     const band = requires[0];
     if (band) band.max = 99;
     const revived = JSON.parse(JSON.stringify(recipe)) as typeof recipe;
     expect(revived.generation?.biomeRegions?.[0]).toMatchObject({
-      pins: [{ at: { q: 0, r: 0 }, biome: 'orchard' }],
       biomes: [{ sources: { tiles: [{ q: 3, r: 3 }] }, requires: [{ field: 'slope', max: 0.1 }] }],
     });
   });

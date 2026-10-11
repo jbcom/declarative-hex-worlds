@@ -14,7 +14,6 @@ import { generateGameboardBiomeRegions } from 'declarative-hex-worlds/core';
 const { plan: country, report } = generateGameboardBiomeRegions(plan, {
   seed: `${plan.seed}:biomes`,
   fill: 'pasture',
-  pins: [{ at: { q: 3, r: 4 }, biome: 'orchard' }],
   edgeNoise: 0.12,
   biomes: [
     {
@@ -55,10 +54,13 @@ components dissolve into the fallback biome; components containing pins stay.
 
 Put stages in `recipe.generation.biomeRegions`. They run in array order before
 placement fills, so layout rules can select their generated biome and fields.
-Every pin declared by any stage is protected throughout that generation block,
-including stages combined by `mergeGameboardRecipes`. Conflicting pins fail
-validation. Pins are authored recipe intent rather than an invisible runtime
-restriction on later gameplay mutations.
+Authored `GameboardTileSpec.pinned` flags are protected throughout the generation
+block, including stages combined by `mergeGameboardRecipes`. Use the builder's
+`setBiome(at, biome).pinTile(at)` or the recipe's `setBiome` and `pinTile` steps
+to author a fixed orchard, road or other historical tile. A pinned tile without
+a biome retains that absence, along with all its fields and other state.
+Explicit edits and `setTilePinned` remain available through the canonical pin
+API; region stages do not introduce a second pin representation.
 
 Use a different namespaced seed for each stage. Random draws are keyed by
 stage seed, biome and tile; reversing the input tile array does not change the

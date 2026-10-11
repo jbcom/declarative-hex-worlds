@@ -37,7 +37,9 @@ export function applyGameboardRecipeGeneration(
   try {
     if (regions.length > 0) {
       const generated = applyGameboardBiomeRegionStages(projectWorldToGameboardPlan(world), regions);
-      for (const tile of generated.tiles) setTileBiome(world, tile.key, tile.biome);
+      for (const tile of generated.tiles) {
+        if (tile.pinned !== true) setTileBiome(world, tile.key, tile.biome);
+      }
     }
     spawnGameboardLayoutFill(world, {
       seed: generation?.layoutFillSeed ?? `${plan.seed}:recipe-layout-fill`,

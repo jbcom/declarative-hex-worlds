@@ -39,15 +39,14 @@ export interface GameboardBiomeRegionRule {
 
 /**
  * One ordered generation stage. Give each stage a namespaced buried seed.
- * Pins are authoritative biome values for this stage and survive growth and
- * cleanup; repeat the campaign's pins in any later stage that may repaint them.
+ * Authored `GameboardTileSpec.pinned` values survive growth and cleanup,
+ * including pinned tiles that have no biome assigned.
  * Targets are shares of unpinned tiles, with a combined maximum of one.
  */
 export interface GameboardBiomeRegionsSpec {
   seed: string;
   fill: string;
   biomes: readonly GameboardBiomeRegionRule[];
-  pins?: readonly { at: HexCoordinates; biome: string }[];
   affinity?: readonly { a: string; b: string; weight: number }[];
   edgeNoise?: number;
 }
@@ -173,18 +172,10 @@ function validateSpec(spec: GameboardBiomeRegionsSpec): void {
   }
 }
 
-function pinAssignments(
-  spec: GameboardBiomeRegionsSpec,
-  tiles: Map<string, GameboardTileSpec>
-): Map<string, string> {
-  const pins = new Map<string, string>();
-  for (const pin of spec.pins ?? []) {
-    const key = hexKey(pin.at);
-    assertGameboardTileBiome(pin.biome, key);
-    if (!tiles.has(key)) throw new GameboardValidationError(`No pinned tile exists at ${key}`);
-    if (pins.has(key) && pins.get(key) !== pin.biome)
-      throw new GameboardValidationError(`Conflicting biome pins at ${key}`);
-    pins.set(key, pin.biome);
+function pinAssignments(tiles: Map<string, GameboardTileSpec>): Map<string, string | undefined> {
+  const pins = new Map<string, string | undefined>();
+  for (const tile of tiles.values()) {
+    if (tile.pinned === true) pins.set(tile.key, tile.biome);
   }
   return pins;
 }
@@ -192,7 +183,7 @@ function pinAssignments(
 function sourcesFor(
   growth: Growth,
   tiles: Map<string, GameboardTileSpec>,
-  pins: Map<string, string>,
+  pins: Map<string, string | undefined>,
   seed: string
 ): GameboardTileSpec[] {
   const sources = growth.rule.sources;
@@ -239,7 +230,7 @@ function sourcesFor(
 }
 
 function components(
-  assignments: Map<string, string>,
+  assignments: Map<string, string | undefined>,
   adjacency: Map<string, string[]>,
   biome: string
 ): string[][] {
@@ -282,8 +273,8 @@ export function generateGameboardBiomeRegions(
 
 class RegionGrowth {
   readonly tiles: Map<string, GameboardTileSpec>;
-  readonly pins: Map<string, string>;
-  readonly assignments: Map<string, string>;
+  readonly pins: Map<string, string | undefined>;
+  readonly assignments: Map<string, string | undefined>;
   readonly adjacency: Map<string, string[]>;
   readonly growths: Growth[];
 
@@ -296,7 +287,7 @@ class RegionGrowth {
         .sort((a, b) => a.key.localeCompare(b.key, 'en'))
         .map((tile) => [tile.key, tile])
     );
-    this.pins = pinAssignments(spec, this.tiles);
+    this.pins = pinAssignments(this.tiles);
     this.assignments = new Map(this.pins);
     this.adjacency = new Map(
       [...this.tiles.values()].map((tile) => [
@@ -439,21 +430,22 @@ class RegionGrowth {
     return {
       plan: {
         ...plan,
-        tiles: plan.tiles.map((tile) => ({ ...tile, biome: this.assignments.get(tile.key) })),
+        tiles: plan.tiles.map((tile) =>
+          this.pins.has(tile.key) ? tile : { ...tile, biome: this.assignments.get(tile.key) }
+        ),
       },
       report: { pinned: this.pins.size, biomes },
     };
   }
 }
 
-/** Apply ordered stages with every declared historical pin protected throughout. */
+/** Apply ordered stages while preserving the plan's authored tile pins throughout. */
 export function applyGameboardBiomeRegionStages(
   plan: GameboardPlan,
   stages: readonly GameboardBiomeRegionsSpec[]
 ): GameboardPlan {
-  const pins = stages.flatMap((stage) => stage.pins ?? []);
   return stages.reduce(
-    (current, stage) => generateGameboardBiomeRegions(current, { ...stage, pins }).plan,
+    (current, stage) => generateGameboardBiomeRegions(current, stage).plan,
     plan
   );
 }
