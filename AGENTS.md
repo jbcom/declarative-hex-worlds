@@ -95,6 +95,13 @@ contract for CI and npm consumers.
   `GameboardTileSpec.biome`, builder/recipe `setBiome` and `setTileBiome`); it
   is independent of `terrain`, so never encode a biome as a custom `terrain`
   string, a tag, or a texture set, and never rebuild a tile without carrying it.
+  Per-tile numbers a game computes (slope, wetness, soil depth) live in the
+  optional `TileFields` trait (`GameboardTileSpec.fields`, builder/recipe
+  `setFields`, `setTileFields`); `applyTerrainHexesToPlan` writes
+  `projectTerrainToHexes` output onto those fields (and optionally the biome).
+  Both survive spawn, read-back and projection, so route new tile values
+  through `tileStateValue`, `decomposedTileTraits`, `readDecomposedTileSpecs`
+  and the interop snapshot together.
 - Use `AdjacentTo` relations for neighbor-aware systems and validation.
 - Use `spawnGameboardPlacement`, `moveGameboardPlacement`,
   `updateGameboardPlacement`, `removeGameboardPlacement`, or `gameboardActions`

@@ -81,6 +81,8 @@ export const HexTileState = trait({
   tags: () => [] as string[],
   /** Game-owned open biome id, when the tile has one. */
   biome: undefined as string | undefined,
+  /** Named finite numeric channels, when the tile has any. */
+  fields: (): Readonly<Record<string, number>> | undefined => undefined,
 });
 
 /** Decomposed coordinate trait for systems that only need tile lookup data. */
@@ -148,6 +150,13 @@ export const TileBiome = trait({
   /** Non-empty biome id; the library never enumerates or interprets it. */
   biome: '',
 });
+
+/**
+ * Decomposed numeric-channel trait: named finite numbers a game computed for a
+ * tile (slope, wetness, soil depth, ...). Attached only to tiles that have
+ * fields. Layout criteria read it through `fields` bands.
+ */
+export const TileFields = trait(() => ({}) as Record<string, number>);
 
 /**
  * Runtime placement trait for terrain overlays, structures, units, props, and

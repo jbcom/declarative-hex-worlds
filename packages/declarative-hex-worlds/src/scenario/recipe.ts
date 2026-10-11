@@ -91,6 +91,7 @@ export type GameboardRecipeStep =
   | SetElevationRecipeStep
   | SetTextureSetRecipeStep
   | SetBiomeRecipeStep
+  | SetFieldsRecipeStep
   | SetCoastEdgesRecipeStep
   | AddRoadPathRecipeStep
   | AddRiverPathRecipeStep
@@ -169,6 +170,22 @@ export interface SetBiomeRecipeStep {
   at: HexCoordinates;
   /** Non-empty biome id; the library does not enumerate or interpret it. */
   biome: string;
+}
+
+/**
+ * Recipe step that stores named numeric channels (slope, wetness, soil depth,
+ * ...) on one hex. Values merge into the tile's existing fields unless
+ * `replace` is set. Like the biome, fields survive later terrain steps.
+ */
+export interface SetFieldsRecipeStep {
+  /** Discriminator for field assignment. */
+  action: 'setFields';
+  /** Target hex coordinate. */
+  at: HexCoordinates;
+  /** Finite numbers keyed by open field names. */
+  fields: Readonly<Record<string, number>>;
+  /** Replace the tile's whole field store instead of merging into it. */
+  replace?: boolean;
 }
 
 /** Recipe step that records coastal water edge connectivity for one hex. */
@@ -625,6 +642,8 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
       return builder.setTextureSet(step.at, step.textureSet);
     case 'setBiome':
       return builder.setBiome(step.at, step.biome);
+    case 'setFields':
+      return builder.setFields(step.at, step.fields, { replace: step.replace });
     case 'setCoastEdges':
       return builder.setCoastEdges(step.at, step.waterEdges, { waterless: step.waterless });
     case 'addRoadPath':
@@ -888,11 +907,20 @@ function cloneRecipeStep<T extends GameboardRecipeStep>(step: T): T {
     } as T;
   }
   if (step.action === 'setTileAsset') {
-    const cloned = { ...step, at: { ...step.at } } as T & { tags?: string[] };
+    const cloned = { ...step, at: { ...step.at } } as T & {
+      tags?: string[];
+      fields?: Record<string, number>;
+    };
     if (step.tags) {
       cloned.tags = [...step.tags];
     }
+    if (step.fields) {
+      cloned.fields = { ...step.fields };
+    }
     return cloned as T;
+  }
+  if (step.action === 'setFields') {
+    return { ...step, at: { ...step.at }, fields: { ...step.fields } } as T;
   }
   if ('at' in step) {
     const cloned = { ...step, at: { ...step.at } } as T & {

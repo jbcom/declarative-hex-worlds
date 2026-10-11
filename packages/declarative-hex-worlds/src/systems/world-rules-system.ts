@@ -6,8 +6,13 @@
  */
 import { hexKey, neighbor } from '../coordinates';
 import { GameboardRuntimeError } from '../errors';
-import { assertGameboardTileBiome, type GameboardTerrain, type GameboardTileSpec } from '../gameboard';
-import { HexTileState, TileBiome, TileElevation, TileTerrain } from '../traits';
+import {
+  assertGameboardTileBiome,
+  type GameboardTerrain,
+  type GameboardTileSpec,
+  mergeGameboardTileFields,
+} from '../gameboard';
+import { HexTileState, TileBiome, TileElevation, TileFields, TileTerrain } from '../traits';
 import { findTileEntity } from '../koota';
 import { readDecomposedTileSpecs, readValidationGameboardPlanFromWorld } from '../coordinates';
 import type { GameboardRuleConfig, GameboardRuleViolation } from '../rules';
@@ -83,6 +88,33 @@ export function setTileBiome(
     entity.add(TileBiome({ biome }));
   }
   entity.set(HexTileState, { biome });
+}
+
+/**
+ * Mutates the numeric field channels of one tile entity in a Koota world,
+ * keeping the aggregate `HexTileState` and the decomposed `TileFields` trait in
+ * step. New values merge into the tile's existing fields; pass
+ * `{ replace: true }` to replace the whole store. Every value must be a finite
+ * number, and nothing changes when validation fails.
+ */
+export function setTileFields(
+  world: World,
+  coordinates: HexCoordinates | string,
+  fields: Readonly<Record<string, number>>,
+  options: { replace?: boolean } = {}
+): void {
+  const key = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
+  const entity = findTileEntity(world, coordinates);
+  if (!entity) {
+    throw new GameboardRuntimeError(`No tile exists at ${key}`);
+  }
+  const next = mergeGameboardTileFields(entity.get(TileFields), fields, options, key);
+  if (entity.has(TileFields)) {
+    entity.set(TileFields, { ...next });
+  } else {
+    entity.add(TileFields({ ...next }));
+  }
+  entity.set(HexTileState, { fields: { ...next } });
 }
 
 /** Mutates the elevation state for one tile entity in a Koota world. */

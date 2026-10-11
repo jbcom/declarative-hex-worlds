@@ -127,6 +127,8 @@ import {
   type TileCoordinatesValue,
   TileElevation,
   type TileElevationValue,
+  TileFields,
+  type TileFieldsValue,
   TileRenderState,
   type TileRenderStateValue,
   TileTagList,
@@ -416,6 +418,7 @@ function subscribeGameboardRevisionDomain(
         ...subscribeGameboardRevisionInput(world, TileRenderState, update),
         ...subscribeGameboardRevisionInput(world, TileTagList, update),
         ...subscribeGameboardRevisionInput(world, TileBiome, update),
+        ...subscribeGameboardRevisionInput(world, TileFields, update),
       ];
     case 'placements':
       return [
@@ -994,6 +997,13 @@ export function useTileTagList(entity: Entity | undefined | null): TileTagListVa
  */
 export function useTileBiome(entity: Entity | undefined | null): TileBiomeValue | undefined {
   return useTrait(entity, TileBiome);
+}
+
+/**
+ * Read the numeric field channels of one tile entity, or `undefined` when it has none.
+ */
+export function useTileFields(entity: Entity | undefined | null): TileFieldsValue | undefined {
+  return useTrait(entity, TileFields);
 }
 
 /**

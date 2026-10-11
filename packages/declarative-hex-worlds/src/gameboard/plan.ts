@@ -160,6 +160,12 @@ export interface GameboardTileSpec {
    * and `tags`: roads, rivers, hills and other features never overwrite it.
    */
   biome?: string;
+  /**
+   * Named numeric channels a game computed for this hex (slope, wetness, soil
+   * depth, ...) that layout criteria read through `fields` bands. Names are
+   * open; every value is a finite number. Never touched by terrain features.
+   */
+  fields?: Readonly<Record<string, number>>;
 }
 
 /**
@@ -685,6 +691,8 @@ export interface TileAssetOptions {
   tags?: readonly string[];
   /** Game-owned biome id to store on the tile; kept unchanged when omitted. */
   biome?: string;
+  /** Numeric field channels that replace the tile's existing ones; kept when omitted. */
+  fields?: Readonly<Record<string, number>>;
 }
 
 /**

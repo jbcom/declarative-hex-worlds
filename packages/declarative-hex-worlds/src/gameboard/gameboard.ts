@@ -78,7 +78,11 @@ import {
   updateGameboardTileTags,
   type MutableGameboardTileSpec,
 } from './terrain';
-import { assertGameboardTileBiome } from './tile-values';
+import {
+  assertGameboardTileBiome,
+  mergeGameboardTileFields,
+  normalizeGameboardTileFields,
+} from './tile-values';
 
 export {
   getPlacementAsset,
@@ -152,6 +156,8 @@ export class GameboardBuilder {
     if (options.biome !== undefined) {
       assertGameboardTileBiome(options.biome, tile.key);
     }
+    const fields =
+      options.fields === undefined ? undefined : normalizeGameboardTileFields(options.fields, tile.key);
     tile.baseAssetId = options.assetId;
     tile.terrain = options.terrain ?? tile.terrain;
     tile.supportAssetId = options.supportAssetId ?? tile.supportAssetId;
@@ -168,6 +174,9 @@ export class GameboardBuilder {
     if (options.biome !== undefined) {
       tile.biome = options.biome;
     }
+    if (fields !== undefined) {
+      tile.fields = fields;
+    }
     updateGameboardTileTags(tile, options.tags);
     return this;
   }
@@ -181,6 +190,22 @@ export class GameboardBuilder {
     const tile = this.requireTile(coordinates);
     assertGameboardTileBiome(biome, tile.key);
     tile.biome = biome;
+    return this;
+  }
+
+  /**
+   * Set named numeric channels on a tile (slope, wetness, soil depth, ...).
+   * Names are open and every value must be a finite number. New values merge
+   * into the tile's existing fields; pass `{ replace: true }` to replace the
+   * whole store. Like the biome, fields are untouched by terrain features.
+   */
+  setFields(
+    coordinates: HexCoordinates,
+    fields: Readonly<Record<string, number>>,
+    options: { replace?: boolean } = {}
+  ): this {
+    const tile = this.requireTile(coordinates);
+    tile.fields = mergeGameboardTileFields(tile.fields, fields, options, tile.key);
     return this;
   }
 

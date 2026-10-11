@@ -20,6 +20,7 @@ import {
   type PlacementStateValue,
   readGameboardPlacements,
   TileBiome,
+  TileFields,
 } from '../koota';
 import { isKnownExtraAssetId } from '../scenario';
 import {
@@ -77,6 +78,7 @@ export function readDecomposedTileSpecs(world: World): GameboardTileSpec[] {
     .query(DecomposedGameboardTileQuery)
     .readEach(([coordinates, terrain, elevation, connectivity, renderState, tagList], entity) => {
       const biome = entity.get(TileBiome);
+      const fields = entity.get(TileFields);
       tiles.push({
         key: coordinates.key,
         coordinates: { q: coordinates.q, r: coordinates.r },
@@ -95,6 +97,7 @@ export function readDecomposedTileSpecs(world: World): GameboardTileSpec[] {
         coastWaterless: connectivity.coastWaterless,
         tags: [...tagList],
         ...(biome === undefined ? {} : { biome: biome.biome }),
+        ...(fields === undefined ? {} : { fields: { ...fields } }),
       });
     });
   return tiles.sort(

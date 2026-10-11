@@ -11,6 +11,7 @@ import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
   gameboardPlacementOccupancyGroup,
+  describeGameboardTileFieldsProblem,
   isGameboardTileBiome,
 } from '../gameboard';
 import type { HexTileDeclaration, HexTileRegistry } from '../scenario';
@@ -132,6 +133,16 @@ function validateTileValues(violations: GameboardRuleViolation[], tile: Gameboar
       severity: 'error',
       tileKey: tile.key,
       message: `Tile ${tile.key} biome must be a non-empty string`,
+    });
+  }
+  const fieldsProblem =
+    tile.fields === undefined ? undefined : describeGameboardTileFieldsProblem(tile.fields);
+  if (fieldsProblem !== undefined) {
+    violations.push({
+      code: 'tile.invalid_field',
+      severity: 'error',
+      tileKey: tile.key,
+      message: `Tile ${tile.key} ${fieldsProblem}`,
     });
   }
 }

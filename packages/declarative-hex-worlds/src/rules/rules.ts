@@ -54,6 +54,7 @@ export {
   canStackAt,
   setTileBiome,
   setTileElevation,
+  setTileFields,
   setTileTerrain,
   validateGameboardRules,
 } from '../systems';

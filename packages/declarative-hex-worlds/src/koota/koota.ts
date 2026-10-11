@@ -61,6 +61,7 @@ export {
   TileConnectivity,
   TileCoordinates,
   TileElevation,
+  TileFields,
   TileRenderState,
   TileTagList,
   TileTerrain,
@@ -90,6 +91,7 @@ import {
   TileConnectivity,
   TileCoordinates,
   TileElevation,
+  TileFields,
   TileRenderState,
   TileTagList,
   TileTerrain,
@@ -167,6 +169,8 @@ export type TileRenderStateValue = TraitRecord<typeof TileRenderState>;
 export type TileTagListValue = TraitRecord<typeof TileTagList>;
 /** Decomposed biome trait value returned by `TileBiome`. */
 export type TileBiomeValue = TraitRecord<typeof TileBiome>;
+/** Decomposed numeric-channel trait value returned by `TileFields`. */
+export type TileFieldsValue = TraitRecord<typeof TileFields>;
 /** Placement trait value returned by `PlacementState`. */
 export type PlacementStateValue = TraitRecord<typeof PlacementState>;
 
@@ -1142,6 +1146,7 @@ function tileStateValue(tile: GameboardTileSpec): HexTileStateValue {
     riverCrossing: tile.riverCrossing,
     tags: [...tile.tags],
     biome: tile.biome,
+    fields: tile.fields === undefined ? undefined : { ...tile.fields },
   };
 }
 
@@ -1149,6 +1154,9 @@ function decomposedTileTraits(tile: GameboardTileSpec): ConfigurableTrait[] {
   const optional: ConfigurableTrait[] = [];
   if (tile.biome !== undefined) {
     optional.push(TileBiome({ biome: tile.biome }));
+  }
+  if (tile.fields !== undefined) {
+    optional.push(TileFields({ ...tile.fields }));
   }
   return [
     TileCoordinates({ key: tile.key, q: tile.coordinates.q, r: tile.coordinates.r }),
@@ -1189,6 +1197,7 @@ function copyTileState(tile: HexTileStateValue): HexTileStateValue {
     ...tile,
     coordinates: { ...tile.coordinates },
     tags: [...tile.tags],
+    fields: tile.fields === undefined ? undefined : { ...tile.fields },
   };
 }
 
