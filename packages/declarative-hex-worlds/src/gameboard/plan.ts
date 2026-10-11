@@ -155,6 +155,11 @@ export interface GameboardTileSpec {
   coastWaterless: boolean;
   /** Generated taxonomy tags. */
   tags: readonly string[];
+  /**
+   * Game-owned biome id, an open non-empty string. Independent of `terrain`
+   * and `tags`: roads, rivers, hills and other features never overwrite it.
+   */
+  biome?: string;
 }
 
 /**
@@ -678,6 +683,8 @@ export interface TileAssetOptions {
   textureSet?: TextureSet;
   /** Additional tile tags. */
   tags?: readonly string[];
+  /** Game-owned biome id to store on the tile; kept unchanged when omitted. */
+  biome?: string;
 }
 
 /**

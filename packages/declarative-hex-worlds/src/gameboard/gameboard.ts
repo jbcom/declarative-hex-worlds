@@ -78,6 +78,7 @@ import {
   updateGameboardTileTags,
   type MutableGameboardTileSpec,
 } from './terrain';
+import { assertGameboardTileBiome } from './tile-values';
 
 export {
   getPlacementAsset,
@@ -148,6 +149,9 @@ export class GameboardBuilder {
    */
   setTileAsset(options: TileAssetOptions): this {
     const tile = this.requireTile(options.at);
+    if (options.biome !== undefined) {
+      assertGameboardTileBiome(options.biome, tile.key);
+    }
     tile.baseAssetId = options.assetId;
     tile.terrain = options.terrain ?? tile.terrain;
     tile.supportAssetId = options.supportAssetId ?? tile.supportAssetId;
@@ -161,7 +165,22 @@ export class GameboardBuilder {
     tile.riverCrossing = options.riverCrossing ?? tile.riverCrossing;
     tile.coastWaterless = options.coastWaterless ?? tile.coastWaterless;
     tile.textureSet = options.textureSet ?? tile.textureSet;
+    if (options.biome !== undefined) {
+      tile.biome = options.biome;
+    }
     updateGameboardTileTags(tile, options.tags);
+    return this;
+  }
+
+  /**
+   * Set a tile's game-owned biome. `biome` is an open non-empty string the
+   * library never interprets; it is independent of `terrain`, so later roads,
+   * rivers, hills, forests, mountains, elevation and coast changes keep it.
+   */
+  setBiome(coordinates: HexCoordinates, biome: string): this {
+    const tile = this.requireTile(coordinates);
+    assertGameboardTileBiome(biome, tile.key);
+    tile.biome = biome;
     return this;
   }
 

@@ -106,6 +106,7 @@ import {
   useTileEntity,
   useTileRenderState,
   useTileState,
+  useTileBiome,
   useTileTagList,
   useTileTerrain,
 } from '../../src/react/index';
@@ -723,6 +724,7 @@ function ReactBindingProbe({ onReport }: { onReport: (report: ReactBindingReport
     useTileConnectivity(tileZero),
     useTileRenderState(tileZero),
     useTileTagList(tileZero)?.length,
+    useTileBiome(tileZero),
     useAdjacentTileEntities(tileZero).length,
     usePlacementEntitiesForTile({ q: 0, r: 0 }).length,
     usePlacementEntitiesForTile('missing').length,

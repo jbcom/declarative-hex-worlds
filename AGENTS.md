@@ -90,7 +90,11 @@ contract for CI and npm consumers.
   actor-on-tile, and quest target relations.
 - Use decomposed traits for rule logic:
   `TileCoordinates`, `TileTerrain`, `TileElevation`, `TileConnectivity`,
-  `TileRenderState`, and `TileTagList`.
+  `TileRenderState`, and `TileTagList`. Game-owned ground vocabulary lives in
+  the optional `TileBiome` trait (an open non-empty string, mirrored by
+  `GameboardTileSpec.biome`, builder/recipe `setBiome` and `setTileBiome`); it
+  is independent of `terrain`, so never encode a biome as a custom `terrain`
+  string, a tag, or a texture set, and never rebuild a tile without carrying it.
 - Use `AdjacentTo` relations for neighbor-aware systems and validation.
 - Use `spawnGameboardPlacement`, `moveGameboardPlacement`,
   `updateGameboardPlacement`, `removeGameboardPlacement`, or `gameboardActions`

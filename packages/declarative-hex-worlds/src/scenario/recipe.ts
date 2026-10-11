@@ -90,6 +90,7 @@ export type GameboardRecipeStep =
   | SetTileAssetRecipeStep
   | SetElevationRecipeStep
   | SetTextureSetRecipeStep
+  | SetBiomeRecipeStep
   | SetCoastEdgesRecipeStep
   | AddRoadPathRecipeStep
   | AddRiverPathRecipeStep
@@ -154,6 +155,20 @@ export interface SetTextureSetRecipeStep {
   at: HexCoordinates;
   /** KayKit texture set to apply to the tile. */
   textureSet: TextureSet;
+}
+
+/**
+ * Recipe step that stores an open, game-owned biome on one hex. The biome is
+ * independent of terrain: later road, river, hill, forest and mountain steps
+ * never overwrite it.
+ */
+export interface SetBiomeRecipeStep {
+  /** Discriminator for biome assignment. */
+  action: 'setBiome';
+  /** Target hex coordinate. */
+  at: HexCoordinates;
+  /** Non-empty biome id; the library does not enumerate or interpret it. */
+  biome: string;
 }
 
 /** Recipe step that records coastal water edge connectivity for one hex. */
@@ -608,6 +623,8 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
       return builder.setElevation(step.at, step.elevation);
     case 'setTextureSet':
       return builder.setTextureSet(step.at, step.textureSet);
+    case 'setBiome':
+      return builder.setBiome(step.at, step.biome);
     case 'setCoastEdges':
       return builder.setCoastEdges(step.at, step.waterEdges, { waterless: step.waterless });
     case 'addRoadPath':

@@ -119,6 +119,8 @@ import {
   readGameboardPlacements,
   readPlacementOccupancyForTile,
   type SpawnGameboardPlacementOptions,
+  TileBiome,
+  type TileBiomeValue,
   TileConnectivity,
   type TileConnectivityValue,
   TileCoordinates,
@@ -413,6 +415,7 @@ function subscribeGameboardRevisionDomain(
         ...subscribeGameboardRevisionInput(world, TileConnectivity, update),
         ...subscribeGameboardRevisionInput(world, TileRenderState, update),
         ...subscribeGameboardRevisionInput(world, TileTagList, update),
+        ...subscribeGameboardRevisionInput(world, TileBiome, update),
       ];
     case 'placements':
       return [
@@ -984,6 +987,13 @@ export function useTileRenderState(
  */
 export function useTileTagList(entity: Entity | undefined | null): TileTagListValue | undefined {
   return useTrait(entity, TileTagList);
+}
+
+/**
+ * Read the game-owned biome of one tile entity, or `undefined` when it has none.
+ */
+export function useTileBiome(entity: Entity | undefined | null): TileBiomeValue | undefined {
+  return useTrait(entity, TileBiome);
 }
 
 /**

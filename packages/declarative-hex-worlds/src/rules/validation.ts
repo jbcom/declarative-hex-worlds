@@ -11,6 +11,7 @@ import {
   gameboardPlacementBlocksOccupancy,
   gameboardPlacementFootprintKeys,
   gameboardPlacementOccupancyGroup,
+  isGameboardTileBiome,
 } from '../gameboard';
 import type { HexTileDeclaration, HexTileRegistry } from '../scenario';
 import { rotateMask } from '../selectors';
@@ -79,6 +80,7 @@ export function validateGameboardPlan(
 
   for (const tile of tiles.values()) {
     validateStack(violations, tile, config.registry, rules.maxElevation);
+    validateTileValues(violations, tile);
     validateTileAssetReferences(violations, tile, rules);
     validateBuiltInConnectivity(violations, tiles, tile, rules);
     if (rules.validateRegisteredDeclarations && config.registry) {
@@ -120,6 +122,18 @@ export function canStackInPlan(
   const registryRule = config.registry?.byAssetId[tile.baseAssetId]?.stack;
   const maxElevation = registryRule?.maxElevation ?? config.maxElevation ?? DEFAULT_PLAN_RULES.maxElevation;
   return Boolean((registryRule?.canStack ?? true) && height <= maxElevation);
+}
+
+/** Checks the open game-owned values a tile carries, for plans loaded from untrusted JSON. */
+function validateTileValues(violations: GameboardRuleViolation[], tile: GameboardTileSpec): void {
+  if (tile.biome !== undefined && !isGameboardTileBiome(tile.biome)) {
+    violations.push({
+      code: 'tile.invalid_biome',
+      severity: 'error',
+      tileKey: tile.key,
+      message: `Tile ${tile.key} biome must be a non-empty string`,
+    });
+  }
 }
 
 function validateStack(

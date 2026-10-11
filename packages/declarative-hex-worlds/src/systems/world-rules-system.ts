@@ -6,8 +6,8 @@
  */
 import { hexKey, neighbor } from '../coordinates';
 import { GameboardRuntimeError } from '../errors';
-import type { GameboardTerrain, GameboardTileSpec } from '../gameboard';
-import { HexTileState, TileElevation, TileTerrain } from '../traits';
+import { assertGameboardTileBiome, type GameboardTerrain, type GameboardTileSpec } from '../gameboard';
+import { HexTileState, TileBiome, TileElevation, TileTerrain } from '../traits';
 import { findTileEntity } from '../koota';
 import { readDecomposedTileSpecs, readValidationGameboardPlanFromWorld } from '../coordinates';
 import type { GameboardRuleConfig, GameboardRuleViolation } from '../rules';
@@ -53,6 +53,36 @@ export function setTileTerrain(
   }
   entity.set(TileTerrain, { terrain });
   entity.set(HexTileState, { terrain });
+}
+
+/**
+ * Mutates the game-owned biome of one tile entity in a Koota world, keeping
+ * the aggregate `HexTileState` and the decomposed `TileBiome` trait in step.
+ * Pass `undefined` to remove the biome (and the `TileBiome` trait). The biome
+ * is independent of terrain, so `setTileTerrain` never changes it.
+ */
+export function setTileBiome(
+  world: World,
+  coordinates: HexCoordinates | string,
+  biome: string | undefined
+): void {
+  const key = typeof coordinates === 'string' ? coordinates : hexKey(coordinates);
+  const entity = findTileEntity(world, coordinates);
+  if (!entity) {
+    throw new GameboardRuntimeError(`No tile exists at ${key}`);
+  }
+  if (biome === undefined) {
+    entity.remove(TileBiome);
+    entity.set(HexTileState, { biome: undefined });
+    return;
+  }
+  assertGameboardTileBiome(biome, key);
+  if (entity.has(TileBiome)) {
+    entity.set(TileBiome, { biome });
+  } else {
+    entity.add(TileBiome({ biome }));
+  }
+  entity.set(HexTileState, { biome });
 }
 
 /** Mutates the elevation state for one tile entity in a Koota world. */

@@ -16,3 +16,4 @@ export * from './plan';
 export * from './gameboard';
 export * from './navigation';
 export * from './occupancy';
+export * from './tile-values';

@@ -1080,6 +1080,7 @@ function tileToInteropEntity(tile: GameboardTileSpec): GameboardInteropEntity {
       },
       TileRenderState: { textureSet: tile.textureSet },
       TileTagList: [...tile.tags],
+      ...(tile.biome === undefined ? {} : { TileBiome: { biome: tile.biome } }),
     },
   };
 }

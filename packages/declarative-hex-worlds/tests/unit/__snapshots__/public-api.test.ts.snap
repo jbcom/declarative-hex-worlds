@@ -580,6 +580,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "TileBiome",
+  },
+  {
+    "kind": "function",
     "name": "TileConnectivity",
   },
   {
@@ -681,6 +685,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "assertGameboardScenarioSimulationExpectations",
+  },
+  {
+    "kind": "function",
+    "name": "assertGameboardTileBiome",
   },
   {
     "kind": "function",
@@ -1476,6 +1484,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "isGameboardTileBiome",
+  },
+  {
+    "kind": "function",
     "name": "isKnownExtraAssetId",
   },
   {
@@ -2041,6 +2053,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "setGameboardPatrolAgent",
+  },
+  {
+    "kind": "function",
+    "name": "setTileBiome",
   },
   {
     "kind": "function",
