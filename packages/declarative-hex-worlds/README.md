@@ -82,11 +82,11 @@ See the [asset bootstrap guide](https://jonbogaty.com/declarative-hex-worlds/gui
 
 ## Module map
 
-The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-shaking and clearer intent, import from subpaths:
+The umbrella (`declarative-hex-worlds`) exports the core and runtime facade. Renderer-specific APIs such as `/sculpt` require explicit subpath imports. Use subpaths for tighter tree-shaking and clearer intent:
 
 | Subpath | What it gives you |
 |---|---|
-| `declarative-hex-worlds` (umbrella) | Everything. Prototyping. |
+| `declarative-hex-worlds` (umbrella) | Core and runtime facade. Renderer-specific APIs use their subpaths. |
 | `/core` | The **runtime-free, renderer-free** tier: asset-source + tileset schemas, the recipe/scenario/blueprint → plan compilers, hex algebra + A\* pathfinding, board-aware navigation + occupancy, plan validation, and interop snapshots. No koota, no three. |
 | `/gameboard` | Plan builder, tile + placement spec types |
 | `/coordinates` | Hex algebra, axial / world transforms |

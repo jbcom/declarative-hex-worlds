@@ -317,6 +317,7 @@ export interface GameboardCoverageReport {
 
 /** Curated showcase artifacts promoted from browser screenshots into docs. */
 export const GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS = [
+  'docs/showcases/sculpt-camp.png',
   // Post-R1: single canonical home for committed showcase artifacts.
   'docs/showcases/free-guide-scenarios-by-extracted-page.png',
   'docs/showcases/free-guide-roads-all-labels-rotations.png',

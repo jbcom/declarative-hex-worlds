@@ -14,7 +14,17 @@ import { requireInteger, requirePositive, requireUnit } from './validate';
 function vertexHash(x: number, y: number, z: number, seed: number): number {
   let h = Math.imul(Math.round(x * 1000) ^ 0x27d4eb2d, 0x165667b1);
   h = Math.imul(h ^ Math.round(y * 1000), 0x85ebca6b);
-  h = Math.imul(h ^ Math.round(z * 1000) ^ seed, 0xc2b2ae35);
+  h ^= Math.round(z * 1000);
+  if (seed >= -2147483648 && seed <= 2147483647) {
+    // Preserve the established shapes for ordinary signed 32-bit seeds.
+    h = Math.imul(h ^ seed, 0xc2b2ae35);
+  } else {
+    // Bitwise operators truncate numeric seeds. Fold the complete integer's
+    // stable representation at every vertex instead of discarding high bits.
+    for (const character of String(seed)) {
+      h = Math.imul(h ^ character.charCodeAt(0), 0x01000193);
+    }
+  }
   h ^= h >>> 15;
   return (h >>> 0) / 4294967296;
 }

@@ -33,6 +33,12 @@ describe('rock', () => {
     expect(positions(0.5, 7)).not.toEqual(positions(0.5, 8));
   });
 
+  it('does not alias integer seeds whose low 32 bits match', () => {
+    for (const [first, second] of [[1, 4294967297], [-1, 4294967295], [-1, -4294967297]] as const) {
+      expect(positions(0.5, first)).not.toEqual(positions(0.5, second));
+    }
+  });
+
   it('keeps every vertex within the roughness band around its radius', () => {
     const r = 0.8;
     const rough = 0.28;
