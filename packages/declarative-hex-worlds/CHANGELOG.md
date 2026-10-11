@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.5.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.4.0...declarative-hex-worlds@1.5.0) (2026-10-11)
+
+
+### Features
+
+* **terrain:** erode composed relief into country that drains ([350545d](https://github.com/jbcom/declarative-hex-worlds/commit/350545dd483104c68aef5cccd53db7912ab333c2))
+* **terrain:** erode composed relief into country that drains ([cd98d26](https://github.com/jbcom/declarative-hex-worlds/commit/cd98d268bc7d3d7647f53f60287f9ad9494ac49a))
+* **terrain:** paint biomes by bands of a caller's own scalar field ([2f30ea7](https://github.com/jbcom/declarative-hex-worlds/commit/2f30ea7fb369811004b9ca8676314be997b9fd6a))
+* **terrain:** paint biomes by bands of a caller's own scalar field ([ff2af55](https://github.com/jbcom/declarative-hex-worlds/commit/ff2af551d266e4b2304ec821358838bfb4e5994c))
+
+
+### Bug Fixes
+
+* **terrain:** validate eroded fields as traceDrainage validates its own ([e23fe82](https://github.com/jbcom/declarative-hex-worlds/commit/e23fe82a16fed0ed7569f0fcd48cedab6934ccba))
+
 ## [1.4.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.3.0...declarative-hex-worlds@1.4.0) (2026-10-11)
 
 
