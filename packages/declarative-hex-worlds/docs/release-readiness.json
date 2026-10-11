@@ -165,7 +165,7 @@
         "uniqueAssets": 1,
         "freeAssets": 0,
         "extraAssets": 1,
-        "publicApis": 6,
+        "publicApis": 8,
         "visualArtifacts": 3,
         "docs": 2
       },
@@ -1018,7 +1018,7 @@
       "uniqueAssets": 1,
       "freeAssets": 0,
       "extraAssets": 1,
-      "publicApis": 6,
+      "publicApis": 8,
       "visualArtifacts": 3,
       "docs": 2,
       "title": "Biomes",
@@ -3862,6 +3862,37 @@
       ]
     },
     {
+      "publicApi": "applyGameboardBiomeRegionStages",
+      "scenarioIds": [
+        "page-11-biomes"
+      ],
+      "pages": [
+        11
+      ],
+      "editions": [
+        "extra"
+      ],
+      "assetIds": [],
+      "treatmentRoles": [],
+      "assetCounts": {
+        "unique": 0,
+        "free": 0,
+        "extra": 0,
+        "occurrences": 0,
+        "freeOccurrences": 0,
+        "extraOccurrences": 0
+      },
+      "docs": [
+        "docs/guides/rendering-assets-and-external-packs.md",
+        "docs/pillars/03-editions-and-ingest.md"
+      ],
+      "visualArtifacts": [
+        "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+        "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+        "tests/browser/__screenshots__/extra-seasonal-textures.png"
+      ]
+    },
+    {
       "publicApi": "coloredUnitAssetId",
       "scenarioIds": [
         "page-14-units",
@@ -4954,6 +4985,37 @@
       "visualArtifacts": [
         "docs/assets/kaykit-guide/montage.png",
         "docs/assets/kaykit-guide/pages/page-01.png"
+      ]
+    },
+    {
+      "publicApi": "generateGameboardBiomeRegions",
+      "scenarioIds": [
+        "page-11-biomes"
+      ],
+      "pages": [
+        11
+      ],
+      "editions": [
+        "extra"
+      ],
+      "assetIds": [],
+      "treatmentRoles": [],
+      "assetCounts": {
+        "unique": 0,
+        "free": 0,
+        "extra": 0,
+        "occurrences": 0,
+        "freeOccurrences": 0,
+        "extraOccurrences": 0
+      },
+      "docs": [
+        "docs/guides/rendering-assets-and-external-packs.md",
+        "docs/pillars/03-editions-and-ingest.md"
+      ],
+      "visualArtifacts": [
+        "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+        "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+        "tests/browser/__screenshots__/extra-seasonal-textures.png"
       ]
     },
     {
@@ -35154,19 +35216,19 @@
     }
   ],
   "simpleRpgEvidence": {
-    "guidePublicApiCount": 74,
-    "exercisedPublicApiCount": 74,
+    "guidePublicApiCount": 76,
+    "exercisedPublicApiCount": 76,
     "missingPublicApis": [],
     "stalePublicApis": [],
-    "executablePublicApiCount": 40,
+    "executablePublicApiCount": 42,
     "publicTreatmentCount": 404,
     "guideScenarioCount": 19,
     "evidenceModeCounts": {
       "fixed-gameplay": 30,
-      "seeded-generation": 10,
+      "seeded-generation": 12,
       "packaged-scenario": 1,
-      "executable-smoke": 40,
-      "blueprint-recipe": 4,
+      "executable-smoke": 42,
+      "blueprint-recipe": 5,
       "manifest-package": 6,
       "compatibility-adapter": 2,
       "package-boundary": 3,
@@ -35197,6 +35259,28 @@
         ],
         "scenarioIds": [
           "page-13-transition-tiles"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "applyGameboardBiomeRegionStages",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "seeded-generation",
+          "blueprint-recipe"
+        ],
+        "evidence": "The packaged guide smoke applies two ordered biome stages and preserves the first stage wheat while adding corn.",
+        "pages": [
+          11
+        ],
+        "scenarioIds": [
+          "page-11-biomes"
         ],
         "assetCount": 0,
         "visualArtifacts": [
@@ -36444,6 +36528,27 @@
           "tests/browser/__screenshots__/free-guide-rivers-all-labels-rotations-water-waterless.png",
           "tests/browser/__screenshots__/free-seeded-gameboard.png",
           "tests/browser/__screenshots__/free-seeded-hex-gameboard.png"
+        ]
+      },
+      {
+        "publicApi": "generateGameboardBiomeRegions",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "seeded-generation"
+        ],
+        "evidence": "The packaged guide smoke grows wheat regions on a recipe plan and reports their reached tile count.",
+        "pages": [
+          11
+        ],
+        "scenarioIds": [
+          "page-11-biomes"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "tests/browser/__screenshots__/extra-seasonal-textures.png"
         ]
       },
       {
