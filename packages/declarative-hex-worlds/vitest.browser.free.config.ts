@@ -7,12 +7,19 @@ import { harnessCoverage } from './vitest.coverage.shared';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
 const remoteHeadless = process.env.HEAVY_RENDER_HEADLESS === '1';
+const renderMetal = Boolean(process.env.HEAVY_RENDER_HOST) && process.platform === 'darwin';
+const renderArgs = () => {
+  if (renderMetal) return ['--use-angle=metal', '--ignore-gpu-blocklist'];
+  if (remoteHeadless) return ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
+  return [];
+};
 const configuredAssetRoot = process.env.HEX_WORLDS_ASSET_ROOT ?? 'models';
 const browserAssetRoot = /^[a-z][a-z\d+.-]*:|^\//i.test(configuredAssetRoot)
   ? configuredAssetRoot
   : `/@fs/${packageRoot}/${configuredAssetRoot}`;
 
 export default defineConfig({
+  root: packageRoot,
   optimizeDeps: {
     include: [
       '@react-three/fiber',
@@ -54,12 +61,10 @@ export default defineConfig({
       enabled: true,
       // Remote render hosts (HEAVY_RENDER_HEADLESS=1, set only by the render
       // endpoint) have no GUI session: headed Chrome crashes there, so run
-      // headless on SwiftShader WebGL. Everywhere else stays headed.
-      provider: playwright(
-        remoteHeadless
-          ? { launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] } }
-          : {}
-      ),
+      // headless with Metal on macOS render hosts. Everywhere else stays headed.
+      provider: playwright({
+        launchOptions: { args: ['--mute-audio', ...renderArgs()] },
+      }),
       ...(remoteHeadless ? { headless: true } : {}),
       instances: [
         {
@@ -80,6 +85,7 @@ export default defineConfig({
       'tests/browser/tileset-render.test.ts',
       'tests/browser/react-elements.test.ts',
       'tests/browser/terrain-visual.test.ts',
+      'tests/browser/sculpt-visual.test.ts',
     ],
     testTimeout: 120_000,
     coverage: harnessCoverage('browser-free'),

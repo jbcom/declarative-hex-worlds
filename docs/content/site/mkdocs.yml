@@ -31,6 +31,7 @@ nav:
       - Multi-depth stacks: features/multi-depth-stacks.md
       - Pieces and actors: features/pieces-and-actors.md
       - Prop injection: features/prop-injection.md
+      - Procedural props: features/sculpt-kit.md
       - Quests: features/quests.md
       - Tile biomes and fields: features/tile-biomes-and-fields.md
       - Tile injection: features/tile-injection.md

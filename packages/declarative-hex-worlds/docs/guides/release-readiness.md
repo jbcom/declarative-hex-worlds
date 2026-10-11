@@ -8,16 +8,20 @@ package verification gates. Regenerate it with:
 pnpm coverage:ledger
 ```
 
+Availability records describe the workspace where this ledger was generated.
+Reference packs are ignored local inputs, including purchased assets; they are
+not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
+
 ## Summary
 
-- Status: warning
+- Status: passed
 - Guide pages: 19/19
 - Guide scenarios: 19
 - Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences
 - Public API surfaces: 74
 - Public roles: 12
-- Visual artifacts: 52 available, 0 missing, 0 skipped
-- Local references: 0 available, 4 missing, 0 skipped
+- Visual artifacts: 54 available, 0 missing, 0 skipped
+- Local references: 4 available, 0 missing, 0 skipped
 - Release checks: 8 passed, 0 failed, 0 not run, 0 skipped
 - SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)
 
@@ -132,21 +136,16 @@ pnpm coverage:ledger
 
 ## Gaps
 
-| Severity | Code | Subject | Message |
-| --- | --- | --- | --- |
-| warning | `reference.missing` | references/KayKit_Medieval_Hexagon_Pack_1.0_FREE | KayKit Medieval Hexagon FREE is unavailable, so local-only visual coverage cannot run. |
-| warning | `reference.missing` | references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA | KayKit Medieval Hexagon EXTRA is unavailable, so local-only visual coverage cannot run. |
-| warning | `reference.missing` | references/kenney_castle-kit | Kenney Castle Kit is unavailable, so local-only visual coverage cannot run. |
-| warning | `reference.missing` | references/KayKit_Adventurers_2.0_FREE | KayKit Adventurers FREE is unavailable, so local-only visual coverage cannot run. |
+- None
 
 ## Local References
 
 | Status | Reference | Path | Purpose |
 | --- | --- | --- | --- |
-| missing | KayKit Medieval Hexagon FREE | `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE` | FREE source pack for guide extraction, generated assets, and manifest audits. |
-| missing | KayKit Medieval Hexagon EXTRA | `references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA` | Purchased local-only EXTRA pack for category and guide visual coverage. |
-| missing | Kenney Castle Kit | `references/kenney_castle-kit` | Third-party compatibility fixture for non-hex props, structures, and warnings. |
-| missing | KayKit Adventurers FREE | `references/KayKit_Adventurers_2.0_FREE` | Animated actor fixture for facing, spawn, and SimpleRPG local-asset coverage. |
+| available | KayKit Medieval Hexagon FREE | `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE` | FREE source pack for guide extraction, generated assets, and manifest audits. |
+| available | KayKit Medieval Hexagon EXTRA | `references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA` | Purchased local-only EXTRA pack for category and guide visual coverage. |
+| available | Kenney Castle Kit | `references/kenney_castle-kit` | Third-party compatibility fixture for non-hex props, structures, and warnings. |
+| available | KayKit Adventurers FREE | `references/KayKit_Adventurers_2.0_FREE` | Animated actor fixture for facing, spawn, and SimpleRPG local-asset coverage. |
 
 ## Release Checks
 
@@ -192,6 +191,7 @@ pnpm coverage:ledger
 | available | showcase | `docs/showcases/free-guide-rivers-all-labels-rotations-water-waterless.png` | - |
 | available | showcase | `docs/showcases/free-guide-roads-all-labels-rotations.png` | - |
 | available | showcase | `docs/showcases/free-guide-scenarios-by-extracted-page.png` | - |
+| available | showcase | `docs/showcases/sculpt-camp.png` | - |
 | available | guide | `NOTICE.md` | 19 |
 | available | guide | `tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png` | 9, 11, 13 |
 | available | screenshot | `tests/browser/__screenshots__/extra-guide-assets-by-public-role.png` | - |
@@ -217,6 +217,7 @@ pnpm coverage:ledger
 | available | screenshot | `tests/browser/__screenshots__/free-guide-source-pages.png` | - |
 | available | guide | `tests/browser/__screenshots__/free-seeded-gameboard.png` | 9 |
 | available | guide | `tests/browser/__screenshots__/free-seeded-hex-gameboard.png` | 10 |
+| available | screenshot | `tests/browser/__screenshots__/sculpt-camp.png` | - |
 
 ## Guide Pages
 

@@ -317,6 +317,7 @@ export interface GameboardCoverageReport {
 
 /** Curated showcase artifacts promoted from browser screenshots into docs. */
 export const GAMEBOARD_CURATED_SHOWCASE_ARTIFACTS = [
+  'docs/showcases/sculpt-camp.png',
   // Post-R1: single canonical home for committed showcase artifacts.
   'docs/showcases/free-guide-scenarios-by-extracted-page.png',
   'docs/showcases/free-guide-roads-all-labels-rotations.png',
@@ -520,6 +521,10 @@ export function renderGameboardCoverageMarkdown(
     '```bash',
     'pnpm coverage:ledger',
     '```',
+    '',
+    'Availability records describe the workspace where this ledger was generated.',
+    'Reference packs are ignored local inputs, including purchased assets; they are',
+    'not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.',
     '',
     '## Summary',
     '',
