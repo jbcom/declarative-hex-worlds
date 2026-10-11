@@ -634,6 +634,36 @@ describe('capped regions under review cases', () => {
     }
   });
 
+  it('starts nothing on a taken source with no free eligible neighbour, and plants elsewhere', () => {
+    // The source at (9, 6) is pinned; of its neighbours, three are pinned and
+    // three are too steep for wheat, so its field cannot start there.
+    const ring = neighbors({ q: 9, r: 6 });
+    const plan = board({
+      pins: [
+        { at: { q: 9, r: 6 }, biome: 'orchard' },
+        ...ring.slice(0, 3).map((at) => ({ at, biome: 'orchard' })),
+      ],
+      fields: (q, r): Record<string, number> =>
+        ring.slice(3).some((at) => at.q === q && at.r === r) ? { slope: 0.5 } : {},
+    });
+    const { plan: result, report } = generateGameboardBiomeRegions(plan, {
+      ...spec,
+      biomes: [
+        {
+          biome: 'wheat',
+          target: 0.05,
+          sources: { tiles: [{ q: 9, r: 6 }] },
+          requires: [{ field: 'slope', max: 0.1 }],
+          maxRegion: 4,
+        },
+      ],
+    });
+    const byKey = new Map(result.tiles.map((tile) => [tile.key, tile]));
+    for (const at of ring.slice(3)) expect(byKey.get(hexKey(at))?.biome).not.toBe('wheat');
+    // The biome had a field to start from, so it still planted its target elsewhere.
+    expect(report.biomes.wheat?.actual).toBeGreaterThan(0);
+  });
+
   it('refuses region ids it could not keep unique', () => {
     const plan = board({ pins: [{ at: { q: 0, r: 0 }, fields: { field: 2 ** 53 } }] });
     expect(() => generateGameboardBiomeRegions(plan, spec)).toThrow(GameboardValidationError);
