@@ -14,6 +14,33 @@ const corners = (box: BoardBounds) =>
   );
 
 describe('viewport camera framing', () => {
+  it('rejects null arguments from untyped callers consistently', () => {
+    expect(() => Reflect.apply(computeCameraFraming, undefined, [null])).toThrow(RangeError);
+    expect(() => Reflect.apply(computeCameraFraming, undefined, [bounds, null])).toThrow(
+      RangeError
+    );
+  });
+  it.each(['aspect', 'fov'] as const)('rejects an unrepresentable %s', (field) => {
+    expect(() =>
+      computeCameraFraming(bounds, {
+        ...DEFAULT_CAMERA_STATE,
+        [field]: Number.MIN_VALUE,
+      })
+    ).toThrow(RangeError);
+  });
+  it.each(['angle', 'projection', 'fit'] as const)('rejects an unsupported %s', (field) => {
+    expect(() =>
+      computeCameraFraming(bounds, { ...DEFAULT_CAMERA_STATE, [field]: 'invalid' })
+    ).toThrow(RangeError);
+  });
+  it.each(['min', 'max', 'center', 'size'] as const)('rejects nonfinite bounds %s', (field) => {
+    expect(() =>
+      computeCameraFraming({
+        ...bounds,
+        [field]: { ...bounds[field], x: Number.NaN },
+      })
+    ).toThrow(RangeError);
+  });
   for (const [name, aspect, direction] of [
     ['desktop', 1280 / 720, { x: 0, y: 0.488, z: 0.85 }],
     ['portrait', 393 / 852, { x: 0, y: 0.738, z: 0.52 }],

@@ -161,6 +161,21 @@ export function computeCameraFraming(
   bounds: BoardBounds,
   state: CameraState = DEFAULT_CAMERA_STATE
 ): CameraFraming {
+  if (!bounds || !state) {
+    throw new RangeError('Camera bounds and state must be supplied');
+  }
+  if (
+    !['top-down', 'isometric', 'tilted'].includes(state.angle) ||
+    !['orthographic', 'perspective'].includes(state.projection) ||
+    !['frame-board', 'fill-viewport'].includes(state.fit)
+  ) {
+    throw new RangeError('Camera angle, projection and fit must be supported values');
+  }
+  for (const position of [bounds.min, bounds.max, bounds.center, bounds.size]) {
+    if (!position || ![position.x, position.y, position.z].every(Number.isFinite)) {
+      throw new RangeError('Camera bounds must contain finite coordinates');
+    }
+  }
   const padding = state.padding ?? DEFAULT_PADDING;
   const fov = state.fov ?? DEFAULT_FOV;
   const aspect = state.aspect ?? 1;
@@ -221,6 +236,9 @@ export function computeCameraFraming(
     y: bounds.center.y + dir.y * distance,
     z: bounds.center.z + dir.z * distance,
   };
+  if (![distance, orthoHalfHeight, position.x, position.y, position.z].every(Number.isFinite)) {
+    throw new RangeError('Camera framing exceeds the finite numeric range');
+  }
   return {
     position,
     target: bounds.center,

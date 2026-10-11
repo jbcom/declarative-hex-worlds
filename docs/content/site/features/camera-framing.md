@@ -32,11 +32,16 @@ Apply `position`, look at `target`, then update the renderer's projection and
 world matrices. Recompute when the viewport or physical bounds change. FOV is
 vertical and in radians here; renderer bindings may require degrees. Bindings
 remain responsible for near/far clipping planes.
+The R3F `useCamera` hook supplies its measured viewport aspect, overriding a
+manually supplied aspect, and waits for a positive viewport before framing.
 
 Aspect defaults to one. The angle presets remain available without a custom
 direction. Aspect must be finite and positive, padding finite and nonnegative,
 FOV between zero and pi, and a supplied direction finite and nonzero; invalid
-values throw `RangeError`. Wait for a nonzero measured viewport before framing.
+values throw `RangeError`. Bounds must have finite coordinates and state must use
+supported angle, projection and fit discriminants. A result outside the finite
+numeric range also throws `RangeError`. Wait for a nonzero measured viewport
+before framing.
 
 `computeBoardBounds` measures tile centers. For a finite physical model, supply
 bounds including its footprint, elevated relief and frame rather than assuming

@@ -31,11 +31,11 @@ export function useCamera(state: CameraState = DEFAULT_CAMERA_STATE): void {
   const plan = useProjectedGameboardPlan();
 
   useEffect(() => {
-    if (!plan) {
+    if (!plan || size.width <= 0 || size.height <= 0) {
       return;
     }
-    const framing = frameBoard(plan.tiles, state);
-    const aspect = size.height === 0 ? 1 : size.width / size.height;
+    const aspect = size.width / size.height;
+    const framing = frameBoard(plan.tiles, { ...state, aspect });
     applyCameraFraming(camera as DrivableCamera, framing, aspect);
   }, [camera, plan, size.width, size.height, state]);
 }
