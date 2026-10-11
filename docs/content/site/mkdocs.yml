@@ -25,6 +25,7 @@ nav:
       - Bridges and connectors: features/bridges-and-connectors.md
       - Continuous terrain: features/continuous-terrain.md
       - Seeded biome regions: features/biome-regions.md
+      - Hex biomes as seamless ground: features/hex-biome-field.md
       - Cross-kit composition: features/cross-kit-composition.md
       - Determinism and replay: features/determinism-replay.md
       - Harbors: features/harbors.md

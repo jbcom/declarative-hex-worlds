@@ -29,6 +29,7 @@ export * from './drainage';
 export * from './erosion';
 export * from './field';
 export * from './geometry2d';
+export * from './hex-biome-field';
 export * from './hexes';
 export * from './inpaint';
 export * from './noise';
