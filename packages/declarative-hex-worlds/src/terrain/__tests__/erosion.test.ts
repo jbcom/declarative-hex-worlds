@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { GameboardValidationError } from '../../errors';
 import { composeHeightField } from '../compose';
-import { traceDrainage } from '../drainage';
+import { MAX_DRAINAGE_SAMPLES, traceDrainage } from '../drainage';
 import { erodeHeightField } from '../erosion';
 import { createHeightField, fillHeightField, type HeightField, sampleHeight } from '../field';
 
@@ -168,5 +168,15 @@ describe('erodeHeightField', () => {
     expect(() =>
       erodeHeightField({ ...rolling, heights: new Float32Array(3) }, { erodibility: 0.1 })
     ).toThrow(GameboardValidationError);
+    const poisoned = Float32Array.from(rolling.heights);
+    poisoned[42] = Number.NaN;
+    expect(() => erodeHeightField({ ...rolling, heights: poisoned }, { erodibility: 0.1 })).toThrow(
+      /finite/
+    );
+    // It routes flow as traceDrainage does, within the same limit.
+    const huge = { ...rolling, width: 4097, height: 4097 };
+    expect(() => erodeHeightField(huge, { erodibility: 0.1 })).toThrow(
+      new RegExp(`exceeds ${MAX_DRAINAGE_SAMPLES} samples`)
+    );
   });
 });

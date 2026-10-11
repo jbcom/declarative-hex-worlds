@@ -30,11 +30,10 @@
  * @module
  */
 import { GameboardValidationError } from '../errors';
-import { gridSpacing, type HeightField, validateGroundGrid } from './field';
+import { MAX_DRAINAGE_SAMPLES } from './drainage';
+import { gridSpacing, type HeightField } from './field';
 import { routeSurfaceFlow } from './flow';
-
-/** Largest field `erodeHeightField` accepts (4096 × 4096 samples). */
-export const MAX_EROSION_SAMPLES = 16_777_216;
+import { validateSearchField } from './grid-search';
 
 /** Options for {@link erodeHeightField}. */
 export interface ErodeHeightFieldOptions {
@@ -86,18 +85,9 @@ export function erodeHeightField(
   field: HeightField,
   options: ErodeHeightFieldOptions
 ): HeightField {
-  validateGroundGrid(field, 'eroded field');
+  // Erosion routes flow exactly as traceDrainage does, so it takes the same fields.
+  validateSearchField(field, MAX_DRAINAGE_SAMPLES, 'eroded field');
   const { width, height } = field;
-  if (width * height > MAX_EROSION_SAMPLES) {
-    throw new GameboardValidationError(
-      `eroded field of ${width}×${height} exceeds ${MAX_EROSION_SAMPLES} samples`
-    );
-  }
-  if (field.heights.length !== width * height) {
-    throw new GameboardValidationError(
-      `eroded field holds ${field.heights.length} heights for a ${width}×${height} grid`
-    );
-  }
   const iterations = options.iterations ?? 20;
   if (!Number.isInteger(iterations) || iterations < 0) {
     throw new GameboardValidationError(
