@@ -110,6 +110,10 @@ export interface SimpleRpgExecutableGuideApiSmokeSummary {
   readonly biomeRegionTileCount: number;
   /** Wheat tiles retained after the later corn generation stage. */
   readonly biomeStagePreservedTileCount: number;
+  /** Number of continuous material samples projected from generated biomes. */
+  readonly biomeFieldSampleCount: number;
+  /** Largest deviation from a normalized material-weight sum. */
+  readonly biomeFieldMaxWeightError: number;
   /** Recipe validation error count. */
   readonly recipeValidationErrorCount: number;
   /** Recipe generation validation error count. */

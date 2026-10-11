@@ -20,6 +20,7 @@ interface SimpleRpgGuidePublicApiExerciseEvidence {
 }
 
 export const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = [
+  'projectHexBiomesToField',
   'generateGameboardBiomeRegions',
   'applyGameboardBiomeRegionStages',
   'analyzeHexTileRegistry',
@@ -65,6 +66,11 @@ export const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = [
 ] as const;
 
 const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
+  projectHexBiomesToField: {
+    mode: 'executable-smoke',
+    evidence:
+      'The packaged guide smoke projects generated wheat and corn tiles into normalized continuous material weights.',
+  },
   generateGameboardBiomeRegions: {
     mode: 'executable-smoke',
     modes: ['seeded-generation'],

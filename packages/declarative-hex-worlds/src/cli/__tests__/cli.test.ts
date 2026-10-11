@@ -593,7 +593,7 @@ describe('CLI', () => {
     expect(report.manifest.manifestAssetCount).toBe(221);
     expect(report.manifest.freeGuideAssetsInManifest).toBe(221);
     expect(report.manifest.extraGuideAssetsLocalOnly).toHaveLength(183);
-    expect(report.publicApi).toHaveLength(76);
+    expect(report.publicApi).toHaveLength(77);
     expect(report.visualArtifacts.map((artifact) => artifact.path)).toContain(
       'docs/showcases/free-blueprint-builder-showcase.png'
     );
@@ -608,16 +608,16 @@ describe('CLI', () => {
       )
     ).toBe(true);
     expect(report.simpleRpgEvidence).toMatchObject({
-      guidePublicApiCount: 74,
-      exercisedPublicApiCount: 74,
-      executablePublicApiCount: 40,
+      guidePublicApiCount: 77,
+      exercisedPublicApiCount: 77,
+      executablePublicApiCount: 43,
       inactiveEvidenceModes: [],
       evidenceModeCounts: expect.objectContaining({
-        'seeded-generation': 10,
+        'seeded-generation': 12,
         'visual-coverage': 26,
       }) as Record<string, number>,
     });
-    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(74);
+    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(77);
     expect(
       report.simpleRpgEvidence?.publicApiExercises?.map((exercise) => exercise.publicApi)
     ).toContain('GameboardBuilder.addBridge');
@@ -632,7 +632,7 @@ describe('CLI', () => {
     expect(doctorOutput).toContain('guide pages: 19/19');
     expect(doctorOutput).toContain('manifest: 221 asset(s), 221/221 FREE guide asset(s)');
     expect(doctorOutput).toContain(
-      'SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)'
+      'SimpleRPG API evidence: 77/77 represented, 43 directly executed, 9 active mode(s)'
     );
   });
 

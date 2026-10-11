@@ -80,9 +80,7 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
       'listRoadGuidePermutations',
       'GameboardBuilder.addRoadPath',
     ],
-    visualArtifacts: [
-      'tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png',
-    ],
+    visualArtifacts: ['tests/browser/__screenshots__/free-guide-roads-all-labels-rotations.png'],
     docs: ['docs/pillars/01-tiles-connectivity.md', 'docs/pillars/04-visual-verification.md'],
   },
   {
@@ -256,6 +254,7 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     publicApi: [
       'generateGameboardBiomeRegions',
       'applyGameboardBiomeRegionStages',
+      'projectHexBiomesToField',
       'textureFileName',
       'GameboardBuilder.addTransition',
       'createGameboardBlueprintRecipe',
@@ -452,10 +451,7 @@ export function createKayKitGuideScenarios(
   );
 }
 
-type KayKitGuideScenarioInput = Omit<
-  KayKitGuideScenario,
-  'assetIds' | 'treatmentRoles'
-> & {
+type KayKitGuideScenarioInput = Omit<KayKitGuideScenario, 'assetIds' | 'treatmentRoles'> & {
   assetIds?: readonly string[];
   treatmentRoles?: readonly KayKitAssetPublicRole[];
 };

@@ -103,6 +103,8 @@ describe('SimpleRPG integration driver (PRD RS2)', () => {
     expect(smoke.guideScenarioCount).toBeGreaterThan(0);
     expect(smoke.biomeRegionTileCount).toBe(1);
     expect(smoke.biomeStagePreservedTileCount).toBe(1);
+    expect(smoke.biomeFieldSampleCount).toBe(15);
+    expect(smoke.biomeFieldMaxWeightError).toBeLessThan(0.000001);
     expect(smoke.directPublicApiCount).toBeLessThanOrEqual(summary.guidePublicApiCount);
   });
 });
