@@ -263,8 +263,16 @@ export function generateGameboardBiomeRegions(
   plan: GameboardPlan,
   spec: GameboardBiomeRegionsSpec
 ): { plan: GameboardPlan; report: GameboardBiomeRegionReport } {
+  return generateBiomeStage(plan, spec, new Map());
+}
+
+function generateBiomeStage(
+  plan: GameboardPlan,
+  spec: GameboardBiomeRegionsSpec,
+  inherited: ReadonlyMap<string, string>
+): { plan: GameboardPlan; report: GameboardBiomeRegionReport } {
   validateSpec(spec);
-  const engine = new RegionGrowth(plan, spec);
+  const engine = new RegionGrowth(plan, spec, inherited);
   engine.initialize();
   engine.run();
   engine.cleanup();
@@ -274,13 +282,15 @@ export function generateGameboardBiomeRegions(
 class RegionGrowth {
   readonly tiles: Map<string, GameboardTileSpec>;
   readonly pins: Map<string, string | undefined>;
+  readonly reserved: Map<string, string | undefined>;
   readonly assignments: Map<string, string | undefined>;
   readonly adjacency: Map<string, string[]>;
   readonly growths: Growth[];
 
   constructor(
     plan: GameboardPlan,
-    readonly spec: GameboardBiomeRegionsSpec
+    readonly spec: GameboardBiomeRegionsSpec,
+    inherited: ReadonlyMap<string, string>
   ) {
     this.tiles = new Map(
       [...plan.tiles]
@@ -288,7 +298,8 @@ class RegionGrowth {
         .map((tile) => [tile.key, tile])
     );
     this.pins = pinAssignments(this.tiles);
-    this.assignments = new Map(this.pins);
+    this.reserved = new Map([...inherited, ...this.pins]);
+    this.assignments = new Map(this.reserved);
     this.adjacency = new Map(
       [...this.tiles.values()].map((tile) => [
         tile.key,
@@ -304,7 +315,7 @@ class RegionGrowth {
     const values = [...this.tiles.values()];
     return {
       rule,
-      target: Math.floor((this.tiles.size - this.pins.size) * rule.target),
+      target: Math.floor((this.tiles.size - this.reserved.size) * rule.target),
       claimed: 0,
       sources: [],
       frontier: new BiomeFrontier(),
@@ -353,7 +364,7 @@ class RegionGrowth {
 
   initialize(): void {
     for (const growth of this.growths) {
-      growth.sources = sourcesFor(growth, this.tiles, this.pins, this.spec.seed);
+      growth.sources = sourcesFor(growth, this.tiles, this.reserved, this.spec.seed);
     }
     for (const growth of this.growths) {
       for (const tile of growth.sources) {
@@ -398,7 +409,10 @@ class RegionGrowth {
     }
     for (const growth of this.growths) {
       for (const group of components(this.assignments, this.adjacency, growth.rule.biome)) {
-        if (group.length >= (growth.rule.minRegion ?? 1) || group.some((key) => this.pins.has(key)))
+        if (
+          group.length >= (growth.rule.minRegion ?? 1) ||
+          group.some((key) => this.reserved.has(key))
+        )
           continue;
         for (const key of group) this.assignments.set(key, this.spec.fill);
       }
@@ -419,7 +433,7 @@ class RegionGrowth {
       biomes[growth.rule.biome] = {
         target: growth.target,
         actual: [...this.assignments].filter(
-          ([key, biome]) => biome === growth.rule.biome && !this.pins.has(key)
+          ([key, biome]) => biome === growth.rule.biome && !this.reserved.has(key)
         ).length,
         sources: growth.sources.map((tile) => ({ ...tile.coordinates })),
         regions: components(this.assignments, this.adjacency, growth.rule.biome)
@@ -431,7 +445,7 @@ class RegionGrowth {
       plan: {
         ...plan,
         tiles: plan.tiles.map((tile) =>
-          this.pins.has(tile.key) ? tile : { ...tile, biome: this.assignments.get(tile.key) }
+          this.reserved.has(tile.key) ? tile : { ...tile, biome: this.assignments.get(tile.key) }
         ),
       },
       report: { pinned: this.pins.size, biomes },
@@ -444,8 +458,15 @@ export function applyGameboardBiomeRegionStages(
   plan: GameboardPlan,
   stages: readonly GameboardBiomeRegionsSpec[]
 ): GameboardPlan {
-  return stages.reduce(
-    (current, stage) => generateGameboardBiomeRegions(current, stage).plan,
-    plan
-  );
+  const inherited = new Map<string, string>();
+  let current = plan;
+  for (const stage of stages) {
+    current = generateBiomeStage(current, stage, inherited).plan;
+    for (const tile of current.tiles) {
+      if (tile.pinned !== true && tile.biome !== undefined && tile.biome !== stage.fill) {
+        inherited.set(tile.key, tile.biome);
+      }
+    }
+  }
+  return current;
 }

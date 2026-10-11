@@ -54,6 +54,9 @@ components dissolve into the fallback biome; components containing pins stay.
 
 Put stages in `recipe.generation.biomeRegions`. They run in array order before
 placement fills, so layout rules can select their generated biome and fields.
+Each later stage preserves earlier non-fallback biome assignments and grows
+only over the remaining free tiles. Target shares are computed over that
+remaining area. The temporary reservations do not create authored pin flags.
 Authored `GameboardTileSpec.pinned` flags are protected throughout the generation
 block, including stages combined by `mergeGameboardRecipes`. Use the builder's
 `setBiome(at, biome).pinTile(at)` or the recipe's `setBiome` and `pinTile` steps

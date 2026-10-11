@@ -60,7 +60,7 @@ describe('release-readiness coverage', () => {
         page.sourceImage.path
       );
     }
-    expect(report.publicApi).toHaveLength(74);
+    expect(report.publicApi).toHaveLength(76);
     expect(report.roles).toHaveLength(12);
     expect(report.assets).toHaveLength(404);
     expect(report.manifest).toMatchObject({
@@ -95,11 +95,11 @@ describe('release-readiness coverage', () => {
       expect((check.summary ?? '').length).toBeGreaterThan(0);
     }
     expect(report.simpleRpgEvidence).toMatchObject({
-      guidePublicApiCount: 74,
-      exercisedPublicApiCount: 74,
+      guidePublicApiCount: 76,
+      exercisedPublicApiCount: 76,
       missingPublicApis: [],
       stalePublicApis: [],
-      executablePublicApiCount: 40,
+      executablePublicApiCount: 42,
       publicTreatmentCount: 404,
       guideScenarioCount: 19,
       inactiveEvidenceModes: [],
@@ -117,16 +117,16 @@ describe('release-readiness coverage', () => {
     ]);
     expect(report.simpleRpgEvidence?.evidenceModeCounts).toMatchObject({
       'fixed-gameplay': 30,
-      'seeded-generation': 10,
+      'seeded-generation': 12,
       'packaged-scenario': 1,
-      'executable-smoke': 40,
-      'blueprint-recipe': 4,
+      'executable-smoke': 42,
+      'blueprint-recipe': 5,
       'manifest-package': 6,
       'compatibility-adapter': 2,
       'package-boundary': 3,
       'visual-coverage': 26,
     });
-    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(74);
+    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(76);
     expect(report.simpleRpgEvidence?.publicApiExercises?.[0]).toMatchObject({
       publicApi: 'analyzeHexTileRegistry',
       mode: 'executable-smoke',
@@ -234,7 +234,7 @@ describe('release-readiness coverage', () => {
     expect(renderGameboardCoverageMarkdownFromRoot(report)).toBe(markdown);
     expect(markdown).toContain('# Release Readiness Coverage');
     expect(markdown).toContain('- Guide pages: 19/19');
-    expect(markdown).toContain('- SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)');
+    expect(markdown).toContain('- SimpleRPG API evidence: 76/76 represented, 42 directly executed, 9 active mode(s)');
     expect(markdown).toContain('## SimpleRPG Public API Evidence');
     expect(markdown).toContain('| visual-coverage | 26 |');
     expect(markdown).toContain('### SimpleRPG Exercise Matrix');

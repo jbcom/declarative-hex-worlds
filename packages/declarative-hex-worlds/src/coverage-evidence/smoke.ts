@@ -8,11 +8,12 @@
 import {
   analyzeExternalAssetCompatibility,
   analyzeHexTileRegistry,
+  applyGameboardBiomeRegionStages,
   coloredUnitAssetId,
-  createGameboardLayoutArchetypeRegistry,
-  createGameboardLayoutFillRuleFromPiece,
   createGameboardBlueprintPlan,
   createGameboardBlueprintRecipe,
+  createGameboardLayoutArchetypeRegistry,
+  createGameboardLayoutFillRuleFromPiece,
   createGameboardPlanFromRecipe,
   createGameboardPlanFromTiles,
   createGameboardRecipe,
@@ -27,6 +28,8 @@ import {
   factionBuildingAssetId,
   flagAssetId,
   freeManifest,
+  type GameboardPlan,
+  generateGameboardBiomeRegions,
   inspectGameboardBlueprint,
   listCoastGuidePermutations,
   listPropClusterAssets,
@@ -48,13 +51,15 @@ import {
   textureFileName,
   validateGameboardRecipe,
   validateGameboardRecipeGeneration,
-  type GameboardPlan,
 } from 'declarative-hex-worlds';
 import {
   listKayKitAssetPublicTreatments,
   listKayKitGuideScenarios,
 } from 'declarative-hex-worlds/catalog';
-import { createGameboardWorldFromScenario, type GameboardScenario } from 'declarative-hex-worlds/scenario';
+import {
+  createGameboardWorldFromScenario,
+  type GameboardScenario,
+} from 'declarative-hex-worlds/scenario';
 import { SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS } from './exercises';
 import type { SimpleRpgExecutableGuideApiSmokeSummary } from './types';
 
@@ -136,9 +141,31 @@ export function runSimpleRpgExecutableGuideApiSmoke(
   });
   const recipe = createGameboardRecipe(
     { seed: 'simple-rpg-recipe-smoke', shape: { kind: 'rectangle', width: 2, height: 1 } },
-    [{ action: 'addRoadPath', path: [{ q: 0, r: 0 }, { q: 1, r: 0 }] }]
+    [
+      {
+        action: 'addRoadPath',
+        path: [
+          { q: 0, r: 0 },
+          { q: 1, r: 0 },
+        ],
+      },
+    ]
   );
   const recipePlan = createGameboardPlanFromRecipe(recipe);
+  const biomeStage = {
+    seed: 'guide:wheat',
+    fill: 'pasture',
+    biomes: [{ biome: 'wheat', target: 0.5, sources: { count: 1 } }],
+  };
+  const biomeRegions = generateGameboardBiomeRegions(recipePlan, biomeStage);
+  const biomeLayers = applyGameboardBiomeRegionStages(recipePlan, [
+    biomeStage,
+    {
+      seed: 'guide:corn',
+      fill: 'pasture',
+      biomes: [{ biome: 'corn', target: 1, sources: { count: 1 } }],
+    },
+  ]);
   const grassTileDeclaration = {
     id: 'simple-rpg-executable-grass',
     assetId: 'hex_grass',
@@ -236,8 +263,12 @@ export function runSimpleRpgExecutableGuideApiSmoke(
     hexagonGridCellCount,
     planFromTilesPlacementCount: planFromTiles.placements.length,
     recipePlanPlacementCount: recipePlan.placements.length,
+    biomeRegionTileCount: biomeRegions.report.biomes.wheat?.actual ?? 0,
+    biomeStagePreservedTileCount: biomeLayers.tiles.filter((tile) => tile.biome === 'wheat').length,
     recipeValidationErrorCount: countSimpleRpgErrorViolations(validateGameboardRecipe(recipe)),
-    recipeGenerationErrorCount: countSimpleRpgErrorViolations(validateGameboardRecipeGeneration(recipe)),
+    recipeGenerationErrorCount: countSimpleRpgErrorViolations(
+      validateGameboardRecipeGeneration(recipe)
+    ),
     registryTileCount: registryAnalysis.tileCount,
     declaredTileAssetId: declaredGrassTile.assetId,
     registryWarningCount: registryAnalysis.warnings.length,

@@ -4,8 +4,8 @@
  * @module
  */
 import {
-  listKayKitGuidePublicApiCoverages,
   type KayKitGuidePublicApiCoverage,
+  listKayKitGuidePublicApiCoverages,
 } from 'declarative-hex-worlds/catalog';
 import type {
   SimpleRpgGuidePublicApiExercise,
@@ -20,6 +20,8 @@ interface SimpleRpgGuidePublicApiExerciseEvidence {
 }
 
 export const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = [
+  'generateGameboardBiomeRegions',
+  'applyGameboardBiomeRegionStages',
   'analyzeHexTileRegistry',
   'coloredUnitAssetId',
   'createGameboardLayoutArchetypeRegistry',
@@ -63,6 +65,18 @@ export const SIMPLE_RPG_EXECUTABLE_GUIDE_PUBLIC_APIS = [
 ] as const;
 
 const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
+  generateGameboardBiomeRegions: {
+    mode: 'executable-smoke',
+    modes: ['seeded-generation'],
+    evidence:
+      'The packaged guide smoke grows wheat regions on a recipe plan and reports their reached tile count.',
+  },
+  applyGameboardBiomeRegionStages: {
+    mode: 'executable-smoke',
+    modes: ['seeded-generation', 'blueprint-recipe'],
+    evidence:
+      'The packaged guide smoke applies two ordered biome stages and preserves the first stage wheat while adding corn.',
+  },
   'GameboardBuilder.addBridge': {
     mode: 'fixed-gameplay',
     modes: ['visual-coverage'],
@@ -200,7 +214,8 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   analyzeHexTileRegistry: {
     mode: 'executable-smoke',
-    evidence: 'Packaged SimpleRPG usage analyzes a runtime tile registry in its executable guide API smoke.',
+    evidence:
+      'Packaged SimpleRPG usage analyzes a runtime tile registry in its executable guide API smoke.',
   },
   coloredUnitAssetId: {
     mode: 'executable-smoke',
@@ -218,11 +233,13 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   createGameboardLayoutFillRuleFromPiece: {
     mode: 'executable-smoke',
     modes: ['seeded-generation'],
-    evidence: 'Packaged SimpleRPG usage creates a piece-backed layout fill rule in executable smoke.',
+    evidence:
+      'Packaged SimpleRPG usage creates a piece-backed layout fill rule in executable smoke.',
   },
   createGameboardPlanFromRecipe: {
     mode: 'executable-smoke',
-    evidence: 'Packaged SimpleRPG usage compiles a recipe into a concrete plan in executable smoke.',
+    evidence:
+      'Packaged SimpleRPG usage compiles a recipe into a concrete plan in executable smoke.',
   },
   createGameboardPlanFromTiles: {
     mode: 'executable-smoke',
@@ -254,7 +271,8 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   createMedievalShowcaseBlueprintRecipe: {
     mode: 'executable-smoke',
     modes: ['blueprint-recipe'],
-    evidence: 'Packaged SimpleRPG usage compiles the showcase blueprint recipe in executable smoke.',
+    evidence:
+      'Packaged SimpleRPG usage compiles the showcase blueprint recipe in executable smoke.',
   },
   createSeededGameboardPlan: {
     mode: 'executable-smoke',
@@ -267,12 +285,14 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   executeGameboardInteractionCommand: {
     mode: 'fixed-gameplay',
-    evidence: 'SimpleRPG quest execution moves, interacts, attacks, and removes enemies through commands.',
+    evidence:
+      'SimpleRPG quest execution moves, interacts, attacks, and removes enemies through commands.',
   },
   externalAssetSpawnOptions: {
     mode: 'executable-smoke',
     modes: ['compatibility-adapter'],
-    evidence: 'Packaged SimpleRPG usage converts compatibility analysis into spawn options in executable smoke.',
+    evidence:
+      'Packaged SimpleRPG usage converts compatibility analysis into spawn options in executable smoke.',
   },
   factionBuildingAssetId: {
     mode: 'executable-smoke',
@@ -298,11 +318,13 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   listKayKitAssetPublicTreatments: {
     mode: 'executable-smoke',
-    evidence: 'Packaged SimpleRPG usage lists every KayKit asset public treatment in executable smoke.',
+    evidence:
+      'Packaged SimpleRPG usage lists every KayKit asset public treatment in executable smoke.',
   },
   listKayKitGuideScenarios: {
     mode: 'executable-smoke',
-    evidence: 'Packaged SimpleRPG usage lists every decomposed KayKit guide scenario in executable smoke.',
+    evidence:
+      'Packaged SimpleRPG usage lists every decomposed KayKit guide scenario in executable smoke.',
   },
   listPropClusterAssets: {
     mode: 'executable-smoke',
@@ -382,7 +404,8 @@ const SIMPLE_RPG_GUIDE_PUBLIC_API_EXERCISE_EVIDENCE = {
   },
   selectSpawnCoordinates: {
     mode: 'executable-smoke',
-    evidence: 'Packaged SimpleRPG usage selects raw deterministic spawn coordinates in executable smoke.',
+    evidence:
+      'Packaged SimpleRPG usage selects raw deterministic spawn coordinates in executable smoke.',
   },
   spawnGameboardActor: {
     mode: 'fixed-gameplay',
@@ -427,7 +450,9 @@ export function summarizeSimpleRpgGuidePublicApiExercises(): SimpleRpgGuidePubli
   const guidePublicApiSet = new Set(guidePublicApis);
   const exercises = listSimpleRpgGuidePublicApiExercises();
   const exercisePublicApiSet = new Set(exercises.map((exercise) => exercise.publicApi));
-  const missingPublicApis = guidePublicApis.filter((publicApi) => !exercisePublicApiSet.has(publicApi));
+  const missingPublicApis = guidePublicApis.filter(
+    (publicApi) => !exercisePublicApiSet.has(publicApi)
+  );
   const staleExercisePublicApis = exercises
     .map((exercise) => exercise.publicApi)
     .filter((publicApi) => !guidePublicApiSet.has(publicApi));
