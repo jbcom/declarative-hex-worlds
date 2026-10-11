@@ -1,10 +1,10 @@
 /** Project authoritative hex biome values into seamless material weights. @module */
 // biome-ignore lint/style/noRestrictedImports: continuous terrain must stay Koota-free.
 import { hexKey, neighbors } from '../coordinates/coordinates';
-// biome-ignore lint/style/noRestrictedImports: continuous terrain must stay Koota-free.
-import { axialToWorld, DEFAULT_HEX_GEOMETRY, worldToAxial } from '../coordinates/grid';
 // biome-ignore lint/style/noRestrictedImports: this type is part of the pure coordinate tier.
 import type { HexGeometry } from '../coordinates/grid';
+// biome-ignore lint/style/noRestrictedImports: continuous terrain must stay Koota-free.
+import { axialToWorld, DEFAULT_HEX_GEOMETRY, worldToAxial } from '../coordinates/grid';
 import { GameboardValidationError } from '../errors';
 import { assertGameboardTileBiome } from '../gameboard/tile-values';
 import type { HexCoordinates } from '../types';
@@ -15,7 +15,7 @@ import { type GroundPoint, smoothstep } from './geometry2d';
 /** Structural input shared by plan tiles and snapshots read from live Koota tiles. */
 export interface HexBiomeTile {
   readonly coordinates: HexCoordinates;
-  readonly biome?: string;
+  readonly biome?: string | undefined;
 }
 
 /** Channel order and coordinate frame for a derived ground-material field. */

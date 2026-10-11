@@ -83,6 +83,37 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=8192
         run: pnpm ${{ matrix.task }}
 
+      - name: Check strict live-biome consumer types
+        if: matrix.task == 'build'
+        working-directory: packages/declarative-hex-worlds
+        run: |
+          pnpm exec node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+          import { join } from 'node:path';
+          const temp = mkdtempSync(join(process.cwd(), '.strict-biome-'));
+          try {
+            const source = join(temp, 'consumer.ts');
+            writeFileSync(source, `
+              import type { World } from 'koota';
+              import { readGameboardTiles } from 'declarative-hex-worlds/koota';
+              import { projectHexBiomesToField, type HexBiomeTile } from 'declarative-hex-worlds/terrain';
+              declare const world: World;
+              const tiles: readonly HexBiomeTile[] = readGameboardTiles(world);
+              const absent: HexBiomeTile = { coordinates: { q: 0, r: 0 }, biome: undefined };
+              projectHexBiomesToField({ tiles, grid: { bounds: { minX: 0, maxX: 1, minZ: 0, maxZ: 1 }, width: 2, height: 2 }, biomes: ['pasture'], base: 'pasture' });
+              void absent;
+            `);
+            execFileSync(process.execPath, [
+              'node_modules/typescript/bin/tsc', '--ignoreConfig', '--noEmit',
+              '--strict', '--exactOptionalPropertyTypes', '--skipLibCheck',
+              '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', source,
+            ], { stdio: 'inherit' });
+          } finally {
+            rmSync(temp, { recursive: true, force: true });
+          }
+          NODE
+
   docs:
     # Sourcey is the sole production renderer. This safe pull_request job builds
     # from the checked-out change but never deploys or receives credentials.
