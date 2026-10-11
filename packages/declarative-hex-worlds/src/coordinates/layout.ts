@@ -255,6 +255,8 @@ export interface GameboardLayoutCriteria {
   excludeFootprintTerrain?: GameboardTerrain | readonly GameboardTerrain[];
   /** Allow placement on tiles with blocking occupants. */
   allowOccupied?: boolean;
+  /** Opt into placement on authored tiles protected from automatic generation. */
+  allowPinned?: boolean;
   /** Placement kinds that should be treated as blockers. */
   blockingPlacementKinds?: readonly GameboardPlacementKind[];
   /** Placement layers that should be treated as blockers. */
@@ -329,6 +331,7 @@ export interface GameboardLayoutSite {
  * Rejection codes emitted when a tile cannot satisfy layout criteria.
  */
 export type GameboardLayoutSiteRejectionCode =
+  | 'pinned'
   | 'footprint-out-of-bounds'
   | 'footprint-terrain'
   | 'terrain'
@@ -1149,6 +1152,9 @@ function inspectSiteForTile(
       code: 'footprint-terrain',
       message: `${tile.key} footprint terrain does not match the requested footprint terrain criteria`,
     });
+  }
+  if (!criteria.allowPinned && (tile.pinned || footprintTiles.some((part) => part.pinned))) {
+    rejections.push({ code: 'pinned', message: `${tile.key} footprint overlaps an authored tile pin` });
   }
   const footprintPlacements = uniquePlacements(
     footprintTiles.flatMap((footprintTile) => [...(placementsByTile.get(footprintTile.key) ?? [])])

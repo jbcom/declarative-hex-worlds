@@ -65,7 +65,25 @@ JSON.
 `setFields` merges into the tile's existing channels by default; pass
 `replace: true` to replace the whole store.
 
-## Koota
+## Protecting authored tiles
+
+Call `builder.pinTile(at)` after authoring a historic feature, or add
+`{ action: 'pinTile', at }` to a recipe. The resulting tile carries
+`pinned: true`; Koota carries the `TilePinned` marker. Both survive projection
+and engine-neutral interop snapshots. `pinTile(at, false)` (or a recipe step
+with `pinned: false`) removes the pin.
+
+Automatic terrain projection preserves the entire pinned tile. Decoration
+scatter skips it, and layout fills reject both pinned anchors and footprints
+that overlap pins. A layout caller deliberately placing an authored piece can
+set `criteria.allowPinned: true`. Explicit builder edits remain available so
+an editor can revise authored content. Pins protect generated output, rather
+than freezing all runtime state.
+
+`validateGameboardPlan` reports `tile.invalid_pin` for non-boolean values.
+Unpinned tiles do not acquire a new serialized property.
+
+## Koota traits
 
 Spawning attaches decomposed traits only when a tile has the value:
 

@@ -102,6 +102,11 @@ contract for CI and npm consumers.
   Both survive spawn, read-back and projection, so route new tile values
   through `tileStateValue`, `decomposedTileTraits`, `readDecomposedTileSpecs`
   and the interop snapshot together.
+- Preserve optional authored tile pins (`pinned` / `TilePinned`) through every
+  plan/world/projection/interop path. Automatic terrain projection, decoration
+  scatter and layout fills must preserve pins and reject footprints overlapping
+  them. Explicit authoring remains allowed; layout callers can opt in with
+  `allowPinned`. Blueprint random streams are namespaced by stage.
 - Use `AdjacentTo` relations for neighbor-aware systems and validation.
 - Use `spawnGameboardPlacement`, `moveGameboardPlacement`,
   `updateGameboardPlacement`, `removeGameboardPlacement`, or `gameboardActions`
