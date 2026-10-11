@@ -64,6 +64,7 @@ export * from '../scenario/recipe';
 export * from '../rules/validation';
 // biome-ignore lint/style/noRestrictedImports: ./core must bypass the ../rules barrel — koota-free tier.
 export * from '../rules/rule-types';
+export * from '../rules/biome-regions';
 
 // Asset/tileset manifest schemas
 // biome-ignore lint/style/noRestrictedImports: ./core must bypass the ../manifest barrel (re-exports the generated free manifest) — koota-free tier.

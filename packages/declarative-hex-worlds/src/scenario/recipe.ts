@@ -52,6 +52,7 @@ import {
   type SeededGameboardPieceFillOptions,
 } from '../rules';
 import type { GameboardRuleViolation } from '../rules';
+import { applyGameboardBiomeRegionStages, type GameboardBiomeRegionsSpec } from '../rules/biome-regions';
 import type { Faction, HexCoordinates, HexEdgeIndex, TextureSet } from '../types';
 import { validateGameboardPlan, type GameboardPlanValidationConfig } from '../rules';
 
@@ -72,6 +73,8 @@ export interface GameboardRecipe {
 
 /** Seeded generation configuration embedded in a recipe. */
 export interface GameboardRecipeGeneration {
+  /** Ordered field-driven biome stages, before placement fills. Pins protect all stages. */
+  biomeRegions?: readonly GameboardBiomeRegionsSpec[];
   /** Layout archetypes available to layout and piece fill rules. */
   layoutArchetypes?: GameboardLayoutArchetypeRegistry;
   /** Seed used by layout fill spawning. */
@@ -472,7 +475,8 @@ export type RecipeGenerationApplier = (
  * recipe generation requires a koota world to run layout-fill, which core does
  * not depend on — so if a recipe declares generation fill rules, this throws a
  * clear "use the runtime tier" error rather than silently dropping them. A
- * generation block with no fill rules (or none at all) passes through unchanged.
+ * Region-only generation is pure and runs here; a block with neither region
+ * stages nor fill rules passes through unchanged.
  */
 export function pureRecipeGenerationApplier(
   plan: GameboardPlan,
@@ -483,7 +487,7 @@ export function pureRecipeGenerationApplier(
       'Recipe generation fill rules require the runtime tier — import createGameboardPlanFromRecipe from "declarative-hex-worlds" (not "declarative-hex-worlds/core"), or pass an applyGeneration function.'
     );
   }
-  return plan;
+  return applyGameboardBiomeRegionStages(plan, generation?.biomeRegions ?? []);
 }
 
 /**
@@ -849,6 +853,7 @@ function cloneRecipeGeneration(
     return undefined;
   }
   const cloned = {
+    biomeRegions: generation.biomeRegions?.map(cloneBiomeRegions),
     layoutArchetypes: cloneLayoutArchetypeRegistry(generation.layoutArchetypes),
     layoutFillSeed: generation.layoutFillSeed,
     layoutFills: generation.layoutFills?.map(cloneLayoutFillRule),
@@ -866,6 +871,7 @@ function mergeRecipeGenerations(
     return undefined;
   }
   const merged = {
+    biomeRegions: compact.flatMap((generation) => generation.biomeRegions?.map(cloneBiomeRegions) ?? []),
     layoutArchetypes: mergeRecipeLayoutArchetypes(compact),
     layoutFillSeed: lastLayoutFillSeed(compact),
     layoutFills: compact.flatMap((generation) => generation.layoutFills?.map(cloneLayoutFillRule) ?? []),
@@ -887,12 +893,30 @@ function lastLayoutFillSeed(generations: readonly GameboardRecipeGeneration[]): 
 
 function recipeGenerationIsEmpty(generation: GameboardRecipeGeneration): boolean {
   return (
+    (generation.biomeRegions?.length ?? 0) === 0 &&
     Object.keys(generation.layoutArchetypes ?? {}).length === 0 &&
     generation.layoutFillSeed === undefined &&
     (generation.layoutFills?.length ?? 0) === 0 &&
     (generation.pieceDeclarations?.length ?? 0) === 0 &&
     (generation.pieceFills?.length ?? 0) === 0
   );
+}
+
+function cloneBiomeRegions(spec: GameboardBiomeRegionsSpec): GameboardBiomeRegionsSpec {
+  return {
+    ...spec,
+    pins: spec.pins?.map((pin) => ({ ...pin, at: { ...pin.at } })),
+    affinity: spec.affinity?.map((pair) => ({ ...pair })),
+    biomes: spec.biomes.map((rule) => ({
+      ...rule,
+      requires: rule.requires?.map((band) => ({ ...band })),
+      suits: rule.suits?.map((band) => ({ ...band })),
+      sources:
+        'tiles' in rule.sources
+          ? { tiles: rule.sources.tiles.map((at) => ({ ...at })) }
+          : { ...rule.sources },
+    })),
+  };
 }
 
 function cloneRecipeStep<T extends GameboardRecipeStep>(step: T): T {

@@ -7,6 +7,10 @@
   "engines": {
     "node": ">=22"
   },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "vitest": "4.1.10"
+  },
   "scripts": {
     "build": "pnpm --filter declarative-hex-worlds build",
     "typecheck": "pnpm --filter declarative-hex-worlds typecheck",
