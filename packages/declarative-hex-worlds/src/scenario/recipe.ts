@@ -1041,6 +1041,15 @@ function cloneLayoutCriteria<T extends NonNullable<GameboardLayoutFillRule['crit
     ...criteria,
     terrain: Array.isArray(criteria.terrain) ? [...criteria.terrain] : criteria.terrain,
     excludeTerrain: Array.isArray(criteria.excludeTerrain) ? [...criteria.excludeTerrain] : criteria.excludeTerrain,
+    biome: Array.isArray(criteria.biome) ? [...criteria.biome] : criteria.biome,
+    excludeBiome: Array.isArray(criteria.excludeBiome) ? [...criteria.excludeBiome] : criteria.excludeBiome,
+    requiredAdjacentBiome: Array.isArray(criteria.requiredAdjacentBiome)
+      ? [...criteria.requiredAdjacentBiome]
+      : criteria.requiredAdjacentBiome,
+    forbiddenAdjacentBiome: Array.isArray(criteria.forbiddenAdjacentBiome)
+      ? [...criteria.forbiddenAdjacentBiome]
+      : criteria.forbiddenAdjacentBiome,
+    fields: criteria.fields?.map((band) => ({ ...band })),
     elevation: Array.isArray(criteria.elevation) ? [...criteria.elevation] : criteria.elevation,
     tileTags: criteria.tileTags ? [...criteria.tileTags] : undefined,
     excludeTileTags: criteria.excludeTileTags ? [...criteria.excludeTileTags] : undefined,

@@ -269,7 +269,9 @@ contract for CI and npm consumers.
   `layoutDensity` on seeded generation for common tree, rock, prop, harbor,
   landmark, and unit fill presets. Criteria can hard-filter terrain, elevation
   bands, terrain adjacency, adjacent placement kind/layer, occupancy, distance,
-  and footprints. Use `createGameboardLayoutArchetypeRegistry` when a local pack
+  and footprints, and on the tile's open `biome` (`biome`, `excludeBiome`,
+  `requiredAdjacentBiome`, `forbiddenAdjacentBiome`) and numeric `fields`
+  bands (`fields: [{ field: 'wetness', min: 0.6 }]`). Use `createGameboardLayoutArchetypeRegistry` when a local pack
   needs reusable custom placement behavior, and pass the registry through layout
   fills, piece fills, seeded generation, or recipe `generation.layoutArchetypes`
   instead of restating the same criteria on every placement. Prefer these APIs

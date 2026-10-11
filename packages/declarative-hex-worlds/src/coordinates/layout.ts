@@ -190,9 +190,33 @@ export interface CreateGameboardLayoutArchetypeRegistryOptions {
 }
 
 /**
+ * A band on one named numeric tile field (slope, wetness, soil depth, ...),
+ * mirroring the terrain tier's `FieldBiomeCondition`. A missing bound is open
+ * and both bounds are inclusive. A tile that lacks the field fails the band.
+ */
+export interface GameboardTileFieldCondition {
+  /** Name of the tile field to test; see `GameboardTileSpec.fields`. */
+  field: string;
+  /** Smallest allowed value. */
+  min?: number;
+  /** Largest allowed value. */
+  max?: number;
+}
+
+/**
  * Rules that determine whether a tile can be used as a placement site.
  */
 export interface GameboardLayoutCriteria {
+  /** Allowed origin tile biomes. Tiles without a biome never match. */
+  biome?: string | readonly string[];
+  /** Disallowed origin tile biomes. Tiles without a biome are not excluded. */
+  excludeBiome?: string | readonly string[];
+  /** Adjacent biome that must be present. */
+  requiredAdjacentBiome?: string | readonly string[];
+  /** Adjacent biome that must be absent. */
+  forbiddenAdjacentBiome?: string | readonly string[];
+  /** Numeric field bands the origin tile must all satisfy. */
+  fields?: readonly GameboardTileFieldCondition[];
   /** Allowed origin tile terrain. */
   terrain?: GameboardTerrain | readonly GameboardTerrain[];
   /** Disallowed origin tile terrain. */
@@ -309,6 +333,9 @@ export type GameboardLayoutSiteRejectionCode =
   | 'footprint-terrain'
   | 'terrain'
   | 'excluded-terrain'
+  | 'biome'
+  | 'excluded-biome'
+  | 'field-band'
   | 'elevation'
   | 'missing-required-tags'
   | 'excluded-tags'
@@ -316,6 +343,8 @@ export type GameboardLayoutSiteRejectionCode =
   | 'edge-padding'
   | 'missing-adjacent-terrain'
   | 'forbidden-adjacent-terrain'
+  | 'missing-adjacent-biome'
+  | 'forbidden-adjacent-biome'
   | 'missing-adjacent-placement-kind'
   | 'forbidden-adjacent-placement-kind'
   | 'missing-adjacent-placement-layer'
@@ -1138,6 +1167,18 @@ function inspectSiteForTile(
   if (criteria.excludeTerrain && matchesTerrain(tile.terrain, criteria.excludeTerrain)) {
     rejections.push({ code: 'excluded-terrain', message: `${tile.key} terrain ${tile.terrain} is excluded` });
   }
+  if (criteria.biome !== undefined && !matchesBiome(tile.biome, criteria.biome)) {
+    rejections.push({ code: 'biome', message: `${tile.key} biome ${tile.biome ?? '(none)'} is not allowed` });
+  }
+  if (criteria.excludeBiome !== undefined && matchesBiome(tile.biome, criteria.excludeBiome)) {
+    rejections.push({ code: 'excluded-biome', message: `${tile.key} biome ${tile.biome} is excluded` });
+  }
+  if (!matchesFieldBands(tile, criteria.fields)) {
+    rejections.push({
+      code: 'field-band',
+      message: `${tile.key} has a tile field outside the requested band or missing`,
+    });
+  }
   if (!matchesElevation(tile.elevation, criteria)) {
     rejections.push({ code: 'elevation', message: `${tile.key} elevation ${tile.elevation} is outside the requested range` });
   }
@@ -1158,6 +1199,12 @@ function inspectSiteForTile(
   }
   if (hasAdjacentTerrain(plan, tile.coordinates, criteria.forbiddenAdjacentTerrain)) {
     rejections.push({ code: 'forbidden-adjacent-terrain', message: `${tile.key} has forbidden adjacent terrain` });
+  }
+  if (criteria.requiredAdjacentBiome !== undefined && !hasAdjacentBiome(plan, tile.coordinates, criteria.requiredAdjacentBiome)) {
+    rejections.push({ code: 'missing-adjacent-biome', message: `${tile.key} has no required adjacent biome` });
+  }
+  if (hasAdjacentBiome(plan, tile.coordinates, criteria.forbiddenAdjacentBiome)) {
+    rejections.push({ code: 'forbidden-adjacent-biome', message: `${tile.key} has forbidden adjacent biome` });
   }
   if (
     criteria.requiredAdjacentPlacementKind &&
@@ -1463,6 +1510,46 @@ function matchesTerrain(
   allowed: GameboardTerrain | readonly GameboardTerrain[] | undefined
 ): boolean {
   return !allowed || terrainList(allowed).includes(terrain);
+}
+
+function biomeList(biome: string | readonly string[]): readonly string[] {
+  return typeof biome === 'string' ? [biome] : biome;
+}
+
+/** Whether a tile's biome is one of `allowed`; a tile with no biome matches nothing. */
+function matchesBiome(biome: string | undefined, allowed: string | readonly string[]): boolean {
+  return biome !== undefined && biomeList(allowed).includes(biome);
+}
+
+function matchesFieldBands(
+  tile: GameboardTileSpec,
+  bands: readonly GameboardTileFieldCondition[] | undefined
+): boolean {
+  return (bands ?? []).every((band) => {
+    const value = tile.fields?.[band.field];
+    return (
+      value !== undefined &&
+      (band.min === undefined || value >= band.min) &&
+      (band.max === undefined || value <= band.max)
+    );
+  });
+}
+
+function hasAdjacentBiome(
+  plan: GameboardPlan,
+  coordinates: HexCoordinates,
+  biome: string | readonly string[] | undefined
+): boolean {
+  if (biome === undefined) {
+    return false;
+  }
+  const { tilesByKey } = gameboardPlanIndex(plan);
+  for (let edge = 0; edge < 6; edge += 1) {
+    if (matchesBiome(tilesByKey.get(hexKey(neighbor(coordinates, edge)))?.biome, biome)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function matchesElevation(elevation: number, criteria: GameboardLayoutCriteria): boolean {
