@@ -8,6 +8,7 @@
  *
  * @module
  */
+import { forEachSegmentCell } from './segment-cover';
 
 /** A point on the ground plane, in world units. */
 export interface GroundPoint {
@@ -126,40 +127,16 @@ export function createPolylineIndex(
   // Row → column → segment indices. Numeric keys keep queries allocation-free.
   const buckets = new Map<number, Map<number, number[]>>();
   segments.forEach(([a, b], index) => {
-    const dx = b.x - a.x;
-    const dz = b.z - a.z;
-    const r0 = Math.floor((Math.min(a.z, b.z) - cutoff) / cell);
-    const r1 = Math.floor((Math.max(a.z, b.z) + cutoff) / cell);
-    for (let r = r0; r <= r1; r += 1) {
-      // A point in row r within `cutoff` of the segment has its nearest
-      // segment point within this z-slab; bucket only the columns that slice
-      // of the segment (grown by `cutoff`) can reach, so cell count grows
-      // with segment length rather than with its bounding box's area.
-      let xMin = Math.min(a.x, b.x);
-      let xMax = Math.max(a.x, b.x);
-      if (dz !== 0) {
-        const tA = (r * cell - cutoff - a.z) / dz;
-        const tB = ((r + 1) * cell + cutoff - a.z) / dz;
-        const t0 = Math.max(0, Math.min(tA, tB));
-        const t1 = Math.min(1, Math.max(tA, tB));
-        const xa = a.x + dx * t0;
-        const xb = a.x + dx * t1;
-        xMin = Math.min(xa, xb);
-        xMax = Math.max(xa, xb);
-      }
-      const c0 = Math.floor((xMin - cutoff) / cell);
-      const c1 = Math.floor((xMax + cutoff) / cell);
+    forEachSegmentCell(a, b, cutoff, cell, 0, 0, (r, c) => {
       let rowBuckets = buckets.get(r);
       if (!rowBuckets) {
         rowBuckets = new Map();
         buckets.set(r, rowBuckets);
       }
-      for (let c = c0; c <= c1; c += 1) {
-        const bucket = rowBuckets.get(c);
-        if (bucket) bucket.push(index);
-        else rowBuckets.set(c, [index]);
-      }
-    }
+      const bucket = rowBuckets.get(c);
+      if (bucket) bucket.push(index);
+      else rowBuckets.set(c, [index]);
+    });
   });
   return {
     distanceWithin(point) {

@@ -305,6 +305,31 @@ a margin larger than the area you show.
 Fields up to 2048 × 2048 samples can be routed (`MAX_ROUTE_SAMPLES`), and up
 to 256 sites joined; drainage accepts up to 4096 × 4096 (`MAX_DRAINAGE_SAMPLES`).
 
+### Drawing roads crisply
+
+Do not draw roads, lanes or creek beds as biome weights. A weight grid
+resolves a corridor only when the corridor is wider than about two sample
+spacings, so a 12 m road painted on a 12 m grid breaks into beads wherever it
+runs between samples. Store distance instead, and measure it exactly per
+fragment:
+
+```ts
+const cells = createPolylineCells(roads, { bounds, cellSize: 64, reach: 9 });
+// Upload cells.segments (4 floats each), cells.cellRanges (start, count per
+// cell) and cells.cellSegments as textures; per fragment, read the cell's
+// segments and take the minimum distanceToSegment, then
+// road = smoothstep(halfWidth + feather, halfWidth - feather, distance).
+```
+
+`createPolylineCells` buckets the lines into a uniform grid over fixed
+bounds. Each cell lists every segment within `reach` of some point of it (a
+road's half-width plus its feather), so a fragment needs only its own cell's
+list, never its neighbours'. `segmentLine` maps each segment to its input line
+for per-road width or surface, and `maxPerCell` bounds the shader's loop.
+`nearestPolylineInCells` is the same query on the CPU, for picking and tests.
+The result is exact at any zoom and costs a few kilobytes, where a distance
+texture fine enough for a narrow lane costs megabytes.
+
 The polyline helpers underneath — `simplifyPolyline` (Douglas–Peucker, with
 `simplifyPolylineIndices` to carry attributes), `subdividePolyline`,
 `smoothPolyline` / `smoothPolylineValues` (Chaikin), `closestPointOnPolyline`
