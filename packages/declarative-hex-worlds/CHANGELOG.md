@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.8.1](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.8.0...declarative-hex-worlds@1.8.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* **build:** isolate core from runtime registration ([9cb6bf9](https://github.com/jbcom/declarative-hex-worlds/commit/9cb6bf9aaebdec7a8f7ce28c1dfe38e1b2f89167))
+* preserve runtime recipe generation and keep core pure ([01c945a](https://github.com/jbcom/declarative-hex-worlds/commit/01c945a1546c54eb5301f2b112dc5d33c876856e))
+* **runtime:** preserve recipe generation registration in bundles ([c3fc65d](https://github.com/jbcom/declarative-hex-worlds/commit/c3fc65d25333a7a44478f4ef81322a1405f36b75))
+* **smoke:** exercise strict biome consumers through canonical packing ([49cc6fa](https://github.com/jbcom/declarative-hex-worlds/commit/49cc6faead85aadc8c9d4d057eb236e44cb767f6))
+* **terrain:** accept live biome snapshots with exact optional types ([4877687](https://github.com/jbcom/declarative-hex-worlds/commit/4877687c14072eb5cb8628f0bc97201846cfc08d))
+* **terrain:** accept strict live biome snapshot consumers ([7fcc2db](https://github.com/jbcom/declarative-hex-worlds/commit/7fcc2db0bac301459c2d994dfd5160e6dedef0e9))
+
 ## [1.8.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.7.0...declarative-hex-worlds@1.8.0) (2026-10-11)
 
 
