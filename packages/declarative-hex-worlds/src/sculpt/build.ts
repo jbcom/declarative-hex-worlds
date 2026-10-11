@@ -123,6 +123,7 @@ export function buildPiece<P extends SculptPalette>(
   const tones = new Map<string, Color>();
   const byFinish = new Map<string, Pending>();
   for (const p of parts) {
+    requireNonNegative('part shade', p.shade);
     const value = Object.hasOwn(palette, p.tone) ? palette[p.tone] : undefined;
     if (value === undefined) {
       throw new GameboardValidationError(`sculpt: tone "${p.tone}" is not in the palette`);

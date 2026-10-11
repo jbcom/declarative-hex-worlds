@@ -308,6 +308,10 @@ describe('lathe', () => {
     expect(() => lathe([], { tone: 'clay' })).toThrow(GameboardValidationError);
   });
 
+  it.each([null, {}, [1], [1, 2, 3]])('rejects a malformed lathe profile point %j', (point) => {
+    expect(() => lathe([[0, 0], point] as never, { tone: 'clay' })).toThrow(GameboardValidationError);
+  });
+
   it('rejects a negative or non-finite profile coordinate', () => {
     expect(() =>
       lathe(

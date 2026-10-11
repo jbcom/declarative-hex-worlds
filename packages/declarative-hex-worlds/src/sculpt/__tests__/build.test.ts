@@ -345,6 +345,15 @@ describe('buildPiece', () => {
     expect(onDispose).not.toHaveBeenCalled();
   });
 
+  it.each([Number.NaN, -1, Number.POSITIVE_INFINITY])('rejects a hand-made part shade %s before consuming geometry', (shade) => {
+    const good = box(1, 1, 1, { tone: 'wood' });
+    const malformed = { ...box(1, 1, 1, { tone: 'wood' }), shade };
+    const onDispose = vi.fn();
+    good.geometry.addEventListener('dispose', onDispose);
+    expect(() => buildPiece([good, malformed], palette)).toThrow(GameboardValidationError);
+    expect(onDispose).not.toHaveBeenCalled();
+  });
+
   it('rejects contact options out of range', () => {
     const run = (options: object) => () =>
       buildPiece([box(1, 1, 1, { tone: 'wood' })], palette, { grounded: true, ...options });

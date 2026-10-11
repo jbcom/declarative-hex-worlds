@@ -8,6 +8,10 @@ package verification gates. Regenerate it with:
 pnpm coverage:ledger
 ```
 
+Availability records describe the workspace where this ledger was generated.
+Reference packs are ignored local inputs, including purchased assets; they are
+not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
+
 ## Summary
 
 - Status: passed

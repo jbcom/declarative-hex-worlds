@@ -272,7 +272,11 @@ export function lathe<const Tone extends string>(
     );
   }
   requireSegments('segments', seg);
-  const points = profile.map(([radius, height], i) => {
+  const points = profile.map((point, i) => {
+    if (!Array.isArray(point) || point.length !== 2) {
+      throw new GameboardValidationError(`sculpt: profile[${i}] must be a radius-height pair`);
+    }
+    const [radius, height] = point;
     requireNonNegative(`profile[${i}] radius`, radius);
     requireFinite(`profile[${i}] height`, height);
     return new Vector2(radius, height);
