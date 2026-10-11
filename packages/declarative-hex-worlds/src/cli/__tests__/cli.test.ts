@@ -593,7 +593,7 @@ describe('CLI', () => {
     expect(report.manifest.manifestAssetCount).toBe(221);
     expect(report.manifest.freeGuideAssetsInManifest).toBe(221);
     expect(report.manifest.extraGuideAssetsLocalOnly).toHaveLength(183);
-    expect(report.publicApi).toHaveLength(74);
+    expect(report.publicApi).toHaveLength(76);
     expect(report.visualArtifacts.map((artifact) => artifact.path)).toContain(
       'docs/showcases/free-blueprint-builder-showcase.png'
     );
