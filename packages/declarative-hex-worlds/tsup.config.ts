@@ -28,7 +28,6 @@ export default defineConfig([
     terrain: 'src/terrain/index.ts',
     classifiers: 'src/classifiers/index.ts',
     canvas2d: 'src/canvas2d/index.ts',
-    core: 'src/core/index.ts',
     coordinates: 'src/coordinates/index.ts',
     gameboard: 'src/gameboard/index.ts',
     grid: 'src/coordinates/grid.ts',
@@ -50,6 +49,7 @@ export default defineConfig([
     rules: 'src/rules/index.ts',
     runtime: 'src/runtime/index.ts',
     scenario: 'src/scenario/index.ts',
+    'recipe-generation-wiring': 'src/scenario/recipe-generation-wiring.ts',
     selectors: 'src/selectors/index.ts',
     simulation: 'src/simulation/index.ts',
     systems: 'src/systems/index.ts',
@@ -78,6 +78,17 @@ export default defineConfig([
   // Explicit: esbuild tree-shakes ESM by default but treeshake:true enables Rollup-level
   // tree-shaking for the bundled dependencies (honeycomb-grid, seedrandom, citty, yauzl).
   treeshake: true,
+  // Keep process-wide runtime registration out of chunks shared with ./core.
+  // Its entry still shares pure helpers and Koota traits with the other entries.
+  esbuildPlugins: [{
+    name: 'isolate-recipe-runtime-registration',
+    setup(build) {
+      build.onResolve({ filter: /recipe-generation-wiring$/ }, (args) => {
+        if (args.kind === 'entry-point') return;
+        return { path: './recipe-generation-wiring.js', external: true };
+      });
+    },
+  }],
   esbuildOptions(options) {
     options.sourcesContent = false;
   },

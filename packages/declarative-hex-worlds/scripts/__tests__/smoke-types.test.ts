@@ -2,13 +2,12 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-
+import type { SmokeContext } from '../smoke/_shared';
 import {
   createTypesAttestationSource,
   runTypesAttestation,
   type TypesAttestationDependencies,
 } from '../smoke/types';
-import type { SmokeContext } from '../smoke/_shared';
 
 describe('scripts/smoke/types', () => {
   it('builds a type attestation source for the public package surface', () => {
@@ -28,7 +27,7 @@ describe('scripts/smoke/types', () => {
 
     runTypesAttestation(smokeContext(), dependencies(calls));
 
-    const [writeCall, execCall, logCall] = calls;
+    const [writeCall, execCall, strictWriteCall, strictExecCall, logCall] = calls;
     expect(writeCall).toEqual({
       kind: 'write',
       path: '/tmp/app/smoke-types.ts',
@@ -57,6 +56,15 @@ describe('scripts/smoke/types', () => {
         encoding: 'utf8',
         stdio: ['ignore', 'inherit', 'inherit'],
       },
+    });
+    expect(strictWriteCall).toMatchObject({ kind: 'write', path: '/tmp/app/smoke-biome-types.ts' });
+    expect(strictExecCall).toMatchObject({
+      kind: 'exec',
+      args: expect.arrayContaining([
+        '--strict',
+        '--exactOptionalPropertyTypes',
+        'smoke-biome-types.ts',
+      ]),
     });
     expect(logCall).toEqual({
       kind: 'log',
@@ -115,6 +123,26 @@ describe('scripts/smoke/types', () => {
       logSpy.mockRestore();
       rmSync(root, { recursive: true, force: true });
     }
+  });
+
+  it('fails the phase when the strict live-biome consumer does not compile', () => {
+    const calls: unknown[] = [];
+    let compilations = 0;
+    expect(() =>
+      runTypesAttestation(
+        smokeContext(),
+        dependencies(calls, {
+          execFileSyncImpl: () => {
+            if (++compilations === 2) throw new Error('strict biome types failed');
+          },
+        })
+      )
+    ).toThrow('strict biome types failed');
+    expect(compilations).toBe(2);
+    expect(calls).not.toContainEqual({
+      kind: 'log',
+      message: 'packed consumer types attestation passed',
+    });
   });
 });
 

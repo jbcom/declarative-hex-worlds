@@ -9,21 +9,21 @@
  * `react`. Source-level purity is the enforced guarantee — no code path reached
  * from `./core` executes ECS/renderer logic.
  *
- * NOTE on the built output: tsup builds all subpaths together with `splitting:true`
- * (needed so Koota trait identities stay stable across the runtime subpaths), so
- * `dist/core.js` may reference a shared chunk that statically imports koota/three
- * even though core's own code never calls into them. That's a bundler artifact,
- * not a source-correctness leak. A consumer who wants a guaranteed
- * dependency-free build can bundle `src/core` themselves against this pure source
- * graph. Enforcing source purity here keeps the contract meaningful without
- * depending on tsup's cross-subpath chunking behaviour.
+ * Core is built independently from the split runtime entries. The emitted entry
+ * is also tested in a fresh process that denies runtime peer resolution, ensuring
+ * the published artifact preserves the same boundary as this source graph.
  */
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { corePurityProbeArgs, runtimeGenerationProbeArgs } from '../../scripts/smoke/core';
 
 const packageRoot = resolve(import.meta.dirname, '..', '..');
 const coreEntry = join(packageRoot, 'src/core/index.ts');
+const require = createRequire(import.meta.url);
+const esbuild = createRequire(require.resolve('tsup'))('esbuild');
 
 const FORBIDDEN_RUNTIME_DEPS = ['koota', 'three', '@react-three/fiber', 'react', 'react-dom'];
 
@@ -78,6 +78,38 @@ function findRuntimeLeaks(entry: string): Leak[] {
 }
 
 describe('./core tier purity contract', () => {
+  it.skipIf(!existsSync(join(packageRoot, 'dist/index.js')))(
+    'consumer tree shaking retains runtime generation registration',
+    () => {
+      const probe = runtimeGenerationProbeArgs('./dist/index.js').at(-1);
+      const bundle = esbuild.buildSync({
+        stdin: { contents: probe, resolveDir: packageRoot },
+        bundle: true,
+        platform: 'node',
+        format: 'esm',
+        external: FORBIDDEN_RUNTIME_DEPS,
+        write: false,
+      });
+      expect(() =>
+        execFileSync(process.execPath, ['--input-type=module'], {
+          cwd: packageRoot,
+          input: bundle.outputFiles[0].text,
+          stdio: 'pipe',
+        })
+      ).not.toThrow();
+    }
+  );
+  it.skipIf(!existsSync(join(packageRoot, 'dist/core.js')))(
+    'the emitted core works with runtime peers denied and rejects runtime fills',
+    () => {
+      expect(() =>
+        execFileSync(process.execPath, corePurityProbeArgs('./dist/core.js'), {
+          cwd: packageRoot,
+          stdio: 'pipe',
+        })
+      ).not.toThrow();
+    }
+  );
   it('src/core/index.ts exists', () => {
     expect(existsSync(coreEntry)).toBe(true);
   });
@@ -97,9 +129,7 @@ describe('./core tier purity contract', () => {
     const walk = (file: string): void => {
       if (seen.has(file)) return;
       seen.add(file);
-      for (const match of readFileSync(file, 'utf8').matchAll(
-        /from\s+['"](\.[^'"]+)['"]/g
-      )) {
+      for (const match of readFileSync(file, 'utf8').matchAll(/from\s+['"](\.[^'"]+)['"]/g)) {
         const resolved = resolveImport(file, match[1] as string);
         if (resolved) walk(resolved);
       }

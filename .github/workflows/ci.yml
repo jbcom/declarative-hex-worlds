@@ -83,6 +83,10 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=8192
         run: pnpm ${{ matrix.task }}
 
+      - name: Check emitted core purity and consumer tree shaking
+        if: matrix.task == 'build'
+        run: pnpm --filter declarative-hex-worlds exec vitest run tests/contract/core-tier-purity-contract.test.ts
+
       - name: Check strict live-biome consumer types
         if: matrix.task == 'build'
         working-directory: packages/declarative-hex-worlds

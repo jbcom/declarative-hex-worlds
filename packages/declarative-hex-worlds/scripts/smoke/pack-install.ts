@@ -2,7 +2,7 @@
  * Runtime smoke for the packed `declarative-hex-worlds` tarball.
  *
  * Responsibilities (per PRD D10 split):
- *   1. `npm pack` the workspace into a tmpdir.
+ *   1. `pnpm pack` the workspace into a tmpdir, resolving catalog dependencies.
  *   2. Install the tarball into a sibling consumer fixture app.
  *   3. Hit the installed CLI directly (guide-usages, summarize-plan,
  *      summarize-scenario, coverage --json/--markdown) and assert behavior.
@@ -18,9 +18,10 @@
  */
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 
 import { assert, COVERAGE_CLI_MAX_BUFFER_BYTES, type SmokeContext } from './_shared.js';
+import { corePurityProbeArgs, runtimeGenerationProbeArgs } from './core.js';
 
 interface PackResult {
   filename: string;
@@ -109,14 +110,11 @@ function parseJsonObject<T extends object>(payload: string, message: string): T 
 
 function parsePackResult(payload: string): PackResult {
   const parsed = JSON.parse(payload) as unknown;
-  if (!Array.isArray(parsed)) {
-    throw new Error('npm pack did not return an array of tarball metadata');
-  }
-  const [pack] = parsed;
+  const pack = Array.isArray(parsed) ? parsed[0] : parsed;
   if (!isRecord(pack) || typeof pack.filename !== 'string' || pack.filename.length === 0) {
-    throw new Error('npm pack did not return any tarball metadata');
+    throw new Error('pnpm pack did not return any tarball metadata');
   }
-  return { filename: pack.filename };
+  return { filename: basename(pack.filename) };
 }
 
 export function createPackedConsumerPackageJson(tarballPath: string): string {
@@ -197,8 +195,8 @@ import {
   createGameboardLayoutArchetypeRegistry,
   createGameboardLayoutPlacements,
   inspectGameboardLayoutSites,
-  spawnGameboardLayoutPlacements,
 } from 'declarative-hex-worlds/layout';
+import { spawnGameboardLayoutPlacements } from 'declarative-hex-worlds';
 import { freeManifest } from 'declarative-hex-worlds/manifest/free';
 import { inspectMedievalHexagonManifest } from 'declarative-hex-worlds/manifest/schema';
 import {
@@ -383,7 +381,7 @@ const packagedCoverageMarkdown = renderGameboardCoverageMarkdownFromCoverage(pac
 if (
   packagedCoverageSummary.guide.pageCount !== 19 ||
   packagedCoverageSummary.manifest.freeGuideAssetsInManifest !== 221 ||
-  packagedCoverageSummaryFromCoverage.publicApi.length !== 74 ||
+  packagedCoverageSummaryFromCoverage.publicApi.length !== 77 ||
   !packagedCoverageMarkdown.includes('Release Readiness Coverage')
 ) {
   throw new Error('packed coverage report did not expose guide, manifest, public API, and markdown data');
@@ -1262,14 +1260,14 @@ export function runPackInstallSmoke(
   }
 
   const pack = parsePackResult(
-    execFileSyncImpl('npm', ['pack', '--json', '--pack-destination', packRoot], {
+    execFileSyncImpl('pnpm', ['pack', '--json', '--pack-destination', packRoot], {
       cwd: packageRoot,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     })
   );
   const tarballPath = join(packRoot, pack.filename);
-  assert(existsSyncImpl(tarballPath), `npm pack did not create ${tarballPath}`);
+  assert(existsSyncImpl(tarballPath), `pnpm pack did not create ${tarballPath}`);
 
   writeFileSyncImpl(
     join(appRoot, 'package.json'),
@@ -1284,6 +1282,20 @@ export function runPackInstallSmoke(
   });
 
   const installedPackageRoot = join(appRoot, 'node_modules/declarative-hex-worlds');
+  // A separate process denies runtime peers even though the full smoke fixture
+  // installs them. This verifies the shipped core rather than its source graph.
+  execFileSyncImpl(process.execPath, corePurityProbeArgs(), {
+    cwd: appRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  for (const entry of ['declarative-hex-worlds', 'declarative-hex-worlds/scenario']) {
+    execFileSyncImpl(process.execPath, runtimeGenerationProbeArgs(entry), {
+      cwd: appRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  }
   const installedCliPath = join(installedPackageRoot, 'dist/cli.js');
   assert(
     existsSyncImpl(join(installedPackageRoot, 'dist/examples/blueprint-board-usage.js')),
@@ -1352,7 +1364,7 @@ export function runPackInstallSmoke(
     'packed CLI guide-usages command did not return a valid JSON object'
   );
   assert(
-      installedGuideUsage.count === 137 &&
+    installedGuideUsage.count === 137 &&
       installedGuideUsage.occurrenceCounts?.extra === 137 &&
       installedGuideUsage.occurrenceCounts?.scenarios === 1 &&
       installedGuideUsage.occurrenceCounts?.pages === 1 &&
@@ -1454,7 +1466,7 @@ export function runPackInstallSmoke(
     }
   );
   assert(
-    publicApiExercises.length === 74 &&
+    publicApiExercises.length === 77 &&
       installedCoverageBridgeExercise?.assetCount === 2 &&
       installedCoverageBridgeExercise.pages?.join(',') === '2,7,9' &&
       installedCoverageBridgeExercise.modes?.includes('visual-coverage') &&
@@ -1510,12 +1522,12 @@ export function runPackInstallSmoke(
   assert(
     binCoverageDoctorOutput.includes('coverage status: passed') &&
       binCoverageDoctorOutput.includes('guide pages: 19/19') &&
-      binCoverageDoctorOutput.includes('public APIs: 74') &&
+      binCoverageDoctorOutput.includes('public APIs: 77') &&
       binCoverageDoctorOutput.includes('manifest: 221 asset(s), 221/221 FREE guide asset(s)') &&
-      binCoverageDoctorOutput.includes('visual artifacts: 10 available, 0 missing,') &&
+      binCoverageDoctorOutput.includes('visual artifacts: 8 available, 0 missing,') &&
       binCoverageDoctorOutput.includes('local references: 0 available, 0 missing,') &&
       binCoverageDoctorOutput.includes(
-        'SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)'
+        'SimpleRPG API evidence: 77/77 represented, 43 directly executed, 9 active mode(s)'
       ) &&
       binCoverageDoctorOutput.includes('gaps: 0'),
     'installed CLI doctor --coverage did not emit passing package-aware release-readiness and SimpleRPG evidence'
