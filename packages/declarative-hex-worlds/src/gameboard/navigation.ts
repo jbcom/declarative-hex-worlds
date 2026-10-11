@@ -49,6 +49,12 @@ import {
   type GameboardPatrolWaypointSource as GameboardPatrolWaypointSourceCore,
 } from './patrol-routes';
 
+export {
+  traceGameboardSight,
+  type GameboardSightProfile,
+  type GameboardSightResult,
+} from './line-of-sight';
+
 /**
  * Pathfinding profile for terrain, elevation, occupancy, and custom movement rules.
  */

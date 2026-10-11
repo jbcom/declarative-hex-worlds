@@ -2216,6 +2216,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "traceGameboardSight",
+  },
+  {
+    "kind": "function",
     "name": "transformForHex",
   },
   {

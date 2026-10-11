@@ -13,6 +13,7 @@ nav:
       - Recipes, scenarios, and simulation: guides/recipes-scenarios-and-simulation.md
       - Rendering and external packs: guides/rendering-assets-and-external-packs.md
       - Tilesets: guides/tilesets.md
+      - Terrain line of sight: guides/line-of-sight.md
       - Testing: guides/testing.md
       - Migration: guides/migration.md
       - Public API: guides/public-api.md
