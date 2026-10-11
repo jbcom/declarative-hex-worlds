@@ -205,10 +205,23 @@ jobs:
             VERSION=$(node -p "require('$GITHUB_WORKSPACE/packages/declarative-hex-worlds/package.json').version")
           fi
           echo "verifying signatures for declarative-hex-worlds@$VERSION"
+          # The registry serves a new version a little after publish succeeds;
+          # installing at once failed with ETARGET (1.4.0, run 38098482667)
+          # although the package was live a minute later. Wait for it, bounded.
+          for attempt in $(seq 1 30); do
+            if [ "$(npm view "declarative-hex-worlds@$VERSION" version --prefer-online 2>/dev/null)" = "$VERSION" ]; then
+              break
+            fi
+            if [ "$attempt" = 30 ]; then
+              echo "::error::declarative-hex-worlds@$VERSION is not resolvable from the registry after 5 minutes"
+              exit 1
+            fi
+            sleep 10
+          done
           TMPDIR=$(mktemp -d)
           cd "$TMPDIR"
           npm init -y
-          npm install "declarative-hex-worlds@$VERSION"
+          npm install "declarative-hex-worlds@$VERSION" --prefer-online
           npm audit signatures
           cd -
           rm -rf "$TMPDIR"
