@@ -5,66 +5,38 @@
  */
 import seedrandom from 'seedrandom';
 // biome-ignore lint/style/noRestrictedImports: pure generation must not import the runtime coordinates barrel.
-import { hexDistance, hexKey, neighbors } from '../coordinates/coordinates';
-import { GameboardValidationError } from '../errors';
+import { hexKey, neighbors } from '../coordinates/coordinates';
 import type { GameboardPlan, GameboardTileSpec } from '../gameboard/plan';
-import { assertGameboardTileBiome } from '../gameboard/tile-values';
 import type { HexCoordinates } from '../types';
 import { type BiomeCandidate, BiomeFrontier } from './biome-regions-frontier';
+import { regionIdOffset, withRegionId } from './biome-regions-ids';
+import { rankSeedCandidates, sourcesFor } from './biome-regions-seeds';
+import { eligible, suitability } from './biome-regions-tiles';
+import type {
+  GameboardBiomeRegionReport,
+  GameboardBiomeRegionRule,
+  GameboardBiomeRegionsSpec,
+} from './biome-regions-types';
+import { validateBiomeRegionsSpec } from './biome-regions-validation';
 
-/** Hard inclusive limits over a named finite tile field; absent fields fail. */
-export interface GameboardBiomeFieldBand {
-  field: string;
-  min?: number;
-  max?: number;
-}
-
-/** Suitability rises linearly from zero at `from` to `weight` at `to`, then saturates. */
-export interface GameboardBiomeSuitability {
-  field: string;
-  from: number;
-  to: number;
-  weight: number;
-}
-
-/** One biome's target share, starting sites and environmental conditions. */
-export interface GameboardBiomeRegionRule {
-  biome: string;
-  target: number;
-  sources: { count: number; spacing?: number } | { tiles: readonly HexCoordinates[] };
-  requires?: readonly GameboardBiomeFieldBand[];
-  suits?: readonly GameboardBiomeSuitability[];
-  minRegion?: number;
-}
+export type {
+  GameboardBiomeFieldBand,
+  GameboardBiomeRegionReport,
+  GameboardBiomeRegionRule,
+  GameboardBiomeRegionsSpec,
+  GameboardBiomeSuitability,
+} from './biome-regions-types';
 
 /**
- * One ordered generation stage. Give each stage a namespaced buried seed.
- * Authored `GameboardTileSpec.pinned` values survive growth and cleanup,
- * including pinned tiles that have no biome assigned.
- * Targets are shares of unpinned tiles, with a combined maximum of one.
+ * One contiguous claim of a biome. A biome without `maxRegion` has a single
+ * unbounded region fed by every source; with `maxRegion` each source, and each
+ * region planted later, has its own.
  */
-export interface GameboardBiomeRegionsSpec {
-  seed: string;
-  fill: string;
-  biomes: readonly GameboardBiomeRegionRule[];
-  affinity?: readonly { a: string; b: string; weight: number }[];
-  edgeNoise?: number;
-}
-
-/** Requested and reached free-tile counts, source sites and final component sizes. */
-export interface GameboardBiomeRegionReport {
-  pinned: number;
-  biomes: Readonly<
-    Record<
-      string,
-      {
-        target: number;
-        actual: number;
-        sources: readonly HexCoordinates[];
-        regions: readonly number[];
-      }
-    >
-  >;
+interface Region {
+  sources: GameboardTileSpec[];
+  frontier: BiomeFrontier;
+  tiles: string[];
+  cap: number;
 }
 
 interface Growth {
@@ -72,104 +44,21 @@ interface Growth {
   target: number;
   claimed: number;
   sources: GameboardTileSpec[];
-  frontier: BiomeFrontier;
+  regions: Region[];
+  /** Whether the biome grows capped regions (`maxRegion`) rather than one combined frontier. */
+  capped: boolean;
+  /** Index of the region that takes the biome's next turn. */
+  turn: number;
+  /** No free eligible tile is left to plant a region on, and no frontier has revived. */
+  dry: boolean;
   scores: Map<string, number>;
   eligible: Set<string>;
-}
-
-function field(tile: GameboardTileSpec, name: string): number | undefined {
-  if (!tile.fields || !Object.hasOwn(tile.fields, name)) return undefined;
-  const value = tile.fields[name];
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
-}
-
-function eligible(tile: GameboardTileSpec, rule: GameboardBiomeRegionRule): boolean {
-  return (rule.requires ?? []).every((band) => {
-    const value = field(tile, band.field);
-    return (
-      value !== undefined &&
-      (band.min === undefined || value >= band.min) &&
-      (band.max === undefined || value <= band.max)
-    );
-  });
-}
-
-function suitability(tile: GameboardTileSpec, rule: GameboardBiomeRegionRule): number {
-  return (rule.suits ?? []).reduce((sum, band) => {
-    const value = field(tile, band.field);
-    if (value === undefined) return sum;
-    const amount = Math.max(0, Math.min(1, (value - band.from) / (band.to - band.from)));
-    return sum + amount * band.weight;
-  }, 0);
-}
-
-function finite(value: number, label: string, minimum = Number.NEGATIVE_INFINITY): void {
-  if (!Number.isFinite(value) || value < minimum)
-    throw new GameboardValidationError(`Invalid ${label}`);
-}
-
-function validateRule(rule: GameboardBiomeRegionRule): void {
-  assertGameboardTileBiome(rule.biome);
-  finite(rule.target, 'biome target', 0);
-  if (rule.target > 1) throw new GameboardValidationError('Biome target must be at most one');
-  validateHardBands(rule.requires ?? []);
-  validateSuitability(rule.suits ?? []);
-  validateSources(rule.sources);
-  if (rule.minRegion !== undefined && (!Number.isInteger(rule.minRegion) || rule.minRegion < 1)) {
-    throw new GameboardValidationError('Minimum region must be a positive integer');
-  }
-}
-
-function validateHardBands(bands: readonly GameboardBiomeFieldBand[]): void {
-  for (const band of bands) {
-    if (!band.field) throw new GameboardValidationError('Field band needs a name');
-    if (band.min !== undefined) finite(band.min, 'field minimum');
-    if (band.max !== undefined) finite(band.max, 'field maximum');
-    if ((band.min ?? -Infinity) > (band.max ?? Infinity))
-      throw new GameboardValidationError('Reversed field band');
-  }
-}
-
-function validateSuitability(bands: readonly GameboardBiomeSuitability[]): void {
-  for (const band of bands) {
-    if (!band.field) throw new GameboardValidationError('Suitability needs a field name');
-    finite(band.from, 'suitability start');
-    finite(band.to, 'suitability end');
-    finite(band.weight, 'suitability weight');
-    if (band.from === band.to)
-      throw new GameboardValidationError('Suitability endpoints must differ');
-  }
-}
-
-function validateSources(sources: GameboardBiomeRegionRule['sources']): void {
-  if ('tiles' in sources) return;
-  finite(sources.count, 'source count', 0);
-  finite(sources.spacing ?? 0, 'source spacing', 0);
-  if (!Number.isInteger(sources.count))
-    throw new GameboardValidationError('Source count must be an integer');
-}
-
-function validateSpec(spec: GameboardBiomeRegionsSpec): void {
-  if (typeof spec.seed !== 'string' || !spec.seed)
-    throw new GameboardValidationError('Biome stage needs a seed');
-  assertGameboardTileBiome(spec.fill);
-  finite(spec.edgeNoise ?? 0, 'edge noise', 0);
-  const names = new Set<string>();
-  let total = 0;
-  for (const rule of spec.biomes) {
-    validateRule(rule);
-    if (names.has(rule.biome) || rule.biome === spec.fill)
-      throw new GameboardValidationError('Biome names must be unique and distinct from fill');
-    names.add(rule.biome);
-    total += rule.target;
-  }
-  if (total > 1 + Number.EPSILON)
-    throw new GameboardValidationError('Biome targets exceed the free tile count');
-  for (const pair of spec.affinity ?? []) {
-    assertGameboardTileBiome(pair.a);
-    assertGameboardTileBiome(pair.b);
-    finite(pair.weight, 'biome affinity');
-  }
+  /** Eligible tiles still free, in key order (claims only ever remove them). */
+  free: Set<string>;
+  /** Free eligible tiles touching land this stage claimed: where a new field starts. */
+  beside: Set<string>;
+  /** Each tile's keyed draw for planting fields, computed once. */
+  draws: Map<string, number>;
 }
 
 function pinAssignments(tiles: Map<string, GameboardTileSpec>): Map<string, string | undefined> {
@@ -180,62 +69,16 @@ function pinAssignments(tiles: Map<string, GameboardTileSpec>): Map<string, stri
   return pins;
 }
 
-function sourcesFor(
-  growth: Growth,
-  tiles: Map<string, GameboardTileSpec>,
-  pins: Map<string, string | undefined>,
-  seed: string
-): GameboardTileSpec[] {
-  const sources = growth.rule.sources;
-  if ('tiles' in sources) {
-    const unique = new Set(sources.tiles.map(hexKey));
-    return [...unique].map((key) => {
-      const tile = tiles.get(key);
-      if (!tile) throw new GameboardValidationError(`No biome source tile exists at ${key}`);
-      return tile;
-    });
-  }
-  const candidates = [...tiles.values()].filter(
-    (tile) => growth.eligible.has(tile.key) && !pins.has(tile.key)
-  );
-  const minimum = candidates.reduce(
-    (lowest, tile) => Math.min(lowest, suitability(tile, growth.rule)),
-    0
-  );
-  const ranked = candidates
-    .map((tile) => ({
-      tile,
-      score:
-        -Math.log(
-          Math.max(
-            Number.MIN_VALUE,
-            seedrandom(`${seed}:${growth.rule.biome}:source:${tile.key}`)()
-          )
-        ) /
-        (1 + suitability(tile, growth.rule) - minimum),
-    }))
-    // Input is already key-sorted; stable sorting preserves that order on ties.
-    .sort((a, b) => a.score - b.score);
-  const selected: GameboardTileSpec[] = [];
-  for (const { tile } of ranked) {
-    if (selected.length >= Math.min(sources.count, growth.target)) break;
-    if (
-      selected.every(
-        (old) => hexDistance(old.coordinates, tile.coordinates) >= (sources.spacing ?? 0)
-      )
-    )
-      selected.push(tile);
-  }
-  return selected;
-}
-
 function components(
   assignments: Map<string, string | undefined>,
   adjacency: Map<string, string[]>,
-  biome: string
+  biome: string,
+  excluded: ReadonlyMap<string, unknown> = new Map()
 ): string[][] {
   const remaining = new Set(
-    [...assignments].filter(([, value]) => value === biome).map(([key]) => key)
+    [...assignments]
+      .filter(([key, value]) => value === biome && !excluded.has(key))
+      .map(([key]) => key)
   );
   const result: string[][] = [];
   for (const key of remaining) {
@@ -258,6 +101,13 @@ function components(
  * Affinity updates each neighbouring frontier after a claim. Keyed random
  * streams make tile input order irrelevant. Never mutates the source plan.
  * Undersized regions dissolve into fill, excluding any component with a pin.
+ *
+ * A rule with `maxRegion` grows a patchwork instead of blobs: every source gets
+ * its own region, regions of one biome take turns, none passes `maxRegion`
+ * tiles, and when they are all capped or boxed in a new region is planted on
+ * the best free eligible tile beside land this stage already claimed (any
+ * biome), or anywhere eligible when none touches. Set the stage's
+ * `regionField` to record each tile's region id in its numeric fields.
  */
 export function generateGameboardBiomeRegions(
   plan: GameboardPlan,
@@ -271,7 +121,7 @@ function generateBiomeStage(
   spec: GameboardBiomeRegionsSpec,
   inherited: ReadonlyMap<string, string>
 ): { plan: GameboardPlan; report: GameboardBiomeRegionReport } {
-  validateSpec(spec);
+  validateBiomeRegionsSpec(spec);
   const engine = new RegionGrowth(plan, spec, inherited);
   engine.initialize();
   engine.run();
@@ -286,6 +136,10 @@ class RegionGrowth {
   readonly assignments: Map<string, string | undefined>;
   readonly adjacency: Map<string, string[]>;
   readonly growths: Growth[];
+  /** Regions to re-offer to when a tile is claimed, by the source tile they list. */
+  private readonly sourceRegions = new Map<string, Region[]>();
+  /** Ids of this stage's regions start after this value (see `regionIdOffset`). */
+  private readonly idOffset: number;
 
   constructor(
     plan: GameboardPlan,
@@ -309,17 +163,29 @@ class RegionGrowth {
       ])
     );
     this.growths = spec.biomes.map((rule) => this.createGrowth(rule));
+    this.idOffset =
+      spec.regionField === undefined ? 0 : regionIdOffset(plan.tiles, spec.regionField);
   }
 
   private createGrowth(rule: GameboardBiomeRegionRule): Growth {
     const values = [...this.tiles.values()];
-    return {
+    const capped = rule.maxRegion !== undefined;
+    const eligibleKeys = new Set(
+      values.filter((tile) => eligible(tile, rule)).map((tile) => tile.key)
+    );
+    const growth: Growth = {
       rule,
       target: Math.floor((this.tiles.size - this.reserved.size) * rule.target),
       claimed: 0,
       sources: [],
-      frontier: new BiomeFrontier(),
-      eligible: new Set(values.filter((tile) => eligible(tile, rule)).map((tile) => tile.key)),
+      regions: [],
+      capped,
+      turn: 0,
+      dry: false,
+      eligible: eligibleKeys,
+      free: new Set([...eligibleKeys].filter((key) => !this.assignments.has(key))),
+      beside: new Set(),
+      draws: new Map(),
       scores: new Map(
         values.map((tile) => [
           tile.key,
@@ -329,6 +195,22 @@ class RegionGrowth {
         ])
       ),
     };
+    // An uncapped biome is one region from the start; its sources arrive in initialize().
+    if (!capped) this.addRegion(growth, [], Number.POSITIVE_INFINITY);
+    return growth;
+  }
+
+  private addRegion(growth: Growth, sources: GameboardTileSpec[], cap: number): Region {
+    const region: Region = { sources, frontier: new BiomeFrontier(), tiles: [], cap };
+    growth.regions.push(region);
+    this.indexSources(region);
+    return region;
+  }
+
+  private indexSources(region: Region): void {
+    for (const source of region.sources) {
+      this.sourceRegions.set(source.key, [...(this.sourceRegions.get(source.key) ?? []), region]);
+    }
   }
 
   private affinity(biome: string, adjacent: string | undefined): number {
@@ -339,54 +221,153 @@ class RegionGrowth {
     }, 0);
   }
 
-  private offer(growth: Growth, key: string): void {
-    if (this.assignments.has(key) || !growth.eligible.has(key)) return;
-    const score = (this.adjacency.get(key) as string[]).reduce(
+  /** A free tile's growth score for a biome: suitability, edge noise and neighbouring affinity. */
+  private scoreOf(growth: Growth, key: string): number {
+    return (this.adjacency.get(key) as string[]).reduce(
       (sum, next) => sum + this.affinity(growth.rule.biome, this.assignments.get(next)),
       growth.scores.get(key) as number
     );
-    growth.frontier.offer({ key, score });
   }
 
-  private claim(growth: Growth, candidate: BiomeCandidate): void {
+  private offer(growth: Growth, region: Region, key: string): void {
+    if (this.assignments.has(key) || !growth.eligible.has(key)) return;
+    region.frontier.offer({ key, score: this.scoreOf(growth, key) });
+    growth.dry = false;
+  }
+
+  private full(region: Region): boolean {
+    return region.tiles.length >= region.cap;
+  }
+
+  private claim(growth: Growth, region: Region, candidate: BiomeCandidate): void {
     this.assignments.set(candidate.key, growth.rule.biome);
     growth.claimed += 1;
-    const shared = this.growths.filter((other) =>
-      other.sources.some((source) => source.key === candidate.key)
-    );
+    region.tiles.push(candidate.key);
+    for (const other of this.growths) {
+      other.free.delete(candidate.key);
+      other.beside.delete(candidate.key);
+    }
+    const shared = this.sourceRegions.get(candidate.key) ?? [];
     for (const next of this.adjacency.get(candidate.key) as string[]) {
-      this.offer(growth, next);
+      for (const other of this.growths) if (other.free.has(next)) other.beside.add(next);
+      if (!this.full(region)) this.offer(growth, region, next);
       for (const other of this.growths) {
-        if (other.frontier.has(next) || shared.includes(other)) this.offer(other, next);
+        for (const otherRegion of other.regions) {
+          if (this.full(otherRegion)) continue;
+          if (otherRegion.frontier.has(next) || shared.includes(otherRegion)) {
+            this.offer(other, otherRegion, next);
+          }
+        }
       }
     }
   }
 
   initialize(): void {
     for (const growth of this.growths) {
-      growth.sources = sourcesFor(growth, this.tiles, this.reserved, this.spec.seed);
+      growth.sources = sourcesFor(
+        growth.rule,
+        growth.target,
+        growth.eligible,
+        this.tiles,
+        this.reserved,
+        this.spec.seed
+      );
+      if (!growth.capped) {
+        const [combined] = growth.regions as [Region];
+        combined.sources = growth.sources;
+        this.indexSources(combined);
+      }
     }
     for (const growth of this.growths) {
       for (const tile of growth.sources) {
         if (growth.claimed >= growth.target) break;
-        this.seedSource(growth, tile);
+        const region = growth.capped
+          ? this.addRegion(growth, [tile], growth.rule.maxRegion as number)
+          : (growth.regions[0] as Region);
+        this.seedSource(growth, region, tile);
       }
     }
   }
 
-  private seedSource(growth: Growth, tile: GameboardTileSpec): void {
+  private seedSource(growth: Growth, region: Region, tile: GameboardTileSpec): void {
     if (!this.assignments.has(tile.key) && growth.eligible.has(tile.key)) {
-      this.claim(growth, { key: tile.key, score: 0 });
+      this.claim(growth, region, { key: tile.key, score: 0 });
       return;
     }
     if (!this.assignments.has(tile.key)) return;
-    for (const next of this.adjacency.get(tile.key) as string[]) this.offer(growth, next);
+    if (!growth.capped) {
+      for (const next of this.adjacency.get(tile.key) as string[]) this.offer(growth, region, next);
+      return;
+    }
+    // A capped field whose source is taken starts on its best free neighbour
+    // and grows from there: offering every neighbour at once could join tiles
+    // on opposite sides of the taken source into one field.
+    let best: { key: string; score: number } | undefined;
+    for (const next of this.adjacency.get(tile.key) as string[]) {
+      if (this.assignments.has(next) || !growth.eligible.has(next)) continue;
+      const score = this.scoreOf(growth, next);
+      if (
+        !best ||
+        score > best.score ||
+        (score === best.score && next.localeCompare(best.key, 'en') < 0)
+      )
+        best = { key: next, score };
+    }
+    if (best) this.claim(growth, region, best);
   }
 
-  private next(growth: Growth): BiomeCandidate | undefined {
-    let candidate = growth.frontier.take();
-    while (candidate && this.assignments.has(candidate.key)) candidate = growth.frontier.take();
+  private next(region: Region): BiomeCandidate | undefined {
+    let candidate = region.frontier.take();
+    while (candidate && this.assignments.has(candidate.key)) candidate = region.frontier.take();
     return candidate;
+  }
+
+  /** One claim for a biome's turn: from the next region able to grow, else on a new region. */
+  private advance(growth: Growth): boolean {
+    if (growth.dry) return false;
+    const count = growth.regions.length;
+    for (let step = 0; step < count; step += 1) {
+      const index = (growth.turn + step) % count;
+      const region = growth.regions[index] as Region;
+      if (this.full(region)) continue;
+      const candidate = this.next(region);
+      if (!candidate) continue;
+      growth.turn = (index + 1) % count;
+      this.claim(growth, region, candidate);
+      return true;
+    }
+    // Replacement fields only for a biome that started at least one: a rule
+    // asking for no sources grows nothing, as it does uncapped.
+    return growth.capped && growth.regions.length > 0 && this.plant(growth);
+  }
+
+  /**
+   * Starts a region on the best free eligible tile that touches land this stage
+   * claimed, so the patchwork stays contiguous, or anywhere eligible when none
+   * touches. Free eligible tiles only ever shrink, so finding none ends the biome.
+   */
+  private plant(growth: Growth): boolean {
+    // Only the free eligible tiles are ranked, never the whole board: the
+    // sets are kept by claim(). `free` stays in key order; `beside` is sorted,
+    // since the ranking breaks ties by input order.
+    const keys =
+      growth.beside.size > 0
+        ? [...growth.beside].sort((a, b) => a.localeCompare(b, 'en'))
+        : [...growth.free];
+    const [seed] = rankSeedCandidates(
+      keys.map((key) => this.tiles.get(key) as GameboardTileSpec),
+      growth.rule,
+      this.spec.seed,
+      'field',
+      growth.draws
+    );
+    if (!seed) {
+      growth.dry = true;
+      return false;
+    }
+    const region = this.addRegion(growth, [seed], growth.rule.maxRegion as number);
+    this.claim(growth, region, { key: seed.key, score: 0 });
+    return true;
   }
 
   run(): void {
@@ -395,10 +376,7 @@ class RegionGrowth {
       progressed = false;
       for (const growth of this.growths) {
         if (growth.claimed >= growth.target) continue;
-        const candidate = this.next(growth);
-        if (!candidate) continue;
-        this.claim(growth, candidate);
-        progressed = true;
+        if (this.advance(growth)) progressed = true;
       }
     }
   }
@@ -408,15 +386,44 @@ class RegionGrowth {
       if (!this.assignments.has(key)) this.assignments.set(key, this.spec.fill);
     }
     for (const growth of this.growths) {
-      for (const group of components(this.assignments, this.adjacency, growth.rule.biome)) {
-        if (
-          group.length >= (growth.rule.minRegion ?? 1) ||
-          group.some((key) => this.reserved.has(key))
-        )
-          continue;
-        for (const key of group) this.assignments.set(key, this.spec.fill);
-      }
+      if (growth.capped) this.dissolveRegions(growth);
+      else this.dissolveComponents(growth);
     }
+  }
+
+  private dissolveComponents(growth: Growth): void {
+    for (const group of components(this.assignments, this.adjacency, growth.rule.biome)) {
+      if (
+        group.length >= (growth.rule.minRegion ?? 1) ||
+        group.some((key) => this.reserved.has(key))
+      )
+        continue;
+      for (const key of group) this.assignments.set(key, this.spec.fill);
+    }
+  }
+
+  /** Each region stands or falls on its own size; touching a same-biome pin keeps it. */
+  private dissolveRegions(growth: Growth): void {
+    for (const region of growth.regions) {
+      if (
+        region.tiles.length >= (growth.rule.minRegion ?? 1) ||
+        region.tiles.some((key) =>
+          (this.adjacency.get(key) as string[]).some(
+            (next) => this.reserved.get(next) === growth.rule.biome
+          )
+        )
+      )
+        continue;
+      for (const key of region.tiles) this.assignments.set(key, this.spec.fill);
+      region.tiles = [];
+    }
+  }
+
+  /** The tile groups that count as fields: capped regions, or free components when uncapped. */
+  private fieldGroups(growth: Growth): string[][] {
+    return growth.capped
+      ? growth.regions.map((region) => region.tiles).filter((group) => group.length > 0)
+      : components(this.assignments, this.adjacency, growth.rule.biome, this.reserved);
   }
 
   result(plan: GameboardPlan): { plan: GameboardPlan; report: GameboardBiomeRegionReport } {
@@ -427,9 +434,18 @@ class RegionGrowth {
         actual: number;
         sources: HexCoordinates[];
         regions: number[];
+        fields?: number;
       }
     >;
+    const ids = new Map<string, number>();
+    let lastId = this.idOffset;
     for (const growth of this.growths) {
+      const groups =
+        growth.capped || this.spec.regionField !== undefined ? this.fieldGroups(growth) : undefined;
+      for (const group of groups ?? []) {
+        lastId += 1;
+        for (const key of group) ids.set(key, lastId);
+      }
       biomes[growth.rule.biome] = {
         target: growth.target,
         actual: [...this.assignments].filter(
@@ -439,21 +455,30 @@ class RegionGrowth {
         regions: components(this.assignments, this.adjacency, growth.rule.biome)
           .map((group) => group.length)
           .sort((a, b) => b - a),
+        ...(groups ? { fields: groups.length } : {}),
       };
     }
+    const name = this.spec.regionField;
     return {
       plan: {
         ...plan,
-        tiles: plan.tiles.map((tile) =>
-          this.reserved.has(tile.key) ? tile : { ...tile, biome: this.assignments.get(tile.key) }
-        ),
+        tiles: plan.tiles.map((tile) => {
+          if (this.reserved.has(tile.key)) return tile;
+          const next = { ...tile, biome: this.assignments.get(tile.key) };
+          const id = ids.get(tile.key);
+          return name !== undefined && id !== undefined ? withRegionId(next, name, id) : next;
+        }),
       },
       report: { pinned: this.pins.size, biomes },
     };
   }
 }
 
-/** Apply ordered stages while preserving the plan's authored tile pins throughout. */
+/**
+ * Apply ordered stages while preserving the plan's authored tile pins throughout.
+ * Stages that write the same `regionField` number their regions past the ids
+ * already on the plan, so one field name stays unambiguous across stages.
+ */
 export function applyGameboardBiomeRegionStages(
   plan: GameboardPlan,
   stages: readonly GameboardBiomeRegionsSpec[]

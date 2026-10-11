@@ -92,6 +92,37 @@ describe('recipe biome generation', () => {
     }
   });
 
+  it('keeps capped field regions and their ids through recipes, pure and Koota generation', () => {
+    const patchwork: GameboardBiomeRegionsSpec = {
+      ...stage,
+      regionField: 'field',
+      biomes: [{ biome: 'wheat', target: 0.4, sources: { count: 2 }, maxRegion: 5 }],
+    };
+    const recipe = createGameboardRecipe(OPTIONS, [], { biomeRegions: [patchwork] });
+    expect(recipe.generation?.biomeRegions?.[0]).toMatchObject({
+      regionField: 'field',
+      biomes: [{ maxRegion: 5 }],
+    });
+    const pure = createGameboardPlanFromRecipe(recipe, {}, pureRecipeGenerationApplier);
+    const runtime = createGameboardPlanFromRecipe(recipe, {}, applyGameboardRecipeGeneration);
+    const ids = (plan: typeof pure) => plan.tiles.map((tile) => tile.fields?.field);
+    expect(ids(runtime)).toEqual(ids(pure));
+    const sizes = new Map<number, number>();
+    for (const id of ids(runtime)) {
+      if (id !== undefined) sizes.set(id, (sizes.get(id) ?? 0) + 1);
+    }
+    expect(sizes.size).toBeGreaterThan(1);
+    expect(Math.max(...sizes.values())).toBeLessThanOrEqual(5);
+    const world = createGameboardWorld(runtime);
+    try {
+      expect(projectWorldToGameboardPlan(world).tiles.map((tile) => tile.fields?.field)).toEqual(
+        ids(runtime)
+      );
+    } finally {
+      world.destroy();
+    }
+  });
+
   it('placement rules see the generated biome and its original numeric fields', () => {
     const recipe = createGameboardRecipe(
       OPTIONS,
