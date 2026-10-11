@@ -19,6 +19,7 @@
     "src/rules/index.ts",
     "src/runtime/index.ts",
     "src/scenario/index.ts",
+    "src/sculpt/index.ts",
     "src/selectors/index.ts",
     "src/simulation/index.ts",
     "src/systems/index.ts",

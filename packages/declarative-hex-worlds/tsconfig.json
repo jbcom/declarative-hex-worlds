@@ -102,6 +102,9 @@
       "declarative-hex-worlds/scenario": [
         "./src/scenario/index.ts"
       ],
+      "declarative-hex-worlds/sculpt": [
+        "./src/sculpt/index.ts"
+      ],
       "declarative-hex-worlds/selectors": [
         "./src/selectors/index.ts"
       ],

@@ -78,6 +78,7 @@ rather than the whole module shape).
 | `./validation` | Plan-level validators. |
 | `./rules` | Rule definitions + evaluation. |
 | `./terrain` | Continuous terrain under a hex board: height fields, declarative composition, biome painting, Poisson-disc scatter, field parcels, drainage networks, least-cost roads, per-hex summaries. Koota-, three- and DOM-free; also re-exported from `./core`. |
+| `./sculpt` | Procedural prop modelling kit for three.js: primitives, seeded rocks, cloth and rope parts merged by `buildPiece` into one vertex-coloured geometry per finish. The consumer supplies the palette. Needs `three`; not re-exported from the root. |
 
 TSDoc tag: `@public` (no distinct tag — tier 2 is documented here in the
 table, not on every symbol).

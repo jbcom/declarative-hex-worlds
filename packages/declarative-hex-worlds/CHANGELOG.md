@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.6.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.5.0...declarative-hex-worlds@1.6.0) (2026-10-11)
+
+
+### Features
+
+* **gameboard:** carry an open biome on tiles ([725460e](https://github.com/jbcom/declarative-hex-worlds/commit/725460e6fc28e7fba36a45364885eb7cfb480bd2))
+* **gameboard:** open per-tile biome and numeric fields ([91467f0](https://github.com/jbcom/declarative-hex-worlds/commit/91467f013048a6a4ee9fea96fe303620f6e2efbe))
+* **gameboard:** per-tile numeric fields and the terrain-hex bridge ([4e734ab](https://github.com/jbcom/declarative-hex-worlds/commit/4e734ab2dc44302dff548a0fc53f3adb91f5564f))
+* **gameboard:** preserve authored pins and isolate stage seeds ([c54812a](https://github.com/jbcom/declarative-hex-worlds/commit/c54812ab2118a73e06beb8c9ea712d64cec67840))
+* **gameboard:** protect authored tile pins from generation ([2d77b12](https://github.com/jbcom/declarative-hex-worlds/commit/2d77b1283600c2b50b9a78bff0cd616ba4cef221))
+* **layout:** biome and numeric field band criteria ([2ae6c9e](https://github.com/jbcom/declarative-hex-worlds/commit/2ae6c9e266204662b2da9e476cd111cb7aecd1db))
+* **sculpt:** add a deterministic procedural modelling kit ([cf21050](https://github.com/jbcom/declarative-hex-worlds/commit/cf210501982ee78d02acbdcffb5693947bf5366f))
+* **sculpt:** add deterministic palette-driven procedural modelling kit ([e9b4be4](https://github.com/jbcom/declarative-hex-worlds/commit/e9b4be44cc9d77cff675e7f0ee3950f23951caaa))
+
+
+### Bug Fixes
+
+* **blueprint:** isolate seeded generation stages ([35e7408](https://github.com/jbcom/declarative-hex-worlds/commit/35e740821fb62d0876e5e695a5d58498b53e2dc7))
+* **gameboard:** isolate inspected fields and reject inherited channels ([c4bb12f](https://github.com/jbcom/declarative-hex-worlds/commit/c4bb12f52c3dd6dbd7a4e19915c2b16fc7099864))
+* **gameboard:** synchronize live generation pin mutations ([cf515a4](https://github.com/jbcom/declarative-hex-worlds/commit/cf515a4f917bf1603ec0718ab4b834ba4825dfde))
+* **gameboard:** validate field records and isolate layout snapshots ([d1843e7](https://github.com/jbcom/declarative-hex-worlds/commit/d1843e7d9ce34046c01f593465ea654f74a60b51))
+* **sculpt:** align normal buffers, visual gates, and site showcase delivery ([c06be79](https://github.com/jbcom/declarative-hex-worlds/commit/c06be79949a9444cfadee815e51b70c393c0f6be))
+* **sculpt:** preserve full seed values and curate the public showcase ([b39e4ed](https://github.com/jbcom/declarative-hex-worlds/commit/b39e4edaf6d322af3e9ebb52c6608f48d6110a02))
+* **sculpt:** reject malformed shades and lathe profiles before consumption ([09f05fb](https://github.com/jbcom/declarative-hex-worlds/commit/09f05fb998a1c471a4c0df370dd29f3a9356ac16))
+* **sculpt:** validate malformed points, finishes, and cylinder heights ([454b98a](https://github.com/jbcom/declarative-hex-worlds/commit/454b98a901c0fa51fd1f9b22b1a5905d09fd144e))
+* **terrain:** bound the water index to the field and never clamp a memoised count ([ccbd668](https://github.com/jbcom/declarative-hex-worlds/commit/ccbd66851143b94a474c23d7b17d685aa447f6f8))
+
+
+### Performance
+
+* **terrain:** count each road step's water crossings once ([589ca27](https://github.com/jbcom/declarative-hex-worlds/commit/589ca270b0d6667c6169a36c61598b49b67542b5))
+* **terrain:** count each road step's water crossings once ([8cec351](https://github.com/jbcom/declarative-hex-worlds/commit/8cec3514c5c585873bddd3900e72dff68d23ce4c))
+
 ## [1.5.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.4.0...declarative-hex-worlds@1.5.0) (2026-10-11)
 
 

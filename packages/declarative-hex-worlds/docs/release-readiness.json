@@ -34801,6 +34801,14 @@
       "required": true
     },
     {
+      "path": "docs/showcases/sculpt-camp.png",
+      "status": "available",
+      "source": "showcase",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
       "path": "NOTICE.md",
       "status": "available",
       "source": "guide",
@@ -35119,6 +35127,14 @@
         10
       ],
       "required": true
+    },
+    {
+      "path": "tests/browser/__screenshots__/sculpt-camp.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
     }
   ],
   "references": [
@@ -35126,7 +35142,7 @@
       "id": "kaykit-medieval-free",
       "label": "KayKit Medieval Hexagon FREE",
       "path": "references/KayKit_Medieval_Hexagon_Pack_1.0_FREE",
-      "status": "missing",
+      "status": "available",
       "edition": "free",
       "purpose": "FREE source pack for guide extraction, generated assets, and manifest audits.",
       "requiredForFullReview": true
@@ -35135,7 +35151,7 @@
       "id": "kaykit-medieval-extra",
       "label": "KayKit Medieval Hexagon EXTRA",
       "path": "references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA",
-      "status": "missing",
+      "status": "available",
       "edition": "extra",
       "purpose": "Purchased local-only EXTRA pack for category and guide visual coverage.",
       "requiredForFullReview": true
@@ -35144,7 +35160,7 @@
       "id": "kenney-castle-kit",
       "label": "Kenney Castle Kit",
       "path": "references/kenney_castle-kit",
-      "status": "missing",
+      "status": "available",
       "purpose": "Third-party compatibility fixture for non-hex props, structures, and warnings.",
       "requiredForFullReview": true
     },
@@ -35152,7 +35168,7 @@
       "id": "kaykit-adventurers",
       "label": "KayKit Adventurers FREE",
       "path": "references/KayKit_Adventurers_2.0_FREE",
-      "status": "missing",
+      "status": "available",
       "purpose": "Animated actor fixture for facing, spawn, and SimpleRPG local-asset coverage.",
       "requiredForFullReview": true
     }
@@ -37167,32 +37183,7 @@
       }
     ]
   },
-  "gaps": [
-    {
-      "code": "reference.missing",
-      "severity": "warning",
-      "subject": "references/KayKit_Medieval_Hexagon_Pack_1.0_FREE",
-      "message": "KayKit Medieval Hexagon FREE is unavailable, so local-only visual coverage cannot run."
-    },
-    {
-      "code": "reference.missing",
-      "severity": "warning",
-      "subject": "references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA",
-      "message": "KayKit Medieval Hexagon EXTRA is unavailable, so local-only visual coverage cannot run."
-    },
-    {
-      "code": "reference.missing",
-      "severity": "warning",
-      "subject": "references/kenney_castle-kit",
-      "message": "Kenney Castle Kit is unavailable, so local-only visual coverage cannot run."
-    },
-    {
-      "code": "reference.missing",
-      "severity": "warning",
-      "subject": "references/KayKit_Adventurers_2.0_FREE",
-      "message": "KayKit Adventurers FREE is unavailable, so local-only visual coverage cannot run."
-    }
-  ],
+  "gaps": [],
   "releaseGateCommands": [
     "pnpm lint",
     "pnpm typecheck",
