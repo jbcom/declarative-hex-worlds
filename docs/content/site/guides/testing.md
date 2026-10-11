@@ -28,8 +28,11 @@ append a selector, for example:
 pnpm test:browser -t "camera"
 ```
 
-This direct command is also suitable for a render-pool wrapper. Remote macOS
-runs select headless Metal and mute audio in the browser configuration. The
+The unfiltered root command is also suitable for a render-pool wrapper. When
+using this repository's `heavy-slot` wrapper with a selector, use
+`heavy-slot pnpm test:browser -- -t "camera"`; the wrapper consumes the
+delimiter before passing the arguments to Vitest. Remote macOS runs select
+headless Metal and mute audio in the browser configuration. The
 library's full screenshot and merged-coverage commands remain the acceptance
 gates described below.
 
