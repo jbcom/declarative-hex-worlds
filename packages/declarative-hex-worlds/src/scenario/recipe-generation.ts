@@ -45,7 +45,8 @@ export function applyGameboardRecipeGeneration(
       seed: generation?.layoutFillSeed ?? `${plan.seed}:recipe-layout-fill`,
       rules,
     });
-    return projectWorldToGameboardPlan(world);
+    const projected = projectWorldToGameboardPlan(world);
+    return { ...projected, warnings: [...plan.warnings, ...projected.warnings] };
   } finally {
     world.destroy();
   }

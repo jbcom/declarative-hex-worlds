@@ -18,6 +18,35 @@ const stage: GameboardBiomeRegionsSpec = {
 };
 
 describe('recipe biome generation', () => {
+  it('retains earlier generated regions when later recipes add another biome stage', () => {
+    const first = createGameboardRecipe(OPTIONS, [], { biomeRegions: [stage] });
+    const second = createGameboardRecipe(OPTIONS, [], {
+      biomeRegions: [
+        {
+          seed: 'campaign:corn',
+          fill: 'pasture',
+          biomes: [{ biome: 'corn', target: 0.25, sources: { count: 1 } }],
+        },
+      ],
+    });
+    const result = createGameboardPlanFromRecipe(
+      mergeGameboardRecipes(first, [second]),
+      {},
+      pureRecipeGenerationApplier
+    );
+    expect(result.tiles.filter((tile) => tile.biome === 'wheat')).toHaveLength(32);
+    expect(result.tiles.filter((tile) => tile.biome === 'corn')).toHaveLength(12);
+    expect(result.tiles.some((tile) => tile.pinned)).toBe(false);
+  });
+
+  it('preserves input diagnostics in region-only runtime generation', () => {
+    const recipe = createGameboardRecipe(OPTIONS, [], { biomeRegions: [stage] });
+    const source = createGameboardPlanFromRecipe(createGameboardRecipe(OPTIONS, []));
+    const warned = { ...source, warnings: ['Authored terrain warning'] };
+    const result = applyGameboardRecipeGeneration(warned, recipe.generation);
+    expect(result.warnings).toEqual(warned.warnings);
+  });
+
   it('clones automatic sources, suitability and affinity before saved intent changes', () => {
     const sources = { count: 2, spacing: 3 };
     const suits = [{ field: 'soil', from: 0, to: 1, weight: 2 }];

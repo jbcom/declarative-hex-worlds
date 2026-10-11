@@ -14,12 +14,12 @@ pnpm coverage:ledger
 - Guide pages: 19/19
 - Guide scenarios: 19
 - Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences
-- Public API surfaces: 74
+- Public API surfaces: 76
 - Public roles: 12
 - Visual artifacts: 53 available, 0 missing, 0 skipped
 - Local references: 0 available, 4 missing, 0 skipped
 - Release checks: 8 passed, 0 failed, 0 not run, 0 skipped
-- SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)
+- SimpleRPG API evidence: 76/76 represented, 42 directly executed, 9 active mode(s)
 
 ## Manifest Coverage
 
@@ -32,8 +32,8 @@ pnpm coverage:ledger
 
 ## SimpleRPG Public API Evidence
 
-- Guide-facing public APIs represented: 74/74
-- Direct executable helper APIs: 40
+- Guide-facing public APIs represented: 76/76
+- Direct executable helper APIs: 42
 - KayKit public treatment records asserted: 404
 - Decomposed guide pages asserted: 19
 - Missing public APIs: 0
@@ -42,10 +42,10 @@ pnpm coverage:ledger
 | Mode | API Count |
 | --- | ---: |
 | fixed-gameplay | 30 |
-| seeded-generation | 10 |
+| seeded-generation | 12 |
 | packaged-scenario | 1 |
-| executable-smoke | 40 |
-| blueprint-recipe | 4 |
+| executable-smoke | 42 |
+| blueprint-recipe | 5 |
 | manifest-package | 6 |
 | compatibility-adapter | 2 |
 | package-boundary | 3 |
@@ -56,6 +56,7 @@ pnpm coverage:ledger
 | Public API | Modes | Pages | Assets | Evidence |
 | --- | --- | --- | ---: | --- |
 | `analyzeHexTileRegistry` | executable-smoke | 13 | 0 | Packaged SimpleRPG usage analyzes a runtime tile registry in its executable guide API smoke. |
+| `applyGameboardBiomeRegionStages` | executable-smoke, seeded-generation, blueprint-recipe | 11 | 0 | The packaged guide smoke applies two ordered biome stages and preserves the first stage wheat while adding corn. |
 | `coloredUnitAssetId` | executable-smoke | 14, 16, 17, 18 | 112 | Packaged SimpleRPG usage resolves a colored unit asset id in executable smoke. |
 | `createGameboardBlueprintPlan` | executable-smoke, blueprint-recipe | 6, 10 | 0 | Packaged SimpleRPG usage compiles a blueprint plan in executable smoke. |
 | `createGameboardBlueprintRecipe` | executable-smoke, blueprint-recipe | 5, 8, 11, 13 | 0 | Packaged SimpleRPG usage compiles a blueprint recipe in executable smoke. |
@@ -102,6 +103,7 @@ pnpm coverage:ledger
 | `GameboardBuilder.setElevation` | fixed-gameplay, visual-coverage | 8, 10 | 0 | Fixed SimpleRPG board raises a tile and then adds an elevation ramp. |
 | `GameboardBuilder.setTerrain` | fixed-gameplay, seeded-generation, visual-coverage | 7, 9 | 2 | Fixed SimpleRPG board authors a full water row and seeded generation fills terrain. |
 | `GameboardBuilder.setTileAsset` | fixed-gameplay, visual-coverage | 7, 8, 9, 10 | 5 | Fixed and packaged SimpleRPG boards override authored tile assets and tags. |
+| `generateGameboardBiomeRegions` | executable-smoke, seeded-generation | 11 | 0 | The packaged guide smoke grows wheat regions on a recipe plan and reports their reached tile count. |
 | `inspectGameboardBlueprint` | executable-smoke, blueprint-recipe | 6, 11 | 0 | Packaged SimpleRPG usage inspects a blueprint in executable smoke. |
 | `listCoastGuidePermutations` | executable-smoke | 7, 15 | 10 | Packaged SimpleRPG usage lists coast guide permutations in executable smoke. |
 | `listKayKitAssetPublicTreatments` | executable-smoke | 1 | 0 | Packaged SimpleRPG usage lists every KayKit asset public treatment in executable smoke. |
@@ -233,7 +235,7 @@ pnpm coverage:ledger
 | 8 | `page-08-taller-hex-tiles` | free | 3 | 6 | 2 | 3 | available `docs/assets/kaykit-guide/pages/page-08.png` |
 | 9 | `page-09-world-design-example` | free | 61 | 21 | 2 | 4 | available `docs/assets/kaykit-guide/pages/page-09.png` |
 | 10 | `page-10-floating-islands` | free | 45 | 12 | 2 | 2 | available `docs/assets/kaykit-guide/pages/page-10.png` |
-| 11 | `page-11-biomes` | extra | 1 | 6 | 2 | 3 | available `docs/assets/kaykit-guide/pages/page-11.png` |
+| 11 | `page-11-biomes` | extra | 1 | 8 | 2 | 3 | available `docs/assets/kaykit-guide/pages/page-11.png` |
 | 12 | `page-12-alternate-textures` | extra | 1 | 7 | 2 | 2 | available `docs/assets/kaykit-guide/pages/page-12.png` |
 | 13 | `page-13-transition-tiles` | extra | 1 | 8 | 2 | 3 | available `docs/assets/kaykit-guide/pages/page-13.png` |
 | 14 | `page-14-units` | extra | 137 | 5 | 2 | 1 | available `docs/assets/kaykit-guide/pages/page-14.png` |

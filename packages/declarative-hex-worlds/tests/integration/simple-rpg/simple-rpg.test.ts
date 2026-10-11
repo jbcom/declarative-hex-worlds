@@ -22,8 +22,8 @@ import { describe, expect, it } from 'vitest';
 import {
   listSimpleRpgGuidePublicApiExercises,
   runSimpleRpgUsageExample,
-  summarizeSimpleRpgGuidePublicApiExercises,
   type SimpleRpgUsageSummary,
+  summarizeSimpleRpgGuidePublicApiExercises,
 } from './simple-rpg';
 
 describe('SimpleRPG integration driver (PRD RS2)', () => {
@@ -101,6 +101,8 @@ describe('SimpleRPG integration driver (PRD RS2)', () => {
     expect(smoke.directPublicApiCount).toBeGreaterThan(0);
     expect(smoke.publicTreatmentCount).toBeGreaterThan(0);
     expect(smoke.guideScenarioCount).toBeGreaterThan(0);
+    expect(smoke.biomeRegionTileCount).toBe(1);
+    expect(smoke.biomeStagePreservedTileCount).toBe(1);
     expect(smoke.directPublicApiCount).toBeLessThanOrEqual(summary.guidePublicApiCount);
   });
 });
