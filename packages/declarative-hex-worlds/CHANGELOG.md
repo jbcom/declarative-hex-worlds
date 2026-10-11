@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 From version 1.0.0 onward, release-please populates this file from Conventional Commits on `main`. Pre-1.0 entries below are summarized from git history.
 
+## [1.7.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.6.0...declarative-hex-worlds@1.7.0) (2026-10-11)
+
+
+### Features
+
+* **terrain:** project authoritative hex biomes into continuous material weights ([2955243](https://github.com/jbcom/declarative-hex-worlds/commit/2955243ac7a50ede0491dce33975909ca4ca1d31))
+* **terrain:** project hex biomes into a continuous material field ([caae32a](https://github.com/jbcom/declarative-hex-worlds/commit/caae32a34412a2e9a622a3c23ec8aea94728be76))
+* **world:** grow seeded tile biomes with campaign pins ([314ac71](https://github.com/jbcom/declarative-hex-worlds/commit/314ac71fff025148d23aa5731873d05f0fb8b73c))
+
 ## [1.6.0](https://github.com/jbcom/declarative-hex-worlds/compare/declarative-hex-worlds@1.5.0...declarative-hex-worlds@1.6.0) (2026-10-11)
 
 
