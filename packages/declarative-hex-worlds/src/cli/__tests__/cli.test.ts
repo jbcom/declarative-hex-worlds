@@ -608,16 +608,16 @@ describe('CLI', () => {
       )
     ).toBe(true);
     expect(report.simpleRpgEvidence).toMatchObject({
-      guidePublicApiCount: 74,
-      exercisedPublicApiCount: 74,
-      executablePublicApiCount: 40,
+      guidePublicApiCount: 76,
+      exercisedPublicApiCount: 76,
+      executablePublicApiCount: 42,
       inactiveEvidenceModes: [],
       evidenceModeCounts: expect.objectContaining({
-        'seeded-generation': 10,
+        'seeded-generation': 12,
         'visual-coverage': 26,
       }) as Record<string, number>,
     });
-    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(74);
+    expect(report.simpleRpgEvidence?.publicApiExercises).toHaveLength(76);
     expect(
       report.simpleRpgEvidence?.publicApiExercises?.map((exercise) => exercise.publicApi)
     ).toContain('GameboardBuilder.addBridge');
@@ -632,7 +632,7 @@ describe('CLI', () => {
     expect(doctorOutput).toContain('guide pages: 19/19');
     expect(doctorOutput).toContain('manifest: 221 asset(s), 221/221 FREE guide asset(s)');
     expect(doctorOutput).toContain(
-      'SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)'
+      'SimpleRPG API evidence: 76/76 represented, 42 directly executed, 9 active mode(s)'
     );
   });
 
