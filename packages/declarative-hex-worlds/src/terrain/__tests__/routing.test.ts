@@ -260,6 +260,17 @@ describe('routeAcrossTerrain', () => {
       { water: [across], crossingCost: 50 }
     );
     expect(wideWet?.cost).toBeCloseTo((wideDry?.cost as number) + 50, 6);
+    // Water far off the field cannot be crossed and must not size the index:
+    // a stream 10,000 km away beside one on the field charges like the one.
+    const distant = [
+      { x: 1e7, z: 1e7 },
+      { x: 1e7 + 50, z: 1e7 },
+    ];
+    const farWet = routeAcrossTerrain(level, from, to, {
+      water: [stream, distant],
+      crossingCost: 50,
+    });
+    expect(farWet).toEqual(wet);
     // A water "line" of one point has no extent to cross.
     const spring = routeAcrossTerrain(level, from, to, {
       water: [[{ x: 100, z: 100 }]],

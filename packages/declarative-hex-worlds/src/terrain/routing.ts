@@ -260,11 +260,17 @@ function buildMoves(reach: number, width: number, spacingX: number, spacingZ: nu
 
 /**
  * Splits water polylines into short pieces bucketed on a coarse grid. The
- * buckets are flat arrays over the pieces' own extent (compressed rows: a
- * start per cell into one list), so a query indexes integers and allocates
- * nothing; a search asks once per move it expands.
+ * buckets are flat arrays over the pieces' extent clipped to `bounds`
+ * (compressed rows: a start per cell into one list), so a query indexes
+ * integers and allocates nothing; a search asks once per move it expands.
+ * Queries join points inside `bounds`, so water beyond it is never crossed
+ * and must not size the grid.
  */
-function createWaterIndex(lines: readonly GroundPolyline[], cell: number): WaterIndex {
+function createWaterIndex(
+  lines: readonly GroundPolyline[],
+  cell: number,
+  bounds: HeightField['bounds']
+): WaterIndex {
   const pieces: number[] = [];
   const closing: number[] = [];
   for (const line of lines) {
@@ -304,18 +310,24 @@ function createWaterIndex(lines: readonly GroundPolyline[], cell: number): Water
     minRow = Math.min(minRow, Math.floor(Math.min(z0, z1) / cell));
     maxRow = Math.max(maxRow, Math.floor(Math.max(z0, z1) / cell));
   }
+  minColumn = Math.max(minColumn, Math.floor(bounds.minX / cell));
+  maxColumn = Math.min(maxColumn, Math.floor(bounds.maxX / cell));
+  minRow = Math.max(minRow, Math.floor(bounds.minZ / cell));
+  maxRow = Math.min(maxRow, Math.floor(bounds.maxZ / cell));
+  // All the water lies off the field.
+  if (minColumn > maxColumn || minRow > maxRow) return { crossings: () => 0 };
   const columns = maxColumn - minColumn + 1;
   const rows = maxRow - minRow + 1;
-  /** Calls `visit(cellIndex)` for every grid cell piece `p`'s bounding box touches. */
+  /** Calls `visit(cellIndex)` for every in-range grid cell piece `p`'s bounding box touches. */
   const eachCell = (p: number, visit: (cellIndex: number) => void) => {
     const x0 = pieces[4 * p] as number;
     const z0 = pieces[4 * p + 1] as number;
     const x1 = pieces[4 * p + 2] as number;
     const z1 = pieces[4 * p + 3] as number;
-    const r1 = Math.floor(Math.max(z0, z1) / cell);
-    const c1 = Math.floor(Math.max(x0, x1) / cell);
-    for (let r = Math.floor(Math.min(z0, z1) / cell); r <= r1; r += 1) {
-      for (let c = Math.floor(Math.min(x0, x1) / cell); c <= c1; c += 1) {
+    const r1 = Math.min(maxRow, Math.floor(Math.max(z0, z1) / cell));
+    const c1 = Math.min(maxColumn, Math.floor(Math.max(x0, x1) / cell));
+    for (let r = Math.max(minRow, Math.floor(Math.min(z0, z1) / cell)); r <= r1; r += 1) {
+      for (let c = Math.max(minColumn, Math.floor(Math.min(x0, x1) / cell)); c <= c1; c += 1) {
         visit((r - minRow) * columns + (c - minColumn));
       }
     }
@@ -491,7 +503,9 @@ function buildCostSurface(
     extra,
     blocked,
     water:
-      water.length > 0 ? createWaterIndex(water, 4 * reach * Math.max(spacing.x, spacing.z)) : null,
+      water.length > 0
+        ? createWaterIndex(water, 4 * reach * Math.max(spacing.x, spacing.z), field.bounds)
+        : null,
     crossingMemo:
       water.length > 0 && memoSize <= MAX_CROSSING_MEMO ? new Int16Array(memoSize).fill(-1) : null,
     crossingCost,
@@ -549,7 +563,9 @@ function moveCost(surface: CostSurface, prefer: Float32Array, from: number, move
       const a = samplePoint(surface, from);
       const b = samplePoint(surface, from + move.row * surface.field.width + move.column);
       crossed = surface.water.crossings(a, b);
-      if (memo !== null) memo[slot] = Math.min(crossed, 32_767);
+      // A count beyond Int16 is not stored (it would be clamped and charge
+      // the wrong cost); such a move recounts each time instead.
+      if (memo !== null && crossed <= 32_767) memo[slot] = crossed;
     }
     cost += surface.crossingCost * crossed;
   }
