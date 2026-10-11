@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createGameboardBuilder, type GameboardPlan } from '../../gameboard/index';
 import { createGameboardWorld, readGameboardPlacements } from '../../koota/index';
 import {
+  appendGameboardLayoutPlacementsToPlan,
   createGameboardLayoutArchetypeRegistry,
   type GameboardLayoutCriteria,
   inspectGameboardLayoutSites,
@@ -142,6 +143,22 @@ describe('field band criteria', () => {
 });
 
 describe('criteria flow through the layout APIs', () => {
+  it('isolates fields on plans with appended layout placements', () => {
+    const source = strip();
+    const appended = appendGameboardLayoutPlacementsToPlan(source, []);
+    (appended.tiles[0]?.fields as Record<string, number>).slope = 99;
+    expect(source.tiles[0]?.fields?.slope).toBe(0.05);
+  });
+
+  it('isolates the numeric fields on inspected layout sites', () => {
+    const source = strip();
+    const inspection = inspectGameboardLayoutSites(source, { criteria: { allowOccupied: true } });
+    const inspected = inspection.candidates.find((site) => site.tile.key === '0,0');
+    expect(inspected?.tile.fields).toEqual({ slope: 0.05, wetness: 0.9 });
+    (inspected?.tile.fields as Record<string, number>).slope = 99;
+    expect(source.tiles.find((tile) => tile.key === '0,0')?.fields?.slope).toBe(0.05);
+  });
+
   it('selectGameboardLayoutSites honours biome and field criteria', () => {
     const sites = selectGameboardLayoutSites(strip(), {
       count: 4,

@@ -92,6 +92,16 @@ describe('applyTerrainHexesToPlan', () => {
     expect(next.tiles.find((tile) => tile.key === '2,0')?.fields).toEqual({ relief: 6 });
   });
 
+  it('treats inherited biome names as absent while keeping own numeric shares', () => {
+    const next = applyTerrainHexesToPlan(
+      plan(),
+      [hex(1, 0, { biomeShares: { wheat: 0.25 } }), hex(2, 0, { biomeShares: { toString: 0.5 } })],
+      { fields: { share: { biomeShare: 'toString' } } }
+    );
+    expect(next.tiles.find((tile) => tile.key === '1,0')?.fields).toEqual({ share: 0 });
+    expect(next.tiles.find((tile) => tile.key === '2,0')?.fields).toEqual({ share: 0.5 });
+  });
+
   it('writes the dominant biome only when asked', () => {
     const hexes = [
       hex(1, 0, { dominantBiome: 'wheat' }),

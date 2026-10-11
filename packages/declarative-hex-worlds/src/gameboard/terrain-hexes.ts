@@ -116,7 +116,10 @@ function resolveFieldSource(hex: TerrainHex, source: TerrainHexFieldSource): num
   if (typeof source === 'function') {
     return source(hex);
   }
-  return hex.biomeShares === undefined ? undefined : (hex.biomeShares[source.biomeShare] ?? 0);
+  if (hex.biomeShares === undefined) return undefined;
+  return Object.hasOwn(hex.biomeShares, source.biomeShare)
+    ? hex.biomeShares[source.biomeShare]
+    : 0;
 }
 
 function resolveBiomeSource(hex: TerrainHex, source: TerrainHexBiomeSource): string | undefined {
