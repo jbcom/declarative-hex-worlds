@@ -32,6 +32,7 @@ nav:
       - Pieces and actors: features/pieces-and-actors.md
       - Prop injection: features/prop-injection.md
       - Quests: features/quests.md
+      - Tile biomes and fields: features/tile-biomes-and-fields.md
       - Tile injection: features/tile-injection.md
   - About:
       - Overview: about/index.md
