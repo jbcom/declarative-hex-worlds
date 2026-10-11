@@ -26,6 +26,7 @@ export function forEachSegmentCell(
   originZ: number,
   visit: (row: number, column: number) => void
 ): void {
+  if (!(cell > 0)) throw new RangeError(`cell size must be positive, got ${cell}`);
   const ax = a.x - originX;
   const az = a.z - originZ;
   const dx = b.x - a.x;
