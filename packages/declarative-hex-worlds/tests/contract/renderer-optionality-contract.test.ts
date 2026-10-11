@@ -49,6 +49,8 @@ const CORE_ENTRYPOINTS = [
 /** Binding subpaths that SHOULD reach their renderer (positive check). */
 const BINDING_ENTRYPOINTS: Array<{ entry: string; renderer: string }> = [
   { entry: 'src/three/index.ts', renderer: 'three' },
+  // The sculpt kit builds three.js geometry, so it is a three-tier subpath like `/three`.
+  { entry: 'src/sculpt/index.ts', renderer: 'three' },
 ];
 
 function resolveImport(fromFile: string, specifier: string): string | undefined {

@@ -8,9 +8,10 @@
   },
   "scripts": {
     "api:generate": "typedoc --options typedoc.json",
-    "dev": "pnpm api:generate && sourcey dev",
-    "build": "pnpm api:generate && sourcey build",
-    "validate": "pnpm api:generate && sourcey build --output .sourcey-validate"
+    "showcases:sync": "node scripts/sync-showcases.mjs",
+    "dev": "pnpm api:generate && pnpm showcases:sync && sourcey dev",
+    "build": "pnpm api:generate && pnpm showcases:sync && sourcey build",
+    "validate": "pnpm api:generate && pnpm showcases:sync && sourcey build --output .sourcey-validate"
   },
   "devDependencies": {
     "sourcey": "3.6.5",

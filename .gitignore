@@ -209,3 +209,7 @@ raw-assets/
 
 # Local review scratch archives
 .full-review*/
+
+# Local build/render receipts and transient QA artifacts.
+.heavy-slot/
+docs/content/site/assets/sculpt-camp.png

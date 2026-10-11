@@ -77,6 +77,7 @@ Every engine is an **optional peer** — install only what your entrypoint needs
 | `declarative-hex-worlds/core` | nothing (bundles `honeycomb-grid` + `zod`) — no koota/three/react |
 | `declarative-hex-worlds` (main) | `+ koota` |
 | `declarative-hex-worlds/three` | `+ three` — the 3D renderer binding (GLTF models **and** textured tileset hexes) |
+| `declarative-hex-worlds/sculpt` | `+ three` — the procedural prop modelling kit (primitives, rocks, cloth, rope → vertex-coloured geometry; you supply the palette) |
 | `declarative-hex-worlds/canvas2d` | nothing extra — the 2D renderer binding (tileset sprite blitting) |
 | `declarative-hex-worlds/react` / `/react-elements` | `+ react react-dom` (`+ three @react-three/fiber` for elements) |
 

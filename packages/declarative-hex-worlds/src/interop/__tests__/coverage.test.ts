@@ -165,9 +165,11 @@ describe('release-readiness coverage', () => {
       byFilename.set(filename ?? '', [...(byFilename.get(filename ?? '') ?? []), path]);
     }
 
-    // 7 library-owned curated showcases (the 3 simple-rpg-* showcases moved to
+    // 8 library-owned curated showcases, including the procedural sculpt kit
+    // (the 3 simple-rpg-* showcases moved to
     // packages/examples — the three example owns + verifies them there).
-    expect(byFilename.size).toBe(7);
+    expect(byFilename.size).toBe(8);
+    expect(byFilename.has('sculpt-camp.png')).toBe(true);
     for (const [filename, paths] of byFilename) {
       // Post-R1: each showcase lives at exactly one canonical path.
       expect(paths.sort()).toEqual([`docs/showcases/${filename}`]);

@@ -63,9 +63,7 @@ export default defineConfig({
       // endpoint) have no GUI session: headed Chrome crashes there, so run
       // headless with Metal on macOS render hosts. Everywhere else stays headed.
       provider: playwright({
-        launchOptions: {
-          args: ['--mute-audio', ...renderArgs()],
-        },
+        launchOptions: { args: ['--mute-audio', ...renderArgs()] },
       }),
       ...(remoteHeadless ? { headless: true } : {}),
       instances: [
@@ -88,6 +86,7 @@ export default defineConfig({
       'tests/browser/react-elements.test.ts',
       'tests/browser/terrain-visual.test.ts',
       'tests/browser/biome-regions-visual.test.ts',
+      'tests/browser/sculpt-visual.test.ts',
     ],
     testTimeout: 120_000,
     coverage: harnessCoverage('browser-free'),

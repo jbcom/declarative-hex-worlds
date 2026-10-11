@@ -13,6 +13,7 @@
 /** Browser screenshot artifacts enforced by the visual test scripts. */
 export const GAMEBOARD_REQUIRED_BROWSER_SCREENSHOT_ARTIFACTS = [
   'tests/browser/__screenshots__/biome-regions-country.png',
+  'tests/browser/__screenshots__/sculpt-camp.png',
   'tests/browser/__screenshots__/free-catalog.png',
   'tests/browser/__screenshots__/free-guide-assets-by-public-role.png',
   'tests/browser/__screenshots__/free-guide-source-pages.png',

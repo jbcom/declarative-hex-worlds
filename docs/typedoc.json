@@ -19,6 +19,7 @@
     "../packages/declarative-hex-worlds/src/rules/index.ts",
     "../packages/declarative-hex-worlds/src/runtime/index.ts",
     "../packages/declarative-hex-worlds/src/scenario/index.ts",
+    "../packages/declarative-hex-worlds/src/sculpt/index.ts",
     "../packages/declarative-hex-worlds/src/selectors/index.ts",
     "../packages/declarative-hex-worlds/src/simulation/index.ts",
     "../packages/declarative-hex-worlds/src/systems/index.ts",

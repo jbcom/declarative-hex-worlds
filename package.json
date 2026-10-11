@@ -21,7 +21,7 @@
     "lint:examples": "pnpm --filter @declarative-hex-worlds/examples lint",
     "verify": "pnpm --filter declarative-hex-worlds verify",
     "docs:dev": "pnpm --filter declarative-hex-worlds exec tsx scripts/generate-cli-reference.ts && pnpm --filter @declarative-hex-worlds/docs dev",
-    "docs:build": "NODE_OPTIONS=--max-old-space-size=6144 pnpm --filter declarative-hex-worlds build && pnpm --filter declarative-hex-worlds exec tsx scripts/generate-cli-reference.ts && pnpm --filter @declarative-hex-worlds/docs build",
+    "docs:build": "NODE_OPTIONS=--max-old-space-size=8192 pnpm --filter declarative-hex-worlds build && pnpm --filter declarative-hex-worlds exec tsx scripts/generate-cli-reference.ts && pnpm --filter @declarative-hex-worlds/docs build",
     "docs:validate": "pnpm --filter declarative-hex-worlds exec tsx scripts/generate-cli-reference.ts && pnpm --filter @declarative-hex-worlds/docs validate",
     "bench": "pnpm --filter declarative-hex-worlds bench",
     "coverage:all:enforce": "pnpm --filter declarative-hex-worlds coverage:all:enforce",
