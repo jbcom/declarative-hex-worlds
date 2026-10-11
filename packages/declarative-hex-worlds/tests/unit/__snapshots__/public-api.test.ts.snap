@@ -600,6 +600,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "TilePinned",
+  },
+  {
+    "kind": "function",
     "name": "TileRenderState",
   },
   {
@@ -2089,6 +2093,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "setTileFields",
+  },
+  {
+    "kind": "function",
+    "name": "setTilePinned",
   },
   {
     "kind": "function",

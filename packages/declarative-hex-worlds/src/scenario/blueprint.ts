@@ -381,7 +381,6 @@ export function createMedievalShowcaseBlueprintRecipe(
 function buildGameboardBlueprint(options: GameboardBlueprintOptions): BlueprintBuildResult {
   const shape = options.shape ?? DEFAULT_SHAPE;
   const seed = String(options.seed ?? 'medieval-gameboard-blueprint');
-  const rng = seedrandom(seed);
   const faction = options.faction ?? 'blue';
   const textureSet = options.textureSet ?? 'default';
   const maxElevation = Math.max(1, Math.floor(options.maxElevation ?? 3));
@@ -407,12 +406,13 @@ function buildGameboardBlueprint(options: GameboardBlueprintOptions): BlueprintB
     counts,
     warnings
   );
-  applyDefaultHillsAndForests(steps, tiles, rng, counts);
+  // Separate streams keep unrelated authored edits from shifting later draws.
+  applyDefaultHillsAndForests(steps, tiles, seedrandom(`${seed}:hills-and-forests`), counts);
 
-  const towns = normalizeTowns(options.towns, tiles, faction, rng);
+  const towns = normalizeTowns(options.towns, tiles, faction, seedrandom(`${seed}:towns`));
   applyTowns(steps, tiles, towns, counts, warnings);
 
-  const harbors = normalizeHarbors(options.harbors, tiles, faction, towns, rng);
+  const harbors = normalizeHarbors(options.harbors, tiles, faction, towns, seedrandom(`${seed}:harbors`));
   const shouldWarnIfNoHarbors =
     options.harbors === undefined || (typeof options.harbors === 'number' && Math.floor(options.harbors) > 0);
   const placedHarbors = applyHarbors(steps, tiles, harbors, counts, warnings, shouldWarnIfNoHarbors);
@@ -427,7 +427,7 @@ function buildGameboardBlueprint(options: GameboardBlueprintOptions): BlueprintB
   ];
   applyRoads(steps, tiles, roads, shape, transitionPolicy, counts, warnings);
 
-  applyBiomeFills(steps, tiles, options.biomeFills ?? [], rng, counts);
+  applyBiomeFills(steps, tiles, options.biomeFills ?? [], seedrandom(`${seed}:biome-fills`), counts);
   if (transitionPolicy.biomeTransitions) {
     applyBiomeTransitions(steps, tiles, counts);
   }

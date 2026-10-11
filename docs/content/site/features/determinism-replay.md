@@ -31,6 +31,7 @@ const result = runGameboardScenarioSimulationScript(scenario, replayScript, {
 ## What the library handles
 
 - **Seed threading.** Every random decision routes through `seedrandom`; same seed → same outputs.
+- **Blueprint stage isolation.** Hills and forests, towns, harbors, and biome fills each use a namespaced stream derived from the board seed. Changing how many random values a town or harbor stage consumes does not shift a later biome draw. Changes to eligible terrain still affect selection. This replaces the older shared stream, so regenerating an older blueprint with this version can produce a different layout; persist the compiled plan for exact historical replay.
 - **Script replay.** `runGameboardScenarioSimulationScript` executes recorded commands in order; the event records become a fingerprint.
 - **Cross-process gate.** PRD E1's `tests/unit/determinism.test.ts` spawns N subprocesses + asserts byte-identity. The gate runs in default `pnpm test` — regressions can't sneak in.
 

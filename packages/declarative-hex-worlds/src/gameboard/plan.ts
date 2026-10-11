@@ -160,6 +160,8 @@ export interface GameboardTileSpec {
    * and `tags`: roads, rivers, hills and other features never overwrite it.
    */
   biome?: string;
+  /** Protect authored state from automatic generation; explicit edits remain allowed. */
+  pinned?: boolean;
   /**
    * Named numeric channels a game computed for this hex (slope, wetness, soil
    * depth, ...) that layout criteria read through `fields` bands. Names are
