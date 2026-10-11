@@ -14,6 +14,7 @@
  * @module
  */
 
+export * from './biome-regions';
 export * from './rule-types';
 export * from './rules';
 export * from './validation';

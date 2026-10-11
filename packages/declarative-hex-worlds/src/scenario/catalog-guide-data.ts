@@ -254,6 +254,8 @@ const KAYKIT_GUIDE_SCENARIO_TABLE: readonly KayKitGuideScenarioInput[] = [
     summary:
       'Covers local EXTRA transition tiles and texture-set selection for biome blends without publishing EXTRA binaries.',
     publicApi: [
+      'generateGameboardBiomeRegions',
+      'applyGameboardBiomeRegionStages',
       'textureFileName',
       'GameboardBuilder.addTransition',
       'createGameboardBlueprintRecipe',

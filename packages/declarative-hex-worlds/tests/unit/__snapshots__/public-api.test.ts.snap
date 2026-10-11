@@ -668,6 +668,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "applyGameboardBiomeRegionStages",
+  },
+  {
+    "kind": "function",
     "name": "applyGameboardRecipe",
   },
   {
@@ -1333,6 +1337,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "gameboardSystemActions",
+  },
+  {
+    "kind": "function",
+    "name": "generateGameboardBiomeRegions",
   },
   {
     "kind": "function",

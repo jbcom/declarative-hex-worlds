@@ -106,6 +106,10 @@ export interface SimpleRpgExecutableGuideApiSmokeSummary {
   readonly planFromTilesPlacementCount: number;
   /** Placement count for a plan compiled from a recipe. */
   readonly recipePlanPlacementCount: number;
+  /** Wheat tiles reached by the field-driven region smoke. */
+  readonly biomeRegionTileCount: number;
+  /** Wheat tiles retained after the later corn generation stage. */
+  readonly biomeStagePreservedTileCount: number;
   /** Recipe validation error count. */
   readonly recipeValidationErrorCount: number;
   /** Recipe generation validation error count. */

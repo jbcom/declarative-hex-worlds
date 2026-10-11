@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-05-24T00:00:00.000Z",
-  "status": "passed",
+  "generatedAt": "2026-10-11T00:00:00.000Z",
+  "status": "warning",
   "guide": {
     "scenarioCount": 19,
     "pageCount": 19,
@@ -165,7 +165,7 @@
         "uniqueAssets": 1,
         "freeAssets": 0,
         "extraAssets": 1,
-        "publicApis": 6,
+        "publicApis": 8,
         "visualArtifacts": 3,
         "docs": 2
       },
@@ -1018,7 +1018,7 @@
       "uniqueAssets": 1,
       "freeAssets": 0,
       "extraAssets": 1,
-      "publicApis": 6,
+      "publicApis": 8,
       "visualArtifacts": 3,
       "docs": 2,
       "title": "Biomes",
@@ -3862,6 +3862,37 @@
       ]
     },
     {
+      "publicApi": "applyGameboardBiomeRegionStages",
+      "scenarioIds": [
+        "page-11-biomes"
+      ],
+      "pages": [
+        11
+      ],
+      "editions": [
+        "extra"
+      ],
+      "assetIds": [],
+      "treatmentRoles": [],
+      "assetCounts": {
+        "unique": 0,
+        "free": 0,
+        "extra": 0,
+        "occurrences": 0,
+        "freeOccurrences": 0,
+        "extraOccurrences": 0
+      },
+      "docs": [
+        "docs/guides/rendering-assets-and-external-packs.md",
+        "docs/pillars/03-editions-and-ingest.md"
+      ],
+      "visualArtifacts": [
+        "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+        "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+        "tests/browser/__screenshots__/extra-seasonal-textures.png"
+      ]
+    },
+    {
       "publicApi": "coloredUnitAssetId",
       "scenarioIds": [
         "page-14-units",
@@ -4954,6 +4985,37 @@
       "visualArtifacts": [
         "docs/assets/kaykit-guide/montage.png",
         "docs/assets/kaykit-guide/pages/page-01.png"
+      ]
+    },
+    {
+      "publicApi": "generateGameboardBiomeRegions",
+      "scenarioIds": [
+        "page-11-biomes"
+      ],
+      "pages": [
+        11
+      ],
+      "editions": [
+        "extra"
+      ],
+      "assetIds": [],
+      "treatmentRoles": [],
+      "assetCounts": {
+        "unique": 0,
+        "free": 0,
+        "extra": 0,
+        "occurrences": 0,
+        "freeOccurrences": 0,
+        "extraOccurrences": 0
+      },
+      "docs": [
+        "docs/guides/rendering-assets-and-external-packs.md",
+        "docs/pillars/03-editions-and-ingest.md"
+      ],
+      "visualArtifacts": [
+        "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+        "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+        "tests/browser/__screenshots__/extra-seasonal-textures.png"
       ]
     },
     {
@@ -34759,6 +34821,14 @@
       "required": true
     },
     {
+      "path": "tests/browser/__screenshots__/biome-regions-country.png",
+      "status": "available",
+      "source": "screenshot",
+      "scenarioIds": [],
+      "pages": [],
+      "required": true
+    },
+    {
       "path": "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
       "status": "available",
       "source": "guide",
@@ -35072,7 +35142,7 @@
       "id": "kaykit-medieval-free",
       "label": "KayKit Medieval Hexagon FREE",
       "path": "references/KayKit_Medieval_Hexagon_Pack_1.0_FREE",
-      "status": "available",
+      "status": "missing",
       "edition": "free",
       "purpose": "FREE source pack for guide extraction, generated assets, and manifest audits.",
       "requiredForFullReview": true
@@ -35081,7 +35151,7 @@
       "id": "kaykit-medieval-extra",
       "label": "KayKit Medieval Hexagon EXTRA",
       "path": "references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA",
-      "status": "available",
+      "status": "missing",
       "edition": "extra",
       "purpose": "Purchased local-only EXTRA pack for category and guide visual coverage.",
       "requiredForFullReview": true
@@ -35090,7 +35160,7 @@
       "id": "kenney-castle-kit",
       "label": "Kenney Castle Kit",
       "path": "references/kenney_castle-kit",
-      "status": "available",
+      "status": "missing",
       "purpose": "Third-party compatibility fixture for non-hex props, structures, and warnings.",
       "requiredForFullReview": true
     },
@@ -35098,7 +35168,7 @@
       "id": "kaykit-adventurers",
       "label": "KayKit Adventurers FREE",
       "path": "references/KayKit_Adventurers_2.0_FREE",
-      "status": "available",
+      "status": "missing",
       "purpose": "Animated actor fixture for facing, spawn, and SimpleRPG local-asset coverage.",
       "requiredForFullReview": true
     }
@@ -35108,73 +35178,73 @@
       "id": "lint",
       "label": "pnpm lint",
       "command": "pnpm lint",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Biome lint over src/, tests/, scripts/, and the Sourcey docs workspace."
     },
     {
       "id": "typecheck",
       "label": "pnpm typecheck",
       "command": "pnpm typecheck",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Strict TypeScript validation for runtime, tests, scripts, and examples."
     },
     {
       "id": "build",
       "label": "pnpm build",
       "command": "pnpm build",
-      "status": "passed",
+      "status": "not-run",
       "summary": "tsup multi-entry ESM build — chunks + DTS + CLI shebang + asset copies."
     },
     {
       "id": "test",
       "label": "pnpm test",
       "command": "pnpm test",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Full vitest suite — unit + integration + contract specs (the migrated former scripts/audit-*.ts checks)."
     },
     {
       "id": "test-coverage-enforce",
       "label": "pnpm test:coverage:enforce",
       "command": "pnpm test:coverage:enforce",
-      "status": "passed",
+      "status": "not-run",
       "summary": "vitest with v8 coverage gated against the ratchet thresholds in vitest.coverage.shared.ts."
     },
     {
       "id": "test-browser-free",
       "label": "pnpm test:browser:free",
       "command": "pnpm test:browser:free",
-      "status": "passed",
+      "status": "not-run",
       "summary": "vitest-browser FREE-pack visual snapshot suite against bootstrap-fetched KayKit GLTFs under Chromium."
     },
     {
       "id": "docs-build",
       "label": "pnpm docs:build",
       "command": "pnpm docs:build",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Sourcey docs build — generates compact TypeDoc module reference pages and validates every hand-written guide."
     },
     {
       "id": "npm-pack-dry-run",
       "label": "npm pack --dry-run",
       "command": "npm pack --dry-run",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Release-time tarball dry run — emits the publish whitelist + asset inclusion bounds for the published package contract."
     }
   ],
   "simpleRpgEvidence": {
-    "guidePublicApiCount": 74,
-    "exercisedPublicApiCount": 74,
+    "guidePublicApiCount": 76,
+    "exercisedPublicApiCount": 76,
     "missingPublicApis": [],
     "stalePublicApis": [],
-    "executablePublicApiCount": 40,
+    "executablePublicApiCount": 42,
     "publicTreatmentCount": 404,
     "guideScenarioCount": 19,
     "evidenceModeCounts": {
       "fixed-gameplay": 30,
-      "seeded-generation": 10,
+      "seeded-generation": 12,
       "packaged-scenario": 1,
-      "executable-smoke": 40,
-      "blueprint-recipe": 4,
+      "executable-smoke": 42,
+      "blueprint-recipe": 5,
       "manifest-package": 6,
       "compatibility-adapter": 2,
       "package-boundary": 3,
@@ -35205,6 +35275,28 @@
         ],
         "scenarioIds": [
           "page-13-transition-tiles"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
+        "publicApi": "applyGameboardBiomeRegionStages",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "seeded-generation",
+          "blueprint-recipe"
+        ],
+        "evidence": "The packaged guide smoke applies two ordered biome stages and preserves the first stage wheat while adding corn.",
+        "pages": [
+          11
+        ],
+        "scenarioIds": [
+          "page-11-biomes"
         ],
         "assetCount": 0,
         "visualArtifacts": [
@@ -36455,6 +36547,27 @@
         ]
       },
       {
+        "publicApi": "generateGameboardBiomeRegions",
+        "mode": "executable-smoke",
+        "modes": [
+          "executable-smoke",
+          "seeded-generation"
+        ],
+        "evidence": "The packaged guide smoke grows wheat regions on a recipe plan and reports their reached tile count.",
+        "pages": [
+          11
+        ],
+        "scenarioIds": [
+          "page-11-biomes"
+        ],
+        "assetCount": 0,
+        "visualArtifacts": [
+          "tests/browser/__screenshots__/extra-blueprint-biome-transition-showcase.png",
+          "tests/browser/__screenshots__/extra-local-all-tiles-guide-and-transitions.png",
+          "tests/browser/__screenshots__/extra-seasonal-textures.png"
+        ]
+      },
+      {
         "publicApi": "inspectGameboardBlueprint",
         "mode": "executable-smoke",
         "modes": [
@@ -37070,7 +37183,80 @@
       }
     ]
   },
-  "gaps": [],
+  "gaps": [
+    {
+      "code": "reference.missing",
+      "severity": "warning",
+      "subject": "references/KayKit_Medieval_Hexagon_Pack_1.0_FREE",
+      "message": "KayKit Medieval Hexagon FREE is unavailable, so local-only visual coverage cannot run."
+    },
+    {
+      "code": "reference.missing",
+      "severity": "warning",
+      "subject": "references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA",
+      "message": "KayKit Medieval Hexagon EXTRA is unavailable, so local-only visual coverage cannot run."
+    },
+    {
+      "code": "reference.missing",
+      "severity": "warning",
+      "subject": "references/kenney_castle-kit",
+      "message": "Kenney Castle Kit is unavailable, so local-only visual coverage cannot run."
+    },
+    {
+      "code": "reference.missing",
+      "severity": "warning",
+      "subject": "references/KayKit_Adventurers_2.0_FREE",
+      "message": "KayKit Adventurers FREE is unavailable, so local-only visual coverage cannot run."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm lint",
+      "message": "pnpm lint has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm typecheck",
+      "message": "pnpm typecheck has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm build",
+      "message": "pnpm build has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm test",
+      "message": "pnpm test has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm test:coverage:enforce",
+      "message": "pnpm test:coverage:enforce has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm test:browser:free",
+      "message": "pnpm test:browser:free has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm docs:build",
+      "message": "pnpm docs:build has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "npm pack --dry-run",
+      "message": "npm pack --dry-run has not been recorded in this coverage report."
+    }
+  ],
   "releaseGateCommands": [
     "pnpm lint",
     "pnpm typecheck",

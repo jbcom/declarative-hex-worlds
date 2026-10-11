@@ -273,8 +273,10 @@ node dist/cli.js guide-apis --publicApi GameboardBuilder.addHarbor --json
 - Asset coverage: 1 unique, 0 FREE, 1 EXTRA, 1 occurrence
 - Roles: `transition-tile`
 - Public API treatment: `GameboardBuilder.addTransition`,
+  `applyGameboardBiomeRegionStages`,
   `createGameboardBlueprintRecipe`,
   `createGameboardPlanFromRecipe`,
+  `generateGameboardBiomeRegions`,
   `inspectGameboardBlueprint`,
   `textureFileName`,
   `validateGameboardRecipe`

@@ -1,7 +1,7 @@
-import { defineConfig } from 'vitest/config';
-import { playwright } from '@vitest/browser-playwright';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { playwright } from '@vitest/browser-playwright';
+import { defineConfig } from 'vitest/config';
 import { packageAliases } from './vitest.alias.shared';
 import { harnessCoverage } from './vitest.coverage.shared';
 
@@ -85,6 +85,7 @@ export default defineConfig({
       'tests/browser/tileset-render.test.ts',
       'tests/browser/react-elements.test.ts',
       'tests/browser/terrain-visual.test.ts',
+      'tests/browser/biome-regions-visual.test.ts',
       'tests/browser/sculpt-visual.test.ts',
     ],
     testTimeout: 120_000,

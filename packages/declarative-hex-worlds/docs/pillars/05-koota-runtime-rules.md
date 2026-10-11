@@ -119,6 +119,13 @@ the state as a deterministic placement list.
 The legacy `HexTileState` remains as a convenient aggregate view, but new rule
 logic should query the decomposed traits.
 
+`recipe.generation.biomeRegions` grows connected biomes from numeric tile
+fields before layout fills. Authored `TilePinned` state is protected across
+the ordered stages; each stage uses a namespaced seed. The region algorithm is
+also available without Koota through `generateGameboardBiomeRegions` in
+`./core`. Runtime recipe generation mounts its result in the Koota world, so
+later fills select the generated `TileBiome` values and retained `TileFields`.
+
 ## Engine-neutral contracts
 
 Koota is the built-in runtime adapter, but it is not the only consumer. The
