@@ -140,6 +140,22 @@ describe('numeric tile fields on the builder', () => {
 });
 
 describe('tile field validators', () => {
+  it('rejects non-record containers and accepts null-prototype records', () => {
+    class FieldContainer {
+      slope = 0.5;
+    }
+    for (const fields of [
+      new Date(),
+      new Map([['slope', 0.5]]),
+      new Set([1]),
+      new FieldContainer(),
+    ]) {
+      expect(() => assertGameboardTileFields(fields)).toThrow(GameboardValidationError);
+    }
+    const record = Object.assign(Object.create(null), { slope: 0.5 });
+    expect(normalizeGameboardTileFields(record)).toEqual({ slope: 0.5 });
+  });
+
   it('normalize returns a sorted copy and names the tile in errors', () => {
     const source = { b: 2, a: 1 };
     const normalized = normalizeGameboardTileFields(source, '3,4');

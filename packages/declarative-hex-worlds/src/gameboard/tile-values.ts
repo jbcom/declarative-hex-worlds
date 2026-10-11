@@ -47,6 +47,10 @@ export function describeGameboardTileFieldsProblem(fields: unknown): string | un
   if (typeof fields !== 'object' || fields === null || Array.isArray(fields)) {
     return 'fields must be a record of finite numbers keyed by field name';
   }
+  const prototype = Object.getPrototypeOf(fields);
+  if (prototype !== Object.prototype && prototype !== null) {
+    return 'fields must be a record of finite numbers keyed by field name';
+  }
   for (const [name, value] of Object.entries(fields)) {
     if (name.length === 0 || FORBIDDEN_FIELD_NAMES.has(name)) {
       return `field name ${JSON.stringify(name)} is not allowed`;

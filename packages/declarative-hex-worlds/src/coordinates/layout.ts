@@ -1258,7 +1258,7 @@ function inspectSiteForTile(
   const score = scoreTile(plan, tile, centerPlacements, criteria, reasons) + rng() * 0.001;
   return {
     site: {
-      tile,
+      tile: copyTile(tile),
       key: tile.key,
       coordinates: { ...tile.coordinates },
       position: axialToWorld(tile.coordinates, tile.elevation),
@@ -2000,6 +2000,7 @@ function copyTile(tile: GameboardTileSpec): GameboardTileSpec {
     ...tile,
     coordinates: { ...tile.coordinates },
     tags: [...tile.tags],
+    ...(tile.fields === undefined ? {} : { fields: { ...tile.fields } }),
   };
 }
 
