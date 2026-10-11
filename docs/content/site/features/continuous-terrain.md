@@ -263,6 +263,33 @@ half-width chosen per point from contributing area and order; overlapping
 beds take the deepest cut. Or feed channels to composition as layers:
 `channels.map((c) => ({ kind: 'channel', line: c.points, depth, halfWidth }))`.
 
+## Erosion
+
+Relief composed from noise, ridges and hills is full of closed hollows that
+real country does not have; filled, they turn a fifth of a rolling board into
+ponds. `erodeHeightField` wears a field into country that drains, the way rain
+wore the real thing, by the stream power law: a sample is cut toward the
+sample its water runs to, faster the more ground drains through it.
+
+```ts
+const relief = composeHeightField({ bounds, spacing: 8, seed, layers });
+const country = erodeHeightField(relief, { erodibility: 0.05, iterations: 20, diffusion: 0.1 });
+const drainage = traceDrainage(country, { minContributingArea: 120_000 });
+```
+
+Each iteration routes the flow exactly as `traceDrainage` does and solves the
+cut implicitly (Braun & Willett 2013), downstream first, so it is stable at any
+`erodibility` and never cuts below where the water goes. Water running into a
+pond cuts only to the pond's surface; the rim a hollow spills over carries
+everything the hollow gathers, so it is cut fastest and the hollow drains by a
+valley, not a notch. Summits, which water only leaves, barely wear. `diffusion`
+(soil creep, 0–0.25 per iteration) rounds fresh cuts into valley profiles.
+
+Edge samples are the base level and never change, so an eroded field still
+meets the ground around it, and a hollow lower than every edge stays a pond.
+A 2 × 2 km rolling field at 10 m that ponds over 14% of its area ponds over
+3% after 20 iterations at `erodibility: 0.05`, in about a quarter of a second.
+
 ## Roads
 
 `routeAcrossTerrain(field, from, to, options)` finds a least-cost road over

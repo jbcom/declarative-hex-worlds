@@ -452,6 +452,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "number",
+    "name": "MAX_EROSION_SAMPLES",
+  },
+  {
+    "kind": "number",
     "name": "MAX_GRID_SAMPLES",
   },
   {
@@ -1169,6 +1173,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "edgeMask",
+  },
+  {
+    "kind": "function",
+    "name": "erodeHeightField",
   },
   {
     "kind": "function",
