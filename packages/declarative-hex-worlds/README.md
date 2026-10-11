@@ -95,6 +95,7 @@ The umbrella (`declarative-hex-worlds`) re-exports everything. For tighter tree-
 | `/runtime` | Runtime facade + snapshot |
 | `/react` | React provider + hooks |
 | `/three` | three.js renderer binding — GLTF loaders + scene reconciliation (3D) |
+| `/sculpt` | procedural prop modelling kit for three.js — `box`/`cyl`/`ball`/`lathe`/`rock`/`sheet`/`rope` parts merged by `buildPiece` into one vertex-coloured geometry per finish; **you supply the palette**, nothing is random |
 | `/canvas2d` | canvas-2D renderer binding — tileset sprite blitting (2D), **zero renderer deps** |
 | `/react-elements` | Declarative JSX elements (`<HexWorld>`/`<Tile>`/`<Tileset>`/`<Sprite>`/`<Model>`/`<GameboardObjects>`) + hooks. A `metadata` prop drives per-placement shading (`tintR/G/B`/`opacity`) for fog-of-war / season / team colors |
 | `/asset-source` | The `AssetSourceSpec` schema + sources (`createSourceFromSpec`, `createTilesetSource`, `tilesetHexGeometry`), the `bind`/`init`/`web` scan core, and PNG atlas measurement |
@@ -113,6 +114,7 @@ Every engine is an **optional peer** — you install only what the entrypoint yo
 | `declarative-hex-worlds/core` | just this package (it bundles `honeycomb-grid` + `zod`) — **no `koota`, no `three`, no `react`** |
 | `declarative-hex-worlds` (main) / runtime subpaths | `+ koota` (`+ react` for the React bindings) |
 | `declarative-hex-worlds/three` | `+ three` (the 3D renderer binding) |
+| `declarative-hex-worlds/sculpt` | `+ three` (the procedural prop modelling kit builds three.js geometry) |
 | `declarative-hex-worlds/canvas2d` | nothing extra — the 2D renderer binding draws to a standard 2D canvas context |
 | `declarative-hex-worlds/react` | `+ react react-dom` |
 | `declarative-hex-worlds/react-elements` | `+ react react-dom three @react-three/fiber` |

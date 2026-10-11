@@ -565,6 +565,16 @@ build, no `.d.ts`).
   loaders, raycast-to-command target helpers, and scene sync helpers with
   optional animation mixer setup for packaged manifests plus local piece URL
   maps.
+- `./sculpt`: the procedural prop modelling kit (three.js, optional peer; not
+  re-exported from the root). Parts (`box`/`cyl`/`cone`/`ball`/`ring`/`plane`/
+  `disc`/`lathe`/seeded `rock`/`sheet`/`rope`/`part`) carry a tone key and a
+  finish; `buildPiece(parts, palette, options)` merges them into one
+  vertex-coloured geometry per finish, with an optional baked contact shadow.
+  The palette is always supplied by the consumer, never imported from a game.
+  Metres, a piece stands on `y = 0`, front toward `+z`. No `Math.random`: rocks
+  hash vertex positions with a seed. Rejections are `GameboardValidationError`.
+  Use it for generic prop modelling shared across games instead of copying
+  geometry code between them.
 - `./types`: shared manifest, asset, coordinate, shape, texture, faction, and
   edge types/constants.
 

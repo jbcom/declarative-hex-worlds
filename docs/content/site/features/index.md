@@ -22,6 +22,7 @@ Screenshot embedding lands once the F-Gallery test harness flips on with the RB 
 | [Prop injection](/features/prop-injection/) | Add decorative or interactive props after build |
 | [Pieces and actors](/features/pieces-and-actors/) | Player + NPCs + props with team / hostility / interaction metadata |
 | [Movement and patrols](/features/movement-and-patrols/) | Cost-aware pathing + scripted patrol routes |
+| [Procedural props](/features/sculpt-kit/) | Model crates, jars, tents and stones from code: primitives, seeded rocks, cloth and rope merged into one vertex-coloured geometry per finish |
 | [Quests](/features/quests/) | Multi-objective quests with progress + completion events |
 | [Cross-kit composition](/features/cross-kit-composition/) | Mix KayKit Hexagon + Adventurers + Kenney assets |
 | [Determinism replay](/features/determinism-replay/) | Save seed + script → reproduce exact world + simulation anywhere |

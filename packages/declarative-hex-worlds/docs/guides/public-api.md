@@ -40,6 +40,7 @@ migration guide.
 | `./gameboard` | Board lifecycle, occupancy, navigation. |
 | `./recipe` | Recipe DSL. |
 | `./terrain` | Continuous terrain: height fields, `composeHeightField` layers (including `inpaint`), `inpaintHeightField` for erasing excavations from measured elevation, biomes, scatter, per-hex summaries. |
+| `./sculpt` | Procedural prop modelling kit for three.js: primitives, seeded rocks, cloth and rope parts merged by `buildPiece` into one vertex-coloured geometry per finish. The consumer supplies the palette. Needs `three`; not re-exported from the root. |
 | `./coverage` | Release-readiness coverage ledger surface for build/review tooling, not runtime ECS adapter glue. |
 | `./compatibility` | Manifest/version compatibility helpers. |
 | `./errors` | `GameboardError` + typed subclasses (Epic D2). |

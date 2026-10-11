@@ -53,6 +53,7 @@ export default defineConfig([
     selectors: 'src/selectors/index.ts',
     simulation: 'src/simulation/index.ts',
     systems: 'src/systems/index.ts',
+    sculpt: 'src/sculpt/index.ts',
     three: 'src/three/index.ts',
     traits: 'src/traits/index.ts',
     errors: 'src/errors/index.ts',

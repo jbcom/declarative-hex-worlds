@@ -50,6 +50,7 @@ const SUBPATH_TARGETS: ReadonlyArray<readonly [string, string]> = [
   ['rules', 'src/rules/index.ts'],
   ['runtime', 'src/runtime/index.ts'],
   ['scenario', 'src/scenario/index.ts'],
+  ['sculpt', 'src/sculpt/index.ts'],
   ['selectors', 'src/selectors/index.ts'],
   ['simulation', 'src/simulation/index.ts'],
   ['systems', 'src/systems/index.ts'],

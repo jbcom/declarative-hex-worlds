@@ -159,6 +159,11 @@ a `<Tile>`'s own `biome` key wins over a metadata `biome` on a clash.
   `Sprite`, `Model`, `GameboardObjects`, camera helpers. Every placement element takes a
   `metadata` prop that drives per-placement shading (`tintR/G/B`/`opacity`).
 - `declarative-hex-worlds/three` — lower-level Three.js binding primitives.
+- `declarative-hex-worlds/sculpt` — procedural prop modelling kit (needs `three`): parts
+  (`box`, `cyl`, `cone`, `ball`, `ring`, `plane`, `disc`, `lathe`, seeded `rock`, `sheet`, `rope`,
+  `part`) merged by `buildPiece(parts, palette, { grounded })` into one vertex-coloured
+  geometry per finish; `createSculptMaterials()` draws the built-in finishes. The consumer
+  supplies the palette. Metres, a piece stands on `y = 0`, front toward `+z`.
 
 ## Determinism
 
