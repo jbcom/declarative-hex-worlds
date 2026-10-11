@@ -76,8 +76,8 @@ describe('scripts/smoke/pack-install', () => {
     const ctx = fakeContext();
     const installedRoot = `${ctx.appRoot}/node_modules/declarative-hex-worlds`;
     const cases: Array<[Partial<FakePayloads>, string]> = [
-      [{ pack: '{}' }, 'npm pack did not return an array of tarball metadata'],
-      [{ pack: '[]' }, 'npm pack did not return any tarball metadata'],
+      [{ pack: '{}' }, 'pnpm pack did not return any tarball metadata'],
+      [{ pack: '[]' }, 'pnpm pack did not return any tarball metadata'],
       [{ guideUsage: '[]' }, 'packed CLI guide-usages command did not return a valid JSON object'],
       [{ planSummary: '[]' }, 'packed CLI summarize-plan command did not return a valid JSON object'],
       [
@@ -156,8 +156,8 @@ function fakeExec(
   installedRoot: string,
   payloads: Partial<FakePayloads> = {}
 ): string {
-  if (file === 'npm' && args[0] === 'pack') {
-    return payloads.pack ?? JSON.stringify([{ filename: 'pkg.tgz' }]);
+  if (file === 'pnpm' && args[0] === 'pack') {
+    return payloads.pack ?? JSON.stringify({ filename: '/tmp/consumer/pack/pkg.tgz' });
   }
   if (file === 'npm' && args[0] === 'install') {
     return '';
@@ -196,7 +196,7 @@ function fakeExec(
             modes: ['visual-coverage'],
             pages: [2, 7, 9],
           },
-          ...Array.from({ length: 73 }, (_value, index) => ({
+          ...Array.from({ length: 76 }, (_value, index) => ({
             publicApi: `packed-api-${index}`,
             assetCount: 0,
             modes: [],
@@ -229,11 +229,11 @@ function fakeDoctor(args: string[]): string {
     return [
       'coverage status: passed',
       'guide pages: 19/19',
-      'public APIs: 74',
+      'public APIs: 77',
       'manifest: 221 asset(s), 221/221 FREE guide asset(s)',
       'visual artifacts: 10 available, 0 missing,',
       'local references: 0 available, 0 missing,',
-      'SimpleRPG API evidence: 74/74 represented, 40 directly executed, 9 active mode(s)',
+      'SimpleRPG API evidence: 77/77 represented, 43 directly executed, 9 active mode(s)',
       'gaps: 0',
     ].join('\n');
   }

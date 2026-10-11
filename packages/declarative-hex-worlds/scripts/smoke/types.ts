@@ -1039,10 +1039,25 @@ void blueprintUsage;
 `;
 }
 
-/**
- * Write a type-only smoke source into the consumer fixture app and run
- * `tsc --noEmit --strict` against it. Throws if `tsc` exits non-zero.
- */
+/** Consumer fixture for live snapshots with exact optional properties enabled. */
+export function createBiomeTypesAttestationSource(): string {
+  return `
+import type { World } from 'koota';
+import { readGameboardTiles } from 'declarative-hex-worlds/koota';
+import { projectHexBiomesToField, type HexBiomeTile } from 'declarative-hex-worlds/terrain';
+declare const world: World;
+const liveTiles: readonly HexBiomeTile[] = readGameboardTiles(world);
+const absentBiome: HexBiomeTile = { coordinates: { q: 0, r: 0 }, biome: undefined };
+projectHexBiomesToField({
+  tiles: liveTiles,
+  grid: { bounds: { minX: 0, maxX: 1, minZ: 0, maxZ: 1 }, width: 2, height: 2 },
+  biomes: ['pasture'], base: 'pasture',
+});
+void absentBiome;
+`;
+}
+
+/** Compile the public API and strict live-biome fixtures from the installed package. */
 export function runTypesAttestation(
   ctx: SmokeContext,
   dependencies: TypesAttestationDependencies = {}
@@ -1081,5 +1096,28 @@ export function runTypesAttestation(
     }
   );
 
+  writeFile(join(appRoot, 'smoke-biome-types.ts'), createBiomeTypesAttestationSource(), {
+    encoding: 'utf8',
+    mode: 0o600,
+    flag: 'wx',
+  });
+  execFile(
+    process.execPath,
+    [
+      join(workspaceRoot, 'node_modules/typescript/bin/tsc'),
+      '--noEmit',
+      '--strict',
+      '--exactOptionalPropertyTypes',
+      '--target',
+      'ES2022',
+      '--module',
+      'NodeNext',
+      '--moduleResolution',
+      'NodeNext',
+      '--skipLibCheck',
+      'smoke-biome-types.ts',
+    ],
+    { cwd: appRoot, encoding: 'utf8', stdio: ['ignore', 'inherit', 'inherit'] }
+  );
   log('packed consumer types attestation passed');
 }
