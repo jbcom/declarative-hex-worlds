@@ -35142,7 +35142,7 @@
       "id": "kaykit-medieval-free",
       "label": "KayKit Medieval Hexagon FREE",
       "path": "references/KayKit_Medieval_Hexagon_Pack_1.0_FREE",
-      "status": "available",
+      "status": "missing",
       "edition": "free",
       "purpose": "FREE source pack for guide extraction, generated assets, and manifest audits.",
       "requiredForFullReview": true
@@ -35151,7 +35151,7 @@
       "id": "kaykit-medieval-extra",
       "label": "KayKit Medieval Hexagon EXTRA",
       "path": "references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA",
-      "status": "available",
+      "status": "missing",
       "edition": "extra",
       "purpose": "Purchased local-only EXTRA pack for category and guide visual coverage.",
       "requiredForFullReview": true
@@ -35160,7 +35160,7 @@
       "id": "kenney-castle-kit",
       "label": "Kenney Castle Kit",
       "path": "references/kenney_castle-kit",
-      "status": "available",
+      "status": "missing",
       "purpose": "Third-party compatibility fixture for non-hex props, structures, and warnings.",
       "requiredForFullReview": true
     },
@@ -35168,7 +35168,7 @@
       "id": "kaykit-adventurers",
       "label": "KayKit Adventurers FREE",
       "path": "references/KayKit_Adventurers_2.0_FREE",
-      "status": "available",
+      "status": "missing",
       "purpose": "Animated actor fixture for facing, spawn, and SimpleRPG local-asset coverage.",
       "requiredForFullReview": true
     }
@@ -35178,56 +35178,56 @@
       "id": "lint",
       "label": "pnpm lint",
       "command": "pnpm lint",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Biome lint over src/, tests/, scripts/, and the Sourcey docs workspace."
     },
     {
       "id": "typecheck",
       "label": "pnpm typecheck",
       "command": "pnpm typecheck",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Strict TypeScript validation for runtime, tests, scripts, and examples."
     },
     {
       "id": "build",
       "label": "pnpm build",
       "command": "pnpm build",
-      "status": "passed",
+      "status": "not-run",
       "summary": "tsup multi-entry ESM build — chunks + DTS + CLI shebang + asset copies."
     },
     {
       "id": "test",
       "label": "pnpm test",
       "command": "pnpm test",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Full vitest suite — unit + integration + contract specs (the migrated former scripts/audit-*.ts checks)."
     },
     {
       "id": "test-coverage-enforce",
       "label": "pnpm test:coverage:enforce",
       "command": "pnpm test:coverage:enforce",
-      "status": "passed",
+      "status": "not-run",
       "summary": "vitest with v8 coverage gated against the ratchet thresholds in vitest.coverage.shared.ts."
     },
     {
       "id": "test-browser-free",
       "label": "pnpm test:browser:free",
       "command": "pnpm test:browser:free",
-      "status": "passed",
+      "status": "not-run",
       "summary": "vitest-browser FREE-pack visual snapshot suite against bootstrap-fetched KayKit GLTFs under Chromium."
     },
     {
       "id": "docs-build",
       "label": "pnpm docs:build",
       "command": "pnpm docs:build",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Sourcey docs build — generates compact TypeDoc module reference pages and validates every hand-written guide."
     },
     {
       "id": "npm-pack-dry-run",
       "label": "npm pack --dry-run",
       "command": "npm pack --dry-run",
-      "status": "passed",
+      "status": "not-run",
       "summary": "Release-time tarball dry run — emits the publish whitelist + asset inclusion bounds for the published package contract."
     }
   ],
@@ -37183,7 +37183,80 @@
       }
     ]
   },
-  "gaps": [],
+  "gaps": [
+    {
+      "code": "reference.missing",
+      "severity": "warning",
+      "subject": "references/KayKit_Medieval_Hexagon_Pack_1.0_FREE",
+      "message": "KayKit Medieval Hexagon FREE is unavailable, so local-only visual coverage cannot run."
+    },
+    {
+      "code": "reference.missing",
+      "severity": "warning",
+      "subject": "references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA",
+      "message": "KayKit Medieval Hexagon EXTRA is unavailable, so local-only visual coverage cannot run."
+    },
+    {
+      "code": "reference.missing",
+      "severity": "warning",
+      "subject": "references/kenney_castle-kit",
+      "message": "Kenney Castle Kit is unavailable, so local-only visual coverage cannot run."
+    },
+    {
+      "code": "reference.missing",
+      "severity": "warning",
+      "subject": "references/KayKit_Adventurers_2.0_FREE",
+      "message": "KayKit Adventurers FREE is unavailable, so local-only visual coverage cannot run."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm lint",
+      "message": "pnpm lint has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm typecheck",
+      "message": "pnpm typecheck has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm build",
+      "message": "pnpm build has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm test",
+      "message": "pnpm test has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm test:coverage:enforce",
+      "message": "pnpm test:coverage:enforce has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm test:browser:free",
+      "message": "pnpm test:browser:free has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "pnpm docs:build",
+      "message": "pnpm docs:build has not been recorded in this coverage report."
+    },
+    {
+      "code": "check.not_run",
+      "severity": "warning",
+      "subject": "npm pack --dry-run",
+      "message": "npm pack --dry-run has not been recorded in this coverage report."
+    }
+  ],
   "releaseGateCommands": [
     "pnpm lint",
     "pnpm typecheck",

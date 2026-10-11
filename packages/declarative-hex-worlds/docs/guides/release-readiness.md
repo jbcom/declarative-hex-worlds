@@ -14,15 +14,15 @@ not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
 
 ## Summary
 
-- Status: passed
+- Status: warning
 - Guide pages: 19/19
 - Guide scenarios: 19
 - Guide assets: 404 unique (221 FREE, 183 EXTRA), 1108 page-level occurrences
 - Public API surfaces: 76
 - Public roles: 12
-- Visual artifacts: 53 available, 0 missing, 0 skipped
+- Visual artifacts: 55 available, 0 missing, 0 skipped
 - Local references: 0 available, 4 missing, 0 skipped
-- Release checks: 8 passed, 0 failed, 0 not run, 0 skipped
+- Release checks: 0 passed, 0 failed, 8 not run, 0 skipped
 - SimpleRPG API evidence: 76/76 represented, 42 directly executed, 9 active mode(s)
 
 ## Manifest Coverage
@@ -138,29 +138,42 @@ not distributed in Git or npm. Regenerate the ledger to check a fresh checkout.
 
 ## Gaps
 
-- None
+| Severity | Code | Subject | Message |
+| --- | --- | --- | --- |
+| warning | `reference.missing` | references/KayKit_Medieval_Hexagon_Pack_1.0_FREE | KayKit Medieval Hexagon FREE is unavailable, so local-only visual coverage cannot run. |
+| warning | `reference.missing` | references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA | KayKit Medieval Hexagon EXTRA is unavailable, so local-only visual coverage cannot run. |
+| warning | `reference.missing` | references/kenney_castle-kit | Kenney Castle Kit is unavailable, so local-only visual coverage cannot run. |
+| warning | `reference.missing` | references/KayKit_Adventurers_2.0_FREE | KayKit Adventurers FREE is unavailable, so local-only visual coverage cannot run. |
+| warning | `check.not_run` | pnpm lint | pnpm lint has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm typecheck | pnpm typecheck has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm build | pnpm build has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm test | pnpm test has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm test:coverage:enforce | pnpm test:coverage:enforce has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm test:browser:free | pnpm test:browser:free has not been recorded in this coverage report. |
+| warning | `check.not_run` | pnpm docs:build | pnpm docs:build has not been recorded in this coverage report. |
+| warning | `check.not_run` | npm pack --dry-run | npm pack --dry-run has not been recorded in this coverage report. |
 
 ## Local References
 
 | Status | Reference | Path | Purpose |
 | --- | --- | --- | --- |
-| available | KayKit Medieval Hexagon FREE | `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE` | FREE source pack for guide extraction, generated assets, and manifest audits. |
-| available | KayKit Medieval Hexagon EXTRA | `references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA` | Purchased local-only EXTRA pack for category and guide visual coverage. |
-| available | Kenney Castle Kit | `references/kenney_castle-kit` | Third-party compatibility fixture for non-hex props, structures, and warnings. |
-| available | KayKit Adventurers FREE | `references/KayKit_Adventurers_2.0_FREE` | Animated actor fixture for facing, spawn, and SimpleRPG local-asset coverage. |
+| missing | KayKit Medieval Hexagon FREE | `references/KayKit_Medieval_Hexagon_Pack_1.0_FREE` | FREE source pack for guide extraction, generated assets, and manifest audits. |
+| missing | KayKit Medieval Hexagon EXTRA | `references/KayKit_Medieval_Hexagon_Pack_1.0_EXTRA` | Purchased local-only EXTRA pack for category and guide visual coverage. |
+| missing | Kenney Castle Kit | `references/kenney_castle-kit` | Third-party compatibility fixture for non-hex props, structures, and warnings. |
+| missing | KayKit Adventurers FREE | `references/KayKit_Adventurers_2.0_FREE` | Animated actor fixture for facing, spawn, and SimpleRPG local-asset coverage. |
 
 ## Release Checks
 
 | Status | Command | Summary |
 | --- | --- | --- |
-| passed | `pnpm lint` | Biome lint over src/, tests/, scripts/, and the Sourcey docs workspace. |
-| passed | `pnpm typecheck` | Strict TypeScript validation for runtime, tests, scripts, and examples. |
-| passed | `pnpm build` | tsup multi-entry ESM build — chunks + DTS + CLI shebang + asset copies. |
-| passed | `pnpm test` | Full vitest suite — unit + integration + contract specs (the migrated former scripts/audit-*.ts checks). |
-| passed | `pnpm test:coverage:enforce` | vitest with v8 coverage gated against the ratchet thresholds in vitest.coverage.shared.ts. |
-| passed | `pnpm test:browser:free` | vitest-browser FREE-pack visual snapshot suite against bootstrap-fetched KayKit GLTFs under Chromium. |
-| passed | `pnpm docs:build` | Sourcey docs build — generates compact TypeDoc module reference pages and validates every hand-written guide. |
-| passed | `npm pack --dry-run` | Release-time tarball dry run — emits the publish whitelist + asset inclusion bounds for the published package contract. |
+| not-run | `pnpm lint` | Biome lint over src/, tests/, scripts/, and the Sourcey docs workspace. |
+| not-run | `pnpm typecheck` | Strict TypeScript validation for runtime, tests, scripts, and examples. |
+| not-run | `pnpm build` | tsup multi-entry ESM build — chunks + DTS + CLI shebang + asset copies. |
+| not-run | `pnpm test` | Full vitest suite — unit + integration + contract specs (the migrated former scripts/audit-*.ts checks). |
+| not-run | `pnpm test:coverage:enforce` | vitest with v8 coverage gated against the ratchet thresholds in vitest.coverage.shared.ts. |
+| not-run | `pnpm test:browser:free` | vitest-browser FREE-pack visual snapshot suite against bootstrap-fetched KayKit GLTFs under Chromium. |
+| not-run | `pnpm docs:build` | Sourcey docs build — generates compact TypeDoc module reference pages and validates every hand-written guide. |
+| not-run | `npm pack --dry-run` | Release-time tarball dry run — emits the publish whitelist + asset inclusion bounds for the published package contract. |
 
 ## Visual Artifacts
 
