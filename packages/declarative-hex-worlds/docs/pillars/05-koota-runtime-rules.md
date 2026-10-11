@@ -1,6 +1,6 @@
 ---
 status: implemented
-last_verified: 2026-06-25
+last_verified: 2026-10-11
 source_images:
   - docs/assets/showcases/simple-rpg-seeded-completed.png
   - docs/assets/showcases/simple-rpg-fixed-completed.png
@@ -102,6 +102,12 @@ the state as a deterministic placement list.
 - `TileConnectivity`: road, river, and coast edge masks plus guide modifiers.
 - `TileRenderState`: texture set.
 - `TileTagList`: generated tags used by consumers and tests.
+- `TileBiome`: the tile's open, game-owned biome string. Attached only to
+  tiles that have one; independent of `TileTerrain`, so road, river or hill
+  changes never overwrite it.
+- `TileFields`: named finite numeric channels (slope, wetness, soil depth)
+  that layout criteria read through `fields` bands. Attached only to tiles
+  that have them.
 
 The legacy `HexTileState` remains as a convenient aggregate view, but new rule
 logic should query the decomposed traits.

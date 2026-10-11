@@ -580,6 +580,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "TileBiome",
+  },
+  {
+    "kind": "function",
     "name": "TileConnectivity",
   },
   {
@@ -589,6 +593,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "TileElevation",
+  },
+  {
+    "kind": "function",
+    "name": "TileFields",
   },
   {
     "kind": "function",
@@ -668,6 +676,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "applyTerrainHexesToPlan",
+  },
+  {
+    "kind": "function",
     "name": "applyTileDeclaration",
   },
   {
@@ -681,6 +693,14 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "assertGameboardScenarioSimulationExpectations",
+  },
+  {
+    "kind": "function",
+    "name": "assertGameboardTileBiome",
+  },
+  {
+    "kind": "function",
+    "name": "assertGameboardTileFields",
   },
   {
     "kind": "function",
@@ -1120,6 +1140,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "describeGameboardTileFieldsProblem",
+  },
+  {
+    "kind": "function",
     "name": "describeKayKitAssetTreatment",
   },
   {
@@ -1476,6 +1500,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "isGameboardTileBiome",
+  },
+  {
+    "kind": "function",
     "name": "isKnownExtraAssetId",
   },
   {
@@ -1584,6 +1612,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "mergeGameboardTileFields",
+  },
+  {
+    "kind": "function",
     "name": "minHeapCreate",
   },
   {
@@ -1629,6 +1661,10 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   {
     "kind": "function",
     "name": "normalizeGameboardLayoutArchetypeRegistry",
+  },
+  {
+    "kind": "function",
+    "name": "normalizeGameboardTileFields",
   },
   {
     "kind": "function",
@@ -2044,7 +2080,15 @@ exports[`public API surface (PRD E2) > snapshot of every umbrella export name + 
   },
   {
     "kind": "function",
+    "name": "setTileBiome",
+  },
+  {
+    "kind": "function",
     "name": "setTileElevation",
+  },
+  {
+    "kind": "function",
+    "name": "setTileFields",
   },
   {
     "kind": "function",

@@ -16,3 +16,5 @@ export * from './plan';
 export * from './gameboard';
 export * from './navigation';
 export * from './occupancy';
+export * from './terrain-hexes';
+export * from './tile-values';

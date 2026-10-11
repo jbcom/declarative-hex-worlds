@@ -90,6 +90,8 @@ export type GameboardRecipeStep =
   | SetTileAssetRecipeStep
   | SetElevationRecipeStep
   | SetTextureSetRecipeStep
+  | SetBiomeRecipeStep
+  | SetFieldsRecipeStep
   | SetCoastEdgesRecipeStep
   | AddRoadPathRecipeStep
   | AddRiverPathRecipeStep
@@ -154,6 +156,36 @@ export interface SetTextureSetRecipeStep {
   at: HexCoordinates;
   /** KayKit texture set to apply to the tile. */
   textureSet: TextureSet;
+}
+
+/**
+ * Recipe step that stores an open, game-owned biome on one hex. The biome is
+ * independent of terrain: later road, river, hill, forest and mountain steps
+ * never overwrite it.
+ */
+export interface SetBiomeRecipeStep {
+  /** Discriminator for biome assignment. */
+  action: 'setBiome';
+  /** Target hex coordinate. */
+  at: HexCoordinates;
+  /** Non-empty biome id; the library does not enumerate or interpret it. */
+  biome: string;
+}
+
+/**
+ * Recipe step that stores named numeric channels (slope, wetness, soil depth,
+ * ...) on one hex. Values merge into the tile's existing fields unless
+ * `replace` is set. Like the biome, fields survive later terrain steps.
+ */
+export interface SetFieldsRecipeStep {
+  /** Discriminator for field assignment. */
+  action: 'setFields';
+  /** Target hex coordinate. */
+  at: HexCoordinates;
+  /** Finite numbers keyed by open field names. */
+  fields: Readonly<Record<string, number>>;
+  /** Replace the tile's whole field store instead of merging into it. */
+  replace?: boolean;
 }
 
 /** Recipe step that records coastal water edge connectivity for one hex. */
@@ -608,6 +640,10 @@ export function applyRecipeStep(builder: GameboardBuilder, step: GameboardRecipe
       return builder.setElevation(step.at, step.elevation);
     case 'setTextureSet':
       return builder.setTextureSet(step.at, step.textureSet);
+    case 'setBiome':
+      return builder.setBiome(step.at, step.biome);
+    case 'setFields':
+      return builder.setFields(step.at, step.fields, { replace: step.replace });
     case 'setCoastEdges':
       return builder.setCoastEdges(step.at, step.waterEdges, { waterless: step.waterless });
     case 'addRoadPath':
@@ -871,11 +907,15 @@ function cloneRecipeStep<T extends GameboardRecipeStep>(step: T): T {
     } as T;
   }
   if (step.action === 'setTileAsset') {
-    const cloned = { ...step, at: { ...step.at } } as T & { tags?: string[] };
-    if (step.tags) {
-      cloned.tags = [...step.tags];
-    }
-    return cloned as T;
+    return {
+      ...step,
+      at: { ...step.at },
+      ...(step.tags ? { tags: [...step.tags] } : {}),
+      ...(step.fields ? { fields: { ...step.fields } } : {}),
+    } as T;
+  }
+  if (step.action === 'setFields') {
+    return { ...step, at: { ...step.at }, fields: { ...step.fields } } as T;
   }
   if ('at' in step) {
     const cloned = { ...step, at: { ...step.at } } as T & {
@@ -996,6 +1036,15 @@ function cloneLayoutCriteria<T extends NonNullable<GameboardLayoutFillRule['crit
     ...criteria,
     terrain: Array.isArray(criteria.terrain) ? [...criteria.terrain] : criteria.terrain,
     excludeTerrain: Array.isArray(criteria.excludeTerrain) ? [...criteria.excludeTerrain] : criteria.excludeTerrain,
+    biome: Array.isArray(criteria.biome) ? [...criteria.biome] : criteria.biome,
+    excludeBiome: Array.isArray(criteria.excludeBiome) ? [...criteria.excludeBiome] : criteria.excludeBiome,
+    requiredAdjacentBiome: Array.isArray(criteria.requiredAdjacentBiome)
+      ? [...criteria.requiredAdjacentBiome]
+      : criteria.requiredAdjacentBiome,
+    forbiddenAdjacentBiome: Array.isArray(criteria.forbiddenAdjacentBiome)
+      ? [...criteria.forbiddenAdjacentBiome]
+      : criteria.forbiddenAdjacentBiome,
+    fields: criteria.fields?.map((band) => ({ ...band })),
     elevation: Array.isArray(criteria.elevation) ? [...criteria.elevation] : criteria.elevation,
     tileTags: criteria.tileTags ? [...criteria.tileTags] : undefined,
     excludeTileTags: criteria.excludeTileTags ? [...criteria.excludeTileTags] : undefined,

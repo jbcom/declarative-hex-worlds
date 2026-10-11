@@ -376,7 +376,10 @@ ground under each — mean height, the lowest and highest sampled height, mean
 slope, biome shares and the dominant biome — from a fixed 19-point pattern
 that reaches 95 % of the way to the hexagon's corners and edges, scaled by the
 geometry's width and depth. Feed those into movement costs, cover and line of
-sight.
+sight, or write them onto a gameboard plan's tiles with
+`applyTerrainHexesToPlan` (from `declarative-hex-worlds/gameboard`), which
+stores any of them as named tile `fields` and can set the tile `biome` from
+`dominantBiome`; see [Tile biomes and fields](/features/tile-biomes-and-fields/).
 
 ## Determinism
 

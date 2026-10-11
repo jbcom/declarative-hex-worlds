@@ -79,6 +79,10 @@ export const HexTileState = trait({
   coastWaterless: false,
   /** Free-form taxonomy and generation tags. */
   tags: () => [] as string[],
+  /** Game-owned open biome id, when the tile has one. */
+  biome: undefined as string | undefined,
+  /** Named finite numeric channels, when the tile has any. */
+  fields: (): Readonly<Record<string, number>> | undefined => undefined,
 });
 
 /** Decomposed coordinate trait for systems that only need tile lookup data. */
@@ -135,6 +139,24 @@ export const TileRenderState = trait({
 
 /** Decomposed tag list trait used by selectors, recipes, and seeded generation. */
 export const TileTagList = trait(() => [] as string[]);
+
+/**
+ * Decomposed biome trait: the game-owned, open biome id of a tile. Attached
+ * only to tiles that have a biome, so `world.query(TileBiome)` selects exactly
+ * the biome-tagged tiles. Independent of `TileTerrain`: terrain features never
+ * overwrite it.
+ */
+export const TileBiome = trait({
+  /** Non-empty biome id; the library never enumerates or interprets it. */
+  biome: '',
+});
+
+/**
+ * Decomposed numeric-channel trait: named finite numbers a game computed for a
+ * tile (slope, wetness, soil depth, ...). Attached only to tiles that have
+ * fields. Layout criteria read it through `fields` bands.
+ */
+export const TileFields = trait(() => ({}) as Record<string, number>);
 
 /**
  * Runtime placement trait for terrain overlays, structures, units, props, and

@@ -18,6 +18,7 @@ Screenshot embedding lands once the F-Gallery test harness flips on with the RB 
 | [Harbors](/features/harbors/) | Fixed gameboard composition with water + piers + village settlement |
 | [Bridges and connectors](/features/bridges-and-connectors/) | Procedural seed-stable bridges across rivers |
 | [Multi-depth stacks](/features/multi-depth-stacks/) | Cliffs, plateaus, layered biomes via per-tile depth |
+| [Tile biomes and fields](/features/tile-biomes-and-fields/) | An open biome string and numeric channels per tile, kept across spawn and projection |
 | [Tile injection](/features/tile-injection/) | Mutate tile state at runtime via commands |
 | [Prop injection](/features/prop-injection/) | Add decorative or interactive props after build |
 | [Pieces and actors](/features/pieces-and-actors/) | Player + NPCs + props with team / hostility / interaction metadata |

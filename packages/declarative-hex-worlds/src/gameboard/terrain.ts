@@ -87,6 +87,7 @@ export function freezeGameboardTile(tile: MutableGameboardTileSpec): GameboardTi
     ...tile,
     coordinates: { ...tile.coordinates },
     tags: [...tile.tags],
+    ...(tile.fields === undefined ? {} : { fields: { ...tile.fields } }),
   };
 }
 
