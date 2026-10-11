@@ -21,6 +21,7 @@ Screenshot embedding lands once the F-Gallery test harness flips on with the RB 
 | [Tile biomes and fields](/features/tile-biomes-and-fields/) | An open biome string and numeric channels per tile, kept across spawn and projection |
 | [Seeded biome regions](/features/biome-regions/) | Connected environmental regions, capped patchwork fields with recorded ids, protected campaign pins, explicit or seeded sources |
 | [Hex biomes as seamless ground](/features/hex-biome-field/) | Assigned tile biomes projected into normalized, softened render weights |
+| [Camera framing](/features/camera-framing/) | Physical bounds fitted to viewport aspect and an authored view direction |
 | [Tile injection](/features/tile-injection/) | Mutate tile state at runtime via commands |
 | [Prop injection](/features/prop-injection/) | Add decorative or interactive props after build |
 | [Pieces and actors](/features/pieces-and-actors/) | Player + NPCs + props with team / hostility / interaction metadata |

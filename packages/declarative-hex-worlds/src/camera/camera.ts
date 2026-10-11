@@ -52,6 +52,10 @@ export interface CameraState {
   readonly padding?: number;
   /** Field of view in radians for perspective projection (default ~50°). */
   readonly fov?: number;
+  /** Viewport width / height; finite and positive (default 1). */
+  readonly aspect?: number;
+  /** Direction from target towards eye, normalized internally; overrides angle. */
+  readonly eyeDirection?: WorldPosition;
 }
 
 /** The default game camera: isometric, orthographic, framing the whole board. */
@@ -91,7 +95,12 @@ const DEFAULT_FOV = (50 * Math.PI) / 180;
 export function computeBoardBounds(tiles: readonly GameboardTileSpec[]): BoardBounds {
   if (tiles.length === 0) {
     const zero: WorldPosition = { x: 0, y: 0, z: 0 };
-    return { min: zero, max: { x: 1, y: 1, z: 1 }, center: { x: 0.5, y: 0.5, z: 0.5 }, size: { x: 1, y: 1, z: 1 } };
+    return {
+      min: zero,
+      max: { x: 1, y: 1, z: 1 },
+      center: { x: 0.5, y: 0.5, z: 0.5 },
+      size: { x: 1, y: 1, z: 1 },
+    };
   }
   let minX = Number.POSITIVE_INFINITY;
   let minY = Number.POSITIVE_INFINITY;
@@ -118,7 +127,7 @@ export function computeBoardBounds(tiles: readonly GameboardTileSpec[]): BoardBo
   };
 }
 
-/** Unit look-direction (from eye toward target) for a view angle, in world space. */
+/** Unit direction from target towards eye for a view angle, in world space. */
 function eyeDirectionForAngle(angle: CameraAngle): WorldPosition {
   switch (angle) {
     case 'top-down':
@@ -133,12 +142,12 @@ function eyeDirectionForAngle(angle: CameraAngle): WorldPosition {
 }
 
 function normalize(v: WorldPosition): WorldPosition {
-  const raw = Math.hypot(v.x, v.y, v.z);
-  // Guard a zero-length vector. No CameraAngle direction is all-zero, so the
-  // fallback is defensive only — exclude it from the branch gate.
-  /* v8 ignore next */
-  const length = raw === 0 ? 1 : raw;
-  return { x: v.x / length, y: v.y / length, z: v.z / length };
+  const scale = Math.max(Math.abs(v.x), Math.abs(v.y), Math.abs(v.z));
+  if (!Number.isFinite(scale) || scale === 0) {
+    throw new RangeError('Camera eyeDirection must be finite and nonzero');
+  }
+  const length = Math.hypot(v.x / scale, v.y / scale, v.z / scale);
+  return { x: v.x / scale / length, y: v.y / scale / length, z: v.z / scale / length };
 }
 
 /**
@@ -154,14 +163,59 @@ export function computeCameraFraming(
 ): CameraFraming {
   const padding = state.padding ?? DEFAULT_PADDING;
   const fov = state.fov ?? DEFAULT_FOV;
-  // The board's on-plane radius drives framing. Use the larger of x/z half-extents.
-  const planeHalf = Math.max(bounds.size.x, bounds.size.z) / 2 || 0.5;
-  const paddedHalf = state.fit === 'frame-board' ? planeHalf * (1 + padding) : planeHalf;
-  // Ortho half-height frames the plane extent (plus elevation headroom).
-  const orthoHalfHeight = paddedHalf + bounds.size.y / 2;
-  // Perspective distance so the padded extent subtends the vertical FOV.
-  const distance = orthoHalfHeight / Math.tan(fov / 2);
-  const dir = eyeDirectionForAngle(state.angle);
+  const aspect = state.aspect ?? 1;
+  if (!Number.isFinite(aspect) || aspect <= 0) {
+    throw new RangeError('Camera aspect must be finite and positive');
+  }
+  if (!Number.isFinite(fov) || fov <= 0 || fov >= Math.PI) {
+    throw new RangeError('Camera fov must be between zero and pi');
+  }
+  if (!Number.isFinite(padding) || padding < 0) {
+    throw new RangeError('Camera padding must be finite and nonnegative');
+  }
+  const dir = state.eyeDirection
+    ? normalize(state.eyeDirection)
+    : eyeDirectionForAngle(state.angle);
+  const horizontal = Math.hypot(dir.x, dir.z);
+  const right =
+    horizontal > 0 ? { x: dir.z / horizontal, y: 0, z: -dir.x / horizontal } : { x: 1, y: 0, z: 0 };
+  // With world Y up, up = eyeDirection × right; poles use a north-facing basis.
+  const up = {
+    x: dir.y * right.z,
+    y: dir.z * right.x - dir.x * right.z,
+    z: -dir.y * right.x,
+  };
+  const factor = state.fit === 'frame-board' ? 1 + padding : 1;
+  const tanVertical = Math.tan(fov / 2);
+  let projectedWidth = 0;
+  let projectedHeight = 0;
+  let distance = 0;
+  let nearestDepth = Number.NEGATIVE_INFINITY;
+  for (const x of [bounds.min.x, bounds.max.x]) {
+    for (const y of [bounds.min.y, bounds.max.y]) {
+      for (const z of [bounds.min.z, bounds.max.z]) {
+        const dx = x - bounds.center.x;
+        const dy = y - bounds.center.y;
+        const dz = z - bounds.center.z;
+        const width = Math.abs(dx * right.x + dy * right.y + dz * right.z);
+        const height = Math.abs(dx * up.x + dy * up.y + dz * up.z);
+        const depth = dx * dir.x + dy * dir.y + dz * dir.z;
+        projectedWidth = Math.max(projectedWidth, width);
+        projectedHeight = Math.max(projectedHeight, height);
+        nearestDepth = Math.max(nearestDepth, depth);
+        // A near corner subtends more of the view than the box's center does.
+        distance = Math.max(
+          distance,
+          depth + factor * Math.max(width / (tanVertical * aspect), height / tanVertical)
+        );
+      }
+    }
+  }
+  const orthoHalfHeight = factor * (Math.max(projectedHeight, projectedWidth / aspect) || 0.5);
+  distance = Math.max(
+    distance || orthoHalfHeight / tanVertical,
+    nearestDepth + Math.max(1e-6, orthoHalfHeight * 1e-6)
+  );
   const position: WorldPosition = {
     x: bounds.center.x + dir.x * distance,
     y: bounds.center.y + dir.y * distance,
