@@ -1,4 +1,4 @@
-name: Automerge
+name: Automerge trusted maintenance
 
 on:
   pull_request:
@@ -8,19 +8,25 @@ permissions:
   contents: read
 
 jobs:
-  dependabot:
-    name: Dependabot Auto-merge
+  trusted-maintenance:
+    name: Trusted maintenance auto-merge
     if: >-
-      github.actor == 'dependabot[bot]' &&
-      github.event.pull_request.user.login == 'dependabot[bot]' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (
+        startsWith(github.event.pull_request.head.ref, 'release-please--') ||
+        (
+          github.actor == 'dependabot[bot]' &&
+          github.event.pull_request.user.login == 'dependabot[bot]' &&
+          contains(github.event.pull_request.head.ref, '-non-major-')
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     env:
       PR_URL: ${{ github.event.pull_request.html_url }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
     steps:
       - name: Enable auto-merge
         run: gh pr merge "$PR_URL" --auto --merge

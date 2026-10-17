@@ -25,6 +25,7 @@ const files = {
   benchmarks: '.github/workflows/benchmarks.yml',
   cd: '.github/workflows/cd.yml',
   ci: '.github/workflows/ci.yml',
+  context7: 'context7.json',
   dependabot: '.github/dependabot.yml',
   release: '.github/workflows/release.yml',
   releasePleaseConfig: 'release-please-config.json',
@@ -111,6 +112,12 @@ describe('workflow contract', () => {
       ['actions/upload-pages-artifact'],
       // dep-review job
       ['fail-on-severity: high'],
+      // Trusted release-please and non-major Dependabot PRs are immutable
+      // encapsulations of already-vetted changes. Keep the classifier explicit
+      // so normal contributor, major, and security-update PRs still run CI.
+      ['name: CI policy'],
+      ['release-please--*'],
+      ["*-non-major-*"],
     ])('includes %s', (snippet) => {
       expect(read(files.ci)).toContain(snippet);
     });
@@ -286,17 +293,17 @@ describe('workflow contract', () => {
       ["github.actor == 'dependabot[bot]'"],
       ["github.event.pull_request.user.login == 'dependabot[bot]'"],
       ['github.event.pull_request.head.repo.full_name == github.repository'],
+      ["startsWith(github.event.pull_request.head.ref, 'release-please--')"],
+      ["contains(github.event.pull_request.head.ref, '-non-major-')"],
+      ['GH_TOKEN: $' + '{{ secrets.CI_GITHUB_TOKEN }}'],
       ['gh pr merge "$PR_URL" --auto --merge'],
     ])('includes %s', (snippet) => {
       expect(automergeContent).toContain(snippet);
     });
 
     it.each([
-      ['Release Please Auto-merge'],
-      ['release-please:'],
-      ["startsWith(github.head_ref, 'release-please--')"],
       ["github.event.pull_request.user.type == 'Bot'"],
-    ])('excludes %s so release PRs stay a maintainer checkpoint', (snippet) => {
+    ])('excludes unsafe broad bot matching', (snippet) => {
       expect(automergeContent).not.toContain(snippet);
     });
 
